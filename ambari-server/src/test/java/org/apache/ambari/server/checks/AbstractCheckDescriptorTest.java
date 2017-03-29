@@ -128,7 +128,7 @@ public class AbstractCheckDescriptorTest {
 
     Assert.assertEquals("", check.formatEntityList(null));
 
-    final LinkedHashSet<String> failedOn = new LinkedHashSet<String>();
+    final LinkedHashSet<String> failedOn = new LinkedHashSet<>();
     Assert.assertEquals("", check.formatEntityList(failedOn));
 
     failedOn.add("host1");

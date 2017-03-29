@@ -61,10 +61,10 @@ public class PropertyInfo {
 
   @XmlElement(name = "property-type")
   @XmlList
-  private Set<PropertyType> propertyTypes = new HashSet<PropertyType>();
+  private Set<PropertyType> propertyTypes = new HashSet<>();
 
   @XmlAnyElement
-  private List<Element> propertyAttributes = new ArrayList<Element>();
+  private List<Element> propertyAttributes = new ArrayList<>();
 
   @XmlElement(name = "value-attributes")
   private ValueAttributesInfo propertyValueAttributes =
@@ -73,11 +73,11 @@ public class PropertyInfo {
   @XmlElementWrapper(name="depends-on")
   @XmlElement(name = "property")
   private Set<PropertyDependencyInfo> dependsOnProperties =
-    new HashSet<PropertyDependencyInfo>();
+    new HashSet<>();
 
   @XmlElementWrapper(name="property_depended_by")
   private Set<PropertyDependencyInfo> dependedByProperties =
-    new HashSet<PropertyDependencyInfo>();
+    new HashSet<>();
 
   /**
    * The list of properties that use this property.
@@ -178,7 +178,7 @@ public class PropertyInfo {
   }
 
   public Map<String, String> getAttributesMap() {
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
     for (Element propertyAttribute : propertyAttributes) {
       attributes.put(propertyAttribute.getTagName(), propertyAttribute.getFirstChild().getNodeValue());
     }

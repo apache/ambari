@@ -58,7 +58,7 @@ public class CategoryIsEmptyPredicateTest {
 
     Assert.assertTrue(predicate.evaluate(resource));
 
-    Map<String, String> mapProperty = new HashMap<String, String>();
+    Map<String, String> mapProperty = new HashMap<>();
 
     resource.setProperty(propertyId, mapProperty);
     Assert.assertTrue(predicate.evaluate(resource));

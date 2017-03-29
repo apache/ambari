@@ -49,7 +49,7 @@ public class EventImplTest {
 
   @Test
   public void testGetProperties() throws Exception {
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put("p1", "v1");
     properties.put("p2", "v2");
 

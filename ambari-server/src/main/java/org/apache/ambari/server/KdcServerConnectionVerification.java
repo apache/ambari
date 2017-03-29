@@ -134,7 +134,7 @@ public class KdcServerConnectionVerification {
     config.setUseUdp(ConnectionProtocol.UDP == connectionProtocol);
     config.setTimeout(timeoutMillis);
 
-    FutureTask<Boolean> future = new FutureTask<Boolean>(new Callable<Boolean>() {
+    FutureTask<Boolean> future = new FutureTask<>(new Callable<Boolean>() {
       @Override
       public Boolean call() {
         Boolean success;
@@ -146,8 +146,8 @@ public class KdcServerConnectionVerification {
           connection.getTgt("noUser@noRealm", "noPassword");
 
           LOG.info(String.format("Encountered no Exceptions while testing connectivity to the KDC:\n" +
-                  "**** Host: %s:%d (%s)",
-              server, port, connectionProtocol.name()));
+              "**** Host: %s:%d (%s)",
+            server, port, connectionProtocol.name()));
           success = true;
         } catch (KerberosException e) {
           KrbError error = e.getError();
@@ -155,11 +155,10 @@ public class KdcServerConnectionVerification {
 
           String errorCodeMessage;
           int errorCodeCode;
-          if(errorCode != null) {
+          if (errorCode != null) {
             errorCodeMessage = errorCode.getMessage();
             errorCodeCode = errorCode.getValue();
-          }
-          else {
+          } else {
             errorCodeMessage = "<Not Specified>";
             errorCodeCode = -1;
           }
@@ -167,10 +166,10 @@ public class KdcServerConnectionVerification {
           // unfortunately, need to look at msg as error 60 is a generic error code
           //todo: evaluate other error codes to provide better information
           //todo: as there may be other error codes where we should return false
-          success  = !(errorCodeCode == ErrorType.KRB_ERR_GENERIC.getValue() &&
-              errorCodeMessage.contains("TimeOut"));
+          success = !(errorCodeCode == ErrorType.KRB_ERR_GENERIC.getValue() &&
+            errorCodeMessage.contains("TimeOut"));
 
-          if(!success || LOG.isDebugEnabled()) {
+          if (!success || LOG.isDebugEnabled()) {
             KerberosMessageType messageType = error.getMessageType();
 
             String messageTypeMessage;
@@ -184,12 +183,12 @@ public class KdcServerConnectionVerification {
             }
 
             String message = String.format("Received KerberosException while testing connectivity to the KDC: %s\n" +
-                    "**** Host:    %s:%d (%s)\n" +
-                    "**** Error:   %s\n" +
-                    "**** Code:    %d (%s)\n" +
-                    "**** Message: %d (%s)",
-                e.getLocalizedMessage(), server, port, connectionProtocol.name(), error.getEText(), errorCodeCode,
-                errorCodeMessage, messageTypeCode, messageTypeMessage);
+                "**** Host:    %s:%d (%s)\n" +
+                "**** Error:   %s\n" +
+                "**** Code:    %d (%s)\n" +
+                "**** Message: %d (%s)",
+              e.getLocalizedMessage(), server, port, connectionProtocol.name(), error.getEText(), errorCodeCode,
+              errorCodeMessage, messageTypeCode, messageTypeMessage);
 
             if (LOG.isDebugEnabled()) {
               LOG.info(message, e);
@@ -199,7 +198,7 @@ public class KdcServerConnectionVerification {
           }
         } catch (Throwable e) {
           LOG.info(String.format("Received Exception while testing connectivity to the KDC: %s\n**** Host: %s:%d (%s)",
-              e.getLocalizedMessage(), server, port, connectionProtocol.name()), e);
+            e.getLocalizedMessage(), server, port, connectionProtocol.name()), e);
 
           // some bad unexpected thing occurred
           throw new RuntimeException(e);

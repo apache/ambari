@@ -74,7 +74,7 @@ public class JpaSortBuilder<T> {
 
     CriteriaBuilder builder = visitor.getCriteriaBuilder();
     List<SortRequestProperty> sortProperties = sortRequest.getProperties();
-    List<Order> sortOrders = new ArrayList<Order>(sortProperties.size());
+    List<Order> sortOrders = new ArrayList<>(sortProperties.size());
 
     for (SortRequestProperty sort : sortProperties) {
       String propertyId = sort.getPropertyId();

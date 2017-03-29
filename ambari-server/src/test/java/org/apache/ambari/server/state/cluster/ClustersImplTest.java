@@ -36,7 +36,7 @@ public class ClustersImplTest {
   @Test
   public void testAddSessionAttributes() throws Exception {
 
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     Cluster cluster = createMock(Cluster.class);
@@ -54,7 +54,7 @@ public class ClustersImplTest {
 
   @Test
   public void testGetSessionAttributes() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     Cluster cluster = createMock(Cluster.class);

@@ -62,8 +62,8 @@ public abstract class BaseModule<T, I> implements StackDefinitionModule<T, I> {
   protected <T extends StackDefinitionModule<T, ?>> Collection<T> mergeChildModules(
       Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions, Map<String, T> modules, Map<String, T> parentModules)
         throws AmbariException {
-    Set<String> addedModules = new HashSet<String>();
-    Collection<T> mergedModules = new HashSet<T>();
+    Set<String> addedModules = new HashSet<>();
+    Collection<T> mergedModules = new HashSet<>();
 
     for (T module : modules.values()) {
       String id = module.getId();

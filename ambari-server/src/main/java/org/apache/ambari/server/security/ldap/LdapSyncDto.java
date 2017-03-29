@@ -27,12 +27,12 @@ public class LdapSyncDto {
   /**
    * LDAP groups.
    */
-  private Set<LdapGroupDto> groups = new HashSet<LdapGroupDto>();
+  private Set<LdapGroupDto> groups = new HashSet<>();
 
   /**
    * LDAP users.
    */
-  private Set<LdapUserDto> users = new HashSet<LdapUserDto>();
+  private Set<LdapUserDto> users = new HashSet<>();
 
   /**
    * Get the LDAP groups.

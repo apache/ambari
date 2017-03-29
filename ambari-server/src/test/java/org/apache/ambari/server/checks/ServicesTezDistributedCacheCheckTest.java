@@ -95,13 +95,13 @@ public class ServicesTezDistributedCacheCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("tez-site", desiredConfig);
     configMap.put("core-site", desiredConfig);
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
@@ -169,16 +169,16 @@ public class ServicesTezDistributedCacheCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("tez-site", desiredConfig);
     configMap.put("core-site", desiredConfig);
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
-    Map<String, String> checkProperties = new HashMap<String, String>();
+    Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put("dfs-protocols-regex","^([^:]*dfs|wasb|ecs):.*");
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(

@@ -200,11 +200,11 @@ public class HeartbeatTestHelper {
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     for(String hostName : hostNames) {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
@@ -230,7 +230,7 @@ public class HeartbeatTestHelper {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
             DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE, false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, clusters);
     db.persistActions(request);

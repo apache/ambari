@@ -30,7 +30,7 @@ import org.apache.ambari.server.controller.internal.URLStreamProvider;
 
 public class TestStreamProvider extends URLStreamProvider {
 
-  protected static Map<String, String> FILE_MAPPING = new HashMap<String, String>();
+  protected static Map<String, String> FILE_MAPPING = new HashMap<>();
 
   static {
     FILE_MAPPING.put("50070", "hdfs_namenode_jmx.json");

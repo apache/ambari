@@ -43,8 +43,8 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
   public static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootService", "service_name");
 
-  private Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { SERVICE_NAME_PROPERTY_ID }));
+  private Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{SERVICE_NAME_PROPERTY_ID}));
 
   protected RootServiceResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -57,7 +57,7 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RootServiceRequest> requests = new HashSet<RootServiceRequest>();
+    final Set<RootServiceRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -76,7 +76,7 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RootServiceResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RootService);

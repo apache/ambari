@@ -80,7 +80,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
    */
   AlertSummaryPropertyProvider(Resource.Type type,
       String clusterPropertyId, String typeIdPropertyId) {
-    super(ImmutableSet.<String> of(ALERTS_SUMMARY, ALERTS_SUMMARY_HOSTS));
+    super(ImmutableSet.of(ALERTS_SUMMARY, ALERTS_SUMMARY_HOSTS));
     m_resourceType = type;
     m_clusterPropertyId = clusterPropertyId;
     m_typeIdPropertyId = typeIdPropertyId;
@@ -99,9 +99,9 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
       //   (1) Cluster level alert-status counts
       //   (2) Per host alert-status counts
       // These can be determined in 1 SQL call per cluster, and results used multiple times.
-      Map<Long, Map<String, AlertSummaryDTO>> perHostSummaryMap = new HashMap<Long, Map<String, AlertSummaryDTO>>();
-      Map<Long, AlertHostSummaryDTO> hostsSummaryMap = new HashMap<Long, AlertHostSummaryDTO>();
-      Map<String, Cluster> resourcesClusterMap = new HashMap<String, Cluster>();
+      Map<Long, Map<String, AlertSummaryDTO>> perHostSummaryMap = new HashMap<>();
+      Map<Long, AlertHostSummaryDTO> hostsSummaryMap = new HashMap<>();
+      Map<String, Cluster> resourcesClusterMap = new HashMap<>();
       for (Resource res : resources) {
         String clusterName = (String) res.getPropertyValue(m_clusterPropertyId);
         if (clusterName == null || resourcesClusterMap.containsKey(clusterName)) {
@@ -193,7 +193,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
 
     // all alerts in the cluster, in summary count form
     if (null != summary) {
-      Map<String, Integer> map = new HashMap<String, Integer>();
+      Map<String, Integer> map = new HashMap<>();
       map.put(AlertState.OK.name(), Integer.valueOf(summary.getOkCount()));
       map.put(AlertState.WARNING.name(), Integer.valueOf(summary.getWarningCount()));
       map.put(AlertState.CRITICAL.name(), Integer.valueOf(summary.getCriticalCount()));
@@ -204,7 +204,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
 
     // the summary of hosts with warning or critical alerts
     if (null != hostSummary) {
-      Map<AlertState, Integer> map = new HashMap<AlertState, Integer>();
+      Map<AlertState, Integer> map = new HashMap<>();
       map.put(AlertState.OK, Integer.valueOf(hostSummary.getOkCount()));
       map.put(AlertState.WARNING, Integer.valueOf(hostSummary.getWarningCount()));
       map.put(AlertState.CRITICAL, Integer.valueOf(hostSummary.getCriticalCount()));
@@ -216,7 +216,7 @@ public class AlertSummaryPropertyProvider extends BaseProvider implements Proper
 
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    Set<String> rejects = new HashSet<String>();
+    Set<String> rejects = new HashSet<>();
 
     for (String id : propertyIds) {
       if (!id.startsWith(ALERTS_SUMMARY)) {

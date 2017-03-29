@@ -53,7 +53,7 @@ public class LdapSyncSpecEntityTest {
 
   @Test
   public void testGetPrincipalNames() throws Exception {
-    List<String> names = new LinkedList<String>();
+    List<String> names = new LinkedList<>();
     names.add("joe");
     names.add("fred");
 
@@ -72,7 +72,7 @@ public class LdapSyncSpecEntityTest {
       // expected
     }
 
-    List<String> names = new LinkedList<String>();
+    List<String> names = new LinkedList<>();
     names.add("joe");
     names.add("fred");
 

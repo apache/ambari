@@ -62,11 +62,11 @@ public class JsonSerializerTest {
     mapRootProps.put("prop2", "value2");
     mapRootProps.put("prop1", "value1");
 
-    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);
@@ -112,15 +112,15 @@ public class JsonSerializerTest {
     resourcesNode.addChild(resource, "resource1");
 
     // resource properties
-    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapRootProps = new LinkedHashMap<>();
     mapRootProps.put("prop2", "value2");
     mapRootProps.put("prop1", "value1");
 
-    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);
@@ -168,15 +168,15 @@ public class JsonSerializerTest {
     //child.addChild(resource2, "sub-resource");
 
     // resource properties
-    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapRootProps = new LinkedHashMap<>();
     mapRootProps.put("prop2", "value2");
     mapRootProps.put("prop1", "value1");
 
-    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);

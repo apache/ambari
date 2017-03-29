@@ -77,10 +77,10 @@ public class AndPredicateTest extends EasyMockSupport {
 
     verifyAll();
 
-    Map<String, Object> expectedMap = new HashMap<String, Object>();
-    expectedMap.put("and", new ArrayList<Map<String, Object>>(
-        Arrays.asList(Collections.<String, Object>singletonMap("nop", "foo"),
-            Collections.<String, Object>singletonMap("nop", "baz"))
+    Map<String, Object> expectedMap = new HashMap<>();
+    expectedMap.put("and", new ArrayList<>(
+      Arrays.asList(Collections.<String, Object>singletonMap("nop", "foo"),
+        Collections.<String, Object>singletonMap("nop", "baz"))
     ));
 
     Assert.assertEquals(expectedMap, actualMap);

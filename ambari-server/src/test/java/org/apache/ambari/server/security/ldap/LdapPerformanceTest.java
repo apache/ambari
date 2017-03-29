@@ -87,11 +87,11 @@ public class LdapPerformanceTest {
     long time = System.currentTimeMillis();
     Set<LdapGroupDto> groups = populator.getExternalLdapGroupInfo();
     Set<LdapUserDto> users = populator.getExternalLdapUserInfo();
-    Set<String> userNames = new HashSet<String>();
+    Set<String> userNames = new HashSet<>();
     for (LdapUserDto user : users) {
       userNames.add(user.getUserName());
     }
-    Set<String> groupNames = new HashSet<String>();
+    Set<String> groupNames = new HashSet<>();
     for (LdapGroupDto group : groups) {
       groupNames.add(group.getGroupName());
     }

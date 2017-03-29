@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ActionDefinitionXml {
   
   @XmlElement(name="actionDefinition")
-  private List<ActionDefinitionSpec> actionDefinitions = new ArrayList<ActionDefinitionSpec>();
+  private List<ActionDefinitionSpec> actionDefinitions = new ArrayList<>();
   
   /**
    * @return the list of properties contained in a configuration file

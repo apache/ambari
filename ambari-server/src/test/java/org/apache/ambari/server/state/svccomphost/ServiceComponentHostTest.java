@@ -106,7 +106,7 @@ public class ServiceComponentHostTest {
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
-  private Map<String, String> hostAttributes = new HashMap<String, String>();
+  private Map<String, String> hostAttributes = new HashMap<>();
 
 
   @Before
@@ -120,7 +120,7 @@ public class ServiceComponentHostTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
 
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add(hostName1);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
@@ -145,7 +145,7 @@ public class ServiceComponentHostTest {
   private void addHostsToCluster(String clusterName, Map<String, String> hostAttributes, Set<String> hostNames) throws AmbariException {
     ClusterEntity clusterEntity = clusterDAO.findByName(clusterName);
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    List<HostEntity> hostEntities = new ArrayList<>();
     for (String hostName : hostNames) {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
@@ -660,7 +660,7 @@ public class ServiceComponentHostTest {
 
     // Test valid states in which host component can be disabled
     long timestamp = 0;
-    HashSet<State> validStates = new HashSet<State>();
+    HashSet<State> validStates = new HashSet<>();
     validStates.add(State.INSTALLED);
     validStates.add(State.INSTALL_FAILED);
     validStates.add(State.UNKNOWN);
@@ -678,7 +678,7 @@ public class ServiceComponentHostTest {
     }
 
     // Test invalid states in which host component cannot be disabled
-    HashSet<State> invalidStates = new HashSet<State>();
+    HashSet<State> invalidStates = new HashSet<>();
     invalidStates.add(State.INIT);
     invalidStates.add(State.INSTALLING);
     invalidStates.add(State.STARTING);
@@ -716,7 +716,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName);
 
     final String hostName = "h3";
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add(hostName);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
@@ -883,7 +883,7 @@ public class ServiceComponentHostTest {
 
     // Test actual configs are updated for deleted config group
     Long id = configGroup.getId();
-    HashMap<String, String> tags = new HashMap<String, String>(2);
+    HashMap<String, String> tags = new HashMap<>(2);
     tags.put("tag", "version1");
     tags.put(id.toString(), "version2");
     actual.put("core-site", tags);
@@ -910,7 +910,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName);
 
     final String hostName = "h3";
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add(hostName);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
@@ -977,7 +977,7 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
     // Now add config-attributes
-    Map<String, Map<String, String>> c1PropAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> c1PropAttributes = new HashMap<>();
     c1PropAttributes.put("final", new HashMap<String, String>());
     c1PropAttributes.get("final").put("hdfs1", "true");
     makeConfig(cluster, "hdfs-site", "version2",
@@ -992,7 +992,7 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
     // Now change config-attributes
-    Map<String, Map<String, String>> c2PropAttributes = new HashMap<String, Map<String,String>>();
+    Map<String, Map<String, String>> c2PropAttributes = new HashMap<>();
     c2PropAttributes.put("final", new HashMap<String, String>());
     c2PropAttributes.get("final").put("hdfs1", "false");
     makeConfig(cluster, "hdfs-site", "version3",
@@ -1040,7 +1040,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName);
 
     final String hostName = "h3";
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add(hostName);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
@@ -1087,7 +1087,7 @@ public class ServiceComponentHostTest {
     createCluster(stackId, clusterName);
 
     final String hostName = "h3";
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add(hostName);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 

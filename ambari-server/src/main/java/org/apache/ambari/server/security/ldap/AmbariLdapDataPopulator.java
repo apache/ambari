@@ -245,7 +245,7 @@ public class AmbariLdapDataPopulator {
    */
   public LdapBatchDto synchronizeLdapGroups(Set<String> groups, LdapBatchDto batchInfo) throws AmbariException {
     LOG.trace("Synchronize LDAP groups...");
-    final Set<LdapGroupDto> specifiedGroups = new HashSet<LdapGroupDto>();
+    final Set<LdapGroupDto> specifiedGroups = new HashSet<>();
     for (String group : groups) {
       Set<LdapGroupDto> groupDtos = getLdapGroups(group);
       if (groupDtos.isEmpty()) {
@@ -275,7 +275,7 @@ public class AmbariLdapDataPopulator {
    */
   public LdapBatchDto synchronizeLdapUsers(Set<String> users, LdapBatchDto batchInfo) throws AmbariException {
     LOG.trace("Synchronize LDAP users...");
-    final Set<LdapUserDto> specifiedUsers = new HashSet<LdapUserDto>();
+    final Set<LdapUserDto> specifiedUsers = new HashSet<>();
 
     for (String user : users) {
       Set<LdapUserDto> userDtos = getLdapUsers(user);
@@ -369,10 +369,10 @@ public class AmbariLdapDataPopulator {
   protected void refreshGroupMembers(LdapBatchDto batchInfo, LdapGroupDto group, Map<String, User> internalUsers,
                                      Map<String, Group> internalGroupsMap, Set<String> groupMemberAttributes, boolean recursive)
       throws AmbariException {
-    Set<String> externalMembers = new HashSet<String>();
+    Set<String> externalMembers = new HashSet<>();
 
     if (groupMemberAttributes == null) {
-      groupMemberAttributes = new HashSet<String>();
+      groupMemberAttributes = new HashSet<>();
     }
 
     for (String memberAttributeValue : group.getMemberAttributes()) {
@@ -623,7 +623,7 @@ public class AmbariLdapDataPopulator {
   }
 
   private Set<LdapGroupDto> getFilteredLdapGroups(String baseDn, Filter filter) {
-    final Set<LdapGroupDto> groups = new HashSet<LdapGroupDto>();
+    final Set<LdapGroupDto> groups = new HashSet<>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     LOG.trace("LDAP Group Query - Base DN: '{}' ; Filter: '{}'", baseDn, filter.encode());
     ldapTemplate.search(baseDn, filter.encode(),
@@ -651,7 +651,7 @@ public class AmbariLdapDataPopulator {
   }
 
   private Set<LdapUserDto> getFilteredLdapUsers(String baseDn, Filter filter) {
-    final Set<LdapUserDto> users = new HashSet<LdapUserDto>();
+    final Set<LdapUserDto> users = new HashSet<>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     PagedResultsDirContextProcessor processor = createPagingProcessor();
     SearchControls searchControls = new SearchControls();
@@ -682,7 +682,7 @@ public class AmbariLdapDataPopulator {
    */
   protected Map<String, Group> getInternalGroups() {
     final List<Group> internalGroups = users.getAllGroups();
-    final Map<String, Group> internalGroupsMap = new HashMap<String, Group>();
+    final Map<String, Group> internalGroupsMap = new HashMap<>();
     for (Group group : internalGroups) {
       internalGroupsMap.put(group.getGroupName(), group);
     }
@@ -696,7 +696,7 @@ public class AmbariLdapDataPopulator {
    */
   protected Map<String, User> getInternalUsers() {
     final List<User> internalUsers = users.getAllUsers();
-    final Map<String, User> internalUsersMap = new HashMap<String, User>();
+    final Map<String, User> internalUsersMap = new HashMap<>();
     LOG.trace("Get all users from Ambari Server.");
     for (User user : internalUsers) {
       internalUsersMap.put(user.getUserName(), user);
@@ -715,7 +715,7 @@ public class AmbariLdapDataPopulator {
     if (internalMembers == null) {
       return Collections.emptyMap();
     }
-    final Map<String, User> internalMembersMap = new HashMap<String, User>();
+    final Map<String, User> internalMembersMap = new HashMap<>();
     for (User user : internalMembers) {
       internalMembersMap.put(user.getUserName(), user);
     }

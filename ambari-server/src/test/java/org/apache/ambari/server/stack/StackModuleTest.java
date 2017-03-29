@@ -146,7 +146,7 @@ public class StackModuleTest {
       ServiceInfo serviceInfo = mock(ServiceInfo.class);
       when(serviceInfo.isValid()).thenReturn(true);
       when(serviceInfo.getName()).thenReturn(UUID.randomUUID().toString()); // unique service names
-      when(serviceMetainfoXml.getServices()).thenReturn(Lists.<ServiceInfo>newArrayList(serviceInfo));
+      when(serviceMetainfoXml.getServices()).thenReturn(Lists.newArrayList(serviceInfo));
       when(svd.getMetaInfoFile()).thenReturn(serviceMetainfoXml);
       serviceDirectories.add(svd);
     }

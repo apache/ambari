@@ -133,8 +133,8 @@ public class BootStrapResource {
   
   
   private void normalizeHosts(SshHostInfo info) {
-    List<String> validHosts = new ArrayList<String>();
-    List<String> newHosts = new ArrayList<String>();
+    List<String> validHosts = new ArrayList<>();
+    List<String> newHosts = new ArrayList<>();
     
     for (String host: info.getHosts()) {
       try {

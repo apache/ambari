@@ -29,7 +29,7 @@ import org.junit.Assert;
  * Test if DeadlockWarningThread can detect deadlocks properly
  */
 public class DeadlockedThreadsTest {
-  static Set<Thread> threads = new HashSet<Thread>();
+  static Set<Thread> threads = new HashSet<>();
   
   /**
    *

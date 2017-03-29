@@ -76,7 +76,7 @@ public class UpgradeGroupService extends BaseService {
    * @return the resource instance
    */
   private ResourceInstance createResourceInstance(Long groupId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, m_clusterName);
     mapIds.put(Resource.Type.Upgrade, m_upgradeId);
     mapIds.put(Resource.Type.Request, m_upgradeId);

@@ -62,7 +62,7 @@ public class StackManagerExtensionTest  {
     StackEntity stackEntity = createNiceMock(StackEntity.class);
     ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
     ExtensionLinkEntity linkEntity = createNiceMock(ExtensionLinkEntity.class);
-    List<ExtensionLinkEntity> list = new ArrayList<ExtensionLinkEntity>();
+    List<ExtensionLinkEntity> list = new ArrayList<>();
     list.add(linkEntity);
 
     expect(

@@ -267,7 +267,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new TreeMap<String, Object>();
+    Map<String, Object> map = new TreeMap<>();
 
     map.put("value", getValue());
     map.put("type", KerberosPrincipalType.translate(getType()));

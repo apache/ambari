@@ -203,8 +203,8 @@ public class MasterHostResolver {
       ServiceComponent sc = svc.getServiceComponent(component);
 
       // !!! not really a fan of passing these around
-      List<ServiceComponentHost> unhealthyHosts = new ArrayList<ServiceComponentHost>();
-      LinkedHashSet<String> upgradeHosts = new LinkedHashSet<String>();
+      List<ServiceComponentHost> unhealthyHosts = new ArrayList<>();
+      LinkedHashSet<String> upgradeHosts = new LinkedHashSet<>();
 
       for (String hostName : hostsType.hosts) {
         ServiceComponentHost sch = sc.getServiceComponentHost(hostName);
@@ -264,7 +264,7 @@ public class MasterHostResolver {
    * The hostnames are returned in lowercase.
    */
   private Map<Status, String> getNameNodePair() {
-    Map<Status, String> stateToHost = new HashMap<Status, String>();
+    Map<Status, String> stateToHost = new HashMap<>();
     Cluster cluster = getCluster();
 
     String nameService = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.HDFS_SITE, "dfs.internal.nameservices");
@@ -323,7 +323,7 @@ public class MasterHostResolver {
    * @throws MalformedURLException
    */
   private void resolveResourceManagers(Cluster cluster, HostsType hostType) throws MalformedURLException {
-    LinkedHashSet<String> orderedHosts = new LinkedHashSet<String>(hostType.hosts);
+    LinkedHashSet<String> orderedHosts = new LinkedHashSet<>(hostType.hosts);
 
     // IMPORTANT, for RM, only the master returns jmx
     String rmWebAppAddress = m_configHelper.getValueFromDesiredConfigurations(cluster, ConfigHelper.YARN_SITE, "yarn.resourcemanager.webapp.address");

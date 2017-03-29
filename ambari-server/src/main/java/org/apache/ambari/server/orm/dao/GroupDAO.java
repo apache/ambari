@@ -117,7 +117,7 @@ public class GroupDAO {
 
   @Transactional
   public void create(GroupEntity group) {
-    create(new HashSet<GroupEntity>(Arrays.asList(group)));
+    create(new HashSet<>(Arrays.asList(group)));
   }
 
   @Transactional

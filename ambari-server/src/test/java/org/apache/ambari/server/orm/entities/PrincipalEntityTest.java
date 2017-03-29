@@ -51,7 +51,7 @@ public class PrincipalEntityTest {
   @Test
   public void testSetGetPrivileges() throws Exception {
 
-    Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+    Set<PrivilegeEntity> privileges = new HashSet<>();
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
     privilegeEntity.setId(1);
     privileges.add(privilegeEntity);
@@ -68,7 +68,7 @@ public class PrincipalEntityTest {
   @Test
   public void testRemovePrivilege() throws Exception {
 
-    Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+    Set<PrivilegeEntity> privileges = new HashSet<>();
     PrivilegeEntity privilegeEntity1 = new PrivilegeEntity();
     privilegeEntity1.setId(1);
     privileges.add(privilegeEntity1);

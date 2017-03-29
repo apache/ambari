@@ -195,7 +195,7 @@ public class InMemoryCredentialStore extends AbstractCredentialStore {
     Lock lock = getLock();
     lock.lock();
     try {
-      return new HashSet<String>(cache.asMap().keySet());
+      return new HashSet<>(cache.asMap().keySet());
     } finally {
       lock.unlock();
     }

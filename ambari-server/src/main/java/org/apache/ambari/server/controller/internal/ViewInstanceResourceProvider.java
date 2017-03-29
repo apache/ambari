@@ -90,7 +90,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * The key property ids for a view instance resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
@@ -100,7 +100,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   /**
    * The property ids for a view instance resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
@@ -155,7 +155,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     ViewRegistry  viewRegistry = ViewRegistry.getInstance();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
@@ -225,7 +225,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 
@@ -261,7 +261,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
           viewInstanceEntity.getPropertyMap(), requestedIds);
     }
 
-    Map<String, String> applicationData = new HashMap<String, String>();
+    Map<String, String> applicationData = new HashMap<>();
 
     String currentUserName = viewInstanceEntity.getCurrentUserName();
     for (ViewInstanceDataEntity viewInstanceDataEntity : viewInstanceEntity.getData()) {
@@ -365,7 +365,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
       viewInstanceEntity.setClusterType(ClusterType.valueOf(clusterType));
     }
 
-    Map<String, String> instanceProperties = new HashMap<String, String>();
+    Map<String, String> instanceProperties = new HashMap<>();
 
     boolean isUserAdmin = viewRegistry.checkAdmin();
 
@@ -466,7 +466,7 @@ public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProv
         Set<String>  requestedIds = getRequestPropertyIds(PropertyHelper.getReadRequest(), predicate);
         ViewRegistry viewRegistry = ViewRegistry.getInstance();
 
-        Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<ViewInstanceEntity>();
+        Set<ViewInstanceEntity> viewInstanceEntities = new HashSet<>();
 
         for (ViewEntity viewEntity : viewRegistry.getDefinitions()){
           // the view must be in the DEPLOYED state to delete an instance

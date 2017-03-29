@@ -35,7 +35,7 @@ public class InstanceValidationResultImplTest {
   @Test
   public void testGetPropertyResults() throws Exception {
     ValidationResult result = new ValidationResultImpl(true, "detail");
-    Map<String, ValidationResult> propertyResults = new HashMap<String, ValidationResult>();
+    Map<String, ValidationResult> propertyResults = new HashMap<>();
 
     propertyResults.put("foo", new ValidationResultImpl(true, "foo detail"));
     propertyResults.put("bar", new ValidationResultImpl(false, "bar detail"));

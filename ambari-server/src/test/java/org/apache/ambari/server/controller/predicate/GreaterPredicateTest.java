@@ -36,7 +36,7 @@ public class GreaterPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    Predicate predicate = new GreaterPredicate<Integer>(propertyId, 10);
+    Predicate predicate = new GreaterPredicate<>(propertyId, 10);
 
     resource.setProperty(propertyId, 1);
     Assert.assertFalse(predicate.evaluate(resource));
@@ -61,7 +61,7 @@ public class GreaterPredicateTest {
   @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    GreaterPredicate predicate = new GreaterPredicate<Integer>(propertyId, 10);
+    GreaterPredicate predicate = new GreaterPredicate<>(propertyId, 10);
 
     Set<String> ids = predicate.getPropertyIds();
 
@@ -73,7 +73,7 @@ public class GreaterPredicateTest {
   public void testApplyWithSmallFloats() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    Predicate predicate = new GreaterPredicate<Double>(propertyId, 0.1);
+    Predicate predicate = new GreaterPredicate<>(propertyId, 0.1);
 
     resource.setProperty(propertyId, 1.3);
     Assert.assertTrue(predicate.evaluate(resource));

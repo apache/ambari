@@ -50,7 +50,7 @@ public class ServicesNamenodeTruncateCheckTest {
 
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
   private ServicesNamenodeTruncateCheck m_check = new ServicesNamenodeTruncateCheck();
-  private final Map<String, String> m_configMap = new HashMap<String, String>();
+  private final Map<String, String> m_configMap = new HashMap<>();
 
   @Before
   public void setup() throws Exception {

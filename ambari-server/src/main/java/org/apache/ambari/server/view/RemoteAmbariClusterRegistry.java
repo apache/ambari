@@ -42,7 +42,7 @@ import org.apache.ambari.view.AmbariHttpException;
 @Singleton
 public class RemoteAmbariClusterRegistry {
 
-  private ConcurrentHashMap<Long,RemoteAmbariCluster> clusterMap = new ConcurrentHashMap<Long,RemoteAmbariCluster>();
+  private ConcurrentHashMap<Long,RemoteAmbariCluster> clusterMap = new ConcurrentHashMap<>();
 
   @Inject
   private RemoteAmbariClusterDAO remoteAmbariClusterDAO;
@@ -108,7 +108,7 @@ public class RemoteAmbariClusterRegistry {
       throw new AmbariException("User must be Ambari or Cluster Adminstrator.");
     }
 
-    Collection<RemoteAmbariClusterServiceEntity> serviceEntities = new ArrayList<RemoteAmbariClusterServiceEntity>();
+    Collection<RemoteAmbariClusterServiceEntity> serviceEntities = new ArrayList<>();
 
     for (String service : services) {
       RemoteAmbariClusterServiceEntity serviceEntity = new RemoteAmbariClusterServiceEntity();

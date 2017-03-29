@@ -116,7 +116,7 @@ public class UserResourceProviderDBTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // create a new user viewUser
-        Map<String, Object> requestProperties = new HashMap<String, Object>();
+        Map<String, Object> requestProperties = new HashMap<>();
         requestProperties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, "viewUser");
         requestProperties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
         requestProperties.put(UserResourceProvider.USER_ADMIN_PROPERTY_ID, false);
@@ -127,7 +127,7 @@ public class UserResourceProviderDBTest {
         assertNotNull(requestStatus);
 
         // verify the created username
-        Request getRequest = PropertyHelper.getReadRequest(new HashSet<String>(Arrays.asList("Users")));
+        Request getRequest = PropertyHelper.getReadRequest(new HashSet<>(Arrays.asList("Users")));
         Predicate predicate = new PredicateBuilder()
                 .property(UserResourceProvider.USER_USERNAME_PROPERTY_ID).equals("viewUser").toPredicate();
         Set<Resource> resources = userResourceProvider.getResources(getRequest, predicate);
@@ -158,7 +158,7 @@ public class UserResourceProviderDBTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         /* add a new user */
-        Map<String, Object> requestProperties = new HashMap<String, Object>();
+        Map<String, Object> requestProperties = new HashMap<>();
         requestProperties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, "abcd");
         requestProperties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
         requestProperties.put(UserResourceProvider.USER_ADMIN_PROPERTY_ID, false);
@@ -186,7 +186,7 @@ public class UserResourceProviderDBTest {
         assertNotNull(requestStatus);
 
         // verify that the username was deleted
-        Request getRequest = PropertyHelper.getReadRequest(new HashSet<String>(Arrays.asList("Users")));
+        Request getRequest = PropertyHelper.getReadRequest(new HashSet<>(Arrays.asList("Users")));
         Set<Resource> resources = userResourceProvider.getResources(getRequest, null);
         assertEquals(resources.size(), 0);
     }
@@ -204,7 +204,7 @@ public class UserResourceProviderDBTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // create a new user viewUser
-        Map<String, Object> requestProperties = new HashMap<String, Object>();
+        Map<String, Object> requestProperties = new HashMap<>();
         requestProperties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, "viewUser");
         requestProperties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
         requestProperties.put(UserResourceProvider.USER_ADMIN_PROPERTY_ID, false);
@@ -215,7 +215,7 @@ public class UserResourceProviderDBTest {
         assertNotNull(requestStatus);
 
         // verify the created username
-        Request getRequest = PropertyHelper.getReadRequest(new HashSet<String>(Arrays.asList("Users")));
+        Request getRequest = PropertyHelper.getReadRequest(new HashSet<>(Arrays.asList("Users")));
         Predicate predicate = new PredicateBuilder()
                 .property(UserResourceProvider.USER_USERNAME_PROPERTY_ID).equals("viewuser").toPredicate();
         Set<Resource> resources = userResourceProvider.getResources(getRequest, predicate);
@@ -248,7 +248,7 @@ public class UserResourceProviderDBTest {
         List<String> userNames =  Arrays.asList("user1", "uSer2", "User3", "useR4");
 
         for (String userName : userNames) {
-            Map<String, Object> requestProperties = new HashMap<String, Object>();
+            Map<String, Object> requestProperties = new HashMap<>();
             requestProperties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, userName);
             requestProperties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
             requestProperties.put(UserResourceProvider.USER_ADMIN_PROPERTY_ID, false);
@@ -260,7 +260,7 @@ public class UserResourceProviderDBTest {
         }
 
         // verify the created username
-        Request getRequest = PropertyHelper.getReadRequest(new HashSet<String>(Arrays.asList("Users")));
+        Request getRequest = PropertyHelper.getReadRequest(new HashSet<>(Arrays.asList("Users")));
         Set<Resource> resources = userResourceProvider.getResources(getRequest, null);
         assertEquals(resources.size(), userNames.size());
         for (Resource resource : resources) {

@@ -170,7 +170,7 @@ public class StackManagerCommonServicesTest {
     Collection<ServiceInfo> services = stack.getServices();
     assertEquals(3, services.size());
 
-    Map<String, ServiceInfo> serviceMap = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> serviceMap = new HashMap<>();
     for (ServiceInfo service : services) {
       serviceMap.put(service.getName(), service);
     }

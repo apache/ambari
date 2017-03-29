@@ -63,7 +63,7 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {
@@ -103,7 +103,7 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
   }
 
   public synchronized Collection<ServiceInfo> getServices() {
-    if (services == null) services = new ArrayList<ServiceInfo>();
+    if (services == null) services = new ArrayList<>();
     return services;
   }
 
@@ -160,7 +160,7 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
     // The collection of service descriptor files. A Set is being used because some Kerberos descriptor
     // files contain multiple services, therefore the same File may be encountered more than once.
     // For example the YARN directory may contain YARN and MAPREDUCE2 services.
-    Collection<File> serviceDescriptorFiles = new HashSet<File>();
+    Collection<File> serviceDescriptorFiles = new HashSet<>();
     if (serviceInfos != null) {
       for (ServiceInfo serviceInfo : serviceInfos) {
         File file = serviceInfo.getKerberosDescriptorFile();

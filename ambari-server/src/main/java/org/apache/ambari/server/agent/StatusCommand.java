@@ -49,10 +49,10 @@ public class StatusCommand extends AgentCommand {
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams = new HashMap<String, String>();
+  private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("hostLevelParams")
-  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("hostname")
   private String hostname = null;

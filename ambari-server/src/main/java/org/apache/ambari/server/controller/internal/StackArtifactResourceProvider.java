@@ -111,18 +111,18 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   /**
    * primary key fields
    */
-  public static Set<String> pkPropertyIds = new HashSet<String>();
+  public static Set<String> pkPropertyIds = new HashSet<>();
 
   /**
    * map of resource type to fk field
    */
   public static Map<Resource.Type, String> keyPropertyIds =
-      new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   /**
    * resource properties
    */
-  public static Set<String> propertyIds = new HashSet<String>();
+  public static Set<String> propertyIds = new HashSet<>();
 
   /**
    * name of the kerberos descriptor artifact.
@@ -191,7 +191,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
              NoSuchResourceException,
              NoSuchParentResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     resources.addAll(getKerberosDescriptors(request, predicate));
     resources.addAll(getMetricsDescriptors(request, predicate));
@@ -260,7 +260,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
              NoSuchParentResourceException,
              NoSuchResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
@@ -312,7 +312,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
       throws SystemException, UnsupportedPropertyException,
            NoSuchParentResourceException, NoSuchResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
@@ -348,7 +348,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
             Map<String, Map<String, PropertyInfo>> hostMetrics =
               PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
 
-            descriptor = new HashMap<String, Object>();
+            descriptor = new HashMap<>();
             descriptor.put(Resource.Type.Cluster.name(), clusterMetrics);
             descriptor.put(Resource.Type.Host.name(), hostMetrics);
           }
@@ -379,7 +379,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
       throws SystemException, UnsupportedPropertyException,
              NoSuchParentResourceException, NoSuchResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
@@ -581,7 +581,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
    * @throws IOException if unable to read or parse a descriptor file
    */
   private Collection<KerberosServiceDescriptor> getServiceDescriptors(StackInfo stack) throws IOException {
-    Collection<KerberosServiceDescriptor> serviceDescriptors = new ArrayList<KerberosServiceDescriptor>();
+    Collection<KerberosServiceDescriptor> serviceDescriptors = new ArrayList<>();
     for (ServiceInfo service : stack.getServices()) {
       File descriptorFile = service.getKerberosDescriptorFile();
       if (descriptorFile != null) {

@@ -52,7 +52,7 @@ public class RepositoryVersionHelperTest {
 
   @Test
   public void testSerializeOperatingSystems() throws Exception {
-    final List<RepositoryInfo> repositories = new ArrayList<RepositoryInfo>();
+    final List<RepositoryInfo> repositories = new ArrayList<>();
     final RepositoryInfo repository = new RepositoryInfo();
     repository.setBaseUrl("baseurl");
     repository.setOsType("os");

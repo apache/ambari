@@ -81,7 +81,7 @@ public class RequestFactoryTest {
     ResourceDefinition resourceDefinition = createNiceMock(ResourceDefinition.class);
     @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    Map<String, List<String>> mapProps = new HashMap<>();
     mapProps.put("foo", Collections.singletonList("bar"));
 
 
@@ -116,10 +116,10 @@ public class RequestFactoryTest {
 
     @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    Map<String, List<String>> mapProps = new HashMap<>();
     mapProps.put("foo", Collections.singletonList("bar"));
 
-    Map<String, String> requestInfoMap = new HashMap<String, String>();
+    Map<String, String> requestInfoMap = new HashMap<>();
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
@@ -154,10 +154,10 @@ public class RequestFactoryTest {
 
     @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    Map<String, List<String>> mapProps = new HashMap<>();
     mapProps.put("foo", Collections.singletonList("bar"));
 
-    Map<String, String> requestInfoMap = new HashMap<String, String>();
+    Map<String, String> requestInfoMap = new HashMap<>();
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
@@ -298,10 +298,10 @@ public class RequestFactoryTest {
 
     @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    Map<String, List<String>> mapProps = new HashMap<>();
     mapProps.put("foo", Collections.singletonList("bar"));
 
-    Map<String, String> requestInfoMap = new HashMap<String, String>();
+    Map<String, String> requestInfoMap = new HashMap<>();
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();
@@ -336,10 +336,10 @@ public class RequestFactoryTest {
 
     @SuppressWarnings("unchecked")
     MultivaluedMap<String, String> mapQueryParams = createMock(MultivaluedMap.class);
-    Map<String, List<String>> mapProps = new HashMap<String, List<String>>();
+    Map<String, List<String>> mapProps = new HashMap<>();
     mapProps.put("foo", Collections.singletonList("bar"));
 
-    Map<String, String> requestInfoMap = new HashMap<String, String>();
+    Map<String, String> requestInfoMap = new HashMap<>();
 
     //expectations
     expect(uriInfo.getQueryParameters()).andReturn(mapQueryParams).anyTimes();

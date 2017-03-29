@@ -117,7 +117,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final StackInfo stack1 = new StackInfo() {
       @Override
       public Map<String, UpgradePack> getUpgradePacks() {
-        Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
+        Map<String, UpgradePack> map = new HashMap<>();
 
         UpgradePack pack1 = new UpgradePack() {
 
@@ -191,7 +191,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final StackInfo stack2 = new StackInfo() {
       @Override
       public Map<String, UpgradePack> getUpgradePacks() {
-        Map<String, UpgradePack> map = new HashMap<String, UpgradePack>();
+        Map<String, UpgradePack> map = new HashMap<>();
 
         UpgradePack pack = new UpgradePack() {
           @Override

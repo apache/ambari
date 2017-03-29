@@ -67,7 +67,7 @@ public class ExecutionCommand extends AgentCommand {
   private String role;
 
   @SerializedName("hostLevelParams")
-  private Map<String, String> hostLevelParams = new HashMap<String, String>();
+  private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
   private Map<String, String> roleParams = null;
@@ -77,7 +77,7 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("clusterHostInfo")
   private Map<String, Set<String>> clusterHostInfo =
-      new HashMap<String, Set<String>>();
+    new HashMap<>();
 
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
@@ -92,7 +92,7 @@ public class ExecutionCommand extends AgentCommand {
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
-  private Map<String, String> commandParams = new HashMap<String, String>();
+  private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("serviceName")
   private String serviceName;
@@ -104,10 +104,10 @@ public class ExecutionCommand extends AgentCommand {
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
-  private List<Map<String, String>> kerberosCommandParams = new ArrayList<Map<String, String>>();
+  private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
-  private Set<String> localComponents = new HashSet<String>();
+  private Set<String> localComponents = new HashSet<>();
 
   @SerializedName("availableServices")
   private Map<String, String> availableServices = new HashMap<>();

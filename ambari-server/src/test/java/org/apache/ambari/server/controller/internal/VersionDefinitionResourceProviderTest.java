@@ -106,8 +106,8 @@ public class VersionDefinitionResourceProviderTest {
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
         .getRepositoryVersionResourceProvider();
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_BASE64, base64Str);
     propertySet.add(properties);
 
@@ -180,8 +180,8 @@ public class VersionDefinitionResourceProviderTest {
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class)
         .getRepositoryVersionResourceProvider();
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_URL,
         file.toURI().toURL().toString());
     propertySet.add(properties);
@@ -349,8 +349,8 @@ public class VersionDefinitionResourceProviderTest {
 
     final ResourceProvider versionProvider = new VersionDefinitionResourceProvider();
 
-    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    final Map<String, Object> properties = new LinkedHashMap<>();
     properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_URL,
         file.toURI().toURL().toString());
     propertySet.add(properties);

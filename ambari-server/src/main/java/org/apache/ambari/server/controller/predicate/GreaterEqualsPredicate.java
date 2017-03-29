@@ -53,6 +53,6 @@ public class GreaterEqualsPredicate<T> extends ComparisonPredicate<T> {
 
   @Override
   public ComparisonPredicate<T> copy(String propertyId) {
-    return new GreaterEqualsPredicate<T>(propertyId, getValue());
+    return new GreaterEqualsPredicate<>(propertyId, getValue());
   }
 }

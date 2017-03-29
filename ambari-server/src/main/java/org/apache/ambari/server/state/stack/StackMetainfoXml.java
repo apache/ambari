@@ -78,7 +78,7 @@ public class StackMetainfoXml implements Validable{
   }
   
   @XmlTransient
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
   
   @Override
   public void addError(String error) {

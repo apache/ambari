@@ -60,7 +60,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
   /**
    * The names of the external resources for the view.
    */
-  private final Set<String> resourceNames = new HashSet<String>();
+  private final Set<String> resourceNames = new HashSet<>();
 
   /**
    * The set of key property ids.
@@ -85,7 +85,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
     super(_getPropertyIds(), _getKeyPropertyIds(type));
 
     this.type           = type;
-    this.pkPropertyIds  = new HashSet<String>(getKeyPropertyIds().values());
+    this.pkPropertyIds  = new HashSet<>(getKeyPropertyIds().values());
     this.viewDefinition = viewDefinition;
   }
 
@@ -101,9 +101,9 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resourceSet = new HashSet<Resource>();
+    Set<Resource> resourceSet = new HashSet<>();
 
-    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<>();
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
     int size = propertyMaps.size();
@@ -176,7 +176,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
   // get the key property ids for the resource
   private static Map<Resource.Type, String> _getKeyPropertyIds(Resource.Type type) {
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
@@ -188,7 +188,7 @@ public class ViewExternalSubResourceProvider extends AbstractResourceProvider {
 
   // get the property ids for the resource
   private static Set<String> _getPropertyIds()  {
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);

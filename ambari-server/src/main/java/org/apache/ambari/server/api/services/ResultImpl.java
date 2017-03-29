@@ -47,7 +47,7 @@ public class ResultImpl implements Result {
   /**
    * Tree structure which holds the results
    */
-  private TreeNode<Resource> m_tree = new TreeNodeImpl<Resource>(null, null, null);
+  private TreeNode<Resource> m_tree = new TreeNodeImpl<>(null, null, null);
 
 
   /**

@@ -160,7 +160,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
   }
 
   protected void addClusterIdToTopology() throws AmbariException, SQLException {
-    Map<String, Long> clusterNameIdMap = new HashMap<String, Long>();
+    Map<String, Long> clusterNameIdMap = new HashMap<>();
     try (Statement statement = dbAccessor.getConnection().createStatement();
          ResultSet rs = statement.executeQuery("SELECT DISTINCT cluster_name, cluster_id FROM clusters");
     ) {
@@ -218,7 +218,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
       if ((clusterMap != null) && !clusterMap.isEmpty()) {
         // Iterate through the clusters and perform any configuration updates
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> removes = new HashSet<String>();
+          Set<String> removes = new HashSet<>();
           removes.add("topology.metrics.consumer.register");
           updateConfigurationPropertiesForCluster(cluster, "storm-site",
             new HashMap<String, String>(), removes, false, false);
@@ -258,8 +258,8 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
             // Remove override_hbase_uid from hbase-env and add override_uid to cluster-env
             String value = hbaseEnvProps.getProperties().get("override_hbase_uid");
             if (value != null) {
-              Map<String, String> updates = new HashMap<String, String>();
-              Set<String> removes = new HashSet<String>();
+              Map<String, String> updates = new HashMap<>();
+              Set<String> removes = new HashSet<>();
               updates.put("override_uid", value);
               removes.add("override_hbase_uid");
               updateConfigurationPropertiesForCluster(cluster, HBASE_ENV, new HashMap<String, String>(), removes, false, true);
@@ -276,7 +276,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
             if (value != null) {
               if (value.endsWith("m")) {
                 value = value.substring(0, value.length() - 1);
-                Map<String, String> updates = new HashMap<String, String>();
+                Map<String, String> updates = new HashMap<>();
                 updates.put("hbase.bucketcache.size", value);
                 updateConfigurationPropertiesForCluster(cluster, HBASE_SITE, updates, true, false);
               }
@@ -293,7 +293,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
    * Ambari version 2.1.0 where HBase does not have override_hbase_uid.
    * */
   private void updateOverrideUIDClusterConfig(String toOverride, Cluster cluster) throws AmbariException{
-    Map<String, String> updates = new HashMap<String, String>();
+    Map<String, String> updates = new HashMap<>();
     updates.put("override_uid", toOverride);
     updateConfigurationPropertiesForCluster(cluster, CLUSTER_ENV, updates, true, false);
   }
@@ -315,7 +315,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
                   VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0);
 
           if (cluster.getDesiredConfigByType(HIVE_ENV) != null && isStackNotLess22) {
-            Map<String, String> hiveEnvProps = new HashMap<String, String>();
+            Map<String, String> hiveEnvProps = new HashMap<>();
             content = cluster.getDesiredConfigByType(HIVE_ENV).getProperties().get("content");
             if(content != null) {
               content = updateHiveEnvContent(content);
@@ -325,7 +325,7 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
           }
 
           if (isHiveSitePresent && isStackNotLess22) {
-            Set<String> hiveSiteRemoveProps = new HashSet<String>();
+            Set<String> hiveSiteRemoveProps = new HashSet<>();
             hiveSiteRemoveProps.add("hive.heapsize");
             hiveSiteRemoveProps.add("hive.optimize.mapjoin.mapreduce");
             hiveSiteRemoveProps.add("hive.server2.enable.impersonation");

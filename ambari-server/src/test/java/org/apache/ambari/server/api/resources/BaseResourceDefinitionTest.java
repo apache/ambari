@@ -84,8 +84,8 @@ public class BaseResourceDefinitionTest {
     Resource service = new ResourceImpl(Resource.Type.Service);
     service.setProperty("ServiceInfo/service_name", "Service1");
 
-    TreeNode<Resource> parentNode  = new TreeNodeImpl<Resource>(null, null, "services");
-    TreeNode<Resource> serviceNode = new TreeNodeImpl<Resource>(parentNode, service, "service1");
+    TreeNode<Resource> parentNode  = new TreeNodeImpl<>(null, null, "services");
+    TreeNode<Resource> serviceNode = new TreeNodeImpl<>(parentNode, service, "service1");
 
     parentNode.setProperty("isCollection", "true");
     
@@ -117,8 +117,8 @@ public class BaseResourceDefinitionTest {
     Resource configGroup = new ResourceImpl(Resource.Type.ConfigGroup);
     configGroup.setProperty("ConfigGroup/id", "2");
 
-    TreeNode<Resource> resourcesNode   = new TreeNodeImpl<Resource>(null, null, BaseManagementHandler.RESOURCES_NODE_NAME);
-    TreeNode<Resource> configGroupNode = new TreeNodeImpl<Resource>(resourcesNode, configGroup, "configGroup1");
+    TreeNode<Resource> resourcesNode   = new TreeNodeImpl<>(null, null, BaseManagementHandler.RESOURCES_NODE_NAME);
+    TreeNode<Resource> configGroupNode = new TreeNodeImpl<>(resourcesNode, configGroup, "configGroup1");
 
     resourcesNode.setProperty("isCollection", "true");
 
@@ -151,7 +151,7 @@ public class BaseResourceDefinitionTest {
 
     assertEquals(Collections.emptySet(), resource.getReadDirectives());
 
-    Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<BaseResourceDefinition.DirectiveType, List<String>>();
+    Map<BaseResourceDefinition.DirectiveType, List<String>> directives = new HashMap<>();
     directives.put(BaseResourceDefinition.DirectiveType.DELETE, Arrays.asList("do_something_delete", "do_something_else_delete"));
     directives.put(BaseResourceDefinition.DirectiveType.READ, Arrays.asList("do_something_get", "do_something_else_get"));
     directives.put(BaseResourceDefinition.DirectiveType.CREATE, Arrays.asList("do_something_post", "do_something_else_post"));

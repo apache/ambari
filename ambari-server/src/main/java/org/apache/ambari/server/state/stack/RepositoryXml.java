@@ -43,7 +43,7 @@ public class RepositoryXml implements Validable{
   @XmlElement(name="latest")
   private String latestUri;
   @XmlElement(name="os")
-  private List<Os> oses = new ArrayList<Os>();
+  private List<Os> oses = new ArrayList<>();
 
   @XmlTransient
   private boolean valid = true;
@@ -67,7 +67,7 @@ public class RepositoryXml implements Validable{
   }
 
   @XmlTransient
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {

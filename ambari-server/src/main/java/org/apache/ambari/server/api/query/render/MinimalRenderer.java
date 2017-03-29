@@ -69,7 +69,7 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
    * Map of requested properties.
    */
   private Map<Resource.Type, Set<String>> m_originalProperties =
-      new HashMap<Resource.Type, Set<String>>();
+    new HashMap<>();
 
   // ----- Renderer ----------------------------------------------------------
 
@@ -78,8 +78,8 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
       TreeNode<QueryInfo> queryTree, boolean isCollection) {
 
     QueryInfo queryInfo = queryTree.getObject();
-    TreeNode<Set<String>> resultTree = new TreeNodeImpl<Set<String>>(
-        null, queryInfo.getProperties(), queryTree.getName());
+    TreeNode<Set<String>> resultTree = new TreeNodeImpl<>(
+      null, queryInfo.getProperties(), queryTree.getName());
 
     copyPropertiesToResult(queryTree, resultTree);
 
@@ -123,7 +123,7 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
       Resource.Type type = queryInfo.getResource().getType();
       Set<String> properties = m_originalProperties.get(type);
       if (properties == null) {
-        properties = new HashSet<String>();
+        properties = new HashSet<>();
         m_originalProperties.put(type, properties);
       }
       properties.addAll(queryInfo.getProperties());
@@ -203,7 +203,7 @@ public class MinimalRenderer extends BaseRenderer implements Renderer {
    * @return set of pk's for a type
    */
   private Set<String> getPrimaryKeys(Resource.Type type) {
-    Set<String> primaryKeys = new HashSet<String>();
+    Set<String> primaryKeys = new HashSet<>();
 
     if (type == Resource.Type.Configuration) {
       primaryKeys.add("type");

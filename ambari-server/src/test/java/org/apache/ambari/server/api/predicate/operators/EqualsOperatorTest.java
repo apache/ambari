@@ -38,7 +38,7 @@ public class EqualsOperatorTest {
 
   @Test
   public void testToPredicate() {
-    assertEquals(new EqualsPredicate<String>("prop", "val"),
+    assertEquals(new EqualsPredicate<>("prop", "val"),
         new EqualsOperator().toPredicate("prop", "val"));
   }
 

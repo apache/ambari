@@ -58,14 +58,14 @@ public class ServiceCheckGrouping extends Grouping {
    */
   @XmlElementWrapper(name="priority")
   @XmlElement(name="service")
-  private Set<String> priorityServices = new LinkedHashSet<String>();
+  private Set<String> priorityServices = new LinkedHashSet<>();
 
   /**
    * During a Rolling Upgrade, exclude certain services.
    */
   @XmlElementWrapper(name="exclude")
   @XmlElement(name="service")
-  private Set<String> excludeServices = new HashSet<String>();
+  private Set<String> excludeServices = new HashSet<>();
 
   /**
    * {@inheritDoc}
@@ -125,14 +125,14 @@ public class ServiceCheckGrouping extends Grouping {
       m_cluster = upgradeContext.getCluster();
       m_metaInfo = upgradeContext.getAmbariMetaInfo();
 
-      List<StageWrapper> result = new ArrayList<StageWrapper>(stageWrappers);
+      List<StageWrapper> result = new ArrayList<>(stageWrappers);
       if (upgradeContext.getDirection().isDowngrade()) {
         return result;
       }
 
       Map<String, Service> serviceMap = m_cluster.getServices();
 
-      Set<String> clusterServices = new LinkedHashSet<String>(serviceMap.keySet());
+      Set<String> clusterServices = new LinkedHashSet<>(serviceMap.keySet());
 
       // create stages for the priorities
       for (String service : priorityServices) {

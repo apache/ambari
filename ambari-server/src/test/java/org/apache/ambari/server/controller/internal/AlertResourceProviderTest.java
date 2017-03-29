@@ -566,7 +566,7 @@ public class AlertResourceProviderTest {
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
-    Set<String> requestProperties = new HashSet<String>();
+    Set<String> requestProperties = new HashSet<>();
     requestProperties.add(AlertResourceProvider.ALERT_ID);
     requestProperties.add(AlertResourceProvider.ALERT_DEFINITION_NAME);
 
@@ -653,7 +653,7 @@ public class AlertResourceProviderTest {
     int unknown = 3;
     int total = ok + warning + critical + unknown;
 
-    List<AlertCurrentEntity> currents = new ArrayList<AlertCurrentEntity>(total);
+    List<AlertCurrentEntity> currents = new ArrayList<>(total);
 
     for (int i = 0; i < total; i++) {
       AlertState state = AlertState.OK;

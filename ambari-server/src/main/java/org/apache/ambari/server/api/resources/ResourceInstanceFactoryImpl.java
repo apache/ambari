@@ -49,7 +49,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
    * Map of external resource definitions (added through views).
    */
   private final static Map<Resource.Type, ResourceDefinition> resourceDefinitions =
-      new HashMap<Resource.Type, ResourceDefinition>();
+    new HashMap<>();
 
 
   @Override

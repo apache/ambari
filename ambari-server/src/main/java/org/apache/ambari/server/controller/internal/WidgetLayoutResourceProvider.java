@@ -129,7 +129,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
-    Set<Resource> associatedResources = new HashSet<Resource>();
+    Set<Resource> associatedResources = new HashSet<>();
 
     for (final Map<String, Object> properties : request.getProperties()) {
       WidgetLayoutEntity widgetLayoutEntity = createResources(new Command<WidgetLayoutEntity>() {
@@ -163,7 +163,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
           entity.setUserName(userName);
           entity.setDisplayName(properties.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
 
-          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
           int order=0;
           for (Object widgetObject : widgetsSet) {
             HashMap<String, Object> widget = (HashMap) widgetObject;
@@ -200,12 +200,12 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<WidgetEntity> widgetEntities = new ArrayList<WidgetEntity>();
-    List<WidgetLayoutEntity> layoutEntities = new ArrayList<WidgetLayoutEntity>();
+    List<WidgetEntity> widgetEntities = new ArrayList<>();
+    List<WidgetLayoutEntity> layoutEntities = new ArrayList<>();
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       String userName = getUserName(propertyMap);
@@ -242,11 +242,11 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       resource.setProperty(WIDGETLAYOUT_USERNAME_PROPERTY_ID, layoutEntity.getUserName());
       resource.setProperty(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, layoutEntity.getDisplayName());
 
-      List<HashMap> widgets = new ArrayList<HashMap>();
+      List<HashMap> widgets = new ArrayList<>();
       List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = layoutEntity.getListWidgetLayoutUserWidgetEntity();
       for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
         WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
-        HashMap<String, Object> widgetInfoMap = new HashMap<String, Object>();
+        HashMap<String, Object> widgetInfoMap = new HashMap<>();
         widgetInfoMap.put("WidgetInfo",WidgetResponse.coerce(widgetEntity));
         widgets.add(widgetInfoMap);
       }
@@ -301,7 +301,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             }
             entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
 
-            List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+            List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
             int order = 0;
             for (Object widgetObject : widgetsSet) {
               HashMap<String, Object> widget = (HashMap) widgetObject;
@@ -338,7 +338,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    final List<WidgetLayoutEntity> entitiesToBeRemoved = new ArrayList<WidgetLayoutEntity>();
+    final List<WidgetLayoutEntity> entitiesToBeRemoved = new ArrayList<>();
     for (Map<String, Object> propertyMap : propertyMaps) {
       final Long id;
       try {

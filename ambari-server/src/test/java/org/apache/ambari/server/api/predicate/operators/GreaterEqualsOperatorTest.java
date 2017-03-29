@@ -38,7 +38,7 @@ public class GreaterEqualsOperatorTest {
 
   @Test
   public void testToPredicate() {
-    assertEquals(new GreaterEqualsPredicate<String>("1", "2"),
+    assertEquals(new GreaterEqualsPredicate<>("1", "2"),
         new GreaterEqualsOperator().toPredicate("1", "2"));
   }
 

@@ -226,7 +226,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       if (zooEnv != null && zooEnv.getProperties().containsKey("zk_server_heapsize")) {
         String heapSizeValue = zooEnv.getProperties().get("zk_server_heapsize");
         if(!heapSizeValue.endsWith("m")) {
-          Map<String, String> updates = new HashMap<String, String>();
+          Map<String, String> updates = new HashMap<>();
           updates.put("zk_server_heapsize", heapSizeValue+"m");
           updateConfigurationPropertiesForCluster(cluster, "zookeeper-env", updates, true, false);
         }
@@ -290,7 +290,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       if (cluster.getDesiredConfigByType("storm-site") != null && cluster.getDesiredConfigByType("storm-site").getProperties().containsKey("storm.zookeeper.superACL")
               && cluster.getDesiredConfigByType("storm-site").getProperties().get("storm.zookeeper.superACL").equals("sasl:{{storm_base_jaas_principal}}")) {
-        Map<String, String> newStormProps = new HashMap<String, String>();
+        Map<String, String> newStormProps = new HashMap<>();
         newStormProps.put("storm.zookeeper.superACL", "sasl:{{storm_bare_jaas_principal}}");
         updateConfigurationPropertiesForCluster(cluster, "storm-site", newStormProps, true, false);
       }
@@ -669,7 +669,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
         VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
 
       List<ServiceComponentHost> atlasHost = cluster.getServiceComponentHosts("ATLAS", "ATLAS_SERVER");
-      Map<String, String> updates = new HashMap<String, String>();
+      Map<String, String> updates = new HashMap<>();
 
       if (isStackNotLess23 && atlasHost.size() != 0 && hiveSiteConfig != null) {
 

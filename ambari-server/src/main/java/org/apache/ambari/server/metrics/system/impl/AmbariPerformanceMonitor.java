@@ -78,7 +78,7 @@ public class AmbariPerformanceMonitor extends PerformanceMonitor {
   public void dumpResults() {
 
     lastDumpTime = System.currentTimeMillis();
-    Set<String> operations = new TreeSet<String>(this.operationTimings.keySet());
+    Set<String> operations = new TreeSet<>(this.operationTimings.keySet());
     Map<String, Long> metrics = new HashMap<>();
 
     for (String operation : operations) {

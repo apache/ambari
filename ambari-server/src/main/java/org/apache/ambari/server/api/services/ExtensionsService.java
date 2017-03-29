@@ -100,7 +100,7 @@ public class ExtensionsService extends BaseService {
 
   ResourceInstance createExtensionVersionResource(String extensionName,
                                               String extensionVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Extension, extensionName);
     mapIds.put(Resource.Type.ExtensionVersion, extensionVersion);
 
@@ -109,7 +109,7 @@ public class ExtensionsService extends BaseService {
 
   ResourceInstance createExtensionLinkResource(String stackName, String stackVersion,
                                   String extensionName, String extensionVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.Extension, extensionName);

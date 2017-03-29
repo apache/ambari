@@ -110,7 +110,7 @@ public class TestActionQueue {
     }
 
     private void updateHostList() throws InterruptedException {
-      HashSet<String> hostsWithTasks = new HashSet<String>();
+      HashSet<String> hostsWithTasks = new HashSet<>();
       while (shouldRun) {
         for (String host: hosts) {
           hostsWithTasks.add(host);
@@ -176,8 +176,8 @@ public class TestActionQueue {
     ActionQueueOperation[] dequeOperators = new ActionQueueOperation[threadCount];
     ActionQueueOperation[] dequeAllOperators = new ActionQueueOperation[threadCount];
 
-    List<Thread> producers = new ArrayList<Thread>();
-    List<Thread> consumers = new ArrayList<Thread>();
+    List<Thread> producers = new ArrayList<>();
+    List<Thread> consumers = new ArrayList<>();
 
     for (int i = 0; i < threadCount; i++) {
       dequeOperators[i] = new ActionQueueOperation(aq, hosts,
@@ -262,8 +262,8 @@ public class TestActionQueue {
     ActionQueueOperation[] hostCheckers = new ActionQueueOperation[threadCount];
     ActionQueueOperation[] hostUpdaters = new ActionQueueOperation[threadCount];
 
-    List<Thread> producers = new ArrayList<Thread>();
-    List<Thread> consumers = new ArrayList<Thread>();
+    List<Thread> producers = new ArrayList<>();
+    List<Thread> consumers = new ArrayList<>();
 
     for (int i = 0; i < threadCount; i++) {
       hostCheckers[i] = new ActionQueueOperation(aq, hosts,
@@ -310,7 +310,7 @@ public class TestActionQueue {
     }
     LOG.info("Report: totalChecks: " + totalChecks + ", totalUpdates: " + totalUpdates);
 
-    HashSet<String> hostsWithPendingtasks = new HashSet<String>();
+    HashSet<String> hostsWithPendingtasks = new HashSet<>();
     aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);
     hostsWithPendingtasks.add("h1");
     aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);

@@ -72,7 +72,7 @@ public class LdapServerProperties {
     if (StringUtils.isEmpty(primaryUrl)) {
       return Collections.emptyList();
     } else {
-      List<String> list = new ArrayList<String>();
+      List<String> list = new ArrayList<>();
       list.add(protocol + primaryUrl);
       if (!StringUtils.isEmpty(secondaryUrl)) {
         list.add(protocol + secondaryUrl);

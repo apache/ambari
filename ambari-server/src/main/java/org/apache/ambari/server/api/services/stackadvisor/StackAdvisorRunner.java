@@ -127,7 +127,7 @@ public class StackAdvisorRunner {
     String servicesFile = actionDirectory + File.separator + "services.json";
 
     // includes the original command plus the arguments for it
-    List<String> builderParameters = new ArrayList<String>();
+    List<String> builderParameters = new ArrayList<>();
     if (System.getProperty("os.name").contains("Windows")) {
       builderParameters.add("cmd");
       builderParameters.add("/c");

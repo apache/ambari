@@ -64,7 +64,7 @@ public class DependencyInfo {
   /**
    * Conditions for Component dependency to other components.
    */
-  private List<DependencyConditionInfo> dependencyConditions = new ArrayList<DependencyConditionInfo>();
+  private List<DependencyConditionInfo> dependencyConditions = new ArrayList<>();
   /**
    * Setter for name property.
    *

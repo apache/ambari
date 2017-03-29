@@ -77,7 +77,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
     Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.2"));
 
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     ClusterVersionEntity clusterVersionEntity = Mockito.mock(ClusterVersionEntity.class);
@@ -87,7 +87,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
     Mockito.when(clusterVersionEntity.getRepositoryVersion()).thenReturn(repositoryVersionEntity);
     Mockito.when(repositoryVersionEntity.getVersion()).thenReturn("2.2.4.2");
 
-    Map<String, String> checkProperties = new HashMap<String, String>();
+    Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put("min-applicable-stack-version","HDP-2.2.4.2");
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
@@ -119,14 +119,14 @@ public class YarnTimelineServerStatePreservingCheckTest {
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("yarn-site", desiredConfig);
     configMap.put("core-site", desiredConfig);
 
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
@@ -156,7 +156,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
     Mockito.when(clusterVersionEntity.getRepositoryVersion()).thenReturn(repositoryVersionEntity);
     Mockito.when(m_clusters.getCluster("c1")).thenReturn(cluster);
 
-    Map<String, String> checkProperties = new HashMap<String, String>();
+    Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put("min-applicable-stack-version","HDP-2.2.4.2");
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(
@@ -204,7 +204,7 @@ public class YarnTimelineServerStatePreservingCheckTest {
     Mockito.when(clusterVersionEntity.getRepositoryVersion()).thenReturn(repositoryVersionEntity);
     Mockito.when(m_clusters.getCluster("c1")).thenReturn(cluster);
 
-    Map<String, String> checkProperties = new HashMap<String, String>();
+    Map<String, String> checkProperties = new HashMap<>();
     checkProperties.put("min-applicable-stack-version", "HDP-2.2.4.2");
     PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
     Mockito.when(prerequisiteCheckConfig.getCheckProperties(

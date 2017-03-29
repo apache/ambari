@@ -32,7 +32,7 @@ public class TestStreamProvider extends URLStreamProvider {
   // Allow for filename to be set at runtime
   protected String fileName;
   private String lastSpec;
-  protected Set<String> specs = new HashSet<String>();
+  protected Set<String> specs = new HashSet<>();
   private boolean isLastSpecUpdated;
 
   public TestStreamProvider(String fileName) {

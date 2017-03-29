@@ -69,7 +69,7 @@ public class QuickLinksConfiguration{
   }
 
   private List<Link> mergeLinks(List<Link> parentLinks, List<Link> childLinks) {
-    Map<String, Link> mergedLinks = new HashMap<String, Link>();
+    Map<String, Link> mergedLinks = new HashMap<>();
 
     for (Link parentLink : parentLinks) {
       mergedLinks.put(parentLink.getName(), parentLink);
@@ -86,6 +86,6 @@ public class QuickLinksConfiguration{
         }
       }
     }
-    return new ArrayList<Link>(mergedLinks.values());
+    return new ArrayList<>(mergedLinks.values());
   }
 }

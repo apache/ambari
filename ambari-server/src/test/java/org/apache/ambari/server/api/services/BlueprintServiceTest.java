@@ -38,7 +38,7 @@ public class BlueprintServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getBlueprint
     BlueprintService BlueprintService = new TestBlueprintService("blueprintName");

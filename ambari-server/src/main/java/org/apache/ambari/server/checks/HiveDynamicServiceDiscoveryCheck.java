@@ -69,7 +69,7 @@ public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
 
     String dynamicServiceDiscoveryEnabled = getProperty(request, "hive-site", "hive.server2.support.dynamic.service.discovery");
     String zookeeperQuorum = getProperty(request, "hive-site", "hive.zookeeper.quorum");

@@ -61,10 +61,10 @@ public class OSFamilyTest {
   @Test
   public void testOSListing() throws Exception{
    Set<String> actual_oslist =  os_family.os_list();
-   Set<String> expected_oslist = new HashSet<String>(Arrays.asList(
-      "redhat6", "oraclelinux5", "suse11", "fedora6", "opensuse11",
-      "centos6", "fedora5","centos5", "ubuntu12", "redhat5", "sles11",
-      "oraclelinux6", "debian12", "sled11", "win2012server6", "win2012serverr26", "win2008serverr26", "win2008server6"
+   Set<String> expected_oslist = new HashSet<>(Arrays.asList(
+     "redhat6", "oraclelinux5", "suse11", "fedora6", "opensuse11",
+     "centos6", "fedora5", "centos5", "ubuntu12", "redhat5", "sles11",
+     "oraclelinux6", "debian12", "sled11", "win2012server6", "win2012serverr26", "win2008serverr26", "win2008server6"
    ));
 
    Assert.assertNotNull(actual_oslist);
@@ -74,7 +74,7 @@ public class OSFamilyTest {
   @Test
   public void testParsingOS() throws Exception{
     // test data
-    Map<String,String> expected_map = new HashMap<String,String>();
+    Map<String,String> expected_map = new HashMap<>();
     expected_map.put("distro", "ubuntu");
     expected_map.put("versions", "12");
 
@@ -102,9 +102,9 @@ public class OSFamilyTest {
 
   @Test
   public void testFindTypes() throws Exception{
-    Set<String> expected_set = new HashSet<String>(Arrays.asList(
-       "ubuntu12",
-       "debian12"
+    Set<String> expected_set = new HashSet<>(Arrays.asList(
+      "ubuntu12",
+      "debian12"
     ));
 
     Set<String> actual_set = os_family.findTypes("ubuntu12");

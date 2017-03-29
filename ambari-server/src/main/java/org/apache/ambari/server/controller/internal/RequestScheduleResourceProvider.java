@@ -115,8 +115,8 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
   protected static final String SCHEDULE_END_TIME_PROPERTY_ID =
     PropertyHelper.getPropertyId(REQUEST_SCHEDULE_SCHEDULE_PROPERTY_ID, "endTime");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(Arrays
-    .asList(new String[]{ REQUEST_SCHEDULE_ID_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(Arrays
+    .asList(new String[]{REQUEST_SCHEDULE_ID_PROPERTY_ID}));
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -143,7 +143,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       UnsupportedPropertyException, ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
-    final Set<RequestScheduleRequest> requests = new HashSet<RequestScheduleRequest>();
+    final Set<RequestScheduleRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequestScheduleRequest(propertyMap));
@@ -159,7 +159,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
     notifyCreate(Resource.Type.RequestSchedule, request);
 
-    Set<Resource> associatedResources = new HashSet<Resource>();
+    Set<Resource> associatedResources = new HashSet<>();
     for (RequestScheduleResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RequestSchedule);
       resource.setProperty(REQUEST_SCHEDULE_ID_PROPERTY_ID, response.getId());
@@ -174,7 +174,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       SystemException, UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
 
-    final Set<RequestScheduleRequest> requests = new HashSet<RequestScheduleRequest>();
+    final Set<RequestScheduleRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequestScheduleRequest(propertyMap));
     }
@@ -188,7 +188,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       });
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (RequestScheduleResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RequestSchedule);
@@ -244,7 +244,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
       NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<RequestScheduleRequest> requests = new
-      HashSet<RequestScheduleRequest>();
+      HashSet<>();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
@@ -403,7 +403,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     }
 
     Set<RequestScheduleResponse> responses = new
-      HashSet<RequestScheduleResponse>();
+      HashSet<>();
 
     Clusters clusters = getManagementController().getClusters();
     RequestExecutionFactory requestExecutionFactory =
@@ -472,7 +472,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     Batch batch = request.getBatch();
     if (batch != null && !batch.getBatchRequests().isEmpty()) {
       // Verify requests can be ordered
-      HashSet<Long> orderIdSet = new HashSet<Long>();
+      HashSet<Long> orderIdSet = new HashSet<>();
       for (BatchRequest batchRequest : batch.getBatchRequests()) {
         if (batchRequest.getOrderId() == null) {
           throw new AmbariException("No order id provided for batch request. " +
@@ -491,7 +491,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
     (Set<RequestScheduleRequest> requests) throws AmbariException {
 
     Set<RequestScheduleResponse> responses = new
-      HashSet<RequestScheduleResponse>();
+      HashSet<>();
 
     if (requests != null) {
       for (RequestScheduleRequest request : requests) {
@@ -563,7 +563,7 @@ public class RequestScheduleResourceProvider extends AbstractControllerResourceP
 
     Batch batch = new Batch();
     BatchSettings batchSettings = new BatchSettings();
-    List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();
+    List<BatchRequest> batchRequests = new ArrayList<>();
 
     Object batchObject = properties.get(REQUEST_SCHEDULE_BATCH_PROPERTY_ID);
     if (batchObject != null && batchObject instanceof HashSet<?>) {

@@ -58,18 +58,18 @@ public class RequiredPasswordValidatorTest {
   private static Configuration topoGroup1Config;
   private static Configuration topoGroup2Config;
 
-  private static final Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
-  private static final Map<String, HostGroupInfo> hostGroupInfo = new HashMap<String, HostGroupInfo>();
+  private static final Map<String, HostGroup> hostGroups = new HashMap<>();
+  private static final Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
 
-  private static final Collection<String> group1Components = new HashSet<String>();
-  private static final Collection<String> group2Components = new HashSet<String>();
-  private static final Collection<String> service1Components = new HashSet<String>();
-  private static final Collection<String> service2Components = new HashSet<String>();
-  private static final Collection<String> service3Components = new HashSet<String>();
+  private static final Collection<String> group1Components = new HashSet<>();
+  private static final Collection<String> group2Components = new HashSet<>();
+  private static final Collection<String> service1Components = new HashSet<>();
+  private static final Collection<String> service2Components = new HashSet<>();
+  private static final Collection<String> service3Components = new HashSet<>();
 
-  private static final Collection<Stack.ConfigProperty> service1RequiredPwdConfigs = new HashSet<Stack.ConfigProperty>();
-  private static final Collection<Stack.ConfigProperty> service2RequiredPwdConfigs = new HashSet<Stack.ConfigProperty>();
-  private static final Collection<Stack.ConfigProperty> service3RequiredPwdConfigs = new HashSet<Stack.ConfigProperty>();
+  private static final Collection<Stack.ConfigProperty> service1RequiredPwdConfigs = new HashSet<>();
+  private static final Collection<Stack.ConfigProperty> service2RequiredPwdConfigs = new HashSet<>();
+  private static final Collection<Stack.ConfigProperty> service3RequiredPwdConfigs = new HashSet<>();
 
 
   @Before

@@ -59,7 +59,7 @@ public class ClusterImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Config config = createNiceMock(Config.class);
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
 
     properties.put("foo", "bar");
 
@@ -82,7 +82,7 @@ public class ClusterImplTest {
     String service = "SERVICE";
     String component = "COMPONENT";
 
-    List<ServiceComponentHost> components = new ArrayList<ServiceComponentHost>();
+    List<ServiceComponentHost> components = new ArrayList<>();
 
     ServiceComponentHost component1 = createNiceMock(ServiceComponentHost.class);
     expect(component1.getHostName()).andReturn("host1");

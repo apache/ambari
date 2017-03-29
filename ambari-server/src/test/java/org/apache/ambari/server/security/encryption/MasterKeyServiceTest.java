@@ -95,7 +95,7 @@ public class MasterKeyServiceTest extends TestCase {
 
   @Test
   public void testReadFromEnvAsKey() throws Exception {
-    Map<String, String> mapRet = new HashMap<String, String>();
+    Map<String, String> mapRet = new HashMap<>();
     mapRet.put("AMBARI_SECURITY_MASTER_KEY", "ThisisSomePassPhrase");
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
@@ -118,7 +118,7 @@ public class MasterKeyServiceTest extends TestCase {
     Assert.assertTrue(ms.isMasterKeyInitialized());
     Assert.assertTrue(masterKeyFile.exists());
 
-    Map<String, String> mapRet = new HashMap<String, String>();
+    Map<String, String> mapRet = new HashMap<>();
     mapRet.put(Configuration.MASTER_KEY_LOCATION.getKey(), masterKeyFile.getAbsolutePath());
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);

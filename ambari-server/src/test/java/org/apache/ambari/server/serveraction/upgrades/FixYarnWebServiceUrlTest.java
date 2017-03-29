@@ -88,7 +88,7 @@ public class FixYarnWebServiceUrlTest {
 
         expect(cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE)).andReturn(yarnSiteConfig).atLeastOnce();
 
-        Map<String, String> commandParams = new HashMap<String, String>();
+        Map<String, String> commandParams = new HashMap<>();
         commandParams.put("clusterName", "c1");
 
         ExecutionCommand executionCommand = new ExecutionCommand();
@@ -145,7 +145,7 @@ public class FixYarnWebServiceUrlTest {
 
         expect(cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE)).andReturn(yarnSiteConfig).atLeastOnce();
 
-        Map<String, String> commandParams = new HashMap<String, String>();
+        Map<String, String> commandParams = new HashMap<>();
         commandParams.put("clusterName", "c1");
 
         ExecutionCommand executionCommand = new ExecutionCommand();
@@ -202,7 +202,7 @@ public class FixYarnWebServiceUrlTest {
 
         expect(cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE)).andReturn(yarnSiteConfig).atLeastOnce();
 
-        Map<String, String> commandParams = new HashMap<String, String>();
+        Map<String, String> commandParams = new HashMap<>();
         commandParams.put("clusterName", "c1");
 
         ExecutionCommand executionCommand = new ExecutionCommand();
@@ -261,7 +261,7 @@ public class FixYarnWebServiceUrlTest {
         expect(cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE)).andReturn(yarnSiteConfig).atLeastOnce();
 
 
-        Map<String, String> commandParams = new HashMap<String, String>();
+        Map<String, String> commandParams = new HashMap<>();
         commandParams.put("clusterName", "c1");
 
         ExecutionCommand executionCommand = new ExecutionCommand();

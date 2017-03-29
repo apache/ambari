@@ -53,7 +53,7 @@ public class MetricsRequestHelperTest {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("cpu_user");
     timelineMetric.setAppId("app1");
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> metricValues = new TreeMap<>();
     metricValues.put(now + 100, 1.0);
     metricValues.put(now + 200, 2.0);
     metricValues.put(now + 300, 3.0);

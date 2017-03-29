@@ -96,7 +96,7 @@ public class AlertTargetService extends BaseService {
    * @return the instance of the query.
    */
   private ResourceInstance createAlertTargetResource(Long targetId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
     mapIds.put(Resource.Type.AlertTarget,
         null == targetId ? null : targetId.toString());

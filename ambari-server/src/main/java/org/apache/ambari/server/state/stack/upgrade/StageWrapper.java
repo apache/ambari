@@ -85,7 +85,7 @@ public class StageWrapper {
    * Gets the tasks json.
    */
   public String getTasksJson() {
-    List<Task> realTasks = new ArrayList<Task>();
+    List<Task> realTasks = new ArrayList<>();
     for (TaskWrapper tw : tasks) {
       realTasks.addAll(tw.getTasks());
     }
@@ -97,7 +97,7 @@ public class StageWrapper {
    * @return the set of hosts for all tasks
    */
   public Set<String> getHosts() {
-    Set<String> hosts = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
     for (TaskWrapper tw : tasks) {
       hosts.addAll(tw.getHosts());
     }

@@ -52,7 +52,7 @@ public class TaskAttemptResourceProviderTest {
   public void testGetResources() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<Resource> expected = new HashSet<Resource>();
+    Set<Resource> expected = new HashSet<>();
     expected.add(createTaskAttemptResponse("Cluster100", "workflow1", "job1",
         "taskAttempt1"));
     expected.add(createTaskAttemptResponse("Cluster100", "workflow2", "job2",
@@ -81,7 +81,7 @@ public class TaskAttemptResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for (Resource resource : resources) {
       String clusterName = (String) resource
           .getPropertyValue(TaskAttemptResourceProvider.TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID);
@@ -104,7 +104,7 @@ public class TaskAttemptResourceProviderTest {
   public void testTaskAttemptFetcher() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(TaskAttemptResourceProvider.TASK_ATTEMPT_ID_PROPERTY_ID);
 
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper

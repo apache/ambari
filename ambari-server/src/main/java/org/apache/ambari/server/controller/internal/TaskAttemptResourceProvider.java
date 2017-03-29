@@ -81,10 +81,10 @@ public class TaskAttemptResourceProvider extends
   protected static final String TASK_ATTEMPT_LOCALITY_PROPERTY_ID = PropertyHelper
       .getPropertyId("TaskAttempt", "locality");
 
-  private static final Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] {TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID,
-          TASK_ATTEMPT_WORKFLOW_ID_PROPERTY_ID,
-          TASK_ATTEMPT_JOB_ID_PROPERTY_ID, TASK_ATTEMPT_ID_PROPERTY_ID}));
+  private static final Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID,
+      TASK_ATTEMPT_WORKFLOW_ID_PROPERTY_ID,
+      TASK_ATTEMPT_JOB_ID_PROPERTY_ID, TASK_ATTEMPT_ID_PROPERTY_ID}));
 
   protected TaskAttemptFetcher taskAttemptFetcher;
 
@@ -131,7 +131,7 @@ public class TaskAttemptResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resourceSet = new HashSet<Resource>();
+    Set<Resource> resourceSet = new HashSet<>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String,Object>> predicatePropertieSet = getPropertyMaps(predicate);
@@ -171,7 +171,7 @@ public class TaskAttemptResourceProvider extends
 
   @Override
   public Map<Type,String> getKeyPropertyIds() {
-    Map<Type,String> keyPropertyIds = new HashMap<Type,String>();
+    Map<Type,String> keyPropertyIds = new HashMap<>();
     keyPropertyIds.put(Type.Cluster, TASK_ATTEMPT_CLUSTER_NAME_PROPERTY_ID);
     keyPropertyIds.put(Type.Workflow, TASK_ATTEMPT_WORKFLOW_ID_PROPERTY_ID);
     keyPropertyIds.put(Type.Job, TASK_ATTEMPT_JOB_ID_PROPERTY_ID);
@@ -265,7 +265,7 @@ public class TaskAttemptResourceProvider extends
     public Set<Resource> fetchTaskAttemptDetails(Set<String> requestedIds,
         String clusterName, String workflowId, String jobId,
         String taskAttemptId) {
-      Set<Resource> taskAttempts = new HashSet<Resource>();
+      Set<Resource> taskAttempts = new HashSet<>();
       ResultSet rs = null;
       try {
         rs = getResultSet(requestedIds, workflowId, jobId, taskAttemptId);
@@ -335,7 +335,7 @@ public class TaskAttemptResourceProvider extends
 
   @Override
   protected Map<String,TaskAttemptFields> getDBFieldMap() {
-    Map<String,TaskAttemptFields> dbFields = new HashMap<String,TaskAttemptFields>();
+    Map<String,TaskAttemptFields> dbFields = new HashMap<>();
     dbFields.put(TASK_ATTEMPT_JOB_ID_PROPERTY_ID, TaskAttemptFields.JOBID);
     dbFields.put(TASK_ATTEMPT_ID_PROPERTY_ID, TaskAttemptFields.TASKATTEMPTID);
     dbFields.put(TASK_ATTEMPT_TYPE_PROPERTY_ID, TaskAttemptFields.TASKTYPE);

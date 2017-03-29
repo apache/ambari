@@ -31,7 +31,7 @@ import com.google.common.base.Objects;
  */
 
 public class HostConfig {
-  private final Map<Long, String> configGroupOverrides = new ConcurrentHashMap<Long, String>();
+  private final Map<Long, String> configGroupOverrides = new ConcurrentHashMap<>();
   private String defaultVersionTag;
 
   public HostConfig() {

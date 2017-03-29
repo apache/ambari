@@ -42,7 +42,7 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
 
-    Set<SubResourceDefinition> children = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> children = new HashSet<>();
 
     children.add(new SubResourceDefinition(Resource.Type.OperatingSystem));
     children.add(new SubResourceDefinition(Resource.Type.StackService));

@@ -90,10 +90,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
   private static final String METRIC_SERVER                             = "METRICS_COLLECTOR";
   private static final String PROPERTIES_CATEGORY = "properties";
-  private static final Map<String, String> serviceConfigVersions = new ConcurrentHashMap<String, String>();
-  private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<Service.Type, String>(Service.Type.class);
-  private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
-  private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
+  private static final Map<String, String> serviceConfigVersions = new ConcurrentHashMap<>();
+  private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<>(Service.Type.class);
+  private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<>(Service.Type.class);
+  private static final Map<String, Service.Type> componentServiceMap = new HashMap<>();
 
   private static final Map<String, List<HttpPropertyProvider.HttpPropertyRequest>> HTTP_PROPERTY_REQUESTS = new HashMap<>();
 
@@ -102,10 +102,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String COLLECTOR_DEFAULT_PORT = "6188";
   private static boolean vipHostConfigPresent = false;
 
-  private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
+  private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<>();
   private static final Map<String, Map<String, String[]>> jmxDesiredRpcSuffixProperties = new ConcurrentHashMap<>();
-  private volatile Map<String, Map<String, Map<String, String>>> jmxDesiredRpcSuffixes = new HashMap<String, Map<String, Map<String,String>>>();
-  private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
+  private volatile Map<String, Map<String, Map<String, String>>> jmxDesiredRpcSuffixes = new HashMap<>();
+  private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<>();
   private volatile Map<String, String> clusterJmxProtocolMap = new ConcurrentHashMap<>();
   private volatile String clusterMetricServerPort = null;
   private volatile String clusterMetricServerVipPort = null;
@@ -127,7 +127,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     componentServiceMap.put("NODEMANAGER", Service.Type.YARN);
     componentServiceMap.put("HISTORYSERVER", Service.Type.MAPREDUCE2);
 
-    Map<String, String[]> initPropMap = new HashMap<String, String[]>();
+    Map<String, String[]> initPropMap = new HashMap<>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.address", "dfs.namenode.http-address"});
     initPropMap.put("NAMENODE-HTTPS", new String[]{"dfs.namenode.https-address", "dfs.https.port"});
     initPropMap.put("NAMENODE-HA", new String[]{"dfs.namenode.http-address.%s.%s"});
@@ -139,64 +139,64 @@ public abstract class AbstractProviderModule implements ProviderModule,
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
 
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("HBASE_MASTER", new String[]{"hbase.master.info.port"});
     initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.regionserver.info.port"});
     initPropMap.put("HBASE_MASTER-HTTPS", new String[]{"hbase.master.info.port"});
     initPropMap.put("HBASE_REGIONSERVER-HTTPS", new String[]{"hbase.regionserver.info.port"});
     serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.resourcemanager.webapp.address"});
     initPropMap.put("RESOURCEMANAGER-HTTPS", new String[]{"yarn.resourcemanager.webapp.https.address"});
     initPropMap.put("NODEMANAGER", new String[]{"yarn.nodemanager.webapp.address"});
     initPropMap.put("NODEMANAGER-HTTPS", new String[]{"yarn.nodemanager.webapp.https.address"});
     serviceDesiredProperties.put(Service.Type.YARN, initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("HISTORYSERVER", new String[]{"mapreduce.jobhistory.webapp.address"});
     initPropMap.put("HISTORYSERVER-HTTPS", new String[]{"mapreduce.jobhistory.webapp.https.address"});
     serviceDesiredProperties.put(Service.Type.MAPREDUCE2, initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("DATANODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("DATANODE", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("JOURNALNODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("JOURNALNODE", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("HBASE_MASTER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_MASTER", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_REGIONSERVER", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("NODEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("NODEMANAGER", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("HISTORYSERVER", new String[]{"mapreduce.jobhistory.http.policy"});
     jmxDesiredProperties.put("HISTORYSERVER", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("client", new String[]{"dfs.namenode.rpc-address"});
     initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address"});
     initPropMap.put("healthcheck", new String[]{"dfs.namenode.lifeline.rpc-address"});
     jmxDesiredRpcSuffixProperties.put("NAMENODE", initPropMap);
 
-    initPropMap = new HashMap<String, String[]>();
+    initPropMap = new HashMap<>();
     initPropMap.put("client", new String[]{"dfs.namenode.rpc-address.%s.%s"});
     initPropMap.put("datanode", new String[]{"dfs.namenode.servicerpc-address.%s.%s"});
     initPropMap.put("healthcheck", new String[]{"dfs.namenode.lifeline.rpc-address.%s.%s"});
@@ -212,12 +212,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
   /**
    * The map of resource providers.
    */
-  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<Resource.Type, ResourceProvider>();
+  private final Map<Resource.Type, ResourceProvider> resourceProviders = new HashMap<>();
 
   /**
    * The map of lists of property providers.
    */
-  private final Map<Resource.Type, List<PropertyProvider>> propertyProviders = new HashMap<Resource.Type, List<PropertyProvider>>();
+  private final Map<Resource.Type, List<PropertyProvider>> propertyProviders = new HashMap<>();
 
   @Inject
   AmbariManagementController managementController;
@@ -500,7 +500,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
       synchronized (jmxPortMap) {
         clusterJmxPorts = jmxPortMap.get(clusterName);
         if (clusterJmxPorts == null) {
-          clusterJmxPorts = new ConcurrentHashMap<String, ConcurrentMap<String, String>>();
+          clusterJmxPorts = new ConcurrentHashMap<>();
           jmxPortMap.put(clusterName, clusterJmxPorts);
         }
       }
@@ -528,7 +528,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
               serviceConfigTypes.get(service)
           );
 
-          Map<String, String[]> componentPortsProperties = new HashMap<String, String[]>();
+          Map<String, String[]> componentPortsProperties = new HashMap<>();
           componentPortsProperties.put(
               componentName,
               getPortProperties(service,
@@ -627,14 +627,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private String postProcessPropertyValue(String key, String value, Map<String, String> properties, Set<String> prevProps) {
     if (value != null && key != null && value.contains("${")) {
       if (prevProps == null) {
-        prevProps = new HashSet<String>();
+        prevProps = new HashSet<>();
       }
       if (prevProps.contains(key)) {
         return value;
       }
       prevProps.add(key);
       String refValueString = value;
-      Map<String, String> refMap = new HashMap<String, String>();
+      Map<String, String> refMap = new HashMap<>();
       while (refValueString.contains("${")) {
         int startValueRef = refValueString.indexOf("${") + 2;
         int endValueRef = refValueString.indexOf('}');
@@ -678,7 +678,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   protected void createPropertyProviders(Resource.Type type) {
 
-    List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
+    List<PropertyProvider> providers = new LinkedList<>();
 
     ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
     URLStreamProvider streamProvider = new URLStreamProvider(
@@ -831,10 +831,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private void initProviderMaps() throws SystemException {
     ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(ClusterResourceProvider.GET_IGNORE_PERMISSIONS_PROPERTY_ID, "true");
 
     Request request = PropertyHelper.getReadRequest(propertyIds,
@@ -844,8 +844,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
       jmxPortMap.clear();
       Set<Resource> clusters = provider.getResources(request, null);
 
-      clusterHostComponentMap = new HashMap<String, Map<String, String>>();
-      clusterGangliaCollectorMap = new HashMap<String, String>();
+      clusterHostComponentMap = new HashMap<>();
+      clusterGangliaCollectorMap = new HashMap<>();
 
       for (Resource cluster : clusters) {
 
@@ -864,7 +864,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         Map<String, String> hostComponentMap = clusterHostComponentMap.get(clusterName);
 
         if (hostComponentMap == null) {
-          hostComponentMap = new HashMap<String, String>();
+          hostComponentMap = new HashMap<>();
           clusterHostComponentMap.put(clusterName, hostComponentMap);
         }
 
@@ -980,7 +980,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if(configProperties == null) {
       configProperties = getConfigProperties(clusterName, versionTag, configType);
     }
-    Map<String, String> mConfigs = new HashMap<String, String>();
+    Map<String, String> mConfigs = new HashMap<>();
     if (!configProperties.isEmpty()) {
       Map<String, String> evaluatedProperties = null;
       for (Entry<String, String[]> entry : keys.entrySet()) {
@@ -1004,7 +1004,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
         if (value != null && value.contains("${")) {
           if (evaluatedProperties == null) {
-            evaluatedProperties = new HashMap<String, String>();
+            evaluatedProperties = new HashMap<>();
             for (Map.Entry<String, Object> subentry : configProperties.entrySet()) {
               String keyString = subentry.getKey();
               Object object = subentry.getValue();

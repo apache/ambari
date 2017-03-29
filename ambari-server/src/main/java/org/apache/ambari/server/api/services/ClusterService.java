@@ -688,7 +688,7 @@ public class ClusterService extends BaseService {
    * @return an artifact resource instance
    */
   ResourceInstance createArtifactResource(String clusterName, String artifactName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Artifact, artifactName);
 

@@ -91,96 +91,96 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
   private static final Map<String, Object> COMPOSITE_MAP;
 
   static {
-    TreeMap<String, Object> stackProperties = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackProperties = new TreeMap<>();
     stackProperties.put("realm", "EXAMPLE.COM");
     stackProperties.put("some.property", "Hello World");
 
-    Collection<String> authToLocalRules = new ArrayList<String>();
+    Collection<String> authToLocalRules = new ArrayList<>();
     authToLocalRules.add("global.name.rules");
 
-    TreeMap<String, Object> stackServices = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackServices = new TreeMap<>();
     stackServices.put((String) KerberosServiceDescriptorTest.MAP_VALUE.get("name"), KerberosServiceDescriptorTest.MAP_VALUE);
 
-    TreeMap<String, Object> stackClusterConfProperties = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackClusterConfProperties = new TreeMap<>();
     stackClusterConfProperties.put("property1", "red");
 
-    TreeMap<String, Object> stackClusterConf = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackClusterConf = new TreeMap<>();
     stackClusterConf.put("cluster-conf", stackClusterConfProperties);
 
-    TreeMap<String, Object> stackConfigurations = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackConfigurations = new TreeMap<>();
     stackConfigurations.put("cluster-conf", stackClusterConf);
 
-    TreeMap<String, Object> stackSharedIdentityKeytabOwner = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackSharedIdentityKeytabOwner = new TreeMap<>();
     stackSharedIdentityKeytabOwner.put("name", "root");
     stackSharedIdentityKeytabOwner.put("access", "rw");
 
-    TreeMap<String, Object> sharedIdentityKeytabGroup = new TreeMap<String, Object>();
+    TreeMap<String, Object> sharedIdentityKeytabGroup = new TreeMap<>();
     sharedIdentityKeytabGroup.put("name", "hadoop");
     sharedIdentityKeytabGroup.put("access", "r");
 
-    TreeMap<String, Object> stackSharedIdentityKeytab = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackSharedIdentityKeytab = new TreeMap<>();
     stackSharedIdentityKeytab.put("file", "/etc/security/keytabs/subject.service.keytab");
     stackSharedIdentityKeytab.put("owner", stackSharedIdentityKeytabOwner);
     stackSharedIdentityKeytab.put("group", sharedIdentityKeytabGroup);
     stackSharedIdentityKeytab.put("configuration", "service-site/service2.component.keytab.file");
 
-    TreeMap<String, Object> stackSharedIdentity = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackSharedIdentity = new TreeMap<>();
     stackSharedIdentity.put("name", "shared");
-    stackSharedIdentity.put("principal", new TreeMap<String, Object>(KerberosPrincipalDescriptorTest.MAP_VALUE));
+    stackSharedIdentity.put("principal", new TreeMap<>(KerberosPrincipalDescriptorTest.MAP_VALUE));
     stackSharedIdentity.put("keytab", stackSharedIdentityKeytab);
 
-    TreeMap<String, Object> stackIdentities = new TreeMap<String, Object>();
+    TreeMap<String, Object> stackIdentities = new TreeMap<>();
     stackIdentities.put("shared", stackSharedIdentity);
 
-    STACK_MAP = new TreeMap<String, Object>();
+    STACK_MAP = new TreeMap<>();
     STACK_MAP.put("properties", stackProperties);
     STACK_MAP.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
     STACK_MAP.put(AbstractKerberosDescriptor.Type.SERVICE.getDescriptorPluralName(), stackServices.values());
     STACK_MAP.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), stackConfigurations.values());
     STACK_MAP.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), stackIdentities.values());
 
-    TreeMap<String, Object> userProperties = new TreeMap<String, Object>();
+    TreeMap<String, Object> userProperties = new TreeMap<>();
     userProperties.put("realm", "HWX.COM");
     userProperties.put("some.property", "Hello World");
 
-    TreeMap<String, Object> userClusterConfProperties = new TreeMap<String, Object>();
+    TreeMap<String, Object> userClusterConfProperties = new TreeMap<>();
     userClusterConfProperties.put("property1", "blue");
     userClusterConfProperties.put("property2", "orange");
 
-    TreeMap<String, Object> userClusterConf = new TreeMap<String, Object>();
+    TreeMap<String, Object> userClusterConf = new TreeMap<>();
     userClusterConf.put("cluster-conf", userClusterConfProperties);
 
-    TreeMap<String, Object> userConfigurations = new TreeMap<String, Object>();
+    TreeMap<String, Object> userConfigurations = new TreeMap<>();
     userConfigurations.put("cluster-conf", userClusterConf);
 
-    TreeMap<String, Object> userSharedIdentityKeytabOwner = new TreeMap<String, Object>();
+    TreeMap<String, Object> userSharedIdentityKeytabOwner = new TreeMap<>();
     userSharedIdentityKeytabOwner.put("name", "root");
     userSharedIdentityKeytabOwner.put("access", "rw");
 
-    TreeMap<String, Object> userSharedIdentityKeytabGroup = new TreeMap<String, Object>();
+    TreeMap<String, Object> userSharedIdentityKeytabGroup = new TreeMap<>();
     userSharedIdentityKeytabGroup.put("name", "hadoop");
     userSharedIdentityKeytabGroup.put("access", "r");
 
-    TreeMap<String, Object> userSharedIdentityKeytab = new TreeMap<String, Object>();
+    TreeMap<String, Object> userSharedIdentityKeytab = new TreeMap<>();
     userSharedIdentityKeytab.put("file", "/etc/security/keytabs/subject.service.keytab");
     userSharedIdentityKeytab.put("owner", userSharedIdentityKeytabOwner);
     userSharedIdentityKeytab.put("group", userSharedIdentityKeytabGroup);
     userSharedIdentityKeytab.put("configuration", "service-site/service2.component.keytab.file");
 
-    TreeMap<String, Object> userSharedIdentity = new TreeMap<String, Object>();
+    TreeMap<String, Object> userSharedIdentity = new TreeMap<>();
     userSharedIdentity.put("name", "shared");
-    userSharedIdentity.put("principal", new TreeMap<String, Object>(KerberosPrincipalDescriptorTest.MAP_VALUE));
+    userSharedIdentity.put("principal", new TreeMap<>(KerberosPrincipalDescriptorTest.MAP_VALUE));
     userSharedIdentity.put("keytab", userSharedIdentityKeytab);
 
-    TreeMap<String, Object> userIdentities = new TreeMap<String, Object>();
+    TreeMap<String, Object> userIdentities = new TreeMap<>();
     userIdentities.put("shared", userSharedIdentity);
 
-    USER_MAP = new TreeMap<String, Object>();
+    USER_MAP = new TreeMap<>();
     USER_MAP.put("properties", userProperties);
     USER_MAP.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), userConfigurations.values());
     USER_MAP.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), userIdentities.values());
 
-    COMPOSITE_MAP = new TreeMap<String, Object>();
+    COMPOSITE_MAP = new TreeMap<>();
     COMPOSITE_MAP.putAll(STACK_MAP);
     COMPOSITE_MAP.putAll(USER_MAP);
   }
@@ -483,7 +483,7 @@ public class ClusterKerberosDescriptorResourceProviderTest extends EasyMockSuppo
     expect(managementController.getClusters()).andReturn(clusters).atLeastOnce();
     expect(managementController.getKerberosHelper()).andReturn(kerberosHelper).atLeastOnce();
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(ClusterKerberosDescriptorResourceProvider.DIRECTIVE_EVALUATE_WHEN_CLAUSE, "true");
     requestInfoProperties.put(ClusterKerberosDescriptorResourceProvider.DIRECTIVE_ADDITIONAL_SERVICES, "HIVE, TEZ,PIG");
 

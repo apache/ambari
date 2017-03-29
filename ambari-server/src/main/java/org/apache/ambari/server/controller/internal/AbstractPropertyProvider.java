@@ -137,7 +137,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * @return Cluster's Name
    */
   protected Set<String> getClustersNameFromResources(Set<Resource> resources, String clusterNamePropertyId) {
-    Set<String> clusNames = new HashSet<String>();
+    Set<String> clusNames = new HashSet<>();
     if (resources != null) {
       Iterator<Resource> itr = resources.iterator();
       while (itr.hasNext()) {
@@ -158,7 +158,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * @return cluster Id.
    */
   protected Set<Long> getClustersResourceId(Set<Resource> resources, String clusterNamePropertyId) {
-    Set<Long> clusterResId = new HashSet<Long>();
+    Set<Long> clusterResId = new HashSet<>();
     if (clusterNamePropertyId != null) {
       try {
         AmbariManagementController amc = AmbariServer.getController();
@@ -248,7 +248,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * @return a map of metrics
    */
   protected Map<String, PropertyInfo> getPropertyInfoMap(String componentName, String propertyId) {
-    Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+    Map<String, PropertyInfo> propertyInfoMap = new HashMap<>();
 
     updatePropertyInfoMap(componentName, propertyId, propertyInfoMap);
 
@@ -346,8 +346,8 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
           String methodName = argName.substring(matcher.start() + 1, openParenIndex);
           String args = argName.substring(openParenIndex + 1, closeParenIndex);
 
-          List<Object> argList = new LinkedList<Object>();
-          List<Class<?>> paramTypes = new LinkedList<Class<?>>();
+          List<Object> argList = new LinkedList<>();
+          List<Class<?>> paramTypes = new LinkedList<>();
 
           // for each argument of the method ...
           Matcher argMatcher = FIND_ARGUMENT_METHOD_ARGUMENTS_REGEX.matcher(args);

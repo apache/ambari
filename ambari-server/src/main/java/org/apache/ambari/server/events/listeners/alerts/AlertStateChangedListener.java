@@ -159,7 +159,7 @@ public class AlertStateChangedListener {
     }
 
     List<AlertGroupEntity> groups = m_alertsDispatchDao.findGroupsByDefinition(definition);
-    List<AlertNoticeEntity> notices = new LinkedList<AlertNoticeEntity>();
+    List<AlertNoticeEntity> notices = new LinkedList<>();
 
     // for each group, determine if there are any targets that need to receive
     // a notification about the alert state change event

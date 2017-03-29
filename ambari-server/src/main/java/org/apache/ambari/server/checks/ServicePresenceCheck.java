@@ -123,7 +123,7 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
    * @return service names
    * */
   private List<String> getNoUpgradeSupportServices(PrereqCheckRequest request){
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     String value = getPropertyValue(request, NO_UPGRADE_SUPPORT_SERVICES_PROPERTY_NAME);
     if (null != value){
       String[] services = value.split(",");
@@ -141,7 +141,7 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
    * @return service names and new service names map
    * */
   private Map<String, String> getRemovedServices(PrereqCheckRequest request) throws AmbariException{
-    Map<String, String> result = new LinkedHashMap<String, String>();
+    Map<String, String> result = new LinkedHashMap<>();
     String value = getPropertyValue(request, REMOVED_SERVICES_PROPERTY_NAME);
     String newValue = getPropertyValue(request, NEW_SERVICES_PROPERTY_NAME);
     if(value == null && newValue == null){

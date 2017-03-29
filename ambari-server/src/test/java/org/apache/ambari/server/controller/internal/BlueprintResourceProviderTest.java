@@ -128,7 +128,7 @@ public class BlueprintResourceProviderTest {
   }
 
   private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
-    return new HashMap<String, Set<HashMap<String, String>>>();
+    return new HashMap<>();
   }
 
   @Before
@@ -191,7 +191,7 @@ public class BlueprintResourceProviderTest {
     Request request = createMock(Request.class);
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, null);
 
     // set expectations
@@ -440,7 +440,7 @@ public class BlueprintResourceProviderTest {
 
     BlueprintEntity entity = createEntity(getBlueprintTestProperties().iterator().next());
 
-    List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
+    List<BlueprintEntity> results = new ArrayList<>();
     results.add(entity);
 
     // set expectations
@@ -468,7 +468,7 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(testProperties);
     BlueprintEntity entity = createEntity(testProperties.iterator().next());
 
-    List<BlueprintEntity> results = new ArrayList<BlueprintEntity>();
+    List<BlueprintEntity> results = new ArrayList<>();
     results.add(entity);
 
     // set expectations
@@ -495,8 +495,8 @@ public class BlueprintResourceProviderTest {
     expectLastCall();
     replay(dao);
 
-    Predicate predicate = new EqualsPredicate<String>(
-        BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
+    Predicate predicate = new EqualsPredicate<>(
+      BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
     provider.addObserver(observer);
@@ -518,7 +518,7 @@ public class BlueprintResourceProviderTest {
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[]}");
     Request request = createMock(Request.class);
@@ -567,7 +567,7 @@ public class BlueprintResourceProviderTest {
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[{\"configuration-type\":{\"properties\":{\"property\":\"value\"}}}]}");
     Request request = createMock(Request.class);
@@ -618,7 +618,7 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     String configurationData = "{\"configurations\":[{\"config-type1\":{\"properties\" :{\"property\":\"property-value\"}},"
         + "\"config-type2\" : {\"properties_attributes\" : {\"property\" : \"property-value\"}, \"properties\" : {\"property\" : \"property-value\"}}}"
         + "]}";
@@ -649,7 +649,7 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     String configurationData = "{\"configurations\":[\"config-type1\", \"config-type2\"]}";
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
 
@@ -678,7 +678,7 @@ public class BlueprintResourceProviderTest {
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     String configurationData = "{\"configurations\":{\"config-type1\": \"properties\", \"config-type2\": \"properties\"}}";
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
 
@@ -700,34 +700,34 @@ public class BlueprintResourceProviderTest {
   }
 
   public static Set<Map<String, Object>> getBlueprintTestProperties() {
-    Map<String, String> mapHostGroupComponentProperties = new HashMap<String, String>();
+    Map<String, String> mapHostGroupComponentProperties = new HashMap<>();
     mapHostGroupComponentProperties.put(BlueprintResourceProvider.COMPONENT_NAME_PROPERTY_ID, "component1");
 
-    Map<String, String> mapHostGroupComponentProperties2 = new HashMap<String, String>();
+    Map<String, String> mapHostGroupComponentProperties2 = new HashMap<>();
     mapHostGroupComponentProperties2.put(BlueprintResourceProvider.COMPONENT_NAME_PROPERTY_ID, "component2");
 
-    Set<Map<String, String>> setComponentProperties = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> setComponentProperties = new HashSet<>();
     setComponentProperties.add(mapHostGroupComponentProperties);
     setComponentProperties.add(mapHostGroupComponentProperties2);
 
-    Set<Map<String, String>> setComponentProperties2 = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> setComponentProperties2 = new HashSet<>();
     setComponentProperties2.add(mapHostGroupComponentProperties);
 
-    Map<String, Object> mapHostGroupProperties = new HashMap<String, Object>();
+    Map<String, Object> mapHostGroupProperties = new HashMap<>();
     mapHostGroupProperties.put(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID, "group1");
     mapHostGroupProperties.put(BlueprintResourceProvider.HOST_GROUP_CARDINALITY_PROPERTY_ID, "1");
     mapHostGroupProperties.put(BlueprintResourceProvider.COMPONENT_PROPERTY_ID, setComponentProperties);
 
-    Map<String, Object> mapHostGroupProperties2 = new HashMap<String, Object>();
+    Map<String, Object> mapHostGroupProperties2 = new HashMap<>();
     mapHostGroupProperties2.put(BlueprintResourceProvider.HOST_GROUP_NAME_PROPERTY_ID, "group2");
     mapHostGroupProperties2.put(BlueprintResourceProvider.HOST_GROUP_CARDINALITY_PROPERTY_ID, "2");
     mapHostGroupProperties2.put(BlueprintResourceProvider.COMPONENT_PROPERTY_ID, setComponentProperties2);
 
-    Set<Map<String, Object>> setHostGroupProperties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> setHostGroupProperties = new HashSet<>();
     setHostGroupProperties.add(mapHostGroupProperties);
     setHostGroupProperties.add(mapHostGroupProperties2);
 
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Map<String, Object> mapProperties = new HashMap<>();
     mapProperties.put(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID, BLUEPRINT_NAME);
     mapProperties.put(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID, "test-stack-name");
     mapProperties.put(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID, "test-stack-version");
@@ -737,22 +737,22 @@ public class BlueprintResourceProviderTest {
   }
 
   public static Map<String, Object> getBlueprintRawBodyProperties() {
-    return new HashMap<String, Object>();
+    return new HashMap<>();
   }
 
   public static void setConfigurationProperties(Set<Map<String, Object>> properties ) {
-    Map<String, String> clusterProperties = new HashMap<String, String>();
+    Map<String, String> clusterProperties = new HashMap<>();
     clusterProperties.put("core-site/properties/fs.trash.interval", "480");
     clusterProperties.put("core-site/properties/ipc.client.idlethreshold", "8500");
     clusterProperties.put("core-site/properties_attributes/final/ipc.client.idlethreshold", "true");
 
     // single entry in set which was created in getTestProperties
     Map<String, Object> mapProperties = properties.iterator().next();
-    Set<Map<String, String>> configurations = new HashSet<Map<String, String>>();
+    Set<Map<String, String>> configurations = new HashSet<>();
     configurations.add(clusterProperties);
     mapProperties.put("configurations", configurations);
 
-    Map<String, Object> hostGroupProperties = new HashMap<String, Object>();
+    Map<String, Object> hostGroupProperties = new HashMap<>();
     hostGroupProperties.put("core-site/my.custom.hg.property", "anything");
 
     Collection<Map<String, Object>> hostGroups = (Collection<Map<String, Object>>) mapProperties.get
@@ -849,7 +849,7 @@ public class BlueprintResourceProviderTest {
     Set<Map<String, Object>> hostGroupProperties = (Set<Map<String, Object>>) properties.get(
         BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
 
-    Collection<HostGroupEntity> hostGroups = new ArrayList<HostGroupEntity>();
+    Collection<HostGroupEntity> hostGroups = new ArrayList<>();
     for (Map<String, Object> groupProperties : hostGroupProperties) {
       HostGroupEntity hostGroup = new HostGroupEntity();
       hostGroups.add(hostGroup);
@@ -860,7 +860,7 @@ public class BlueprintResourceProviderTest {
       Set<Map<String, String>> setComponentProperties = (Set<Map<String, String>>) groupProperties.get(
           BlueprintResourceProvider.COMPONENT_PROPERTY_ID);
 
-      Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
+      Collection<HostGroupComponentEntity> components = new ArrayList<>();
       for (Map<String, String> compProperties : setComponentProperties) {
         HostGroupComponentEntity component = new HostGroupComponentEntity();
         components.add(component);
@@ -879,7 +879,7 @@ public class BlueprintResourceProviderTest {
   }
 
   private Map<String, String> getTestRequestInfoProperties() {
-    Map<String, String> setPropertiesInfo = new HashMap<String, String>();
+    Map<String, String> setPropertiesInfo = new HashMap<>();
     String configurationData = "{\"configurations\":[{\"config-type1\":{\"properties\" :{\"property\":\"property-value\"}}},"
         + "{\"config-type2\" : {\"properties_attributes\" : {\"property\" : \"property-value\"}, \"properties\" : {\"property\" : \"property-value\"}}}"
         + "]}";
@@ -889,7 +889,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateConfigurationEntity_oldSchema() throws Exception {
-    Map<String, String> configuration = new HashMap<String, String>();
+    Map<String, String> configuration = new HashMap<>();
     configuration.put("global/property1", "val1");
     configuration.put("global/property2", "val2");
     BlueprintConfiguration config = new BlueprintConfigEntity();
@@ -912,7 +912,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateConfigurationEntity_newSchema() throws Exception {
-    Map<String, String> configuration = new HashMap<String, String>();
+    Map<String, String> configuration = new HashMap<>();
     configuration.put("global/properties/property1", "val1");
     configuration.put("global/properties/property2", "val2");
     configuration.put("global/properties_attributes/final/property1", "true");
@@ -964,7 +964,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateConfigurationEntity_configIsEmpty() throws Exception {
-    Map<String, String> configuration = new HashMap<String, String>();
+    Map<String, String> configuration = new HashMap<>();
     BlueprintConfiguration config = new BlueprintConfigEntity();
 
     provider.populateConfigurationEntity(configuration, config);
@@ -975,7 +975,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDecidePopulationStrategy_configIsEmpty() throws Exception {
-    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, String> configMap = new HashMap<>();
 
     BlueprintConfigPopulationStrategy provisioner =
         provider.decidePopulationStrategy(configMap);
@@ -997,7 +997,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDecidePopulationStrategy_withOldSchema() throws Exception {
-    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, String> configMap = new HashMap<>();
     configMap.put("global/hive_database", "db");
 
     BlueprintConfigPopulationStrategy provisioner =
@@ -1009,7 +1009,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDecidePopulationStrategy_withNewSchema_attributes() throws Exception {
-    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, String> configMap = new HashMap<>();
     configMap.put("global/properties_attributes/final/foo_contact", "true");
 
     BlueprintConfigPopulationStrategy provisioner =
@@ -1021,7 +1021,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDecidePopulationStrategy_withNewSchema_properties() throws Exception {
-    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, String> configMap = new HashMap<>();
     configMap.put("global/properties/foo_contact", "foo@ffl.dsfds");
 
     BlueprintConfigPopulationStrategy provisioner =
@@ -1033,7 +1033,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testDecidePopulationStrategy_unsupportedSchema() throws Exception {
-    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, String> configMap = new HashMap<>();
     configMap.put("global/properties/lot/foo_contact", "foo@ffl.dsfds");
     expectedException.expect(IllegalArgumentException.class);
     expectedException.expectMessage(BlueprintResourceProvider.SCHEMA_IS_NOT_SUPPORTED_MESSAGE);

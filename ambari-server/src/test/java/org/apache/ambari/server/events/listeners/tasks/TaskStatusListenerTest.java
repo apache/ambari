@@ -63,7 +63,7 @@ public class TaskStatusListenerTest extends EasyMockSupport {
 
   @Test
   public void testOnTaskUpdateEvent() {
-    List<HostRoleCommand> hostRoleCommands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
     ServiceComponentHostEvent serviceComponentHostEvent = createNiceMock(ServiceComponentHostEvent.class);
     HostDAO hostDAO = createNiceMock(HostDAO.class);
     replayAll();
@@ -136,7 +136,7 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     // update of all tasks status of skip_failed and  completed states should cascade into request status of completed
     // and request display status to be of skip_failed
     hrcCounter = 1;
-    List<HostRoleCommand> finalHostRoleCommands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> finalHostRoleCommands = new ArrayList<>();
     HostRoleStatus finalHostRoleStatus = HostRoleStatus.COMPLETED;
     for (int stageCounter = 0; stageCounter < 2; stageCounter++) {
       for (int i = 1; i <= hostRoleCommandSize; i++,hrcCounter++) {

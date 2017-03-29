@@ -46,7 +46,7 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
    */
   protected boolean valid = true;
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   /**
    * Constructor.
@@ -158,7 +158,7 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
   private void mergeComponentDependencies(List<DependencyInfo> parentDependencies,
                                           List<DependencyInfo> childDependencies) {
 
-    Collection<String> existingNames = new HashSet<String>();
+    Collection<String> existingNames = new HashSet<>();
 
     for (DependencyInfo childDependency : childDependencies) {
       existingNames.add(childDependency.getName());
@@ -184,7 +184,7 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
   private void mergeCustomCommands(List<CustomCommandDefinition> parentCommands,
                                    List<CustomCommandDefinition> childCommands) {
 
-    Collection<String> existingNames = new HashSet<String>();
+    Collection<String> existingNames = new HashSet<>();
 
     for (CustomCommandDefinition childCmd : childCommands) {
       existingNames.add(childCmd.getName());
@@ -207,7 +207,7 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
    */
   //todo: currently there is no way to remove an inherited log
   private void mergeLogs(List<LogDefinition> parentLogs, List<LogDefinition> childLogs) {
-    Collection<String> existingLogIds = new HashSet<String>();
+    Collection<String> existingLogIds = new HashSet<>();
 
     for (LogDefinition childLog : childLogs) {
       existingLogIds.add(childLog.getLogId());

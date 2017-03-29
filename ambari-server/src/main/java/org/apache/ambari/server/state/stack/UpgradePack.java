@@ -148,7 +148,7 @@ public class UpgradePack {
    * @return the preCheck name, e.g. "CheckDescription"
    */
   public List<String> getPrerequisiteChecks() {
-    return new ArrayList<String>(prerequisiteChecks.checks);
+    return new ArrayList<>(prerequisiteChecks.checks);
   }
 
   /**
@@ -179,7 +179,7 @@ public class UpgradePack {
     }
 
     if (prerequisiteChecks.checks == null) {
-      prerequisiteChecks.checks = new ArrayList<String>();
+      prerequisiteChecks.checks = new ArrayList<>();
     }
     if (newPrereqChecks.checks != null) {
       prerequisiteChecks.checks.addAll(newPrereqChecks.checks);
@@ -194,10 +194,10 @@ public class UpgradePack {
       return;
     }
     if (prerequisiteChecks.configuration.globalProperties == null) {
-      prerequisiteChecks.configuration.globalProperties = new ArrayList<PrerequisiteProperty>();
+      prerequisiteChecks.configuration.globalProperties = new ArrayList<>();
     }
     if (prerequisiteChecks.configuration.prerequisiteCheckProperties == null) {
-      prerequisiteChecks.configuration.prerequisiteCheckProperties = new ArrayList<PrerequisiteCheckProperties>();
+      prerequisiteChecks.configuration.prerequisiteCheckProperties = new ArrayList<>();
     }
     if (newPrereqChecks.configuration.globalProperties != null) {
       prerequisiteChecks.configuration.globalProperties.addAll(newPrereqChecks.configuration.globalProperties);
@@ -285,7 +285,7 @@ public class UpgradePack {
    * @return the list of groups
    */
   public List<Grouping> getGroups(Direction direction) {
-    List<Grouping> list = new ArrayList<Grouping>();
+    List<Grouping> list = new ArrayList<>();
     if (direction.isUpgrade()) {
       list = groups;
     } else {
@@ -301,7 +301,7 @@ public class UpgradePack {
       }
     }
 
-    List<Grouping> checked = new ArrayList<Grouping>();
+    List<Grouping> checked = new ArrayList<>();
     for (Grouping group : list) {
       if (null == group.intendedDirection || direction == group.intendedDirection) {
         checked.add(group);
@@ -361,7 +361,7 @@ public class UpgradePack {
    * @return the list of groups, reversed appropriately for a downgrade.
    */
   private List<Grouping> getDowngradeGroupsForRolling() {
-    List<Grouping> reverse = new ArrayList<Grouping>();
+    List<Grouping> reverse = new ArrayList<>();
 
     // !!! Testing exposed groups.size() == 1 issue.  Normally there's no precedent for
     // a one-group upgrade pack, so take it into account anyway.
@@ -397,7 +397,7 @@ public class UpgradePack {
   }
 
   private List<Grouping> getDowngradeGroupsForNonrolling() {
-    List<Grouping> list = new ArrayList<Grouping>();
+    List<Grouping> list = new ArrayList<>();
     for (Grouping g : groups) {
       list.add(g);
     }
@@ -438,7 +438,7 @@ public class UpgradePack {
    * maps those to service name, initializing {@link #m_process} to the result.
    */
   private void initializeProcessingComponentMappings() {
-    m_process = new LinkedHashMap<String, Map<String, ProcessingComponent>>();
+    m_process = new LinkedHashMap<>();
 
     if (null == processing || processing.isEmpty()) {
       return;
@@ -449,7 +449,7 @@ public class UpgradePack {
 
       // initialize mapping if not present for the given service name
       if (null == componentMap) {
-        componentMap = new LinkedHashMap<String, ProcessingComponent>();
+        componentMap = new LinkedHashMap<>();
         m_process.put(svc.name, componentMap);
       }
 
@@ -590,7 +590,7 @@ public class UpgradePack {
      * List of additional prerequisite checks to run in addition to required prerequisite checks
      */
     @XmlElement(name="check", type=String.class)
-    public List<String> checks = new ArrayList<String>();
+    public List<String> checks = new ArrayList<>();
 
     /**
      * Prerequisite checks configuration
@@ -623,7 +623,7 @@ public class UpgradePack {
       if(globalProperties == null) {
         return null;
       }
-      Map<String, String> result = new HashMap<String, String>();
+      Map<String, String> result = new HashMap<>();
       for (PrerequisiteProperty property : globalProperties) {
         result.put(property.name, property.value);
       }
@@ -673,7 +673,7 @@ public class UpgradePack {
         return null;
       }
 
-      Map<String, String> result = new HashMap<String, String>();
+      Map<String, String> result = new HashMap<>();
       for (PrerequisiteProperty property : properties) {
         result.put(property.name, property.value);
       }

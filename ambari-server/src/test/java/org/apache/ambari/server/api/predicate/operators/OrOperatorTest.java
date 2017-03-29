@@ -39,8 +39,8 @@ public class OrOperatorTest {
 
   @Test
   public void testToPredicate() {
-    EqualsPredicate p1 = new EqualsPredicate<String>("p1", "one");
-    EqualsPredicate p2 = new EqualsPredicate<String>("p2", "two");
+    EqualsPredicate p1 = new EqualsPredicate<>("p1", "one");
+    EqualsPredicate p2 = new EqualsPredicate<>("p2", "two");
     OrPredicate orPRedicate = new OrPredicate(p1, p2);
 
     assertEquals(orPRedicate, new OrOperator(1).toPredicate(p1, p2));

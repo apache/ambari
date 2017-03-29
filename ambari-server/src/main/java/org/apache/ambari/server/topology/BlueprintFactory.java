@@ -137,7 +137,7 @@ public class BlueprintFactory {
       throw new IllegalArgumentException("At least one host group must be specified in a blueprint");
     }
 
-    Collection<HostGroup> hostGroups = new ArrayList<HostGroup>();
+    Collection<HostGroup> hostGroups = new ArrayList<>();
     for (HashMap<String, Object> hostGroupProperties : hostGroupProps) {
       String hostGroupName = (String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID);
       if (hostGroupName == null || hostGroupName.isEmpty()) {
@@ -167,7 +167,7 @@ public class BlueprintFactory {
     }
 
     Collection<String> stackComponentNames = getAllStackComponents(stack);
-    Collection<Component> components = new ArrayList<Component>();
+    Collection<Component> components = new ArrayList<>();
 
     for (HashMap<String, String> componentProperties : componentProps) {
       String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
@@ -200,7 +200,7 @@ public class BlueprintFactory {
    * @throws IllegalArgumentException if the specified stack doesn't exist
    */
   private Collection<String> getAllStackComponents(Stack stack) {
-    Collection<String> allComponents = new HashSet<String>();
+    Collection<String> allComponents = new HashSet<>();
     for (Collection<String> components: stack.getComponents().values()) {
       allComponents.addAll(components);
     }

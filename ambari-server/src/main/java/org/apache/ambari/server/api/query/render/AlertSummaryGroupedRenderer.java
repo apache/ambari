@@ -125,7 +125,7 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
   @Override
   public Result finalizeResult(Result queryResult) {
     TreeNode<Resource> resultTree = queryResult.getResultTree();
-    Map<String, AlertDefinitionSummary> summaries = new HashMap<String, AlertDefinitionSummary>();
+    Map<String, AlertDefinitionSummary> summaries = new HashMap<>();
 
     // iterate over all returned flattened alerts and build the summary info
     for (TreeNode<Resource> node : resultTree.getChildren()) {
@@ -204,8 +204,8 @@ public class AlertSummaryGroupedRenderer extends AlertSummaryRenderer {
     }
 
     Set<Entry<String, AlertDefinitionSummary>> entrySet = summaries.entrySet();
-    List<AlertDefinitionSummary> groupedResources = new ArrayList<AlertDefinitionSummary>(
-        entrySet.size());
+    List<AlertDefinitionSummary> groupedResources = new ArrayList<>(
+      entrySet.size());
 
     // iterate over all summary groups, adding them to the final list
     for (Entry<String, AlertDefinitionSummary> entry : entrySet) {

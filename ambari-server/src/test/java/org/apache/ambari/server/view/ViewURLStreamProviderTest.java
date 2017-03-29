@@ -51,10 +51,10 @@ public class ViewURLStreamProviderTest {
     InputStream inputStream = createNiceMock(InputStream.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -77,10 +77,10 @@ public class ViewURLStreamProviderTest {
     InputStream inputStream = createNiceMock(InputStream.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq((byte[]) null), eq(headerMap))).andReturn(urlConnection);
@@ -103,10 +103,10 @@ public class ViewURLStreamProviderTest {
     InputStream inputStream = createNiceMock(InputStream.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -129,10 +129,10 @@ public class ViewURLStreamProviderTest {
     InputStream inputStream = createNiceMock(InputStream.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -158,10 +158,10 @@ public class ViewURLStreamProviderTest {
 
     InputStream body = new ByteArrayInputStream("params".getBytes());
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -184,10 +184,10 @@ public class ViewURLStreamProviderTest {
     InputStream inputStream = createNiceMock(InputStream.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq((byte[]) null), eq(headerMap))).andReturn(urlConnection);
@@ -212,10 +212,10 @@ public class ViewURLStreamProviderTest {
 
     InputStream body = new ByteArrayInputStream("params".getBytes());
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -240,10 +240,10 @@ public class ViewURLStreamProviderTest {
 
     InputStream body = new ByteArrayInputStream("params".getBytes());
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -266,10 +266,10 @@ public class ViewURLStreamProviderTest {
     HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"),
@@ -293,10 +293,10 @@ public class ViewURLStreamProviderTest {
     HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
@@ -321,10 +321,10 @@ public class ViewURLStreamProviderTest {
     HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
     ViewContext viewContext = createNiceMock(ViewContext.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec?doAs=joe"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);

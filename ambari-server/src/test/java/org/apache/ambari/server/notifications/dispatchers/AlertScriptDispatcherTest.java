@@ -167,7 +167,7 @@ public class AlertScriptDispatcherTest {
     notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
 
     // put the custom config value
-    notification.DispatchProperties = new HashMap<String, String>();
+    notification.DispatchProperties = new HashMap<>();
     notification.DispatchProperties.put(AlertScriptDispatcher.DISPATCH_PROPERTY_SCRIPT_CONFIG_KEY,
         customScriptKey);
 

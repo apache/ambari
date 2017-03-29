@@ -94,8 +94,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   protected static final String ALERT_DEF_SOURCE = "AlertDefinition/source";
   protected static final String ALERT_DEF_SOURCE_TYPE = "AlertDefinition/source/type";
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(ALERT_DEF_ID, ALERT_DEF_NAME));
 
   private static Gson gson = new Gson();
 
@@ -132,12 +132,12 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   /**
    * The property ids for an alert defintion resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert definition resource.
    */
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   static {
     // properties
@@ -195,7 +195,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
   private void createAlertDefinitions(Set<Map<String, Object>> requestMaps)
       throws AmbariException, AuthorizationException {
-    List<AlertDefinitionEntity> entities = new ArrayList<AlertDefinitionEntity>();
+    List<AlertDefinitionEntity> entities = new ArrayList<>();
 
     String clusterName = null;
     for (Map<String, Object> requestMap : requestMaps) {
@@ -232,7 +232,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     // use a collection which preserves order since JPA sorts the results
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       String clusterName = (String) propertyMap.get(ALERT_DEF_CLUSTER_NAME);
@@ -354,7 +354,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     Set<Resource> resources = getResources(
         new RequestImpl(null, null, null, null), predicate);
 
-    Set<Long> definitionIds = new HashSet<Long>();
+    Set<Long> definitionIds = new HashSet<>();
 
     for (final Resource resource : resources) {
       Long id = (Long) resource.getPropertyValue(ALERT_DEF_ID);
@@ -496,7 +496,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
     // !!! The AlertDefinition "source" field is a nested JSON object;
     // build a JSON representation from the flat properties and then
     // serialize that JSON object as a string
-    Map<String,JsonObject> jsonObjectMapping = new HashMap<String, JsonObject>();
+    Map<String,JsonObject> jsonObjectMapping = new HashMap<>();
 
     // for every property in the request, if it's a source property, then
     // add it to the JSON model

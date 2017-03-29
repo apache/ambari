@@ -183,7 +183,7 @@ public class AutoSkipFailedSummaryActionTest {
       anyObject(HostRoleStatus.class), anyLong(), anyLong())).andReturn(skippedTasks).anyTimes();
     replay(hostRoleCommandDAOMock);
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
     CommandReport result = action.execute(requestSharedDataContext);
 
     assertNotNull(result.getStructuredOut());
@@ -260,7 +260,7 @@ public class AutoSkipFailedSummaryActionTest {
       anyObject(HostRoleStatus.class), anyLong(), anyLong())).andReturn(skippedTasks).anyTimes();
     replay(hostRoleCommandDAOMock);
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
     CommandReport result = action.execute(requestSharedDataContext);
 
     assertNotNull(result.getStructuredOut());
@@ -340,7 +340,7 @@ public class AutoSkipFailedSummaryActionTest {
       anyObject(HostRoleStatus.class), anyLong(), anyLong())).andReturn(skippedTasks).anyTimes();
     replay(hostRoleCommandDAOMock);
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
     CommandReport result = action.execute(requestSharedDataContext);
 
     assertNotNull(result.getStructuredOut());
@@ -418,7 +418,7 @@ public class AutoSkipFailedSummaryActionTest {
       anyObject(HostRoleStatus.class), anyLong(), anyLong())).andReturn(skippedTasks).anyTimes();
     replay(hostRoleCommandDAOMock);
 
-    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> requestSharedDataContext = new ConcurrentHashMap<>();
     CommandReport result = action.execute(requestSharedDataContext);
 
     assertNotNull(result.getStructuredOut());

@@ -27,7 +27,7 @@ public class RequestsByStatusesRequest {
   Set<String> statuses;
 
   public RequestsByStatusesRequest() {
-    statuses = new HashSet<String>();
+    statuses = new HashSet<>();
     statuses.add(HostRoleStatus.PENDING.toString());
     statuses.add(HostRoleStatus.QUEUED.toString());
     statuses.add(HostRoleStatus.IN_PROGRESS.toString());

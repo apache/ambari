@@ -161,7 +161,7 @@ public class Section {
 
   private List<Subsection> mergeSubsections(List<Subsection> parentSubsections, List<Subsection> childSubsections) {
 
-    Map<String, Subsection> mergedSubsections = new HashMap<String, Subsection>();
+    Map<String, Subsection> mergedSubsections = new HashMap<>();
     for (Subsection parentSubsection : parentSubsections) {
       mergedSubsections.put(parentSubsection.getName(), parentSubsection);
     }
@@ -177,7 +177,7 @@ public class Section {
         }
       }
     }
-    return new ArrayList<Subsection>(mergedSubsections.values());
+    return new ArrayList<>(mergedSubsections.values());
 
   }
 }

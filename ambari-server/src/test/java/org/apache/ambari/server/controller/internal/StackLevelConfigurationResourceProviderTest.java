@@ -47,14 +47,14 @@ public class StackLevelConfigurationResourceProviderTest {
   @Test
   public void testGetResources() throws Exception{
        
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
     attributes.put("final", "true");
 
     Resource.Type type = Resource.Type.StackLevelConfiguration;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackConfigurationResponse> allResponse = new HashSet<StackConfigurationResponse>();
+    Set<StackConfigurationResponse> allResponse = new HashSet<>();
     
     allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
    
@@ -71,7 +71,7 @@ public class StackLevelConfigurationResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(StackLevelConfigurationResourceProvider.STACK_NAME_PROPERTY_ID);
     propertyIds.add(StackLevelConfigurationResourceProvider.STACK_VERSION_PROPERTY_ID);
@@ -114,13 +114,13 @@ public class StackLevelConfigurationResourceProviderTest {
   @Test
   public void testGetResources_noFinal() throws Exception{
 
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
 
     Resource.Type type = Resource.Type.StackLevelConfiguration;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackConfigurationResponse> allResponse = new HashSet<StackConfigurationResponse>();
+    Set<StackConfigurationResponse> allResponse = new HashSet<>();
 
     allResponse.add(new StackConfigurationResponse(PROPERTY_NAME, PROPERTY_VALUE, PROPERTY_DESC, TYPE, attributes));
 
@@ -137,7 +137,7 @@ public class StackLevelConfigurationResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(StackLevelConfigurationResourceProvider.STACK_NAME_PROPERTY_ID);
     propertyIds.add(StackLevelConfigurationResourceProvider.STACK_VERSION_PROPERTY_ID);

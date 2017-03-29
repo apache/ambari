@@ -79,7 +79,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
    * closed, the chain is completed and added to the prior chain's list.
    */
   private ArrayDeque<List<javax.persistence.criteria.Predicate>> m_queue =
-      new ArrayDeque<List<javax.persistence.criteria.Predicate>>();
+    new ArrayDeque<>();
 
   /**
    * Constructor.
@@ -225,7 +225,7 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     }
 
     // create a new list for all of the predicates in this chain
-    List<javax.persistence.criteria.Predicate> predicateList = new ArrayList<javax.persistence.criteria.Predicate>();
+    List<javax.persistence.criteria.Predicate> predicateList = new ArrayList<>();
     m_queue.add(predicateList);
 
     // visit every child predicate so it can be added to the list

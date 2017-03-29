@@ -116,7 +116,7 @@ public class HostDAO {
   }
 
   public List<String> getHostNamesByHostIds(List<Long> hostIds) {
-    List<String> hostNames = new ArrayList<String>();
+    List<String> hostNames = new ArrayList<>();
     if (hostIds != null) {
       for (Long hostId : hostIds) {
         HostEntity hostEntity = findById(hostId);

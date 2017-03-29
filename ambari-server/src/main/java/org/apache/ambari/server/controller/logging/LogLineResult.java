@@ -35,7 +35,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class LogLineResult {
 
   private final Map<String, String> mapOfLogLineProperties =
-    new HashMap<String, String>();
+    new HashMap<>();
 
   private String clusterName;
 

@@ -83,19 +83,19 @@ public class ConfigGroupTest {
   @Transactional
   ConfigGroup createConfigGroup() throws AmbariException {
     // Create config without persisting and save group
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put("a", "b");
     properties.put("c", "d");
-    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
+    Map<String, String> attributes = new HashMap<>();
     attributes.put("a", "true");
     propertiesAttributes.put("final", attributes);
     Config config = configFactory.createNew(cluster, "hdfs-site", "testversion", properties, propertiesAttributes);
 
     Host host = clusters.getHost("h1");
 
-    Map<String, Config> configs = new HashMap<String, Config>();
-    Map<Long, Host> hosts = new HashMap<Long, Host>();
+    Map<String, Config> configs = new HashMap<>();
+    Map<Long, Host> hosts = new HashMap<>();
 
     configs.put(config.getType(), config);
     hosts.put(host.getHostId(), host);
@@ -147,10 +147,10 @@ public class ConfigGroupTest {
     Assert.assertEquals(2, configGroup.getHosts().values().size());
 
     // Create a new config
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put("key1", "value1");
-    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
+    Map<String, String> attributes = new HashMap<>();
     attributes.put("key1", "true");
     propertiesAttributes.put("final", attributes);
 

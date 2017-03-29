@@ -42,7 +42,7 @@ public class GroupResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.Member));
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.GroupPrivilege));
     return subResourceDefinitions;

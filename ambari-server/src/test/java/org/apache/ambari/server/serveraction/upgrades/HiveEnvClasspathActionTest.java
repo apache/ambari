@@ -127,7 +127,7 @@ public class HiveEnvClasspathActionTest {
   @Test
   public void testAction() throws Exception {
     Pattern regex = Pattern.compile("^\\s*export\\s(?<property>HIVE_HOME|HIVE_CONF_DIR)\\s*=\\s*(?<value>.*)$", Pattern.MULTILINE);
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

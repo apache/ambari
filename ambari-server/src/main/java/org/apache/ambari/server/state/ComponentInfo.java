@@ -111,7 +111,7 @@ public class ComponentInfo {
    */
   @XmlElementWrapper(name="dependencies")
   @XmlElements(@XmlElement(name="dependency"))
-  private List<DependencyInfo> dependencies = new ArrayList<DependencyInfo>();
+  private List<DependencyInfo> dependencies = new ArrayList<>();
 
   @XmlElementWrapper(name="configuration-dependencies")
   @XmlElements(@XmlElement(name="config-type"))
@@ -222,7 +222,7 @@ public class ComponentInfo {
 
   public List<LogDefinition> getLogs() {
     if (logs == null) {
-      logs = new ArrayList<LogDefinition>();
+      logs = new ArrayList<>();
     }
     
     return logs;
@@ -252,7 +252,7 @@ public class ComponentInfo {
 
   public List<CustomCommandDefinition> getCustomCommands() {
     if (customCommands == null) {
-      customCommands = new ArrayList<CustomCommandDefinition>();
+      customCommands = new ArrayList<>();
     }
     return customCommands;
   }

@@ -120,7 +120,7 @@ public class AlertDefinitionHash {
    * value is a map between cluster name and hash.
    */
   private ConcurrentMap<String, ConcurrentMap<String, String>> m_hashes =
-      new ConcurrentHashMap<String, ConcurrentMap<String, String>>();
+    new ConcurrentHashMap<>();
 
   /**
    * Gets a unique hash value reprssenting all of the alert definitions that
@@ -141,7 +141,7 @@ public class AlertDefinitionHash {
   public String getHash(String clusterName, String hostName) {
     ConcurrentMap<String, String> clusterMapping = m_hashes.get(hostName);
     if (null == clusterMapping) {
-      clusterMapping = new ConcurrentHashMap<String, String>();
+      clusterMapping = new ConcurrentHashMap<>();
       ConcurrentMap<String, String> temp = m_hashes.putIfAbsent(hostName, clusterMapping);
       if (temp != null) {
         clusterMapping = temp;
@@ -237,8 +237,8 @@ public class AlertDefinitionHash {
     Set<AlertDefinitionEntity> entities = getAlertDefinitionEntities(
         clusterName, hostName);
 
-    List<AlertDefinition> definitions = new ArrayList<AlertDefinition>(
-        entities.size());
+    List<AlertDefinition> definitions = new ArrayList<>(
+      entities.size());
 
     for (AlertDefinitionEntity entity : entities) {
       definitions.add(m_factory.coerce(entity));
@@ -364,7 +364,7 @@ public class AlertDefinitionHash {
 
     Map<String, Host> hosts = null;
     String clusterName = cluster.getClusterName();
-    Set<String> affectedHosts = new HashSet<String>();
+    Set<String> affectedHosts = new HashSet<>();
 
     try {
       hosts = m_clusters.get().getHostsForCluster(clusterName);
@@ -588,7 +588,7 @@ public class AlertDefinitionHash {
     }
 
     // build the UUIDs
-    List<String> uuids = new ArrayList<String>(definitions.size());
+    List<String> uuids = new ArrayList<>(definitions.size());
     for (AlertDefinitionEntity definition : definitions) {
       uuids.add(definition.getHash());
     }
@@ -629,7 +629,7 @@ public class AlertDefinitionHash {
   private Set<AlertDefinitionEntity> getAlertDefinitionEntities(
       String clusterName, String hostName) {
 
-    Set<AlertDefinitionEntity> definitions = new HashSet<AlertDefinitionEntity>();
+    Set<AlertDefinitionEntity> definitions = new HashSet<>();
 
     try {
       Cluster cluster = m_clusters.get().getCluster(clusterName);
@@ -655,7 +655,7 @@ public class AlertDefinitionHash {
 
         // for every service, get the master components and see if the host
         // is a master
-        Set<String> services = new HashSet<String>();
+        Set<String> services = new HashSet<>();
         for (Entry<String, Service> entry : cluster.getServices().entrySet()) {
           Service service = entry.getValue();
           Map<String, ServiceComponent> components = service.getServiceComponents();

@@ -45,7 +45,7 @@ public class PermissionResourceDefinitionTest {
   public void testGetSubResourceDefinitions() throws Exception {
     PermissionResourceDefinition permissionResourceDefinition = new PermissionResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = permissionResourceDefinition.getSubResourceDefinitions ();
-    Set<Resource.Type> expectedSubTypes = new HashSet<Resource.Type>();
+    Set<Resource.Type> expectedSubTypes = new HashSet<>();
     expectedSubTypes.add(Resource.Type.RoleAuthorization);
 
     Assert.assertEquals(1, subResourceDefinitions.size());

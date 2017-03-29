@@ -63,8 +63,8 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
   protected static final String FEED_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Feed", "properties");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          FEED_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      FEED_NAME_PROPERTY_ID}));
 
   /**
    * Construct a provider.
@@ -101,7 +101,7 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
     IvoryService  service      = getService();
     List<String>  feedNames    = service.getFeedNames();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (String feedName : feedNames ) {
 
@@ -216,7 +216,7 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
    * @return a new feed
    */
   protected static Feed getFeed(String feedName, Map<String, Object> propertyMap) {
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     for ( Map.Entry<String, Object> entry : propertyMap.entrySet()) {
       String property = entry.getKey();
       String category = PropertyHelper.getPropertyCategory(property);
@@ -253,7 +253,7 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
    * @return the map of properies to use for the update
    */
   protected static Map<String, Object> getUpdateMap(Resource resource, Map<String, Object> propertyMap) {
-    Map<String, Object> updateMap = new HashMap<String, Object>();
+    Map<String, Object> updateMap = new HashMap<>();
 
     updateMap.put(FEED_NAME_PROPERTY_ID, resource.getPropertyValue(FEED_NAME_PROPERTY_ID));
     updateMap.put(FEED_DESCRIPTION_PROPERTY_ID, resource.getPropertyValue(FEED_DESCRIPTION_PROPERTY_ID));

@@ -255,7 +255,7 @@ public class UpgradeTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    Collection<Object[]> data = new ArrayList<Object[]>();
+    Collection<Object[]> data = new ArrayList<>();
     for (String s : VERSIONS) {
       data.add(new Object[]{s});
     }

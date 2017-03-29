@@ -68,7 +68,7 @@ public class ActiveWidgetLayoutService extends BaseService {
   }
 
   private ResourceInstance createResource(String widgetLayoutId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.User, StringUtils.lowerCase(userName));
     return createResource(Resource.Type.ActiveWidgetLayout, mapIds);
   }

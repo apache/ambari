@@ -40,7 +40,7 @@ public class SshHostInfo {
   private String sshKey;
 
   @XmlElement
-  private List<String>  hosts = new ArrayList<String>();
+  private List<String>  hosts = new ArrayList<>();
 
   @XmlElement
   private boolean verbose = false;

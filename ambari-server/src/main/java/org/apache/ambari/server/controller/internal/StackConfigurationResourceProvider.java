@@ -80,9 +80,9 @@ public class StackConfigurationResourceProvider extends
       .getPropertyId("StackConfigurations", "final");
 
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
-          STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID, PROPERTY_NAME_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID, PROPERTY_NAME_PROPERTY_ID}));
 
   protected StackConfigurationResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -96,7 +96,7 @@ public class StackConfigurationResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<StackConfigurationRequest> requests = new HashSet<StackConfigurationRequest>();
+    final Set<StackConfigurationRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -115,7 +115,7 @@ public class StackConfigurationResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     
     for (StackConfigurationResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.StackConfiguration);

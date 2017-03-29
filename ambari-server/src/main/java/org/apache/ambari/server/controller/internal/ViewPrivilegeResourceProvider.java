@@ -53,7 +53,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   /**
    * The property ids for a privilege resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
@@ -68,7 +68,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   /**
    * The key property ids for a privilege resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.View, PRIVILEGE_VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
@@ -132,7 +132,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
           Collections.<Long, ViewInstanceEntity>emptyMap();
     }
 
-    Set<ViewEntity> viewEntities = new HashSet<ViewEntity>();
+    Set<ViewEntity> viewEntities = new HashSet<>();
 
     if (viewVersion != null) {
       ViewEntity viewEntity = viewRegistry.getDefinition(viewName, viewVersion);
@@ -147,7 +147,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
       }
     }
 
-    Map<Long, ViewInstanceEntity> resourceEntities = new HashMap<Long, ViewInstanceEntity>();
+    Map<Long, ViewInstanceEntity> resourceEntities = new HashMap<>();
 
     for (ViewEntity viewEntity : viewEntities) {
       if (viewEntity.isDeployed()) {

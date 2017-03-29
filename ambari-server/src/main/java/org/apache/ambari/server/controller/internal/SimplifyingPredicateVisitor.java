@@ -107,7 +107,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate arrayPredicate) {
-    List<Predicate> predicateList = new LinkedList<Predicate>();
+    List<Predicate> predicateList = new LinkedList<>();
     boolean hasOrs = false;
 
     Predicate[] predicates = arrayPredicate.getPredicates();
@@ -123,7 +123,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
     // distribute so that A && ( B || C ) becomes ( A && B ) || ( A && C )
     if (hasOrs && arrayPredicate instanceof AndPredicate) {
       int size = predicateList.size();
-      List<Predicate> andPredicateList = new LinkedList<Predicate>();
+      List<Predicate> andPredicateList = new LinkedList<>();
 
       for (int i = 0; i < size; ++i) {
         for (int j = i + 1; j < size; ++j) {
@@ -161,7 +161,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
   }
 
   private static List<Predicate> distributeOr(OrPredicate orPredicate, Predicate other) {
-    List<Predicate> andPredicateList = new LinkedList<Predicate>();
+    List<Predicate> andPredicateList = new LinkedList<>();
     OrPredicate otherOr = null;
 
     if (other instanceof OrPredicate) {

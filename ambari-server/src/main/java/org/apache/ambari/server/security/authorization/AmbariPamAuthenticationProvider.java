@@ -112,7 +112,7 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
 
           //Get all the groups that user belongs to
           //Change all group names to lower case.
-          Set<String> groups = new HashSet<String>();
+          Set<String> groups = new HashSet<>();
 
           for(String group: unixUser.getGroups()){
             groups.add(group.toLowerCase());
@@ -241,7 +241,7 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
    */
   private Set<String> getUserGroups(String userName, UserType userType) {
     UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
-    Set<String> groups = new HashSet<String>();
+    Set<String> groups = new HashSet<>();
     for (MemberEntity memberEntity: userEntity.getMemberEntities()) {
       groups.add(memberEntity.getGroup().getGroupName());
     }

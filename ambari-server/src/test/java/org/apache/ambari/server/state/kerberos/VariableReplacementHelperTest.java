@@ -191,26 +191,26 @@ public class VariableReplacementHelperTest {
     List<String> expected;
     List<String> actual;
 
-    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "three", "two"));
-    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    expected = new LinkedList<>(Arrays.asList("four", "hello", "one", "three", "two"));
+    actual = new LinkedList<>(Arrays.asList(helper.replaceVariables("${foobar-site/hello | append(foobar-site/data, \\,, true)}", configurations).split(",")));
     Collections.sort(expected);
     Collections.sort(actual);
     Assert.assertEquals(expected, actual);
 
-    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
-    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    expected = new LinkedList<>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
+    actual = new LinkedList<>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there | append(foobar-site/data, \\,, true)}", configurations).split(",")));
     Collections.sort(expected);
     Collections.sort(actual);
     Assert.assertEquals(expected, actual);
 
-    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
-    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, true)}", configurations).split(",")));
+    expected = new LinkedList<>(Arrays.asList("four", "hello", "one", "there", "three", "two"));
+    actual = new LinkedList<>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, true)}", configurations).split(",")));
     Collections.sort(expected);
     Collections.sort(actual);
     Assert.assertEquals(expected, actual);
 
-    expected = new LinkedList<String>(Arrays.asList("four", "hello", "one", "one", "there", "three", "two"));
-    actual = new LinkedList<String>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, false)}", configurations).split(",")));
+    expected = new LinkedList<>(Arrays.asList("four", "hello", "one", "one", "there", "three", "two"));
+    actual = new LinkedList<>(Arrays.asList(helper.replaceVariables("${foobar-site/hello_there_one | append(foobar-site/data, \\,, false)}", configurations).split(",")));
     Collections.sort(expected);
     Collections.sort(actual);
     Assert.assertEquals(expected, actual);
