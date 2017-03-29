@@ -334,6 +334,13 @@
         </task>
       </execute-stage>
 
+      <!--Yarn Apptimeline server-->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+          <summary>Fixing YARN Webservice Url</summary>
+        </task>
+      </execute-stage>
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">

@@ -294,6 +294,13 @@
         </task>
       </execute-stage>
 
+      <!--Yarn Apptimeline server-->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+          <summary>Fixing YARN Webservice Url</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
         <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
