@@ -341,6 +341,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+          <summary>Validate Root Queue Ordering Policy</summary>
+        </task>
+      </execute-stage> 
+
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">

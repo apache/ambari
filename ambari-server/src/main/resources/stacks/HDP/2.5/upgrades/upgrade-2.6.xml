@@ -697,6 +697,11 @@
           <task xsi:type="configure" id="yarn_site_retained_log_count" />
           <task xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default"/>
+          
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+            <summary>Validate Root Queue Ordering Policy</summary>
+          </task>
+          
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
