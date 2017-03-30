@@ -175,6 +175,21 @@ public class StackManagerTest {
   }
 
   @Test
+  public void testSerivcesWithNoConfigs(){
+    StackInfo stack = stackManager.getStack("HDP", "2.0.8");
+    List<String> servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    //Via inheritance, Hive should have config types
+    //Via inheritance, SystemML should still have no config types
+    assertTrue((servicesWithNoConfigs.contains("SYSTEMML")));
+    assertFalse((servicesWithNoConfigs.contains("HIVE")));
+
+    stack = stackManager.getStack("HDP", "2.0.7");
+    //Directly from the stack, SystemML should have no config types
+    servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    assertTrue((servicesWithNoConfigs.contains("SYSTEMML")));
+  }
+
+  @Test
   public void testGetStack() {
     StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack);
@@ -270,7 +285,7 @@ public class StackManagerTest {
     assertNotNull(si);
 
     //should include all stacks in hierarchy
-    assertEquals(17, services.size());
+    assertEquals(18, services.size());
     HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
@@ -289,6 +304,7 @@ public class StackManagerTest {
     expectedServices.add("TEZ");
     expectedServices.add("AMBARI_METRICS");
     expectedServices.add("SPARK3");
+    expectedServices.add("SYSTEMML");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
@@ -493,7 +509,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(14, allServices.size());
+    assertEquals(15, allServices.size());
 
     boolean monitoringServiceFound = false;
 

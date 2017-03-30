@@ -110,6 +110,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private final static Logger LOG = LoggerFactory.getLogger(ServiceModule.class);
 
   /**
+   * Most of the services contain at least one config type.
+   * However, there are special cases on third party stacks
+   * that certain services do not have any config types.
+   * */
+  private boolean hasConfigs = true;
+
+  /**
    * Constructor.
    *
    * @param stackContext      stack context which provides module access to external functionality
@@ -559,7 +566,6 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
-
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
       if(!module.isDeleted()) {
@@ -619,6 +625,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Ensure that all default type attributes are set.
    */
   private void finalizeConfiguration() {
+    LOG.debug(String.format("Finalize config, number of configuration modules %s", configurationModules.size()));
+    hasConfigs = !(configurationModules.isEmpty());
+    LOG.debug(String.format("Finalize config, hasConfigs %s", hasConfigs));
+
     for (ConfigurationModule config : configurationModules.values()) {
       ConfigurationInfo configInfo = config.getModuleInfo();
       configInfo.ensureDefaultAttributes();
@@ -668,6 +678,12 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
   }
 
+  /**
+   * Whether the service is a special case where it does not include any config types
+   * */
+  public boolean hasConfigs(){
+    return hasConfigs;
+  }
 
   @Override
   public String toString() {

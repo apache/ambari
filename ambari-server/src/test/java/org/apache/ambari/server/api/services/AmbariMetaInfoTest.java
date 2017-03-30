@@ -524,6 +524,13 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void isServiceWithNoConfigs() throws AmbariException {
+    assertTrue(metaInfo.isServiceWithNoConfigs(STACK_NAME_HDP, "2.0.8", "SYSTEMML"));
+    assertTrue(metaInfo.isServiceWithNoConfigs(STACK_NAME_HDP, "2.0.7", "SYSTEMML"));
+    assertFalse(metaInfo.isServiceWithNoConfigs(STACK_NAME_HDP, "2.0.8", "HIVE"));
+  }
+
+  @Test
   public void testServiceNameUsingComponentName() throws AmbariException {
     String serviceName = metaInfo.getComponentToService(STACK_NAME_HDP,
         STACK_VERSION_HDP, SERVICE_COMPONENT_NAME);
