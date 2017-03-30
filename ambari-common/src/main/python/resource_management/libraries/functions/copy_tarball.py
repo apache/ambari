@@ -64,6 +64,18 @@ TARBALL_MAP = {
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
 }
 
+SERVICE_MAP = {
+  "slider": "SLIDER",
+  "tez": "TEZ_CLIENT",
+  "pig": "PIG",
+  "sqoop": "SQOOP",
+  "hive": "HIVE_CLIENT",
+  "mapreduce": "HDFS_CLIENT",
+  "hadoop_streaming": "MAPREDUCE2_CLIENT",
+  "tez_hive2": "HIVE_CLIENT",
+  "spark": "SPARK_CLIENT",
+  "spark2": "SPARK2_CLIENT"
+}
 
 def get_sysprep_skip_copy_tarballs_hdfs():
   import params
@@ -199,7 +211,7 @@ def _get_single_version_from_stack_select():
 
 
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
-                 use_upgrading_version_during_upgrade=True, replace_existing_files=False, skip=False):
+                 use_upgrading_version_during_upgrade=True, replace_existing_files=False, skip=False, skip_component_check=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
   :param user_group: Group to own the directory.
@@ -210,6 +222,8 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   :param force_execute: If true, will execute the HDFS commands immediately, otherwise, will defer to the calling function.
   :param use_upgrading_version_during_upgrade: If true, will use the version going to during upgrade. Otherwise, use the CURRENT (source) version.
   :param skip: If true, tarballs will not be copied as the cluster deployment uses prepped VMs.
+  :param skip_component_check: If true, will skip checking if a given component is installed on the node for a file under its dir to be copied.
+                               This is in case the file is not mapped to a component but rather to a specific location (JDK jar, Ambari jar, etc).
   :return: Will return True if successful, otherwise, False.
   """
   import params
@@ -225,6 +239,14 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   if skip:
     Logger.warning("Skipping copying {0} to {1} for {2} as it is a sys prepped host.".format(str(source_file), str(dest_file), str(name)))
     return True
+
+  if not skip_component_check:
+    #Use components installed on the node to check if a file can be copied into HDFS
+    local_components = default("/localComponents", [])
+    component = SERVICE_MAP.get(name)
+    if component not in local_components:
+      Logger.info("{0} is not installed on the host. Skip copying {1}".format(component, source_file))
+      return False
 
   Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))
 
