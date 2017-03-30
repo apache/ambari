@@ -112,6 +112,13 @@
             <type>application-properties</type>
             <set key="atlas.ssl.exclude.protocols" value="TLSv1.2" if-type="application-properties" if-key="atlas.ssl.exclude.protocols" if-key-state="absent"/>
           </definition>
+
+          <definition xsi:type="configure" id="increase_atlas_zookeeper_timeouts" summary="Updating Atlas zookeeper timeout values">
+            <type>application-properties</type>
+            <set key="atlas.kafka.zookeeper.connection.timeout.ms" value="30000" if-type="application-properties" if-key="atlas.kafka.zookeeper.connection.timeout.ms" if-key-state="present"/>
+            <set key="atlas.kafka.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.kafka.zookeeper.session.timeout.ms" if-key-state="present"/>
+            <set key="atlas.audit.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.audit.zookeeper.session.timeout.ms" if-key-state="present"/>
+          </definition>
         </changes>
       </component>
       <component name="SPARK_CLIENT">
