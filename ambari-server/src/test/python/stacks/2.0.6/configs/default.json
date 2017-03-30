@@ -1,4 +1,25 @@
 {
+    "localComponents": [
+        "NAMENODE",
+        "SECONDARY_NAMENODE",
+        "ZOOKEEPER_SERVER",
+        "DATANODE",
+        "HDFS_CLIENT",
+        "ZOOKEEPER_CLIENT",
+        "RESOURCEMANAGER",
+        "HISTORYSERVER",
+        "NODEMANAGER",
+        "YARN_CLIENT",
+        "MAPREDUCE2_CLIENT",
+        "SLIDER",
+        "PIG",
+        "SQOOP",
+        "HIVE_CLIENT",
+        "TEZ_CLIENT",
+        "HIVE_CLIENT",
+        "SPARK_CLIENT",
+        "SPARK2_CLIENT"
+    ],
     "roleCommand": "SERVICE_CHECK",
     "clusterName": "c1",
     "hostname": "c6401.ambari.apache.org",
@@ -543,6 +564,9 @@
             "tez.lib.uris": "hdfs:///apps/tez/,hdfs:///apps/tez/lib/",
             "tez.staging-dir": "/tmp/${user.name}/staging",
             "tez.am.am-rm.heartbeat.interval-ms.max": "250"
+        },
+        "slider-env": {
+            "content": "export JAVA_HOME={{java64_home}}\nexport HADOOP_CONF_DIR={{hadoop_conf_dir}}"
         },
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn",
