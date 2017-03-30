@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,34 +26,35 @@ import org.springframework.data.solr.core.DefaultQueryParser;
 
 import static org.junit.Assert.assertEquals;
 
-public class FieldAuditLogRequestQueryConverterTest extends AbstractRequestConverterTest {
+public class TopFieldAuditLogRequestQueryConverterTest extends AbstractRequestConverterTest {
 
-  private FieldAuditLogRequestQueryConverter underTest;
+  private TopFieldAuditLogRequestQueryConverter underTest;
 
   @Before
   public void setUp() {
-    underTest = new FieldAuditLogRequestQueryConverter();
+    underTest = new TopFieldAuditLogRequestQueryConverter();
   }
 
   @Test
   public void testConvert() {
     // GIVEN
-    FieldAuditLogRequest request = new FieldAuditLogRequest();
+    TopFieldAuditLogRequest request = new TopFieldAuditLogRequest();
     fillBaseLogRequestWithTestData(request);
+    request.setTop(10);
     request.setField("myfield");
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN
     assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&fq=log_message%3Amyincludemessage" +
-      "&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+secure_log%29&fq=-repo%3A%28hst_agent+system_message%29&fq=cluster%3Acl1&facet=true" +
-      "&facet.mincount=1&facet.limit=-1&facet.pivot=myfield%2Crepo",
+        "&fq=-log_message%3Amyexcludemessage&fq=repo%3A%28logsearch_app+secure_log%29&fq=-repo%3A%28hst_agent+system_message%29&fq=cluster%3Acl1&facet=true" +
+        "&facet.mincount=1&facet.limit=10&facet.pivot=myfield%2Crepo",
       query.toQueryString());
   }
 
   @Test(expected = IllegalArgumentException.class) // TODO: later use @Valid on the fields to validate object
   public void testConvertWithoutData() {
     // GIVEN
-    FieldAuditLogRequest request = new FieldAuditLogRequest();
+    TopFieldAuditLogRequest request = new TopFieldAuditLogRequest();
     // WHEN
     new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
   }

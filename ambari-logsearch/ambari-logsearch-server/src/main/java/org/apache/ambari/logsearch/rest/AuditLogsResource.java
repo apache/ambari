@@ -35,7 +35,7 @@ import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
-import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
@@ -97,7 +97,7 @@ public class AuditLogsResource {
   @Path("/resources/{top}")
   @Produces({"application/json"})
   @ApiOperation(GET_TOP_AUDIT_RESOURCES_OD)
-  public BarGraphDataListResponse getResources(@BeanParam FieldAuditLogRequest request) {
+  public BarGraphDataListResponse getResources(@BeanParam TopFieldAuditLogRequest request) {
     return auditLogsManager.topResources(request);
   }
 

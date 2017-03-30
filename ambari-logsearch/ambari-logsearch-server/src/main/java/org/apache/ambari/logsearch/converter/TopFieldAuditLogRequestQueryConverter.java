@@ -19,20 +19,21 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
-import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.springframework.data.solr.core.query.FacetOptions;
 
 import javax.inject.Named;
 
-import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_EVTTIME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_EVTTIME;
 
 @Named
-public class FieldAuditLogRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<FieldAuditLogRequest> {
+public class TopFieldAuditLogRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<TopFieldAuditLogRequest> {
 
   @Override
-  public void appendFacetOptions(FacetOptions facetOptions, FieldAuditLogRequest request) {
+  public void appendFacetOptions(FacetOptions facetOptions, TopFieldAuditLogRequest request) {
     facetOptions.addFacetOnPivot(request.getField(), AUDIT_COMPONENT);
+    facetOptions.setFacetLimit(request.getTop());
   }
 
   @Override
