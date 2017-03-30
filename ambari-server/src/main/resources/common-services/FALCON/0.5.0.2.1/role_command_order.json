@@ -1,0 +1,7 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for FALCON",
+    "FALCON_SERVER-START": ["OOZIE_SERVER-START"],
+    "FALCON_SERVICE_CHECK-SERVICE_CHECK": ["FALCON_SERVER-START"]
+  }
+}

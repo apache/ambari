@@ -1,0 +1,6 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for SPARK 1.5.2",
+    "SPARK_THRIFTSERVER-START" : ["NAMENODE-START", "HIVE_METASTORE-START"]
+  }
+}
