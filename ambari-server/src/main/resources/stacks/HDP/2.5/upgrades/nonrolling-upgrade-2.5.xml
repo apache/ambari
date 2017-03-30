@@ -319,7 +319,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas zookeeper timeout valuesProtocols">
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas zookeeper timeout values">
         <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts">
           <summary>Updating Atlas zookeeper timeout values</summary>
         </task>
