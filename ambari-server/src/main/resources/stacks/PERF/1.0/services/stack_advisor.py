@@ -20,7 +20,6 @@ limitations under the License.
 # Python Imports
 
 # Local Imports
-from resource_management.core.logger import Logger
 from stack_advisor import DefaultStackAdvisor
 
 
@@ -28,7 +27,7 @@ class PERF10StackAdvisor(DefaultStackAdvisor):
 
   def __init__(self):
     super(PERF10StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("PERF10StackAdvisor")
 
   def getServiceConfigurationRecommenderDict(self):
     return {}

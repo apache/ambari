@@ -22,7 +22,6 @@ import re
 from math import ceil
 
 # Local Imports
-from resource_management.core.logger import Logger
 from stack_advisor import DefaultStackAdvisor
 
 class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
@@ -30,7 +29,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
 
   def __init__(self):
     super(BaseBIGTOP08StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("BaseBIGTOP08StackAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()

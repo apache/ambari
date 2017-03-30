@@ -26,7 +26,6 @@ import socket
 import fnmatch
 
 
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
@@ -44,6 +43,8 @@ class HiveServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(HiveServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
+
+    self.initialize_logger("HiveServiceAdvisor")
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -118,7 +119,7 @@ class HiveServiceAdvisor(service_advisor.ServiceAdvisor):
     Entry point.
     Must be overriden in child class.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = HiveRecommender()
@@ -136,7 +137,7 @@ class HiveServiceAdvisor(service_advisor.ServiceAdvisor):
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     validator = HiveValidator()
@@ -617,7 +618,7 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
 
 
   def recommendHIVEConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
-    Logger.info("DBG: Invoked recommendHiveConfiguration")
+    self.logger.info("DBG: Invoked recommendHiveConfiguration")
 
     putHiveInteractiveEnvProperty = self.putProperty(configurations, "hive-interactive-env", services)
     putHiveInteractiveSiteProperty = self.putProperty(configurations, self.HIVE_INTERACTIVE_SITE, services)
@@ -642,9 +643,9 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
 
           if hive_tez_default_queue:
             putHiveInteractiveSiteProperty("hive.server2.tez.default.queues", hive_tez_default_queue)
-            Logger.debug("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
+            self.logger.debug("Updated 'hive.server2.tez.default.queues' config : '{0}'".format(hive_tez_default_queue))
     else:
-      Logger.info("DBG: Setting 'num_llap_nodes' config's  READ ONLY attribute as 'True'.")
+      self.logger.info("DBG: Setting 'num_llap_nodes' config's  READ ONLY attribute as 'True'.")
       putHiveInteractiveEnvProperty('enable_hive_interactive', 'false')
       putHiveInteractiveEnvPropertyAttribute("num_llap_nodes", "read_only", "true")
 
@@ -669,11 +670,11 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
       ranger_hive_plugin_enabled = False
 
     if ranger_hive_plugin_enabled and 'ranger-hive-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hive-plugin-properties']['properties']:
-      Logger.info("Setting Hive Repo user for Ranger.")
+      self.logger.info("Setting Hive Repo user for Ranger.")
       putRangerHivePluginProperty = self.putProperty(configurations, "ranger-hive-plugin-properties", services)
       putRangerHivePluginProperty("REPOSITORY_CONFIG_USERNAME",hive_user)
     else:
-      Logger.info("Not setting Hive Repo user for Ranger.")
+      self.logger.info("Not setting Hive Repo user for Ranger.")
 
 
   def getDBDriver(self, databaseType):
@@ -1051,7 +1052,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
 
     if not capacity_scheduler_properties:
-      Logger.warning("Couldn't retrieve 'capacity-scheduler' properties while doing validation checks for Hive Server Interactive.")
+      self.logger.warning("Couldn't retrieve 'capacity-scheduler' properties while doing validation checks for Hive Server Interactive.")
       return []
 
     if hsi_site:
@@ -1070,7 +1071,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
                       "app to run".format(llap_queue_name, llap_queue_cap_perc, min_reqd_queue_cap_perc)
             validationItems.append({"config-name": "hive.llap.daemon.queue.name", "item": self.getErrorItem(errMsg1)})
         else:
-          Logger.error("Couldn't retrieve '{0}' queue's capacity from 'capacity-scheduler' while doing validation checks for "
+          self.logger.error("Couldn't retrieve '{0}' queue's capacity from 'capacity-scheduler' while doing validation checks for "
            "Hive Server Interactive.".format(llap_queue_name))
 
         # Validate that current selected queue in 'hive.llap.daemon.queue.name' state is not STOPPED.
@@ -1081,10 +1082,10 @@ class HiveValidator(service_advisor.ServiceAdvisor):
               .format(llap_queue_name, llap_selected_queue_state)
             validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getErrorItem(errMsg2)})
         else:
-          Logger.error("Couldn't retrieve '{0}' queue's state from 'capacity-scheduler' while doing validation checks for "
+          self.logger.error("Couldn't retrieve '{0}' queue's state from 'capacity-scheduler' while doing validation checks for "
                        "Hive Server Interactive.".format(llap_queue_name))
       else:
-        Logger.error("Couldn't retrieve 'hive.llap.daemon.queue.name' config from 'hive-interactive-site' while doing "
+        self.logger.error("Couldn't retrieve 'hive.llap.daemon.queue.name' config from 'hive-interactive-site' while doing "
                      "validation checks for Hive Server Interactive.")
 
       # Validate that 'hive.server2.enable.doAs' config is not set to 'true' for Hive2.

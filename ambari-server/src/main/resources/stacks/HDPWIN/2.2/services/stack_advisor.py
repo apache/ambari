@@ -25,7 +25,6 @@ import sys
 from urlparse import urlparse
 
 # Local Imports
-from resource_management.core.logger import Logger
 
 def getSiteProperties(configurations, siteName):
   siteConfig = configurations.get(siteName)
@@ -37,7 +36,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
   def __init__(self):
     super(HDPWIN22StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("HDPWIN22StackAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()

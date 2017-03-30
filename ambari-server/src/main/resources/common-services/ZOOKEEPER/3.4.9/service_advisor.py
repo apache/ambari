@@ -24,7 +24,6 @@ import traceback
 import inspect
 
 # Local imports
-from resource_management.core.logger import Logger
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -44,6 +43,8 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(ZookeeperServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
+
+    self.initialize_logger("ZookeeperServiceAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()
@@ -105,7 +106,7 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Get a list of errors. Zookeeper does not have any validations in this version.
     """
-    Logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
+    self.logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
     return self.as_super.getServiceComponentLayoutValidations(services, hosts)
 
@@ -113,7 +114,7 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Recommend configurations to set. Zookeeper does not have any recommendations in this version.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     self.recommendConfigurations(configurations, clusterData, services, hosts)
@@ -122,10 +123,10 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Recommend configurations for this service.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
-    Logger.info("Setting zoo.cfg to default dataDir to /hadoop/zookeeper on the best matching mount")
+    self.logger.info("Setting zoo.cfg to default dataDir to /hadoop/zookeeper on the best matching mount")
 
     zk_mount_properties = [
       ("dataDir", "ZOOKEEPER_SERVER", "/hadoop/zookeeper", "single"),
@@ -136,7 +137,7 @@ class ZookeeperServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Validate configurations for the service. Return a list of errors.
     """
-    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     items = []
