@@ -26,7 +26,7 @@
         {{#if view.showCloseButton}}
           <a {{QAAttr "close-modal"}} class="close" {{action onClose target="view"}}>&times;</a>
         {{/if}}
-        <h4 id="modal-label">
+        <h4 {{QAAttr "modal-title"}} id="modal-label">
           {{#if view.headerClass}}
             {{view view.headerClass}}
           {{else}}
