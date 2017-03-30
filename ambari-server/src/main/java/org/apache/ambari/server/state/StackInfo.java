@@ -81,6 +81,11 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    * */
   private List<String> removedServices = new ArrayList<>();
 
+  /**
+  * List of services withnot configurations
+  * */
+  private List<String> servicesWithNoConfigs = new ArrayList<String>();
+
   public String getMinJdk() {
     return minJdk;
   }
@@ -572,5 +577,13 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   public void setRemovedServices(List<String> removedServices) {
     this.removedServices = removedServices;
+  }
+
+  public List<String> getServicesWithNoConfigs() {
+    return servicesWithNoConfigs;
+  }
+
+  public void setServicesWithNoConfigs(List<String> servicesWithNoConfigs) {
+    this.servicesWithNoConfigs = servicesWithNoConfigs;
   }
 }
