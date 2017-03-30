@@ -85,7 +85,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     if (!selectedConfigGroup.get('isDefault') && selectedConfigGroup.get('isAddHostsDisabled')) {
       return Em.I18n.t('services.service.config_groups_popup.addHostDisabled');
     } else {
-      return  Em.I18n.t('services.service.config_groups_popup.addHost');
+      return Em.I18n.t('services.service.config_groups_popup.addHost');
     }
   }.property('controller.selectedConfigGroup.isDefault', 'controller.selectedConfigGroup.isAddHostsDisabled'),
 

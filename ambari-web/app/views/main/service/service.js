@@ -26,7 +26,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   //template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
-  attributeBindings:['rel', 'title','data-original-title'],
+  attributeBindings: ['rel', 'title', 'data-original-title'],
   rel: 'HealthTooltip',
   'data-original-title': '',
 
@@ -41,7 +41,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   doBlink: function () {
     var self = this;
     if (this.get('blink') && this.get("state") === "inDOM") {
-      uiEffects.pulsate(self.$(), 1000, function(){
+      uiEffects.pulsate(self.$(), 1000, function () {
         self.doBlink();
       });
     }
@@ -83,7 +83,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     }
 
     return 'health-status-' + status;
-  }.property('service.healthStatus','service.passiveState','service.serviceName'),
+  }.property('service.healthStatus', 'service.passiveState', 'service.serviceName'),
 
   healthStatusClass: function () {
     if (this.get('service.passiveState') !== 'OFF' || App.get('services.clientOnly').contains(this.get('service.serviceName'))) {
@@ -103,7 +103,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
       default:
         return '';
     }
-  }.property('service.healthStatus','service.passiveState','service.serviceName'),
+  }.property('service.healthStatus', 'service.passiveState', 'service.serviceName'),
 
   didInsertElement: function () {
     this.updateToolTip();
@@ -116,7 +116,7 @@ App.ComponentLiveTextView = Em.View.extend({
   classNameBindings: ['color:service-summary-component-red-dead:service-summary-component-green-live'],
   liveComponents: null,
   totalComponents: null,
-  color: function() {
+  color: function () {
     return this.get("liveComponents") === 0 && this.get('totalComponents') !== 0;
   }.property("liveComponents", 'totalComponents')
 });
@@ -142,18 +142,13 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
 
   isCollapsed: false,
 
-  toggleInfoView: function () {
-    this.$('.service-body').toggle('blind', 200);
-    this.set('isCollapsed', !this.isCollapsed);
-  },
-
   masters: Em.computed.filterBy('service.hostComponents', 'isMaster', true),
 
-  clients: function(){
+  clients: function () {
     var clients = this.get('service.hostComponents').filterProperty('isClient', true);
     var len = clients.length;
     var template = 'dashboard.services.{0}.client'.format(this.get('serviceName').toLowerCase());
-    if(len > 1){
+    if (len > 1) {
       template += 's';
     }
 
@@ -170,8 +165,8 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
    */
   isServiceComponentCreated: function (componentName) {
     return App.MasterComponent.find().mapProperty('componentName').concat(
-        App.ClientComponent.find().mapProperty('componentName'),
-        App.SlaveComponent.find().mapProperty('componentName')
+      App.ClientComponent.find().mapProperty('componentName'),
+      App.SlaveComponent.find().mapProperty('componentName')
     ).contains(componentName);
   }
 
