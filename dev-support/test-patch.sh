@@ -261,8 +261,8 @@ prebuildWithoutPatch () {
   echo ""
   echo ""
   echo "Compiling $(pwd)"
-  echo "$MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1"
-  $MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1
+  echo "$MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1"
+  $MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1
   if [[ $? != 0 ]] ; then
     echo "Top-level trunk compilation is broken?"
     JIRA_COMMENT="$JIRA_COMMENT
@@ -385,8 +385,8 @@ checkJavacWarnings () {
   echo "======================================================================"
   echo ""
   echo ""
-  echo "$MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1"
-  $MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1
+  echo "$MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1"
+  $MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
