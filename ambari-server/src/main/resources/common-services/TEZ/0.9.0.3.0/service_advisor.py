@@ -26,7 +26,6 @@ import socket
 import fnmatch
 
 
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
@@ -44,6 +43,8 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(TezServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
+
+    self.initialize_logger("TezServiceAdvisor")
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -115,7 +116,7 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
     Entry point.
     Must be overriden in child class.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = TezRecommender()
@@ -131,7 +132,7 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     validator = TezValidator()
@@ -315,7 +316,7 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     tez_jvm_updated_opts = tez_jvm_opts + jvmGCParams + "{{heap_dump_opts}}"
     putTezProperty('tez.am.launch.cmd-opts', tez_jvm_updated_opts)
     putTezProperty('tez.task.launch.cmd-opts', tez_jvm_updated_opts)
-    Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' and 'tez.am.launch.cmd-opts' as "
+    self.logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' and 'tez.am.launch.cmd-opts' as "
                 ": {0}".format(tez_jvm_updated_opts))
 
 

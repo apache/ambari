@@ -25,13 +25,14 @@ import re
 import socket
 import string
 import traceback
+import sys
+import logging
 from math import ceil, floor
 from urlparse import urlparse
 
 # Local imports
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
 from resource_management.core.exceptions import Fail
-from resource_management.core.logger import Logger
 
 
 class StackAdvisor(object):
@@ -332,8 +333,8 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def __init__(self):
     self.services = None
-    
-    Logger.initialize_logger()
+
+    self.initialize_logger('DefaultStackAdvisor')
     
     # Dictionary that maps serviceName or componentName to serviceAdvisor
     self.serviceAdvisorsDict = {}
@@ -351,6 +352,20 @@ class DefaultStackAdvisor(StackAdvisor):
     self.componentLayoutSchemes = {}
     self.loaded_service_advisors = False
 
+  def initialize_logger(self, name='DefaultStackAdvisor', logging_level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s %(funcName)s: - %(message)s'):
+    # set up logging (two separate loggers for stderr and stdout with different loglevels)
+    self.logger = logging.getLogger(name)
+    self.logger.setLevel(logging_level)
+    formatter = logging.Formatter(format)
+    chout = logging.StreamHandler(sys.stdout)
+    chout.setLevel(logging_level)
+    chout.setFormatter(formatter)
+    cherr = logging.StreamHandler(sys.stderr)
+    cherr.setLevel(logging.ERROR)
+    cherr.setFormatter(formatter)
+    self.logger.handlers = []
+    self.logger.addHandler(cherr)
+    self.logger.addHandler(chout)
 
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
@@ -572,14 +587,13 @@ class DefaultStackAdvisor(StackAdvisor):
                 break
 
           if hasattr(service_advisor, best_class_name):
-            Logger.info("ServiceAdvisor implementation for service {0} was loaded".format(service_name))
+            self.logger.info("ServiceAdvisor implementation for service {0} was loaded".format(service_name))
             return getattr(service_advisor, best_class_name)()
           else:
-            Logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
+            self.logger.error("Failed to load or create ServiceAdvisor implementation for service {0}: " \
                   "Expecting class name {1} but it was not found.".format(service_name, best_class_name))
       except Exception as e:
-        traceback.print_exc()
-        Logger.error("Failed to load or create ServiceAdvisor implementation for service {0}".format(service_name))
+        self.logger.exception("Failed to load or create ServiceAdvisor implementation for service {0}".format(service_name))
 
     return None
 
@@ -717,7 +731,7 @@ class DefaultStackAdvisor(StackAdvisor):
           # Override the values in "default" with those from the service advisor
           default.update(advisor.heap_size_properties)
     except Exception, e:
-      traceback.print_exc()
+      self.logger.exception()
     return default
 
   def createComponentLayoutRecommendations(self, services, hosts):
@@ -1062,7 +1076,7 @@ class DefaultStackAdvisor(StackAdvisor):
     if cluster["hBaseInstalled"]:
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
-    Logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
+    self.logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
 
     suggestedMinContainerRam = 1024   # new smaller value for YARN min container
     callContext = self.getCallContext(services)
@@ -1070,7 +1084,7 @@ class DefaultStackAdvisor(StackAdvisor):
     operation = self.getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
     adding_yarn = self.isServiceBeingAdded(services, 'YARN')
     if operation:
-      Logger.info("user operation context : " + str(operation))
+      self.logger.info("user operation context : " + str(operation))
 
     if services:  # its never None but some unit tests pass it as None
       # If min container value is changed (user is changing it)
@@ -1082,7 +1096,7 @@ class DefaultStackAdvisor(StackAdvisor):
               operation == DefaultStackAdvisor.RECOMMEND_ATTRIBUTE_OPERATION or \
           (operation == DefaultStackAdvisor.ADD_SERVICE_OPERATION and not adding_yarn):
 
-        Logger.info("Full context: callContext = " + str(callContext) +
+        self.logger.info("Full context: callContext = " + str(callContext) +
                     " and operation = " + str(operation) + " and adding YARN = " + str(adding_yarn) +
                     " and old value exists = " +
                     str(self.getOldValue(services, "yarn-site", "yarn.scheduler.minimum-allocation-mb")))
@@ -1091,13 +1105,13 @@ class DefaultStackAdvisor(StackAdvisor):
         if "yarn-site" in services["configurations"] and \
                 "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
             str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]).isdigit():
-          Logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
+          self.logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
                       str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
           cluster["yarnMinContainerSize"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
-          Logger.info("Minimum ram per container due to user input - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+          self.logger.info("Minimum ram per container due to user input - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
           if cluster["yarnMinContainerSize"] > cluster["totalAvailableRam"]:
             cluster["yarnMinContainerSize"] = cluster["totalAvailableRam"]
-            Logger.info("Minimum ram per container after checking against limit - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+            self.logger.info("Minimum ram per container after checking against limit - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
             pass
           cluster["minContainerSize"] = cluster["yarnMinContainerSize"]    # set to what user has suggested as YARN min container size
           suggestedMinContainerRam = cluster["yarnMinContainerSize"]
@@ -1111,16 +1125,16 @@ class DefaultStackAdvisor(StackAdvisor):
                                           min(2 * cluster["cpu"],
                                               min(ceil(1.8 * cluster["disk"]),
                                                   cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
-    Logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
+    self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
     if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
       cluster["containers"] = ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"])
-      Logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
+      self.logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
       pass
 
     cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
     cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
-    Logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
+    self.logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
 
     '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
     if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
@@ -1131,10 +1145,10 @@ class DefaultStackAdvisor(StackAdvisor):
     cluster["reduceMemory"] = cluster["ramPerContainer"]
     cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
 
-    Logger.info("Min container size - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
-    Logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
-    Logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
-    Logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
+    self.logger.info("Min container size - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+    self.logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
+    self.logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
+    self.logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
 
 
     return cluster
@@ -1142,7 +1156,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getCallContext(self, services):
     if services:
       if DefaultStackAdvisor.ADVISOR_CONTEXT in services:
-        Logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
+        self.logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
         return services[DefaultStackAdvisor.ADVISOR_CONTEXT][DefaultStackAdvisor.CALL_TYPE]
     return ""
 
@@ -1288,9 +1302,9 @@ class DefaultStackAdvisor(StackAdvisor):
         siteProperties = self.getSiteProperties(configurations, configType)
         if siteProperties is not None:
           siteRecommendations = recommendedDefaults[configType]["properties"]
-          print("SiteName: %s, method: %s" % (configType, method.__name__))
-          print("Site properties: %s" % str(siteProperties))
-          print("Recommendations: %s" % str(siteRecommendations))
+          self.logger.info("SiteName: %s, method: %s" % (configType, method.__name__))
+          self.logger.info("Site properties: %s" % str(siteProperties))
+          self.logger.info("Recommendations: %s" % str(siteRecommendations))
           validationItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
           items.extend(validationItems)
     return items
@@ -1304,9 +1318,9 @@ class DefaultStackAdvisor(StackAdvisor):
       siteProperties = self.getSiteProperties(configurations, siteName)
       if siteProperties is not None:
         siteRecommendations = recommendedDefaults[siteName]["properties"]
-        print("SiteName: %s, method: %s" % (siteName, method.__name__))
-        print("Site properties: %s" % str(siteProperties))
-        print("Recommendations: %s" % str(siteRecommendations))
+        self.logger.info("SiteName: %s, method: %s" % (siteName, method.__name__))
+        self.logger.info("Site properties: %s" % str(siteProperties))
+        self.logger.info("Recommendations: %s" % str(siteRecommendations))
         return method(siteProperties, siteRecommendations, configurations, services, hosts)
     return []
 
@@ -2222,7 +2236,7 @@ class DefaultStackAdvisor(StackAdvisor):
     }
 
   def _getHadoopProxyUsersForService(self, serviceName, serviceUserComponents, services, hosts, configurations):
-    Logger.info("Calculating Hadoop Proxy User recommendations for {0} service.".format(serviceName))
+    self.logger.info("Calculating Hadoop Proxy User recommendations for {0} service.".format(serviceName))
     servicesList = self.get_services_list(services)
     resultUsers = {}
 
@@ -2254,7 +2268,7 @@ class DefaultStackAdvisor(StackAdvisor):
                   componentHostNames.add(componentHostName)
 
             componentHostNamesString = ",".join(sorted(componentHostNames))
-            Logger.info("Host List for [service='{0}'; user='{1}'; components='{2}']: {3}".format(serviceName, user, ','.join(hostSelector), componentHostNamesString))
+            self.logger.info("Host List for [service='{0}'; user='{1}'; components='{2}']: {3}".format(serviceName, user, ','.join(hostSelector), componentHostNamesString))
 
           if not proxyPropertyName in proxyUsers:
             proxyUsers[proxyPropertyName] = componentHostNamesString
@@ -2285,7 +2299,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
-      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
+      self.logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
         self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
@@ -2702,24 +2716,24 @@ class DefaultStackAdvisor(StackAdvisor):
             for property in cap_sched_props_as_str:
               key, sep, value = property.partition("=")
               capacity_scheduler_properties[key] = value
-            Logger.info("'capacity-scheduler' configs is passed-in as a single '\\n' separated string. "
+            self.logger.info("'capacity-scheduler' configs is passed-in as a single '\\n' separated string. "
                         "count(services['configurations']['capacity-scheduler']['properties']['capacity-scheduler']) = "
                         "{0}".format(len(capacity_scheduler_properties)))
             received_as_key_value_pair = False
           else:
-            Logger.info("Passed-in services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'] is 'null'.")
+            self.logger.info("Passed-in services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'] is 'null'.")
         else:
-          Logger.info("'capacity-scheduler' configs not passed-in as single '\\n' string in "
+          self.logger.info("'capacity-scheduler' configs not passed-in as single '\\n' string in "
                       "services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'].")
       if not capacity_scheduler_properties:
         # Received configs as a dictionary (Generally on 1st invocation).
         capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
-        Logger.info("'capacity-scheduler' configs is passed-in as a dictionary. "
+        self.logger.info("'capacity-scheduler' configs is passed-in as a dictionary. "
                     "count(services['configurations']['capacity-scheduler']['properties']) = {0}".format(len(capacity_scheduler_properties)))
     else:
-      Logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
+      self.logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
 
-    Logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
+    self.logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
                 .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
     return capacity_scheduler_properties, received_as_key_value_pair
 

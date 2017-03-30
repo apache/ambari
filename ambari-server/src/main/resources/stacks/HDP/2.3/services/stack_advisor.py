@@ -25,7 +25,6 @@ import math
 import socket
 
 # Local Imports
-from resource_management.core.logger import Logger
 
 
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
@@ -34,7 +33,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def __init__(self):
     super(HDP23StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("HDP23StackAdvisor")
 
   def __getHosts(self, componentsList, componentName):
     host_lists = [component["hostnames"] for component in componentsList if

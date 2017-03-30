@@ -28,14 +28,13 @@ import re
 import xml.etree.ElementTree as ET
 
 # Local Imports
-from resource_management.core.logger import Logger
 
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def __init__(self):
     super(HDP22StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("HDP22StackAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()
