@@ -165,9 +165,7 @@ class DBMSConfig(object):
       print_error_msg(msg)
       raise FatalException(-1, msg)
 
-    if result != 1:
-      result = self._install_jdbc_driver(properties, result)
-    return cbool(result)
+    return True
 
   def change_db_files_owner(self):
     if self._is_local_database():
