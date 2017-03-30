@@ -484,6 +484,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   needToAddServicePopup: function (services, i18nSuffix, serviceName, callback, id) {
     var self = this;
     return App.ModalPopup.show({
+      'data-qa': 'need-add-service-confirmation-modal',
       header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(serviceName),
       body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(serviceName),
       onPrimary: function () {
@@ -551,6 +552,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   rangerRequirementsPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
+      'data-qa': 'ranger-requirements-modal',
       header: Em.I18n.t('installer.step4.rangerRequirements.popup.header'),
       bodyClass: Em.View.extend({
         templateName: require('templates/wizard/step4/step4_ranger_requirements_popup')
