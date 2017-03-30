@@ -33,11 +33,7 @@ App.StageLabelView = Em.View.extend({
    this.onLink();
   },
   onLink: function() {
-   if (this.get('showLink') === true) {
-     this.set('removeLink',null);
-   } else {
-     this.set('removeLink','remove-link');
-   }
+    this.set('removeLink', this.get('showLink') ? null : 'remove-link');
   }.observes('showLink'),
   command: null,
   click: function () {
@@ -74,7 +70,7 @@ App.StageInProgressView = Em.View.extend({
   template: Ember.Handlebars.compile('<div class="progress-bar progress-bar-striped active" {{bindAttr style="command.barWidth"}}></div>'),
 
   isStageCompleted: function () {
-    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
+    return this.get('obj.progress') === 100 || this.get('controller.isStepCompleted');
   }.property('controller.isStepCompleted', 'obj.progress')
 
 });
