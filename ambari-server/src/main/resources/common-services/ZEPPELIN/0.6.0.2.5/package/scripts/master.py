@@ -371,13 +371,6 @@ class Master(Script):
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
 
-        if params.hive_server_host or params.hive_server_interactive_hosts:
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
@@ -388,8 +381,7 @@ class Master(Script):
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
-            interpreter['dependencies'].append(
-                {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
+
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:
           interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host + \
