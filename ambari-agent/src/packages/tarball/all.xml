@@ -72,6 +72,11 @@
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_stomp</directory>
+      <outputDirectory>${stomp.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>

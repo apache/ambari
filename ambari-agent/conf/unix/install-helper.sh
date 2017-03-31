@@ -22,12 +22,14 @@ COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
 RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
 JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
 SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
+STOMP_DIR="/usr/lib/python2.6/site-packages/ambari_stomp"
 OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
 COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
 JINJA_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
 SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
+STOMP_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_stomp"
 AMBARI_AGENT="/usr/lib/python2.6/site-packages/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 AMBARI_AGENT_VAR="/var/lib/ambari-agent"
@@ -63,6 +65,10 @@ do_install(){
   # setting simplejson shared resource
   if [ ! -d "$SIMPLEJSON_DIR" ]; then
     ln -s "$SIMPLEJSON_AGENT_DIR" "$SIMPLEJSON_DIR"
+  fi
+  # setting stomp shared resource
+  if [ ! -d "$STOMP_DIR" ]; then
+    ln -s "$STOMP_AGENT_DIR" "$STOMP_DIR"
   fi
   
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
@@ -147,6 +153,10 @@ do_remove(){
 
   if [ -d "$SIMPLEJSON_DIR" ]; then
     rm -f $SIMPLEJSON_DIR
+  fi
+
+  if [ -d "$STOMP_DIR" ]; then
+    rm -f $STOMP_DIR
   fi
 
   if [ -d "$OLD_COMMON_DIR" ]; then

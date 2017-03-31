@@ -302,6 +302,8 @@
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
             <!--Simplejson library (MIT license)-->
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
+            <!--Stomp library (Apache license)-->
+            <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 
