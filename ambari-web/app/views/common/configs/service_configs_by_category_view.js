@@ -27,7 +27,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
   classNames: ['panel-group', 'common-config-category'],
 
-  classNameBindings: ['category.name', 'isShowBlock::hidden'],
+  classNameBindings: ['isShowBlock::hidden'],
+
+  'data-qa': function () {
+    return this.get('category.name') + ' ' + 'panel-group';
+  }.property('category.name'),
 
   content: null,
 
