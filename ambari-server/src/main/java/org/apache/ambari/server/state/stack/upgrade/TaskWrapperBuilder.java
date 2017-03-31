@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,11 +55,10 @@ public class TaskWrapperBuilder {
 
     List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
     for (Task t : tasks) {
-      if (t.getType().equals(Task.Type.CONFIGURE) || t.getType().equals(Task.Type.MANUAL)) {
-        // only add the CONFIGURE/MANUAL task if there are actual hosts for the service/component
-        if (null != hostsType.hosts && !hostsType.hosts.isEmpty()) {
-          collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
-        }
+
+      // only add the server-side task if there are actual hosts for the service/component
+      if (t.getType().isServerAction() && CollectionUtils.isNotEmpty(hostsType.hosts)) {
+        collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
         continue;
       }
 

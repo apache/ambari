@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,10 +36,14 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -95,6 +100,7 @@ public class ColocatedGrouping extends Grouping {
 
         Map<String, List<TaskProxy>> targetMap = ((i++) < count) ? initialBatch : finalBatches;
         List<TaskProxy> targetList = targetMap.get(host);
+
         if (null == targetList) {
           targetList = new ArrayList<TaskProxy>();
           targetMap.put(host, targetList);
@@ -160,16 +166,34 @@ public class ColocatedGrouping extends Grouping {
      * {@inheritDoc}
      */
     @Override
-    public List<StageWrapper> build(UpgradeContext upgradeContext,
-        List<StageWrapper> stageWrappers) {
-      List<StageWrapper> results = new ArrayList<StageWrapper>(stageWrappers);
+    public List<StageWrapper> build(UpgradeContext upgradeContext, List<StageWrapper> stageWrappers) {
+
+      final List<Task> visitedServerSideTasks = new ArrayList<>();
+
+      // !!! predicate to ensure server-side tasks are executed once only per grouping
+      Predicate<Task> predicate = new Predicate<Task>() {
+        @Override
+        public boolean apply(Task input) {
+          if (visitedServerSideTasks.contains(input)) {
+            return false;
+          }
+
+          if (input.getType().isServerAction()) {
+            visitedServerSideTasks.add(input);
+          }
+
+          return true;
+        };
+      };
+
+      List<StageWrapper> results = new ArrayList<>(stageWrappers);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("RU initial: {}", initialBatch);
         LOG.debug("RU final: {}", finalBatches);
       }
 
-      List<StageWrapper> befores = fromProxies(upgradeContext.getDirection(), initialBatch);
+      List<StageWrapper> befores = fromProxies(upgradeContext.getDirection(), initialBatch, predicate);
       results.addAll(befores);
 
       if (!befores.isEmpty()) {
@@ -189,14 +213,15 @@ public class ColocatedGrouping extends Grouping {
         results.add(wrapper);
       }
 
-      results.addAll(fromProxies(upgradeContext.getDirection(), finalBatches));
+      results.addAll(fromProxies(upgradeContext.getDirection(), finalBatches, predicate));
 
       return results;
     }
 
     private List<StageWrapper> fromProxies(Direction direction,
-        Map<String, List<TaskProxy>> wrappers) {
-      List<StageWrapper> results = new ArrayList<StageWrapper>();
+        Map<String, List<TaskProxy>> wrappers, Predicate<Task> predicate) {
+
+      List<StageWrapper> results = new ArrayList<>();
 
       Set<String> serviceChecks = new HashSet<String>();
 
@@ -213,10 +238,27 @@ public class ColocatedGrouping extends Grouping {
 
           if (!t.restart) {
             if (null == wrapper) {
-              wrapper = new StageWrapper(t.type, t.message, t.getTasksArray());
+              TaskWrapper[] tasks = t.getTasksArray(predicate);
+
+              if (LOG.isDebugEnabled()) {
+                for (TaskWrapper tw : tasks) {
+                  LOG.debug("{}", tw);
+                }
+              }
+
+              if (ArrayUtils.isNotEmpty(tasks)) {
+                wrapper = new StageWrapper(t.type, t.message, tasks);
+              }
             }
           } else {
-            execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, t.message, t.getTasksArray()));
+            TaskWrapper[] tasks = t.getTasksArray(null);
+
+            if (LOG.isDebugEnabled()) {
+              for (TaskWrapper tw : tasks) {
+                LOG.debug("{}", tw);
+              }
+            }
+            execwrappers.add(new StageWrapper(StageWrapper.Type.RESTART, t.message, tasks));
           }
         }
 
@@ -345,8 +387,28 @@ public class ColocatedGrouping extends Grouping {
       return s;
     }
 
-    private TaskWrapper[] getTasksArray() {
-      return tasks.toArray(new TaskWrapper[0]);
+    /**
+     * Get the task wrappers for this proxy.  Server-side tasks cannot be executed more than
+     * one time per grouping.
+     * @param predicate the predicate to determine if a server-side task has already been added to a wrapper.
+     * @return the wrappers for a stage
+     */
+    private TaskWrapper[] getTasksArray(Predicate<Task> predicate) {
+      if (null == predicate) {
+        return tasks.toArray(new TaskWrapper[tasks.size()]);
+      }
+
+      List<TaskWrapper> interim = new ArrayList<>();
+
+      for (TaskWrapper wrapper : tasks) {
+        Collection<Task> filtered = Collections2.filter(wrapper.getTasks(), predicate);
+
+        if (CollectionUtils.isNotEmpty(filtered)) {
+          interim.add(wrapper);
+        }
+      }
+
+      return interim.toArray(new TaskWrapper[interim.size()]);
     }
   }
 
