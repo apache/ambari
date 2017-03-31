@@ -22,6 +22,8 @@ import java.util.Map;
 import org.apache.ambari.server.collections.Predicate;
 import org.apache.ambari.server.collections.PredicateUtils;
 
+import com.google.common.base.Optional;
+
 /**
  * KerberosIdentityDescriptor is an implementation of an AbstractKerberosDescriptor that
  * encapsulates data related to a Kerberos identity - including its principal and keytab file details.
@@ -349,6 +351,22 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     }
 
     return dataMap;
+  }
+
+  /***
+   * A name that refers to a service has a format like /[<service name>/[<component name>/]]<identity name>
+   * @return an optional referenced service name
+   */
+  public Optional<String> getReferencedServiceName() {
+    return parseServiceName(reference).or(parseServiceName(getName()));
+  }
+
+  private Optional<String> parseServiceName(String name) {
+    if (name != null && name.startsWith("/") && name.split("/").length > 2) {
+      return Optional.of(name.split("/")[1]);
+    } else {
+      return Optional.absent();
+    }
   }
 
   @Override
