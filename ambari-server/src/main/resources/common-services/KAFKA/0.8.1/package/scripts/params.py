@@ -34,7 +34,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 # server configurations
 config = Script.get_config()
@@ -254,6 +254,10 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
     'type': 'kafka',
     'assetType': '1'
   }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     ranger_plugin_config['policy.download.auth.users'] = kafka_user
