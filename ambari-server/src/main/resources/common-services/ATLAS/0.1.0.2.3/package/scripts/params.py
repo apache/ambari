@@ -31,6 +31,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.setup_ranger_plugin_xml import generate_ranger_service_config
 
 
 def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol):
@@ -392,6 +393,10 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
     'commonNameForCertificate' : config['configurations']['ranger-atlas-plugin-properties']['common.name.for.certificate'],
     'ambari.service.check.user' : policy_user
   }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    atlas_repository_configuration.update(custom_ranger_service_config)
 
   if security_enabled:
     atlas_repository_configuration['policy.download.auth.users'] = metadata_user

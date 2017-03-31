@@ -44,7 +44,7 @@ from resource_management.libraries.functions.get_lzo_packages import get_lzo_pac
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -515,6 +515,10 @@ if enable_ranger_hdfs:
     'repositoryType': 'hdfs',
     'assetType': '1'
   }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    hdfs_ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     hdfs_ranger_plugin_config['policy.download.auth.users'] = hdfs_user

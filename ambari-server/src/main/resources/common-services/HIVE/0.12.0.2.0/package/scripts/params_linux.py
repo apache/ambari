@@ -43,7 +43,7 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.get_architecture import get_architecture
 
 from resource_management.core.utils import PasswordString
@@ -784,6 +784,10 @@ if enable_ranger_hive:
     'repositoryType': 'hive',
     'assetType': '3'
   }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    hive_ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     hive_ranger_plugin_config['policy.download.auth.users'] = hive_user
