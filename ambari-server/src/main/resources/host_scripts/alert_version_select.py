@@ -70,7 +70,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     stack_tools_str = configurations[STACK_TOOLS]
 
     if stack_tools_str is None:
-      return (RESULT_STATE_UNKNOWN, ['{} is a required parameter for the script and the value is null'.format(STACK_TOOLS)])
+      return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script and the value is null'.format(STACK_TOOLS)])
 
     distro_select = "unknown-distro-select"
     try:
@@ -87,18 +87,18 @@ def execute(configurations={}, parameters={}, host_name=None):
       (code, out, versions) = unsafe_get_stack_versions()
 
       if code == 0:
-        msg.append("Ok. {}".format(distro_select))
+        msg.append("Ok. {0}".format(distro_select))
         if versions is not None and type(versions) is list and len(versions) > 0:
-          msg.append("Versions: {}".format(", ".join(versions)))
+          msg.append("Versions: {0}".format(", ".join(versions)))
         return (RESULT_STATE_OK, ["\n".join(msg)])
       else:
-        msg.append("Failed, check dir {} for unexpected contents.".format(stack_root_dir))
+        msg.append("Failed, check dir {0} for unexpected contents.".format(stack_root_dir))
         if out is not None:
           msg.append(out)
 
         return (RESULT_STATE_CRITICAL, ["\n".join(msg)])
     else:
-      msg.append("Ok. No stack root {} to check.".format(stack_root_dir))
+      msg.append("Ok. No stack root {0} to check.".format(stack_root_dir))
       return (RESULT_STATE_OK, ["\n".join(msg)])
   except Exception, e:
     return (RESULT_STATE_CRITICAL, [e.message])
