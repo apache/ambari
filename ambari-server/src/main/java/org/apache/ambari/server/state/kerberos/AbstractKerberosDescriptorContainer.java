@@ -18,18 +18,25 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import org.apache.ambari.server.AmbariException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.TreeMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Sets;
 
 /**
  * AbstractKerberosDescriptorContainer is an abstract class implementing AbstractKerberosDescriptor
@@ -85,6 +92,7 @@ import java.util.regex.Pattern;
  * left up to the implementing class to do so.
  */
 public abstract class AbstractKerberosDescriptorContainer extends AbstractKerberosDescriptor {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractKerberosDescriptorContainer.class);
 
   /**
    * Regular expression pattern used to parse auth_to_local property specifications into the following
@@ -244,12 +252,27 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
 
         // Make sure this Kerberos Identity is not to be filtered out based on its "when" clause
         if ((identityToAdd != null) && ((contextForFilter == null) || identityToAdd.shouldInclude(contextForFilter))) {
-          list.add(identityToAdd);
+          if (isReferredServiceInstalled(identity, contextForFilter)) {
+            list.add(identityToAdd);
+          } else {
+            LOG.info("Skipping identity {} because referred service is not installed.", identityToAdd.getName());
+          }
         }
       }
-
       return list;
     }
+  }
+
+  private static boolean isReferredServiceInstalled(KerberosIdentityDescriptor identity, Map<String, Object> contextForFilter) {
+    if (contextForFilter == null || !(contextForFilter.get("services") instanceof Collection)) {
+      return true;
+    }
+    Set<String> installedServices = Sets.newHashSet((Collection) contextForFilter.get("services"));
+    return identity.getReferencedServiceName().transform(contains(installedServices)).or(true);
+  }
+
+  private static Function<String, Boolean> contains(final Set<String> installed) {
+    return Functions.forPredicate(Predicates.in(installed));
   }
 
   /**

@@ -17,23 +17,28 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.*;
-import junit.framework.Assert;
-import org.apache.ambari.server.AmbariException;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.commons.collections.map.HashedMap;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+import com.google.gson.Gson;
+
+import junit.framework.Assert;
 
 @Category({ category.KerberosTest.class})
 public class KerberosDescriptorTest {
@@ -471,5 +476,21 @@ public class KerberosDescriptorTest {
       }
     }
     Assert.assertTrue(identityFound);
+  }
+
+  @Test
+  public void testFiltersOutIdentitiesBasedonInstalledServices() throws IOException {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_filtering_identity_descriptor.json");
+    KerberosComponentDescriptor componentDescriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()))
+      .getService("SERVICE1")
+      .getComponent("SERVICE1_COMPONENT1");
+    List<KerberosIdentityDescriptor> identities = componentDescriptor.getIdentities(true, new HashedMap() {{
+      put("services", Collections.emptySet());
+    }});
+    Assert.assertEquals(0, identities.size());
+    identities = componentDescriptor.getIdentities(true, new HashedMap() {{
+      put("services", Arrays.asList("REF_SERVICE1"));
+    }});
+    Assert.assertEquals(1, identities.size());
   }
 }
