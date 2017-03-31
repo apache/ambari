@@ -601,7 +601,7 @@ public class UpgradeHelperTest {
     assertEquals(4, groups.get(0).items.size());
     assertEquals(8, groups.get(1).items.size());
     assertEquals(5, groups.get(2).items.size());
-    assertEquals(8, groups.get(3).items.size());
+    assertEquals(7, groups.get(3).items.size());
     assertEquals(8, groups.get(4).items.size());
   }
 
@@ -943,6 +943,7 @@ public class UpgradeHelperTest {
     Map<String, String> hiveConfigs = new HashMap<>();
     hiveConfigs.put("fooKey", "THIS-BETTER-CHANGE");
     hiveConfigs.put("ifFooKey", "ifFooValue");
+
     ConfigurationRequest configurationRequest = new ConfigurationRequest();
     configurationRequest.setClusterName(cluster.getClusterName());
     configurationRequest.setType("hive-site");
@@ -1869,6 +1870,191 @@ public class UpgradeHelperTest {
 
     assertTrue(groups.isEmpty());
   }
+
+  @Test
+  public void testMultipleServerTasks() throws Exception {
+
+    // !!! make a two node cluster with just ZK
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    StackId stackId2 = new StackId("HDP-2.2.0");
+
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+
+    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+
+    helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+      host.setHostAttributes(hostAttributes);
+
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // !!! add services
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
+
+    Service s = c.getService("ZOOKEEPER");
+    ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+
+    sc = s.addServiceComponent("ZOOKEEPER_CLIENT");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+
+    EasyMock.reset(m_masterHostResolver);
+
+    expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
+
+    HostsType type = new HostsType();
+    type.hosts.addAll(Arrays.asList("h1", "h2"));
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER")).andReturn(type).anyTimes();
+
+    type = new HostsType();
+    type.hosts.addAll(Arrays.asList("h1", "h2"));
+    expect(m_masterHostResolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_CLIENT")).andReturn(type).anyTimes();
+
+
+    replay(m_masterHostResolver);
+
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+    UpgradePack upgrade = upgrades.get("upgrade_multi_server_tasks");
+    assertNotNull(upgrade);
+
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING,
+        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(2, groups.size());
+
+
+    // zk server as a colocated grouping first.  XML says to run a manual, 2 configs, and an execute
+    UpgradeGroupHolder group1 = groups.get(0);
+    assertEquals(7, group1.items.size());
+
+    // Stage 1.  manual, 2 configs, execute
+    assertEquals(4, group1.items.get(0).getTasks().size());
+    TaskWrapper taskWrapper = group1.items.get(0).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.MANUAL, taskWrapper.getTasks().get(0).getType());
+
+    taskWrapper = group1.items.get(0).getTasks().get(1);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.CONFIGURE, taskWrapper.getTasks().get(0).getType());
+
+    taskWrapper = group1.items.get(0).getTasks().get(2);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.CONFIGURE, taskWrapper.getTasks().get(0).getType());
+
+    taskWrapper = group1.items.get(0).getTasks().get(3);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.EXECUTE, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 2. restart for h1
+    assertEquals(1, group1.items.get(1).getTasks().size());
+    taskWrapper = group1.items.get(1).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.RESTART, taskWrapper.getTasks().get(0).getType());
+    assertTrue(taskWrapper.getHosts().contains("h1"));
+
+    // Stage 3. service check
+    assertEquals(1, group1.items.get(2).getTasks().size());
+    taskWrapper = group1.items.get(2).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.SERVICE_CHECK, taskWrapper.getTasks().get(0).getType());
+
+    // stage 4. manual step for validation
+    assertEquals(1, group1.items.get(3).getTasks().size());
+    taskWrapper = group1.items.get(3).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.MANUAL, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 5. repeat execute as it's not a server-side task.  no configure or manual tasks
+    assertEquals(1, group1.items.get(4).getTasks().size());
+    taskWrapper = group1.items.get(4).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.EXECUTE, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 6. restart for h2.
+    assertEquals(1, group1.items.get(5).getTasks().size());
+    taskWrapper = group1.items.get(5).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.RESTART, taskWrapper.getTasks().get(0).getType());
+    assertTrue(taskWrapper.getHosts().contains("h2"));
+
+    // Stage 7. service check
+    assertEquals(1, group1.items.get(6).getTasks().size());
+    taskWrapper = group1.items.get(6).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.SERVICE_CHECK, taskWrapper.getTasks().get(0).getType());
+
+
+    // zk client
+    UpgradeGroupHolder group2 = groups.get(1);
+    assertEquals(5, group2.items.size());
+
+    // Stage 1. Configure
+    assertEquals(1, group2.items.get(0).getTasks().size());
+    taskWrapper = group2.items.get(0).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.CONFIGURE, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 2. Custom class
+    assertEquals(1, group2.items.get(1).getTasks().size());
+    taskWrapper = group2.items.get(1).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.SERVER_ACTION, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 3. Restart client on h1
+    assertEquals(1, group2.items.get(2).getTasks().size());
+    taskWrapper = group2.items.get(2).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.RESTART, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 4. Restart client on h2 (no configure or custom class)
+    assertEquals(1, group2.items.get(3).getTasks().size());
+    taskWrapper = group2.items.get(3).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.RESTART, taskWrapper.getTasks().get(0).getType());
+
+    // Stage 5. service check
+    assertEquals(1, group2.items.get(4).getTasks().size());
+    taskWrapper = group2.items.get(4).getTasks().get(0);
+    assertEquals(1, taskWrapper.getTasks().size());
+    assertEquals(Task.Type.SERVICE_CHECK, taskWrapper.getTasks().get(0).getType());
+
+  }
+
+
+
 
   /**
    * Tests {@link UpgradeType#HOST_ORDERED}, specifically that the orchestration
