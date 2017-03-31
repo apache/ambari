@@ -288,6 +288,8 @@ App.WizardStep1Controller = Em.Controller.extend({
 
       disablePrimary: Em.computed.alias('controller.readInfoIsNotProvided'),
 
+      'data-qa': 'vdf-modal',
+
       /**
        * Try to read version info from the url or file (if provided)
        */
@@ -381,9 +383,7 @@ App.WizardStep1Controller = Em.Controller.extend({
            * @type {Em.View}
            */
           fileInputView: Em.View.extend({
-            template: Em.Handlebars.compile('<input type="file" {{bindAttr class="controller.optionsToSelect.useLocalRepo.enterUrl.isSelected:disabled"}} />'),
-
-            classNames: ['vdf-input-indentation'],
+            template: Em.Handlebars.compile('<input type="file" {{bindAttr class="controller.optionsToSelect.useLocalRepo.enterUrl.isSelected:disabled"}} {{QAAttr "vdf-input"}}/>'),
 
             change: function (e) {
               var self = this;

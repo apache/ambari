@@ -189,7 +189,7 @@ App.WizardStep1View = Em.View.extend({
    * Verify if some invalid repo-urls exist
    * @type {bool}
    */
-  invalidUrlExist: Em.computed.someBy('allRepositories', 'validation', App.Repository.validation.INVALID),
+  invalidUrlExist: Em.computed.someBy('allRepositories', 'validation', 'INVALID'),
 
   /**
    * If all repo links are unchecked
@@ -212,7 +212,7 @@ App.WizardStep1View = Em.View.extend({
 
   popoverView: Em.View.extend({
     tagName: 'i',
-    classNameBindings: ['repository.validation'],
+    classNameBindings: ['repository.validationClassName'],
     attributeBindings: ['repository.errorTitle:title', 'repository.errorContent:data-content'],
     didInsertElement: function () {
       App.popover($(this.get('element')), {'trigger': 'hover'});
@@ -256,7 +256,7 @@ App.WizardStep1View = Em.View.extend({
       if (repository.get('lastBaseUrl') !== repository.get('baseUrl')) {
         repository.setProperties({
           lastBaseUrl: repository.get('baseUrl'),
-          validation: App.Repository.validation.PENDING
+          validation: 'PENDING'
         });
       }
     }, this);

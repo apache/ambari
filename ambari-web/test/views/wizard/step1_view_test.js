@@ -35,11 +35,13 @@ describe('App.WizardStep1View', function () {
 
   App.TestAliases.testAsComputedOr(getView(), 'isSubmitDisabled', ['invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled', 'controller.content.isCheckInProgress', 'App.router.btnClickInProgress']);
 
-  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', App.Repository.validation.INVALID);
+  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', 'INVALID');
 
   describe('#editLocalRepository', function () {
 
-    it('should update repository', function () {
+    var repository;
+
+    beforeEach(function () {
       view.reopen({
         allRepositories: [
           Em.Object.create({
@@ -50,9 +52,15 @@ describe('App.WizardStep1View', function () {
         ]
       });
       view.editLocalRepository();
-      var repository = view.get('allRepositories.firstObject');
+      repository = view.get('allRepositories.firstObject');
+    });
+
+    it('should update repository base URL', function () {
       expect(repository.get('lastBaseUrl')).to.equal(repository.get('baseUrl'));
-      expect(repository.get('validation')).to.be.empty;
+    });
+
+    it('should update repository validation status', function () {
+      expect(repository.get('validation')).to.equal('PENDING');
     });
   });
 });

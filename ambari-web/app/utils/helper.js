@@ -384,9 +384,12 @@ Em.Handlebars.registerHelper('QAAttr', function(text, data) {
         conditionals = Em.View._parsePropertyPath(expression);
       if (conditionals.classNames) {
         var sourceValue = Em.Handlebars.getPath(self, conditionals.path, data);
-        value = sourceValue ? conditionals.className : (conditionals.falsyClassName || '');
+        value = sourceValue ? conditionals.className : conditionals.falsyClassName;
       } else {
         value = Em.Handlebars.getPath(self, expression, data);
+      }
+      if (Em.isNone(value)) {
+        value = '';
       }
       text = text.replace(t, value);
     });

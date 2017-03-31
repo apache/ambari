@@ -856,7 +856,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
             repo.setProperties({
               errorTitle: '',
               errorContent: '',
-              validation: App.Repository.validation.INPROGRESS
+              validation: 'INPROGRESS'
             });
             this.set('content.isCheckInProgress', true);
             App.ajax.send({
@@ -896,7 +896,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       var os = selectedStack.get('operatingSystems').findProperty('id', data.osId);
       var repo = os.get('repositories').findProperty('repoId', data.repoId);
       if (repo) {
-        repo.set('validation', App.Repository.validation.OK);
+        repo.set('validation', 'OK');
       }
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
@@ -916,7 +916,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
         repo.setProperties({
-          validation: App.Repository.validation.INVALID,
+          validation: 'INVALID',
           errorTitle: request.status + ":" + request.statusText,
           errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
         });

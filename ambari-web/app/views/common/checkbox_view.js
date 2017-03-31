@@ -136,6 +136,7 @@ App.CheckboxView = Em.View.extend({
     classNameBindings: 'parentView.labelClassNames',
     tagName: 'label',
     attributeBindings: ['for', 'parentView.checked:checked'],
+    'data-qaBinding': 'parentView.labelIdentifier',
     template: Em.Handlebars.compile('{{view.labelText}}'),
     for: Em.computed.alias('parentView.checkboxId')
   })

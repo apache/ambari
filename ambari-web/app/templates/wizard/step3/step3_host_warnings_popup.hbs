@@ -19,7 +19,10 @@
 {{#if view.checkHostFinished}}
     <div id="host-warnings">
       <div class="notice">
-        <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>.<br>{{t installer.step3.hostWarningsPopup.notice}}</span>
+        <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>.<br>
+          {{t installer.step3.hostWarningsPopup.notice.beginning}}
+          <div class="code-snippet" {{QAAttr "host-cleanup-script"}}>{{t installer.step3.hostWarningsPopup.notice.command}}</div>
+          {{t installer.step3.hostWarningsPopup.notice.end}}</span>
       </div>
       <div class="row">
         <form class="form-horizontal">
@@ -30,12 +33,12 @@
               </label>
             </div>
             <div class="col-md-5">
-              {{view view.hostSelectView classNames="form-control input-sm"}}
+              {{view view.hostSelectView classNames="form-control input-sm" data-qa="host-select"}}
             </div>
             {{#if view.totalWarningsCount}}
               <div class="col-md-3 col-md-offset-2">
                 <a href="javascript:void(null)" title="Show Details" {{action openWarningsInDialog target="view"}}
-                   class="task-detail-open-dialog control-label display-inline-block">
+                   class="control-label display-inline-block">
                    <i class="icon-external-link"></i>&nbsp;
                    {{t installer.step3.hostWarningsPopup.report}}
                 </a>
@@ -44,25 +47,25 @@
           </div>
         </form>
       </div>
-      <div class="panel warnings-list" id="accordion2">
+      <div class="panel warnings-list" id="accordion2" {{QAAttr "host-checks-list"}}>
         {{#each category in view.content}}
-          <div class="panel-group block">
+          <div class="panel-group block" {{QAAttr "host-checks-category"}}>
             <div class="panel panel-default">
-              <div class="panel-heading" {{action onToggleBlock category}}>
+              <div class="panel-heading" {{action onToggleBlock category}} {{QAAttr "host-checks-category-heading"}}>
                 <i {{bindAttr class=":pull-left :panel-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
                 {{#if category.warnings.length}}
-                  <i class="pull-right panel-toggle icon-warning-sign"></i>
+                  <i class="pull-right panel-toggle icon-warning-sign" {{QAAttr "host-checks-category-warning"}}></i>
                 {{else}}
-                  <i class="pull-right panel-toggle glyphicon glyphicon-ok"></i>
+                  <i class="pull-right panel-toggle glyphicon glyphicon-ok"{{QAAttr "host-checks-category-success"}}></i>
                 {{/if}}
-                <a class="panel-toggle">
+                <a class="panel-toggle" {{QAAttr "{category.category}-issues"}}>
                   {{category.title}} ({{category.warnings.length}})
                 </a>
               </div>
-              <div id="{{unbound category.category}}" class="panel-body collapse in" style="display: none">
+              <div id="{{unbound category.category}}" class="panel-body collapse in" style="display: none" {{QAAttr "host-checks-category-body"}}>
                 {{#if category.warnings.length}}
                   <table class="table">
-                    <thead>
+                    <thead {{QAAttr "host-checks-category-description"}}>
                       <tr>
                         <th colspan="4">{{{category.message}}}</th>
                       </tr>
@@ -73,7 +76,7 @@
                     <tbody>
                       {{#each warning in category.warnings}}
                       <tr>
-                        <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
+                        <td class="warning-name" {{bindAttr data-original-title="warning.command"}} {{QAAttr "host-warning-name"}}>{{{warning.name}}}</td>
                         {{#if warning.version}}
                           <td class="package-version">{{warning.version}}</td>
                         {{else}}
@@ -85,7 +88,7 @@
                           <td></td>
                         {{/if}}
                         <td>{{category.action}}
-                          <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}}>
+                          <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}} {{QAAttr "host-with-warning-link"}}>
                             {{warning.hosts.length}}
                             {{#if warning.onSingleHost}}
                               {{t installer.step3.hostWarningsPopup.host}}

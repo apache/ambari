@@ -34,6 +34,12 @@ App.Repository = DS.Model.extend({
   operatingSystem: DS.belongsTo('App.OperatingSystem'),
 
   validation: DS.attr('string', {defaultValue: ''}),
+  validationClassName: Em.computed.getByKey('validationClassNameMap', 'validation', ''),
+  validationClassNameMap: {
+    INVALID: 'glyphicon glyphicon-exclamation-sign',
+    OK: 'glyphicon glyphicon-ok',
+    INPROGRESS: 'glyphicon glyphicon-repeat'
+  },
   errorContent: DS.attr('string', {defaultValue: ''}),
   errorTitle: DS.attr('string', {defaultValue: ''}),
 
@@ -48,7 +54,7 @@ App.Repository = DS.Model.extend({
   }.property('baseUrl'),
 
   invalidError: function() {
-    return this.get('validation') === App.Repository.validation.INVALID;
+    return this.get('validation') === 'INVALID';
   }.property('validation'),
 
   /**
@@ -70,13 +76,6 @@ App.Repository = DS.Model.extend({
   placeholder: Em.computed.ifThenElse('isUtils', '', Em.I18n.t('installer.step1.advancedRepo.localRepo.placeholder')),
 
 });
-
-App.Repository.validation = {
-  PENDING: '',
-  INVALID: 'glyphicon glyphicon-exclamation-sign',
-  OK: 'glyphicon glyphicon-ok',
-  INPROGRESS: 'glyphicon glyphicon-repeat'
-};
 
 
 App.Repository.FIXTURES = [];

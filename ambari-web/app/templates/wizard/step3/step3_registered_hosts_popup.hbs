@@ -19,6 +19,6 @@
 <p>{{view.message}}</p>
 <ul>
   {{#each host in view.registeredHosts}}
-    <li>{{host}}</li>
+    <li {{QAAttr "unused-host"}}>{{host}}</li>
   {{/each}}
 </ul>
