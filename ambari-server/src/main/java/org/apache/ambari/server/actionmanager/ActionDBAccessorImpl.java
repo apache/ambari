@@ -285,11 +285,16 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * {@inheritDoc}
    */
   @Override
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public List<Stage> getStagesInProgress() {
-    List<StageEntity> stageEntities = stageDAO.findByStatuses(
+  public List<Stage> getFirstStageInProgressPerRequest() {
+    List<StageEntity> stageEntities = stageDAO.findFirstStageByStatus(
       HostRoleStatus.IN_PROGRESS_STATUSES);
-    return getStagesForEntities(stageEntities);
+
+    List<Stage> stages = new ArrayList<>(stageEntities.size());
+    for (StageEntity stageEntity : stageEntities) {
+      stages.add(stageFactory.createExisting(stageEntity));
+    }
+
+    return stages;
   }
 
   @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)

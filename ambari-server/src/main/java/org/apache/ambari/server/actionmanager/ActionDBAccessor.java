@@ -76,17 +76,19 @@ public interface ActionDBAccessor {
                        boolean skipSupported, boolean hostUnknownState);
 
   /**
-   * Returns all the pending stages, including queued and not-queued. A stage is
-   * considered in progress if it is in progress for any host.
+   * Returns the next stage which is in-progress for every in-progress request
+   * in the system. Since stages are always synchronous, there is no reason to
+   * return more than the most recent stage per request. Returning every single
+   * stage in the requesrt would be extremely inffecient and wasteful. However,
+   * since requests can run in parallel, this method must return the most recent
+   * stage for every request. The results will be sorted by request ID.
    * <p/>
-   * The results will be sorted by request ID and then stage ID making this call
-   * expensive in some scenarios. Use {@link #getCommandsInProgressCount()} in
-   * order to determine if there are stages that are in progress before getting
-   * the stages from this method.
+   * Use {@link #getCommandsInProgressCount()} in order to determine if there
+   * are stages that are in progress before getting the stages from this method.
    *
    * @see HostRoleStatus#IN_PROGRESS_STATUSES
    */
-  public List<Stage> getStagesInProgress();
+  public List<Stage> getFirstStageInProgressPerRequest();
 
   /**
    * Returns all the pending stages in a request, including queued and not-queued. A stage is
