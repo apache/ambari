@@ -18,11 +18,11 @@
 
 
 <div class="modal-backdrop in"></div>
-<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true" {{QAAttr "modal"}}>
   <div {{bindAttr class="view.modalDialogClassesStr :modal-dialog"}}>
     <div class="modal-content">
       {{! Modal header }}
-      <div class="modal-header">
+      <div class="modal-header" {{QAAttr "modal-header"}}>
         {{#if view.showCloseButton}}
           <a {{QAAttr "close-modal"}} class="close" {{action onClose target="view"}}>&times;</a>
         {{/if}}

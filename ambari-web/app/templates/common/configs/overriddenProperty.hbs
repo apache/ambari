@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-<div {{bindAttr class="view.overriddenSCP.errorMessage:has-error: :form-group :overrideField"}}>
+<div {{bindAttr class="view.overriddenSCP.errorMessage:has-error: :form-group :overrideField"}} {{QAAttr "override-field"}}>
   <div class="row">
     <div class="col-md-9">
       {{view view.overriddenSCP.viewClass serviceConfigBinding="view.overriddenSCP" categoryConfigsBinding="view.parentView.categoryConfigs"}}
@@ -51,7 +51,7 @@
             </a>
           {{/isAuthorized}}
           {{#if view.overriddenSCP.errorMessage}}
-            <span class="help-block validation-block pull-right">{{view.overriddenSCP.errorMessage}}</span>
+            <span class="help-block validation-block pull-right" {{QAAttr "validation-block"}}>{{view.overriddenSCP.errorMessage}}</span>
           {{/if}}
         {{else}}
           <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a>
