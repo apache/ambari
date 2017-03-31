@@ -19,7 +19,7 @@
   <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -33,7 +33,7 @@
   </os>
   <os family="redhat7">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -47,7 +47,7 @@
   </os>
   <os family="suse11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -61,7 +61,7 @@
   </os>
   <os family="suse12">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/sles12/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/sles12/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -75,7 +75,7 @@
   </os>
   <os family="ubuntu12">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -89,7 +89,7 @@
   </os>
   <os family="debian7">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -103,7 +103,7 @@
   </os>
   <os family="ubuntu14">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
@@ -117,7 +117,7 @@
   </os>
   <os family="ubuntu16">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.6.0.0</baseurl>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu16/2.x/updates/2.6.0.3</baseurl>
       <repoid>HDP-2.6</repoid>
       <reponame>HDP</reponame>
       <unique>true</unique>
