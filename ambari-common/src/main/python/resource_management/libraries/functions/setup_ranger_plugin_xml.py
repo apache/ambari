@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-__all__ = ["setup_ranger_plugin", "get_audit_configs"]
+__all__ = ["setup_ranger_plugin", "get_audit_configs", "generate_ranger_service_config"]
 
 import os
 import ambari_simplejson as json
@@ -280,3 +280,15 @@ def get_audit_configs(config):
     jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
 
   return jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver
+
+def generate_ranger_service_config(ranger_plugin_properties):
+  custom_service_config_dict = {}
+  ranger_plugin_properties_copy = {}
+  ranger_plugin_properties_copy.update(ranger_plugin_properties)
+
+  for key, value in ranger_plugin_properties_copy.iteritems():
+    if key.startswith("ranger.service.config.param."):
+      modify_key_name = key.replace("ranger.service.config.param.","")
+      custom_service_config_dict[modify_key_name] = value
+
+  return custom_service_config_dict

@@ -38,7 +38,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import is_empty
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 # server configurations
 config = Script.get_config()
@@ -356,7 +356,11 @@ if enable_ranger_knox:
     'name': repo_name,
     'repositoryType': 'knox',
     'assetType': '5',
-    }
+  }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    knox_ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     knox_ranger_plugin_config['policy.download.auth.users'] = knox_user
