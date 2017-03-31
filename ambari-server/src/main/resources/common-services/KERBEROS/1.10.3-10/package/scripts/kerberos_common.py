@@ -110,10 +110,7 @@ class KerberosScript(Script):
               mode=0755
     )
 
-    if (params.krb5_conf_template is None) or not params.krb5_conf_template.strip():
-      content = Template('krb5_conf.j2')
-    else:
-      content = InlineTemplate(params.krb5_conf_template)
+    content = InlineTemplate(params.krb5_conf_template)
 
     File(params.krb5_conf_path,
          content=content,

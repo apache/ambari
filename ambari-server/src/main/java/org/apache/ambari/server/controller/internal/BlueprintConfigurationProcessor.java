@@ -164,6 +164,7 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
+      new SimplePropertyNameExportFilter("master_kdc", "kerberos-env"),
       new SimplePropertyNameExportFilter("realm", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
       new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),

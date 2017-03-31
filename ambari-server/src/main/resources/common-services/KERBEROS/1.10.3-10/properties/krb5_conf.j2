@@ -38,11 +38,17 @@
 
 [realms]
   {{realm}} = {
+{%- if master_kdc %}
+    master_kdc = {{master_kdc|trim()}}
+{%- endif -%}
 {%- if kdc_hosts > 0 -%}
 {%- set kdc_host_list = kdc_hosts.split(',')  -%}
 {%- if kdc_host_list and kdc_host_list|length > 0 %}
     admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
 {%- if kdc_host_list -%}
+{%- if master_kdc and (master_kdc not in kdc_host_list) %}
+    kdc = {{master_kdc|trim()}}
+{%- endif -%}
 {% for kdc_host in kdc_host_list %}
     kdc = {{kdc_host|trim()}}
 {%- endfor -%}

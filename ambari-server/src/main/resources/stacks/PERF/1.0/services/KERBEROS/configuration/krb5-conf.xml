@@ -61,48 +61,13 @@
     <name>content</name>
     <display-name>krb5-conf template</display-name>
     <description>Customizable krb5.conf template (Jinja template engine)</description>
-    <value>
-[libdefaults]
-  renew_lifetime = 7d
-  forwardable = true
-  default_realm = {{realm}}
-  ticket_lifetime = 24h
-  dns_lookup_realm = false
-  dns_lookup_kdc = false
-  default_ccache_name = /tmp/krb5cc_%{uid}
-  #default_tgs_enctypes = {{encryption_types}}
-  #default_tkt_enctypes = {{encryption_types}}
-{% if domains %}
-[domain_realm]
-{%- for domain in domains.split(',') %}
-  {{domain|trim()}} = {{realm}}
-{%- endfor %}
-{% endif %}
-[logging]
-  default = FILE:/var/log/krb5kdc.log
-  admin_server = FILE:/var/log/kadmind.log
-  kdc = FILE:/var/log/krb5kdc.log
-
-[realms]
-  {{realm}} = {
-{%- if kdc_hosts &gt; 0 -%}
-{%- set kdc_host_list = kdc_hosts.split(',')  -%}
-{%- if kdc_host_list and kdc_host_list|length &gt; 0 %}
-    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}
-{%- if kdc_host_list -%}
-{% for kdc_host in kdc_host_list %}
-    kdc = {{kdc_host|trim()}}
-{%- endfor -%}
-{% endif %}
-{%- endif %}
-{%- endif %}
-  }
-
-{# Append additional realm declarations below #}
-    </value>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value/>
     <value-attributes>
       <type>content</type>
       <overridable>false</overridable>
+      <property-file-name>krb5_conf.j2</property-file-name>
+      <property-file-type>text</property-file-type>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

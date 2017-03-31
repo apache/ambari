@@ -894,7 +894,8 @@ public class BlueprintConfigurationProcessorTest {
     // simulate the case of a Kerberized cluster, including config
     // added by the Kerberos service
     kerberosEnvProperties.put("admin_server_host", expectedHostName);
-    kerberosEnvProperties.put("kdc_hosts", expectedHostName);
+    kerberosEnvProperties.put("kdc_hosts", expectedHostName + ",secondary.kdc.org");
+    kerberosEnvProperties.put("master_kdc", expectedHostName);
     coreSiteProperties.put("hadoop.proxyuser.yarn.hosts", expectedHostName);
 
     Configuration clusterConfig = new Configuration(configProperties,
@@ -923,6 +924,8 @@ public class BlueprintConfigurationProcessorTest {
       kerberosEnvProperties.containsKey("admin_server_host"));
     assertFalse("kdc_hosts should not be present in exported blueprint in kerberos-env",
       kerberosEnvProperties.containsKey("kdc_hosts"));
+    assertFalse("master_kdc should not be present in exported blueprint in kerberos-env",
+        kerberosEnvProperties.containsKey("master_kdc"));
     assertEquals("hadoop.proxyuser.yarn.hosts was not exported correctly",
       createExportedHostName("host_group_1"), coreSiteProperties.get("hadoop.proxyuser.yarn.hosts"));
   }

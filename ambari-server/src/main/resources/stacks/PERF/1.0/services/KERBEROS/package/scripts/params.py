@@ -101,6 +101,7 @@ if config is not None:
     realm = 'EXAMPLE.COM'
     domains = ''
     kdc_hosts = 'localhost'
+    master_kdc = None
     admin_server_host = None
     admin_principal = None
     admin_password = None
@@ -122,6 +123,7 @@ if config is not None:
       encryption_types = get_property_value(kerberos_env, "encryption_types", None, True, None)
       realm = get_property_value(kerberos_env, "realm", None, True, None)
       kdc_hosts = get_property_value(kerberos_env, 'kdc_hosts', kdc_hosts)
+      master_kdc = get_property_value(kerberos_env, 'master_kdc')
       admin_server_host = get_property_value(kerberos_env, 'admin_server_host', admin_server_host)
 
     if krb5_conf_data is not None:
