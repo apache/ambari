@@ -22,23 +22,21 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      <div id="overallProgress">
-        <div class="row">
-          <div class="col-md-10">
-            <div class="progress">
-              <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}}>
-              </div>
+      <div class="row" {{QAAttr "overall-progress"}}>
+        <div class="col-md-10">
+          <div class="progress" {{QAAttr "progress-{status}"}}>
+            <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}} {{QAAttr "progress-bar-{progress}"}}>
             </div>
           </div>
-          <div class="col-md-2">{{view.progressMessage}}</div>
         </div>
+        <div class="col-md-2" {{QAAttr "progress-message"}}>{{view.progressMessage}}</div>
       </div>
 
       <div class="panel panel-default panel-internal">
         <div class="panel-heading">
           <div class="pull-left">
             {{#if controller.showRetry}}
-              <a class="btn btn-primary" href="#" {{action retry}}>
+              <a class="btn btn-primary" href="#" {{action retry}} {{QAAttr "retry-button"}}>
                 <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
                 {{t common.retry}}
               </a>
@@ -63,43 +61,43 @@
           <div class="clearfix"></div>
         </div>
         <div class="panel-body pre-scrollable">
-          <table id="deploy-status-by-host" class="table table-hover">
+          <table id="deploy-status-by-host" class="table table-hover" {{QAAttr "hosts-table"}}>
             <thead>
             <tr>
-              <th class="host">
+              <th class="host" {{QAAttr "hosts-table-heading"}}>
                 {{t common.host}}
               </th>
-              <th class="status">{{t common.status}}</th>
+              <th class="status" {{QAAttr "hosts-table-heading"}}>{{t common.status}}</th>
               <!--  given by the parsing function that parses data from bootstrap call -->
-              <th class="message">{{t common.message}}</th>
+              <th class="message" {{QAAttr "hosts-table-heading"}}>{{t common.message}}</th>
               <!-- retrieved from local storage initially -->
             </tr>
             </thead>
             <tbody>
               {{#if view.pageContent}}
                 {{#each host in view.pageContent}}
-                  {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
-                  <td class="host">
-                    <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
+                  {{#view App.HostStatusView objBinding="host" controllerBinding="controller" data-qa="hosts-table-body-row"}}
+                  <td class="host" {{QAAttr "hosts-table-body-cell"}}>
+                    <span title="{{unbound host.name}}" class="trim_hostname" {{QAAttr "host-name"}}>{{host.name}}</span>
                   </td>
-                  <td>
+                  <td {{QAAttr "hosts-table-body-cell"}}>
                     <div class="progress-wrapper pull-left">
                       <div class="progress">
-                        <div {{bindAttr class="view.isHostCompleted::active view.isHostCompleted::progress-bar-striped view.barColor :progress-bar" style="view.barWidth"}}></div>
+                        <div {{bindAttr class="view.isHostCompleted::active view.isHostCompleted::progress-bar-striped view.barColor :progress-bar" style="view.barWidth"}} {{QAAttr "progress-bar"}}></div>
                       </div>
                     </div>
-                    <div class="progress-percentage pull-left">{{host.progress}}%</div>
+                    <div class="progress-percentage pull-left" {{QAAttr "host-progress-{host.progress}"}}>{{host.progress}}%</div>
                   </td>
-                  <td class="host-message">
+                  <td class="host-message" {{QAAttr "hosts-table-body-cell"}}>
                     <a {{bindAttr class="view.isFailed:text-danger view.isSuccess:text-success view.isWarning:text-warning"}}
                         href="javascript:void(null)"
-                        data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
+                        data-toggle="modal" {{action hostLogPopup target="view"}} {{QAAttr "host-status-message"}}>{{host.message}}</a>
                   </td>
                   {{/view}}
                 {{/each}}
               {{else}}
-              <tr>
-                <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
+              <tr {{QAAttr "hosts-table-body-row"}}>
+                <td colspan="3" {{QAAttr "hosts-table-body-cell"}}><p>{{t installer.step3.hosts.noHosts}}</p></td>
               </tr>
               {{/if}}
             </tbody>
@@ -114,7 +112,7 @@
         </div>
       </div>
       {{#if view.resultMsg}}
-        <p {{bindAttr class="view.resultMsgColor :alert :alert-warning"}}>{{view.resultMsg}}
+        <p {{bindAttr class="view.resultMsgColor :alert :alert-warning"}} {{QAAttr "deploy-result-{status}"}}>{{view.resultMsg}}
           {{#if view.isHostHeartbeatLost}}
             <a href="javascript:void(null)"
                data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
@@ -129,7 +127,7 @@
 </div>
 <div class="wizard-footer col-md-12">
     <div class="btn-area">
-      <button class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}}>
+      <button class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
         {{#if App.router.nextBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
         {{/if}}

@@ -391,6 +391,7 @@ App.HostStatusView = Em.View.extend({
 
       classNames: ['common-modal-wrapper'],
       modalDialogClasses: ['modal-lg'],
+      'data-qa': 'host-log-modal',
 
       autoHeight: false,
 

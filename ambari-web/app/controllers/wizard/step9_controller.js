@@ -607,7 +607,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       primary: Em.I18n.t('ok'),
       header: Em.I18n.t('installer.step9.service.start.header'),
       secondary: false,
-      body: Em.I18n.t('installer.step9.service.start.failed')
+      body: Em.I18n.t('installer.step9.service.start.failed'),
+      'data-qa': 'start-failed-modal'
     });
   },
 
