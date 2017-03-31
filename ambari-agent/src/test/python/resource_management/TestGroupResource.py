@@ -25,6 +25,7 @@ from ambari_commons.os_check import OSCheck
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import Group
 from resource_management.core.system import System
+from resource_management.core.shell import preexec_fn
 
 import os
 import select
@@ -62,7 +63,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupadd -p secure hadoop"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupadd -p secure hadoop"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('hadoop')
 
 
@@ -84,7 +85,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -109,7 +110,7 @@ class TestGroupResource(TestCase):
     except Fail:
       pass
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E groupmod -p secure -g 2 mapred"], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -130,7 +131,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -155,7 +156,7 @@ class TestGroupResource(TestCase):
       pass
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=preexec_fn, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
     
 def _get_group():

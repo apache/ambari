@@ -67,6 +67,10 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     'test-db-connection': App.TestDbConnectionWidgetView
   },
 
+  configNameWidgetMixinMap: {
+    num_llap_nodes: App.NumLlapNodesWidgetMixin
+  },
+
   /**
    * Prepare configs for render
    * <code>subsection.configs</code> is an array of App.StackConfigProperty, but not App.ConfigProperty,
@@ -108,9 +112,9 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       if (!configProperty) return;
 
       containerObject.get('configs').pushObject(configProperty);
-      var configWidgetType = Em.get(config, 'widgetType');
-      var widget = self.get('widgetTypeMap')[configWidgetType];
-      Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
+
+      var widget = self.getWidgetView(config);
+      Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' +  Em.get(config, 'widgetType'), widget);
 
       var additionalProperties = {
         widget: widget,
@@ -161,11 +165,26 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   },
 
   /**
+   *
+   * @param {object} config
+   * @returns {Em.View}
+   */
+  getWidgetView: function (config) {
+    var configWidgetType = Em.get(config, 'widgetType');
+    var name = Em.get(config, 'name');
+    var mixin = this.get('configNameWidgetMixinMap')[name];
+    var viewClass = this.get('widgetTypeMap')[configWidgetType];
+    return Em.isNone(mixin) ? viewClass : viewClass.extend(mixin);
+  },
+
+  /**
    * changes active subsection tab
    * @param event
    */
   setActiveSubTab: function(event) {
-    if (!event.context) return;
+    if (!event.context || !event.context.get('isVisible')) {
+      return false;
+    }
     try {
       event.context.get('subSection.subSectionTabs').setEach('isActive', false);
       event.context.set('isActive', true);

@@ -19,19 +19,21 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
     <relativePath>../../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>ambari-contrib-views</artifactId>
   <packaging>pom</packaging>
-  <version>2.4.2.0.0</version>
+  <version>2.5.0.0.0</version>
   <name>Ambari Contrib Views</name>
   <properties>
-    <ambari.version>2.4.2.0.0</ambari.version>
+    <ambari.version>2.5.0.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
-    <hadoop.version>2.7.1</hadoop.version>
+    <hadoop.version>2.7.3</hadoop.version>
+    <views.jars.dir>views-jars</views.jars.dir>
+    <views.jars.dir.rel>../target/${views.jars.dir}</views.jars.dir.rel>
   </properties>
   <modules>
     <module>utils</module>
@@ -44,10 +46,12 @@
     <module>tez</module>
     <module>hawq</module>
     <module>storm</module>
-    <module>zeppelin</module>
     <module>hueambarimigration</module>
     <module>hive-next</module>
+    <module>hive20</module>
     <module>wfmanager</module>
+    <!--ambari-views-package should be last in the module list for it to function properly-->
+    <module>ambari-views-package</module>
   </modules>
   <build>
     <pluginManagement>
@@ -168,13 +172,20 @@
           <family>unix</family>
         </os>
       </activation>
-      <modules>
-        <module>hive</module>
-      </modules>
     </profile>
   </profiles>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>4.4</version>
+      </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-servlet</artifactId>
@@ -205,7 +216,7 @@
       <dependency>
         <groupId>org.apache.ambari</groupId>
         <artifactId>ambari-views</artifactId>
-        <version>2.4.2.0.0</version>
+        <version>2.5.0.0.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

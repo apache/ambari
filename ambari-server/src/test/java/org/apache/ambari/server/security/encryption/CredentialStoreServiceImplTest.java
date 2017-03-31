@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.security.encryption;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.createNiceMock;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.SecurePasswordHelper;
@@ -33,12 +36,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.createNiceMock;
+import junit.framework.Assert;
 
 public class CredentialStoreServiceImplTest {
 
@@ -60,8 +62,8 @@ public class CredentialStoreServiceImplTest {
       protected void configure() {
         Properties properties = new Properties();
 
-        properties.setProperty(Configuration.MASTER_KEY_LOCATION, tmpFolder.getRoot().getAbsolutePath());
-        properties.setProperty(Configuration.MASTER_KEYSTORE_LOCATION, tmpFolder.getRoot().getAbsolutePath());
+        properties.setProperty(Configuration.MASTER_KEY_LOCATION.getKey(), tmpFolder.getRoot().getAbsolutePath());
+        properties.setProperty(Configuration.MASTER_KEYSTORE_LOCATION.getKey(), tmpFolder.getRoot().getAbsolutePath());
 
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(SecurePasswordHelper.class).toInstance(new SecurePasswordHelper());

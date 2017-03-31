@@ -1,0 +1,118 @@
+{{!
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+}}
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3>Pig UDFs Migration
+    </h3>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-sm-3">
+        User Name
+        <font size="3" color="red"> *
+        </font>
+      </div>
+      <div class="col-sm-3">
+        {{ember-selectize content=model.usersdetail  selection=model.selections optionValuePath="content.username" optionLabelPath="content.username" multiple=true add-value="addSelection" remove-value="removeSelection" placeholder="Select a User Name" }}
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-sm-3">
+        Instance Name
+        <font size="3" color="red"> *
+        </font>
+      </div>
+      <div class="col-sm-3">
+        {{ember-selectize content=model.piginstancedetail  optionValuePath="content.instanceName" optionLabelPath="content.instanceName" value=instancename  placeholder="Select an Instance name" }}
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-sm-3">
+        <button class="btn btn-success" {{action 'submitResult'}} disabled={{jobstatus}}>Submit
+        </button>
+      </div>
+      <div class="col-sm-3">
+        {{#if jobstatus}}
+          <h5>
+            <font color="green">Job has been Submitted.
+            </font>
+          </h5>
+        {{/if}}
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-sm-9">
+        {{#if jobstatus}}
+          <br>
+          <div class="progress" id="progressbar" style="">
+            <div id="progressbarhivesavedquery" class="progress-bar" role="progressbar" aria-valuenow="50"
+                 aria-valuemin="0" aria-valuemax="50" style="width:{{progressBar}}%">
+            </div>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-9">
+        {{#if error}}
+          <h3>Error Occured during migration</h3>
+          <p><span class="alert-danger">{{error}}</span></p>
+        {{/if}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-9">
+        {{#if completionStatus}}
+          <h2>Migration Report
+          </h2>
+          <table class="table table-hover">
+            <thead>
+            <tr>
+              <th>Parameters</th>
+              <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>Number of UDFs Transferred</td>
+              <td>{{numberOfQueryTransfered}}</td>
+            </tr>
+            <tr>
+              <td>Total Number of UDFs</td>
+              <td>{{totalNoQuery}}</td>
+            </tr>
+            <tr>
+              <td>Total Time Taken</td>
+              <td>{{totalTimeTaken}}ms</td>
+            </tr>
+            <tr>
+              <td>Hue Users</td>
+              <td>{{Username}}</td>
+            </tr>
+            <tr>
+              <td>Ambari Instance Name(Target)</td>
+              <td>{{instanceName}}</td>
+            </tr>
+            </tbody>
+          </table>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

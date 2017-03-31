@@ -26,7 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -49,8 +52,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -62,21 +64,26 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
 /**
  * Tests upgrade-related server side actions
  */
 public class ComponentVersionCheckActionTest {
+  private static final Logger LOG = LoggerFactory.getLogger(ComponentVersionCheckActionTest.class);
+
+
   private static final String HDP_2_1_1_0 = "2.1.1.0-1";
   private static final String HDP_2_1_1_1 = "2.1.1.1-2";
 
@@ -113,9 +120,13 @@ public class ComponentVersionCheckActionTest {
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
+  @Inject
+  private ConfigFactory configFactory;
+
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
     m_injector.getInstance(UnitOfWork.class).begin();
@@ -124,7 +135,7 @@ public class ComponentVersionCheckActionTest {
   @After
   public void teardown() throws Exception {
     m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
   }
 
   private void makeUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack, String targetRepo) throws Exception {
@@ -152,7 +163,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
@@ -182,9 +192,8 @@ public class ComponentVersionCheckActionTest {
     hostVersionDAO.create(entity);
   }
 
-  private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack, String targetRepo) throws Exception {
-    String clusterName = "c1";
-    String hostName = "h1";
+  private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack,
+                                            String targetRepo, String clusterName, String hostName) throws Exception {
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);
@@ -208,7 +217,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -217,6 +225,16 @@ public class ComponentVersionCheckActionTest {
     c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
+  }
+
+  private void createNewRepoVersion(StackId targetStack, String targetRepo, String clusterName,
+                                    String hostName) throws AmbariException {
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+
+    StackEntity stackEntityTarget = stackDAO.find(targetStack.getStackName(), targetStack.getStackVersion());
+
+    Cluster c = clusters.getCluster(clusterName);
     // Create the new repo version
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetRepo + "'}"
@@ -283,8 +301,10 @@ public class ComponentVersionCheckActionTest {
     StackId targetStack = HDP_22_STACK;
     String sourceRepo = HDP_2_1_1_0;
     String targetRepo = HDP_2_2_1_0;
+    String clusterName = "c1";
+    String hostName = "h1";
 
-    makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
+    makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo, clusterName, hostName);
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
@@ -295,9 +315,10 @@ public class ComponentVersionCheckActionTest {
     createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
     createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
 
+    createNewRepoVersion(targetStack, targetRepo, clusterName, hostName);
+
     // create some configs
     createConfigs(cluster);
-
     // setup the cluster for the upgrade across stacks
     cluster.setCurrentStackVersion(sourceStack);
     cluster.setDesiredStackVersion(targetStack);
@@ -365,7 +386,6 @@ public class ComponentVersionCheckActionTest {
     sch.setDesiredStackVersion(cluster.getDesiredStackVersion());
     sch.setStackVersion(cluster.getCurrentStackVersion());
 
-    sch.persist();
     return sch;
   }
 
@@ -377,7 +397,6 @@ public class ComponentVersionCheckActionTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;
@@ -392,7 +411,6 @@ public class ComponentVersionCheckActionTest {
       serviceComponent = serviceComponentFactory.createNew(service, componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;
@@ -404,18 +422,11 @@ public class ComponentVersionCheckActionTest {
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, m_injector);
+    configFactory.createNew(cluster, "hdfs-site", "version1", properties, propertiesAttributes);
     properties.put("c", "c1");
     properties.put("d", "d1");
 
-    Config c2 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, m_injector);
-    Config c3 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, m_injector);
-
-    cluster.addConfig(c1);
-    cluster.addConfig(c2);
-    cluster.addConfig(c3);
-    c1.persist();
-    c2.persist();
-    c3.persist();
+    configFactory.createNew(cluster, "core-site", "version1", properties, propertiesAttributes);
+    configFactory.createNew(cluster, "foo-site", "version1", properties, propertiesAttributes);
   }
 }

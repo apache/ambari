@@ -22,9 +22,11 @@ import com.google.gson.reflect.TypeToken;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.*;
 
+@Category({ category.KerberosTest.class})
 public class KerberosConfigurationDescriptorTest {
   private static final String JSON_SINGLE_VALUE =
       "{ \"configuration-type\": {" +

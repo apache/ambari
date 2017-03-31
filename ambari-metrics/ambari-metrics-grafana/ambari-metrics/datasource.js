@@ -41,8 +41,9 @@ define([
 
         //We get a list of components and their associated metrics.
         AmbariMetricsDatasource.prototype.initMetricAppidMapping = function () {
-          return backendSrv.get(this.url + '/ws/v1/timeline/metrics/metadata')
+          return this.doAmbariRequest({ url: '/ws/v1/timeline/metrics/metadata' })
             .then(function (items) {
+              items = items.data;
               allMetrics = {};
               appIds = [];
               _.forEach(items, function (metric,app) {
@@ -101,6 +102,7 @@ define([
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "kafka-topics") {
             alias = alias + ' on ' + target.kbTopic; }
             return function (res) {
+              res = res.data;
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
                 return $q.when(emptyData(target));
@@ -136,7 +138,14 @@ define([
             if(!_.isEmpty(templateSrv.variables[1]) && templateSrv.variables[1].name === "component") {
               alias = alias + ' on ' + target.sTopology + ' for ' + target.sComponent;
             }
+
+            // Aliases for Druid Datasources.
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "druidDataSources" &&
+                        !templateSrv.variables[1]) {
+              alias = alias.replace('$druidDataSource', target.sDataSource);
+            }
             return function (res) {
+              res = res.data;
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
                 return $q.when(emptyData(target));
@@ -145,15 +154,49 @@ define([
               var timeSeries = {};
               var metricData = res.metrics;
               _.map(metricData, function (data) {
+                var totalCountFlag = false;
                 var aliasSuffix = data.hostname ? ' on ' + data.hostname : '';
+                var op = '';
+                var user = '';
                 if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "hbase-tables") {
                   var tableName = "Tables.";
                   var tableSuffix = data.metricname.substring(data.metricname.indexOf(tableName) + tableName.length,
                   data.metricname.lastIndexOf("_metric"));
-                  var aliasSuffix = ' on ' + tableSuffix;
+                  aliasSuffix = ' on ' + tableSuffix;
                 }
                 if(templateSrv.variables[0].query === "callers") {
                   alias = data.metricname.substring(data.metricname.indexOf('(')+1, data.metricname.indexOf(')'));
+                }
+                // Set legend and alias for HDFS - TopN dashboard
+                if(data.metricname.indexOf('dfs.NNTopUserOpCounts') === 0) {
+                  var metricname_arr = data.metricname.split(".");
+                  _.map(metricname_arr, function (segment) {
+                    if(segment.indexOf('op=') === 0) {
+                      var opKey = 'op=';
+                      op = segment.substring(segment.indexOf(opKey) + opKey.length);
+                    } else if(segment.indexOf('user=') === 0) {
+                      var userKey = 'user=';
+                      user = segment.substring(segment.indexOf(userKey) + userKey.length);
+                    }
+                  });
+                  // Check if metric is TotalCount
+                  if(data.metricname.indexOf('TotalCount') > 0) {
+                    totalCountFlag = true;
+                    if (op !== '*') {
+                      alias = op;
+                    } else {
+                      alias = 'Total Count';
+                    }
+                  } else if (op !== '*') {
+                    alias = op + ' by ' + user;
+                  } else {
+                    alias = user;
+                  }
+                  aliasSuffix = '';
+                }
+                if (data.appid.indexOf('ambari_server') === 0) {
+                  alias = data.metricname;
+                  aliasSuffix = '';
                 }
                 timeSeries = {
                   target: alias + aliasSuffix,
@@ -164,7 +207,9 @@ define([
                     timeSeries.datapoints.push([data.metrics[k], (k - k % 1000)]);
                   }
                 }
-                series.push(timeSeries);
+                if( (user !== '*') || (totalCountFlag) ) {
+                  series.push(timeSeries);
+                }
               });
               return $q.when({data: series});
             };
@@ -175,9 +220,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
                 metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
-                '&endTime=' + to + precision + seriesAggregator).then(
+                '&endTime=' + to + precision + seriesAggregator }).then(
                 getMetricsData(target)
             );
           };
@@ -197,9 +242,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -219,9 +264,9 @@ define([
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
-              '&endTime=' + to + precision + topN + seriesAggregator).then(
+              '&endTime=' + to + precision + topN + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -231,9 +276,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
               + metricAggregator + '&appId=resourcemanager&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -241,8 +286,8 @@ define([
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime=' 
-            + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime='
+            + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -253,9 +298,9 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
               + metricAggregator + '&appId=kafka_broker&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision + seriesAggregator }).then(
               getMetricsData(target)
             );
           };
@@ -265,8 +310,8 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
-            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
+            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
               allHostMetricsData(target)
             );
           };
@@ -278,9 +323,22 @@ define([
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
             var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
-            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
-                + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
+                + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
                 allHostMetricsData(target)
+            );
+          };
+
+          // Druid calls.
+          var getDruidData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
+            return self.doAmbariRequest({ url: '/ws/v1/timeline/metrics?metricNames=' + target.sDataSourceMetric + metricTransform
+                          + metricAggregator + '&appId=druid&startTime=' + from + '&endTime=' + to + precision + seriesAggregator }).then(
+                          allHostMetricsData(target)
             );
           };
 
@@ -416,6 +474,38 @@ define([
                 debugger;
                   return getStormData(target);
               }));
+            }
+
+            //Templatized Dashboard for Storm Kafka Offset
+            if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
+                templateSrv.variables[1].name === "topic") {
+              var selectedTopology = templateSrv._values.topologies;
+              var selectedTopic = templateSrv._values.topic;
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.sTopology = selectedTopology;
+                target.sTopic = selectedTopic;
+                target.sPartition = options.scopedVars.partition.value;
+                target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sTopic)
+                    .replace('*', target.sPartition);
+                return getStormData(target);
+              }));
+            }
+
+            //Templatized Dashboards for Druid
+            if (templateSrv.variables[0].query === "druidDataSources" && !templateSrv.variables[1]) {
+              var allDataSources = templateSrv.variables.filter(function(variable) { return variable.query === "druidDataSources";});
+              var selectedDataSources = (_.isEmpty(allDataSources)) ? "" : allDataSources[0].options.filter(function(dataSource)
+                            { return dataSource.selected; }).map(function(dataSourceName) { return dataSourceName.value; });
+               selectedDataSources = templateSrv._values.druidDataSources.lastIndexOf('}') > 0 ? templateSrv._values.druidDataSources.slice(1,-1) :
+                                              templateSrv._values.druidDataSources;
+              var selectedDataSource = selectedDataSources.split(',');
+              _.forEach(selectedDataSource, function(processDataSource) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.sDataSource = processDataSource;
+                  target.sDataSourceMetric = target.metric.replace('*', target.sDataSource);
+                  return getDruidData(target);
+                }));
+              });
             }
 
             // To speed up querying on templatized dashboards.
@@ -589,7 +679,7 @@ define([
                 });
           }
           //Templated Variables for Storm Components per Topology
-          if (interpolated.includes("stormComponent")) {
+          if (interpolated.indexOf("stormComponent") >= 0) {
             var componentName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.initMetricAppidMapping()
                 .then(function () {
@@ -616,6 +706,55 @@ define([
                   });
                 });
           }
+          var stormEntities = {};
+          AmbariMetricsDatasource.prototype.getStormEntities = function () {
+            return this.initMetricAppidMapping()
+                .then(function () {
+                  var storm = allMetrics["nimbus"];
+                  var extractTopologies = storm.filter(/./.test.bind(new
+                      RegExp("partition", 'g')));
+                  _.map(extractTopologies, function(topology){
+                    topology = topology.split('.').slice(0,5);
+                    var topologyName = topologyN = topology[1]; // Topology
+                    var topologyTopicName = topicN = topology[3]; // Topic
+                    var topologyTopicPartitionName = topology[4]; // Partition
+                    if (stormEntities[topologyName]) {
+                      if (stormEntities[topologyName][topologyTopicName]) {
+                        stormEntities[topologyName][topologyTopicName].push(topologyTopicPartitionName);
+                      } else {
+                        stormEntities[topologyName][topologyTopicName] = [topologyTopicPartitionName];
+                      }
+                    } else {
+                      stormEntities[topologyName] = {};
+                      stormEntities[topologyName][topologyTopicName] = [topologyTopicPartitionName];
+                    }
+                  });
+                });
+          };
+          //Templated Variables for Storm Topics per Topology
+          if (interpolated.indexOf("stormTopic") >= 0) {
+            var topicName = interpolated.substring(0,interpolated.indexOf('.'));
+            return this.getStormEntities().then(function () {
+              var topicNames = Object.keys(stormEntities[topicName]);
+              return _.map(topicNames, function(names){
+                return {
+                  text: names
+                };
+              });
+            });
+          }
+          //Templated Variables for Storm Partitions per Topic
+          if (interpolated.indexOf("stormPartition") >= 0) {
+            var topicN, topologyN;
+            return this.getStormEntities().then(function () {
+              var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
+              return _.map(partitionNames, function(names){
+                return {
+                  text: names
+                };
+              });
+            });
+          }
           // Templated Variable for YARN Queues.
           // It will search the cluster and populate the queues.
           if(interpolated === "yarnqueues") {
@@ -637,6 +776,67 @@ define([
                 });
               });
           }
+
+          // Templated Variable for DruidServices.
+          // It will search the cluster and populate the druid service names.
+          if(interpolated === "druidServices") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: each node always emits jvm metrics
+                var extractNodeTypes = druidMetrics.filter(/./.test.bind(new RegExp("jvm/gc/time", 'g')));
+                var nodeTypes = _.map(extractNodeTypes, function(metricName) {
+                  return metricName.substring(0, metricName.indexOf("."));
+                });
+                nodeTypes = _.sortBy(_.uniq(nodeTypes));
+                return _.map(nodeTypes, function (nodeType) {
+                  return {
+                    text: nodeType
+                  };
+                });
+              });
+          }
+
+          // Templated Variable for Druid datasources.
+          // It will search the cluster and populate the druid datasources.
+          if(interpolated === "druidDataSources") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: query/time is emitted for each datasource
+                var extractDataSources = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
+                var dataSources = _.map(extractDataSources, function(metricName) {
+                  return metricName.split('.')[1]
+                });
+                dataSources = _.sortBy(_.uniq(dataSources));
+                return _.map(dataSources, function (dataSource) {
+                  return {
+                    text: dataSource
+                  };
+                });
+              });
+          }
+
+          // Templated Variable for Druid query type.
+          // It will search the cluster and populate the druid query types.
+          if(interpolated === "druidQueryTypes") {
+            return this.initMetricAppidMapping()
+              .then(function () {
+                var druidMetrics = allMetrics["druid"];
+                // Assumption: query/time is emitted for each query type.
+                var extractQueryTypes = druidMetrics.filter(/./.test.bind(new RegExp("query/time", 'g')));
+                var queryTypes = _.map(extractQueryTypes, function(metricName) {
+                  return metricName.split('.')[2]
+                });
+                queryTypes = _.sortBy(_.uniq(queryTypes));
+                return _.map(queryTypes, function (queryType) {
+                  return {
+                    text: queryType
+                  };
+                });
+              });
+          }
+
           // Templated Variable that will populate all hosts on the cluster.
           // The variable needs to be set to "hosts".
           if (!tComponent){
@@ -698,8 +898,8 @@ define([
          * Datasources page if incorrect info is passed on.
          */
         AmbariMetricsDatasource.prototype.testDatasource = function () {
-          return backendSrv.datasourceRequest({
-            url: this.url + '/ws/v1/timeline/metrics/metadata',
+          return this.doAmbariRequest({
+            url: '/ws/v1/timeline/metrics/metadata',
             method: 'GET'
           }).then(function(response) {
             console.log(response);

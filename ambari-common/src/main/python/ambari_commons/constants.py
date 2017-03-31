@@ -22,6 +22,7 @@ AMBARI_SUDO_BINARY = "ambari-sudo.sh"
 
 UPGRADE_TYPE_ROLLING = "rolling"
 UPGRADE_TYPE_NON_ROLLING = "nonrolling"
+UPGRADE_TYPE_HOST_ORDERED = "host_ordered"
 
 
 class SERVICE:

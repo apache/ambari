@@ -33,6 +33,27 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>atlas_log_max_backup_size</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>Atlas Log: backup file size</display-name>
+    <value-attributes>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+   </property>
+   <property>
+    <name>atlas_log_number_of_backup_files</name>
+    <value>20</value>
+    <description>The number of backup files</description>
+    <display-name>Atlas Log: # of backup files</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>atlas-log4j template</display-name>
     <description>Custom log4j.properties</description>
@@ -69,6 +90,8 @@
     <param name="File" value="{{log_dir}}/application.log"/>
     <param name="Append" value="true"/>
     <param name="Threshold" value="info"/>
+    <param name="MaxFileSize" value="{{atlas_log_max_backup_size}}MB" />
+    <param name="MaxBackupIndex" value="{{atlas_log_number_of_backup_files}}" />
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d %-5p - [%t:%x] ~ %m (%c{1}:%L)%n"/>
     </layout>

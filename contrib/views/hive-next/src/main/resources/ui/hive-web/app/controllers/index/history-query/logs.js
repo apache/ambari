@@ -94,6 +94,7 @@ export default Ember.ObjectController.extend({
         handleError(err);
       });
     }, function (err) {
+      job.set('status', constants.statuses.error);
       handleError(err);
     });
   },

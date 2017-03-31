@@ -24,7 +24,7 @@
             </a>
             <ul class="pull-left dropdown-menu">
                 {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
-                    <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}>
+                    <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled :add-service-button"}}>
                         <a href="#"
                             {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
                             {{action gotoAddService target="view.serviceController"}}>
@@ -58,6 +58,13 @@
                         </a>
                     </li>
                 {{/isAuthorized}}
+                <li>
+                    <a href="#" id="all-clients-of-cluster-link"
+                        {{action "downloadAllClientConfigs" target="view.serviceController"}}>
+                        <i {{bindAttr class=":icon-download-alt"}}></i>
+                        {{t services.service.downloadAllClientConfigs}}
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

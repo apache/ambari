@@ -51,8 +51,7 @@ App.rootServiceMapper = App.QuickDataMapper.create({
       rootServiceComponents.push(this.parseIt(item.RootServiceComponents, this.configRootServiceComponents));
     }, this);
     rootService.components =  rootServiceComponents;
-    App.store.commit();
-    App.store.loadMany(rootServiceComponentModel, rootServiceComponents);
-    App.store.load(rootServiceModel, this.parseIt(rootService, this.configRootService));
+    App.store.safeLoadMany(rootServiceComponentModel, rootServiceComponents);
+    App.store.safeLoad(rootServiceModel, this.parseIt(rootService, this.configRootService));
   }
 });

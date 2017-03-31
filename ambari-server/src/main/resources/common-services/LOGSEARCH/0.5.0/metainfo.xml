@@ -24,6 +24,13 @@
       <comment>Log aggregation, analysis, and visualization for Ambari managed services. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>0.5.0</version>
 
+
+      <credential-store>
+        <supported>true</supported>
+        <enabled>true</enabled>
+        <required>true</required>
+      </credential-store>
+
       <components>
 
         <component>
@@ -36,6 +43,7 @@
           <commandScript>
             <script>scripts/logsearch.py</script>
             <scriptType>PYTHON</scriptType>
+            <timeout>1800</timeout>
           </commandScript>
           <logs>
             <log>
@@ -54,20 +62,12 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
-
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-
           </dependencies>
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
             <config-type>logsearch-properties</config-type>
             <config-type>logsearch-env</config-type>
+            <config-type>logsearch-common-env</config-type>
             <config-type>logsearch-log4j</config-type>
             <config-type>logsearch-admin-json</config-type>
             <config-type>logsearch-service_logs-solrconfig.xml</config-type>
@@ -93,23 +93,15 @@
             </log>
           </logs>
 
-          <dependencies>
-
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>cluster</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-
-          </dependencies>
-
           <configuration-dependencies>
             <config-type>infra-solr-env</config-type>
+            <config-type>logsearch-common-env</config-type>
             <config-type>logfeeder-properties</config-type>
             <config-type>logfeeder-env</config-type>
+            <config-type>logfeeder-grok</config-type>
             <config-type>logfeeder-log4j</config-type>
+            <config-type>logfeeder-system_log-env</config-type>
+            <config-type>logfeeder-output-config</config-type>
           </configuration-dependencies>
         </component>
 
@@ -128,6 +120,10 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_logsearch_portal</condition>
             </package>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -142,6 +138,10 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_logsearch_portal</condition>
             </package>
+            <package>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
+            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
@@ -152,9 +152,32 @@
         <timeout>300</timeout>
       </commandScript>
 
-      <requiredServices>
-        <service>AMBARI_INFRA</service>
-      </requiredServices>
+      <configuration-dependencies>
+        <config-type>logfeeder-ambari-config</config-type>
+        <config-type>logfeeder-custom-logsearch-config</config-type>
+        <config-type>accumulo-logsearch-conf</config-type>
+        <config-type>ams-logsearch-conf</config-type>
+        <config-type>atlas-logsearch-conf</config-type>
+        <config-type>falcon-logsearch-conf</config-type>
+        <config-type>flume-logsearch-conf</config-type>
+        <config-type>hbase-logsearch-conf</config-type>
+        <config-type>hdfs-logsearch-conf</config-type>
+        <config-type>hive-logsearch-conf</config-type>
+        <config-type>infra-logsearch-conf</config-type>
+        <config-type>kafka-logsearch-conf</config-type>
+        <config-type>knox-logsearch-conf</config-type>
+        <config-type>mapred-logsearch-conf</config-type>
+        <config-type>nifi-logsearch-conf</config-type>
+        <config-type>oozie-logsearch-conf</config-type>
+        <config-type>ranger-kms-logsearch-conf</config-type>
+        <config-type>ranger-logsearch-conf</config-type>
+        <config-type>spark-logsearch-conf</config-type>
+        <config-type>spark2-logsearch-conf</config-type>
+        <config-type>storm-logsearch-conf</config-type>
+        <config-type>yarn-logsearch-conf</config-type>
+        <config-type>zeppelin-logsearch-conf</config-type>
+        <config-type>zookeeper-logsearch-conf</config-type>
+      </configuration-dependencies>
 
       <quickLinksConfigurations>
         <quickLinksConfiguration>

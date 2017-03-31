@@ -21,6 +21,7 @@
         "requires_user_name": "true",
         "component_name": "ATLAS_SERVER",
         "url": "%@://%@:%@/",
+        "attributes": ["authenticated", "sso"],
         "port":{
           "http_property": "atlas.server.http.port",
           "http_default_port": "21000",

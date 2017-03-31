@@ -118,9 +118,29 @@ public abstract class AmbariEvent {
     SERVICE_COMPONENT_RECOVERY_CHANGED,
 
     /**
+     * Stack upgrade or downgrade finishes
+     */
+    FINALIZE_UPGRADE_FINISH,
+
+    /**
      * Cluster configuration changed.
      */
-    CLUSTER_CONFIG_CHANGED;
+    CLUSTER_CONFIG_CHANGED,
+
+    /**
+     * Cluster configuration finished.
+     */
+    CLUSTER_CONFIG_FINISHED,
+
+    /**
+     * Metrics Collector force refresh needed.
+     */
+    METRICS_COLLECTOR_HOST_DOWN,
+
+    /**
+     * Local user has been created.
+     */
+    USER_CREATED;
   }
 
   /**

@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -63,7 +64,10 @@ import com.google.inject.Singleton;
  * want hosts to be scehdule for upgrade of their other components.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.LIVELINESS,
+    order = 2.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class ServicesUpCheck extends AbstractCheckDescriptor {
 
   private static final float SLAVE_THRESHOLD = 0.5f;

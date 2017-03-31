@@ -15,7 +15,7 @@
 * limitations under the License.
 }}
 
-{{#each queue in leafQs}}
+{{#each queue in cildrenQueues}}
   {{#link-to 'capsched.queuesconf.editqueue' queue classNameBindings=":list-group-item queue.overCapacity:list-group-item-danger queue.isNew:list-group-item-info" disabled=queue.isDeletedQueue}}
     <div class="col-md-offset-{{unbound queue.depth}} col-sm-offset-{{unbound queue.depth}}">
 
@@ -35,8 +35,12 @@
         {{warn-badge}}
       {{/if}}
 
+      {{#if queue.isDeletedQueue}}
+        {{warning-info class="yellow-warning pull-right" tooltip="Queue is marked for deletion"}}
+      {{/if}}
+
       {{queue-badge q=queue class="badge pull-right"}}
     </div>
   {{/link-to}}
-  {{queue-hierarchy depth=childDepth parent=queue.path queues=queues}}
+  {{queue-hierarchy depth=childDepth parent=queue.path queues=queues deletedQs=deletedQs}}
 {{/each}}

@@ -16,10 +16,20 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 import Constants from '../utils/constants';
-
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel.master': validator('presence', {
+    presence : true
+  }),
+  'actionModel.jar': validator('presence', {
+    presence : true
+  }),
+  'actionModel.sparkName': validator('presence', {
+    presence : true
+  })    
+});
+export default Ember.Component.extend(Validations,{
   setup : function(){
     if(this.get('actionModel.jobXml') === undefined){
       this.set("actionModel.jobXml", Ember.A([]));
@@ -41,6 +51,7 @@ export default Ember.Component.extend(EmberValidations,{
       this.set("actionModel.configuration.property", Ember.A([]));
     }
     this.set('mastersList',Ember.copy(Constants.sparkMasterList));
+    this.set('isJar', this.get('actionModel.jar') && this.get('actionModel.jar').endsWith('.jar'));
     this.sendAction('register','sparkAction', this);
   }.on('init'),
   initialize : function(){
@@ -68,27 +79,27 @@ export default Ember.Component.extend(EmberValidations,{
       this.set('actionModel.class', undefined);
     }
   }),
-  validations : {
-    'actionModel.master': {
-      presence: {
-        'message' : 'You need to provide a value for Runs on (Master)'
-      }
-    },
-    'actionModel.jar': {
-      presence: {
-        'message' : 'You need to provide a value for Application'
-      },
-      format : {
-        'with' : /\.jar$|\.py$/i,
-        'message' : 'You need to provide a .jar or .py file'
-      }
-    },
-    'actionModel.sparkName': {
-      presence: {
-        'message' : 'You need to provide a value for Name'
-      }
-    }
-  },
+  // validations : {
+  //   'actionModel.master': {
+  //     presence: {
+  //       'message' : 'You need to provide a value for Runs on (Master)'
+  //     }
+  //   },
+  //   'actionModel.jar': {
+  //     presence: {
+  //       'message' : 'You need to provide a value for Application'
+  //     },
+  //     format : {
+  //       'with' : /\.jar$|\.py$/i,
+  //       'message' : 'You need to provide a .jar or .py file'
+  //     }
+  //   },
+  //   'actionModel.sparkName': {
+  //     presence: {
+  //       'message' : 'You need to provide a value for Name'
+  //     }
+  //   }
+  // },
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');

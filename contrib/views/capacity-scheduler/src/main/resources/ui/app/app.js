@@ -31,4 +31,38 @@ Ember.Application.initializer({
   }
 });
 
-module.exports = Em.Application.create();
+var EventBus = Ember.Object.extend(Ember.Evented, {
+  publish: function() {
+    return this.trigger.apply(this, arguments);
+  },
+  subscribe: function() {
+    return this.on.apply(this, arguments);
+  },
+  unsubscribe: function() {
+    return this.off.apply(this, arguments);
+  }
+});
+
+Ember.Application.initializer({
+  name: 'eventBus',
+  initialize: function(container, application) {
+    container.register('eventBus:main', EventBus);
+    container.injection('route', 'eventBus', 'eventBus:main');
+    container.injection('controller', 'eventBus', 'eventBus:main');
+    container.injection('component', 'eventBus', 'eventBus:main');
+  }
+});
+
+module.exports = Em.Application.create({
+  Resolver: Ember.DefaultResolver.extend({
+    resolveTemplate: function(parsedName) {
+      var resolvedTemplate = this._super(parsedName);
+      var templateName = 'templates/' + parsedName.fullNameWithoutType.replace(/\./g, '/');
+      if (resolvedTemplate) {
+        return resolvedTemplate;
+      } else {
+        return Ember.TEMPLATES[templateName];
+      }
+    }
+  })
+});

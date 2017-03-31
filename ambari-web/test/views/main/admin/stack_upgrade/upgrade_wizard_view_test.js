@@ -416,7 +416,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  App.TestAliases.testAsComputedAnd(getView(), 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed']);
+  App.TestAliases.testAsComputedAnd(getView(), 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed', '!controller.cantBeStarted']);
 
   describe("#taskDetails", function () {
     it("runningItem present", function () {

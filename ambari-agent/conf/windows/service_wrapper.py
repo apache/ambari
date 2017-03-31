@@ -124,6 +124,7 @@ def ctrlHandler(ctrlType):
 #
 def setup(options):
   config = AmbariConfig()
+  # TODO AMBARI-18733, need to read home_dir to get correct config file.
   configFile = config.getConfigFile()
 
   updateConfigServerHostname(configFile, options.host_name)

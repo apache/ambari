@@ -23,7 +23,6 @@ import ConfigParser
 import StringIO
 import hostname
 import ambari_simplejson as json
-from NetUtil import NetUtil
 import os
 
 from ambari_commons import OSConst
@@ -88,8 +87,6 @@ servicesToPidNames = {
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'FLUME_SERVER': 'flume-node.pid',
   'TEMPLETON_SERVER': 'templeton.pid',
-  'GANGLIA_SERVER': 'gmetad.pid',
-  'GANGLIA_MONITOR': 'gmond.pid',
   'HBASE_MASTER': 'hbase-{USER}-master.pid',
   'HBASE_REGIONSERVER': 'hbase-{USER}-regionserver.pid',
   'HCATALOG_SERVER': 'webhcat.pid',
@@ -125,8 +122,6 @@ pidPathVars = [
    'defaultValue' : '/var/run/hadoop'},
   {'var' : 'hadoop_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop'},
-  {'var' : 'ganglia_runtime_dir',
-   'defaultValue' : '/var/run/ganglia/hdp'},
   {'var' : 'hbase_pid_dir',
    'defaultValue' : '/var/run/hbase'},
   {'var' : 'zk_pid_dir',
@@ -160,7 +155,6 @@ class AmbariConfig:
   def __init__(self):
     global content
     self.config = ConfigParser.RawConfigParser()
-    self.net = NetUtil(self)
     self.config.readfp(StringIO.StringIO(content))
 
   def get(self, section, value, default=None):
@@ -186,42 +180,75 @@ class AmbariConfig:
   def getConfig(self):
     return self.config
 
-  @staticmethod
-  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def getConfigFile():
-    if 'AMBARI_AGENT_CONF_DIR' in os.environ:
-      return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
-    else:
-      return "ambari-agent.ini"
+  @classmethod
+  def get_resolved_config(cls, home_dir=""):
+    if hasattr(cls, "_conf_cache"):
+      return getattr(cls, "_conf_cache")
+    config = cls()
+    configPath = os.path.abspath(cls.getConfigFile(home_dir))
+    try:
+      if os.path.exists(configPath):
+        config.read(configPath)
+      else:
+        raise Exception("No config found at {0}, use default".format(configPath))
+
+    except Exception, err:
+      logger.warn(err)
+    setattr(cls, "_conf_cache", config)
+    return config
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def getConfigFile():
+  def getConfigFile(home_dir=""):
+    """
+    Get the configuration file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Configuration file path.
+    """
     if 'AMBARI_AGENT_CONF_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
     else:
-      return os.path.join(os.sep, "etc", "ambari-agent", "conf", "ambari-agent.ini")
+      # home_dir may be an empty string
+      return os.path.join(os.sep, home_dir, "etc", "ambari-agent", "conf", "ambari-agent.ini")
 
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getLogFile():
+  def getLogFile(home_dir=""):
+    """
+    Get the log file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Log file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.log")
-    
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-agent.log")
+
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getAlertsLogFile():
+  def getAlertsLogFile(home_dir=""):
+    """
+    Get the alerts log file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Alerts log file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-alerts.log")
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-alerts.log")
 
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getOutFile():
+  def getOutFile(home_dir=""):
+    """
+    Get the out file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Out file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.out")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.out")
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-agent.out")
 
   def has_option(self, section, option):
     return self.config.has_option(section, option)
@@ -236,7 +263,8 @@ class AmbariConfig:
     self.config.read(filename)
 
   def getServerOption(self, url, name, default=None):
-    status, response = self.net.checkURL(url)
+    from ambari_agent.NetUtil import NetUtil
+    status, response = NetUtil(self).checkURL(url)
     if status is True:
       try:
         data = json.loads(response)
@@ -264,6 +292,9 @@ class AmbariConfig:
   def get_parallel_exec_option(self):
     return int(self.get('agent', 'parallel_execution', 0))
 
+  def get_multiprocess_status_commands_executor_enabled(self):
+    return bool(int(self.get('agent', 'multiprocess_status_commands_executor_enabled', 0)))
+
   def update_configuration_from_registration(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
       if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
@@ -272,6 +303,9 @@ class AmbariConfig:
         self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
         logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
+
+  def get_force_https_protocol(self):
+    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1")
 
 def isSameHostList(hostlist1, hostlist2):
   is_same = True

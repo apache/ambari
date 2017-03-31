@@ -81,12 +81,14 @@ limitations under the License.
       </commandScript>
 
       <requiredServices>
-        <service>SPARK</service>
+        <service>HDFS</service>
       </requiredServices>
 
       <configuration-dependencies>
         <config-type>zeppelin-config</config-type>
         <config-type>zeppelin-env</config-type>
+        <config-type>zeppelin-shiro-ini</config-type>
+        <config-type>zeppelin-log4j-properties</config-type>
       </configuration-dependencies>
       <restartRequiredAfterChange>true</restartRequiredAfterChange>
 

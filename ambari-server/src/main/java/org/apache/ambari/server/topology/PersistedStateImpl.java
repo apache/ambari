@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

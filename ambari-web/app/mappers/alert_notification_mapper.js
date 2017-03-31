@@ -60,7 +60,7 @@ App.alertNotificationMapper = App.QuickDataMapper.create({
         notificationsAlertStates[item.AlertTarget.id] = item.AlertTarget.alert_states;
       }, this);
 
-      App.store.loadMany(this.get('model'), result);
+      App.store.safeLoadMany(this.get('model'), result);
       App.cache['previousAlertNotificationsFullMap'] = notifications;
       this._setPropertiesToEachModel('properties', notificationsProperties);
       this._setPropertiesToEachModel('alertStates', notificationsAlertStates);

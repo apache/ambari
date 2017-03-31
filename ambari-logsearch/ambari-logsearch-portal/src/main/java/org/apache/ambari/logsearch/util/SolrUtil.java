@@ -19,165 +19,49 @@
 
 package org.apache.ambari.logsearch.util;
 
-import java.util.Collection;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
+import org.apache.lucene.analysis.path.PathHierarchyTokenizerFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.apache.lucene.analysis.util.TokenizerFactory;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.schema.TrieDoubleField;
+import org.apache.solr.schema.TrieFloatField;
+import org.apache.solr.schema.TrieIntField;
+import org.apache.solr.schema.TrieLongField;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 
-@Component
 public class SolrUtil {
-  static final Logger logger = Logger.getLogger("org.apache.ambari.logsearch");
-  
-  @Autowired
-  StringUtil stringUtil;
-
-  public String setField(String fieldName, String value) {
-    if (value == null || value.trim().length() == 0) {
-      return "";
-    }
-    return fieldName + ":" + value.trim().toLowerCase(Locale.ENGLISH);
-  }
-
-  /**
-   * @param string
-   * @param myClassTypes
-   * @return
-   */
-  public String inList(String fieldName, int[] values) {
-    if (values == null || values.length == 0) {
-      return "";
-    }
-    String expr = "";
-    // Add the filter queries
-    for (int i : values) {
-      expr += i + " ";
-    }
-    if (values.length == 0) {
-      return fieldName + ":" + expr;
-    } else {
-      return fieldName + ":(" + expr + ")";
-    }
-  }
-
-  /**
-   * @param familyUserIdSet
-   * @return
-   */
-  public String inList(Collection<Long> values) {
-    if (values == null || values.isEmpty()) {
-      return "";
-    }
-    String expr = "";
-    for (Long value : values) {
-      expr += value.toString() + " ";
-    }
-
-    if (values.isEmpty()) {
-      return expr.trim();
-    } else {
-      return "(" + expr.trim() + ")";
-    }
-
-  }
-
-  /**
-   * @param wildCard
-   * @param string
-   * @param searchList
-   * @return
-   */
-  public String orList(String fieldName, String[] valueList, String wildCard) {
-    if (valueList == null || valueList.length == 0) {
-      return "";
-    }
-    
-    if(stringUtil.isEmpty(wildCard)){
-      wildCard = "";
-    }
-    
-    StringBuilder expr = new StringBuilder();
-    int count = -1;
-    for (String value : valueList) {
-      count++;
-      if (count > 0) {
-        expr.append(" OR ");
-      }
-      
-      expr.append( fieldName + ":"+ wildCard + value + wildCard);
-
-    }
-    if (valueList.length == 0) {
-      return expr.toString();
-    } else {
-      return "(" + expr + ")";
-    }
-
-  }
-
-  /**
-   * @param wildCard
-   * @param string
-   * @param searchList
-   * @return
-   */
-  public String andList(String fieldName, String[] valueList, String wildCard) {
-    if (valueList == null || valueList.length == 0) {
-      return "";
-    }
-    
-    if(stringUtil.isEmpty(wildCard)){
-      wildCard = "";
-    }
-    
-    StringBuilder expr = new StringBuilder();
-    int count = -1;
-    for (String value : valueList) {
-      count++;
-      if (count > 0) {
-        expr.append(" AND ");
-      }
-      
-      expr.append( fieldName + ":"+ wildCard + value + wildCard);
-
-    }
-    if (valueList.length == 0) {
-      return expr.toString();
-    } else {
-      return "(" + expr + ")";
-    }
-
+  private SolrUtil() {
+    throw new UnsupportedOperationException();
   }
 
   /**
    * Copied from Solr ClientUtils.escapeQueryChars and removed escaping *
-   * 
-   * @param s
-   * @return
    */
-  public String escapeQueryChars(String s) {
+  public static String escapeQueryChars(String s) {
     StringBuilder sb = new StringBuilder();
-    int prev = 0;
     if (s != null) {
       for (int i = 0; i < s.length(); i++) {
         char c = s.charAt(i);
-        int ic = (int)c;
-        if( ic == 10 ) {
-          if( prev != 13) {
-            //Let's insert \r
-            sb.append('\\');
-            sb.append((char)13);
-          }
+        int ic = (int) c;
+        if (ic == 10) {
+          sb.append('\\');
+          sb.append((char) 13);
         }
         // Note: Remove || c == '*'
         // These characters are part of the query syntax and must be escaped
         if (c == '\\' || c == '+' || c == '-' || c == '!' || c == '('
-            || c == ')' || c == ':' || c == '^' || c == '[' || c == ']'
-            || c == '\"' || c == '{' || c == '}' || c == '~' || c == '?'
-            || c == '|' || c == '&' || c == ';' || c == '/'
-            || Character.isWhitespace(c)) {
+          || c == ')' || c == ':' || c == '^' || c == '[' || c == ']'
+          || c == '\"' || c == '{' || c == '}' || c == '~' || c == '?'
+          || c == '|' || c == '&' || c == ';' || c == '/'
+          || Character.isWhitespace(c)) {
           sb.append('\\');
         }
         sb.append(c);
@@ -186,97 +70,21 @@ public class SolrUtil {
     return sb.toString();
   }
 
-  public String escapeForWhiteSpaceTokenizer(String search) {
+  public static String escapeForStandardTokenizer(String search) {
     if (search == null) {
       return null;
     }
-    String newString = search.trim();
-    String newSearch = escapeQueryChars(newString);
-    boolean isSingleWord = true;
-    for (int i = 0; i < search.length(); i++) {
-      if (Character.isWhitespace(search.charAt(i))) {
-        isSingleWord = false;
-      }
-    }
-    if (!isSingleWord) {
+    String newSearch = escapeQueryChars(search.trim());
+    if (StringUtils.containsWhitespace(newSearch)) {
       newSearch = "\"" + newSearch + "\"";
     }
 
     return newSearch;
   }
 
-  public String escapeForStandardTokenizer(String search) {
-    if (search == null) {
-      return null;
-    }
+  private static String makeSolrSearchStringWithoutAsterisk(String search) {
     String newString = search.trim();
-    String newSearch = escapeQueryChars(newString);
-    boolean isSingleWord = true;
-    for (int i = 0; i < search.length(); i++) {
-      if (Character.isWhitespace(search.charAt(i))) {
-        isSingleWord = false;
-      }
-    }
-    if (!isSingleWord) {
-      newSearch = "\"" + newSearch + "\"";
-    }
-
-    return newSearch;
-  }
-
-  public String escapeForKeyTokenizer(String search) {
-    if (search.startsWith("*") && search.endsWith("*")
-        && !stringUtil.isEmpty(search)) {
-      // Remove the * from both the sides
-      if (search.length() > 1) {
-        search = search.substring(1, search.length() - 1);
-      }else{
-        //search string have only * 
-        search="";
-      }
-    }
-    // Escape the string
-    search = escapeQueryChars(search);
-
-    // Add the *
-    return "*" + search + "*";
-  }
-
-  /**
-   * This is a special case scenario to handle log_message for wild card
-   * scenarios
-   * 
-   * @param search
-   * @return
-   */
-  public String escapeForLogMessage(String field, String search) {
-    if (search.startsWith("*") && search.endsWith("*")) {
-      field = LogSearchConstants.SOLR_KEY_LOG_MESSAGE;
-      search = escapeForKeyTokenizer(search);
-    } else {
-      // Use whitespace index
-      field = LogSearchConstants.SOLR_LOG_MESSAGE;
-      search = escapeForWhiteSpaceTokenizer(search);
-    }
-    return field + ":" + search;
-  }
-
-  public String makeSolrSearchString(String search) {
-    String newString = search.trim();
-    String newSearch = newString.replaceAll(
-        "(?=[]\\[+&|!(){},:\"^~/=$@%?:.\\\\])", "\\\\");
-    newSearch = newSearch.replace("\n", "*");
-    newSearch = newSearch.replace("\t", "*");
-    newSearch = newSearch.replace("\r", "*");
-    newSearch = newSearch.replace("**", "*");
-    newSearch = newSearch.replace("***", "*");
-    return "*" + newSearch + "*";
-  }
-
-  public String makeSolrSearchStringWithoutAsterisk(String search) {
-    String newString = search.trim();
-    String newSearch = newString.replaceAll(
-        "(?=[]\\[+&|!(){}^\"~=/$@%?:.\\\\])", "\\\\");
+    String newSearch = newString.replaceAll("(?=[]\\[+&|!(){}^\"~=/$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
     newSearch = newSearch.replace("\t", "*");
     newSearch = newSearch.replace("\r", "*");
@@ -286,14 +94,152 @@ public class SolrUtil {
     return newSearch;
   }
 
-  public String makeSearcableString(String search) {
-    if (search == null || search.isEmpty()){
+  public static String makeSearcableString(String search) {
+    if (StringUtils.isBlank(search)) {
       return "";
     }
     String newSearch = search.replaceAll("[\\t\\n\\r]", " ");
-    newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~=$/@%?:.\\\\-])",
-        "\\\\");
+    newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~=$/@%?:.\\\\-])", "\\\\");
 
     return newSearch.replace(" ", "\\ ");
   }
+
+  public static void removeDoubleOrTripleEscapeFromFilters(SolrQuery solrQuery) {
+    String[] filterQueries = solrQuery.getFilterQueries();
+    List<String> newArray = new ArrayList<>();
+    if (filterQueries != null && filterQueries.length > 0) {
+      for (String filterQuery : filterQueries) {
+        newArray.add(filterQuery.replaceAll("\\\\\\\\\\\\|\\\\\\\\", "\\\\"));
+      }
+    }
+    solrQuery.setFilterQueries(newArray.toArray(new String[0]));
+  }
+  
+
+  private static boolean isSolrFieldNumber(Map<String, Object> fieldTypeInfoMap) {
+    if (MapUtils.isEmpty(fieldTypeInfoMap)) {
+      return false;
+    }
+    String fieldTypeClassName = (String) fieldTypeInfoMap.get("class");
+    return fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName());
+  }
+
+  public static String putWildCardByType(String str, String fieldType, String fieldTypeMetaData) {
+    Map<String, Object> fieldTypeInfoMap = getFieldTypeInfoMap(fieldTypeMetaData);
+    if (StringUtils.isNotBlank(fieldType)) {
+      if (isSolrFieldNumber(fieldTypeInfoMap)) {
+        String value = putEscapeCharacterForNumber(str, fieldTypeInfoMap);
+        if (StringUtils.isNotBlank(value)) {
+          return value;
+        } else {
+          return null;
+        }
+      } else if (checkTokenizer(StandardTokenizerFactory.class, fieldTypeInfoMap)) {
+        return escapeForStandardTokenizer(str);
+      } else if (checkTokenizer(KeywordTokenizerFactory.class, fieldTypeInfoMap) || "string".equalsIgnoreCase(fieldType)) {
+        return makeSolrSearchStringWithoutAsterisk(str);
+      } else if (checkTokenizer(PathHierarchyTokenizerFactory.class, fieldTypeInfoMap)) {
+        return str;
+      } else {
+        return escapeQueryChars(str);
+      }
+    }
+    return str;
+  }
+
+  private static String putEscapeCharacterForNumber(String str, Map<String, Object> fieldTypeInfoMap) {
+    if (StringUtils.isNotEmpty(str)) {
+      str = str.replace("*", "");
+    }
+    String escapeCharSting = parseInputValueAsPerFieldType(str, fieldTypeInfoMap);
+    if (escapeCharSting == null || escapeCharSting.isEmpty()) {
+      return null;
+    }
+    escapeCharSting = escapeCharSting.replace("-", "\\-");
+    return escapeCharSting;
+  }
+
+  private static String parseInputValueAsPerFieldType(String str, Map<String, Object> fieldTypeInfoMap) {
+    try {
+      String className = (String) fieldTypeInfoMap.get("class");
+      if (className.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())) {
+        return "" + Double.parseDouble(str);
+      } else if (className.equalsIgnoreCase(TrieFloatField.class.getSimpleName())) {
+        return "" + Float.parseFloat(str);
+      } else if (className.equalsIgnoreCase(TrieLongField.class.getSimpleName())) {
+        return "" + Long.parseLong(str);
+      } else {
+        return "" + Integer.parseInt(str);
+      }
+    } catch (Exception e) {
+      return null;
+    }
+  }
+  
+  private static Map<String, Object> getFieldTypeInfoMap(String fieldTypeMetaData) {
+    HashMap<String, Object> fieldTypeMap = JSONUtil.jsonToMapObject(fieldTypeMetaData);
+    if (fieldTypeMap == null) {
+      return new HashMap<>();
+    }
+    String classname = (String) fieldTypeMap.get("class");
+    if (StringUtils.isNotBlank(classname)) {
+      classname = classname.replace("solr.", "");
+      fieldTypeMap.put("class", classname);
+    }
+    return fieldTypeMap;
+  }
+  
+  //=============================================================================================================
+
+  public static void setFacetField(SolrQuery solrQuery, String facetField) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_FIELD, facetField);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setFacetSort(SolrQuery solrQuery, String sortType) {
+    solrQuery.setFacet(true);
+    solrQuery.setFacetSort(sortType);
+  }
+
+  public static void setFacetPivot(SolrQuery solrQuery, int mincount, String... hirarchy) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT, hirarchy);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT_MINCOUNT, mincount);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  private static void setFacetLimit(SolrQuery solrQuery, int limit) {
+    solrQuery.set("facet.limit", limit);
+  }
+
+  public static void setRowCount(SolrQuery solrQuery, int rows) {
+    if (rows > 0) {
+      solrQuery.setRows(rows);
+    } else {
+      solrQuery.setRows(0);
+      solrQuery.remove(LogSearchConstants.SORT);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static boolean checkTokenizer(Class<? extends TokenizerFactory> tokenizerFactoryClass, Map<String, Object> fieldTypeInfoMap) {
+    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeInfoMap.get("analyzer");
+    HashMap<String, Object> tokenizerMap = (HashMap<String, Object>)MapUtils.getObject(analyzer, "tokenizer");
+    if (tokenizerMap != null) {
+      String tokenizerClass = (String) tokenizerMap.get("class");
+      if (StringUtils.isNotEmpty(tokenizerClass)) {
+        tokenizerClass = tokenizerClass.replace("solr.", "");
+        return tokenizerClass.equalsIgnoreCase(tokenizerFactoryClass.getSimpleName());
+      }
+    }
+    
+    return false;
+  }
+  
 }

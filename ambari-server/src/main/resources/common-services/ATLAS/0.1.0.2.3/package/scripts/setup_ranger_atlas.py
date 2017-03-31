@@ -19,7 +19,7 @@ from resource_management.core.logger import Logger
 def setup_ranger_atlas(upgrade_type=None):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_atlas:
 
     from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
 
@@ -67,4 +67,4 @@ def setup_ranger_atlas(upgrade_type=None):
                         component_user_principal=params.atlas_jaas_principal if params.security_enabled else None,
                         component_user_keytab=params.atlas_keytab_path if params.security_enabled else None)
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Atlas plugin is not enabled')

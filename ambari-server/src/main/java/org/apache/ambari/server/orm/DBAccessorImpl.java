@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.helpers.ScriptRunner;
 import org.apache.ambari.server.orm.helpers.dbms.DbmsHelper;
 import org.apache.ambari.server.orm.helpers.dbms.DerbyHelper;
 import org.apache.ambari.server.orm.helpers.dbms.GenericDbmsHelper;
+import org.apache.ambari.server.orm.helpers.dbms.H2Helper;
 import org.apache.ambari.server.orm.helpers.dbms.MySqlHelper;
 import org.apache.ambari.server.orm.helpers.dbms.OracleHelper;
 import org.apache.ambari.server.orm.helpers.dbms.PostgresHelper;
@@ -55,6 +56,7 @@ import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLogEntry;
 import org.eclipse.persistence.platform.database.DatabasePlatform;
 import org.eclipse.persistence.platform.database.DerbyPlatform;
+import org.eclipse.persistence.platform.database.H2Platform;
 import org.eclipse.persistence.platform.database.MySQLPlatform;
 import org.eclipse.persistence.platform.database.OraclePlatform;
 import org.eclipse.persistence.platform.database.PostgreSQLPlatform;
@@ -105,9 +107,15 @@ public class DBAccessorImpl implements DBAccessor {
       dbmsHelper = loadHelper(databasePlatform);
       dbSchema = convertObjectName(configuration.getDatabaseSchema());
     } catch (Exception e) {
-      String message = "Error while creating database accessor ";
+      String message = "";
+      if (e instanceof ClassNotFoundException) {
+        message = "If you are using a non-default database for Ambari and a custom JDBC driver jar, you need to set property \"server.jdbc.driver.path={path/to/custom_jdbc_driver}\" " +
+                "in ambari.properties config file, to include it in ambari-server classpath.";
+      } else {
+        message = "Error while creating database accessor ";
+      }
       LOG.error(message, e);
-      throw new RuntimeException(e);
+      throw new RuntimeException(message,e);
     }
   }
 
@@ -124,6 +132,9 @@ public class DBAccessorImpl implements DBAccessor {
     } else if (databasePlatform instanceof DerbyPlatform) {
       dbType = DbType.DERBY;
       return new DerbyHelper(databasePlatform);
+    } else if (databasePlatform instanceof H2Platform) {
+      dbType = DbType.H2;
+      return new H2Helper(databasePlatform);
     } else {
       dbType = DbType.UNKNOWN;
       return new GenericDbmsHelper(databasePlatform);
@@ -274,7 +285,7 @@ public class DBAccessorImpl implements DBAccessor {
 
   @Override
   public boolean tableHasColumn(String tableName, String... columnName) throws SQLException {
-    List<String> columnsList = new ArrayList<String>(Arrays.asList(columnName));
+    List<String> columnsList = new ArrayList<>(Arrays.asList(columnName));
     DatabaseMetaData metaData = getDatabaseMetaData();
 
     CustomStringUtils.toUpperCase(columnsList);
@@ -365,11 +376,11 @@ public class DBAccessorImpl implements DBAccessor {
     ResultSet rs = metaData.getCrossReference(null, dbSchema, convertObjectName(referenceTableName),
             null, dbSchema, convertObjectName(tableName));
 
-    List<String> pkColumns = new ArrayList<String>(referenceColumns.length);
+    List<String> pkColumns = new ArrayList<>(referenceColumns.length);
     for (String referenceColumn : referenceColumns) {
       pkColumns.add(convertObjectName(referenceColumn));
     }
-    List<String> fkColumns = new ArrayList<String>(keyColumns.length);
+    List<String> fkColumns = new ArrayList<>(keyColumns.length);
     for (String keyColumn : keyColumns) {
       fkColumns.add(convertObjectName(keyColumn));
     }
@@ -421,12 +432,18 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void createIndex(String indexName, String tableName,
           String... columnNames) throws SQLException {
-   if (!tableHasIndex(tableName, false, indexName)) {
-     String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, columnNames);
-     executeQuery(query);
-   } else {
-     LOG.info("Index {} already exist, skipping creation, table = {}", indexName, tableName);
-   }
+    createIndex(indexName, tableName, false, columnNames);
+  }
+
+  @Override
+  public void createIndex(String indexName, String tableName, boolean isUnique,
+                          String... columnNames) throws SQLException {
+    if (!tableHasIndex(tableName, false, indexName)) {
+      String query = dbmsHelper.getCreateIndexStatement(indexName, tableName, isUnique, columnNames);
+      executeQuery(query);
+    } else {
+      LOG.info("Index {} already exist, skipping creation, table = {}", indexName, tableName);
+    }
   }
 
   @Override
@@ -871,23 +888,26 @@ public class DBAccessorImpl implements DBAccessor {
     dropFKConstraint(tableName, constraintName, false);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void dropFKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
-    // ToDo: figure out if name of index and constraint differs
     String checkedConstraintName = getCheckedForeignKey(convertObjectName(tableName), constraintName);
     if (checkedConstraintName != null) {
       String query = dbmsHelper.getDropFKConstraintStatement(tableName, checkedConstraintName);
       executeQuery(query, ignoreFailure);
-
-      // MySQL also adds indexes in addition to the FK which should be dropped
-      Configuration.DatabaseType databaseType = configuration.getDatabaseType();
-      if (databaseType == DatabaseType.MYSQL) {
-        query = dbmsHelper.getDropIndexStatement(constraintName, tableName);
-        executeQuery(query, true);
-      }
-
     } else {
-      LOG.warn("Constraint {} from {} table not found, nothing to drop", constraintName, tableName);
+      LOG.warn("Foreign key {} from {} table does not exist and will not be dropped",
+          constraintName, tableName);
+    }
+
+    // even if the FK didn't exist, the index constraint might, so check it
+    // indepedently of the FK (but only on MySQL)
+    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.MYSQL && tableHasIndex(tableName, false, constraintName)) {
+        String query = dbmsHelper.getDropIndexStatement(constraintName, tableName);
+        executeQuery(query, true);
     }
   }
 
@@ -1108,7 +1128,7 @@ public class DBAccessorImpl implements DBAccessor {
   public List<String> getIndexesList(String tableName, boolean unique)
     throws SQLException{
     ResultSet rs = getDatabaseMetaData().getIndexInfo(null, dbSchema, convertObjectName(tableName), unique, false);
-    List<String> indexList = new ArrayList<String>();
+    List<String> indexList = new ArrayList<>();
     if (rs != null){
       try{
         while (rs.next()) {
@@ -1171,6 +1191,7 @@ public class DBAccessorImpl implements DBAccessor {
 
         break;
       }
+      case MYSQL:
       case POSTGRES: {
         String lookupPrimaryKeyNameSql = String.format(
             "SELECT constraint_name FROM information_schema.table_constraints AS tc WHERE tc.constraint_type = 'PRIMARY KEY' AND table_name = '%s'",
@@ -1189,6 +1210,7 @@ public class DBAccessorImpl implements DBAccessor {
 
         break;
       }
+
       default:
         break;
     }

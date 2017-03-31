@@ -18,110 +18,112 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+ import static org.easymock.EasyMock.anyLong;
+ import static org.easymock.EasyMock.anyObject;
+ import static org.easymock.EasyMock.capture;
+ import static org.easymock.EasyMock.createMock;
+ import static org.easymock.EasyMock.createNiceMock;
+ import static org.easymock.EasyMock.eq;
+ import static org.easymock.EasyMock.expect;
+ import static org.easymock.EasyMock.expectLastCall;
+ import static org.easymock.EasyMock.replay;
+ import static org.easymock.EasyMock.verify;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+ import java.io.File;
+ import java.io.FileInputStream;
+ import java.lang.reflect.Field;
+ import java.sql.SQLException;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.LinkedHashMap;
+ import java.util.LinkedHashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Properties;
+ import java.util.Set;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ExecuteActionRequest;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ResourceProviderFactory;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.RequestStatus;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.io.IOUtils;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+ import org.apache.ambari.annotations.Experimental;
+ import org.apache.ambari.annotations.ExperimentalFeature;
+ import org.apache.ambari.server.AmbariException;
+ import org.apache.ambari.server.H2DatabaseCleaner;
+ import org.apache.ambari.server.Role;
+ import org.apache.ambari.server.actionmanager.ActionManager;
+ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+ import org.apache.ambari.server.actionmanager.HostRoleCommand;
+ import org.apache.ambari.server.actionmanager.Stage;
+ import org.apache.ambari.server.actionmanager.StageFactory;
+ import org.apache.ambari.server.agent.CommandReport;
+ import org.apache.ambari.server.agent.ExecutionCommand;
+ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+ import org.apache.ambari.server.api.services.AmbariMetaInfo;
+ import org.apache.ambari.server.configuration.Configuration;
+ import org.apache.ambari.server.controller.AmbariManagementController;
+ import org.apache.ambari.server.controller.ExecuteActionRequest;
+ import org.apache.ambari.server.controller.RequestStatusResponse;
+ import org.apache.ambari.server.controller.ResourceProviderFactory;
+ import org.apache.ambari.server.controller.spi.Request;
+ import org.apache.ambari.server.controller.spi.RequestStatus;
+ import org.apache.ambari.server.controller.spi.Resource;
+ import org.apache.ambari.server.controller.spi.ResourceProvider;
+ import org.apache.ambari.server.controller.utilities.PropertyHelper;
+ import org.apache.ambari.server.orm.GuiceJpaInitializer;
+ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+ import org.apache.ambari.server.orm.dao.HostVersionDAO;
+ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+ import org.apache.ambari.server.orm.dao.StackDAO;
+ import org.apache.ambari.server.orm.entities.ClusterEntity;
+ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+ import org.apache.ambari.server.orm.entities.HostVersionEntity;
+ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+ import org.apache.ambari.server.orm.entities.ResourceEntity;
+ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+ import org.apache.ambari.server.orm.entities.StackEntity;
+ import org.apache.ambari.server.orm.entities.UpgradeEntity;
+ import org.apache.ambari.server.security.TestAuthenticationFactory;
+ import org.apache.ambari.server.security.authorization.AuthorizationException;
+ import org.apache.ambari.server.security.authorization.ResourceType;
+ import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
+ import org.apache.ambari.server.state.Cluster;
+ import org.apache.ambari.server.state.Clusters;
+ import org.apache.ambari.server.state.ConfigHelper;
+ import org.apache.ambari.server.state.Host;
+ import org.apache.ambari.server.state.MaintenanceState;
+ import org.apache.ambari.server.state.RepositoryType;
+ import org.apache.ambari.server.state.RepositoryVersionState;
+ import org.apache.ambari.server.state.Service;
+ import org.apache.ambari.server.state.ServiceComponent;
+ import org.apache.ambari.server.state.ServiceComponentHost;
+ import org.apache.ambari.server.state.ServiceInfo;
+ import org.apache.ambari.server.state.ServiceOsSpecific;
+ import org.apache.ambari.server.state.StackId;
+ import org.apache.ambari.server.state.cluster.ClusterImpl;
+ import org.apache.ambari.server.state.stack.upgrade.Direction;
+ import org.apache.ambari.server.topology.TopologyManager;
+ import org.apache.ambari.server.utils.StageUtils;
+ import org.apache.commons.io.IOUtils;
+ import org.easymock.Capture;
+ import org.easymock.EasyMock;
+ import org.easymock.IAnswer;
+ import org.junit.After;
+ import org.junit.Assert;
+ import org.junit.Before;
+ import org.junit.Ignore;
+ import org.junit.Test;
+ import org.springframework.security.core.Authentication;
+ import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+ import com.google.gson.JsonArray;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonParser;
+ import com.google.inject.AbstractModule;
+ import com.google.inject.Guice;
+ import com.google.inject.Injector;
+ import com.google.inject.util.Modules;
 
 
  /**
@@ -171,7 +173,7 @@ public class ClusterStackVersionResourceProviderTest {
     configHelper = createNiceMock(ConfigHelper.class);
     InMemoryDefaultTestModule inMemoryModule = new InMemoryDefaultTestModule();
     Properties properties = inMemoryModule.getProperties();
-    properties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
+    properties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(),
             String.valueOf(MAX_TASKS_PER_STAGE));
     configuration = new Configuration(properties);
     stageFactory = createNiceMock(StageFactory.class);
@@ -186,8 +188,8 @@ public class ClusterStackVersionResourceProviderTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
 
     SecurityContextHolder.getContext().setAuthentication(null);
   }
@@ -1018,6 +1020,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>emptyList()).once();
 
@@ -1607,6 +1610,190 @@ public class ClusterStackVersionResourceProviderTest {
    public void testCreateResourcesExistingUpgradeAsClusterOperator() throws Exception {
      testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createClusterOperator());
    }
+
+  /**
+   * Tests that forcing the host versions into
+   * {@link RepositoryVersionState#INSTALLED}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCreateResourcesInInstalledState() throws Exception {
+    Resource.Type type = Resource.Type.ClusterStackVersion;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    StackId stackId = new StackId("HDP", "2.2.0");
+    String repoVersion = "2.2.0.1-885";
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+
+    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setId(1l);
+    repoVersionEntity.setOperatingSystems(OS_JSON);
+    repoVersionEntity.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity.setVersionXsd("version_definition.xsd");
+    repoVersionEntity.setType(RepositoryType.STANDARD);
+
+    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    List<HostVersionEntity> hostVersionEntitiesMergedWithNotRequired = new ArrayList<>();
+    int hostCount = 10;
+
+    for (int i = 0; i < hostCount; i++) {
+      String hostname = "host" + i;
+      Host host = createNiceMock(hostname, Host.class);
+      expect(host.getHostName()).andReturn(hostname).anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(MaintenanceState.OFF).anyTimes();
+
+      // ensure that 2 hosts don't have versionable components so they
+      // transition correct into the not required state
+      if (i < hostCount - 2) {
+        expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(true).atLeastOnce();
+      } else {
+        expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(false).atLeastOnce();
+
+        // mock out the host versions so that we can test hosts being
+        // transitioned into NOT_REQUIRED
+        HostVersionEntity hostVersionEntity = EasyMock.createNiceMock(HostVersionEntity.class);
+        expect(hostVersionEntity.getRepositoryVersion()).andReturn(repoVersionEntity).atLeastOnce();
+        replay(hostVersionEntity);
+
+        hostVersionEntitiesMergedWithNotRequired.add(hostVersionEntity);
+        expect(host.getAllHostVersions()).andReturn(hostVersionEntitiesMergedWithNotRequired).anyTimes();
+      }
+
+      replay(host);
+
+      hostsForCluster.put(hostname, host);
+    }
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+    Map<String, Service> serviceMap = new HashMap<>();
+    serviceMap.put("HDFS", hdfsService);
+
+    final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
+    expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+
+    final List<ServiceComponentHost> serviceComponentHosts = Arrays.asList(schDatanode);
+
+    ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
+    hdfsPackage.setName("hdfs");
+
+    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hdfsPackage);
+
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider csvResourceProvider = createNiceMock(
+        ClusterStackVersionResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
+    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+        (Map<String, String>) anyObject(List.class), anyObject(String.class))).andReturn(
+            packages).anyTimes(); // only one host has the versionable component
+
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class),
+        anyObject(Map.class), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+    expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
+        hostsForCluster).anyTimes();
+
+    String clusterName = "Cluster100";
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getClusterName()).andReturn(clusterName).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(
+        serviceComponentHosts).anyTimes();
+
+    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
+        anyObject(String.class))).andReturn(repoVersionEntity);
+
+    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(
+        Collections.<ClusterVersionEntity> emptyList()).once();
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1l);
+    clusterEntity.setClusterName(clusterName);
+
+    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity, repoVersionEntity,
+        RepositoryVersionState.INSTALL_FAILED, 0, "");
+
+    // first expect back a null to make the code think it needs to create one,
+    // then return the real one it's going to use
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+        anyObject(StackId.class), anyObject(String.class))).andReturn(cve).once();
+
+    // now the important expectations - that the cluster transition methods were
+    // called correctly
+    cluster.transitionHosts(cve, RepositoryVersionState.INSTALLED);
+    for (HostVersionEntity hostVersionEntity : hostVersionEntitiesMergedWithNotRequired) {
+      expect(hostVersionDAO.merge(hostVersionEntity)).andReturn(hostVersionEntity).once();
+    }
+
+    // replay
+    replay(managementController, response, clusters, hdfsService, resourceProviderFactory,
+        csvResourceProvider, cluster, repositoryVersionDAOMock, configHelper, schDatanode,
+        stageFactory, clusterVersionDAO, hostVersionDAO);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
+        PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request. add more maps for multiple
+    // creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add properties to the request map
+    properties.put(
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+        clusterName);
+
+    properties.put(
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+        repoVersion);
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
+        stackId.getStackName());
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
+        stackId.getStackVersion());
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_FORCE, "true");
+
+    propertySet.add(properties);
+
+    // set the security auth
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    RequestStatus status = provider.createResources(request);
+    Assert.assertNotNull(status);
+
+    // verify
+    verify(managementController, response, clusters, cluster, hostVersionDAO);
+   }
+
 
    private void testCreateResourcesExistingUpgrade(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;

@@ -16,51 +16,11 @@
 * limitations under the License.
 }}
 
-<div class="alert alert-warning">
-  {{t popup.dependent.configs.title}}
-</div>
-<div id="config-dependencies" class="limited-height-2">
-  <table class="table table-striped">
-    <thead>
-    <tr>
-      <th class="check-box-col">{{view view.toggleAll}}</th>
-      <th>{{t common.property}}</th>
-      <th>{{t common.service}}</th>
-      <th>{{t common.configGroup}}</th>
-      <th>{{t common.fileName}}</th>
-      <th>{{t popup.dependent.configs.table.currentValue}}</th>
-      <th>{{t popup.dependent.configs.table.recommendedValue}}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#each recommendation in view.parentView.recommendations}}
-      <tr>
-        <td class="check-box-col">{{view Em.Checkbox checkedBinding="recommendation.saveRecommended"}}</td>
-        <td class="config-dependency-name">{{recommendation.propertyName}}</td>
-        <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
-        <td class="config-dependency-group">
-          <span {{bindAttr class="recommendation.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
-            {{action showSelectGroupPopup recommendation.serviceName target="App.router.mainServiceInfoConfigsController"}}>
-            {{recommendation.configGroup}}
-          </a></span>
-        </td>
-        <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
-        <td class="config-dependency-value">
-          {{#if recommendation.notDefined}}
-            <i>{{t popup.dependent.configs.table.not.defined}}</i>
-          {{else}}
-            {{recommendation.initialValue}}
-          {{/if}}
-        </td>
-        <td class="config-dependency-recommended-value">
-          {{#if recommendation.isDeleted}}
-            <i>{{t common.removed}}</i>
-          {{else}}
-            {{recommendation.recommendedValue}}
-          {{/if}}
-        </td>
-      </tr>
-    {{/each}}
-    </tbody>
-  </table>
-</div>
+<span id="config-dependencies" class="limited-height-2">
+  {{#if view.recommendations.length}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.recommendations"}}
+  {{/if}}
+  {{#if view.requiredChanges.length}}
+    {{view App.DependentConfigsTableView recommendationsBinding="view.requiredChanges" isEditable=false}}
+  {{/if}}
+</span>

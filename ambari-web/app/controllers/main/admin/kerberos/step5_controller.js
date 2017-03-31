@@ -48,6 +48,8 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
     }
   ],
 
+  isCSVRequestInProgress: false,
+
   submit: function() {
     App.router.send('next');
   },
@@ -56,6 +58,7 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
    * get CSV data from the server
    */
   getCSVData: function (skipDownload) {
+    this.set('isCSVRequestInProgress', true);
     return App.ajax.send({
       name: 'admin.kerberos.cluster.csv',
       sender: this,
@@ -75,6 +78,7 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
    */
   getCSVDataSuccessCallback: function (data, opt, params) {
     this.set('csvData', this.prepareCSVData(data.split('\n')));
+    this.set('isCSVRequestInProgress', false);
     if (!Em.get(params, 'skipDownload')) {
       fileUtils.downloadTextFile(stringUtils.arrayToCSV(this.get('csvData')), 'csv', 'kerberos.csv');
     }

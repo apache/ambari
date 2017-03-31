@@ -106,31 +106,30 @@ public class TopNCondition extends DefaultCondition{
 
   private String getTopNOrderByClause() {
 
-    String orderByClause = null;
+    String orderByClause = getColumnSelect(this.topNFunction);
+    orderByClause += (isBottomN ? " ASC" : " DESC");
+    return  orderByClause;
+  }
 
+  public static String getColumnSelect(Function topNFunction) {
+    String columnSelect = null;
     if (topNFunction != null) {
       switch (topNFunction.getReadFunction()) {
         case AVG:
-          orderByClause = "ROUND(AVG(METRIC_SUM),2)";
+          columnSelect = "ROUND(AVG(METRIC_SUM),2)";
           break;
         case SUM:
-          orderByClause = "SUM(METRIC_SUM)";
+          columnSelect = "SUM(METRIC_SUM)";
           break;
         default:
-          orderByClause = "MAX(METRIC_MAX)";
+          columnSelect = "MAX(METRIC_MAX)";
           break;
       }
     }
-
-    if (orderByClause == null) {
-      orderByClause = "MAX(METRIC_MAX)";
+    if (columnSelect == null) {
+      columnSelect = "MAX(METRIC_MAX)";
     }
-
-    if (!isBottomN) {
-      orderByClause += " DESC";
-    }
-
-    return  orderByClause;
+    return  columnSelect;
   }
 
   public boolean isTopNHostCondition() {

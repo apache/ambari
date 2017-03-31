@@ -203,9 +203,11 @@
                                                                                                                                class="icon-external-link"></i> {{t common.open}}</a>
           {{#if App.supports.logSearch}}
             {{#if view.isLogSearchInstalled}}
-              <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
-                <i class="icon-file"></i> {{t common.host}} {{t common.logs}}
-              </a>
+              {{#isAuthorized "SERVICE.VIEW_OPERATIONAL_LOGS"}}
+                <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
+                  <i class="icon-file"></i> {{t common.host}} {{t common.logs}}
+                </a>
+              {{/isAuthorized}}
             {{/if}}
           {{/if}}
         </div>

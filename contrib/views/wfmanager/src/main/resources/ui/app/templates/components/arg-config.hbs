@@ -18,13 +18,7 @@
 <div>
   {{#each args as |arg index|}}
     <div class="form-group">
-      {{#if (eq index 0)}}
-        
-        <label class="control-label col-xs-2">{{#unless hideLabel}}{{title}}{{/unless}}</label>
-        
-      {{else}}
-        <label class="control-label col-xs-2"></label>
-      {{/if}}
+      <label class="control-label col-xs-2 {{if (or (not-eq index 0) hideLabel) 'visibility-hidden'}}">{{title}}</label>
       <div class=" col-xs-7">
         {{input type="text" class="form-control" value=arg.value placeholder=title}}
       </div>
@@ -35,15 +29,16 @@
   {{/each}}
   <div class="form-group">
     {{#if args}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">{{title}}</label>
     {{else}}
-      <label class="control-label col-xs-2">{{#unless hideLabel}}{{title}}{{/unless}}</label>
+      {{#unless hideLabel}}<label class="control-label col-xs-2">{{title}}</label>{{/unless}}
+      {{#if hideLabel}}<label class="control-label col-xs-2 visibility-hidden">{{title}}</label>{{/if}}
     {{/if}}
     <div class=" col-xs-7">
       {{input type="text" class="form-control" value=arg placeholder=title}}
     </div>
     <div class="col-xs-1">
-      <input class="form-control btn btn-success" type="button" value="+" {{action "addArg"}}>
+      <input class="form-control btn btn-secondary" type="button" value="+" {{action "addArg"}}>
     </div>
   </div>
 </div>

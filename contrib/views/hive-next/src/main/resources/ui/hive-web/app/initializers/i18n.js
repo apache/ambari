@@ -97,6 +97,10 @@ TRANSLATIONS = {
       hdfs: 'Please enter save path and name'
     },
 
+    downloadQuery: {
+      heading: 'Download Query'
+    },
+
     changeTitle: {
       heading: 'Rename worksheet'
     },
@@ -190,7 +194,9 @@ TRANSLATIONS = {
     explain: 'Explain',
     saveAs: 'Save as...',
     save: 'Save',
+    downloadQuery: 'Download',
     newQuery: 'New Worksheet',
+    uploadQuery: 'Upload',
     newUdf: 'New UDF',
     history: 'History',
     ok: 'OK',
@@ -293,6 +299,7 @@ TRANSLATIONS = {
     },
     ui : {
       'uploadProgress' : "Upload Progress",
+      'uploading': "Uploading..",
       'uploadFromLocal':"Upload from Local",
       'uploadFromHdfs':"Upload from HDFS",
       'selectFileType':"Select File Type",

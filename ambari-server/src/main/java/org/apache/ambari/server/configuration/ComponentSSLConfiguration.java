@@ -57,10 +57,10 @@ public class ComponentSSLConfiguration {
    * @param configuration  the configuration
    */
   public void init(Configuration configuration) {
-    truststorePath     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PATH_KEY);
+    truststorePath     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PATH.getKey());
     truststorePassword = getPassword(configuration);
-    truststoreType     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_TYPE_KEY);
-    httpsEnabled = Boolean.parseBoolean(configuration.getProperty(Configuration.AMRABI_METRICS_HTTPS_ENABLED_KEY));
+    truststoreType     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_TYPE.getKey());
+    httpsEnabled = Boolean.parseBoolean(configuration.getProperty(Configuration.AMBARI_METRICS_HTTPS_ENABLED.getKey()));
   }
 
 
@@ -115,7 +115,7 @@ public class ComponentSSLConfiguration {
   // -----helper methods -----------------------------------------------------
 
   private String getPassword(Configuration configuration) {
-    String rawPassword = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY);
+    String rawPassword = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey());
     String password    = configuration.readPasswordFromStore(rawPassword);
 
     return password == null ? rawPassword : password;

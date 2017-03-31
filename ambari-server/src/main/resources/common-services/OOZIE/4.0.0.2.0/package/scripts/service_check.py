@@ -26,8 +26,6 @@ from resource_management.core.source import StaticFile
 from resource_management.core.system import System
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
-from resource_management.libraries.resources.xml_config import XmlConfig
-from resource_management.core.exceptions import Fail
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 
@@ -47,17 +45,6 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     prepare_hdfs_file_name = 'prepareOozieHdfsDirectories.sh'
     smoke_test_file_name = 'oozieSmoke2.sh'
 
-    if 'yarn-site' in params.config['configurations']:
-      XmlConfig("yarn-site.xml",
-                conf_dir=params.hadoop_conf_dir,
-                configurations=params.config['configurations']['yarn-site'],
-                owner=params.hdfs_user,
-                group=params.user_group,
-                mode=0644
-      )
-    else:
-      raise Fail("yarn-site.xml was not present in config parameters.")
-
     OozieServiceCheckDefault.oozie_smoke_shell_file(smoke_test_file_name, prepare_hdfs_file_name)
 
   @staticmethod
@@ -76,7 +63,7 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     os_family = System.get_instance().os_family
     oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
 
-    Execute((format("{tmp_dir}/{prepare_hdfs_file_name}"), params.conf_dir, oozie_examples_dir, params.hadoop_conf_dir, params.yarn_resourcemanager_address, params.fs_root, params.service_check_queue_name),
+    Execute((format("{tmp_dir}/{prepare_hdfs_file_name}"), params.conf_dir, oozie_examples_dir, params.hadoop_conf_dir, params.yarn_resourcemanager_address, params.fs_root, params.service_check_queue_name, params.service_check_job_name),
             tries=3,
             try_sleep=5,
             logoutput=True
@@ -118,10 +105,10 @@ class OozieServiceCheckDefault(OozieServiceCheck):
 
     if params.security_enabled:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {service_check_job_name} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
     else:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_base_url} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {service_check_job_name} {security_enabled}")
 
     Execute(sh_cmd,
             path=params.execute_path,
@@ -143,4 +130,4 @@ class OozieServiceCheckWindows(OozieServiceCheck):
 
 if __name__ == "__main__":
   OozieServiceCheck().execute()
-  
+

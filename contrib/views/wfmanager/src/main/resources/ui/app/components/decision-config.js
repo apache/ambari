@@ -16,35 +16,30 @@
 */
 
 import Ember from 'ember';
-import EmberValidations,{ validator } from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel': {
+    validators: [
+      validator('decission-node-validator', {
+        dependentKeys: ['actionModel.@each.condition']
+      })
+    ]
+  }
+});
+
+export default Ember.Component.extend(Validations,{
   initialize : function(){
     this.sendAction('register','decision',this);
+    this.set('targetNodes', Ember.A([]));
+    this.get('targetNodes').pushObjects(this.get('currentNode.validOkToNodes'));
+    this.get('targetNodes').pushObjects(this.get('killNodes'));
   }.on('init'),
-  validations: {
-    'actionModel': {
-      inline : validator(function() {
-        var hasDefaultCond = false;
-        this.get('actionModel').forEach(function(item, index){
-          if(item.condition === "default"){
-            hasDefaultCond = true;
-            return;
-          }
-        });
-        if(!hasDefaultCond){
-          return "Decision Should have one default condition";
-        }
-        var hasEmptyCond = false;
-        this.get('actionModel').forEach(function(item, index){
-          if(item.condition === '' || item.condition === undefined || Ember.$.trim(item.condition).length === 0){
-            hasEmptyCond = true;
-            return;
-          }
-        });
-        if(hasEmptyCond){
-          return "Condition cannot be blank";
-        }
-      })}
+  actions : {
+    onTargetNodeChange(index){
+      var node = this.get('targetNodes').findBy('id', this.$(`#target-node-select-${index}`).find(":selected").val());
+      var config = this.get('actionModel').objectAt(index);
+      Ember.set(config, 'node', node);
     }
-  });
+  }
+});

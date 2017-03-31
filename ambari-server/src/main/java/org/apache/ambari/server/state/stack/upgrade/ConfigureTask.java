@@ -30,11 +30,9 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Condition;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Insert;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.commons.lang.StringUtils;
@@ -86,6 +84,12 @@ public class ConfigureTask extends ServerSideActionTask {
    * objects.
    */
   public static final String PARAMETER_REPLACEMENTS = "configure-task-replacements";
+
+  /**
+   * Insertions can be several per task, so they're passed in as a json-ified
+   * list of objects.
+   */
+  public static final String PARAMETER_INSERTIONS = "configure-task-insertions";
 
   public static final String actionVerb = "Configuring";
 
@@ -192,40 +196,6 @@ public class ConfigureTask extends ServerSideActionTask {
       return configParameters;
     }
 
-    // the first matched condition will win; conditions make configuration tasks singular in
-    // the properties that can be set - when there is a condition the task will only contain
-    // conditions
-    List<Condition> conditions = definition.getConditions();
-    if( null != conditions && !conditions.isEmpty() ){
-      for (Condition condition : conditions) {
-        String conditionConfigType = condition.getConditionConfigType();
-        String conditionKey = condition.getConditionKey();
-        String conditionValue = condition.getConditionValue();
-
-        // always add the condition's target type just so that we have one to
-        // return even if none of the conditions match
-        configParameters.put(PARAMETER_CONFIG_TYPE, condition.getConfigType());
-
-        // check the condition; if it passes, set the configuration properties
-        // and break
-        String checkValue = getDesiredConfigurationValue(cluster,
-            conditionConfigType, conditionKey);
-
-        if (conditionValue.equals(checkValue)) {
-          List<ConfigurationKeyValue> configurations = new ArrayList<>(1);
-          ConfigurationKeyValue keyValue = new ConfigurationKeyValue();
-          keyValue.key = condition.getKey();
-          keyValue.value = condition.getValue();
-          configurations.add(keyValue);
-
-          configParameters.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS,
-              m_gson.toJson(configurations));
-
-          return configParameters;
-        }
-      }
-    }
-
     // this task is not a condition task, so process the other elements normally
     if (null != definition.getConfigType()) {
       configParameters.put(PARAMETER_CONFIG_TYPE, definition.getConfigType());
@@ -246,10 +216,21 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     // replacements
-    List<Replace> replacements = definition.getReplacements();
+
+    List<Replace> replacements = new ArrayList<Replace>();
+    replacements.addAll(definition.getReplacements());
+    //Fetch the replacements that used regex to find a string
+    replacements.addAll(definition.getRegexReplacements(cluster));
+
     if( null != replacements && !replacements.isEmpty() ){
       List<Replace> allowedReplacements = getValidReplacements(cluster, definition.getConfigType(), replacements);
       configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(allowedReplacements));
+    }
+
+    // inserts
+    List<Insert> insertions = definition.getInsertions();
+    if (!insertions.isEmpty()) {
+      configParameters.put(ConfigureTask.PARAMETER_INSERTIONS, m_gson.toJson(insertions));
     }
 
     return configParameters;
@@ -260,8 +241,9 @@ public class ConfigureTask extends ServerSideActionTask {
 
     for(Replace replacement: replacements){
       if(isValidConditionSettings(cluster, configType, replacement.key,
-          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState))
+          replacement.ifKey, replacement.ifType, replacement.ifValue, replacement.ifKeyState)) {
         allowedReplacements.add(replacement);
+      }
     }
 
     return allowedReplacements;
@@ -272,8 +254,9 @@ public class ConfigureTask extends ServerSideActionTask {
 
     for(ConfigurationKeyValue configurationKeyValue: sets){
       if(isValidConditionSettings(cluster, configType, configurationKeyValue.key,
-          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState))
+          configurationKeyValue.ifKey, configurationKeyValue.ifType, configurationKeyValue.ifValue, configurationKeyValue.ifKeyState)) {
         allowedSets.add(configurationKeyValue);
+      }
     }
 
     return allowedSets;
@@ -283,14 +266,16 @@ public class ConfigureTask extends ServerSideActionTask {
     List<Transfer> allowedTransfers = new ArrayList<>();
     for (Transfer transfer : transfers) {
       String key = "";
-      if(transfer.operation == TransferOperation.DELETE)
+      if(transfer.operation == TransferOperation.DELETE) {
         key = transfer.deleteKey;
-      else
+      } else {
         key = transfer.fromKey;
+      }
 
       if(isValidConditionSettings(cluster, configType, key,
-          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState))
+          transfer.ifKey, transfer.ifType, transfer.ifValue, transfer.ifKeyState)) {
         allowedTransfers.add(transfer);
+      }
     }
 
     return allowedTransfers;
@@ -321,33 +306,5 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     return isValid;
-  }
-
-  /**
-   * Gets the value of the specified cluster property.
-   *
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @param configType
-   *          the configuration type (ie hdfs-site) (not {@code null}).
-   * @param propertyKey
-   *          the key to retrieve (not {@code null}).
-   * @return the value or {@code null} if it does not exist.
-   */
-  private String getDesiredConfigurationValue(Cluster cluster,
-      String configType, String propertyKey) {
-
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    if (null == desiredConfig) {
-      return null;
-    }
-
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
-    if (null == config) {
-      return null;
-    }
-
-    return config.getProperties().get(propertyKey);
   }
 }

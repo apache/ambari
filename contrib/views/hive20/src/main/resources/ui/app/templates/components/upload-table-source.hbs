@@ -1,0 +1,112 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <div class="panel-title">
+      <button class="btn btn-primary {{if showFileSourceInput 'active'}}" {{action
+      "toggleFileSource"}}>
+      {{fa-icon (if showFileSourceInput "minus" "plus")}}
+      </button>
+      &nbsp;&nbsp;&nbsp;Select File Source
+    </div>
+  </div>
+  {{#if showFileSourceInput}}
+  <div class="panel-body rowformat-custom-row">
+    <div class="row">
+      <div class="col-md-12 form-horizontal">
+        <div class="form-group">
+          <label class="col-md-3 control-label">{{t 'hive.ui.fileSource.uploadFromHdfs'}}</label>
+          <div class="col-md-3">
+            {{radio-button value='hdfs' checked=fileInfo.uploadSource}}
+          </div>
+          <label class="col-md-3 control-label">{{t 'hive.ui.fileSource.uploadFromLocal'}}</label>
+          <div class="col-md-3">
+            {{radio-button value='local' checked=fileInfo.uploadSource}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{#if showHdfsLocationInput}}
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-12 form-horizontal">
+          <div class="form-group">
+            <label class="col-md-3 control-label">{{t 'hive.ui.fileSource.enterHdfsPathLabel'}}</label>
+            <div class="col-md-6">
+              {{input type="text" class="form-control" value=fileInfo.hdfsPath}}
+            </div>
+          </div>
+        </div>
+
+        <!--
+        <button class="btn btn-success" {{action
+        "toggleDirectoryViewer"}}>{{t 'hive.ui.fileSource.selectHdfsLocation'}}</button>
+        -->
+      </div>
+      <!--
+      {{#if showDirectoryViewer}}
+      {{hdfs-viewer-modal
+      showSelectedPath=true
+      close="closeHdfsModal"
+      selected="hdfsPath"
+      }}
+      {{/if}}
+      -->
+    </div>
+    {{/if}}
+
+    {{#if showLocalLocationInput}}
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-12 form-horizontal">
+          <div class="form-group">
+            <label class="col-md-3 control-label">{{t 'hive.ui.fileSource.selectLocalFileLabel'}}</label>
+            <div class="col-md-6">
+              {{#file-picker fileLoaded="onFileChanged" preview=false}}
+              <div class="text-center vert-align-middle">
+                {{fa-icon "cloud-upload" size="4"}}
+                <h4> Drag file to upload or click to browse</h4>
+              </div>
+              {{/file-picker}}
+            </div>
+          </div>
+        </div>
+
+        <!--
+        <button class="btn btn-success" {{action
+        "toggleDirectoryViewer"}}>{{t 'hive.ui.fileSource.selectHdfsLocation'}}</button>
+        -->
+      </div>
+      <!--
+      {{#if showDirectoryViewer}}
+      {{hdfs-viewer-modal
+      showSelectedPath=true
+      close="closeHdfsModal"
+      selected="hdfsPath"
+      }}
+      {{/if}}
+      -->
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+</div>
+
+{{yield}}

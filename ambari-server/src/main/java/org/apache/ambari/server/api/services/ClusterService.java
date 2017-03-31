@@ -662,7 +662,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/logging")
   public LoggingService getLogging(@Context javax.ws.rs.core.Request request,
                                    @PathParam("clusterName") String clusterName) {
-    return new LoggingService(clusterName);
+    return AmbariServer.getController().getLoggingService(clusterName);
   }
 
   // ----- helper methods ----------------------------------------------------

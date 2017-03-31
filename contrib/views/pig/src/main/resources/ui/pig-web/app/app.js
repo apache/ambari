@@ -35,5 +35,17 @@ module.exports = Em.Application.create({
     }
     var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance;
     return namespaceUrl;
-  }
+  },
+
+  Resolver: Ember.DefaultResolver.extend({
+    resolveTemplate: function(parsedName) {
+      var resolvedTemplate = this._super(parsedName);
+      var templateName = 'templates/' + parsedName.fullNameWithoutType.replace(/\./g, '/');
+      if (resolvedTemplate) {
+        return resolvedTemplate;
+      } else {
+        return Ember.TEMPLATES[templateName];
+      }
+    }
+  })
 });

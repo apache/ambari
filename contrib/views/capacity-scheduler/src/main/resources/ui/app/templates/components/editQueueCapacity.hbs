@@ -18,15 +18,15 @@
 
 <div class="row form-inline">
   <div class="col-md-2 col-sm-2">
-    <span class="queue-name">{{queue.name}}</span>
+    {{#link-to 'capsched.queuesconf.editqueue' queue}}{{queue.name}}{{/link-to}}
   </div>
   <div class="col-md-5 col-md-5">
     <div {{bind-attr class=":form-group :input-group :capacity-input-percent warnInvalidTotalCapacity:has-error"}}>
-      {{capacity-input class='input-sm' value=queue.capacity queue=this maxVal=100}}
+      {{decimal-capacity-input class='input-sm' value=queue.capacity queue=queue maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">
-      {{input-range min="0" max="100" step="1" value=queue.capacity class="input-sm"}}
+      {{decimal-input-range min="0" max="100" step="0.01" value=queue.capacity class="input-sm"}}
     </div>
     {{#if isQueueCapacityDirty}}
       <div class="btn-group btn-group-xs">
@@ -36,11 +36,11 @@
   </div>
   <div class="col-md-5 col-sm-5">
     <div {{bind-attr class=":form-group :input-group :capacity-input-percent isInvalidQueueMaximumCapacity:has-error"}}>
-      {{max-capacity-input class='input-sm' value=queue.maximum_capacity queue=queue maxVal=100}}
+      {{decimal-maxcapacity-input class='input-sm' value=queue.maximum_capacity queue=queue maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">
-      {{input-range min="0" max="100" step="1" value=queue.maximum_capacity class="input-sm"}}
+      {{decimal-input-range min="0" max="100" step="0.01" value=queue.maximum_capacity class="input-sm"}}
     </div>
     {{#if isQueueMaximumCapacityDirty}}
       <div class="btn-group btn-group-xs">
@@ -50,7 +50,7 @@
     {{#if isInvalidQueueMaximumCapacity}}
       <div class="row">
         <div class="col-md-12 col-sm-12">
-          <span class="text-danger">Maximum capacity must be greater than or equal to capacity</span>
+          <small class="text-danger">Maximum capacity must be greater than or equal to capacity</small>
         </div>
       </div>
     {{/if}}

@@ -134,15 +134,7 @@
         <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
           {{#if tab.isAdvanced}}
             {{#if tab.isRendered}}
-              {{#each category in selectedService.configCategories}}
-                <div class="accordion">
-                  {{#if category.isCustomView}}
-                    {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-                  {{else}}
-                    {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-                  {{/if}}
-                </div>
-              {{/each}}
+              {{view App.ConfigCategoryContainerView categoriesBinding="selectedService.configCategories" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
             {{else}}
               {{view App.SpinnerView}}
             {{/if}}
@@ -154,15 +146,7 @@
       {{/each}}
     </div>
   {{else}}
-    {{#each category in selectedService.configCategories}}
-      <div class="accordion">
-        {{#if category.isCustomView}}
-          {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-        {{else}}
-          {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-        {{/if}}
-      </div>
-    {{/each}}
+    {{view App.ConfigCategoryContainerView categoriesBinding="selectedService.configCategories" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
   {{/if}}
   {{#if view.isAllConfigsHidden}}
     <div class="alert alert-info col-sm-12">

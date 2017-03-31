@@ -41,8 +41,11 @@
 
 .dependencies-info-bar-wrapper {
   z-index: 2;
-  margin: 0;
+  margin: 0 0 20px;
   width: 757px;
+  .alert {
+    margin: 0;
+  }
 }
 @media (min-width: 1200px) {
   .dependencies-info-bar-wrapper {
@@ -239,12 +242,49 @@
         padding: 5px;
       }
     }
+
+    ul#dropdown_menu {
+      position: absolute;
+      left: 0;
+      z-index: 1000;
+      min-width: 400px;
+      padding: 5px 0;
+      margin: 0;
+    }
+
+    #dropdown_content {
+      overflow: hidden;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    #dropdown_outer_container, #dropdown_menu_container {
+      min-width: 400px;
+      height: 300px;
+    }
+
+    #dropdown_outer_container {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #dropdown_inner_container {
+      position: absolute;
+      left: 0;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
     .dropdown-menu {
       min-width: 400px;
       margin-top: 4px !important;
       font-size: 13px;
       li {
-        line-height: 30px;
+        line-height: 12px;
         .icon-caret-right {
           font-size: 18px;
           margin-right: 20px;
@@ -305,6 +345,33 @@
       }
     }
   }
+
+  #config_version_popup {
+    z-index: 1001;
+    line-height: 20px;
+    padding: 8px;
+    font-size: 13px;
+    .content {
+      padding: 1px 5px 15px 5px;
+      .group {
+        text-align: right;
+        margin-top: -20px;
+      }
+      .date{
+        color: #808080;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .notes{
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+      }
+    }
+    .version-operations-buttons .btn {
+      font-size: 13px;
+    }
+  }
   .stack {
     padding: 1px 10px;
     font-size: 11px;
@@ -360,5 +427,25 @@
   }
   a {
     cursor: pointer;
+  }
+}
+
+.version-in-dropdown [class*="span"] {
+  min-height: 24px;
+}
+
+// Firefox specific styles
+@-moz-document url-prefix() {
+  #config_history_flow {
+    .version-info-bar {
+      .dropdown-menu {
+        li {
+          line-height: 30px !important;
+        }
+      }
+    }
+  }
+  .version-in-dropdown [class*="span"] {
+    min-height: 30px;
   }
 }

@@ -197,11 +197,19 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 # The base URL for callback URLs to Oozie
 #
 # export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
-export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
+export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-{{architecture}}-64
    </value>
     <value-attributes>
       <type>content</type>
     </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>service_check_job_name</name>
+    <value>no-op</value>
+    <description>
+      Job name from Oozie examples that will be executed at each Oozie service check action.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

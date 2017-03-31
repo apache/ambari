@@ -41,13 +41,15 @@ class TestMetricsCollector(RMFTestCase):
     self.assert_hbase_configure('master', distributed=True)
     self.assert_hbase_configure('regionserver', distributed=True)
     self.assert_ams('collector', distributed=True)
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -srcalias c6402.ambari.apache.org -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
                               )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh openssl pkcs12 -in /some_tmp_dir/truststore.p12 -out /etc/ambari-metrics-collector/conf/ca.pem -cacerts -nokeys -passin pass:bigdata',
                               )
-    self.assertResourceCalled('Execute', ('chown', u'ams', '/etc/ambari-metrics-collector/conf/ca.pem'),
+    self.assertResourceCalled('Execute', ('chown', u'ams:hadoop', '/etc/ambari-metrics-collector/conf/ca.pem'),
                               sudo=True
                               )
+    self.assertResourceCalled('Execute', ('chmod', '644', '/etc/ambari-metrics-collector/conf/ca.pem'),
+                              sudo=True)
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /some_tmp_dir',
                               )
     self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop regionserver',
@@ -162,7 +164,7 @@ class TestMetricsCollector(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ambari-metrics-collector/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
-                              content = "\n",
+                              content = InlineTemplate(self.getConfig()['configurations']['ams-hbase-log4j']['content']),
                               mode=0644,
     )
     self.assertResourceCalled('File', '/etc/ambari-metrics-collector/conf/ams-env.sh',
@@ -371,10 +373,10 @@ class TestMetricsCollector(RMFTestCase):
                                   owner = 'ams',
                                   action = ['delete']
         )
-        
+    
     self.assertResourceCalled('File', '/etc/ams-hbase/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
                               mode = 0644,
-                              content = "\n"
+                              content = InlineTemplate(self.getConfig()['configurations']['ams-hbase-log4j']['content'])
     )

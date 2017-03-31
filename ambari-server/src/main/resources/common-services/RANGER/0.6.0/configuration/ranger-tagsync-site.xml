@@ -147,6 +147,7 @@
     <name>ranger.tagsync.kerberos.principal</name>
     <value/>
     <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

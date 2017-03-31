@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -48,7 +50,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * RequestDAO unit tests
@@ -76,8 +77,8 @@ public class RequestDAOTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
 

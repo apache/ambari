@@ -29,6 +29,7 @@ import org.apache.ambari.view.hive2.actor.message.StartLogAggregation;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hive.jdbc.HiveStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,17 +48,17 @@ public class LogAggregator extends HiveActor {
 
   public static final int AGGREGATION_INTERVAL = 5 * 1000;
   private final HdfsApi hdfsApi;
-  private final HiveStatement statement;
+  private HiveStatement statement;
   private final String logFile;
 
   private Cancellable moreLogsScheduler;
   private ActorRef parent;
   private boolean hasStartedFetching = false;
   private boolean shouldFetchMore = true;
+  private String allLogs = "";
 
-  public LogAggregator(HdfsApi hdfsApi, HiveStatement statement, String logFile) {
+  public LogAggregator(HdfsApi hdfsApi, String logFile) {
     this.hdfsApi = hdfsApi;
-    this.statement = statement;
     this.logFile = logFile;
   }
 
@@ -65,7 +66,7 @@ public class LogAggregator extends HiveActor {
   public void handleMessage(HiveMessage hiveMessage) {
     Object message = hiveMessage.getMessage();
     if (message instanceof StartLogAggregation) {
-      start();
+      start((StartLogAggregation) message);
     }
 
     if (message instanceof GetMoreLogs) {
@@ -79,10 +80,15 @@ public class LogAggregator extends HiveActor {
     }
   }
 
-  private void start() {
+  private void start(StartLogAggregation message) {
+    this.statement = message.getHiveStatement();
     parent = this.getSender();
     hasStartedFetching = false;
     shouldFetchMore = true;
+    String logTitle = "Logs for Query '" + message.getStatement() + "'";
+    String repeatSeperator = StringUtils.repeat("=", logTitle.length());
+    allLogs += String.format("\n\n%s\n%s\n%s\n", repeatSeperator, logTitle, repeatSeperator);
+
     if (!(moreLogsScheduler == null || moreLogsScheduler.isCancelled())) {
       moreLogsScheduler.cancel();
     }
@@ -94,7 +100,7 @@ public class LogAggregator extends HiveActor {
   private void getMoreLogs() throws SQLException, HdfsApiException {
     List<String> logs = statement.getQueryLog();
     if (logs.size() > 0 && shouldFetchMore) {
-      String allLogs = Joiner.on("\n").skipNulls().join(logs);
+      allLogs = allLogs + "\n" + Joiner.on("\n").skipNulls().join(logs);
       HdfsUtil.putStringToFile(hdfsApi, logFile, allLogs);
       if(!statement.hasMoreLogs()) {
         shouldFetchMore = false;

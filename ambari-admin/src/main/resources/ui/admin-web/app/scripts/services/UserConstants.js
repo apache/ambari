@@ -26,6 +26,10 @@ angular.module('ambariAdminConsole').constant('UserConstants', {
       VALUE: 'LOCAL',
       LABEL_KEY: 'common.local'
     },
+    PAM: {
+      VALUE: 'PAM',
+      LABEL_KEY: 'common.pam'
+    },
     LDAP: {
       VALUE: 'LDAP',
       LABEL_KEY: 'common.ldap'

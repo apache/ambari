@@ -23,27 +23,26 @@ import traceback
 # Local Imports
 from resource_management.core.environment import Environment
 from resource_management.core.source import InlineTemplate
-from resource_management.core.source import Template
 from resource_management.core.source import  DownloadSource
 from resource_management.core.resources import Execute
 from resource_management.core.resources.service import Service
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
-from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
-from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.setup_atlas_hook import setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
-
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
 def falcon(type, action = None, upgrade_type=None):
@@ -85,12 +84,12 @@ def falcon(type, action = None, upgrade_type=None):
       owner = params.falcon_user,
       group=params.user_group,
     )
-    
+
     PropertiesFile(params.falcon_conf_dir + '/client.properties',
       properties = params.falcon_client_properties,
       mode = 0644,
       owner = params.falcon_user)
-      
+
     PropertiesFile(params.falcon_conf_dir + '/runtime.properties',
       properties = params.falcon_runtime_properties,
       mode = 0644,
@@ -98,6 +97,12 @@ def falcon(type, action = None, upgrade_type=None):
 
     PropertiesFile(params.falcon_conf_dir + '/startup.properties',
       properties = params.falcon_startup_properties,
+      mode = 0644,
+      owner = params.falcon_user)
+
+    File(params.falcon_conf_dir + '/log4j.properties',
+      content = InlineTemplate(params.falcon_log4j),
+      group = params.user_group,
       mode = 0644,
       owner = params.falcon_user)
 
@@ -118,10 +123,11 @@ def falcon(type, action = None, upgrade_type=None):
         cd_access = "a")
 
     # Generate atlas-application.properties.xml file
-    if params.falcon_atlas_support:
+    if params.falcon_atlas_support and params.enable_atlas_hook:
       # If Atlas is added later than Falcon, this package will be absent.
-      install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
-                                  params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
+      if check_stack_feature(StackFeature.ATLAS_INSTALL_HOOK_PACKAGE_SUPPORT,params.current_version_formatted):
+        install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
+                                    params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
 
       atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
       setup_atlas_hook(SERVICE.FALCON, params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
@@ -263,7 +269,7 @@ in the Falcon documentation.
       except:
         show_logs(params.falcon_log_dir, params.falcon_user)
         raise
-      
+
       File(params.server_pid_file, action = 'delete')
 
 

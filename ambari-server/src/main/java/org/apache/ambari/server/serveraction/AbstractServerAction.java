@@ -35,7 +35,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * AbstractServerActionImpl is an abstract implementation of a ServerAction.
+ * AbstractServerAction is an abstract implementation of a ServerAction.
  * <p/>
  * This abstract implementation provides common facilities for all ServerActions, such as
  * maintaining the ExecutionCommand and HostRoleCommand properties. It also provides a convenient

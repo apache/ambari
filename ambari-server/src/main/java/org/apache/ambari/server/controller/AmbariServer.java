@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,16 +19,20 @@
 package org.apache.ambari.server.controller;
 
 
-import com.google.common.util.concurrent.ServiceManager;
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.BindException;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.logging.LogManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
 import org.apache.ambari.server.StaticallyInject;
@@ -53,6 +57,7 @@ import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
+import org.apache.ambari.server.checks.DatabaseConsistencyCheckResult;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
@@ -71,6 +76,7 @@ import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvide
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -91,15 +97,13 @@ import org.apache.ambari.server.security.AmbariServerSecurityHeaderFilter;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
-import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
-import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
@@ -119,6 +123,8 @@ import org.apache.ambari.server.view.AmbariViewsMDCLoggingFilter;
 import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -144,19 +150,17 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-import java.io.File;
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.BindException;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.LogManager;
+import com.google.common.util.concurrent.ServiceManager;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
+
 
 @Singleton
 public class AmbariServer {
@@ -166,7 +170,7 @@ public class AmbariServer {
   /**
    * The thread name prefix for threads handling agent requests.
    */
-  private static final String AGENT_THREAD_POOL_NAME = "ambari-agent-thread";
+  private static final String AGENT_THREAD_POOL_NAME = "qtp-ambari-agent";
 
   /**
    * The thread name prefix for threads handling REST API requests.
@@ -302,6 +306,8 @@ public class AmbariServer {
 
     setSystemProperties(configs);
 
+    runDatabaseConsistencyCheck();
+
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =
           new ClassPathXmlApplicationContext();
@@ -310,6 +316,8 @@ public class AmbariServer {
           getBeanFactory();
 
       factory.registerSingleton("guiceInjector", injector);
+      factory.registerSingleton("ambariConfiguration", injector.getInstance(Configuration.class));
+      factory.registerSingleton("ambariUsers", injector.getInstance(Users.class));
       factory.registerSingleton("passwordEncoder",
         injector.getInstance(PasswordEncoder.class));
       factory.registerSingleton("auditLogger",
@@ -322,16 +330,12 @@ public class AmbariServer {
         injector.getInstance(AmbariLocalUserProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
         injector.getInstance(AmbariLdapDataPopulator.class));
-      factory.registerSingleton("ambariAuthorizationFilter",
-        injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariUserAuthorizationFilter",
         injector.getInstance(AmbariUserAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
         injector.getInstance(AmbariInternalAuthenticationProvider.class));
-      factory.registerSingleton("ambariJwtAuthenticationFilter",
-        injector.getInstance(JwtAuthenticationFilter.class));
-      factory.registerSingleton("ambariAuthenticationFilter",
-        injector.getInstance(AmbariAuthenticationFilter.class));
+      factory.registerSingleton("ambariPamAuthenticationProvider",
+	      injector.getInstance(AmbariPamAuthenticationProvider.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -407,74 +411,23 @@ public class AmbariServer {
 
       Map<String, String> configsMap = configs.getConfigsMap();
 
-      if (configs.getAgentSSLAuthentication()) {
-        //Secured connector for 2-way auth
-        SslContextFactory contextFactoryTwoWay = new SslContextFactory();
-        disableInsecureProtocols(contextFactoryTwoWay);
+      // Agents download cert on on-way connector but always communicate on
+      // two-way connector for server-agent communication
+      SelectChannelConnector agentOneWayConnector = createSelectChannelConnectorForAgent(configs.getOneWayAuthPort(), false);
+      SelectChannelConnector agentTwoWayConnector = createSelectChannelConnectorForAgent(configs.getTwoWayAuthPort(), configs.isTwoWaySsl());
 
-        SslSelectChannelConnector sslConnectorTwoWay = new SslSelectChannelConnector(contextFactoryTwoWay);
-        sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
+      // Override acceptor defaults if configured or use Jetty defaults
+      Integer acceptors = configs.getAgentApiAcceptors() != null ?
+        configs.getAgentApiAcceptors() : agentOneWayConnector.getAcceptors();
+      agentOneWayConnector.setAcceptors(acceptors);
+      agentTwoWayConnector.setAcceptors(acceptors);
 
-        String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator
-            + configsMap.get(Configuration.KSTR_NAME_KEY);
+      // Agent Jetty thread pool - widen the thread pool if needed !
+      configureJettyThreadPool(serverForAgent, acceptors * 2,
+        AGENT_THREAD_POOL_NAME, configs.getAgentThreadPoolSize());
 
-        String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator
-            + configsMap.get(Configuration.TSTR_NAME_KEY);
-
-        String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
-
-        sslConnectorTwoWay.setKeystore(keystore);
-        sslConnectorTwoWay.setTruststore(truststore);
-        sslConnectorTwoWay.setPassword(srvrCrtPass);
-        sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
-        sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
-        sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-        sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
-        sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
-        sslConnectorTwoWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-        sslConnectorTwoWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-        //SSL Context Factory
-        SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
-        contextFactoryOneWay.setKeyStorePath(keystore);
-        contextFactoryOneWay.setTrustStore(truststore);
-        contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
-        contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
-        contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
-        contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-        contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
-        contextFactoryOneWay.setNeedClientAuth(false);
-        disableInsecureProtocols(contextFactoryOneWay);
-
-        //Secured connector for 1-way auth
-        SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
-        sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
-        sslConnectorOneWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-        sslConnectorOneWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-        // because there are two connectors sharing the same pool, cut each's
-        // acceptors in half
-        int sslAcceptors = sslConnectorOneWay.getAcceptors();
-        sslConnectorOneWay.setAcceptors(Math.max(2, sslAcceptors / 2));
-        sslConnectorTwoWay.setAcceptors(Math.max(2, sslAcceptors / 2));
-
-        // Agent Jetty thread pool
-        configureJettyThreadPool(serverForAgent, sslConnectorOneWay.getAcceptors(),
-          "qtp-ambari-agent", configs.getAgentThreadPoolSize());
-
-        serverForAgent.addConnector(sslConnectorOneWay);
-        serverForAgent.addConnector(sslConnectorTwoWay);
-      } else {
-        SelectChannelConnector agentConnector = new SelectChannelConnector();
-        agentConnector.setPort(configs.getOneWayAuthPort());
-        agentConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-
-        // Agent Jetty thread pool
-        configureJettyThreadPool(serverForAgent, agentConnector.getAcceptors(), "qtp-ambari-agent",
-          configs.getAgentThreadPoolSize());
-
-        serverForAgent.addConnector(agentConnector);
-      }
+      serverForAgent.addConnector(agentOneWayConnector);
+      serverForAgent.addConnector(agentTwoWayConnector);
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -494,6 +447,8 @@ public class AmbariServer {
 
       viewRegistry.readViewArchives();
       viewDirectoryWatcher.start();
+
+      enableLog4jMonitor(configsMap);
 
       handlerList.addHandler(root);
       server.setHandler(handlerList);
@@ -534,41 +489,15 @@ public class AmbariServer {
       }
 
       /* Configure the API server to use the NIO connectors */
-      SelectChannelConnector apiConnector;
+      SelectChannelConnector apiConnector = createSelectChannelConnectorForClient();
 
-      if (configs.getApiSSLAuthentication()) {
-        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
-        String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME_KEY);
-        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
+      acceptors = configs.getClientApiAcceptors() != null ? configs
+        .getClientApiAcceptors() : apiConnector.getAcceptors();
+      apiConnector.setAcceptors(acceptors);
 
-        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
-
-        SslContextFactory contextFactoryApi = new SslContextFactory();
-        disableInsecureProtocols(contextFactoryApi);
-        SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
-        sapiConnector.setPort(configs.getClientSSLApiPort());
-        sapiConnector.setKeystore(httpsKeystore);
-        sapiConnector.setTruststore(httpsTruststore);
-        sapiConnector.setPassword(httpsCrtPass);
-        sapiConnector.setKeyPassword(httpsCrtPass);
-        sapiConnector.setTrustPassword(httpsCrtPass);
-        sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
-        sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
-        sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-        apiConnector = sapiConnector;
-      } else  {
-        apiConnector = new SelectChannelConnector();
-        apiConnector.setPort(configs.getClientApiPort());
-        apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-      }
-
-      apiConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-      apiConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-      // Client Jetty thread pool
-      configureJettyThreadPool(server, apiConnector.getAcceptors(), CLIENT_THREAD_POOL_NAME, configs.getClientThreadPoolSize());
+      // Client Jetty thread pool - widen the thread pool if needed !
+      configureJettyThreadPool(server, acceptors, CLIENT_THREAD_POOL_NAME,
+        configs.getClientThreadPoolSize());
       server.addConnector(apiConnector);
 
       server.setStopAtShutdown(true);
@@ -577,7 +506,7 @@ public class AmbariServer {
 
       String osType = getServerOsType();
       if (osType == null || osType.isEmpty()) {
-        throw new RuntimeException(Configuration.OS_VERSION_KEY + " is not "
+        throw new RuntimeException(Configuration.OS_VERSION.getKey() + " is not "
             + " set in the ambari.properties file");
       }
 
@@ -604,6 +533,9 @@ public class AmbariServer {
       ExecutionScheduleManager executionScheduleManager = injector
           .getInstance(ExecutionScheduleManager.class);
 
+      MetricsService metricsService = injector.getInstance(
+        MetricsService.class);
+
       clusterController = controller;
 
       StateRecoveryManager recoveryManager = injector.getInstance(
@@ -628,6 +560,12 @@ public class AmbariServer {
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
 
+      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+        metricsService.start();
+      } else {
+        LOG.info("AmbariServer Metrics disabled.");
+      }
+
       server.join();
       LOG.info("Joined the Server");
     } catch (BadPaddingException bpe) {
@@ -638,6 +576,115 @@ public class AmbariServer {
       LOG.error("Could not bind to server port - instance may already be running. " +
           "Terminating this instance.", bindException);
       throw bindException;
+    }
+  }
+
+  /**
+   * Create org.eclipse.jetty.server.nio.SelectChannelConnector
+   * implementation for SSL or non-SSL based on configuration.
+   *
+   * @param port connector port
+   * @param needClientAuth one-way / two-way SSL
+   * @return org.eclipse.jetty.server.nio.SelectChannelConnector
+   */
+  @SuppressWarnings("deprecation")
+  private SelectChannelConnector createSelectChannelConnectorForAgent(int port, boolean needClientAuth) {
+    Map<String, String> configsMap = configs.getConfigsMap();
+    SelectChannelConnector agentConnector;
+
+    if (configs.getAgentSSLAuthentication()) {
+      String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+        + configsMap.get(Configuration.KSTR_NAME.getKey());
+
+      String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+        + configsMap.get(Configuration.TSTR_NAME.getKey());
+
+      String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
+
+      // Secured connector - default constructor sets trustAll = true for certs
+      SslContextFactory contextFactory = new SslContextFactory();
+      disableInsecureProtocols(contextFactory);
+
+      SslSelectChannelConnector agentSslConnector = new SslSelectChannelConnector(contextFactory);
+      agentSslConnector.setKeystore(keystore);
+      agentSslConnector.setTruststore(truststore);
+      agentSslConnector.setPassword(srvrCrtPass);
+      agentSslConnector.setKeyPassword(srvrCrtPass);
+      agentSslConnector.setTrustPassword(srvrCrtPass);
+      agentSslConnector.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
+      agentSslConnector.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
+      agentSslConnector.setNeedClientAuth(needClientAuth);
+      agentSslConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
+      agentSslConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+      agentConnector = agentSslConnector;
+    } else {
+      agentConnector = new SelectChannelConnector();
+      agentConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+    }
+
+    agentConnector.setPort(port);
+
+    return agentConnector;
+  }
+
+  @SuppressWarnings("deprecation")
+  private SelectChannelConnector createSelectChannelConnectorForClient() {
+    Map<String, String> configsMap = configs.getConfigsMap();
+    SelectChannelConnector apiConnector;
+
+    if (configs.getApiSSLAuthentication()) {
+      String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+        File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey());
+      String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+        File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME.getKey());
+      LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
+
+      String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
+
+      SslContextFactory contextFactoryApi = new SslContextFactory();
+      disableInsecureProtocols(contextFactoryApi);
+      SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
+      sapiConnector.setPort(configs.getClientSSLApiPort());
+      sapiConnector.setKeystore(httpsKeystore);
+      sapiConnector.setTruststore(httpsTruststore);
+      sapiConnector.setPassword(httpsCrtPass);
+      sapiConnector.setKeyPassword(httpsCrtPass);
+      sapiConnector.setTrustPassword(httpsCrtPass);
+      sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+      sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+      sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+      apiConnector = sapiConnector;
+    } else  {
+      apiConnector = new SelectChannelConnector();
+      apiConnector.setPort(configs.getClientApiPort());
+      apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+    }
+
+    apiConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
+    apiConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+
+    return apiConnector;
+  }
+
+  /**
+   * this method executes database consistency check if skip option was not added
+   */
+  protected void runDatabaseConsistencyCheck() throws Exception {
+    if (System.getProperty("skipDatabaseConsistencyCheck") == null) {
+      boolean fixIssues = (System.getProperty("fixDatabaseConsistency") != null);
+      try {
+        DatabaseConsistencyCheckResult checkResult = DatabaseConsistencyCheckHelper.runAllDBChecks(fixIssues);
+        // Writing explicitly to the console is necessary as the python start script expects it.
+        System.out.println("Database consistency check result: " + checkResult);
+        if (checkResult.isError()) {
+          System.exit(1);
+        }
+      }
+      catch (Throwable ex) {
+        // Writing explicitly to the console is necessary as the python start script expects it.
+        System.out.println("Database consistency check result: " + DatabaseConsistencyCheckResult.DB_CHECK_ERROR);
+        throw new Exception(ex);
+      }
     }
   }
 
@@ -735,6 +782,7 @@ public class AmbariServer {
    */
   protected void configureRootHandler(ServletContextHandler root) {
     configureHandlerCompression(root);
+    configureAdditionalContentTypes(root);
     root.setContextPath(CONTEXT_PATH);
     root.setErrorHandler(injector.getInstance(AmbariErrorHandler.class));
     root.setMaxFormContentSize(-1);
@@ -755,12 +803,18 @@ public class AmbariServer {
           EnumSet.of(DispatcherType.REQUEST));
 
       gzipFilter.setInitParameter("methods", "GET,POST,PUT,DELETE");
+      gzipFilter.setInitParameter("excludePathPatterns", ".*(\\.woff|\\.ttf|\\.woff2|\\.eot|\\.svg)");
       gzipFilter.setInitParameter("mimeTypes",
-          "text/html,text/plain,text/xml,text/css,application/x-javascript," +
-              "application/xml,application/x-www-form-urlencoded," +
-              "application/javascript,application/json");
+        "text/html,text/plain,text/xml,text/css,application/x-javascript," +
+          "application/xml,application/x-www-form-urlencoded," +
+          "application/javascript,application/json");
       gzipFilter.setInitParameter("minGzipSize", configs.getApiGzipMinSize());
     }
+  }
+
+  private void configureAdditionalContentTypes(ServletContextHandler root) {
+    root.getMimeTypes().addMimeMapping("woff", "application/font-woff");
+    root.getMimeTypes().addMimeMapping("ttf", "application/font-sfnt");
   }
 
   /**
@@ -870,7 +924,7 @@ public class AmbariServer {
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
-    RetryHelper.init(configs.getOperationsRetryAttempts());
+    RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
   }
 
   /**
@@ -906,6 +960,26 @@ public class AmbariServer {
     }
   }
 
+  /**
+   * To change log level without restart.
+   */
+  public static void enableLog4jMonitor(Map<String, String> configsMap){
+
+    String log4jpath = AmbariServer.class.getResource("/"+Configuration.AMBARI_LOG_FILE).toString();
+    String monitorDelay = configsMap.get(Configuration.LOG4JMONITOR_DELAY.getKey());
+    long monitorDelayLong = Configuration.LOG4JMONITOR_DELAY.getDefaultValue();
+
+    try{
+      log4jpath = log4jpath.replace("file:", "");
+      if(StringUtils.isNotBlank(monitorDelay)) {
+        monitorDelayLong = Long.parseLong(monitorDelay);
+      }
+      PropertyConfigurator.configureAndWatch(log4jpath,  monitorDelayLong);
+    }catch(Exception e){
+      LOG.error("Exception in setting log4j monitor delay of {} for {}", monitorDelay, log4jpath, e);
+    }
+  }
+
   public static void main(String[] args) throws Exception {
     Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
@@ -913,10 +987,20 @@ public class AmbariServer {
     try {
       LOG.info("Getting the controller");
 
+      // check if this instance is the active instance
+      Configuration config = injector.getInstance(Configuration.class);
+      if (!config.isActiveInstance()) {
+        String errMsg = "This instance of ambari server is not designated as active. Cannot start ambari server." +
+                            "The property active.instance is set to false in ambari.properties";
+        throw new AmbariException(errMsg);
+      }
+
       setupProxyAuth();
 
       injector.getInstance(GuiceJpaInitializer.class);
+
       DatabaseConsistencyCheckHelper.checkDBVersionCompatible();
+
       server = injector.getInstance(AmbariServer.class);
       injector.getInstance(UpdateActiveRepoVersionOnStartup.class).process();
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
@@ -926,6 +1010,10 @@ public class AmbariServer {
       ComponentSSLConfiguration.instance().init(server.configs);
       server.run();
     } catch (Throwable t) {
+      // Writing to system console is needed because loggers may not get flushed on exit and diagnostic information
+      // may get lost.
+      System.err.println("An unexpected error occured during starting Ambari Server.");
+      t.printStackTrace();
       LOG.error("Failed to run the Ambari Server", t);
       if (server != null) {
         server.stop();
@@ -933,4 +1021,6 @@ public class AmbariServer {
       System.exit(-1);
     }
   }
+
+
 }

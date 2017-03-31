@@ -22,6 +22,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
+from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -32,7 +33,6 @@ config = Script.get_config()
 stack_root = Script.get_stack_root()
 
 stack_name = default("/hostLevelParams/stack_name", None)
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -85,19 +85,20 @@ hostname = None
 if config.has_key('hostname'):
   hostname = config['hostname']
 
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
+metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_host' in config['configurations']['cluster-env']:
     metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
   else:
-    metric_collector_host = ams_collector_hosts[0]
+    metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
@@ -112,3 +113,15 @@ if has_metric_collector:
   pass
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
+
+# Cluster Zookeeper quorum
+zookeeper_quorum = None
+if not len(default("/clusterHostInfo/zookeeper_hosts", [])) == 0:
+  if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
+    zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
+  else:
+    zookeeper_clientPort = '2181'
+  zookeeper_quorum = (':' + zookeeper_clientPort + ',').join(config['clusterHostInfo']['zookeeper_hosts'])
+  # last port config
+  zookeeper_quorum += ':' + zookeeper_clientPort
+

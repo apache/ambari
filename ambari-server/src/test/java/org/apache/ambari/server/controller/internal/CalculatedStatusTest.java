@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
@@ -46,6 +49,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -82,6 +86,10 @@ public class CalculatedStatusTest {
     s_field.setAccessible(true);
   }
 
+  @After
+  public void after() throws Exception {
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
+  }
 
   @Test
   public void testGetStatus() throws Exception {
@@ -655,6 +663,37 @@ public class CalculatedStatusTest {
 
     assertEquals(HostRoleStatus.IN_PROGRESS, calc.getDisplayStatus());
     assertEquals(HostRoleStatus.IN_PROGRESS, calc.getStatus());
+  }
+
+  /**
+   * Tests that when there are no tasks and all counts are 0, that the returned
+   * status is {@link HostRoleStatus#COMPLETED}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetCompletedStatusForNoTasks() throws Exception {
+    // no status / no tasks
+    CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(
+        new ArrayList<HostRoleCommandEntity>(), false);
+
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+
+    // empty summaries
+    status = CalculatedStatus.statusFromStageSummary(
+        new HashMap<Long, HostRoleCommandStatusSummaryDTO>(), new HashSet<Long>());
+
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+
+    // generate a map of 0's - COMPLETED=0, IN_PROGRESS=0, etc
+    Map<HostRoleStatus, Integer> counts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
+    Map<HostRoleStatus, Integer> displayCounts = CalculatedStatus.calculateStatusCounts(new ArrayList<HostRoleStatus>());
+
+    HostRoleStatus hostRoleStatus = CalculatedStatus.calculateSummaryStatusOfUpgrade(counts, 0);
+    HostRoleStatus hostRoleDisplayStatus = CalculatedStatus.calculateSummaryDisplayStatus(displayCounts, 0, false);
+
+    assertEquals(HostRoleStatus.COMPLETED, hostRoleStatus);
+    assertEquals(HostRoleStatus.COMPLETED, hostRoleDisplayStatus);
   }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {

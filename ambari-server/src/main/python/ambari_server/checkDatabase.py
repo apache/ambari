@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import sys
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_server import serverConfiguration
@@ -38,11 +39,13 @@ from ambari_commons.os_utils import run_os_command
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.userInput import get_YN_input
 
+logger = logging.getLogger(__name__)
+
 CHECK_DATABASE_HELPER_CMD = "{0} -cp {1} " + \
                          "org.apache.ambari.server.checks.DatabaseConsistencyChecker"
 
 def check_database(options):
-
+  logger.info("Check database consistency.")
   jdk_path = serverConfiguration.get_java_exe_path()
 
   if jdk_path is None:
@@ -77,9 +80,8 @@ def check_database(options):
 
 
   if retcode > 0:
-    print str(stdout)
-    raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
-                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
+    raise FatalException(int(retcode), "Database check failed to complete: {0}. \nPlease check {1} and {2} for more "
+                                       "information.".format(stdout+stderr, configDefaults.SERVER_LOG_FILE, configDefaults.DB_CHECK_LOG))
   else:
     print str(stdout)
     if not stdout.startswith("No errors"):

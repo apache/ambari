@@ -45,7 +45,7 @@ def hcat():
 
   Directory(params.hive_conf_dir,
             create_parents = True,
-            owner=params.hcat_user,
+            owner=params.hive_user,
             group=params.user_group,
   )
 
@@ -76,6 +76,6 @@ def hcat():
   )
 
   # Generate atlas-application.properties.xml file
-  if has_atlas_in_cluster():
+  if params.enable_atlas_hook:
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

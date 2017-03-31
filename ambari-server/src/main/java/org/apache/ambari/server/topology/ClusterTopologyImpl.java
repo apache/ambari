@@ -33,6 +33,9 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+
 /**
  * Represents a cluster topology.
  * Topology includes the the associated blueprint, cluster configuration and hostgroup -> host mapping.
@@ -224,9 +227,24 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public RequestStatusResponse installHost(String hostName, boolean skipFailure) {
+  public RequestStatusResponse installHost(String hostName, boolean skipInstallTaskCreate, boolean skipFailure) {
     try {
-      return ambariContext.installHost(hostName, ambariContext.getClusterName(getClusterId()), skipFailure);
+      String hostGroupName = getHostGroupForHost(hostName);
+      HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
+
+      Collection<String> skipInstallForComponents = new ArrayList<>();
+      if (skipInstallTaskCreate) {
+        skipInstallForComponents.add("ALL");
+      } else {
+        // get the set of components that are marked as START_ONLY for this hostgroup
+        skipInstallForComponents.addAll(hostGroup.getComponentNames(ProvisionAction.START_ONLY));
+      }
+
+      Collection<String> dontSkipInstallForComponents = hostGroup.getComponentNames(INSTALL_ONLY);
+      dontSkipInstallForComponents.addAll(hostGroup.getComponentNames(INSTALL_AND_START));
+
+      return ambariContext.installHost(hostName, ambariContext.getClusterName(getClusterId()),
+        skipInstallForComponents, dontSkipInstallForComponents, skipFailure);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);

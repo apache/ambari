@@ -68,7 +68,7 @@
       </td>
       <td>
         <div ng-show="!user.editable">{{user.permission_label}}</div>
-        <select class="role-select" ng-show="user.editable" ng-model="user.permission_name"
+        <select class="form-control role-select" ng-show="user.editable" ng-model="user.permission_name"
                 ng-options="role.permission_name as role.permission_label for role in roleValueOptions">
         </select>
         <span ng-show="user.principal_type != $parent.currentTypeFilter.value">&nbsp;{{'common.fromGroupMark' | translate}}</span>

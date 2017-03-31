@@ -211,6 +211,9 @@ class TestHDP23StackAdvisor(TestCase):
       ]
     }
     services = {
+      "context" : {
+        "call_type" : "recommendConfigurations"
+      },
       "services" : [ {
         "StackServices":{
           "service_name": "YARN",
@@ -396,7 +399,6 @@ class TestHDP23StackAdvisor(TestCase):
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
           "hbase.coprocessor.master.classes": "",
           "hbase.coprocessor.regionserver.classes": "",
-          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
           'hbase.regionserver.wal.codec': 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec',
           "hbase.bucketcache.ioengine": "offheap",
@@ -588,7 +590,8 @@ class TestHDP23StackAdvisor(TestCase):
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off'
+          'hive_txn_acid': 'off',
+          'hive.atlas.hook': 'false'
         }
       },
       'hive-site': {
@@ -601,7 +604,6 @@ class TestHDP23StackAdvisor(TestCase):
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
-          'hive.enforce.bucketing': 'false',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.exec.failure.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
           'hive.exec.orc.compression.strategy': 'SPEED',
@@ -746,6 +748,7 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "hive-env": {
           "properties": {
+            "hive.atlas.hook": "false"
           }
         },
         "hive-site": {
@@ -864,7 +867,8 @@ class TestHDP23StackAdvisor(TestCase):
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'off'
+          'hive_txn_acid': 'off',
+          'hive.atlas.hook': 'true'
         }
       },
       'hive-site': {
@@ -877,7 +881,6 @@ class TestHDP23StackAdvisor(TestCase):
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
-          'hive.enforce.bucketing': 'false',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.exec.failure.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
           'hive.exec.orc.compression.strategy': 'SPEED',
@@ -1046,6 +1049,7 @@ class TestHDP23StackAdvisor(TestCase):
         },
         "hive-env": {
           "properties": {
+            "hive.atlas.hook": "false"
           }
         },
         "hive-site": {
@@ -1305,7 +1309,7 @@ class TestHDP23StackAdvisor(TestCase):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/view/TEZ/tez_cluster_instance"
 
     # Test JDK1.7
     services['ambari-server-properties'] = {'java.home': '/usr/jdk64/jdk1.7.3_23'}
@@ -1463,6 +1467,31 @@ class TestHDP23StackAdvisor(TestCase):
             }
           ]
         },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.3/services/KNOX",
+          "StackServices": {
+            "service_name": "KNOX",
+            "service_version": "0.9.0.2.3",
+            "stack_name": "HDP",
+            "stack_version": "2.3"
+          },
+          "components": [
+            {
+              "href": "/api/v1/stacks/HDP/versions/2.3/services/KNOX/components/KNOX_GATEWAY",
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1+",
+                "component_category": "MASTER",
+                "component_name": "KNOX_GATEWAY",
+                "display_name": "Knox Gateway",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        }
         ],
       "configurations": {
         "admin-properties": {
@@ -1474,6 +1503,7 @@ class TestHDP23StackAdvisor(TestCase):
           "properties": {
             "ranger.service.http.port": "7777",
             "ranger.service.http.enabled": "true",
+            "ranger.sso.providerurl": "",
             }
         }
       },
@@ -1516,14 +1546,16 @@ class TestHDP23StackAdvisor(TestCase):
       'ranger-admin-site': {
         'properties': {
           "ranger.audit.solr.zookeepers": "NONE",
-          "ranger.audit.source.type": "solr"
+          "ranger.audit.source.type": "solr",
+          "ranger.sso.providerurl": "https://c6401.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso"
         }
       },
       'ranger-env': {
         'properties': {
           'ranger-storm-plugin-enabled': 'No',
         }
-      }
+      },
+      'ranger-knox-security': {'properties': {}}
     }
 
     recommendedConfigurations = {}
@@ -1544,6 +1576,9 @@ class TestHDP23StackAdvisor(TestCase):
   def test_recommendRangerKMSConfigurations(self):
     clusterData = {}
     services = {
+      "ambari-server-properties": {
+        "ambari-server.user": "root"
+        },
       "Versions": {
         "stack_version" : "2.3",
         },
@@ -1584,6 +1619,11 @@ class TestHDP23StackAdvisor(TestCase):
             'db_host' : 'c6401.ambari.apache.org:1521:XE',
             'db_name' : "XE"
           }
+        },
+        'cluster-env': {
+          'properties': {
+            'security_enabled': 'false'
+          }
         }
       },
       "forced-configurations": []
@@ -1605,6 +1645,16 @@ class TestHDP23StackAdvisor(TestCase):
       'ranger-kms-audit': {
           'properties': {
           }
+      },
+      'kms-site': {
+        'properties': {
+        },
+        'property_attributes': {
+        'hadoop.kms.proxyuser.HTTP.hosts': {'delete': 'true'},
+        'hadoop.kms.proxyuser.HTTP.users': {'delete': 'true'},
+        'hadoop.kms.proxyuser.root.hosts': {'delete': 'true'},
+        'hadoop.kms.proxyuser.root.users': {'delete': 'true'}
+        }
       }
     }
 
@@ -1619,6 +1669,8 @@ class TestHDP23StackAdvisor(TestCase):
         "service_name": "KERBEROS"
       }
     })
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
+    services['configurations']['cluster-env']['properties']['ambari_principal_name'] = "ambari-cl1@EXAMPLE.COM"
 
     expected = {
       'kms-properties': {
@@ -1638,6 +1690,14 @@ class TestHDP23StackAdvisor(TestCase):
       'ranger-kms-audit': {
           'properties': {
           }
+      },
+      'kms-site': {
+        'properties': {
+        'hadoop.kms.proxyuser.HTTP.hosts': '*',
+        'hadoop.kms.proxyuser.HTTP.users': '*',
+        'hadoop.kms.proxyuser.ambari-cl1.hosts': '*',
+        'hadoop.kms.proxyuser.ambari-cl1.users': '*'
+        }
       }
     }
 
@@ -1706,6 +1766,11 @@ class TestHDP23StackAdvisor(TestCase):
         "properties": {
           "ranger-storm-plugin-enabled": "No"
         }
+      },
+      "storm-env": {
+        "properties": {
+          "storm.atlas.hook": "true"
+        }
       }
     }
     services = {
@@ -1745,6 +1810,11 @@ class TestHDP23StackAdvisor(TestCase):
         "ranger-storm-plugin-properties": {
           "properties": {
             "ranger-storm-plugin-enabled": "No"
+          }
+        },
+        "storm-env": {
+          "properties": {
+          "storm.atlas.hook": "false"
           }
         }
       },
@@ -1803,6 +1873,11 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {
           'sqoop.job.data.publish.class': 'org.apache.atlas.sqoop.hook.SqoopHook',
         }
+      },
+      'sqoop-env': {
+        'properties': {
+          'sqoop.atlas.hook': 'true'
+        }
       }
     }
     services = {
@@ -1836,6 +1911,11 @@ class TestHDP23StackAdvisor(TestCase):
         "sqoop-site": {
           "properties": {
             "sqoop.job.data.publish.class": "foo"
+          }
+        },
+        "sqoop-env": {
+          "properties": {
+            "sqoop.atlas.hook": "false"
           }
         }
       },
@@ -1888,6 +1968,12 @@ class TestHDP23StackAdvisor(TestCase):
       "ramPerContainer": 256
     }
     expected = {
+      'logfeeder-env': {'property_attributes': {'logfeeder_external_solr_kerberos_keytab': {'visible': 'false'},
+                                                'logfeeder_external_solr_kerberos_principal': {'visible': 'false'}}},
+      'logsearch-common-env': {'properties': {'logsearch_external_solr_kerberos_enabled': 'false'},
+                               'property_attributes': {'logsearch_external_solr_kerberos_enabled': {'visible': 'false'}}},
+      'logsearch-env': {'property_attributes': {'logsearch_external_solr_kerberos_keytab': {'visible': 'false'},
+                                                'logsearch_external_solr_kerberos_principal': {'visible': 'false'}}},
       'logsearch-properties': {
         'properties': {
           "logsearch.collection.service.logs.numshards" : "2",

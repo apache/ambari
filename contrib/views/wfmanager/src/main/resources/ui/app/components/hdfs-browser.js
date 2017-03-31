@@ -19,6 +19,7 @@ import Ember from 'ember';
 import HdfsViewerConfig from '../utils/hdfsviewer';
 export default Ember.Component.extend({
   config: HdfsViewerConfig.create(),
+  uploaderService : Ember.inject.service('hdfs-file-uploader'),
   initialize:function(){
     var self=this;
     self.$("#filediv").modal("show");
@@ -52,12 +53,22 @@ export default Ember.Component.extend({
     this.set("alertDetails",data.details);
     this.set("alertMessage",data.message);
   },
+  isUpdated : function(){
+    if(this.get('showUploadSuccess')){
+      this.$('#success-alert').fadeOut(5000, ()=>{
+        this.set("showUploadSuccess", false);
+      });
+    }
+  }.on('didUpdate'),
   actions: {
-    viewerError() {
+    viewerError(error) {
+      if (error.responseJSON && error.responseJSON.message && error.responseJSON.message.includes("Permission")) {
+        this.showNotification({"type": "error", "message": "Permission denied"});
+      }
     },
     createFolder(){
       var self=this;
-      var $elem=this.$("#selectedPath");
+      var $elem=this.$('input[name="selectedPath"]');
       //$elem.val($elem.val()+"/");
       var folderHint="<enter folder here>";
       this.set("selectedPath",this.get("selectedPath")+"/"+folderHint);
@@ -93,12 +104,16 @@ export default Ember.Component.extend({
       this.set("uploadSelected",false);
     },
     uploadSuccess(e){
+      this.get('uploaderService').trigger('uploadSuccess');
+      this.set('uploadSelected', false);
+      this.set('showUploadSuccess', true);
     },
     uploadFailure(textStatus,errorThrown){
       this.showNotification({
         "type": "error",
         "message": "Upload Failed",
-        "details":textStatus
+        "details":textStatus,
+        "errorThrown":errorThrown
       });
     },
     uploadProgress(e){

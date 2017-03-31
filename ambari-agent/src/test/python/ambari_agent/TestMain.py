@@ -95,10 +95,12 @@ class TestMain(unittest.TestCase):
     setLevel_mock.assert_called_with(logging.DEBUG)
 
 
+  @patch("os.path.exists")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(main.logger, "setLevel")
   @patch("logging.basicConfig")
-  def test_update_log_level(self, basicConfig_mock, setLevel_mock):
+  def test_update_log_level(self, basicConfig_mock, setLevel_mock, os_path_exists_mock):
+    os_path_exists_mock.return_value = False
     config = AmbariConfig().getConfig()
 
     # Testing with default setup (config file does not contain loglevel entry)
@@ -329,7 +331,9 @@ class TestMain(unittest.TestCase):
   @patch.object(PingPortListener,"__init__")
   @patch.object(ExitHelper,"execute_cleanup")
   @patch.object(ExitHelper, "exit")
-  def test_main(self, exithelper_exit_mock, cleanup_mock, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
+  @patch.object(Controller, "get_status_commands_executor")
+  def test_main(self, get_status_commands_executor_mock, exithelper_exit_mock, cleanup_mock, ping_port_init_mock,
+                ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
                 parse_args_mock, start_mock, Controller_is_alive_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 ambari_config_mock,

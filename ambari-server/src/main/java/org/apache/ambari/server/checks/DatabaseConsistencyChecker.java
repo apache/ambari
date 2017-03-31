@@ -97,37 +97,27 @@ public class DatabaseConsistencyChecker {
   public static void main(String[] args) throws Exception {
     DatabaseConsistencyChecker databaseConsistencyChecker = null;
     try {
-      LOG.info("******************************* Check database started *******************************");
 
       Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule());
       databaseConsistencyChecker = injector.getInstance(DatabaseConsistencyChecker.class);
 
       databaseConsistencyChecker.startPersistenceService();
 
-      DatabaseConsistencyCheckHelper.checkForNotMappedConfigsToCluster();
-
-      DatabaseConsistencyCheckHelper.checkForConfigsSelectedMoreThanOnce();
-
-      DatabaseConsistencyCheckHelper.checkForHostsWithoutState();
-
-      DatabaseConsistencyCheckHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
-
-      DatabaseConsistencyCheckHelper.checkServiceConfigs();
+      DatabaseConsistencyCheckHelper.runAllDBChecks(false);
 
       databaseConsistencyChecker.stopPersistenceService();
 
-      LOG.info("******************************* Check database completed *******************************");
     } catch (Throwable e) {
       if (e instanceof AmbariException) {
         LOG.error("Exception occurred during database check:", e);
         throw (AmbariException)e;
-      }else{
+      } else {
         LOG.error("Unexpected error, database check failed", e);
         throw new Exception("Unexpected error, database check failed", e);
       }
     } finally {
         DatabaseConsistencyCheckHelper.closeConnection();
-        if (DatabaseConsistencyCheckHelper.isErrorAvailable()) {
+        if (DatabaseConsistencyCheckHelper.getLastCheckResult().isErrorOrWarning()) {
           String ambariDBConsistencyCheckLog = "ambari-server-check-database.log";
           if (LOG instanceof Log4jLoggerAdapter) {
             org.apache.log4j.Logger dbConsistencyCheckHelperLogger = org.apache.log4j.Logger.getLogger(DatabaseConsistencyCheckHelper.class);
@@ -141,12 +131,19 @@ public class DatabaseConsistencyChecker {
             }
           }
           ambariDBConsistencyCheckLog = ambariDBConsistencyCheckLog.replace("//", "/");
-          System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
+
+          if (DatabaseConsistencyCheckHelper.getLastCheckResult().isError()) {
+            System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
+                  "You may try --auto-fix-database flag to attempt to fix issues automatically. " +
                   "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " +
                   "or perform a cluster upgrade until you correct the database consistency issues. See \"%s\" " +
                   "for more details on the consistency issues.", ambariDBConsistencyCheckLog));
+          } else {
+            System.out.print(String.format("DB configs consistency check found warnings. See \"%s\" " +
+                    "for more details.", ambariDBConsistencyCheckLog));
+          }
         } else {
-          System.out.print("No errors were found.");
+          System.out.print("No errors and warnings were found.");
         }
 
     }

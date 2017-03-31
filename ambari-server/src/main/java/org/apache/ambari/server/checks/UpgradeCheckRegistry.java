@@ -144,7 +144,7 @@ public class UpgradeCheckRegistry {
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
     List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<AbstractCheckDescriptor>();
     for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
-      if (descriptor.isRequired()){
+      if (descriptor.isRequired(upgradePack.getType())) {
         resultCheckDescriptor.add(descriptor);
       } else if (prerequisiteChecks.contains(descriptor.getClass().getName())){
         resultCheckDescriptor.add(descriptor);

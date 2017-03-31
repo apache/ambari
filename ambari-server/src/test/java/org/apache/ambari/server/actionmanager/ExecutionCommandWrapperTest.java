@@ -19,6 +19,7 @@
 package org.apache.ambari.server.actionmanager;
 
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -36,13 +38,13 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jettison.json.JSONException;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -103,7 +105,6 @@ public class ExecutionCommandWrapperTest {
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
-    clusters.getHost(HOST1).persist();
     clusters.addCluster(CLUSTER1, new StackId("HDP-0.1"));
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);
@@ -129,24 +130,16 @@ public class ExecutionCommandWrapperTest {
     CONFIG_ATTRIBUTES = new HashMap<String, Map<String,String>>();
 
     //Cluster level global config
-    Config globalConfig = configFactory.createNew(cluster1, GLOBAL_CONFIG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
-    globalConfig.setTag(CLUSTER_VERSION_TAG);
-    cluster1.addConfig(globalConfig);
+    configFactory.createNew(cluster1, GLOBAL_CONFIG, CLUSTER_VERSION_TAG, GLOBAL_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Cluster level service config
-    Config serviceSiteConfigCluster = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
-    serviceSiteConfigCluster.setTag(CLUSTER_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigCluster);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, CLUSTER_VERSION_TAG, SERVICE_SITE_CLUSTER, CONFIG_ATTRIBUTES);
 
     //Service level service config
-    Config serviceSiteConfigService = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
-    serviceSiteConfigService.setTag(SERVICE_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigService);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_VERSION_TAG, SERVICE_SITE_SERVICE, CONFIG_ATTRIBUTES);
 
     //Host level service config
-    Config serviceSiteConfigHost = configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
-    serviceSiteConfigHost.setTag(HOST_VERSION_TAG);
-    cluster1.addConfig(serviceSiteConfigHost);
+    configFactory.createNew(cluster1, SERVICE_SITE_CONFIG, HOST_VERSION_TAG, SERVICE_SITE_HOST, CONFIG_ATTRIBUTES);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
 
@@ -271,5 +264,10 @@ public class ExecutionCommandWrapperTest {
     Assert.assertEquals(SERVICE_SITE_VAL4, mergedConfig.get(SERVICE_SITE_NAME4));
     Assert.assertEquals(SERVICE_SITE_VAL5, mergedConfig.get(SERVICE_SITE_NAME5));
     Assert.assertEquals(SERVICE_SITE_VAL6_H, mergedConfig.get(SERVICE_SITE_NAME6));
+  }
+
+  @AfterClass
+  public static void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 }

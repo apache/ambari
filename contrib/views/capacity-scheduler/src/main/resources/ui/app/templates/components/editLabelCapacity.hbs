@@ -31,34 +31,38 @@
     </div>
     <div class="col-md-4 col-sm-4">
       <div class="form-group input-group label-capacity-input">
-        {{capacity-input class='input-sm' value=label.capacity maxVal=100 disabled=isAccessDisabled}}
+        {{decimal-capacity-input class='input-sm' value=label.capacity maxVal=100 disabled=isAccessDisabled}}
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">
-        {{input-range min="0" max="100" step="1" value=label.capacity class="input-sm"}}
+        {{decimal-input-range min="0" max="100" step="0.01" value=label.capacity class="input-sm" disabled=isAccessDisabled}}
       </div>
-      {{#if isLabelCapacityDirty}}
-        <div class="btn-group btn-group-xs label-capacity-rollback">
-          <a {{action 'rollbackProp' 'capacity' label}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
-        </div>
-      {{/if}}
+      {{#unless isAccessDisabled}}
+        {{#if isLabelCapacityDirty}}
+          <div class="btn-group btn-group-xs label-capacity-rollback">
+            <a {{action 'rollbackProp' 'capacity' label}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+          </div>
+        {{/if}}
+      {{/unless}}
     </div>
     <div class="col-md-4 col-sm-4">
       <div {{bind-attr class=":form-group :input-group :label-capacity-input isInvalidLabelMaxCapacity:has-error"}}>
-        {{max-capacity-input class='input-sm' value=label.maximum_capacity maxVal=100 disabled=isAccessDisabled}}
+        {{decimal-maxcapacity-input class='input-sm' value=label.maximum_capacity maxVal=100 disabled=isAccessDisabled}}
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">
-        {{input-range min="0" max="100" step="1" value=label.maximum_capacity class="input-sm"}}
+        {{decimal-input-range min="0" max="100" step="0.01" value=label.maximum_capacity class="input-sm" disabled=isAccessDisabled}}
       </div>
-      {{#if isLabelMaxCapacityDirty}}
-        <div class="btn-group btn-group-xs label-capacity-rollback">
-          <a {{action 'rollbackProp' 'maximum_capacity' label}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
-        </div>
-      {{/if}}
+      {{#unless isAccessDisabled}}
+        {{#if isLabelMaxCapacityDirty}}
+          <div class="btn-group btn-group-xs label-capacity-rollback">
+            <a {{action 'rollbackProp' 'maximum_capacity' label}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+          </div>
+        {{/if}}
+      {{/unless}}
       {{#if isInvalidLabelMaxCapacity}}
         <div class="label-maxcapacity-error">
-          <span class="text-danger">Maximum capacity must be greater than or equal to capacity</span>
+          <small class="text-danger">Maximum capacity must be greater than or equal to capacity</small>
         </div>
       {{/if}}
     </div>

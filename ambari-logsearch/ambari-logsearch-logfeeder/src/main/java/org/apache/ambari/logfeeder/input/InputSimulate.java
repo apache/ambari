@@ -18,27 +18,32 @@
  */
 package org.apache.ambari.logfeeder.input;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
-public class InputSimulate extends Input {
+import com.google.common.base.Joiner;
 
-  private static final String LOG_MESSAGE_PREFIX = "Simulated log message for testing, line";
-  
-  private static final String LOG_TEXT_PATTERN =
-      "{ logtime=\"%d\", level=\"%s\", log_message=\"<LOG_MESSAGE_PATTERN>\"}";
+public class InputSimulate extends Input {
+  private static final Logger LOG = Logger.getLogger(InputSimulate.class);
+
+  private static final String LOG_TEXT_PATTERN = "{ logtime=\"%d\", level=\"%s\", log_message=\"%s\", host=\"%s\"}";
   
   private static final Map<String, String> typeToFilePath = new HashMap<>();
   public static void loadTypeToFilePath(List<Map<String, Object>> inputList) {
@@ -51,22 +56,36 @@ public class InputSimulate extends Input {
   
   private static final Map<String, Integer> typeToLineNumber = new HashMap<>();
   
+  private static final AtomicInteger hostNumber = new AtomicInteger(0);
+  
+  private static final List<Output> simulateOutputs = new ArrayList<>();
+  public static List<Output> getSimulateOutputs() {
+    return simulateOutputs;
+  }
+  
   private final Random random = new Random(System.currentTimeMillis());
   
   private final List<String> types;
   private final String level;
-  private final String logText;
+  private final int numberOfWords;
+  private final int minLogWords;
+  private final int maxLogWords;
   private final long sleepMillis;
+  private final String host;
   
   public InputSimulate() throws Exception {
     this.types = getSimulatedLogTypes();
     this.level = LogFeederUtil.getStringProperty("logfeeder.simulate.log_level", "WARN");
-    this.logText = getLogText();
+    this.numberOfWords = LogFeederUtil.getIntProperty("logfeeder.simulate.number_of_words", 1000, 50, 1000000);
+    this.minLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.min_log_words", 5, 1, 10);
+    this.maxLogWords = LogFeederUtil.getIntProperty("logfeeder.simulate.max_log_words", 10, 10, 20);
     this.sleepMillis = LogFeederUtil.getIntProperty("logfeeder.simulate.sleep_milliseconds", 10000);
+    this.host = "#" + hostNumber.incrementAndGet() + "-" + LogFeederUtil.hostName;
     
     Filter filter = new FilterJSON();
+    filter.loadConfig(Collections.<String, Object> emptyMap());
     filter.setInput(this);
-    setFirstFilter(filter);
+    addFilter(filter);
   }
   
   private List<String> getSimulatedLogTypes() {
@@ -80,40 +99,40 @@ public class InputSimulate extends Input {
     }
   }
 
-  private String getLogText() {
-    int logTextSize = LogFeederUtil.getIntProperty("logfeeder.simulate.log_message_size", 100);
-    int fillerSize = Math.max(logTextSize - LOG_MESSAGE_PREFIX.length() - 10, 0);
-    String filler = StringUtils.repeat("X", fillerSize);
-    String logMessagePattern = LOG_MESSAGE_PREFIX + " %08d " + filler;
-    
-    return LOG_TEXT_PATTERN.replaceAll("<LOG_MESSAGE_PATTERN>", logMessagePattern);
-  }
-  
   @Override
-  public String getNameForThread() {
-    return "Simulated input";
+  public void addOutput(Output output) {
+    try {
+      Class<? extends Output> clazz = output.getClass();
+      Output outputCopy = clazz.newInstance();
+      outputCopy.loadConfig(output.getConfigs());
+      simulateOutputs.add(outputCopy);
+      super.addOutput(outputCopy);
+    } catch (Exception e) {
+      LOG.warn("Could not copy Output class " + output.getClass() + ", using original output");
+      super.addOutput(output);
+    }
   }
 
   @Override
-  public String getShortDescription() {
-    return "Simulated input";
+  public boolean isReady() {
+    return true;
   }
-  
+
   @Override
   void start() throws Exception {
     if (types.isEmpty())
       return;
     
-    getFirstFilter().setOutputMgr(outputMgr);
+    getFirstFilter().setOutputManager(outputManager);
     while (true) {
       String type = imitateRandomLogFile();
       
+      String line = getLine();
       InputMarker marker = getInputMarker(type);
-      String line = getLine(marker);
       
       outputLine(line, marker);
       
-      try { Thread.sleep(sleepMillis); } catch(Exception e) {}
+      try { Thread.sleep(sleepMillis); } catch(Exception e) { /* Ignore */ }
     }
   }
 
@@ -129,10 +148,7 @@ public class InputSimulate extends Input {
   }
 
   private InputMarker getInputMarker(String type) throws Exception {
-    InputMarker marker = new InputMarker();
-    marker.input = this;
-    marker.lineNumber = getLineNumber(type);
-    marker.base64FileKey = getBase64FileKey();
+    InputMarker marker = new InputMarker(this, getBase64FileKey(), getLineNumber(type));
     return marker;
   }
 
@@ -147,12 +163,43 @@ public class InputSimulate extends Input {
   }
 
   private String getBase64FileKey() throws Exception {
-    String fileKey = Inet4Address.getLocalHost().getHostAddress() + "|" + filePath;
+    String fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + filePath;
     return Base64.byteArrayToBase64(fileKey.getBytes());
   }
 
-  private String getLine(InputMarker marker) {
+  private String getLine() {
     Date d = new Date();
-    return String.format(logText, d.getTime(), level, marker.lineNumber);
+    String logMessage = createLogMessage();
+    return String.format(LOG_TEXT_PATTERN, d.getTime(), level, logMessage, host);
+  }
+  
+  private String createLogMessage() {
+    int logMessageLength = minLogWords + random.nextInt(maxLogWords - minLogWords + 1);
+    Set<Integer> words = new TreeSet<>();
+    List<String> logMessage = new ArrayList<>();
+    while (words.size() < logMessageLength) {
+      int word = random.nextInt(numberOfWords);
+      if (words.add(word)) {
+        logMessage.add(String.format("Word%06d", word));
+      }
+    }
+    
+    return Joiner.on(' ').join(logMessage);
+  }
+
+  @Override
+  public void checkIn(InputMarker inputMarker) {}
+
+  @Override
+  public void lastCheckIn() {}
+  
+  @Override
+  public String getNameForThread() {
+    return "Simulated input";
+  }
+
+  @Override
+  public String getShortDescription() {
+    return "Simulated input";
   }
 }

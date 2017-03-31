@@ -198,7 +198,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       }, this);
       this.setDBProperty('services', services);
     }
-    App.store.commit();
+    App.store.fastCommit();
     this.set('serviceToInstall', null);
     this.set('content.services', stackServices);
     var self = this;
@@ -467,7 +467,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   installSelectedServices: function (callback) {
     var name = 'common.services.update';
     var selectedServices = this.get('content.services').filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
-    var data = this.generateDataForInstallServices(selectedServices);
+    var dependentServices = this.getServicesBySelectedSlaves();
+    var data = this.generateDataForInstallServices(selectedServices.concat(dependentServices));
     this.installServicesRequest(name, data, callback.bind(this));
   },
 
@@ -480,6 +481,23 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     }).then(callback, callback);
+  },
+
+  /**
+   * return list of services by selected and not installed slave components
+   * @returns {Array}
+   */
+  getServicesBySelectedSlaves: function () {
+    var result = [];
+    this.get('content.slaveComponentHosts').forEach(function (slaveComponent) {
+      if (slaveComponent.hosts.someProperty('isInstalled', false)) {
+        var stackComponent = App.StackServiceComponent.find().findProperty('componentName', slaveComponent.componentName);
+        if (stackComponent) {
+          result.push(stackComponent.get('serviceName'));
+        }
+      }
+    });
+    return result.uniq();
   },
 
   /**

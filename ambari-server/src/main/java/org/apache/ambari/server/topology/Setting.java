@@ -45,6 +45,27 @@ public class Setting {
   public static final String SETTING_NAME_NAME = "name";
 
   /**
+   * When specified under the "service_settings" section, it indicates whether credential store
+   * use is enabled for that service. Value is "true" or "false". Specify a value of "true"
+   * only if the stack definition for the service has a credential_store_supported value of "true".
+   * If credential_store_enabled is not specified, value will be taken as null and default value
+   * will be picked up from the stack definition, if available.
+   *   <pre>
+   *     {@code
+   *       {
+   *         "service_settings" : [
+   *           { "name" : "RANGER",
+   *             "recovery_enabled" : "true",
+   *             "credential_store_enabled" : "true"
+   *           },
+   *           :
+   *       }
+   *     }
+   *   </pre>
+   */
+  public static final String SETTING_NAME_CREDENTIAL_STORE_ENABLED = "credential_store_enabled";
+
+  /**
    * Settings.
    *
    * @param properties  setting name-->Set(property name-->property value)

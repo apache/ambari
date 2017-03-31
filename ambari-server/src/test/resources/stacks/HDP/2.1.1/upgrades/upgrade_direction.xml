@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.5</target-stack>
   <type>ROLLING</type>
@@ -49,7 +49,7 @@
     </group>
     
     <group xsi:type="cluster" name="PRE_POST_CLUSTER" title="Run on All">
-      <execute-stage title="Host Finalize" service="HDFS" component="NAMENODE" >
+      <execute-stage title="Host Finalize" service="HDFS" component="NAMENODE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/ru_run_all.py</script>
           <function>actionexecute</function>
@@ -65,14 +65,14 @@
         </task>
       </execute-stage>
       
-      <execute-stage title="NameNode Finalize" service="HDFS" component="NAMENODE" >
+      <execute-stage title="NameNode Finalize" service="HDFS" component="NAMENODE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>actionexecute</function>
         </task>
       </execute-stage>      
       
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
@@ -88,12 +88,17 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        
+        <pre-downgrade copy-upgrade="true" />
+        
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" />
+          <task xsi:type="configure" id="foo" />
         </post-upgrade>
+        
+        <post-downgrade copy-upgrade="true" />
       </component>
     </service>
   </processing>

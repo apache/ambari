@@ -19,7 +19,7 @@
 package org.apache.ambari.view.huetoambarimigration.migration.hive.historyquery;
 
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.hive.historyqueryset.QuerySetAmbariDB;
-import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset.QuerySet;
+import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.hive.historyqueryset.QuerySetHueDB;
 import org.apache.ambari.view.huetoambarimigration.migration.configuration.ConfigurationCheckImplementation;
 import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.HiveModel;
 import org.apache.hadoop.conf.Configuration;
@@ -45,10 +45,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.net.URI;
 
 public class HiveHistoryQueryMigrationImplementation {
 
   static final Logger logger = Logger.getLogger(HiveHistoryQueryMigrationImplementation.class);
+  final String USER_DIRECTORY = "/user";
 
   public void wrtitetoalternatesqlfile(String dirname, String content, String instance, int i) throws IOException {
 
@@ -130,18 +132,18 @@ public class HiveHistoryQueryMigrationImplementation {
   }
 
 
-  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase, String versionName, String username) throws SQLException, IOException {
+  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase, String versionName, String username, String jobStatus) throws SQLException, IOException {
 
     String maxcount1 = Integer.toString(maxcount);
     String epochtime1 = Long.toString(epochtime);
     PreparedStatement prSt = null;
     String revsql = null;
-    if (versionName.contains("1.5")) {
-      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username);
-    }
     if (versionName.contains("1.0")) {
-      prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username);
+      prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username, jobStatus);
+    } else {
+      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username, jobStatus);
     }
+
     logger.info("The actual insert statement is " + prSt);
     prSt.executeUpdate();
     revsql = ambaridatabase.revertSql(id, maxcount1);
@@ -258,7 +260,7 @@ public class HiveHistoryQueryMigrationImplementation {
 
   }
 
-  public ArrayList<HiveModel> fetchFromHue(String username, String startdate, String endtime, Connection connection, QuerySet huedatabase) throws ClassNotFoundException, SQLException {
+  public ArrayList<HiveModel> fetchFromHue(String username, String startdate, String endtime, Connection connection, QuerySetHueDB huedatabase) throws ClassNotFoundException, SQLException, IOException {
     int id = 0;
     int i = 0;
     ArrayList<HiveModel> hiveArrayList = new ArrayList<HiveModel>();
@@ -268,11 +270,13 @@ public class HiveHistoryQueryMigrationImplementation {
       connection.setAutoCommit(false);
       PreparedStatement prSt = null;
       Statement statement = connection.createStatement();
-      String query;
+      String query, ownerName = "";
       ResultSet rs;
+      int ownerId, jobState;
 
       ResultSet rs1 = null;
       if (username.equals("all")) {
+
       } else {
 
 
@@ -320,7 +324,18 @@ public class HiveHistoryQueryMigrationImplementation {
 
       while (rs1.next()) {
         HiveModel hivepojo = new HiveModel();
+        jobState = rs1.getInt("last_state");
+        ownerId = rs1.getInt("owner_id");
+        if(username.equals("all")) {
+          prSt = huedatabase.getUserName(connection, ownerId);
+          ResultSet resultSet = prSt.executeQuery();
+          while(resultSet.next()) {
+            ownerName = resultSet.getString("username");
+          }
+        }
         query = rs1.getString("query");
+        hivepojo.setJobStatus(jobState);
+        hivepojo.setOwnerName(ownerName);
         hivepojo.setQuery(query);
         hiveArrayList.add(hivepojo);
         i++;
@@ -436,11 +451,17 @@ public class HiveHistoryQueryMigrationImplementation {
 
         public Boolean run() throws Exception {
 
+          URI uri = new URI(dir);
           FileSystem fs = FileSystem.get(conf);
-
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
+
+          String[] subDirs = dir.split("/");
+          String dirPath = USER_DIRECTORY;
+          for(int i=2;i<subDirs.length;i++) {
+            dirPath += "/"+subDirs[i];
+            fs.setOwner(new Path(dirPath), username, username);
+          }
           return b;
         }
       });
@@ -470,10 +491,17 @@ public class HiveHistoryQueryMigrationImplementation {
       ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
         public Boolean run() throws Exception {
+          URI uri = new URI(dir);
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
-          fs.setOwner(src,username,"hadoop");
+
+          String[] subDirs = dir.split("/");
+          String dirPath = USER_DIRECTORY;
+          for(int i=2;i<subDirs.length;i++) {
+            dirPath += "/"+subDirs[i];
+            fs.setOwner(new Path(dirPath), username, username);
+          }
           return b;
         }
       });
@@ -514,9 +542,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
 
           Path path = new Path(dest1);
-          if (fileSystem.exists(path)) {
 
-          }
           //	Path pathsource = new Path(source);
           FSDataOutputStream out = fileSystem.create(path);
 
@@ -530,7 +556,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, username);
           fileSystem.close();
           return null;
         }
@@ -576,9 +602,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
 
           Path path = new Path(dest1);
-          if (fileSystem.exists(path)) {
 
-          }
 
           FSDataOutputStream out = fileSystem.create(path);
 
@@ -592,7 +616,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
           in.close();
           out.close();
-          fileSystem.setOwner(path,username,"hadoop");
+          fileSystem.setOwner(path, username, username);
           fileSystem.close();
           return null;
         }

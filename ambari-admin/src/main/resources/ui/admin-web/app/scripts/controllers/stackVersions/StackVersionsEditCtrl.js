@@ -57,10 +57,10 @@ angular.module('ambariAdminConsole')
       //save default values of repos to check if they were changed
       $scope.defaulfOSRepos = {};
       response.updateObj.operating_systems.forEach(function(os) {
-        $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {
-          defaultBaseUrl: os.repositories[0].Repositories.base_url,
-          defaultUtilsUrl: os.repositories[1].Repositories.base_url
-        };
+        $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {};
+        os.repositories.forEach(function(repo) {
+          $scope.defaulfOSRepos[os.OperatingSystems.os_type][repo.Repositories.repo_id] = repo.Repositories.base_url;
+        });
       });
       $scope.repoVersionFullName = response.repoVersionFullName;
       angular.forEach(response.osList, function (os) {
@@ -145,8 +145,13 @@ angular.module('ambariAdminConsole')
       os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
       if (os.selected) {
         var currentRepos = os.repositories;
-        if (!savedUrls || currentRepos[0].Repositories.base_url != savedUrls.defaultBaseUrl
-            || currentRepos[1].Repositories.base_url != savedUrls.defaultUtilsUrl) {
+        var urlChanged = false;
+        angular.forEach(currentRepos, function (repo) {
+          if (repo.Repositories.base_url != savedUrls[repo.Repositories.repo_id]) {
+            urlChanged = true;
+          }
+        });
+        if (!savedUrls || urlChanged) {
           updateRepoUrl = true;
         }
         $scope.updateObj.operating_systems.push(os);

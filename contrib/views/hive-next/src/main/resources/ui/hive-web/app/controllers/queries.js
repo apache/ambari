@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,7 +60,8 @@ export default Ember.ArrayController.extend(FilterableMixin, {
   //row buttons
   links: [
     "buttons.history",
-    "buttons.delete"
+    "buttons.delete",
+    "buttons.downloadQuery"
   ],
 
   model: function () {
@@ -91,6 +92,25 @@ export default Ember.ArrayController.extend(FilterableMixin, {
             self.get('openQueries').updatedDeletedQueryTab(savedQuery);
           });
 
+          break;
+        case "buttons.downloadQuery":
+          var self = this,
+          defer = Ember.RSVP.defer();
+          this.send('openModal', 
+                    'modal-save', 
+                    {
+                       heading: "modals.downloadQuery.heading",
+                       text: savedQuery.get('title')+".hql",
+                       defer: defer
+                    });
+          defer.promise.then(function (text) {
+            var adapter = self.container.lookup('adapter:application').buildURL();
+            var a = document.createElement('a');
+            a.href = adapter + '/savedQueries/' + savedQuery.get('id') + '?op=download';
+            a.download = text;
+            document.body.appendChild(a);
+            a.click();
+          });
           break;
       }
     },

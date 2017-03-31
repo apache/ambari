@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -39,7 +40,10 @@ import com.google.inject.Singleton;
  * is properly configured for dynamic discovery.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 20.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.DEFAULT,
+    order = 20.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING })
 public class HiveDynamicServiceDiscoveryCheck extends AbstractCheckDescriptor {
 
   static final String HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY = "hive.dynamic-service.discovery.enabled.key";

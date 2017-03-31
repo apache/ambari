@@ -389,7 +389,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
 
     return App.ModalPopup.show({
 
-      classNames: [ 'sixty-percent-width-modal' ],
+      classNames: ['sixty-percent-width-modal', 'full-height-modal'],
 
       header: popupDescription.header,
 

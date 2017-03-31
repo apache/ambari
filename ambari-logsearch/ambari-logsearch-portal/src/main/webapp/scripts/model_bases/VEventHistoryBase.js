@@ -27,7 +27,7 @@ define(['require',
     var VEventHistory = BaseModel.extend(
         /** @lends VEventHistory.prototype */
         {
-            urlRoot: Globals.baseURL + 'dashboard/aggregatedData',
+            urlRoot: Globals.baseURL + 'service/logs/aggregated',
 
             defaults: {},
 

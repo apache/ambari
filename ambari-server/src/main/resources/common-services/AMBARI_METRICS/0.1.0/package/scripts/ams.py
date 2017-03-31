@@ -239,7 +239,7 @@ def ams(name=None, action=None):
            mode=0644,
            group=params.user_group,
            owner=params.ams_user,
-           content=params.log4j_props
+           content=InlineTemplate(params.log4j_props)
       )
 
     File(format("{ams_collector_conf_dir}/ams-env.sh"),
@@ -361,9 +361,13 @@ def ams(name=None, action=None):
               create_parents = True
     )
 
+    Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}")
+            )
+
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
+              cd_access="a",
               mode=0755,
               create_parents = True
     )
@@ -414,6 +418,7 @@ def ams(name=None, action=None):
                 owner=params.ams_user,
                 group=params.user_group,
                 mode=0755,
+                create_parents = True,
                 recursive_ownership = True
                 )
 
@@ -455,7 +460,7 @@ def export_ca_certs(dir_path):
 
   if (params.metric_truststore_type.lower() == 'jks'):
     # Convert truststore from JKS to PKCS12
-    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
+    cmd = format("{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -srcalias {metric_truststore_alias} -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}")
     Execute(cmd,
     )
     truststore = truststore_p12
@@ -464,9 +469,12 @@ def export_ca_certs(dir_path):
   cmd = format("{sudo} openssl pkcs12 -in {truststore} -out {ca_certs_path} -cacerts -nokeys -passin pass:{metric_truststore_password}")
   Execute(cmd,
   )
-  Execute(('chown', params.ams_user, ca_certs_path),
+  Execute(('chown', format('{ams_user}:{user_group}'), ca_certs_path),
           sudo=True
   )
+  Execute(('chmod', '644', ca_certs_path),
+          sudo = True,
+          )
   Execute(format('{sudo} rm -rf {tmpdir}')
   )
 

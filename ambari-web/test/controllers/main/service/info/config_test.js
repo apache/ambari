@@ -38,6 +38,8 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   beforeEach(function () {
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
+    sinon.stub(App.router.get('mainController'), 'startPolling');
+    sinon.stub(App.router.get('mainController'), 'stopPolling');
     mainServiceInfoConfigsController = getController();
   });
 
@@ -45,6 +47,8 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   afterEach(function() {
     App.themesMapper.generateAdvancedTabs.restore();
+    App.router.get('mainController').startPolling.restore();
+    App.router.get('mainController').stopPolling.restore();
   });
 
   describe("#getHash", function () {
@@ -256,12 +260,14 @@ describe("App.MainServiceInfoConfigsController", function () {
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
       });
+      sinon.stub(mainServiceInfoConfigsController, 'trackRequest');
     });
 
     afterEach(function () {
       mainServiceInfoConfigsController.get.restore();
       mainServiceInfoConfigsController.restartServicePopup.restore();
       mainServiceInfoConfigsController.getHash.restore();
+      mainServiceInfoConfigsController.trackRequest.restore();
     });
 
     tests.forEach(function (t) {
@@ -529,20 +535,23 @@ describe("App.MainServiceInfoConfigsController", function () {
     beforeEach(function () {
       sinon.stub(Em.run, 'once', Em.K);
       sinon.stub(mainServiceInfoConfigsController, 'loadSelectedVersion');
-      sinon.stub(mainServiceInfoConfigsController, 'clearRecommendationsInfo');
+      sinon.spy(mainServiceInfoConfigsController, 'clearRecommendations');
+      mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
+      mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
+      mainServiceInfoConfigsController.doCancel();
     });
     afterEach(function () {
       Em.run.once.restore();
       mainServiceInfoConfigsController.loadSelectedVersion.restore();
-      mainServiceInfoConfigsController.clearRecommendationsInfo.restore();
+      mainServiceInfoConfigsController.clearRecommendations.restore();
+    });
+
+    it("should launch recommendations cleanup", function() {
+      expect(mainServiceInfoConfigsController.clearRecommendations.calledOnce).to.be.true;
     });
 
     it("should clear dependent configs", function() {
-      mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
-      mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
-      mainServiceInfoConfigsController.doCancel();
       expect(App.isEmptyObject(mainServiceInfoConfigsController.get('recommendations'))).to.be.true;
-      expect(mainServiceInfoConfigsController.clearRecommendationsInfo.calledOnce).to.be.true;
     });
   });
 
@@ -819,9 +828,86 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
     });
     it("should set requestsInProgress", function () {
+      var dfd = $.Deferred();
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
-      mainServiceInfoConfigsController.trackRequest({'request': {}});
-      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({'request': {}});
+      mainServiceInfoConfigsController.trackRequest(dfd);
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql(
+        {
+          request: dfd,
+          id: 0,
+          status: 'pending',
+          completed: false
+        }
+      );
+    });
+    it('should update request status when it become resolved', function() {
+      var request = $.Deferred();
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+      mainServiceInfoConfigsController.trackRequest(request);
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({
+        request: request,
+        id: 0,
+        status: 'pending',
+        completed: false
+      });
+      request.resolve();
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')[0]).to.eql({
+        request: request,
+        id: 0,
+        status: 'resolved',
+        completed: true
+      });
+    });
+  });
+
+  describe('#trackRequestChain', function() {
+    beforeEach(function() {
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+    });
+    it('should set 2 requests in to requestsInProgress list', function() {
+      mainServiceInfoConfigsController.trackRequestChain($.Deferred());
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(2);
+    });
+    it('should update status for both requests when tracked requests become resolved', function() {
+      var request = $.Deferred(),
+          requests;
+      mainServiceInfoConfigsController.trackRequestChain(request);
+      requests = mainServiceInfoConfigsController.get('requestsInProgress');
+      assert.deepEqual(requests.mapProperty('status'), ['pending', 'pending'], 'initial statuses');
+      assert.deepEqual(requests.mapProperty('completed'), [false, false], 'initial completed');
+      request.reject();
+      assert.deepEqual(requests.mapProperty('status'), ['rejected', 'resolved'], 'update status when rejected');
+      assert.deepEqual(requests.mapProperty('completed'), [true, true], 'initial complete are false');
+    });
+  });
+
+  describe('#abortRequests', function() {
+    beforeEach(function() {
+      mainServiceInfoConfigsController.get('requestsInProgress').clear();
+    });
+    it('should clear requests when abort called', function() {
+      mainServiceInfoConfigsController.trackRequest($.Deferred());
+      mainServiceInfoConfigsController.abortRequests();
+      expect(mainServiceInfoConfigsController.get('requestsInProgress')).to.have.length(0);
+    });
+    it('should abort requests which are not finished', function() {
+      var pendingRequest = {
+        abort: sinon.spy(),
+        readyState: 0,
+        state: sinon.spy(),
+        always: sinon.spy()
+      };
+      var finishedRequest = {
+        abort: sinon.spy(),
+        readyState: 4,
+        state: sinon.spy(),
+        always: sinon.spy()
+      };
+      mainServiceInfoConfigsController.trackRequest(pendingRequest);
+      mainServiceInfoConfigsController.trackRequest(finishedRequest);
+      mainServiceInfoConfigsController.abortRequests();
+      expect(pendingRequest.abort.calledOnce).to.be.true;
+      expect(finishedRequest.abort.calledOnce).to.be.false;
     });
   });
 
@@ -962,4 +1048,49 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
+  describe('#getServicesDependencies', function() {
+    var createService = function(serviceName, dependencies) {
+      return Em.Object.create({
+        serviceName: serviceName,
+        dependentServiceNames: dependencies || []
+      });
+    };
+    var stackServices = [
+      createService('STORM', ['RANGER', 'ATLAS', 'ZOOKEEPER']),
+      createService('RANGER', ['HIVE', 'HDFS']),
+      createService('HIVE', ['YARN']),
+      createService('ZOOKEEPER', ['HDFS']),
+      createService('ATLAS'),
+      createService('HDFS', ['ZOOKEEPER']),
+      createService('YARN', ['HIVE'])
+    ];
+    beforeEach(function() {
+      sinon.stub(App.StackService, 'find', function(serviceName) {
+        return stackServices.findProperty('serviceName', serviceName);
+      });
+    });
+    afterEach(function() {
+      App.StackService.find.restore();
+    });
+
+    it('should returns all service dependencies STORM service', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('STORM');
+      expect(result).to.be.eql(['RANGER', 'ATLAS', 'ZOOKEEPER', 'HIVE', 'HDFS', 'YARN']);
+    });
+
+    it('should returns all service dependencies for ATLAS', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('ATLAS');
+      expect(result).to.be.eql([]);
+    });
+
+    it('should returns all service dependencies for RANGER', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('RANGER');
+      expect(result).to.be.eql(['HIVE', 'HDFS', 'YARN', 'ZOOKEEPER']);
+    });
+
+    it('should returns all service dependencies for YARN', function() {
+      var result = mainServiceInfoConfigsController.getServicesDependencies('YARN');
+      expect(result).to.be.eql(['HIVE']);
+    });
+  });
 });

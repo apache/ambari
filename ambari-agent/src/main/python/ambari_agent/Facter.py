@@ -53,10 +53,18 @@ def run_os_command(cmd):
 
 
 class Facter(object):
-  def __init__(self):
-    self.config = self.resolve_ambari_config()
-  
+  def __init__(self, config):
+    """
+    Initialize the configs, which can be provided if using multiple Agents per host.
+    :param config: Agent configs. None if will use the default location.
+    """
+    self.config = config if config is not None else self.resolve_ambari_config()
+
   def resolve_ambari_config(self):
+    """
+    Resolve the default Ambari Agent configs.
+    :return: The default configs.
+    """
     try:
       config = AmbariConfig()
       if os.path.exists(AmbariConfig.getConfigFile()):
@@ -196,41 +204,57 @@ class Facter(object):
         log.info("'system_resource_dir' is not set - it won't be used for gathering system resources.")
     return systemResources
 
+  def getFqdn(self):
+    raise NotImplementedError()
+
+  def getNetmask(self):
+    raise NotImplementedError()
+
+  def getInterfaces(self):
+    raise NotImplementedError()
+
+  def getUptimeSeconds(self):
+    raise NotImplementedError()
+
+  def getMemorySize(self):
+    raise NotImplementedError()
+
+  def getMemoryFree(self):
+    raise NotImplementedError()
+
+  def getMemoryTotal(self):
+    raise NotImplementedError()
 
   def facterInfo(self):
-    facterInfo = {}
-    facterInfo['id'] = self.getId()
-    facterInfo['kernel'] = self.getKernel()
-    facterInfo['domain'] = self.getDomain()
-    facterInfo['fqdn'] = self.getFqdn()
-    facterInfo['hostname'] = self.getHostname()
-    facterInfo['macaddress'] = self.getMacAddress()
-    facterInfo['architecture'] = self.getArchitecture()
-    facterInfo['operatingsystem'] = self.getOperatingSystem()
-    facterInfo['operatingsystemrelease'] = self.getOperatingSystemRelease()
-    facterInfo['physicalprocessorcount'] = self.getProcessorcount()
-    facterInfo['processorcount'] = self.getProcessorcount()
-    facterInfo['timezone'] = self.getTimeZone()
-    facterInfo['hardwareisa'] = self.getArchitecture()
-    facterInfo['hardwaremodel'] = self.getArchitecture()
-    facterInfo['kernelrelease'] = self.getKernelRelease()
-    facterInfo['kernelversion'] = self.getKernelVersion()
-    facterInfo['osfamily'] = self.getOsFamily()
-    facterInfo['kernelmajversion'] = self.getKernelMajVersion()
-
-    facterInfo['ipaddress'] = self.getIpAddress()
-    facterInfo['netmask'] = self.getNetmask()
-    facterInfo['interfaces'] = self.getInterfaces()
-
-    facterInfo['uptime_seconds'] = str(self.getUptimeSeconds())
-    facterInfo['uptime_hours'] = str(self.getUptimeHours())
-    facterInfo['uptime_days'] = str(self.getUptimeDays())
-
-    facterInfo['memorysize'] = self.getMemorySize()
-    facterInfo['memoryfree'] = self.getMemoryFree()
-    facterInfo['memorytotal'] = self.getMemoryTotal()
-
-    return facterInfo
+    return {
+      'id': self.getId(),
+      'kernel': self.getKernel(),
+      'domain': self.getDomain(),
+      'fqdn': self.getFqdn(),
+      'hostname': self.getHostname(),
+      'macaddress': self.getMacAddress(),
+      'architecture': self.getArchitecture(),
+      'operatingsystem': self.getOperatingSystem(),
+      'operatingsystemrelease': self.getOperatingSystemRelease(),
+      'physicalprocessorcount': self.getProcessorcount(),
+      'processorcount': self.getProcessorcount(),
+      'timezone': self.getTimeZone(),
+      'hardwareisa': self.getArchitecture(),
+      'hardwaremodel': self.getArchitecture(),
+      'kernelrelease': self.getKernelRelease(),
+      'kernelversion': self.getKernelVersion(),
+      'osfamily': self.getOsFamily(),
+      'kernelmajversion': self.getKernelMajVersion(),
+      'ipaddress': self.getIpAddress(),
+      'netmask': self.getNetmask(),
+      'interfaces': self.getInterfaces(),
+      'uptime_seconds': str(self.getUptimeSeconds()),
+      'uptime_hours': str(self.getUptimeHours()),
+      'uptime_days': str(self.getUptimeDays()),
+      'memorysize': self.getMemorySize(),
+      'memoryfree': self.getMemoryFree(),
+      'memorytotal': self.getMemoryTotal()
+    }
 
   #Convert kB to GB
   @staticmethod
@@ -351,15 +375,18 @@ class FacterLinux(Facter):
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
   GET_IFCONFIG_SHORT_CMD = "ifconfig -s"
+  GET_IP_LINK_CMD = "ip link"
   GET_UPTIME_CMD = "cat /proc/uptime"
   GET_MEMINFO_CMD = "cat /proc/meminfo"
 
-  def __init__(self):
-    super(FacterLinux,self).__init__()
+  def __init__(self, config):
+    super(FacterLinux,self).__init__(config)
     self.DATA_IFCONFIG_SHORT_OUTPUT = FacterLinux.setDataIfConfigShortOutput()
+    self.DATA_IP_LINK_OUTPUT = FacterLinux.setDataIpLinkOutput()
     self.DATA_UPTIME_OUTPUT = FacterLinux.setDataUpTimeOutput()
     self.DATA_MEMINFO_OUTPUT = FacterLinux.setMemInfoOutput()
 
+  # Returns the output of `ifconfig -s` command
   @staticmethod
   def setDataIfConfigShortOutput():
 
@@ -368,6 +395,17 @@ class FacterLinux(Facter):
       return result
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_IFCONFIG_SHORT_CMD))
+    return ""
+
+  # Returns the output of `ip link` command
+  @staticmethod
+  def setDataIpLinkOutput():
+
+    try:
+      result = os.popen(FacterLinux.GET_IP_LINK_CMD).read()
+      return result
+    except OSError:
+      log.warn("Can't execute {0}".format(FacterLinux.GET_IP_LINK_CMD))
     return ""
 
   @staticmethod
@@ -414,6 +452,14 @@ class FacterLinux(Facter):
     result = re.sub(r',$', "", result)
     return result
 
+  def return_ifnames_from_ip_link(self, ip_link_output):
+    list = []
+    prog = re.compile("^\d")
+    for line in ip_link_output.splitlines():
+      if prog.match(line):
+        list.append(line.split()[1].rstrip(":"))
+    return ",".join(list)
+
   def data_return_first(self, patern, data):
     full_list = re.findall(patern, data)
     result = ""
@@ -428,13 +474,12 @@ class FacterLinux(Facter):
     import struct
     primary_ip = self.getIpAddress().strip()
 
-    for line in self.DATA_IFCONFIG_SHORT_OUTPUT.splitlines()[1:]:
-      if line.strip():
-        i = line.split()[0]
-        ip_address_by_ifname = self.get_ip_address_by_ifname(i.strip())
+    for ifname in self.getInterfaces().split(","):
+      if ifname.strip():
+        ip_address_by_ifname = self.get_ip_address_by_ifname(ifname)
         if ip_address_by_ifname is not None:
           if primary_ip == ip_address_by_ifname.strip():
-            return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', i))[20:24])
+            return socket.inet_ntoa(fcntl.ioctl(socket.socket(socket.AF_INET, socket.SOCK_DGRAM), 35099, struct.pack('256s', ifname))[20:24])
 
     return None
       
@@ -459,11 +504,16 @@ class FacterLinux(Facter):
   # Return interfaces
   def getInterfaces(self):
     result = self.return_first_words_from_list(self.DATA_IFCONFIG_SHORT_OUTPUT.splitlines()[1:])
-    if result == '':
-      log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_SHORT_OUTPUT))
-      return 'OS NOT SUPPORTED'
-    else:
+    # If the host has `ifconfig` command, then return that result.
+    if result != '':
       return result
+    # If the host has `ip` command, then return that result.
+    result = self.return_ifnames_from_ip_link(self.DATA_IP_LINK_OUTPUT)
+    if result != '':
+      return result
+    # If the host has neither `ifocnfig` command nor `ip` command, then return "OS NOT SUPPORTED"
+    log.warn("Can't get a network interfaces list from {0}".format(self.DATA_IFCONFIG_SHORT_OUTPUT))
+    return 'OS NOT SUPPORTED'
 
   # Return uptime seconds
   def getUptimeSeconds(self):
@@ -531,7 +581,8 @@ class FacterLinux(Facter):
 
 
 def main(argv=None):
-  print Facter().facterInfo()
+  config = None
+  print Facter(config).facterInfo()
 
 
 if __name__ == '__main__':

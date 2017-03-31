@@ -88,6 +88,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>The url on which Hue Exist</description>
     <label>Hue Database Password</label>
     <placeholder>Enter Password for Hue DB</placeholder>
+    <masked>true</masked>
   </parameter>
 
 
@@ -117,6 +118,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <description>The url on which Hue Exist</description>
     <label>Ambari Database Password</label>
     <placeholder>Enter Ambari DB Password</placeholder>
+    <masked>true</masked>
   </parameter>
 
   <parameter>

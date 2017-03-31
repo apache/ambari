@@ -858,7 +858,7 @@ public class ClusterControllerImpl implements ClusterController {
       if (compVal == 0) {
         Schema schema = getSchema(resourceType);
 
-        for (Type type : Type.values()) {
+        for (Type type : schema.getKeyTypes()) {
           String keyPropertyId = schema.getKeyPropertyId(type);
           if (keyPropertyId != null) {
             compVal = compareValues(resource1.getPropertyValue(keyPropertyId),

@@ -22,6 +22,9 @@ import optparse
 import sys
 import os
 import signal
+import logging
+import logging.handlers
+import logging.config
 
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import set_verbose, set_silent, \
@@ -32,11 +35,11 @@ from ambari_commons.os_utils import remove_file
 from ambari_server.BackupRestore import main as BackupRestore_main
 from ambari_server.dbConfiguration import DATABASE_NAMES, LINUX_DBMS_KEYS_LIST
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, PID_NAME
-from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
+from ambari_server.serverUtils import is_server_runing, refresh_stack_hash, wait_for_server_to_stop
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
-from ambari_server.setupMpacks import install_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
+from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from ambari_server.setupSso import setup_sso
 from ambari_server.dbCleanup import db_cleanup
@@ -46,16 +49,22 @@ from ambari_server.enableStack import enable_stack_version
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
-  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
+  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
+  UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
-  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
+  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, KERBEROS_SETUP_ACTION
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam
 from ambari_server.userInput import get_validated_string_input
+from ambari_server.kerberos_setup import setup_kerberos
 
 from ambari_server_main import server_process_main
 from ambari_server.ambariPath import AmbariPath
 
+logger = logging.getLogger()
+
+formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
+
+SERVER_STOP_TIMEOUT = 30
 
 class UserActionPossibleArgs(object):
   def __init__(self, i_fn, i_possible_args_numbers, *args, **kwargs):
@@ -111,12 +120,14 @@ def start(options):
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def start(args):
+  logger.info("Starting ambari-server.")
   status, pid = is_server_runing()
   if status:
     err = "Ambari Server is already running."
     raise FatalException(1, err)
 
   server_process_main(args)
+  logger.info("Started ambari-server.")
 
 
 #
@@ -146,6 +157,7 @@ def stop():
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def stop(args):
+  logger.info("Stopping ambari-server.")
   if (args != None):
     args.exit_message = None
 
@@ -155,13 +167,37 @@ def stop(args):
     try:
       os.kill(pid, signal.SIGTERM)
     except OSError, e:
-      print_info_msg("Unable to stop Ambari Server - " + str(e))
-      return
+      err = "Unable to stop Ambari Server - " + str(e)
+      print_info_msg(err)
+      raise FatalException(1, err)
+
+    print "Waiting for server stop..."
+    logger.info("Waiting for server stop...")
+
+    if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
+      err = "Ambari-server failed to stop"
+      print err
+      logger.error(err)
+      raise FatalException(1, err)
+
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
     print "Ambari Server stopped"
+    logger.info("Ambari Server stopped")
   else:
     print "Ambari Server is not running"
+    logger.info("Ambari Server is not running")
+
+
+#
+# Restarts the Ambari Server.
+#
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def restart(args):
+  logger.info("Restarting ambari-server.")
+  stop(args)
+  start(args)
+
 
 
 #
@@ -184,6 +220,7 @@ def status(args):
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def status(args):
+  logger.info("Get status of ambari-server.")
   args.exit_message = None
   status, pid = is_server_runing()
   pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
@@ -197,6 +234,7 @@ def status(args):
 
 
 def refresh_stack_hash_action():
+  logger.info("Refresh stack hash.")
   properties = get_ambari_properties()
   refresh_stack_hash(properties)
 
@@ -224,6 +262,7 @@ def create_setup_security_actions(args):
   return action_list
 
 def setup_security(args):
+  logger.info("Setup security.")
   actions = create_setup_security_actions(args)
   choice = None
   if args.security_option is not None:
@@ -269,6 +308,7 @@ def get_backup_path(args):
   return path
 
 def backup(args):
+  logger.info("Backup.")
   print "Backup requested."
   backup_command = ["BackupRestore", 'backup']
   path = get_backup_path(args)
@@ -278,6 +318,7 @@ def backup(args):
   BackupRestore_main(backup_command)
 
 def restore(args):
+  logger.info("Restore.")
   print "Restore requested."
   restore_command = ["BackupRestore", 'restore']
   path = get_backup_path(args)
@@ -286,6 +327,35 @@ def restore(args):
 
   BackupRestore_main(restore_command)
 
+_action_option_dependence_map = {
+}
+
+def add_parser_options(*args, **kwargs):
+  required_for_actions = kwargs.pop("required_for_actions", [])
+  optional_for_actions = kwargs.pop("optional_for_actions", [])
+  parser = kwargs.pop("parser")
+  for action in required_for_actions:
+    if not action in _action_option_dependence_map:
+      _action_option_dependence_map[action] = ([], [])
+    _action_option_dependence_map[action][0].append((args[0], kwargs["dest"]))
+  for action in optional_for_actions:
+    if not action in _action_option_dependence_map:
+      _action_option_dependence_map[action] = ([], [])
+    _action_option_dependence_map[action][1].append((args[0], kwargs["dest"]))
+  parser.add_option(*args, **kwargs)
+
+def print_action_arguments_help(action):
+    if action in _action_option_dependence_map:
+      required_options = _action_option_dependence_map[action][0]
+    optional_options = _action_option_dependence_map[action][1]
+    if required_options or optional_options:
+      print "Options used by action {0}:".format(action)
+    if required_options:
+      print "  required:{0}".format(
+          ";".join([print_opt for print_opt, _ in required_options]))
+    if optional_options:
+      print "  optional:{0}".format(
+            ";".join([print_opt for print_opt, _ in optional_options]))
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def init_parser_options(parser):
@@ -331,18 +401,47 @@ def init_parser_options(parser):
                     help="Specifies the path to the JDBC driver JAR file")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
-  parser.add_option('--mpack', default=None,
-                    help="Specified the path for management pack to be installed/upgraded",
-                    dest="mpack_path")
-  parser.add_option('--purge', action="store_true", default=False,
-                    help="Purge existing resources specified in purge-list",
-                    dest="purge")
+  parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
+  parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
+  add_parser_options('--mpack',
+      default=None,
+      help="Specify the path for management pack to be installed/upgraded",
+      dest="mpack_path",
+      parser=parser,
+      required_for_actions=[INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION]
+  )
+  add_parser_options('--mpack-name',
+      default=None,
+      help="Specify the management pack name to be uninstalled",
+      dest="mpack_name",
+      parser=parser,
+      required_for_actions=[UNINSTALL_MPACK_ACTION]
+  )
+  add_parser_options('--purge',
+      action="store_true",
+      default=False,
+      help="Purge existing resources specified in purge-list",
+      dest="purge",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
   purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
   default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
-  parser.add_option('--purge-list', default=default_purge_resources,
-                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
-                    dest="purge_list")
-  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
+  add_parser_options('--purge-list',
+      default=default_purge_resources,
+      help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+      dest="purge_list",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
+  add_parser_options('--force',
+      action="store_true",
+      default=False,
+      help="Force install management pack",
+      dest="force",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
   # -b and -i the remaining available short options
   # -h reserved for help
 
@@ -405,24 +504,53 @@ def init_parser_options(parser):
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
   parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
   parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
+  parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
+  parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
   parser.add_option('--stack', dest="stack_name", default=None, type="string",
                     help="Specify stack name for the stack versions that needs to be enabled")
   parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
-  parser.add_option('--mpack', default=None,
-                    help="Specified the path for management pack to be installed/upgraded",
-                    dest="mpack_path")
-  parser.add_option('--purge', action="store_true", default=False,
-                    help="Purge existing resources specified in purge-list",
-                    dest="purge")
+  add_parser_options('--mpack',
+      default=None,
+      help="Specify the path for management pack to be installed/upgraded",
+      dest="mpack_path",
+      parser=parser,
+      required_for_actions=[INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION]
+  )
+  add_parser_options('--mpack-name',
+      default=None,
+      help="Specify the management pack name to be uninstalled",
+      dest="mpack_name",
+      parser=parser,
+      required_for_actions=[UNINSTALL_MPACK_ACTION]
+  )
+  add_parser_options('--purge',
+      action="store_true",
+      default=False,
+      help="Purge existing resources specified in purge-list",
+      dest="purge",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
   purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
   default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
-  parser.add_option('--purge-list', default=default_purge_resources,
-                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
-                    dest="purge_list")
-  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
+  add_parser_options('--purge-list',
+      default=default_purge_resources,
+      help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+      dest="purge_list",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
+  add_parser_options('--force',
+      action="store_true",
+      default=False,
+      help="Force install management pack",
+      dest="force",
+      parser=parser,
+      optional_for_actions=[INSTALL_MPACK_ACTION]
+  )
 
   parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
   parser.add_option('--ldap-secondary-url', default=None, help="Secondary url for LDAP", dest="ldap_secondary_url")
@@ -441,6 +569,7 @@ def init_parser_options(parser):
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
   parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
+  parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
 
   parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
   parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
@@ -460,6 +589,14 @@ def init_parser_options(parser):
   parser.add_option('--master-key-persist', default=None, help="Persist master key [true/false]", dest="master_key_persist")
   parser.add_option('--jaas-principal', default=None, help="Kerberos principal for ambari server", dest="jaas_principal")
   parser.add_option('--jaas-keytab', default=None, help="Keytab path for Kerberos principal", dest="jaas_keytab")
+
+  parser.add_option('--kerberos-setup', default=None, help="Setup Kerberos Authentication", dest="kerberos_setup")
+  parser.add_option('--kerberos-enabled', default=False, help="Kerberos enabled", dest="kerberos_enabled")
+  parser.add_option('--kerberos-spnego-principal', default="HTTP/_HOST", help="Kerberos SPNEGO principal", dest="kerberos_spnego_principal")
+  parser.add_option('--kerberos-spnego-keytab-file', default="/etc/security/keytabs/spnego.service.keytab", help="Kerberos SPNEGO keytab file", dest="kerberos_spnego_keytab_file")
+  parser.add_option('--kerberos-spnego-user-types', default="LDAP", help="User type search order (comma-delimited)", dest="kerberos_user_types")
+  parser.add_option('--kerberos-auth-to-local-rules', default="DEFAULT", help="Auth-to-local rules", dest="kerberos_auth_to_local_rules")
+
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):
@@ -591,6 +728,7 @@ def create_user_action_map(args, options):
     REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
     SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
     INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
+    UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
     UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
   }
   return action_map
@@ -602,6 +740,7 @@ def create_user_action_map(args, options):
         SETUP_JCE_ACTION : UserActionPossibleArgs(setup_jce_policy, [2], args),
         START_ACTION: UserAction(start, options),
         STOP_ACTION: UserAction(stop, options),
+        RESTART_ACTION: UserAction(restart, options),
         RESET_ACTION: UserAction(reset, options),
         STATUS_ACTION: UserAction(status, options),
         UPGRADE_ACTION: UserAction(upgrade, options),
@@ -619,15 +758,53 @@ def create_user_action_map(args, options):
         SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
         DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
         INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
-        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
+        UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
+        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
+        PAM_SETUP_ACTION: UserAction(setup_pam),
+        KERBEROS_SETUP_ACTION: UserAction(setup_kerberos, options)
       }
   return action_map
 
+
+def setup_logging(logger, filename, logging_level):
+  formatter = logging.Formatter(formatstr)
+  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
+  rotateLog.setFormatter(formatter)
+  logger.addHandler(rotateLog)
+
+  logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
+  logger.setLevel(logging_level)
+  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+
+def init_logging():
+  # init logger
+  properties = get_ambari_properties()
+  python_log_level = logging.INFO
+  python_log_name = "ambari-server-command.log"
+
+  custom_log_level = properties["server.python.log.level"]
+
+  if custom_log_level:
+    if custom_log_level == "INFO":
+      python_log_level = logging.INFO
+    if custom_log_level == "DEBUG":
+      python_log_level = logging.DEBUG
+
+  custom_log_name = properties["server.python.log.name"]
+
+  if custom_log_name:
+    python_log_name = custom_log_name
+
+  python_log = os.path.join(configDefaults.OUT_DIR, python_log_name)
+
+  setup_logging(logger, python_log, python_log_level)
 
 #
 # Main.
 #
 def main(options, args, parser):
+  init_logging()
+
   # set silent
   set_silent(options.silent)
 
@@ -675,6 +852,14 @@ def main(options, args, parser):
   options.exit_code = None
 
   try:
+    if action in _action_option_dependence_map:
+      required, optional = _action_option_dependence_map[action]
+      for opt_str, opt_dest in required:
+        if hasattr(options, opt_dest) and getattr(options, opt_dest) is None:
+          print "Missing option {0} for action {1}".format(opt_str, action)
+          print_action_arguments_help(action)
+          print "Run ambari-server.py --help to see detailed description of each option"
+          raise FatalException(1, "Missing option")
     action_obj.execute()
 
     if action_obj.need_restart:
@@ -692,6 +877,7 @@ def main(options, args, parser):
   except FatalException as e:
     if e.reason is not None:
       print_error_msg("Exiting with exit code {0}. \nREASON: {1}".format(e.code, e.reason))
+      logger.exception(str(e))
     sys.exit(e.code)
   except NonFatalException as e:
     options.exit_message = "Ambari Server '%s' completed with warnings." % action
@@ -733,6 +919,7 @@ def mainBody():
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def enable_stack(options, args):
+  logger.info("Enable stack.")
   if options.stack_name == None:
      print_error_msg ("Please provide stack name using --stack option")
      return -1

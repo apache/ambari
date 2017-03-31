@@ -255,7 +255,10 @@ public class ClusterResourceProviderTest {
 
   @Test
   public void testCreateResourcesWithRetry() throws Exception {
-    RetryHelper.init(3);
+    Clusters clusters = createMock(Clusters.class);
+    EasyMock.replay(clusters);
+
+    RetryHelper.init(clusters, 3);
     Resource.Type type = Resource.Type.Cluster;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -309,7 +312,7 @@ public class ClusterResourceProviderTest {
     // verify
     verify(managementController, response);
 
-    RetryHelper.init(0);
+    RetryHelper.init(clusters, 0);
 
   }
 

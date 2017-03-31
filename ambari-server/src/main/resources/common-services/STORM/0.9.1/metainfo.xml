@@ -168,7 +168,6 @@
         <config-type>ranger-admin-site</config-type>
         <config-type>zookeeper-env</config-type>
         <config-type>zoo.cfg</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <quickLinksConfigurations>
         <quickLinksConfiguration>

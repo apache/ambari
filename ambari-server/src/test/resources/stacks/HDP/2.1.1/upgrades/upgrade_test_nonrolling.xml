@@ -16,8 +16,7 @@
    limitations under the License.
 -->
 
-
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.3</target-stack>
   <type>NON_ROLLING</type>
@@ -35,8 +34,9 @@
   </prerequisite-checks>
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
         <task xsi:type="manual">
           <message>Before continuing, please stop all YARN queues.</message>
@@ -46,8 +46,9 @@
 
     <group xsi:type="stop" name="Stop High-Level Daemons" title="Stop Daemons for High-Level Services">
       <direction>UPGRADE</direction>
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
+      
       <parallel-scheduler></parallel-scheduler>
 
       <service name="YARN">
@@ -75,8 +76,9 @@
 
     <group xsi:type="stop" name="Stop Low-Level Daemons" title="Stop Daemons for Low-Level Services">
       <direction>UPGRADE</direction>
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
+      
       <parallel-scheduler></parallel-scheduler>
 
       <service name="HDFS">
@@ -106,7 +108,7 @@
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Desired Stack Id">
-      <execute-stage title="Update Desired Stack Id" service="" component="">
+      <execute-stage title="Update Desired Stack Id">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -126,7 +128,6 @@
 
     <group xsi:type="restart" name="ZOOKEEPER" title="Zookeeper">
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -181,10 +182,19 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
     </group>
   </order>
+  
+  <processing>
+    <service name="ZOOKEEPER">
+      <component name="ZOOKEEPER_SERVER">
+        <upgrade />
+      </component>
+    </service>
+  </processing>
+  
 </upgrade>

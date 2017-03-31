@@ -160,6 +160,16 @@ App.AlertDefinition = DS.Model.extend({
     return text;
   }.property('summary'),
 
+  latestTextSummary: function () {
+    var latestText = this.get('latestText');
+    var ellipsis = '...';
+    var summaryLength = 400;
+    if(latestText.length > summaryLength) {
+      latestText = latestText.substring(0, summaryLength - ellipsis.length) + ellipsis;
+    }
+    return latestText;
+  }.property('latestText'),
+
   isAmbariService: Em.computed.equal('service._id', 'AMBARI'),
 
   isAmbariAgentComponent: Em.computed.equal('componentName', 'AMBARI_AGENT'),

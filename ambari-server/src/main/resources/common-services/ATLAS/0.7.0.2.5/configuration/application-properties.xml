@@ -77,18 +77,29 @@
     <value>false</value>
     <description>Indicates whether or not Kerberos is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.file</name>
+    <display-name>Enable File Authentication</display-name>
     <value>true</value>
     <description>Indicates whether or not file based authentication is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.ldap</name>
+    <display-name>Enable LDAP Authentication</display-name>
     <value>false</value>
     <description>Indicates whether or not LDAP authentication is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.file.filename</name>
@@ -136,6 +147,12 @@
     <name>atlas.kafka.bootstrap.servers</name>
     <value/>
     <description>Comma separated list of Kafka broker endpoints in host:port form</description>
+    <depends-on>
+     <property>
+       <type>kafka-broker</type>
+       <name>listeners</name>
+     </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -152,13 +169,13 @@
   </property>
   <property>
     <name>atlas.kafka.zookeeper.session.timeout.ms</name>
-    <value>400</value>
+    <value>60000</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.kafka.zookeeper.connection.timeout.ms</name>
-    <value>200</value>
+    <value>30000</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -289,7 +306,7 @@
     <description>Enable kerberized Solr support for Atlas.</description>
     <on-ambari-upgrade add="false"/>
   </property>
-  
+
   <!-- The type determines whether to show LDAP or AD settings in smart config's theme.json file. -->
   <property>
     <name>atlas.authentication.method.ldap.type</name>

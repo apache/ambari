@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -66,7 +69,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 
@@ -120,7 +122,7 @@ public class AutoSkipFailedSummaryActionTest {
   @After
   public void teardown() throws Exception {
     m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
   }
 
 

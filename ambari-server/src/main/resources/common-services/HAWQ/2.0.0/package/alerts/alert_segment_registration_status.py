@@ -68,7 +68,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     ambari_segment_list = get_segment_list_ambari()
     db_segment_list = get_segment_list_db(configurations[HAWQMASTER_PORT])
     # Replace any occurence of 'localhost' in segment_list with host_name
-    hawq_segment_list = [host_name if name == 'localhost' else name for name in db_segment_list]
+    hawq_segment_list = [host_name.lower() if name == 'localhost' else name for name in db_segment_list]
 
     #Converted to set to omit any duplicates inserted into slaves file
     segment_diff = (set(hawq_segment_list) ^ set(ambari_segment_list))
@@ -94,7 +94,7 @@ def get_segment_list_db(port):
   Gets the Segment registrations count  from HAWQMASTER by running a SQL command.
   """
   logger.debug("Fetching segment list from HAWQ Master Database.")
-  query = " SELECT hostname FROM gp_segment_configuration where role = 'p' and status = 'u' "
+  query = " SELECT lower(hostname) FROM gp_segment_configuration where role = 'p' and status = 'u' "
   cmd = "source {0} && psql -p {1} -t -d {2} -c \"{3};\"".format(HAWQ_GREENPLUM_PATH_FILE, port, POSTGRES, query)
  
   returncode, command_output = call(cmd, user=HAWQ_USER, timeout=60)
@@ -108,14 +108,12 @@ def get_segment_list_ambari():
   """
   Gets the Segment count from HAWQMASTER host from /usr/local/hawq/etc/slaves saved from ambari configurations file.
   """
-  segment_list = []
   logger.debug("Fetching Slaves from Slaves file in {0}".format(HAWQ_SLAVES_FILE))
   try:
-    #regex to read all not empty lines in a file.
     with open(HAWQ_SLAVES_FILE, "r") as slaves_file:
       slaves = slaves_file.read()
-    segment_list = re.findall('\S+' , slaves)
-    return segment_list
+    #regex to read all non empty lines in a file.
+    return [segment.lower() for segment in re.findall('\S+' , slaves)]
   except Exception as ex:
      logger.error("[Alert HAWQ] Get Segment list from Slaves : Could not read slaves from {0}".format(HAWQ_SLAVES_FILE))
      raise ex

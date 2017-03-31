@@ -176,46 +176,46 @@ class TestDatanodeHelper(TestCase):
     # folder should be managed
     dirs_unmounted=set()
     self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = True, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set())
+    self.assertEquals(dirs_unmounted, set())
 
     # root, no history file, manage_dirs_on_root = False
     # folder should not be managed
     dirs_unmounted=set()
     self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+    self.assertEquals(dirs_unmounted, set(['/grid/0/data']))
 
     # non root, no history file, manage_dirs_on_root = False
     # folder should be managed
     dirs_unmounted=set()
     self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=True, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set())
+    self.assertEquals(dirs_unmounted, set())
 
     # unmounted to root, manage_dirs_on_root = True
     # folder should not be managed
     dirs_unmounted=set()
     self.assertEquals(False, mounted_dirs_helper._may_manage_folder('/grid/0/data', '/grid/0', True, dirs_unmounted, [], False, '/'))
-    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+    self.assertEquals(dirs_unmounted, set(['/grid/0/data']))
 
     # unmounted to root, manage_dirs_on_root = False
     # folder should not be managed
     dirs_unmounted=set()
     self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/grid/0/data', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+    self.assertEquals(dirs_unmounted, set(['/grid/0/data']))
 
     # same mount = root, manage_dirs_on_root = False
     # folder should not be managed
     dirs_unmounted=set()
     self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set())
+    self.assertEquals(dirs_unmounted, set())
 
     # same mount = root, manage_dirs_on_root = True
     # folder should be managed
     dirs_unmounted=set()
     self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = True, curr_mount_point = '/'))
-    self.assertSetEqual(dirs_unmounted, set())
+    self.assertEquals(dirs_unmounted, set())
 
     # mount changed to non root, manage_dirs_on_root = False
     # folder should not be managed
     dirs_unmounted=set()
     self.assertEquals(False, mounted_dirs_helper._may_manage_folder('/grid/0/data', '/', True, dirs_unmounted, [], False, '/grid/0'))
-    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+    self.assertEquals(dirs_unmounted, set(['/grid/0/data']))

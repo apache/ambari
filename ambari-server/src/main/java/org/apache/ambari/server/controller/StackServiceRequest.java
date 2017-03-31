@@ -22,13 +22,19 @@ package org.apache.ambari.server.controller;
 public class StackServiceRequest extends StackVersionRequest {
 
   private String serviceName;
+  private String credentialStoreSupported;
+  private String credentialStoreEnabled;
 
   public StackServiceRequest(String stackName, String stackVersion,
       String serviceName) {
+    this(stackName, stackVersion, serviceName, null, null);
+  }
+
+  public StackServiceRequest(String stackName, String stackVersion,
+      String serviceName, String credentialStoreSupported, String credentialStoreEnabled) {
     super(stackName, stackVersion);
 
     this.setServiceName(serviceName);
-
   }
 
   public String getServiceName() {
@@ -37,6 +43,44 @@ public class StackServiceRequest extends StackVersionRequest {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  /**
+   * Get whether credential store is supported. If value is null,
+   * this property was not specified.
+   *
+   * @return null, "true", "false"
+   */
+  public String getCredentialStoreSupported() {
+    return credentialStoreSupported;
+  }
+
+  /**
+   * Set whether credential store is supported. Null indicates unspecified.
+   *
+   * @param credentialStoreSupported null, "true", "false"
+   */
+  public void setCredentialStoreSupported(String credentialStoreSupported) {
+    this.credentialStoreSupported = credentialStoreSupported;
+  }
+
+  /**
+   * Get whether credential store is enabled. If value is null,
+   * this property was not specified.
+   *
+   * @return null, "true", "false"
+   */
+  public String getCredentialStoreEnabled() {
+    return credentialStoreEnabled;
+  }
+
+  /**
+   * Set whether credential store is supported. Null indicates unspecified.
+   *
+   * @param credentialStoreEnabled null, "true", "false"
+   */
+  public void setCredentialStoreEnabled(String credentialStoreEnabled) {
+    this.credentialStoreEnabled = credentialStoreEnabled;
   }
 
 }

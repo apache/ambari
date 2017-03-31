@@ -96,7 +96,6 @@ public class StatementExecutor extends HiveActor {
       LOG.error("Failed to execute statement: {}. {}", message.getStatement(), e);
       sender().tell(new ResultInformation(message.getId(), new Failure("Failed to execute statement: " + message.getStatement(), e)), self());
     } finally {
-      stopLogAggregation();
       stopGUIDFetch();
     }
   }
@@ -120,11 +119,11 @@ public class StatementExecutor extends HiveActor {
   private void startLogAggregation(HiveStatement statement, String sqlStatement, String logFile) {
     if (logAggregator == null) {
       logAggregator = getContext().actorOf(
-        Props.create(LogAggregator.class, hdfsApi, statement, logFile)
+        Props.create(LogAggregator.class, hdfsApi, logFile)
           .withDispatcher("akka.actor.misc-dispatcher"), "LogAggregator:" + UUID.randomUUID().toString());
     }
     LOG.info("Fetching query logs for statement: {}", sqlStatement);
-    logAggregator.tell(new StartLogAggregation(sqlStatement), getSelf());
+    logAggregator.tell(new StartLogAggregation(sqlStatement, statement), getSelf());
   }
 
   private void stopLogAggregation() {
@@ -134,6 +133,10 @@ public class StatementExecutor extends HiveActor {
     logAggregator = null;
   }
 
+  @Override
+  public void postStop() throws Exception {
+    stopLogAggregation();
+  }
 
   private void getColumnMetaData(GetColumnMetadataJob message) {
     try {

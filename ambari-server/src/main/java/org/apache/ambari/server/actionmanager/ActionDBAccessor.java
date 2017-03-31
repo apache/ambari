@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 
 public interface ActionDBAccessor {
@@ -58,8 +59,10 @@ public interface ActionDBAccessor {
    * Abort all outstanding operations associated with the given request. This
    * method uses the {@link HostRoleStatus#SCHEDULED_STATES} to determine which
    * {@link HostRoleCommand} instances to abort.
+   *
+   * Returns the list of the aborted operations.
    */
-  public void abortOperation(long requestId);
+  public Collection<HostRoleCommandEntity> abortOperation(long requestId);
 
   /**
    * Mark the task as to have timed out
@@ -69,8 +72,8 @@ public interface ActionDBAccessor {
   /**
    * Mark the task as to have timed out
    */
-  void timeoutHostRole(String host, long requestId, long stageId,
-                       String role, boolean skipSupported);
+  void timeoutHostRole(String host, long requestId, long stageId, String role,
+                       boolean skipSupported, boolean hostUnknownState);
 
   /**
    * Returns all the pending stages, including queued and not-queued. A stage is
@@ -84,6 +87,19 @@ public interface ActionDBAccessor {
    * @see HostRoleStatus#IN_PROGRESS_STATUSES
    */
   public List<Stage> getStagesInProgress();
+
+  /**
+   * Returns all the pending stages in a request, including queued and not-queued. A stage is
+   * considered in progress if it is in progress for any host.
+   * <p/>
+   * The results will be sorted by stage ID making this call
+   * expensive in some scenarios. Use {@link #getCommandsInProgressCount()} in
+   * order to determine if there are stages that are in progress before getting
+   * the stages from this method.
+   *
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  public List<Stage> getStagesInProgressForRequest(Long requestId);
 
   /**
    * Gets the number of commands in progress.

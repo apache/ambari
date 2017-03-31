@@ -17,10 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-__all__ = ["setup_ranger_plugin"]
-
+__all__ = ["setup_ranger_plugin", "get_audit_configs"]
 
 import os
+import ambari_simplejson as json
 from datetime import datetime
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.resources import File, Directory, Execute
@@ -32,6 +32,8 @@ from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 
 def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         component_downloaded_custom_connector, component_driver_curl_source,
@@ -74,19 +76,37 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
   component_conf_dir = conf_dict
 
   if plugin_enabled:
-    if api_version is not None and api_version == 'v2':
-      ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
-      ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
+
+    service_name_exist = False
+    policycache_path = os.path.join('/etc', 'ranger', repo_name, 'policycache')
+    try:
+      for cache_service in cache_service_list:
+        policycache_json_file = format('{policycache_path}/{cache_service}_{repo_name}.json')
+        if os.path.isfile(policycache_json_file) and os.path.getsize(policycache_json_file) > 0:
+          with open(policycache_json_file) as json_file:
+            json_data = json.load(json_file)
+            if 'serviceName' in json_data and json_data['serviceName'] == repo_name:
+              service_name_exist = True
+              Logger.info("Skipping Ranger API calls, as policy cache file exists for {0}".format(service_name))
+              Logger.warning("If service name for {0} is not created on Ranger Admin UI, then to re-create it delete policy cache file: {1}".format(service_name, policycache_json_file))
+              break
+    except Exception, err:
+      Logger.error("Error occurred while fetching service name from policy cache file.\nError: {0}".format(err))
+
+    if not service_name_exist:
+      if api_version is not None and api_version == 'v2':
+        ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
+        ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
+                                                ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
+                                                ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
+                                                policy_user, is_security_enabled, is_stack_supports_ranger_kerberos, component_user,
+                                                component_user_principal, component_user_keytab)
+      else:
+        ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
+        ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
                                               ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
                                               ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
-                                              policy_user,is_security_enabled,is_stack_supports_ranger_kerberos,component_user,component_user_principal,component_user_keytab)
-
-    else:
-      ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
-      ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
-                                            ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],
-                                            ranger_env_properties['admin_username'], ranger_env_properties['admin_password'],
-                                            policy_user)
+                                              policy_user)
 
     current_datetime = datetime.now()
     
@@ -106,15 +126,23 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
     )
 
     for cache_service in cache_service_list:
-      File(os.path.join('/etc', 'ranger', repo_name, 'policycache',format('{cache_service}_{repo_name}.json')),
+      File(os.path.join('/etc', 'ranger', repo_name, 'policycache', format('{cache_service}_{repo_name}.json')),
         owner = component_user,
         group = component_group,
         mode = 0644
       )
 
+    # remove plain-text password from xml configs
+    plugin_audit_password_property = 'xasecure.audit.destination.db.password'
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(plugin_audit_properties)
+
+    if plugin_audit_password_property in plugin_audit_properties_copy:
+      plugin_audit_properties_copy[plugin_audit_password_property] = "crypted"
+
     XmlConfig(format('ranger-{service_name}-audit.xml'),
       conf_dir=component_conf_dir,
-      configurations=plugin_audit_properties,
+      configurations=plugin_audit_properties_copy,
       configuration_attributes=plugin_audit_attributes,
       owner = component_user,
       group = component_group,
@@ -128,25 +156,34 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
       group = component_group,
       mode=0744)
 
+    # remove plain-text password from xml configs
+    plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+    plugin_policymgr_ssl_properties_copy = {}
+    plugin_policymgr_ssl_properties_copy.update(plugin_policymgr_ssl_properties)
+
+    for prop in plugin_password_properties:
+      if prop in plugin_policymgr_ssl_properties_copy:
+        plugin_policymgr_ssl_properties_copy[prop] = "crypted"
+
     if str(service_name).lower() == 'yarn' :
       XmlConfig("ranger-policymgr-ssl-yarn.xml",
         conf_dir=component_conf_dir,
-        configurations=plugin_policymgr_ssl_properties,
+        configurations=plugin_policymgr_ssl_properties_copy,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
         mode=0744) 
-    else :
+    else:
       XmlConfig("ranger-policymgr-ssl.xml",
         conf_dir=component_conf_dir,
-        configurations=plugin_policymgr_ssl_properties,
+        configurations=plugin_policymgr_ssl_properties_copy,
         configuration_attributes=plugin_policymgr_ssl_attributes,
         owner = component_user,
         group = component_group,
         mode=0744) 
 
-    #This should be done by rpm
-    #setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
+    # creating symblink should be done by rpm package
+    # setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list)
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
@@ -156,7 +193,6 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
     File(format('{component_conf_dir}/ranger-security.xml'),
       action="delete"      
     )    
-
 
 def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list):
 
@@ -197,3 +233,50 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
     group = component_group,
     mode = 0640
   )
+
+def setup_core_site_for_required_plugins(component_user, component_group, create_core_site_path, config):
+  XmlConfig('core-site.xml',
+    conf_dir=create_core_site_path,
+    configurations=config['configurations']['core-site'],
+    configuration_attributes=config['configuration_attributes']['core-site'],
+    owner=component_user,
+    group=component_group,
+    mode=0644
+  )
+
+def get_audit_configs(config):
+  xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR'].lower()
+  xa_db_host = config['configurations']['admin-properties']['db_host']
+  xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+
+  if xa_audit_db_flavor == 'mysql':
+    jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
+  elif xa_audit_db_flavor == 'oracle':
+    jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
+    colon_count = xa_db_host.count(':')
+    if colon_count == 2 or colon_count == 0:
+      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+    else:
+      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
+  elif xa_audit_db_flavor == 'postgres':
+    jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
+  elif xa_audit_db_flavor == 'mssql':
+    jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  elif xa_audit_db_flavor == 'sqla':
+    jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
+    previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
+    audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
+    jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+
+  return jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver

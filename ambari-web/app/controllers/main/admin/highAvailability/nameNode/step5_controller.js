@@ -72,6 +72,20 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
    */
   updateConfigProperties: function(data) {
     var siteNames = ['hdfs-site','core-site'];
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      var hdfsPluginConfig = data.items.findProperty('type', 'ranger-hdfs-plugin-properties');
+      if (hdfsPluginConfig) {
+        if ('xasecure.audit.destination.hdfs.dir' in hdfsPluginConfig.properties) {
+          siteNames.push('ranger-hdfs-plugin-properties');
+        }
+      }
+      var hdfsAuditConfig = data.items.findProperty('type', 'ranger-hdfs-audit');
+      if (hdfsAuditConfig) {
+        if ('xasecure.audit.destination.hdfs.dir' in hdfsAuditConfig.properties) {
+          siteNames.push('ranger-hdfs-audit');
+        }
+      }
+    }
     var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE', false)));
     App.ajax.send({
       name: 'common.service.configurations',

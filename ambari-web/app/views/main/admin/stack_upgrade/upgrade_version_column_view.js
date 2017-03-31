@@ -26,7 +26,11 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
 
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
-
+    if (!this.get('content.isCompatible')) {
+      App.tooltip(this.$(".repo-version-tooltip"), {
+        title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
+      });
+    }
     //set the width, height of each version colum dynamically
     var widthFactor = App.RepositoryVersion.find().get('length') > 3 ? 0.18: 0.31;
     $('.version-column').width($('.versions-slides').width() * widthFactor);

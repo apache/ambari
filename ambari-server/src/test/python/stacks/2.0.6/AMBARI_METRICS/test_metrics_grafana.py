@@ -36,9 +36,10 @@ class TestMetricsGrafana(RMFTestCase):
   sys.path.append(file_path)
   global metrics_grafana_util
 
+  @patch("metrics_grafana_util.create_grafana_admin_pwd")
   @patch("metrics_grafana_util.create_ams_datasource")
   @patch("metrics_grafana_util.create_ams_dashboards")
-  def test_start(self, create_ams_datasource_mock, create_ams_dashboards_mock):
+  def test_start(self, create_grafana_admin_pwd, create_ams_datasource_mock, create_ams_dashboards_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/metrics_grafana.py",
                        classname = "AmsGrafana",
                        command = "start",
@@ -60,19 +61,22 @@ class TestMetricsGrafana(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown', u'-R', u'ams', '/var/run/ambari-metrics-grafana'),
                               sudo = True
                               )
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh /usr/jdk64/jdk1.7.0_45/bin/keytool -importkeystore -srckeystore /etc/security/clientKeys/all.jks -destkeystore /some_tmp_dir/truststore.p12 -srcalias c6402.ambari.apache.org -deststoretype PKCS12 -srcstorepass bigdata -deststorepass bigdata',
                               )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh openssl pkcs12 -in /some_tmp_dir/truststore.p12 -out /etc/ambari-metrics-grafana/conf/ca.pem -cacerts -nokeys -passin pass:bigdata',
     )
-    self.assertResourceCalled('Execute', ('chown', u'ams', '/etc/ambari-metrics-grafana/conf/ca.pem'),
+    self.assertResourceCalled('Execute', ('chown', u'ams:hadoop', '/etc/ambari-metrics-grafana/conf/ca.pem'),
                               sudo = True
     )
+    self.assertResourceCalled('Execute', ('chmod', '644', '/etc/ambari-metrics-grafana/conf/ca.pem'),
+                              sudo=True)
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /some_tmp_dir',
                               )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana start',
         not_if = "ambari-sudo.sh su ams -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/run/ambari-metrics-grafana/grafana-server.pid && ps -p `cat /var/run/ambari-metrics-grafana/grafana-server.pid`'",
         user = 'ams',
     )
+    create_grafana_admin_pwd.assertCalled()
     create_ams_datasource_mock.assertCalled()
     create_ams_dashboards_mock.assertCalled()
     self.assertNoMoreResources()
@@ -91,6 +95,7 @@ class TestMetricsGrafana(RMFTestCase):
                               owner = 'ams',
                               group = 'hadoop',
                               mode=0755,
+                              create_parents = True,
                               recursive_ownership = True
                               )
 

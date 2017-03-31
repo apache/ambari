@@ -20,7 +20,6 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
@@ -54,6 +53,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -162,10 +162,10 @@ public class AlertDefinitionDAOTest {
   }
 
   @After
-  public void teardown() {
+  public void teardown() throws Exception {
     injector.getInstance(UnitOfWork.class).end();
 
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     injector = null;
   }
 

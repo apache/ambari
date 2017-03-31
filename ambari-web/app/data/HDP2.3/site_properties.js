@@ -146,7 +146,8 @@ hdp23properties.push({
     "name": "ranger.ldap.url",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "LDAPSettings"
+    "category": "LDAPSettings",
+    "index": 1
   },
   {
     "name": "ranger.ldap.user.dnpattern",
@@ -170,13 +171,15 @@ hdp23properties.push({
     "name": "ranger.ldap.bind.dn",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "LDAPSettings"
+    "category": "LDAPSettings",
+    "index": 2
   },
   {
     "name": "ranger.ldap.bind.password",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "LDAPSettings"
+    "category": "LDAPSettings",
+    "index": 3
   },
   {
     "name": "ranger.ldap.referral",
@@ -188,7 +191,21 @@ hdp23properties.push({
     "name": "ranger.ldap.user.searchfilter",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
-    "category": "LDAPSettings"
+    "category": "LDAPSettings",
+    "index": 4
+  },
+  {
+    "name": "ranger.ldap.group.searchbase",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings",
+    "index": 5
+  },
+  { "name": "ranger.ldap.group.searchfilter",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings",
+    "index": 6
   },
   {
     "name": "ranger.sso.providerurl",

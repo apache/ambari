@@ -1,0 +1,127 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<td>
+  <div class="{{if column.nameError 'has-error'}}">
+    {{input type="text" class="form-control" value=column.name disabled=(not column.editing)}}
+    {{#if column.nameError}}
+      <span class="help-block">{{column.nameError.error}}</span>
+    {{/if}}
+  </div>
+
+</td>
+<td>
+  {{#power-select
+    disabled=(not column.editing)
+    selected=column.type
+    options=datatypes
+    searchField="label"
+    searchPlaceholder="Enter data type"
+    onchange=(action "typeSelectionMade") as |parameter|}}
+    {{parameter.label}}
+  {{/power-select}}
+</td>
+<td>
+  {{#if (or hasPrecision hasScale)}}
+    <div class="row">
+      {{#if hasPrecision}}
+        <div class="{{if hasScale 'col-md-6' 'col-md-12'}}">
+          <div class="{{if column.precisionError 'has-error'}}">
+            {{input type="text" class="form-control" placeholder="Precision" value=column.precision disabled=(not column.editing)}}
+            {{#if column.precisionError}}
+              <span class="help-block">{{column.precisionError.error}}</span>
+            {{/if}}
+          </div>
+        </div>
+      {{/if}}
+      {{#if hasScale}}
+        <div class="{{if hasPrecision 'col-md-6' 'col-md-12'}}">
+          <div class="{{if column.scaleError 'has-error'}}">
+            {{input type="text" class="form-control" placeholder="Scale" value=column.scale disabled=(not column.editing)}}
+            {{#if column.scaleError}}
+              <span class="help-block">{{column.scaleError.error}}</span>
+            {{/if}}
+          </div>
+        </div>
+      {{/if}}
+    </div>
+  {{/if}}
+
+</td>
+<td>
+  <div class="text-center">
+    <a {{action "advanceOptionToggle"}}>{{fa-icon "cog" size="lg"}}</a>
+  </div>
+  {{#if advancedOption}}
+    {{#modal-dialog
+      close="advanceOptionToggle"
+      translucentOverlay=true
+      clickOutsideToClose=true
+      container-class="modal-dialog"}}
+      <div class="modal-content">
+        <div class="modal-header text-danger">
+          <button type="button" class="close" {{action "advanceOptionToggle"}}>&times;</button>
+          <h4 class="modal-title">{{fa-icon "cog" size="lg"}} Advance Column Options</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-horizontal">
+            <div class="form-group">
+              <label for="inputPassword3" class="col-sm-2 control-label">Comment</label>
+              <div class="col-sm-10">
+                {{input type="text" class="form-control" placeholder="Comment" value=column.comment disabled=(not column.editing)}}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    {{input type="checkbox" checked=column.isPartitioned disabled=(or (not column.editing) editMode)}} Partitioned
+                  </label>
+                </div>
+              </div>
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    {{input type="checkbox" checked=column.isClustered disabled=(or (not column.editing) editMode)}} Clustered
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" {{action "advanceOptionToggle"}}>{{fa-icon "check"}} Done</button>
+        </div>
+      </div>
+    {{/modal-dialog}}
+  {{/if}}
+</td>
+<td>
+  <div class="text-center">
+    {{#if (or column.newColumn (not editMode)) }}
+      {{#unless column.editing}}
+        <button class="btn btn-success" {{action "edit"}}>{{fa-icon "check"}} Edit</button>
+      {{/unless}}
+      <button class="btn btn-danger" {{action "delete"}} disabled={{options.isDeleteColumnDisabled}} >{{fa-icon "times"}} Delete</button>
+    {{/if}}
+
+  </div>
+
+
+</td>

@@ -28,6 +28,9 @@ from ambari_server.userInput import get_YN_input
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.serverUtils import is_server_runing
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 DB_CLEANUP_CMD = "{0} -cp {1} org.apache.ambari.server.cleanup.CleanupDriver --cluster-name {2} --from-date {3}> " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
@@ -98,6 +101,7 @@ def run_db_cleanup(options):
 # Database cleanup
 #
 def db_cleanup(options):
+    logger.info("Database cleanup.")
     return run_db_cleanup(options)
 
 

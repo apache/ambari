@@ -142,9 +142,10 @@ public interface ClusterTopology {
    * Install the specified host.
    *
    * @param hostName  host name
+   * @param skipInstallTaskCreate
    * @return install response
    */
-  RequestStatusResponse installHost(String hostName, boolean skipFailure);
+  RequestStatusResponse installHost(String hostName, boolean skipInstallTaskCreate, boolean skipFailure);
 
   /**
    * Start the specified host.

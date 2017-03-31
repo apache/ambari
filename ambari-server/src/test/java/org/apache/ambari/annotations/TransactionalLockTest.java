@@ -39,7 +39,7 @@ public class TransactionalLockTest {
   @Test
   public void testLockAreaEnabled() throws Exception {
     final Properties ambariProperties = new Properties();
-    ambariProperties.put(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED, "true");
+    ambariProperties.put(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED.getKey(), "true");
     Configuration configuration = new Configuration(ambariProperties);
 
     LockArea lockArea = LockArea.HRC_STATUS_CACHE;
@@ -54,7 +54,7 @@ public class TransactionalLockTest {
   @Test
   public void testLockAreaEnabledDisabled() throws Exception {
     final Properties ambariProperties = new Properties();
-    ambariProperties.put(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED, "false");
+    ambariProperties.put(Configuration.SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED.getKey(), "false");
     Configuration configuration = new Configuration(ambariProperties);
 
     LockArea lockArea = LockArea.HRC_STATUS_CACHE;

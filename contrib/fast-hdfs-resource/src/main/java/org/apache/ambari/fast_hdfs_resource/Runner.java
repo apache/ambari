@@ -71,11 +71,20 @@ public class Runner {
 
         Resource.checkResourceParameters(resource, dfs);
 
-        Path pathHadoop = new Path(resource.getTarget());
-        if (!resource.isManageIfExists() && dfs.exists(pathHadoop)) {
-          System.out.println("Skipping the operation for not managed DFS directory " + resource.getTarget() +
-                             " since immutable_paths contains it.");
-          continue;
+        Path pathHadoop = null;
+
+        if (resource.getAction().equals("download")) {
+          pathHadoop = new Path(resource.getSource());
+        }
+        else {
+          String path = resource.getTarget();
+          pathHadoop = new Path(path);
+          if (!resource.isManageIfExists() && dfs.exists(pathHadoop)) {
+            System.out.println(
+                String.format("Skipping the operation for not managed DFS directory %s  since immutable_paths contains it.", path)
+            );
+            continue;
+          }
         }
 
         if (resource.getAction().equals("create")) {
@@ -86,6 +95,9 @@ public class Runner {
         } else if (resource.getAction().equals("delete")) {
           // 6 - Delete
           dfs.delete(pathHadoop, true);
+        } else if (resource.getAction().equals("download")) {
+          // 7 - Download
+          dfs.copyToLocalFile(pathHadoop, new Path(resource.getTarget()));
         }
       }
     } 

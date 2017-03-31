@@ -16,115 +16,114 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>LogSearch</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-		
-		<link href="libs/bower/bootstrap/bootstrap.css" rel="stylesheet">
-		<link href="libs/other/font-awesome/css/font-awesome.css" rel="stylesheet">
-		<!-- <link href="libs/other/jquery-ui/css/jquery-ui-1.11.4.min.css" rel="stylesheet"> -->
-		<link rel="stylesheet" type="text/css" href="libs/other/jquery-ui/css/jquery-ui-bootstrap.css">
-		<link rel="stylesheet" type="text/css" href="styles/custom/visualsearch.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/backgrid/css/backgrid.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/backgrid-columnmanager/Backgrid.ColumnManager.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/backgrid-paginator/css/backgrid-paginator.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/backgrid-sizeable/css/backgrid-sizeable-columns.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/backgrid-sizeable/backgrid-orderable-columns.css">
-		<link rel="stylesheet" type="text/css" href="libs/other/daterangepicker/css/daterangepicker.css">
-		<link rel="stylesheet" type="text/css" href="styles/animate.css">
-		<link rel="stylesheet" type="text/css" href="libs/bower/select2/select2.css">
-		<link rel="stylesheet" type="text/css" href="libs/other/nvd3/css/nv.d3.min.css">
-		<link rel="stylesheet" type="text/css" href="libs/other/gridster/css/jquery.gridster.css">
-		<link rel="stylesheet" type="text/css" href="libs/other/bootstrap-tour-0.10.3/css/bootstrap-tour.min.css">
-		<link href="styles/style_v2.css" rel="stylesheet">
-		<link href="styles/style.css" rel="stylesheet">
-		
-		
-		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!--[if lt IE 9]>
-				<script src="http://getbootstrap.com/docs-assets/js/html5shiv.js"></script>
-				<script src="http://getbootstrap.com/docs-assets/js/respond.min.js"></script>
-		<![endif]-->
-	</head>
-<body>
-<!--Start Header-->
-<!-- <div id="screensaver">
-	<canvas id="canvas"></canvas>
-	<i class="fa fa-lock" id="screen_unlock"></i>
-</div> -->
+    <head>
+        <meta charset="utf-8">
+        <title>LogSearch</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+        
+        <link href="libs/bower/bootstrap/bootstrap.css" rel="stylesheet">
+        <link href="libs/other/font-awesome/css/font-awesome.css" rel="stylesheet">
+        <!-- <link href="libs/other/jquery-ui/css/jquery-ui-1.11.4.min.css" rel="stylesheet"> -->
+        <link rel="stylesheet" type="text/css" href="libs/other/jquery-ui/css/jquery-ui-bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="styles/custom/visualsearch.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/backgrid/css/backgrid.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/backgrid-columnmanager/Backgrid.ColumnManager.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/backgrid-paginator/css/backgrid-paginator.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/backgrid-sizeable/css/backgrid-sizeable-columns.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/backgrid-sizeable/backgrid-orderable-columns.css">
+        <link rel="stylesheet" type="text/css" href="libs/custom/daterangepicker/css/daterangepicker.css">
+        <link rel="stylesheet" type="text/css" href="styles/animate.css">
+        <link rel="stylesheet" type="text/css" href="libs/bower/select2/select2.css">
+        <link rel="stylesheet" type="text/css" href="libs/other/nvd3/css/nv.d3.min.css">
+        <link rel="stylesheet" type="text/css" href="libs/other/gridster/css/jquery.gridster.css">
+        <link rel="stylesheet" type="text/css" href="libs/other/bootstrap-tour-0.10.3/css/bootstrap-tour.min.css">
+        <link href="styles/style_v2.css" rel="stylesheet">
+        <link href="styles/style.css" rel="stylesheet">
+        
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+                <script src="http://getbootstrap.com/docs-assets/js/html5shiv.js"></script>
+                <script src="http://getbootstrap.com/docs-assets/js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+        <!--Start Header-->
+        <!-- <div id="screensaver">
+            <canvas id="canvas"></canvas>
+            <i class="fa fa-lock" id="screen_unlock"></i>
+        </div> -->
 
-<header class="navbar">
-	<div class="container-fluid expanded-panel">
-		<div class="row top-panel-right">
-			<div id="logo" class="col-xs-12 col-sm-3">
-        <div class="row">
-          <div class="col-sm-2"><img title="Apache Ambari" alt="Apache Ambari" src="images/logo-white.png" height="32px"></div>
-          <div class="col-sm-10"><a href="javascript:void(0);">Log Search</a></div>
+        <header class="navbar">
+            <div class="container-fluid expanded-panel">
+                <div class="row top-panel-right">
+                    <div id="logo" class="col-xs-12 col-sm-3">
+                        <div class="row">
+                            <div class="col-sm-2"><img title="Apache Ambari" alt="Apache Ambari" src="images/logo-white.png" height="32px"></div>
+                            <div class="col-sm-10"><a href="javascript:void(0);">Log Search</a></div>
+                        </div>
+                    </div>
+                    <div id="r_header"></div>
+                </div>
+            </div>
+        </header>
+        <!--End Header-->
+        <!--Start Container-->
+        <div id="main" class="container-fluid">
+            <div class="row">
+                <!--div id="sidebar-left" class="col-xs-2 col-sm-2">
+                    <ul class="nav main-menu">
+                        <li>
+                            <a href="javascript:void(0);" class="ajax-link">
+                                <i class="fa fa-dashboard"></i>
+                                <span class="hidden-xs">Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div-->
+                <!--Start Content-->
+                <div id="content" class="col-xs-12 col-sm-12">
+                    <div id="r_content" >
+                        <i class="icon-spinner"></i>
+                    </div>
+                    <!-- <div class="preloader">
+                        <img src="img/devoops_getdata.gif" class="devoops-getdata" alt="preloader"/>
+                    </div> -->
+                </div>
+                <!--End Content-->
+            </div>
         </div>
-			</div>
-			<div id="r_header"></div>
-		</div>
-	</div>
-</header>
-<!--End Header-->
-<!--Start Container-->
-<div id="main" class="container-fluid">
-	<div class="row">
-		<!--div id="sidebar-left" class="col-xs-2 col-sm-2">
-			<ul class="nav main-menu">
-				<li>
-					<a href="javascript:void(0);" class="ajax-link">
-						<i class="fa fa-dashboard"></i>
-						<span class="hidden-xs">Dashboard</span>
-					</a>
-				</li>
-			</ul>
-		</div-->
-		<!--Start Content-->
-		<div id="content" class="col-xs-12 col-sm-12">
-			<div id="r_content" >
-        <i class="icon-spinner"></i>
-			</div>
-			<!-- <div class="preloader">
-				<img src="img/devoops_getdata.gif" class="devoops-getdata" alt="preloader"/>
-			</div> -->
-		</div>
-		<!--End Content-->
-	</div>
-</div>
-<!--End Container-->
-<!-- build:js scripts/main.js -->
-		<script data-main="scripts/Init.js?ver=build.version" src="libs/bower/requirejs/js/require.js"></script>
-		<!-- endbuild -->
-		<script type="text/javascript">
-			require.config({
-				waitSeconds : 0
-			});
-			if (!window.console) window.console = {};
+        <!--End Container-->
+        <!-- build:js scripts/main.js -->
+        <script data-main="scripts/Init.js?ver=build.version" src="libs/bower/requirejs/js/require.js"></script>
+        <!-- endbuild -->
+        <script type="text/javascript">
+            require.config({
+                waitSeconds : 0
+            });
+            if (!window.console) window.console = {};
             if (!window.console.log) window.console.log = function () { };
 
-		</script>
-<!-- 		<script type="text/javascript" src="libs/other/d3/d3.min.js"></script> -->
-<div class="btn-group contextMenuBody dropup" style="display:none;position:absolute;z-index:9999;">
-	    <button type="button" class="btn btn-info btn-circle btn-app-sm btn-context dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	        <i class="fa fa-info"></i>
-	    </button>
-	    <ul class="dropdown-menu">
-	        <li><a data-id="I" href="javascript:void(0);">Include</a></li>
-	        <li><a data-id="E" href="javascript:void(0);">Exclude</a></li> 
-	     	<li><a data-id="IA" href="javascript:void(0);">*Include*</a></li>
-	        <li><a data-id="EA" href="javascript:void(0);">*Exclude*</a></li>
-	        <li role="separator" class="divider"></li>
-	        <li><a data-id="F" href="javascript:void(0);">Find</a></li>
-	    </ul>
-	</div>
-	<div class="arrowDiv">
-		<div class="bottomToTop" title="Scroll To Top"><i class="fa fa-arrow-circle-up"></i></div>
-		<div class="topToBottom" title="Scroll To bottom"><i class="fa fa-arrow-circle-down"></i></div>
-	</div>
-	
+        </script>
+        <!-- <script type="text/javascript" src="libs/other/d3/d3.min.js"></script> -->
+        <div class="btn-group contextMenuBody dropup" style="display:none;position:absolute;z-index:9999;">
+            <button type="button" class="btn btn-info btn-circle btn-app-sm btn-context dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-info"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a data-id="I" href="javascript:void(0);">Include</a></li>
+                <li><a data-id="E" href="javascript:void(0);">Exclude</a></li> 
+                <li><a data-id="IA" href="javascript:void(0);">*Include*</a></li>
+                <li><a data-id="EA" href="javascript:void(0);">*Exclude*</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a data-id="F" href="javascript:void(0);">Find</a></li>
+            </ul>
+        </div>
+        <div class="arrowDiv">
+            <div class="bottomToTop" title="Scroll To Top"><i class="fa fa-arrow-circle-up"></i></div>
+            <div class="topToBottom" title="Scroll To bottom"><i class="fa fa-arrow-circle-down"></i></div>
+        </div>
 
-</body>
+    </body>
 </html>

@@ -369,5 +369,4 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
 
     verifyAll();
   }
-
 }

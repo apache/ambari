@@ -19,7 +19,6 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,14 +27,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.stack.StackDefinitionDirectory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
@@ -48,20 +43,19 @@ import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.OrderService;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
-import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+
 
 /**
  * Stack module which provides all functionality related to parsing and fully
@@ -322,10 +316,18 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     stackInfo.getServices().clear();
     Collection<ServiceModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, serviceModules, parentStack.serviceModules);
+
+    List<String> removedServices = new ArrayList<String>();
+
     for (ServiceModule module : mergedModules) {
-      serviceModules.put(module.getId(), module);
-      stackInfo.getServices().add(module.getModuleInfo());
+      if (module.isDeleted()){
+        removedServices.add(module.getId());
+      } else {
+        serviceModules.put(module.getId(), module);
+        stackInfo.getServices().add(module.getModuleInfo());
+      }
     }
+    stackInfo.setRemovedServices(removedServices);
   }
 
   /**
@@ -673,9 +675,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
     for (ConfigurationModule module : mergedModules) {
-      configurationModules.put(module.getId(), module);
-      stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
-      stackInfo.setConfigTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      if(!module.isDeleted()){
+        configurationModules.put(module.getId(), module);
+        stackInfo.getProperties().addAll(module.getModuleInfo().getProperties());
+        stackInfo.setConfigTypeAttributes(module.getConfigType(), module.getModuleInfo().getAttributes());
+      }
     }
   }
 
@@ -840,6 +844,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (configPack == null) {
       return;
     }
+
     for (ServiceModule module : serviceModules.values()) {
       File upgradesFolder = module.getModuleInfo().getServiceUpgradesFolder();
       if (upgradesFolder != null) {
@@ -864,7 +869,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       ConfigUpgradePack serviceConfigPack = unmarshaller.unmarshal(ConfigUpgradePack.class, serviceConfig);
       pack.services.addAll(serviceConfigPack.services);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       throw new AmbariException("Unable to parse service config upgrade file at location: " + serviceConfig.getAbsolutePath(), e);
     }
   }
@@ -875,12 +880,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private UpgradePack getServiceUpgradePack(UpgradePack pack, File upgradesFolder) throws AmbariException {
     File stackFolder = new File(upgradesFolder, stackInfo.getName());
     File versionFolder = new File(stackFolder, stackInfo.getVersion());
+    // !!! relies on the service upgrade pack filename being named the exact same
     File servicePackFile = new File(versionFolder, pack.getName() + ".xml");
+
     LOG.info("Service folder: " + servicePackFile.getAbsolutePath());
-    if (!servicePackFile.exists()) {
-      return null;
+    if (servicePackFile.exists()) {
+      return parseServiceUpgradePack(pack, servicePackFile);
+    } else {
+      UpgradePack child = findServiceUpgradePack(pack, stackFolder);
+
+      return null == child ? null : parseServiceUpgradePack(pack, child);
     }
-    return parseServiceUpgradePack(pack, servicePackFile);
   }
 
   /**
@@ -888,6 +898,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * for any service which specifies its own upgrade.
    */
   private void mergeUpgradePack(UpgradePack pack, List<UpgradePack> servicePacks) throws AmbariException {
+
     List<Grouping> originalGroups = pack.getAllGroups();
     Map<String, List<Grouping>> allGroupMap = new HashMap<>();
     for (Grouping group : originalGroups) {
@@ -895,8 +906,21 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       list.add(group);
       allGroupMap.put(group.name, list);
     }
+
     for (UpgradePack servicePack : servicePacks) {
       for (Grouping group : servicePack.getAllGroups()) {
+
+        /*
+         !!! special case where the service pack is targeted for any version.  When
+         a service UP targets to run after another group, check to make sure that the
+         base UP contains the group.
+         */
+        if (servicePack.isAllTarget() && !allGroupMap.keySet().contains(group.addAfterGroup)) {
+          LOG.warn("Service Upgrade Pack specified after-group of {}, but that is not found in {}",
+              group.addAfterGroup, StringUtils.join(allGroupMap.keySet(), ','));
+          continue;
+        }
+
         if (allGroupMap.containsKey(group.name)) {
           List<Grouping> list = allGroupMap.get(group.name);
           Grouping first = list.get(0);
@@ -904,16 +928,15 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
             throw new AmbariException("Expected class: " + first.getClass() + " instead of " + group.getClass());
           }
           /* If the current group doesn't specify an "after entry" and the first group does
-             then the current group should be added first.  The first group in the list should 
-             never be ordered relative to any other group. */ 
+             then the current group should be added first.  The first group in the list should
+             never be ordered relative to any other group. */
           if (group.addAfterGroupEntry == null && first.addAfterGroupEntry != null) {
             list.add(0, group);
           }
           else {
             list.add(group);
           }
-        }
-        else {
+        } else {
           List<Grouping> list = new ArrayList<>();
           list.add(group);
           allGroupMap.put(group.name, list);
@@ -940,15 +963,17 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
   private void orderGroups(List<Grouping> groups, Map<String, Grouping> mergedGroupMap) throws AmbariException {
     Map<String, List<Grouping>> skippedGroups = new HashMap<>();
+
     for (Map.Entry<String, Grouping> entry : mergedGroupMap.entrySet()) {
-      String key = entry.getKey();
       Grouping group = entry.getValue();
+
       if (!groups.contains(group)) {
         boolean added = addGrouping(groups, group);
         if (added) {
           addSkippedGroup(groups, skippedGroups, group);
         } else {
           List<Grouping> tmp = null;
+
           // store the group until later
           if (skippedGroups.containsKey(group.addAfterGroup)) {
             tmp = skippedGroups.get(group.addAfterGroup);
@@ -960,6 +985,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         }
       }
     }
+
     if (!skippedGroups.isEmpty()) {
       throw new AmbariException("Missing groups: " + skippedGroups.keySet());
     }
@@ -1005,6 +1031,50 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   }
 
   /**
+   * Finds an upgrade pack that:
+   * <ul>
+   *   <li>Is found in the $SERVICENAME/upgrades/$STACKNAME folder</li>
+   *   <li>Matches the same {@link UpgradeType#getType()}as the {@code base} upgrade pack</li>
+   *   <li>Has the {@link UpgradePack#getTarget()} value equals to "*"</li>
+   *   <li>Has the {@link UpgradePack#getTargetStack()} value equals to "*"</li>
+   * </ul>
+   * This method will not attempt to resolve the "most correct" upgrade pack.  For this
+   * feature to work, there should be only one upgrade pack per type.  If more specificity
+   * is required, then follow the convention of $SERVICENAME/upgrades/$STACKNAME/$STACKVERSION/$BASE_FILE_NAME.xml
+   *
+   * @param base the base upgrade pack for a stack
+   * @param upgradeStackDirectory service directory that contains stack upgrade files.
+   * @return an upgrade pack that matches {@code base}
+   */
+  private UpgradePack findServiceUpgradePack(UpgradePack base, File upgradeStackDirectory) {
+    if (!upgradeStackDirectory.exists() || !upgradeStackDirectory.isDirectory()) {
+      return null;
+    }
+
+    File[] upgradeFiles = upgradeStackDirectory.listFiles(StackDirectory.XML_FILENAME_FILTER);
+    if (0 == upgradeFiles.length) {
+      return null;
+    }
+
+    for (File f : upgradeFiles) {
+      try {
+        UpgradePack upgradePack = unmarshaller.unmarshal(UpgradePack.class, f);
+
+        // !!! if the type is the same and the target is "*", then it's good to merge
+        if (upgradePack.isAllTarget() && upgradePack.getType() == base.getType()) {
+          return upgradePack;
+        }
+
+      } catch (Exception e) {
+        LOG.warn("File {} does not appear to be an upgrade pack and will be skipped ({})",
+            f.getAbsolutePath(), e.getMessage());
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Parses the service specific upgrade file and merges the none order elements
    * (prerequisite check and processing sections).
    */
@@ -1013,15 +1083,27 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     try {
       pack = unmarshaller.unmarshal(UpgradePack.class, serviceFile);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       throw new AmbariException("Unable to parse service upgrade file at location: " + serviceFile.getAbsolutePath(), e);
     }
 
-    parent.mergePrerequisiteChecks(pack);
-    parent.mergeProcessing(pack);
-
-    return pack;
+    return parseServiceUpgradePack(parent, pack);
   }
+
+  /**
+   * Places prerequisite checks and processing objects onto the parent upgrade pack.
+   *
+   * @param parent  the parent upgrade pack
+   * @param child   the parsed child upgrade pack
+   * @return the child upgrade pack
+   */
+  private UpgradePack parseServiceUpgradePack(UpgradePack parent, UpgradePack child) {
+    parent.mergePrerequisiteChecks(child);
+    parent.mergeProcessing(child);
+
+    return child;
+  }
+
 
   /**
    * Process repositories associated with the stack.

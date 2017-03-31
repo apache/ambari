@@ -53,7 +53,7 @@ define(['require',
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'vent'));
 			this.collection = new VLogLevel();
-			this.collection.url = Globals.baseURL+"dashboard/hosts_count";
+			this.collection.url = Globals.baseURL+"service/logs/hosts/count";
 			this.bindEvents();
 		},
 		onRender : function(){

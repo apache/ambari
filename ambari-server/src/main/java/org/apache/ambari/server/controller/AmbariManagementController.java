@@ -28,9 +28,12 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.LoggingService;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
+import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -52,11 +55,11 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 
 /**
@@ -296,7 +299,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
-  RequestStatusResponse deleteHostComponents(
+  DeleteStatusMetaData deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
@@ -548,13 +551,6 @@ public interface AmbariManagementController {
   AmbariMetaInfo getAmbariMetaInfo();
 
   /**
-   * Get the service factory for this management controller.
-   *
-   * @return the service factory
-   */
-  ServiceFactory getServiceFactory();
-
-  /**
    * Get the service component factory for this management controller.
    *
    * @return the service component factory
@@ -690,6 +686,17 @@ public interface AmbariManagementController {
    * Getter for the url of MySQL JDBC driver, stored at server resources folder
    */
   String getMysqljdbcUrl();
+
+  /**
+   * Filters hosts to only select healthy ones that are heartbeating.
+   * <p/>
+   * The host's {@link HostState} is used to determine if a host is healthy.
+   *
+   * @return a List of healthy hosts, or an empty List if none exist.
+   * @throws AmbariException
+   * @see {@link HostState#HEALTHY}
+   */
+  List<String> selectHealthyHosts(Set<String> hostList) throws AmbariException;
 
   /**
    * Chooses a healthy host from the list of candidate hosts randomly. If there
@@ -867,6 +874,17 @@ public interface AmbariManagementController {
    */
   LoggingSearchPropertyProvider getLoggingSearchPropertyProvider();
 
+
+  /**
+   * Gets the LoggingService instance from the dependency injection framework.
+   *
+   * @param clusterName the cluster name associated with this LoggingService instance
+   *
+   * @return an instance of LoggingService associated with the specified cluster.
+   */
+  LoggingService getLoggingService(String clusterName);
+
+
   /**
    * Returns KerberosHelper instance
    * @return
@@ -887,6 +905,19 @@ public interface AmbariManagementController {
    * @return
    */
   AmbariEventPublisher getAmbariEventPublisher();
+
+  /**
+   * Gets an {@link MetricsCollectorHAManager} which can be used to get/add collector host for a cluster
+   *
+   * @return {@link MetricsCollectorHAManager}
+   */
+  MetricsCollectorHAManager getMetricsCollectorHAManager();
+
+  /**
+   * @return the visibility controller that decides which quicklinks should be visible
+   * based on the actual quick links profile. If no profile is set, all links will be shown.
+   */
+  QuickLinkVisibilityController getQuicklinkVisibilityController();
 
 }
 

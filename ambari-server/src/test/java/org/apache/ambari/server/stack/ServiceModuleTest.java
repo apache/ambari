@@ -24,6 +24,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.CredentialStoreInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -730,6 +731,25 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_Service__selection() throws Exception {
+    ServiceInfo firstInfo = new ServiceInfo();
+    ServiceInfo secondInfo = new ServiceInfo();
+    ServiceInfo thirdInfo = new ServiceInfo();
+
+    firstInfo.setSelection(ServiceInfo.Selection.MANDATORY);
+
+    resolveService(secondInfo, firstInfo);
+
+    assertEquals(secondInfo.getSelection(), ServiceInfo.Selection.MANDATORY);
+
+    thirdInfo.setSelection(ServiceInfo.Selection.TECH_PREVIEW);
+
+    resolveService(thirdInfo, secondInfo);
+
+    assertEquals(thirdInfo.getSelection(), ServiceInfo.Selection.TECH_PREVIEW);
+  }
+
+  @Test
   public void testResolve_Configuration__attributes() throws Exception {
     ServiceInfo info = new ServiceInfo();
     ServiceInfo parentInfo = new ServiceInfo();
@@ -949,6 +969,44 @@ public class ServiceModuleTest {
 
     //resolveService(service, parentService);
     assertEquals(2, service.getModuleInfo().getExcludedConfigTypes().size());
+  }
+
+  /**
+   * Verify stack resolution for credential-store
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testResolve_CredentialStoreInfo() throws Exception {
+    CredentialStoreInfo credentialStoreInfoChild = new CredentialStoreInfo(true /* supported */, false /* enabled */, true /*required*/);
+    CredentialStoreInfo credentialStoreInfoParent = new CredentialStoreInfo(true /* supported */, true /* enabled */, false /*required*/);
+    ServiceInfo childInfo = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule service;
+
+    // specified in child only, child wins
+    childInfo.setCredentialStoreInfo(credentialStoreInfoChild);
+    parentInfo.setCredentialStoreInfo(null);
+    service = resolveService(childInfo, parentInfo);
+    assertEquals(credentialStoreInfoChild.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
+    assertEquals(credentialStoreInfoChild.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoChild.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
+
+    // specified in parent only, parent wins
+    childInfo.setCredentialStoreInfo(null);
+    parentInfo.setCredentialStoreInfo(credentialStoreInfoParent);
+    service = resolveService(childInfo, parentInfo);
+    assertEquals(credentialStoreInfoParent.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
+    assertEquals(credentialStoreInfoParent.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoParent.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
+
+    // specified in both, child wins
+    childInfo.setCredentialStoreInfo(credentialStoreInfoChild);
+    parentInfo.setCredentialStoreInfo(credentialStoreInfoParent);
+    service = resolveService(childInfo, parentInfo);
+    assertEquals(credentialStoreInfoChild.isSupported(), service.getModuleInfo().isCredentialStoreSupported());
+    assertEquals(credentialStoreInfoChild.isEnabled(), service.getModuleInfo().isCredentialStoreEnabled());
+    assertEquals(credentialStoreInfoChild.isRequired(), service.getModuleInfo().isCredentialStoreRequired());
   }
 
   @Test

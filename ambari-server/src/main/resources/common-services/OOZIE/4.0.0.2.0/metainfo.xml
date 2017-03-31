@@ -58,7 +58,7 @@
           <commandScript>
             <script>scripts/oozie_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
+            <timeout>1800</timeout>
           </commandScript>
           <logs>
             <log>
@@ -142,9 +142,6 @@
             <package>
               <name>extjs</name>
             </package>
-            <package>
-              <name>libxml2-utils</name>
-            </package>
           </packages>
         </osSpecific>
 
@@ -167,6 +164,7 @@
         <config-type>yarn-site</config-type>
         <config-type>hive-site</config-type>
         <config-type>tez-site</config-type>
+        <config-type>core-site</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -98,6 +98,10 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
+# Zookeeper log4j settings
+zookeeper_log_max_backup_size = default('configurations/zookeeper-log4j/zookeeper_log_max_backup_size',10)
+zookeeper_log_number_of_backup_files = default('configurations/zookeeper-log4j/zookeeper_log_number_of_backup_files',10)
+
 #log4j.properties
 if ('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j']):
   log4j_props = config['configurations']['zookeeper-log4j']['content']

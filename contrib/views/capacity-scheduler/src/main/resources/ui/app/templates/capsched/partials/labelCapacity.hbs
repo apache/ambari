@@ -19,17 +19,53 @@
 <div class="label-capacity-container">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="panel-title">
-        Label Capacity <a id="collapseLabelCapacityPanelBtn" href="#collapsibleLabelCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isLabelsPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isLabelsPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+      <div id="collapseLabelCapacityPanelBtn" href="#collapsibleLabelCapacityPanel" data-toggle="collapse" {{bind-attr class=":panel-title :collapsible-panel-btn view.isLabelsPanelCollapsed:collapsed"}}>
+        Label Capacity
+        {{#if isAnyChildrenQueueLabelDirty}}
+          {{#if warnInvalidTotalLabelCapacity}}
+            {{warning-info class="red" tooltip="Invalid label total capacity"}}
+          {{else}}
+            {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
+          {{/if}}
+        {{/if}}
+        <a class="pull-right"><i {{bind-attr class=":fa view.isLabelsPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleLabelCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isLabelsPanelCollapsed::in"}}>
       <div class="panel-body">
         {{#if isOperator}}
-          {{#if isNodeLabelsEnabledByRM}}
+          {{#if isNodeLabelsEnabledAndConfiguredByRM}}
             <div class="label-names">
               <label>Accessible Node Labels: </label>
               <span>{{accessibleLabelNames}}</span>
+            </div>
+            <div class="row">
+              <div class="col-sm-6 col-md-6">
+                <label>Default Label: </label>
+                <span>{{selectedDefaultNodeLabel}}</span>
+                {{#if isDefaultNodeLabelInherited}}
+                  {{#unless isRoot}}
+                    {{#if isValidDefaultNodeLabel}}
+                      <span>(Inherited)</span>
+                    {{/if}}
+                  {{/unless}}
+                {{/if}}
+              </div>
+              <div class="col-sm-6 col-md-6">
+                <label>Set Default Node Label: </label>
+                {{view Ember.Select
+                  class="default-label-options"
+                  content=defaultNodeLabelOptions
+                  optionLabelPath="content.label"
+                  optionValuePath="content.value"
+                  value=queueDefaultNodeLabelExpression
+                }}
+                {{#if queueDirtyFields.default_node_label_expression}}
+                  <div class="btn-group btn-group-xs">
+                    <a {{action 'rollbackProp' 'default_node_label_expression' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                  </div>
+                {{/if}}
+              </div>
             </div>
             {{#if isRoot}}
               <div class="border-wrapper">
@@ -45,7 +81,7 @@
                   </div>
                 </div>
                 {{#if hasAnyNodeLabelsForQueue}}
-                  {{#each label in allLabelsForQueue}}
+                  {{#each label in sortedAllLabelsForQueue}}
                     {{display-root-label queueLabels=queueNodeLabels nonAccessibleLabels=nonAccessibleLabels label=label isRoot=isRoot}}
                   {{/each}}
                 {{else}}
@@ -90,7 +126,7 @@
                       {{edit-label-capacity label=row.label queue=row.queue parentQueue=row.parentQueue}}
                     {{/each}}
 
-                    {{label-capacity-bar queueLabels=childQLabel.childrenQueueLabels}}
+                    {{label-capacity-bar queueLabels=childQLabel.childrenQueueLabels warnInvalidTotalLabelCapacity=warnInvalidTotalLabelCapacity}}
                   </div>
                 {{/each}}
               {{else}}
@@ -100,12 +136,20 @@
               {{/if}}
             {{/if}}
           {{else}}
-            <div>
-              <small>Node labels are disabled by RM. Configure and enable labels to map the labels to queues.</small>
+            <div class="text-warning">
+              {{#if isRmOffline}}
+                <small>Unable to obtain information about the node labels from the resource manager</small>
+              {{else}}
+                {{#unless isNodeLabelsConfiguredByRM}}
+                  <small>Node labels are not configured by resource manager</small>
+                {{else}}
+                  <small>Node labels are disabled by resource manager. Enable node labels to map the labels to queues.</small>
+                {{/unless}}
+              {{/if}}
             </div>
           {{/if}}
         {{else}}
-          {{#if isNodeLabelsEnabledByRM}}
+          {{#if isNodeLabelsEnabledAndConfiguredByRM}}
             <div class="label-names">
               <label>Accessible Node Labels: </label>
               <span>{{accessibleLabelNames}}</span>
@@ -116,12 +160,20 @@
               {{/each}}
             {{else}}
               <div class="">
-                <small>Node labels are not enabled</small>
+                <small>Node labels are not enabled for this queue</small>
               </div>
             {{/if}}
           {{else}}
-            <div>
-              <small>Node labels are disabled</small>
+            <div class="text-warning">
+              {{#if isRmOffline}}
+                <small>Unable to obtain information about the node labels from the resource manager</small>
+              {{else}}
+                {{#unless isNodeLabelsConfiguredByRM}}
+                  <small>Node labels are not configured by resource manager</small>
+                {{else}}
+                  <small>Node labels are disabled by resource manager</small>
+                {{/unless}}
+              {{/if}}
             </div>
           {{/if}}
         {{/if}}

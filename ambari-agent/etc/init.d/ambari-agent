@@ -21,6 +21,7 @@
 
 ### BEGIN INIT INFO
 # Provides:          ambari-agent
+# Required-Start:    $local_fs $remote_fs $network
 # Required-Start:
 # Required-Stop:
 # Default-Start:     2 3 4 5

@@ -18,7 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
+import os
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from logsearch_config_aggregator import get_logfeeder_metadata, get_logsearch_metadata, get_logsearch_meta_configs
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
@@ -32,17 +35,32 @@ def get_port_from_url(address):
   else:
     return address
 
+def get_name_from_principal(principal):
+  if not principal:  # return if empty
+    return principal
+  slash_split = principal.split('/')
+  if len(slash_split) == 2:
+    return slash_split[0]
+  else:
+    at_split = principal.split('@')
+    return at_split[0]
+
 
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
+credential_store_enabled = False
+if 'credentialStoreEnabled' in config:
+  credential_store_enabled = config['credentialStoreEnabled']
+
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
+logsearch_server_keys_folder = logsearch_server_conf + "/keys"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+logsearch_logfeeder_keys_folder = logsearch_logfeeder_conf + "/keys"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
 
@@ -55,110 +73,101 @@ logfeeder_pid_dir = status_params.logfeeder_pid_dir
 logfeeder_pid_file = status_params.logfeeder_pid_file
 
 user_group = config['configurations']['cluster-env']['user_group']
-fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 # shared configs
 java64_home = config['hostLevelParams']['java_home']
-zookeeper_hosts_list = config['clusterHostInfo']['zookeeper_hosts']
-zookeeper_hosts_list.sort()
-# get comma separated list of zookeeper hosts from clusterHostInfo
-zookeeper_hosts = ",".join(zookeeper_hosts_list)
 cluster_name = str(config['clusterName'])
-availableServices = config['availableServices']
+
+configurations = config['configurations'] # need reference inside logfeeder jinja templates
+logserch_meta_configs = get_logsearch_meta_configs(configurations)
+logsearch_metadata = get_logsearch_metadata(logserch_meta_configs)
+logfeeder_metadata = get_logfeeder_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
-  metrics_collector_hosts_list = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
-  metrics_collector_port = str(
-    get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
-  metrics_collector_hosts = format('http://{metrics_collector_hosts_list}:{metrics_collector_port}/ws/v1/timeline/metrics')
+  metrics_http_policy = config['configurations']['ams-site']['timeline.metrics.service.http.policy']
+  metrics_collector_protocol = 'http'
+  if metrics_http_policy == 'HTTPS_ONLY':
+    metrics_collector_protocol = 'https'
+    
+  metrics_collector_hosts = ",".join(config['clusterHostInfo']['metrics_collector_hosts'])
+  metrics_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
+  metrics_collector_path = '/ws/v1/timeline/metrics'
 else:
+  metrics_collector_protocol = ''
   metrics_collector_hosts = ''
+  metrics_collector_port = ''
+  metrics_collector_path = ''
 
-logsearch_solr_metrics_collector_hosts = format(config['configurations']['logsearch-properties']['logsearch.solr.metrics.collector.hosts'])
-
+#####################################
 # Infra Solr configs
-infra_solr_znode = default('/configurations/infra-solr-env/infra_solr_znode', '/infra-solr')
-infra_solr_instance_count = len(config['clusterHostInfo']['infra_solr_hosts'])
-infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
-infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
+#####################################
+infra_solr_znode = '/infra-solr'
+infra_solr_ssl_enabled = False
+infra_solr_jmx_port = ''
 
-zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-index = 0
-zookeeper_quorum = ""
-for host in config['clusterHostInfo']['zookeeper_hosts']:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(config['clusterHostInfo']['zookeeper_hosts']):
-    zookeeper_quorum += ","
+if 'infra-solr-env' in config['configurations']:
+  infra_solr_znode = default('/configurations/infra-solr-env/infra_solr_znode', '/infra-solr')
+  infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
+  infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
 
+infra_solr_role_logsearch = default('configurations/infra-solr-security-json/infra_solr_role_logsearch', 'logsearch_user')
+infra_solr_role_logfeeder = default('configurations/infra-solr-security-json/infra_solr_role_logfeeder', 'logfeeder_user')
+infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
+infra_solr_role_ranger_admin = default('configurations/infra-solr-security-json/infra_solr_role_ranger_admin', 'ranger_user')
 
+_hostname_lowercase = config['hostname'].lower()
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
-  _hostname_lowercase = config['hostname'].lower()
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
-  logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
-  logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
-  logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
-  logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  use_external_solr_with_kerberos = default('configurations/logsearch-common-env/logsearch_external_solr_kerberos_enabled', False)
+  if use_external_solr_with_kerberos:
+    logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_keytab']
+    logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+    logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_external_solr_kerberos_keytab']
+    logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_external_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+  else:
+    logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
+    logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+    logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
+    logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
+
+logsearch_spnego_host = config['configurations']['logsearch-properties']['logsearch.spnego.kerberos.host'].replace('_HOST', _hostname_lowercase)
 
 #####################################
 # Logsearch configs
 #####################################
 logsearch_dir = '/usr/lib/ambari-logsearch-portal'
 
-logsearch_collection_service_logs_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.service.logs.numshards']
-logsearch_collection_audit_logs_numshards_config = config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.numshards']
-
-if logsearch_collection_service_logs_numshards_config > 0:
-  logsearch_collection_service_logs_numshards = str(logsearch_collection_service_logs_numshards_config)
-else:
-  logsearch_collection_service_logs_numshards = format(str(infra_solr_instance_count))
-
-if logsearch_collection_audit_logs_numshards_config > 0:
-  logsearch_collection_audit_logs_numshards = str(logsearch_collection_audit_logs_numshards_config)
-else:
-  logsearch_collection_audit_logs_numshards = format(str(infra_solr_instance_count))
-
-logsearch_collection_service_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.service.logs.replication.factor'])
-logsearch_collection_audit_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.replication.factor'])
-
-logsearch_solr_collection_service_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
-logsearch_solr_collection_audit_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.audit.logs','audit_logs')
-
 logsearch_service_logs_max_retention = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_max_retention']
 logsearch_service_logs_merge_factor = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_merge_factor']
-logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
-logsearch_service_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
 
 logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
 logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
-logsearch_audit_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
 
-logsearch_logfeeder_include_default_level = default('/configurations/logsearch-properties/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
+logsearch_use_external_solr = default('/configurations/logsearch-common-env/logsearch_use_external_solr', False)
 
-logsearch_solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', zookeeper_quorum)
-logsearch_solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', infra_solr_znode)
-logsearch_solr_audit_logs_zk_node = format(logsearch_solr_audit_logs_zk_node)
-logsearch_solr_audit_logs_zk_quorum = format(logsearch_solr_audit_logs_zk_quorum)
+if logsearch_use_external_solr:
+  logsearch_solr_zk_znode = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_znode']
+  logsearch_solr_zk_quorum = config['configurations']['logsearch-common-env']['logsearch_external_solr_zk_quorum']
+  logsearch_solr_ssl_enabled = default('configurations/logsearch-common-env/logsearch_external_solr_ssl_enabled', False)
+  logsearch_solr_kerberos_enabled = security_enabled and use_external_solr_with_kerberos
+else:
+  logsearch_solr_zk_znode = infra_solr_znode
 
-# create custom properties - remove defaults
-logsearch_custom_properties = dict(config['configurations']['logsearch-properties'])
-logsearch_custom_properties.pop("logsearch.service.logs.fields", None)
-logsearch_custom_properties.pop("logsearch.audit.logs.split.interval.mins", None)
-logsearch_custom_properties.pop("logsearch.collection.service.logs.replication.factor", None)
-logsearch_custom_properties.pop("logsearch.solr.collection.service.logs", None)
-logsearch_custom_properties.pop("logsearch.solr.metrics.collector.hosts", None)
-logsearch_custom_properties.pop("logsearch.solr.collection.audit.logs", None)
-logsearch_custom_properties.pop("logsearch.logfeeder.include.default.level", None)
-logsearch_custom_properties.pop("logsearch.collection.audit.logs.replication.factor", None)
-logsearch_custom_properties.pop("logsearch.collection.service.logs.numshards", None)
-logsearch_custom_properties.pop("logsearch.service.logs.split.interval.mins", None)
-logsearch_custom_properties.pop("logsearch.collection.audit.logs.numshards", None)
-logsearch_custom_properties.pop("logsearch.external.auth.enabled", None)
-logsearch_custom_properties.pop("logsearch.external.auth.host_url", None)
-logsearch_custom_properties.pop("logsearch.external.auth.login_url", None)
+  logsearch_solr_zk_quorum = ""
+  zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
+  if 'zookeeper_hosts' in config['clusterHostInfo']:
+    for host in config['clusterHostInfo']['zookeeper_hosts']:
+      if logsearch_solr_zk_quorum:
+        logsearch_solr_zk_quorum += ','
+      logsearch_solr_zk_quorum += host + ":" + str(zookeeper_port)
+  
+  logsearch_solr_ssl_enabled = infra_solr_ssl_enabled
+  logsearch_solr_kerberos_enabled = security_enabled
+
+zookeeper_quorum = logsearch_solr_zk_quorum
 
 # logsearch-env configs
 logsearch_user = config['configurations']['logsearch-env']['logsearch_user']
@@ -170,6 +179,26 @@ logsearch_debug_enabled = str(config['configurations']['logsearch-env']["logsear
 logsearch_debug_port = config['configurations']['logsearch-env']["logsearch_debug_port"]
 logsearch_app_max_memory = config['configurations']['logsearch-env']['logsearch_app_max_memory']
 
+logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
+logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
+logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
+logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
+logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
+logsearch_truststore_password = config['configurations']['logsearch-env']['logsearch_truststore_password']
+
+logsearch_env_config = dict(config['configurations']['logsearch-env'])
+logsearch_env_jceks_file = os.path.join(logsearch_server_conf, 'logsearch.jceks')
+
+#Logsearch log4j properties
+logsearch_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_log_maxfilesize',10)
+logsearch_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_log_maxbackupindex',10)
+logsearch_json_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_json_log_maxfilesize',10)
+logsearch_json_log_maxbackupindex = default('/configurations/logsearch-log4j/logsearch_json_log_maxbackupindex',10)
+logsearch_audit_log_maxfilesize = default('/configurations/logsearch-log4j/logsearch_audit_log_maxfilesize',10)
+logsearch_audit_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_audit_log_maxbackupindex',10)
+logsearch_perf_log_maxfilesize =default('/configurations/logsearch-log4j/logsearch_perf_log_maxfilesize',10)
+logsearch_perf_log_maxbackupindex =default('/configurations/logsearch-log4j/logsearch_perf_log_maxbackupindex',10)
+
 # store the log file for the service from the 'solr.log' property of the 'logsearch-env.xml' file
 logsearch_env_content = config['configurations']['logsearch-env']['content']
 logsearch_service_logs_solrconfig_content = config['configurations']['logsearch-service_logs-solrconfig']['content']
@@ -179,45 +208,14 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-knox_log_dir = '/var/log/knox'
-hst_log_dir = '/var/log/hst'
-hst_activity_log_dir = '/var/log/smartsense-activity'
-
-metrics_collector_log_dir = default('/configurations/ams-env/metrics_collector_log_dir', '/var/log/ambari-metrics-collector')
-metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_dir', '/var/log/ambari-metrics-monitor')
-metrics_grafana_log_dir = default('/configurations/ams-grafana-env/metrics_grafana_log_dir', '/var/log/ambari-metrics-grafana')
-
-atlas_log_dir = default('/configurations/atlas-env/metadata_log_dir', '/var/log/atlas')
-accumulo_log_dir = default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')
-falcon_log_dir = default('/configurations/falcon-env/falcon_log_dir', '/var/log/falcon')
-flume_log_dir = default('/configurations/flume-env/flume_log_dir', '/var/log/flume')
-hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')
-hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
-hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
-hcat_log_dir = default('configurations/hive-env/hcat_log_dir', '/var/log/webhcat')
-infra_solr_log_dir = default('configurations/infra-solr-env/infra_solr_log_dir', '/var/log/ambari-infra-solr')
-kafka_log_dir = default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')
 nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
-oozie_log_dir = default('/configurations/oozie-env/oozie_log_dir', '/var/log/oozie')
-ranger_usersync_log_dir = default('/configurations/ranger-env/ranger_usersync_log_dir', '/var/log/ranger/usersync')
-ranger_admin_log_dir = default('/configurations/ranger-env/ranger_admin_log_dir', '/var/log/ranger/admin')
-ranger_kms_log_dir = default('/configurations/kms-env/kms_log_dir', '/var/log/ranger/kms')
-storm_log_dir = default('/configurations/storm-env/storm_log_dir', '/var/log/storm')
-yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')
-mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')
-zeppelin_log_dir = default('/configuration/zeppelin-env/zeppelin_log_dir', '/var/log/zeppelin')
-zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
-spark_log_dir = default('/configurations/spark-env/spark_log_dir', '/var/log/spark')
-livy_log_dir = default('/configurations/livy-env/livy_log_dir', '/var/log/livy')
-spark2_log_dir = default('/configurations/spark2-env/spark_log_dir', '/var/log/spark2')
 
-hdfs_user = default('configurations/hadoop-env/hdfs_user', 'hdfs')
-mapred_user =  default('configurations/mapred-env/mapred_user', 'mapred')
-yarn_user =  default('configurations/yarn-env/yarn_user', 'yarn')
+# System logs
+logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']
+logfeeder_secure_log_content = config['configurations']['logfeeder-system_log-env']['logfeeder_secure_log_content']
+logfeeder_system_log_enabled = default('/configurations/logfeeder-system_log-env/logfeeder_system_log_enabled', False)
 
-#####################################
 # Logsearch auth configs
-#####################################
 
 logsearch_admin_credential_file = 'logsearch-admin.json'
 logsearch_admin_username = default('/configurations/logsearch-admin-json/logsearch_admin_username', "admin")
@@ -236,15 +234,79 @@ if 'ambari_server_host' in config['clusterHostInfo']:
 else:
   ambari_server_auth_host_url = ''
 
-logsearch_auth_external_enabled = str(config['configurations']['logsearch-properties']['logsearch.external.auth.enabled']).lower()
-logsearch_auth_external_host_url = format(config['configurations']['logsearch-properties']['logsearch.external.auth.host_url'])
-logsearch_auth_external_login_url = config['configurations']['logsearch-properties']['logsearch.external.auth.login_url']
+# Logsearch propreties
+
+logsearch_properties = {}
+
+# default values
+
+logsearch_properties['logsearch.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
+logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
+
+logsearch_properties['logsearch.solr.collection.history'] = 'history'
+logsearch_properties['logsearch.solr.history.config.name'] = 'history'
+logsearch_properties['logsearch.collection.history.replication.factor'] = '1'
+
+logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port
+
+logsearch_properties['logsearch.login.credentials.file'] = logsearch_admin_credential_file
+logsearch_properties['logsearch.auth.file.enabled'] = 'true'
+logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
+logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
+
+logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
+
+logsearch_acls = ''
+if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
+  acl_infra_solr_principal = get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'])
+  acl_logsearch_principal = get_name_from_principal(config['configurations']['logsearch-env']['logsearch_kerberos_principal'])
+  logsearch_acls = format('world:anyone:r,sasl:{acl_infra_solr_principal}:cdrwa,sasl:{acl_logsearch_principal}:cdrwa')
+  logsearch_properties['logsearch.solr.zk.acls'] = logsearch_acls
+  logsearch_properties['logsearch.solr.audit.logs.zk.acls'] = logsearch_acls
+
+# load config values
+
+logsearch_properties = dict(logsearch_properties.items() + dict(config['configurations']['logsearch-properties']).items())
+
+# load derivated values
+
+if logsearch_properties['logsearch.solr.audit.logs.use.ranger'] == 'false':
+  del logsearch_properties['logsearch.ranger.audit.logs.collection.name']
+
+del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
+
+logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
+logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
+logsearch_properties['logsearch.spnego.kerberos.host'] = logsearch_spnego_host
+
+if logsearch_solr_kerberos_enabled:
+  logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
+  logsearch_properties['logsearch.solr.jaas.file'] = logsearch_jaas_file
+
+
+logsearch_solr_collection_service_logs = logsearch_properties['logsearch.solr.collection.service.logs']
+logsearch_service_logs_split_interval_mins = logsearch_properties['logsearch.service.logs.split.interval.mins']
+logsearch_collection_service_logs_numshards = logsearch_properties['logsearch.collection.service.logs.numshards']
+
+logsearch_solr_collection_audit_logs = logsearch_properties['logsearch.solr.collection.audit.logs']
+logsearch_audit_logs_split_interval_mins = logsearch_properties['logsearch.audit.logs.split.interval.mins']
+logsearch_collection_audit_logs_numshards = logsearch_properties['logsearch.collection.audit.logs.numshards']
+
+# check if logsearch uses ssl in any way
+
+logsearch_use_ssl = logsearch_solr_ssl_enabled or logsearch_ui_protocol == 'https' or ambari_server_use_ssl
 
 #####################################
 # Logfeeder configs
 #####################################
 
 logfeeder_dir = "/usr/lib/ambari-logsearch-logfeeder"
+
+# logfeeder-log4j
+logfeeder_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_log_maxfilesize',10)
+logfeeder_log_maxbackupindex =  default('/configurations/logfeeder-log4j/logfeeder_log_maxbackupindex',10)
+logfeeder_json_log_maxfilesize = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxfilesize',10)
+logfeeder_json_log_maxbackupindex = default('/configurations/logfeeder-log4j/logfeeder_json_log_maxbackupindex',10)
 
 # logfeeder-env configs
 logfeeder_log_dir = config['configurations']['logfeeder-env']['logfeeder_log_dir']
@@ -255,42 +317,79 @@ solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_a
 logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
-logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
-logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
-logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
-logsearch_truststore_location = config['configurations']['logsearch-env']['logsearch_truststore_location']
-logsearch_truststore_password = config['configurations']['logsearch-env']['logsearch_truststore_password']
-logsearch_truststore_type = config['configurations']['logsearch-env']['logsearch_truststore_type']
 logfeeder_keystore_location = config['configurations']['logfeeder-env']['logfeeder_keystore_location']
-logfeeder_keystore_password = config['configurations']['logfeeder-env']['logfeeder_keystore_password']
 logfeeder_keystore_type = config['configurations']['logfeeder-env']['logfeeder_keystore_type']
+logfeeder_keystore_password = config['configurations']['logfeeder-env']['logfeeder_keystore_password']
 logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfeeder_truststore_location']
-logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
+logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 
-logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.checkpoint.folder',
-                                      '/etc/ambari-logsearch-logfeeder/conf/checkpoints')
+logfeeder_env_config = dict(config['configurations']['logfeeder-env'])
+logfeeder_env_jceks_file = os.path.join(logsearch_logfeeder_conf, 'logfeeder.jceks')
 
-logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)).lower()
-logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
+logfeeder_ambari_config_content = config['configurations']['logfeeder-ambari-config']['content']
+logfeeder_output_config_content = config['configurations']['logfeeder-output-config']['content']
 
-logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'infra', 'kafka',
-                                'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm', 'yarn', 'zeppelin', 'zookeeper']
+logfeeder_default_services = ['logsearch']
+logfeeder_default_config_file_names = ['global.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_default_services]
+logfeeder_custom_config_file_names = ['input.config-%s.json' % (tag.replace('-logsearch-conf', ''))
+                                      for tag, content in logfeeder_metadata.iteritems() if any(logfeeder_metadata)]
 
-logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in
-                                                                              logfeeder_supported_services]
+if logfeeder_system_log_enabled:
+  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names
+                                  + ['input.config-system_messages.json', 'input.config-secure_log.json'])
+else:
+  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names)
 
-default_config_files = ','.join(logfeeder_config_file_names)
 
-logfeeder_config_files = format(config['configurations']['logfeeder-properties']['logfeeder.config.files'])
-logfeeder_metrics_collector_hosts = format(config['configurations']['logfeeder-properties']['logfeeder.metrics.collector.hosts'])
+logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
+if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
+  logfeeder_grok_patterns = \
+    logfeeder_grok_patterns + '\n' + \
+    '\n' + \
+    '########################\n' +\
+    '# Custom Grok Patterns #\n' +\
+    '########################\n' +\
+    '\n' + \
+    config['configurations']['logfeeder-grok']['custom_grok_patterns']
 
-logfeeder_custom_properties = dict(config['configurations']['logfeeder-properties'])
-logfeeder_custom_properties.pop('logfeeder.config.files', None)
-logfeeder_custom_properties.pop('logfeeder.checkpoint.folder', None)
-logfeeder_custom_properties.pop('logfeeder.metrics.collector.hosts', None)
-logfeeder_custom_properties.pop('logfeeder.log.filter.enable', None)
-logfeeder_custom_properties.pop('logfeeder.solr.config.interval', None)
+# logfeeder properties
+
+# load default values
+
+logfeeder_properties = {}
+
+logfeeder_properties['logfeeder.solr.core.config.name'] = 'history'
+
+# load config values
+
+logfeeder_properties = dict(logfeeder_properties.items() + dict(config['configurations']['logfeeder-properties']).items())
+
+# load derivated values
+
+logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])
+logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
+logfeeder_properties['logfeeder.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
+
+logfeeder_properties['logfeeder.metrics.collector.protocol'] = metrics_collector_protocol
+logfeeder_properties['logfeeder.metrics.collector.port'] = metrics_collector_port
+logfeeder_properties['logfeeder.metrics.collector.path'] = '/ws/v1/timeline/metrics'
+
+if logsearch_solr_kerberos_enabled:
+  if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
+    logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
+  if 'logfeeder.solr.jaas.file' not in logfeeder_properties:
+    logfeeder_properties['logfeeder.solr.jaas.file'] = logfeeder_jaas_file
+
+logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder']
+
+# check if logfeeder uses ssl in any way
+
+logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 'https'
+
+#####################################
+# Smoke command
+#####################################
 
 logsearch_server_hosts = config['clusterHostInfo']['logsearch_server_hosts']
 logsearch_server_host = ""

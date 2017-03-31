@@ -289,6 +289,9 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         if (userEntity == null) {
+            userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
+        }
+        if (userEntity == null) {
           throw new SystemException("User " + userName + " was not found");
         }
 

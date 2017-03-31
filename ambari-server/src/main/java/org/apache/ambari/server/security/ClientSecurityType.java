@@ -19,7 +19,8 @@ package org.apache.ambari.server.security;
 
 public enum ClientSecurityType {
   LOCAL("local"),
-  LDAP("ldap");
+  LDAP("ldap"),
+  PAM("pam");
 
   private String value;
   ClientSecurityType(String value) {

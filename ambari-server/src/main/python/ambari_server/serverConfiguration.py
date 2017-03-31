@@ -38,7 +38,7 @@ from ambari_commons.logging_utils import get_debug_mode, print_info_msg, print_w
   set_debug_mode
 from ambari_server.properties import Properties
 from ambari_server.userInput import get_validated_string_input
-from ambari_server.utils import compare_versions, locate_file
+from ambari_server.utils import compare_versions, locate_file, on_powerpc
 from ambari_server.ambariPath import AmbariPath
 
 
@@ -140,6 +140,8 @@ JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
 JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
 
 ### # End Windows-specific # ###
+# The user which will bootstrap embedded postgres database setup by creating the default schema and ambari user.
+LOCAL_DATABASE_ADMIN_PROPERTY = "local.database.user"
 
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
@@ -172,9 +174,15 @@ CHECK_AMBARI_KRB_JAAS_CONFIGURATION_PROPERTY = "kerberos.check.jaas.configuratio
 # JDK
 JDK_RELEASES="java.releases"
 
+if on_powerpc():
+  JDK_RELEASES += ".ppc64le"
+
 VIEWS_DIR_PROPERTY = "views.dir"
 
 ACTIVE_INSTANCE_PROPERTY = "active.instance"
+
+# web server startup timeout
+WEB_SERVER_STARTUP_TIMEOUT = "server.startup.web.timeout"
 
 #Common setup or upgrade message
 SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
@@ -201,6 +209,11 @@ REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PAT
                        JDBC_USER_NAME_PROPERTY, BOOTSTRAP_SCRIPT, RESOURCES_DIR_PROPERTY, CUSTOM_ACTION_DEFINITIONS,
                        BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY, PID_DIR_PROPERTY,
                        MPACKS_STAGING_PATH_PROPERTY]
+
+# if these properties are available 'ambari-server setup -s' is not triggered again.
+SETUP_DONE_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, JDK_NAME_PROPERTY, JDBC_DATABASE_PROPERTY,
+                         NR_USER_PROPERTY, PERSISTENCE_TYPE_PROPERTY
+]
 
 def get_conf_dir():
   try:
@@ -396,6 +409,7 @@ class ServerConfigDefaults(object):
     self.COMMON_SERVICES_LOCATION_DEFAULT = ""
     self.MPACKS_STAGING_LOCATION_DEFAULT = ""
     self.SERVER_TMP_DIR_DEFAULT = ""
+    self.DASHBOARD_DIRNAME = "dashboards"
 
     self.DEFAULT_VIEWS_DIR = ""
 
@@ -534,6 +548,10 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/var/lib/ambari-server/data/tmp/"), "755", "{0}", False),
       (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "600", "{0}", True),
       (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "700", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/common-services/STORM/0.9.1/package/files/wordCount.jar"), "644", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar"), "644", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar"), "644", "{0}", False),
+      (AmbariPath.get("/var/lib/ambari-server/resources/stacks/HDP/2.1/services/SMARTSENSE/package/files/view/smartsense-ambari-view-1.4.0.0.60.jar"), "644", "{0}", False),
       # Also, /etc/ambari-server/conf/password.dat
       # is generated later at store_password_file
     ]
@@ -682,6 +700,19 @@ def get_master_key_location(properties):
   if keyLocation is None or keyLocation == "":
     keyLocation = properties[SECURITY_KEYS_DIR]
   return keyLocation
+
+def get_ambari_server_ui_port(properties):
+  ambari_server_ui_port = CLIENT_API_PORT
+  client_api_port = properties.get_property(CLIENT_API_PORT_PROPERTY)
+  if client_api_port:
+    ambari_server_ui_port = client_api_port
+  api_ssl = properties.get_property(SSL_API)
+  if api_ssl and str(api_ssl).lower() == "true":
+    ambari_server_ui_port = DEFAULT_SSL_API_PORT
+    ssl_api_port = properties.get_property(SSL_API_PORT)
+    if ssl_api_port:
+      ambari_server_ui_port = ssl_api_port
+  return ambari_server_ui_port
 
 # Copy file to /tmp and save with file.# (largest # is latest file)
 def backup_file_in_temp(filePath):
@@ -949,6 +980,25 @@ def remove_password_file(filename):
       return 1
   pass
   return 0
+
+
+def get_web_server_startup_timeout(properties):
+  """
+  Gets the time, in seconds, that the startup script should wait for the web server to bind to
+  the configured port. If this value is too low, then the startup script will return an
+  error code even though Ambari is actually starting up.
+  :param properties:
+  :return: The timeout value, in seconds. The default is 50.
+  """
+  # get the timeout property and strip it if it exists
+  timeout = properties[WEB_SERVER_STARTUP_TIMEOUT]
+  timeout = None if timeout is None else timeout.strip()
+
+  if timeout is None or timeout == "":
+    timeout = 50
+  else:
+    timeout = int(timeout)
+  return timeout
 
 
 def get_original_master_key(properties, options = None):
@@ -1427,6 +1477,15 @@ def get_mpacks_staging_location(properties):
     mpacks_staging_location = configDefaults.MPACKS_STAGING_LOCATION_DEFAULT
   return mpacks_staging_location
 
+
+#
+# Dashboard location
+#
+def get_dashboard_location(properties):
+  resources_dir = get_resources_location(properties)
+  dashboard_location = os.path.join(resources_dir, configDefaults.DASHBOARD_DIRNAME)
+  return dashboard_location
+
 #
 # Server temp location
 #
@@ -1436,9 +1495,9 @@ def get_server_temp_location(properties):
     server_tmp_dir = configDefaults.SERVER_TMP_DIR_DEFAULT
   return server_tmp_dir
 
-def get_missing_properties(properties):
+def get_missing_properties(properties, property_set=REQUIRED_PROPERTIES):
   missing_propertiers = []
-  for property in REQUIRED_PROPERTIES:
+  for property in property_set:
     value = properties[property]
     if not value:
       missing_propertiers.append(property)

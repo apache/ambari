@@ -141,6 +141,9 @@ public class NonPersistentCursor implements Cursor<Row, ColumnDescription> {
     }
 
     if (receive instanceof NoMoreItems) {
+      if(descriptions.isEmpty()) {
+        descriptions.addAll(((NoMoreItems)receive).getColumns());
+      }
       endReached = true;
     }
 

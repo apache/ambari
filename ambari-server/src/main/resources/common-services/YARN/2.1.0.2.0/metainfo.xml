@@ -175,7 +175,6 @@
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
-        <config-type>ams-ssl-client</config-type>
         <config-type>ranger-yarn-plugin-properties</config-type>
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
@@ -212,6 +211,13 @@
             </dependency>
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SLIDER/SLIDER</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -293,7 +299,6 @@
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
       <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>

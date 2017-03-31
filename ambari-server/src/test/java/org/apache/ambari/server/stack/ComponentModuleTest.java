@@ -25,6 +25,7 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -155,11 +156,14 @@ public class ComponentModuleTest {
     String cardinality = "foo";
 
     ComponentInfo info = new ComponentInfo();
-    ComponentInfo parentInfo = new ComponentInfo();
+    // parent is null, child cardinality is null
+    assertEquals("0+", resolveComponent(info, null).getModuleInfo().getCardinality());
 
+    ComponentInfo parentInfo = new ComponentInfo();
+    info = new ComponentInfo();
     // parent has value set, child value is null
     parentInfo.setCardinality(cardinality);
-    assertEquals("0+", resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
+    assertEquals("foo", resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
 
     // child has value set, parent value is null
     info.setCardinality(cardinality);
@@ -445,6 +449,40 @@ public class ComponentModuleTest {
   }
 
   @Test
+  public void testResolve_UnlimitedKeyJCERequiredInheritance(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child doesn't
+    parentInfo.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.ALWAYS);
+    assertSame(UnlimitedKeyJCERequirement.ALWAYS, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
+  }
+
+  @Test
+  public void testResolve_UnlimitedKeyJCERequired(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent doesn't have it, child has it
+    info.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.NEVER);
+    assertSame(UnlimitedKeyJCERequirement.NEVER, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
+  }
+
+  @Test
+  public void testResolve_UnlimitedKeyJCERequiredOverwrite(){
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    //parent has it, child overwrites it
+    parentInfo.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.KERBEROS_ENABLED);
+    info.setUnlimitedKeyJCERequired(UnlimitedKeyJCERequirement.ALWAYS);
+    assertSame(UnlimitedKeyJCERequirement.ALWAYS, resolveComponent(info, parentInfo).getModuleInfo().getUnlimitedKeyJCERequired());
+  }
+
+  @Test
   public void testResolve_Reassignable(){
     List<ComponentInfo> components = createComponentInfo(2);
     ComponentInfo info = components.get(0);
@@ -552,10 +590,12 @@ public class ComponentModuleTest {
 
   private ComponentModule resolveComponent(ComponentInfo info, ComponentInfo parentInfo) {
     info.setName("FOO");
-    parentInfo.setName("FOO");
-
     ComponentModule component = new ComponentModule(info);
-    ComponentModule parentComponent = new ComponentModule(parentInfo);
+    ComponentModule parentComponent = null;
+    if (parentInfo != null) {
+      parentInfo.setName("FOO");
+      parentComponent = new ComponentModule(parentInfo);
+    }
 
     component.resolve(parentComponent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap(), Collections.<String, ExtensionModule>emptyMap());
 

@@ -357,68 +357,6 @@
               "metric": "EventAcceptedCount",
               "pointInTime": true,
               "temporal": true
-            },
-
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/avg": {
-              "metric": "EventTakeSuccessCount._rate._avg",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/max": {
-              "metric": "EventTakeSuccessCount._rate._max",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/min": {
-              "metric": "EventTakeSuccessCount._rate._min",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventTakeSuccessCount/rate/sum": {
-              "metric": "EventTakeSuccessCount._rate._sum",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/avg": {
-              "metric": "EventPutSuccessCount._rate._avg",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/max": {
-              "metric": "EventPutSuccessCount._rate._max",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/min": {
-              "metric": "EventPutSuccessCount._rate._min",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/EventPutSuccessCount/rate/sum": {
-              "metric": "EventPutSuccessCount._rate._sum",
-              "pointInTime": false,
-              "temporal": true
-            },
-
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/avg": {
-              "metric": "ChannelSize._rate._avg",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/max": {
-              "metric": "ChannelSize._rate._max",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/min": {
-              "metric": "ChannelSize._rate._min",
-              "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/flume/flume/CHANNEL/$1.replaceAll(\"^CHANNEL\.\",\"\")/ChannelSize/rate/sum": {
-              "metric": "ChannelSize._rate._sum",
-              "pointInTime": false,
-              "temporal": true
             }
 
           }

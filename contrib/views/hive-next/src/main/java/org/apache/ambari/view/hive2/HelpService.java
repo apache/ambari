@@ -23,6 +23,9 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive2.resources.files.FileService;
 import org.apache.ambari.view.hive2.resources.jobs.atsJobs.ATSParserFactory;
 import org.apache.ambari.view.hive2.resources.jobs.atsJobs.ATSRequestsDelegateImpl;
+import org.apache.ambari.view.hive2.utils.ServiceCheck;
+import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.json.simple.JSONObject;
 
 import javax.inject.Inject;
@@ -100,11 +103,26 @@ public class HelpService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response atsStatus() {
     try {
-      ATSRequestsDelegateImpl atsimpl = new ATSRequestsDelegateImpl(context, ATSParserFactory.getATSUrl(context));
+      ATSRequestsDelegateImpl atsimpl = new ATSRequestsDelegateImpl(context, new ATSParserFactory(context).getATSUrl());
       atsimpl.checkATSStatus();
       return getOKResponse();
     }catch (IOException e){
       throw new WebApplicationException(e);
+    }
+  }
+
+  @GET
+  @Path("/service-check-policy")
+  public Response getServiceCheckList(){
+    ServiceCheck serviceCheck = new ServiceCheck(context);
+    try {
+      ServiceCheck.Policy policy = serviceCheck.getServiceCheckPolicy();
+      JSONObject policyJson = new JSONObject();
+      policyJson.put("serviceCheckPolicy", policy);
+      return Response.ok(policyJson).build();
+    } catch (HdfsApiException e) {
+      LOG.error("Error occurred while generating service check policy : ", e);
+      throw new ServiceFormattedException(e);
     }
   }
 

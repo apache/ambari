@@ -66,16 +66,6 @@ def webhcat():
             group=params.user_group,
             cd_access="a")
 
-  if params.security_enabled:
-    kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
-  else:
-    kinit_if_needed = ""
-
-  if kinit_if_needed:
-    Execute(kinit_if_needed,
-            user=params.webhcat_user,
-            path='/bin'
-    )
 
   # Replace _HOST with hostname in relevant principal-related properties
   webhcat_site = params.config['configurations']['webhcat-site'].copy()
@@ -128,7 +118,7 @@ def webhcat():
          mode=0644,
          group=params.user_group,
          owner=params.webhcat_user,
-         content=params.log4j_webhcat_props
+         content=InlineTemplate(params.log4j_webhcat_props)
     )
   elif (os.path.exists("{config_dir}/{log4j_webhcat_filename}.template")):
     File(format("{config_dir}/{log4j_webhcat_filename}"),
@@ -139,7 +129,7 @@ def webhcat():
     )
 
   # Generate atlas-application.properties.xml file
-  if has_atlas_in_cluster():
+  if params.enable_atlas_hook:
     # WebHCat uses a different config dir than the rest of the daemons in Hive.
     atlas_hook_filepath = os.path.join(params.config_dir, params.atlas_hook_filename)
     setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

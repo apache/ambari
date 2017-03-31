@@ -57,7 +57,7 @@
 
  <appender name="rolling_file_json"
   class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
-  <param name="file" value="logs/logsearch-app.json" />
+  <param name="file" value="target/logs/logsearch-app.json" />
   <param name="Threshold" value="info" />
   <param name="append" value="true" />
   <param name="maxFileSize" value="10MB" />
@@ -67,7 +67,7 @@
 
   <appender name="audit_rolling_file_json"
     class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
-    <param name="file" value="logs/logsearch-audit.json" />
+    <param name="file" value="target/logs/logsearch-audit.json" />
     <param name="Threshold" value="info" />
     <param name="append" value="true" />
     <param name="maxFileSize" value="10MB" />
@@ -77,7 +77,7 @@
 
   <appender name="performance_analyzer_json"
     class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
-    <param name="file" value="logs/logsearch-performance.json" />
+    <param name="file" value="target/logs/logsearch-performance.json" />
     <param name="Threshold" value="info" />
     <param name="append" value="true" />
     <param name="maxFileSize" value="10MB" />
@@ -94,20 +94,17 @@
 
 	<logger name="org.apache.ambari.logsearch.audit"
 		additivity="true">
-		<priority value="info" />
 		<!-- <appender-ref ref="audit_rolling_file" />-->
         <appender-ref ref="audit_rolling_file_json" />
 	</logger>
 
 	<logger name="org.apache.ambari.logsearch.performance"
 		additivity="false">
-	  	<priority value="info" />
 		<!-- <appender-ref ref="performance_analyzer" />-->
         <appender-ref ref="performance_analyzer_json" />
 	</logger>
 
 	<logger name="org.apache.ambari.logsearch" additivity="false">
-	  	<priority value="info" />
 		<!-- <appender-ref ref="console" /> -->
 		<!-- <appender-ref ref="rolling_file" />-->
         <appender-ref ref="rolling_file_json" />

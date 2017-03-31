@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 def setup_ranger_hive_interactive(upgrade_type = None):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_hive:
 
     stack_version = None
 
@@ -34,7 +34,7 @@ def setup_ranger_hive_interactive(upgrade_type = None):
     else:
       Logger.info("Hive2: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
-    if params.xml_configurations_supported and params.enable_ranger_hive and params.xa_audit_hdfs_is_enabled:
+    if params.xml_configurations_supported and params.xa_audit_hdfs_is_enabled:
       params.HdfsResource("/ranger/audit",
                          type="directory",
                          action="create_on_execute",
@@ -53,8 +53,8 @@ def setup_ranger_hive_interactive(upgrade_type = None):
       )
       params.HdfsResource(None, action="execute")
 
-      from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
-      setup_ranger_plugin('hive-server2-hive2', 'hive', params.ranger_previous_jdbc_jar,
+    from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
+    setup_ranger_plugin('hive-server2-hive2', 'hive', params.ranger_previous_jdbc_jar,
                           params.ranger_downloaded_custom_connector, params.ranger_driver_curl_source,
                           params.ranger_driver_curl_target, params.java64_home,
                           params.repo_name, params.hive_ranger_plugin_repo,
@@ -73,6 +73,5 @@ def setup_ranger_hive_interactive(upgrade_type = None):
                           is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
                           component_user_principal=params.hive_principal if params.security_enabled else None,
                           component_user_keytab=params.hive_server2_keytab if params.security_enabled else None)
-
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Hive plugin is not enabled')

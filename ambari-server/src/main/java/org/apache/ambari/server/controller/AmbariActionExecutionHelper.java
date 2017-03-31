@@ -227,17 +227,28 @@ public class AmbariActionExecutionHelper {
             || targetHostType.equals(TargetHostType.MAJORITY);
   }
 
-
   /**
    * Add tasks to the stage based on the requested action execution
-   *
    * @param actionContext  the context associated with the action
    * @param stage          stage into which tasks must be inserted
    * @param requestParams  all request parameters (may be null)
    * @throws AmbariException if the task can not be added
    */
   public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage,
-                                          Map<String, String> requestParams)
+                                          Map<String, String> requestParams) throws AmbariException {
+    addExecutionCommandsToStage(actionContext, stage, requestParams, true);
+  }
+
+  /**
+   * Add tasks to the stage based on the requested action execution
+   * @param actionContext
+   * @param stage
+   * @param requestParams
+   * @param checkHostIsMemberOfCluster if true AmbariException will be thrown in case host is not member of cluster.
+   * @throws AmbariException
+   */
+  public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage,
+                                          Map<String, String> requestParams, boolean checkHostIsMemberOfCluster)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -259,7 +270,7 @@ public class AmbariActionExecutionHelper {
     }
 
     // List of host to select from
-    Set<String> candidateHosts = new HashSet<String>();
+    Set<String> candidateHosts = new HashSet<>();
 
     final String serviceName = actionContext.getExpectedServiceName();
     final String componentName = actionContext.getExpectedComponentName();
@@ -331,13 +342,15 @@ public class AmbariActionExecutionHelper {
               + "actionName=" + actionContext.getActionName());
     }
 
-    // Compare specified hosts to available hosts
-    if (!resourceFilter.getHostNames().isEmpty() && !candidateHosts.isEmpty()) {
-      for (String hostname : resourceFilter.getHostNames()) {
-        if (!candidateHosts.contains(hostname)) {
-          throw new AmbariException("Request specifies host " + hostname +
-            " but it is not a valid host based on the " +
-            "target service=" + serviceName + " and component=" + componentName);
+    if (checkHostIsMemberOfCluster) {
+      // Compare specified hosts to available hosts
+      if (!resourceFilter.getHostNames().isEmpty() && !candidateHosts.isEmpty()) {
+        for (String hostname : resourceFilter.getHostNames()) {
+          if (!candidateHosts.contains(hostname)) {
+            throw new AmbariException("Request specifies host " + hostname +
+              " but it is not a valid host based on the " +
+              "target service=" + serviceName + " and component=" + componentName);
+          }
         }
       }
     }
@@ -381,7 +394,7 @@ public class AmbariActionExecutionHelper {
           clusterName, serviceName, actionContext.isRetryAllowed(),
           actionContext.isFailureAutoSkipped());
 
-      Map<String, String> commandParams = new TreeMap<String, String>();
+      Map<String, String> commandParams = new TreeMap<>();
 
       int taskTimeout = Integer.parseInt(configs.getDefaultAgentTaskTimeout(false));
 
@@ -422,14 +435,12 @@ public class AmbariActionExecutionHelper {
       // when building complex orchestration ahead of time (such as when
       // performing ugprades), fetching configuration tags can take a very long
       // time - if it's not needed, then don't do it
-      Map<String, Map<String, String>> configTags = new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, String>> configTags = new TreeMap<>();
       if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
         configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
       execCmd.setConfigurationTags(configTags);
-
-      execCmd.setCommandParams(commandParams);
 
       execCmd.setServiceName(serviceName == null || serviceName.isEmpty() ?
         resourceFilter.getServiceName() : serviceName);
@@ -450,7 +461,7 @@ public class AmbariActionExecutionHelper {
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
-        roleParams = new TreeMap<String, String>();
+        roleParams = new TreeMap<>();
       }
 
       roleParams.putAll(actionParameters);
@@ -464,9 +475,10 @@ public class AmbariActionExecutionHelper {
       // if there is a stack upgrade which is currently suspended then pass that
       // information down with the command as some components may need to know
       if (null != cluster && cluster.isUpgradeSuspended()) {
-        roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
+        cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
       }
 
+      execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
 
       if (null != cluster) {

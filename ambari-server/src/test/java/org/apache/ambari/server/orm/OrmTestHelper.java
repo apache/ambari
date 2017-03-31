@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.persistence.EntityManager;
 
@@ -88,6 +90,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
@@ -100,6 +105,10 @@ import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
+
+  private static Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
+
+  private AtomicInteger uniqueCounter = new AtomicInteger();
 
   @Inject
   public Provider<EntityManager> entityManagerProvider;
@@ -310,7 +319,7 @@ public class OrmTestHelper {
    * @return the cluster ID.
    */
   @Transactional
-  public Long createCluster() {
+  public Long createCluster() throws Exception {
     return createCluster(CLUSTER_NAME);
   }
 
@@ -320,7 +329,7 @@ public class OrmTestHelper {
    * @return the cluster ID.
    */
   @Transactional
-  public Long createCluster(String clusterName) {
+  public Long createCluster(String clusterName) throws Exception {
     // required to populate the database with stacks
     injector.getInstance(AmbariMetaInfo.class);
 
@@ -356,6 +365,18 @@ public class OrmTestHelper {
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
     assertNotNull(clusterEntity);
     assertTrue(clusterEntity.getClusterId() > 0);
+
+    clusterEntity.setClusterStateEntity(clusterStateEntity);
+    clusterDAO.merge(clusterEntity);
+
+    // because this test method goes around the Clusters business object, we
+    // forcefully will refresh the internal state so that any tests which
+    // incorrect use Clusters after calling this won't be affected
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Method method = ClustersImpl.class.getDeclaredMethod("loadClustersAndHosts");
+    method.setAccessible(true);
+    method.invoke(clusters);
+
     return clusterEntity.getClusterId();
   }
 
@@ -399,9 +420,8 @@ public class OrmTestHelper {
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
-    clusters.mapHostToCluster(hostName, cluster.getClusterName());
+    clusters.mapAndPublishHostsToCluster(Collections.singleton(hostName), cluster.getClusterName());
   }
 
   public void addHostComponent(Cluster cluster, String hostName, String serviceName, String componentName) throws AmbariException {
@@ -409,7 +429,6 @@ public class OrmTestHelper {
     ServiceComponent serviceComponent = service.getServiceComponent(componentName);
     ServiceComponentHost serviceComponentHost = serviceComponent.addServiceComponentHost(hostName);
     serviceComponentHost.setDesiredState(State.INSTALLED);
-    serviceComponentHost.persist();
   }
 
   /**
@@ -421,7 +440,6 @@ public class OrmTestHelper {
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName);
-    service.persist();
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -429,7 +447,6 @@ public class OrmTestHelper {
 
     service.addServiceComponent(datanode);
     datanode.setDesiredState(State.INSTALLED);
-    datanode.persist();
 
     ServiceComponentHost sch = schFactory.createNew(datanode, hostName);
 
@@ -439,13 +456,10 @@ public class OrmTestHelper {
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
 
-    sch.persist();
-
     ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
 
     service.addServiceComponent(namenode);
     namenode.setDesiredState(State.INSTALLED);
-    namenode.persist();
 
     sch = schFactory.createNew(namenode, hostName);
     namenode.addServiceComponentHost(sch);
@@ -453,8 +467,6 @@ public class OrmTestHelper {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 
   /**
@@ -466,7 +478,6 @@ public class OrmTestHelper {
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String serviceName = "YARN";
     Service service = serviceFactory.createNew(cluster, serviceName);
-    service.persist();
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -475,7 +486,6 @@ public class OrmTestHelper {
 
     service.addServiceComponent(resourceManager);
     resourceManager.setDesiredState(State.INSTALLED);
-    resourceManager.persist();
 
     ServiceComponentHost sch = schFactory.createNew(resourceManager, hostName);
 
@@ -484,8 +494,6 @@ public class OrmTestHelper {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 
   /**
@@ -501,7 +509,7 @@ public class OrmTestHelper {
     target.setTargetName("Target Name " + System.currentTimeMillis());
 
     alertDispatchDAO.create(target);
-    return alertDispatchDAO.findTargetById(target.getTargetId());
+    return target;
   }
 
   /**
@@ -518,7 +526,7 @@ public class OrmTestHelper {
     target.setGlobal(true);
 
     alertDispatchDAO.create(target);
-    return alertDispatchDAO.findTargetById(target.getTargetId());
+    return target;
   }
 
   /**
@@ -558,12 +566,12 @@ public class OrmTestHelper {
       Set<AlertTargetEntity> targets) throws Exception {
     AlertGroupEntity group = new AlertGroupEntity();
     group.setDefault(false);
-    group.setGroupName("Group Name " + System.currentTimeMillis());
+    group.setGroupName("Group Name " + System.currentTimeMillis() + uniqueCounter.incrementAndGet());
     group.setClusterId(clusterId);
     group.setAlertTargets(targets);
 
     alertDispatchDAO.create(group);
-    return alertDispatchDAO.findGroupById(group.getGroupId());
+    return group;
   }
 
   /**
@@ -619,8 +627,9 @@ public class OrmTestHelper {
     if (repositoryVersion == null) {
       try {
         repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
-            String.valueOf(System.currentTimeMillis()), "");
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
       } catch (Exception ex) {
+        LOG.error("Caught exception", ex);
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

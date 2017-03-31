@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider.CONFIGURATIONS_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider.USER_CONTEXT_OPERATION_PROPERTY;
+import static org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider.USER_CONTEXT_OPERATION_DETAILS_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -73,6 +75,36 @@ public class StackAdvisorResourceProviderTest {
     assertEquals(2, properties.size());
     assertEquals("string", properties.get("string_prop"));
     assertEquals("[array1, array2]", properties.get("array_prop"));
+  }
+
+  @Test
+  public void testReadUserContext() throws Exception {
+
+    Map<Resource.Type, String> keyPropertyIds = Collections.emptyMap();
+    Set<String> propertyIds = Collections.emptySet();
+    AmbariManagementController ambariManagementController = mock(AmbariManagementController.class);
+    RecommendationResourceProvider provider = new RecommendationResourceProvider(propertyIds,
+                                                                                 keyPropertyIds, ambariManagementController);
+
+    Request request = mock(Request.class);
+    Set<Map<String, Object>> propertiesSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> propertiesMap = new HashMap<String, Object>();
+    propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string");
+    List<Object> array = new ArrayList<Object>();
+    array.add("array1");
+    array.add("array2");
+    propertiesMap.put(USER_CONTEXT_OPERATION_PROPERTY, "op1");
+    propertiesMap.put(USER_CONTEXT_OPERATION_DETAILS_PROPERTY, "op_det");
+    propertiesSet.add(propertiesMap);
+
+    doReturn(propertiesSet).when(request).getProperties();
+
+    Map<String, String> userContext = provider.readUserContext(request);
+
+    assertNotNull(userContext);
+    assertEquals(2, userContext.size());
+    assertEquals("op1", userContext.get("operation"));
+    assertEquals("op_det", userContext.get("operation_details"));
   }
 
   @Test

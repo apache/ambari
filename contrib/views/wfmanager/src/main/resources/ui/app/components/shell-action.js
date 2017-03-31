@@ -16,9 +16,18 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel.exec': validator('presence', {
+    presence : true
+  }),
+  'actionModel.jobTracker': validator('presence', {
+    presence : true
+  })  
+});
+
+export default Ember.Component.extend(Validations,{
   initialize : function(){
     this.sendAction('register','shellAction', this);
     this.on('fileSelected',function(fileName){
@@ -47,13 +56,6 @@ export default Ember.Component.extend(EmberValidations,{
       this.set("actionModel.configuration.property", Ember.A([]));
     }
   }.on('didInsertElement'),
-  validations : {
-    'actionModel.exec': {
-      presence: {
-        'message' : 'You need to provide a value for Exec'
-      }
-    }
-  },
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');

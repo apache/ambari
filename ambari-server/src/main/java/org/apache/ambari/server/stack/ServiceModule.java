@@ -259,6 +259,18 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
+    /**
+     * If current stack version does not specify the credential store information
+     * for the service, then use parent definition.
+     */
+    if (serviceInfo.getCredentialStoreInfo() == null) {
+      serviceInfo.setCredentialStoreInfo(parent.getCredentialStoreInfo());
+    }
+
+    if (serviceInfo.isSelectionEmpty()) {
+      serviceInfo.setSelection(parent.getSelection());
+    }
+
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices, extensions);
@@ -573,8 +585,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         allStacks, commonServices, extensions, componentModules, parent.componentModules);
     componentModules.clear();
     for (ComponentModule module : mergedModules) {
-      componentModules.put(module.getId(), module);
-      serviceInfo.getComponents().add(module.getModuleInfo());
+      if (!module.isDeleted()){
+        componentModules.put(module.getId(), module);
+        serviceInfo.getComponents().add(module.getModuleInfo());
+      }
     }
   }
 
@@ -653,7 +667,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       addErrors(serviceInfo.getErrors());
     }
   }
-  
+
 
   @Override
   public String toString() {

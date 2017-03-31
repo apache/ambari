@@ -24,14 +24,14 @@
     <name>logfeeder.config.files</name>
     <value>{default_config_files}</value>
     <description>Comma separated config files in grok format</description>
-    <display-name>Logfeeder config files</display-name>
+    <display-name>Log Feeder config files</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logfeeder.checkpoint.folder</name>
     <value>/etc/ambari-logsearch-logfeeder/conf/checkpoints</value>
-    <description>Checkpoint folder for logfeeder</description>
-    <display-name>Logfeeder checkpoint dir</display-name>
+    <description>Checkpoint folder for Log Feeder</description>
+    <display-name>Log Feeder checkpoint dir</display-name>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -40,7 +40,7 @@
   <property>
     <name>logfeeder.metrics.collector.hosts</name>
     <value>{metrics_collector_hosts}</value>
-    <description>Metrics collector hosts for pushing metrics by Logfeeder</description>
+    <description>Metrics collector hosts for pushing metrics by Log Feeder</description>
     <display-name>Metrics collector hosts</display-name>
     <on-ambari-upgrade add="true"/>
   </property>

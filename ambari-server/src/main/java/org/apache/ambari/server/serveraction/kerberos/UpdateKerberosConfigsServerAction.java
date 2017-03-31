@@ -119,6 +119,23 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
             }
           }
 
+          // ensure that cluster-env/security_enabled have proper value
+          final String securityEnabled = cluster.getSecurityType() == SecurityType.KERBEROS
+              ? "true"
+              : "false";
+
+          if(!configTypes.contains("cluster-env")) {
+            configTypes.add("cluster-env");
+          }
+
+          Map<String, String> clusterEnvProperties = propertiesToSet.get("cluster-env");
+          if(clusterEnvProperties == null) {
+            clusterEnvProperties = new HashMap<>();
+            propertiesToSet.put("cluster-env", clusterEnvProperties);
+          }
+
+          clusterEnvProperties.put("security_enabled", securityEnabled);
+
           if (!configTypes.isEmpty()) {
             String configNote = getCommandParameterValue(getCommandParameters(), KerberosServerAction.UPDATE_CONFIGURATION_NOTE);
 

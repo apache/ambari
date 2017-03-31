@@ -88,16 +88,16 @@ export default Ember.Component.extend(Ember.Evented,{
                     'Status:SUSPENDED',
                     'Status:SUCCEEDED',
                     'Status:KILLED',
-                    'Status:FAILED'];
+                    'Status:FAILED',
+                    'Status:PREP'];
       var substringMatcher = function(strs) {
         return function findMatches(q, cb) {
           var searchTerm =  self.$('#search-field').tagsinput('input').val();
           var originalLength = strs.length;
-          if(self.get('jobType') === 'wf'){
-            strs.push('Status:PREP');
+          if(self.get('jobType') && self.get('jobType') !== 'wf'){
+            strs.pushObjects(['Status:PREPSUSPENDED','Status:PREPPAUSED','Status:DONEWITHERROR']);
           }
-          strs.push('Name:'+ searchTerm);
-          strs.push('User:'+ searchTerm);
+          strs.pushObjects(['Name:'+ searchTerm, 'User:'+ searchTerm, 'Job id:'+ searchTerm]);
           var newLength = strs.length;
           var matches, substrRegex;
           matches = [];
@@ -122,11 +122,13 @@ export default Ember.Component.extend(Ember.Evented,{
         this.$('#search-field').tagsinput('add', value);
       }.bind(this));
       this.$('#search-field').tagsinput('refresh');
+
       this.$('#search-field').on('itemAdded itemRemoved',function(){
         var searchTerms = this.$('#search-field').tagsinput('items');
         var filter = searchTerms.map(function(value){
+
           var eachTag = value.split(":");
-          return eachTag[0].toLowerCase()+"="+eachTag[1];
+          return self.mapSearchItems(eachTag[0])+"="+eachTag[1];
         });
         if(filter.length > 0){
           this.filter.tags = filter.join(";");
@@ -143,7 +145,14 @@ export default Ember.Component.extend(Ember.Evented,{
         }
       }.bind(this));
     }.on('didInsertElement'),
-
+    mapSearchItems(key){
+      key = key.replace(" ", "_").toLowerCase();
+      var keys = {"job_id":"id","jobid":"id"};
+      if(keys[key]){
+        return keys[key];
+      }
+      return key;
+    },
     filterByDate(date, dateType){
       var queryParam;
       if(dateType === 'start'){
@@ -178,6 +187,9 @@ export default Ember.Component.extend(Ember.Evented,{
             this.$(".scope-btn").removeClass("btn-primary");
             elem.addClass("btn-primary");
             this.sendAction('onSearch', { type: type, filter: filter });
+        },
+        onSearchClicked(){
+          this.$('#search-field').tagsinput('add', 'Name:'+this.$('.tt-input').val());
         },
         refresh(){
           this.sendAction('onSearch', this.get('history').getSearchParams());

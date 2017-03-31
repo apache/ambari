@@ -30,7 +30,7 @@ class KeeperException(Exception):
 
 class ResourceFilesKeeper():
   """
-  This class incapsulates all utility methods for resource files maintenance.
+  This class encapsulates all utility methods for resource files maintenance.
   """
 
   HOOKS_DIR="hooks"
@@ -39,6 +39,8 @@ class ResourceFilesKeeper():
   COMMON_SERVICES_DIR="common-services"
   CUSTOM_ACTIONS_DIR="custom_actions"
   HOST_SCRIPTS_DIR="host_scripts"
+  DASHBOARDS_DIR="dashboards"
+  EXTENSIONS_DIR="extensions"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
@@ -68,13 +70,13 @@ class ResourceFilesKeeper():
     """
     Performs housekeeping operations on resource files
     """
-    self.update_directory_archieves()
+    self.update_directory_archives()
     # probably, later we will need some additional operations
 
 
   def _iter_update_directory_archive(self, subdirs_list):
     for subdir in subdirs_list:
-      for root, dirs, _ in os.walk(subdir):
+      for root, dirs, _ in os.walk(subdir, followlinks=True):
         for d in dirs:
           if d in self.ARCHIVABLE_DIRS:
             full_path = os.path.abspath(os.path.join(root, d))
@@ -87,7 +89,7 @@ class ResourceFilesKeeper():
     # update the directories so that the .hash is generated
     self.update_directory_archive(archive_root)
 
-  def update_directory_archieves(self):
+  def update_directory_archives(self):
     """
     Please see AMBARI-4481 for more details
     """
@@ -106,11 +108,22 @@ class ResourceFilesKeeper():
     # Iterate over common services directories
     self._iter_update_directory_archive(valid_common_services)
 
+    # archive extensions
+    extensions_root = os.path.join(self.resources_dir, self.EXTENSIONS_DIR)
+    self.dbg_out("Updating archives for extensions dirs at {0}...".format(extensions_root))
+    valid_extensions = self.list_extensions(extensions_root)
+    self.dbg_out("Extensions: {0}".format(pprint.pformat(valid_extensions)))
+    # Iterate over extension directories
+    self._iter_update_directory_archive(valid_extensions)
+
     # custom actions
     self._update_resources_subdir_archive(self.CUSTOM_ACTIONS_DIR)
 
     # agent host scripts
     self._update_resources_subdir_archive(self.HOST_SCRIPTS_DIR)
+
+    # custom service dashboards
+    self._update_resources_subdir_archive(self.DASHBOARDS_DIR)
 
 
   def _list_metainfo_dirs(self, root_dir):
@@ -141,6 +154,15 @@ class ResourceFilesKeeper():
     except Exception, err:
       raise KeeperException("Can not list common services: {0}".format(str(err)))
 
+  def list_extensions(self, root_dir):
+    """
+    Builds a list of extension directories
+    """
+    try:
+      return self._list_metainfo_dirs(root_dir)
+    except Exception, err:
+      raise KeeperException("Can not list extensions: {0}".format(str(err)))
+
   def update_directory_archive(self, directory):
     """
     If hash sum for directory is not present or differs from saved value,
@@ -153,7 +175,7 @@ class ResourceFilesKeeper():
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
       # Skip generation of .hash file is directory is empty
-      if (skip_empty_directory and not os.listdir(directory)):
+      if (skip_empty_directory and (not os.path.exists(directory) or not os.listdir(directory))):
         self.dbg_out("Empty directory. Skipping generation of hash file for {0}".format(directory))
       else:
         self.write_hash_sum(directory, cur_hash)
@@ -215,7 +237,7 @@ class ResourceFilesKeeper():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-      os.chmod(hash_file, 0o666)
+      os.chmod(hash_file, 0o755)
     except Exception, err:
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
@@ -228,7 +250,7 @@ class ResourceFilesKeeper():
     self.dbg_out("creating archive for directory {0}".format(directory))
     try:
       if skip_if_empty:
-        if not os.listdir(directory):
+        if not os.path.exists(directory) or not os.listdir(directory):
           self.dbg_out("Empty directory. Skipping archive creation for {0}".format(directory))
           return
 
@@ -245,7 +267,7 @@ class ResourceFilesKeeper():
                                         arcname))
             zf.write(absname, arcname)
       zf.close()
-      os.chmod(zip_file_path, 0o666)
+      os.chmod(zip_file_path, 0o755)
     except Exception, err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))

@@ -67,7 +67,10 @@ def set_debug_mode_from_options(options):
 #
 # Prints an "info" messsage.
 #
-def print_info_msg(msg):
+def print_info_msg(msg, forced=False):
+  if forced:
+    print("INFO: " + msg)
+    return
   if _VERBOSE:
     print("INFO: " + msg)
 

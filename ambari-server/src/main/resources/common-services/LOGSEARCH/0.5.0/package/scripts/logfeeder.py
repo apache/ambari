@@ -25,7 +25,6 @@ from resource_management.libraries.script.script import Script
 from setup_logfeeder import setup_logfeeder
 from logsearch_common import kill_process
 
-
 class LogFeeder(Script):
   def install(self, env):
     import params

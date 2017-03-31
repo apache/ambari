@@ -40,7 +40,7 @@ describe('App.showDependentConfigsPopup', function () {
     beforeEach(function () {
       this.ff = function () {};
       sinon.spy(this, 'ff');
-      view = App.showDependentConfigsPopup([], Em.K, this.ff);
+      view = App.showDependentConfigsPopup([], [], Em.K, this.ff);
     });
 
     afterEach(function () {

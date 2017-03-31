@@ -48,6 +48,16 @@ ul.typeahead.dropdown-menu {
   overflow: visible;
   padding-bottom: @footer-height;
   min-width: 980px;
+
+   .clock-view {
+     top: 10px;
+     left: 4px;
+     position: fixed;
+     color: red;
+     font-weight: bold;
+     padding: 4px;
+     background-color: rgba(0, 0, 0, 0.6);
+  }
 }
 
 footer {
@@ -66,6 +76,9 @@ footer {
 
 .ru-badge {
   text-align: center;
+  a:hover {
+    text-decoration: none;
+  }
 }
 
 #top-nav, .ru-badge {
@@ -381,6 +394,7 @@ footer {
   .navbar .nav .top-nav-user > li.right {
     float: right;
   }
+
 }
 
 .nav.top-nav-menu,
@@ -1059,7 +1073,7 @@ h1 {
       margin-left: 0;
     }
   }
-  #ha-step1, #ha-step4, #ha-step8 {
+  #ha-step1, #ha-step4, #ha-step8, #mjn-step7 {
     .alert.alert-warn {
       margin-top: 10px;
       margin-bottom: 10px;
@@ -1069,11 +1083,11 @@ h1 {
     }
   }
 
-  #ha-step4 li, #ha-step6 li, #ha-step8 li {
+  #ha-step4 li, #ha-step6 li, #ha-step8 li, #mjn-step7 li {
     margin-top: 8px;
   }
 
-  #ha-step3-review-table {
+  #ha-step3-review-table, #manage-journal-node-step2-review-table, #reassign-review-table {
     td {
       text-align: left;
       vertical-align: top;
@@ -2457,10 +2471,6 @@ a:focus {
       }
     }
 
-  }
-
-  .add-service-button {
-    margin: 20px 20px 10px;
   }
 
   .start-stop-all-service-button {
@@ -5042,7 +5052,7 @@ i.icon-asterisks {
   .full-width-modal {
     .modal{
       width: 1180px;
-      margin: -350px 0 0 -583px;
+      margin: -40vh 0 0 -583px;
     }
   }
 
@@ -5077,6 +5087,10 @@ i.icon-asterisks {
 
   .main-container {
     width: 1170px;
+  }
+  
+  .contribview .main-container {
+    width: auto;
   }
 
   .span12 {
@@ -5969,6 +5983,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 @config-dependency-t-group-width: 140px;
 @config-dependency-t-filename-width: 150px;
 @config-dependency-t-value-width: 230px;
+@diff-background-insert: #eaffea;
+@diff-background-delete: #ffecec;
+@diff-background-equal: #fff;
+@diff-background-empty: #ddd;
 
 #config-dependencies {
   max-height: 500px;
@@ -5976,28 +5994,55 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   td {
     min-width: 120px;
     word-break: break-all;
+    &.check-box-col {
+      min-width: 5px;
+      width: 5px;
+    }
+    &.config-dependency-name {
+      min-width: @config-dependency-t-name-width;
+    }
+    &.config-dependency-service {
+      min-width: @config-dependency-t-service-width;
+      max-width: @config-dependency-t-service-width;
+    }
+    &.config-dependency-group {
+      max-width: @config-dependency-t-group-width;
+    }
+    &.config-dependency-filename {
+      max-width: @config-dependency-t-filename-width;
+    }
+    &.config-dependency-value,
+    &.config-dependency-recommended-value {
+      width: @config-dependency-t-value-width;
+      min-width: @config-dependency-t-value-width;
+    }
+    .diff {
+      td {
+        &.empty {
+          width: 50%;
+        }
+        &.delete {
+          background-color: @diff-background-delete !important;
+        }
+        &.insert {
+          background-color: @diff-background-insert !important;
+        }
+        &.equal, &.not-defined:last-of-type, &.is-removed:first-of-type {
+          background-color: @diff-background-equal;
+        }
+        &.not-defined:first-of-type, &.is-removed:last-of-type {
+          background-color: @diff-background-empty;
+          font-style: italic;
+        }
+      }
+    }
   }
-  td.check-box-col {
-    min-width: 5px;
-    width: 5px;
-  }
-  td.config-dependency-name {
-    min-width: @config-dependency-t-name-width;
-  }
-  td.config-dependency-service {
-    min-width: @config-dependency-t-service-width;
-    max-width: @config-dependency-t-service-width;
-  }
-  td.config-dependency-group {
-    max-width: @config-dependency-t-group-width;
-  }
-  td.config-dependency-filename {
-    max-width: @config-dependency-t-filename-width;
-  }
-  td.config-dependency-value,
-  td.config-dependency-recommended-value {
-    width: @config-dependency-t-value-width;
-    min-width: @config-dependency-t-value-width;
+  .config-dependencies-headings-wrapper {
+    width: 100%;
+    .config-dependencies-heading {
+      float: left;
+      width: 50%;
+    }
   }
 }
 
@@ -6169,6 +6214,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   background-color: #FFFFFF;
 }
 
+.accordion-heading {
+  background-color: #f0f0f0;
+}
+
 .config-manage-nav {
   .config-groups-dropdown {
     display: inline-block;
@@ -6216,7 +6265,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     padding: 5px 25px;
   }
   .right-stack-info {
-    margin-left: 0px;
+    margin-left: 0;
     .available-repos-dropdown {
       a, a.disbled{
         cursor: pointer;
@@ -6282,7 +6331,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     background-color: #f0f0f0;
     font-weight: bold;
     p {
-      margin-bottom: 0px;
+      margin-bottom: 0;
       display: block;
       padding: 8px 15px;
     }
@@ -6378,7 +6427,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     #use-redhat, #skip-validation {
       input{
-        margin: 0px 10px;
+        margin: 0 10px;
       }
     }
     #use-redhat span.disabled {
@@ -6416,7 +6465,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         background-image: linear-gradient(top, #fdfdfd, #e3e3e3);
       }
       &.is_selected {
-        margin-left: 0px;
+        margin-left: 0;
       }
     }
   }

@@ -32,10 +32,12 @@ import org.apache.ambari.server.state.alert.ScriptSource;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests equality of {@link AlertDefinition} for hashing and merging purposes.
  */
+@Category({ category.AlertTest.class})
 public class AlertDefinitionEqualityTest extends TestCase {
 
   @Test

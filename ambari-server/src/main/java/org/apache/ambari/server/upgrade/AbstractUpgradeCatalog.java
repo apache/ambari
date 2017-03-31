@@ -17,15 +17,18 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.File;
 import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,15 +41,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -57,10 +51,10 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -85,17 +79,19 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.ambari.server.view.ViewArchiveUtility;
-import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -108,8 +104,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected Configuration configuration;
   @Inject
   protected StackUpgradeUtil stackUpgradeUtil;
-  @Inject
-  protected ViewArchiveUtility archiveUtility;
 
   protected Injector injector;
 
@@ -126,14 +120,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected static final String AUTHENTICATED_USER_NAME = "ambari-upgrade";
 
-  private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
   public static final String CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES = "ranger-hbase-plugin-properties";
   public static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
   public static final String CONFIGURATION_TYPE_RANGER_HIVE_PLUGIN_PROPERTIES = "ranger-hive-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
-  private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
   public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
   public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
   public static final String PROPERTY_RANGER_HIVE_PLUGIN_ENABLED = "ranger-hive-plugin-enabled";
@@ -148,6 +140,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =
     new HashMap<String, UpgradeCatalog>();
+
+  protected String ambariUpgradeConfigUpdatesFileName;
 
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
@@ -373,13 +367,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   public void addNewConfigurationsFromXml() throws AmbariException {
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-
-    Clusters clusters = controller.getClusters();
+    Clusters clusters = injector.getInstance(Clusters.class);
     if (clusters == null) {
       return;
     }
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
     Map<String, Cluster> clusterMap = clusters.getClusters();
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
@@ -400,7 +393,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
           for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
-            Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
 
             if (property.isDeleted()) {
@@ -446,11 +438,16 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     Config hdfsSiteConfig = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HDFS_SITE);
     if (hdfsSiteConfig != null) {
       Map<String, String> properties = hdfsSiteConfig.getProperties();
+      if (properties.containsKey("dfs.internal.nameservices")) {
+        return true;
+      }
       String nameServices = properties.get(PROPERTY_DFS_NAMESERVICES);
       if (!StringUtils.isEmpty(nameServices)) {
-        String namenodes = properties.get(String.format("dfs.ha.namenodes.%s", nameServices));
-        if (!StringUtils.isEmpty(namenodes)) {
-          return (namenodes.split(",").length > 1);
+        for (String nameService : nameServices.split(",")) {
+          String namenodes = properties.get(String.format("dfs.ha.namenodes.%s", nameService));
+          if (!StringUtils.isEmpty(namenodes)) {
+            return (namenodes.split(",").length > 1);
+          }
         }
       }
     }
@@ -491,10 +488,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                                                                 Set<String> toRemove,
                                                                 boolean updateIfExists,
                                                                 boolean createNewConfigType) throws AmbariException {
+    Clusters clusters = injector.getInstance(Clusters.class);
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-
-    Clusters clusters = controller.getClusters();
     if (clusters == null) {
       return;
     }
@@ -557,21 +552,31 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           return;
         } else if (oldConfig == null) {
           oldConfigProperties = new HashMap<String, String>();
-          newTag = "version1";
         } else {
           oldConfigProperties = oldConfig.getProperties();
         }
 
+        Multimap<ConfigUpdateType, Entry<String, String>> propertiesToLog = ArrayListMultimap.create();
+        String serviceName = cluster.getServiceByConfigType(configType);
+
         Map<String, String> mergedProperties =
-          mergeProperties(oldConfigProperties, properties, updateIfExists);
+          mergeProperties(oldConfigProperties, properties, updateIfExists, propertiesToLog);
 
         if (removePropertiesList != null) {
-          mergedProperties = removeProperties(mergedProperties, removePropertiesList);
+          mergedProperties = removeProperties(mergedProperties, removePropertiesList, propertiesToLog);
+        }
+
+        if (propertiesToLog.size() > 0) {
+          try {
+            configuration.writeToAmbariUpgradeConfigUpdatesFile(propertiesToLog, configType, serviceName, ambariUpgradeConfigUpdatesFileName);
+          } catch(Exception e) {
+            LOG.error("Write to config updates file failed:", e);
+          }
         }
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
-          LOG.info("Applying configuration with tag '{}' to " +
-            "cluster '{}'", newTag, cluster.getClusterName());
+          LOG.info("Applying configuration with tag '{}' and configType '{}' to " +
+            "cluster '{}'", newTag, configType, cluster.getClusterName());
 
           Map<String, Map<String, String>> propertiesAttributes = null;
           if (oldConfig != null) {
@@ -651,26 +656,51 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private Map<String, String> mergeProperties(Map<String, String> originalProperties,
                                Map<String, String> newProperties,
-                               boolean updateIfExists) {
+                               boolean updateIfExists, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog) {
 
     Map<String, String> properties = new HashMap<String, String>(originalProperties);
     for (Map.Entry<String, String> entry : newProperties.entrySet()) {
-      if (!properties.containsKey(entry.getKey()) || updateIfExists) {
+      if (!properties.containsKey(entry.getKey())) {
         properties.put(entry.getKey(), entry.getValue());
+        propertiesToLog.put(ConfigUpdateType.ADDED, entry);
+      }
+      if (updateIfExists)  {
+        properties.put(entry.getKey(), entry.getValue());
+        propertiesToLog.put(ConfigUpdateType.UPDATED, entry);
       }
     }
     return properties;
   }
 
-  private Map<String, String> removeProperties(Map<String, String> originalProperties, Set<String> removeList){
+  private Map<String, String> removeProperties(Map<String, String> originalProperties,
+                                               Set<String> removeList, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog){
     Map<String, String> properties = new HashMap<String, String>();
     properties.putAll(originalProperties);
     for (String removeProperty: removeList){
       if (originalProperties.containsKey(removeProperty)){
         properties.remove(removeProperty);
+        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<String, String>(removeProperty, ""));
       }
     }
     return properties;
+  }
+
+  public enum ConfigUpdateType {
+    ADDED("Added"),
+    UPDATED("Updated"),
+    REMOVED("Removed");
+
+
+    private final String description;
+
+
+    private ConfigUpdateType(String description) {
+      this.description = description;
+    }
+
+    public String getDescription() {
+      return description;
+    }
   }
 
   /**
@@ -844,7 +874,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
       PermissionEntity role = permissionDAO.findPermissionByNameAndType(roleName, resourceTypeDAO.findByName(resourceType));
       if (role != null) {
-        role.getAuthorizations().add(roleAuthorization);
+        role.addAuthorization(roleAuthorization);
         permissionDAO.merge(role);
       }
     }
@@ -904,97 +934,15 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   @Override
+  public void setConfigUpdatesFileName(String ambariUpgradeConfigUpdatesFileName) {
+    this.ambariUpgradeConfigUpdatesFileName = ambariUpgradeConfigUpdatesFileName;
+  }
+
+  @Override
   public void upgradeData() throws AmbariException, SQLException {
     executeDMLUpdates();
-    updateTezHistoryUrlBase();
   }
 
-  /**
-   * Version of the Tez view changes with every new version on Ambari. Hence the 'tez.tez-ui.history-url.base' in tez-site.xml
-   * has to be changed every time ambari update happens. This will read the latest tez-view jar file and find out the
-   * view version by reading the view.xml file inside it and update the 'tez.tez-ui.history-url.base' property in tez-site.xml
-   * with the proper value of the updated tez view version.
-   */
-  private void updateTezHistoryUrlBase() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-          if (installedServices.contains("TEZ")) {
-            Config tezSite = cluster.getDesiredConfigByType("tez-site");
-            if (tezSite != null) {
-              String currentTezHistoryUrlBase = tezSite.getProperties().get("tez.tez-ui.history-url.base");
-              if (!StringUtils.isEmpty(currentTezHistoryUrlBase)) {
-                LOG.info("Current Tez History URL base: {} ", currentTezHistoryUrlBase);
-                String newTezHistoryUrlBase = getUpdatedTezHistoryUrlBase(currentTezHistoryUrlBase);
-                LOG.info("New Tez History URL base: {} ", newTezHistoryUrlBase);
-                updateConfigurationProperties("tez-site", Collections.singletonMap("tez.tez-ui.history-url.base", newTezHistoryUrlBase), true, false);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Transforms the existing tez history url base to the new url considering the latest tez view version.
-   * @param currentTezHistoryUrlBase Existing value of the tez history url base
-   * @return the updated tez history url base
-   * @throws AmbariException if currentTezHistoryUrlBase is malformed or is not compatible with the Tez View url REGEX
-     */
-  protected String getUpdatedTezHistoryUrlBase(String currentTezHistoryUrlBase) throws AmbariException{
-    String pattern = "(.*\\/TEZ\\/)(.*)(\\/.*)";
-    Pattern regex = Pattern.compile(pattern);
-    Matcher matcher = regex.matcher(currentTezHistoryUrlBase);
-    String prefix;
-    String suffix;
-    String oldVersion;
-    if (matcher.find()) {
-      prefix = matcher.group(1);
-      oldVersion = matcher.group(2);
-      suffix = matcher.group(3);
-    } else {
-      throw new AmbariException("Cannot prepare the new value for property: 'tez.tez-ui.history-url.base' using the old value: '" + currentTezHistoryUrlBase + "'");
-    }
-
-    String latestTezViewVersion = getLatestTezViewVersion(oldVersion);
-
-    return prefix + latestTezViewVersion + suffix;
-  }
-
-  /**
-   * Given the old configured version, this method tries to get the new version of tez view by reading the tez-view jar.
-   * Assumption - only a single tez-view jar will be present in the views directory.
-   * @param oldVersion It is returned if there is a failure in finding the new version
-   * @return newVersion of the tez view. Returns oldVersion if there error encountered if finding the new version number.
-   */
-  protected String getLatestTezViewVersion(String oldVersion) {
-    File viewsDirectory = configuration.getViewsDir();
-    File[] files = viewsDirectory.listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.startsWith("tez-view");
-      }
-    });
-
-    if(files == null || files.length == 0) {
-      LOG.error("Could not file tez-view jar file in '{}'. Returning the old version", viewsDirectory.getAbsolutePath());
-      return oldVersion;
-    }
-    File tezViewFile = files[0];
-    try {
-      ViewConfig viewConfigFromArchive = archiveUtility.getViewConfigFromArchive(tezViewFile);
-      return viewConfigFromArchive.getVersion();
-    } catch (JAXBException | IOException e) {
-      LOG.error("Failed to read the tez view version from: {}. Returning the old version", tezViewFile);
-      return oldVersion;
-    }
-  }
 
   @Override
   public final void updateDatabaseSchemaVersion() {

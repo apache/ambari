@@ -211,7 +211,7 @@
             "XAAUDIT.DB.HOSTNAME": "{{xa_db_host}}", 
             "XAAUDIT.SOLR.IS_ENABLED": "false", 
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
-            "ranger-knox-plugin-enabled": "Yes", 
+            "ranger-knox-plugin-enabled": "No", 
             "XAAUDIT.DB.USER_NAME": "{{xa_audit_db_user}}", 
             "policy_user": "ambari-qa", 
             "XAAUDIT.HDFS.DESTINTATION_FILE": "%hostname%-audit.log", 
@@ -333,10 +333,10 @@
         "log.retention.hours": "168"
       },
       "ranger-hbase-plugin-properties": {
-            "ranger-hbase-plugin-enabled":"yes"
+            "ranger-hbase-plugin-enabled":"No"
       },
       "ranger-hive-plugin-properties": {
-            "ranger-hive-plugin-enabled":"yes"
+            "ranger-hive-plugin-enabled":"No"
        },
         "accumulo-env": {
             "accumulo_user": "accumulo",

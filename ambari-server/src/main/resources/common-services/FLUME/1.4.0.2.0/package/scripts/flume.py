@@ -177,6 +177,7 @@ def flume(action = None):
         if params.has_metric_collector:
           extra_args = '-Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink ' \
                        '-Dflume.monitoring.node={0}:{1}'
+          # TODO check if this is used.
           extra_args = extra_args.format(params.metric_collector_host, params.metric_collector_port)
 
         flume_cmd = flume_base.format(agent, flume_agent_conf_dir,
@@ -196,7 +197,7 @@ def flume(action = None):
                   tries=20,
                   try_sleep=10)
         except:
-          show_logs(params.flume_log_dir, None)
+          show_logs(params.flume_log_dir, params.flume_user)
           raise
 
     pass
@@ -219,9 +220,11 @@ def flume(action = None):
       if is_flume_process_live(pid_file):
         pid = shell.checked_call(("cat", pid_file), sudo=True)[1].strip()
         Execute(("kill", "-15", pid), sudo=True)    # kill command has to be a tuple
+        if not await_flume_process_termination(pid_file, try_count=30):
+          Execute(("kill", "-9", pid), sudo=True)
       
-      if not await_flume_process_termination(pid_file):
-        show_logs(params.flume_log_dir, None)
+      if not await_flume_process_termination(pid_file, try_count=10):
+        show_logs(params.flume_log_dir, params.flume_user)
         raise Fail("Can't stop flume agent: {0}".format(agent))
         
       File(pid_file, action = 'delete')

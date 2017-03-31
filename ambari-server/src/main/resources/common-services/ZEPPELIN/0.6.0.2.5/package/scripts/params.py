@@ -39,6 +39,14 @@ def get_port_from_url(address):
   else:
     return address
 
+def extract_spark_version(spark_home):
+  try:
+    with open(spark_home + "/RELEASE") as fline:
+      return re.search('Spark (\d\.\d).+', fline.readline().rstrip()).group(1)
+  except:
+    pass
+  return None
+
 
 # server configurations
 config = Script.get_config()
@@ -58,13 +66,17 @@ spark_jar_dir = config['configurations']['zeppelin-env']['zeppelin.spark.jar.dir
 spark_jar = format("{spark_jar_dir}/zeppelin-spark-0.5.5-SNAPSHOT.jar")
 setup_view = True
 temp_file = config['configurations']['zeppelin-env']['zeppelin.temp.file']
-spark_home = os.path.join(stack_root, "current", "spark-client")
 
-try:
-  fline = open(spark_home + "/RELEASE").readline().rstrip()
-  spark_version = re.search('Spark (\d\.\d).+', fline).group(1)
-except:
-  pass
+spark_home = ""
+spark_version = None
+spark2_home = ""
+spark2_version = None
+if 'spark-defaults' in config['configurations']:
+  spark_home = os.path.join(stack_root, "current", 'spark-client')
+  spark_version = extract_spark_version(spark_home)
+if 'spark2-defaults' in config['configurations']:
+  spark2_home = os.path.join(stack_root, "current", 'spark2-client')
+  spark2_version = extract_spark_version(spark2_home)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -83,16 +95,17 @@ zeppelin_hdfs_user_dir = format("/user/{zeppelin_user}")
 
 zeppelin_dir = os.path.join(*[install_dir, zeppelin_dirname])
 conf_dir = "/etc/zeppelin/conf"
+external_dependency_conf = "/etc/zeppelin/conf/external-dependency-conf"
 notebook_dir = os.path.join(*[install_dir, zeppelin_dirname, 'notebook'])
 
 # zeppelin-env.sh
 zeppelin_env_content = config['configurations']['zeppelin-env']['zeppelin_env_content']
 
 # shiro.ini
-shiro_ini_content = config['configurations']['zeppelin-env']['shiro_ini_content']
+shiro_ini_content = config['configurations']['zeppelin-shiro-ini']['shiro_ini_content']
 
 # log4j.properties
-log4j_properties_content = config['configurations']['zeppelin-env']['log4j_properties_content']
+log4j_properties_content = config['configurations']['zeppelin-log4j-properties']['log4j_properties_content']
 
 # detect configs
 master_configs = config['clusterHostInfo']
@@ -109,25 +122,46 @@ hive_metastore_port = None
 hive_server_port = None
 hive_zookeeper_quorum = None
 hive_server2_support_dynamic_service_discovery = None
+is_hive_installed = False
+hive_zookeeper_namespace = None
+hive_interactive_zookeeper_namespace = None
+
 if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
+  is_hive_installed = True
+  spark_hive_properties = {
+    'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
+  }
   hive_server_host = str(master_configs['hive_server_host'][0])
   hive_metastore_host = str(master_configs['hive_metastore_host'][0])
   hive_metastore_port = str(
     get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']))
   hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
   hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
+  hive_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
   hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
+
+hive_server_interactive_hosts = None
+if 'hive_server_interactive_hosts' in master_configs and len(master_configs['hive_server_interactive_hosts']) != 0:
+    hive_server_interactive_hosts = str(master_configs['hive_server_interactive_hosts'][0])
+    hive_interactive_zookeeper_namespace = config['configurations']['hive-interactive-site']['hive.server2.zookeeper.namespace']
+    hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
+    hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
+    hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
 
 # detect hbase details if installed
 zookeeper_znode_parent = None
 hbase_zookeeper_quorum = None
+is_hbase_installed = False
 if 'hbase_master_hosts' in master_configs and 'hbase-site' in config['configurations']:
+  is_hbase_installed = True
   zookeeper_znode_parent = config['configurations']['hbase-site']['zookeeper.znode.parent']
   hbase_zookeeper_quorum = config['configurations']['hbase-site']['hbase.zookeeper.quorum']
 
 # detect spark queue
-if 'spark.yarn.queue' in config['configurations']['spark-defaults']:
+if 'spark-defaults' in config['configurations'] and 'spark.yarn.queue' in config['configurations']['spark-defaults']:
   spark_queue = config['configurations']['spark-defaults']['spark.yarn.queue']
+elif 'spark2-defaults' in config['configurations'] and 'spark.yarn.queue' in config['configurations']['spark2-defaults']:
+  spark_queue = config['configurations']['spark2-defaults']['spark.yarn.queue']
 else:
   spark_queue = 'default'
 
@@ -147,13 +181,21 @@ spark_client_version = get_stack_version('spark-client')
 
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+livy2_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
 
 livy_livyserver_host = None
 livy_livyserver_port = None
+livy2_livyserver_host = None
+livy2_livyserver_port = None
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and \
     len(livy_hosts) > 0:
   livy_livyserver_host = str(livy_hosts[0])
   livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and \
+    len(livy2_hosts) > 0:
+  livy2_livyserver_host = str(livy2_hosts[0])
+  livy2_livyserver_port = config['configurations']['livy2-conf']['livy.server.port']
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

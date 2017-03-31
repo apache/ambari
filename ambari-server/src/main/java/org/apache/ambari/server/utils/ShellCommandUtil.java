@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,6 +40,16 @@ public class ShellCommandUtil {
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";
   private static final String AMBARI_SUDO = "ambari-sudo.sh";
+
+  private static final int MODE_OWNER_READABLE = 400;
+  private static final int MODE_OWNER_WRITABLE = 200;
+  private static final int MODE_OWNER_EXECUTABLE = 100;
+  private static final int MODE_GROUP_READABLE = 40;
+  private static final int MODE_GROUP_WRITABLE = 20;
+  private static final int MODE_GROUP_EXECUTABLE = 10;
+  private static final int MODE_OTHER_READABLE = 4;
+  private static final int MODE_OTHER_WRITABLE = 2;
+  private static final int MODE_OTHER_EXECUTABLE = 1;
 
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
@@ -128,6 +140,12 @@ public class ShellCommandUtil {
   public static final String MASK_OWNER_ONLY_RW = "600";
 
   /**
+   * Permission mask 700 allows only owner to read, modify and execute file.
+   * Other users (except root) can't read/modify/execute file
+   */
+  public static final String MASK_OWNER_ONLY_RWX = "700";
+
+  /**
    * Permission mask 777 allows everybody to read/modify/execute file
    */
   public static final String MASK_EVERYBODY_RWX = "777";
@@ -181,6 +199,116 @@ public class ShellCommandUtil {
   }
 
   /**
+   * Sets the owner for a file.
+   *
+   * @param path      the path to the file
+   * @param ownerName the owner's local username
+   * @return the result of the operation
+   */
+  public static Result setFileOwner(String path, String ownerName) {
+    if (LINUX) {
+      // Set the file owner, if the owner's username is given
+      if (!StringUtils.isEmpty(ownerName)) {
+        try {
+          return runCommand(new String[]{"chown", ownerName, path}, null, null, true);
+        } catch (IOException e) {
+          // Improbable
+          LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        } catch (InterruptedException e) {
+          LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        }
+      } else {
+        return new Result(0, "", "");
+      }
+    } else {
+      LOG.debug(String.format("Not performing chown command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
+    }
+  }
+
+  /**
+   * Sets the group for a file.
+   *
+   * @param path      the path to the file
+   * @param groupName the group name
+   * @return the result of the operation
+   */
+  public static Result setFileGroup(String path,  String groupName) {
+    if (LINUX) {
+      // Set the file's group, if the group name is given
+      if (!StringUtils.isEmpty(groupName)) {
+        try {
+          return runCommand(new String[]{"chgrp", groupName, path}, null, null, true);
+        } catch (IOException e) {
+          // Improbable
+          LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        } catch (InterruptedException e) {
+          LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        }
+      } else {
+        return new Result(0, "", "");
+      }
+    } else {
+      LOG.debug(String.format("Not performing chgrp command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
+    }
+  }
+
+  /**
+   * Set the access modes for a file
+   *
+   * @param path            the path to the file
+   * @param ownerWritable   true if the owner should be able to write to this file; otherwise false
+   * @param ownerReadable   true if the owner should be able to read this file; otherwise false
+   * @param ownerExecutable true if the owner should be able to execute this file; otherwise false
+   * @param groupWritable   true if the group should be able to write to this file; otherwise false
+   * @param groupReadable   true if the group should be able to read this file; otherwise false
+   * @param groupExecutable true if the group should be able to execute this file; otherwise false
+   * @param otherReadable   true if other users should be able to read this file; otherwise false
+   * @param otherWritable   true if other users should be able to write to this file; otherwise false
+   * @param otherExecutable true if other users should be able to execute this file; otherwise false
+   * @return the result of the operation
+   */
+  public static Result setFileMode(String path,
+                                   boolean ownerReadable, boolean ownerWritable, boolean ownerExecutable,
+                                   boolean groupReadable, boolean groupWritable, boolean groupExecutable,
+                                   boolean otherReadable, boolean otherWritable, boolean otherExecutable) {
+    if (LINUX) {
+      int modeValue = ((ownerReadable) ? MODE_OWNER_READABLE : 0) +
+          ((ownerWritable) ? MODE_OWNER_WRITABLE : 0) +
+          ((ownerExecutable) ? MODE_OWNER_EXECUTABLE : 0) +
+          ((groupReadable) ? MODE_GROUP_READABLE : 0) +
+          ((groupWritable) ? MODE_GROUP_WRITABLE : 0) +
+          ((groupExecutable) ? MODE_GROUP_EXECUTABLE : 0) +
+          ((otherReadable) ? MODE_OTHER_READABLE : 0) +
+          ((otherWritable) ? MODE_OTHER_WRITABLE : 0) +
+          ((otherExecutable) ? MODE_OTHER_EXECUTABLE : 0);
+      String mode = String.format("%04d", modeValue);
+
+      try {
+        return runCommand(new String[]{"chmod", mode, path}, null, null, true);
+      } catch (IOException e) {
+        // Improbable
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+        return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+      } catch (InterruptedException e) {
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+        return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+      }
+    } else {
+      LOG.debug(String.format("Not performing chmod command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
+    }
+  }
+
+  /**
    * Test if a file or directory exists
    *
    * @param path the path to test
@@ -221,7 +349,7 @@ public class ShellCommandUtil {
 
       command.add(directoryPath);
 
-      return runCommand(command.toArray(new String[command.size()]), null, null, sudo);
+      return runCommand(command, null, null, sudo);
     }
   }
 
@@ -256,7 +384,43 @@ public class ShellCommandUtil {
     command.add(srcFile);
     command.add(destFile);
 
-    return runCommand(command.toArray(new String[command.size()]), null, null, sudo);
+    return runCommand(command, null, null, sudo);
+  }
+
+  /**
+   * Deletes the <code>file</code>.
+   *
+   * @param file the path to the file to be deleted
+   * @param force true to force copy even if the file exists
+   * @param sudo true to execute the command using sudo (ambari-sudo); otherwise false
+   * @return the shell command result
+   */
+  public static Result delete(String file, boolean force, boolean sudo) throws IOException, InterruptedException {
+    List<String> command = new ArrayList<>();
+
+    if (WINDOWS) {
+      command.add("del");
+      if (force) {
+        command.add("/f");
+      }
+    } else {
+      command.add("/bin/rm");
+      if (force) {
+        command.add("-f");
+      }
+    }
+
+    command.add(file);
+
+    return runCommand(command, null, null, sudo);
+  }
+
+  /**
+   * @see #runCommand(String[], Map, InteractiveHandler, boolean)
+   */
+  public static Result runCommand(List<String> args, Map<String, String> vars, InteractiveHandler interactiveHandler, boolean sudo)
+    throws IOException, InterruptedException {
+    return runCommand(args.toArray(new String[args.size()]), vars, interactiveHandler, sudo);
   }
 
   /**
@@ -313,23 +477,29 @@ public class ShellCommandUtil {
       BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
       BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-      while (!interactiveHandler.done()) {
-        StringBuilder query = new StringBuilder();
+      interactiveHandler.start();
 
-        while (reader.ready()) {
-          query.append((char) reader.read());
+      try {
+        while (!interactiveHandler.done()) {
+          StringBuilder query = new StringBuilder();
+
+          while (reader.ready()) {
+            query.append((char) reader.read());
+          }
+
+          String response = interactiveHandler.getResponse(query.toString());
+
+            if (response != null) {
+              writer.write(response);
+              writer.newLine();
+              writer.flush();
+            }
         }
-
-        String response = interactiveHandler.getResponse(query.toString());
-
-        if (response != null) {
-          writer.write(response);
-          writer.newLine();
-          writer.flush();
-        }
+      } catch (IOException ex){
+        // ignore exception as command possibly can be finished before writer.flush() or writer.write() called
+      } finally {
+        writer.close();
       }
-
-      writer.close();
     }
 
     //TODO: not sure whether output buffering will work properly
@@ -381,7 +551,7 @@ public class ShellCommandUtil {
 
   public static class Result {
 
-    Result(int exitCode, String stdout, String stderr) {
+    public  Result(int exitCode, String stdout, String stderr) {
       this.exitCode = exitCode;
       this.stdout = stdout;
       this.stderr = stderr;
@@ -425,11 +595,18 @@ public class ShellCommandUtil {
     boolean done();
 
     /**
-     * Gnven a query, returns the relative response to send to the shell command (via stdin)
+     * Given a query, returns the relative response to send to the shell command (via stdin)
      *
      * @param query a string containing the query that needs a response
      * @return a string or null if no response is needed
      */
     String getResponse(String query);
+
+    /**
+     * Starts or resets this handler.
+     * <p>
+     * It is expected that the caller calls this before using handler.
+     */
+    void start();
   }
 }

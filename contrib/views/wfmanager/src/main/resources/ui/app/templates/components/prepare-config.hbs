@@ -18,11 +18,7 @@
 <div id="prepareHolder">
   {{#each prepare as |prep index|}}
     <div class="form-group">
-      {{#if (eq index 0)}}
-        <label class="control-label col-xs-2">Prepare</label>
-      {{else}}
-        <label class="control-label col-xs-2"></label>
-      {{/if}}
+      <label class="control-label col-xs-2 {{if (not-eq index 0) 'visibility-hidden'}}">Prepare</label>
       <div class=" col-xs-2">
         <select class="form-control" onchange={{action (mut prep.type) value="target.value"}}>
           <option value="mkdir" selected={{eq prep.type "mkdir"}}>mkdir</option>
@@ -33,7 +29,7 @@
         <div class="input-group">
           {{input type="text" class="form-control" value=prep.path placeholder="path of the directory"}}
           <span class="input-group-btn">
-            <button class="btn btn-primary" type="button" {{action "openFileBrowser" index}}>Browse</button>
+            <button class="btn btn-secondary" type="button" {{action "openFileBrowser" index}}>Browse</button>
           </span>
         </div>
       </div>
@@ -44,7 +40,7 @@
   {{/each}}
   <div class="form-group">
     {{#if prepare}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">Prepare</label>
     {{else}}
       <label class="control-label col-xs-2">Prepare</label>
     {{/if}}
@@ -58,12 +54,12 @@
       <div class="input-group">
         {{input type="text" class="form-control" value=preparePath placeholder="path of the directory"}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser"}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser"}}>Browse</button>
         </span>
       </div>
     </div>
     <div class="col-xs-1">
-      <input class="form-control  btn btn-success" type="button" {{action "addPrepare"}} value="+">
+      <input class="form-control  btn btn-secondary" type="button" {{action "addPrepare"}} value="+">
     </div>
   </div>
 </div>

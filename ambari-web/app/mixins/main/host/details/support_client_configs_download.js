@@ -20,11 +20,22 @@ var App = require('app');
 App.SupportClientConfigsDownload = Em.Mixin.create({
 
   /**
+   * This object is supposed to be used as an enum  for resource types supported by ambari
+   */
+  resourceTypeEnum: Object.freeze({
+    CLUSTER: "ClusterResource",
+    HOST: "HostResource",
+    SERVICE: "ServiceResource",
+    SERVICE_COMPONENT: "ServiceComponentResource",
+    HOST_COMPONENT: "HostComponentResource"
+  }),
+
+  /**
    *
-   * @param {{hostName: string, componentName: string, displayName: string, serviceName: string}} data
+   * @param {{hostName: string, componentName: string, displayName: string, serviceName: string, resourceType: resourceTypeEnum}} data
    */
   downloadClientConfigsCall: function (data) {
-    var url = this._getUrl(data.hostName, data.serviceName, data.componentName);
+    var url = this._getUrl(data.hostName, data.serviceName, data.componentName, data.resourceType);
     var newWindow = window.open(url);
     newWindow.focus();
   },
@@ -34,14 +45,34 @@ App.SupportClientConfigsDownload = Em.Mixin.create({
    * @param {string|null} hostName
    * @param {string} serviceName
    * @param {string} componentName
+   * @param {string} resourceType
    * @returns {string}
    * @private
    */
-  _getUrl: function (hostName, serviceName, componentName) {
-    var isForHost = !Em.isNone(hostName);
-    return App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/' +
-      (isForHost ? 'hosts/' + hostName + '/host_components/' : 'services/' + serviceName + '/components/') +
-      componentName + '?format=client_config_tar';
+  _getUrl: function (hostName, serviceName, componentName, resourceType) {
+    var result;
+    var prefix = App.get('apiPrefix') + '/clusters/' + App.router.getClusterName() + '/';
+
+    switch (resourceType) {
+      case this.resourceTypeEnum.SERVICE_COMPONENT:
+        result = prefix + 'services/' + serviceName + '/components/' + componentName;
+        break;
+      case this.resourceTypeEnum.HOST_COMPONENT:
+        result = prefix + 'hosts/' + hostName + '/host_components/' + componentName;
+        break;
+      case this.resourceTypeEnum.HOST:
+        result = prefix + 'hosts/' + hostName + '/host_components';
+        break;
+      case this.resourceTypeEnum.SERVICE:
+        result = prefix + 'services/' + serviceName + '/components';
+        break;
+      case this.resourceTypeEnum.CLUSTER:
+      default:
+        result = prefix + 'components';
+    }
+
+    result += '?format=client_config_tar';
+    return result;
   }
 
 });

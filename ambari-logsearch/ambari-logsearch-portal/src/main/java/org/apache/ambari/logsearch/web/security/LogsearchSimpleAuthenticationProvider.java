@@ -18,59 +18,44 @@
  */
 package org.apache.ambari.logsearch.web.security;
 
-import org.apache.ambari.logsearch.util.StringUtil;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
 
-@Component
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named
 public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
-  private static Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
+  private static final Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
 
-  @Autowired
-  StringUtil stringUtil;
+  @Inject
+  private AuthPropsConfig authPropsConfig;
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    if (!this.isEnable()) {
+    if (!authPropsConfig.isAuthSimpleEnabled()) {
       logger.debug("Simple auth is disabled");
       return authentication;
     }
+    
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     username = StringEscapeUtils.unescapeHtml(username);
-    if (stringUtil.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
+    
     User user = new User();
     user.setUsername(username);
-    authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities(username));
+    authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities());
     return authentication;
-  }
-
-  @Override
-  public boolean isEnable(AUTH_METHOD method) {
-    boolean ldapEnabled = super.isEnable(AUTH_METHOD.LDAP);
-    boolean fileEnabled = super.isEnable(AUTH_METHOD.FILE);
-    boolean externalAuthEnabled = super.isEnable(AUTH_METHOD.EXTERNAL_AUTH);
-    boolean simpleEnabled = super.isEnable(method);
-    if (!ldapEnabled && !fileEnabled && simpleEnabled && !externalAuthEnabled) {
-      // simple is enabled only when rest three are disabled and simple is enable
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public boolean isEnable() {
-    return this.isEnable(AUTH_METHOD.SIMPLE);
   }
 }

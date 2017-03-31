@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.annotations;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -24,6 +25,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.TransactionalLocks;
@@ -38,7 +40,6 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
 
@@ -58,8 +59,8 @@ public class TransactionalLockInterceptorTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
-    m_injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(m_injector);
   }
 
   /**

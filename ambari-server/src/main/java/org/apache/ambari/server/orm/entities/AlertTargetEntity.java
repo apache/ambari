@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -33,6 +34,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -56,12 +58,26 @@ import com.google.common.collect.ImmutableSet;
  */
 @Entity
 @Table(name = "alert_target")
-@TableGenerator(name = "alert_target_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_target_id_seq", initialValue = 0)
+@TableGenerator(
+    name = "alert_target_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
+    pkColumnValue = "alert_target_id_seq",
+    initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertTargetEntity.findAll", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
-    @NamedQuery(name = "AlertTargetEntity.findAllGlobal", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),
-    @NamedQuery(name = "AlertTargetEntity.findByName", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetName = :targetName"),
-    @NamedQuery(name = "AlertTargetEntity.findByIds", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetId IN :targetIds") })
+    @NamedQuery(
+        name = "AlertTargetEntity.findAll",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findAllGlobal",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findByName",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetName = :targetName"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findByIds",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetId IN :targetIds") })
 public class AlertTargetEntity {
 
   @Id
@@ -92,7 +108,10 @@ public class AlertTargetEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
-  @ManyToMany(mappedBy = "alertTargets", cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+  @ManyToMany(
+      fetch = FetchType.EAGER,
+      mappedBy = "alertTargets",
+      cascade = { CascadeType.MERGE, CascadeType.REFRESH })
   private Set<AlertGroupEntity> alertGroups;
 
   /**
@@ -366,7 +385,7 @@ public class AlertTargetEntity {
   }
 
   /**
-   *
+   * {@inheritDoc}
    */
   @Override
   public boolean equals(Object object) {
@@ -380,21 +399,30 @@ public class AlertTargetEntity {
 
     AlertTargetEntity that = (AlertTargetEntity) object;
 
-    if (targetId != null ? !targetId.equals(that.targetId)
-        : that.targetId != null) {
-      return false;
+    // use the unique ID if it exists
+    if( null != targetId ){
+      return Objects.equals(targetId, that.targetId);
     }
 
-    return true;
-  }
+    return Objects.equals(targetId, that.targetId) &&
+        Objects.equals(targetName, that.targetName) &&
+        Objects.equals(notificationType, that.notificationType) &&
+        Objects.equals(isEnabled, that.isEnabled) &&
+        Objects.equals(description, that.description) &&
+        Objects.equals(isGlobal, that.isGlobal);
+    }
 
   /**
-   *
+   * {@inheritDoc}
    */
   @Override
   public int hashCode() {
-    int result = null != targetId ? targetId.hashCode() : 0;
-    return result;
+    // use the unique ID if it exists
+    if (null != targetId) {
+      return targetId.hashCode();
+    }
+
+    return Objects.hash(targetId, targetName, notificationType, isEnabled, description, isGlobal);
   }
 
   /**

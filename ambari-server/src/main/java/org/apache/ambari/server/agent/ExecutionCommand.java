@@ -112,6 +112,46 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("availableServices")
   private Map<String, String> availableServices = new HashMap<>();
 
+  /**
+   * "true" or "false" indicating whether this
+   * service is enabled for credential store use.
+   */
+  @SerializedName("credentialStoreEnabled")
+  private String credentialStoreEnabled;
+
+  /**
+   * Map of config type to list of password properties
+   *   <pre>
+   *     {@code
+   *       {
+   *         "config_type1" :
+   *           {
+   *             "password_alias_name1:type1":"password_value_name1",
+   *             "password_alias_name2:type2":"password_value_name2",
+   *                 :
+   *           },
+   *         "config_type2" :
+   *           {
+   *             "password_alias_name1:type1":"password_value_name1",
+   *             "password_alias_name2:type2":"password_value_name2",
+   *                 :
+   *           },
+   *                 :
+   *       }
+   *     }
+   *   </pre>
+   */
+  @SerializedName("configuration_credentials")
+  private Map<String, Map<String, String>> configurationCredentials;
+
+  public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
+    this.configurationCredentials = configurationCredentials;
+  }
+
+  public Map<String, Map<String, String>> getConfigurationCredentials() {
+    return this.configurationCredentials;
+  }
+
   public String getCommandId() {
     return commandId;
   }
@@ -295,6 +335,27 @@ public class ExecutionCommand extends AgentCommand {
 	this.serviceType = serviceType;
   }
 
+  /**
+   * Get a value indicating whether this service is enabled
+   * for credential store use.
+   *
+   * @return "true" or "false", any other value is
+   * considered as "false"
+   */
+  public String getCredentialStoreEnabled() {
+    return credentialStoreEnabled;
+  }
+
+  /**
+   * Set a value indicating whether this service is enabled
+   * for credential store use.
+   *
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(String credentialStoreEnabled) {
+    this.credentialStoreEnabled = credentialStoreEnabled;
+  }
+
   public String getComponentName() {
     return componentName;
   }
@@ -343,6 +404,7 @@ public class ExecutionCommand extends AgentCommand {
     String SCRIPT_TYPE = "script_type";
     String SERVICE_PACKAGE_FOLDER = "service_package_folder";
     String HOOKS_FOLDER = "hooks_folder";
+    String CUSTOM_FOLDER = "custom_folder";
     String STACK_NAME = "stack_name";
     String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";
@@ -353,6 +415,7 @@ public class ExecutionCommand extends AgentCommand {
     String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";
+    String UNLIMITED_KEY_JCE_REQUIRED = "unlimited_key_jce_required";
     String MYSQL_JDBC_URL = "mysql_jdbc_url";
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
@@ -367,6 +430,7 @@ public class ExecutionCommand extends AgentCommand {
     String COMPONENT_CATEGORY = "component_category";
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
+    String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";

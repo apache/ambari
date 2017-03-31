@@ -23,10 +23,14 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.util.Modules;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
@@ -45,17 +49,38 @@ public class InMemoryDefaultTestModule extends AbstractModule {
   private static class BeanDefinitionsCachingTestControllerModule extends ControllerModule {
 
     // Access should be synchronised to allow concurrent test runs.
-    private static final AtomicReference<Set<BeanDefinition>> foundBeanDefinitions
-        = new AtomicReference<Set<BeanDefinition>>(null);
+    private static final AtomicReference<Set<Class<?>>> matchedAnnotationClasses
+        = new AtomicReference<>(null);
+
+    private static final AtomicReference<Set<BeanDefinition>> foundNotificationBeanDefinitions
+        = new AtomicReference<>(null);
+
+    private static final AtomicReference<Set<BeanDefinition>> foundUpgradeChecksDefinitions
+        = new AtomicReference<>(null);
+
 
     public BeanDefinitionsCachingTestControllerModule(Properties properties) throws Exception {
       super(properties);
     }
 
     @Override
-    protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
-      Set<BeanDefinition> newBeanDefinitions = super.bindByAnnotation(foundBeanDefinitions.get());
-      foundBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+    protected Set<Class<?>> bindByAnnotation(Set<Class<?>> matchedClasses) {
+      Set<Class<?>> newMatchedClasses = super.bindByAnnotation(matchedAnnotationClasses.get());
+      matchedAnnotationClasses.compareAndSet(null, Collections.unmodifiableSet(newMatchedClasses));
+      return null;
+    }
+
+    @Override
+    protected Set<BeanDefinition> bindNotificationDispatchers(Set<BeanDefinition> beanDefinitions){
+      Set<BeanDefinition> newBeanDefinitions = super.bindNotificationDispatchers(foundNotificationBeanDefinitions.get());
+      foundNotificationBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+      return null;
+    }
+
+    @Override
+    protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions){
+      Set<BeanDefinition> newBeanDefinition = super.registerUpgradeChecks(foundUpgradeChecksDefinitions.get());
+      foundUpgradeChecksDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinition));
       return null;
     }
   }
@@ -65,34 +90,45 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String stacks = "src/test/resources/stacks";
     String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
+    String resourcesDir = "src/test/resources/";
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version").getPath();
       sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
     }
 
-    if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE_KEY)) {
-      properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+    if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE.getKey())) {
+      properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
     }
 
-    if (!properties.containsKey(Configuration.METADATA_DIR_PATH)) {
-      properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
+    if (!properties.containsKey(Configuration.METADATA_DIR_PATH.getKey())) {
+      properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks);
     }
 
-    if (!properties.containsKey(Configuration.SERVER_VERSION_FILE)) {
-      properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
+    if (!properties.containsKey(Configuration.SERVER_VERSION_FILE.getKey())) {
+      properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version);
     }
 
-    if (!properties.containsKey(Configuration.OS_VERSION_KEY)) {
-      properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
+    if (!properties.containsKey(Configuration.OS_VERSION.getKey())) {
+      properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     }
 
-    if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR_KEY)) {
-      properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR.getKey())) {
+      properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
+    }
+
+    if (!properties.containsKey(Configuration.RESOURCES_DIR.getKey())) {
+      properties.setProperty(Configuration.RESOURCES_DIR.getKey(), resourcesDir);
     }
 
     try {
-      install(new BeanDefinitionsCachingTestControllerModule(properties));
+      install(Modules.override(new BeanDefinitionsCachingTestControllerModule(properties)).with(new AbstractModule() {
+        @Override
+        protected void configure() {
+          // Cache parsed stacks.
+          install(new FactoryModuleBuilder().implement(StackManager.class, StackManagerMock.class).build(StackManagerFactory.class));
+        }
+      }));
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);

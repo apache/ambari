@@ -9,7 +9,7 @@
         {
           "name": "sparkuser",
           "principal": {
-            "value": "${spark-env/spark_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${spark-env/spark_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "spark-defaults/spark.history.kerberos.principal",
             "local_username" : "${spark-env/spark_user}"

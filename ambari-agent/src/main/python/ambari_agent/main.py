@@ -18,6 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+def fix_encoding_reimport_bug():
+  """
+  Fix https://bugs.python.org/issue14847
+  """
+  b'x'.decode('utf-8')
+  b'x'.decode('ascii')
+
 def fix_subprocess_racecondition():
   """
   Subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
@@ -35,7 +42,40 @@ def fix_subprocess_racecondition():
   del sys.modules['gc']
   import gc
 
+
+def fix_subprocess_popen():
+  '''
+  Workaround for race condition in starting subprocesses concurrently from
+  multiple threads via the subprocess and multiprocessing modules.
+  See http://bugs.python.org/issue19809 for details and repro script.
+  '''
+  import os
+  import sys
+
+  if os.name == 'posix' and sys.version_info[0] < 3:
+    from multiprocessing import forking
+    import subprocess
+    import threading
+
+    sp_original_init = subprocess.Popen.__init__
+    mp_original_init = forking.Popen.__init__
+    lock = threading.RLock() # guards subprocess creation
+
+    def sp_locked_init(self, *a, **kw):
+      with lock:
+        sp_original_init(self, *a, **kw)
+
+    def mp_locked_init(self, *a, **kw):
+      with lock:
+        mp_original_init(self, *a, **kw)
+
+    subprocess.Popen.__init__ = sp_locked_init
+    forking.Popen.__init__ = mp_locked_init
+
+
+fix_subprocess_popen()
 fix_subprocess_racecondition()
+fix_encoding_reimport_bug()
 
 import logging.handlers
 import logging.config
@@ -57,7 +97,7 @@ from NetUtil import NetUtil
 from PingPortListener import PingPortListener
 import hostname
 from DataCleaner import DataCleaner
-from ExitHelper import ExitHelper
+from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
@@ -66,12 +106,18 @@ import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
+
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
+
+# Global variables to be set later.
+home_dir = ""
+
 config = AmbariConfig.AmbariConfig()
+# TODO AMBARI-18733, remove this global variable and calculate it based on home_dir once it is set.
 configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
 
@@ -79,10 +125,17 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
+_file_logging_handlers ={}
+
 def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
-  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
-  rotateLog.setFormatter(formatter)
+
+  if filename in _file_logging_handlers:
+    rotateLog = _file_logging_handlers[filename]
+  else:
+    rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
+    rotateLog.setFormatter(formatter)
+    _file_logging_handlers[filename] = rotateLog
   logger.addHandler(rotateLog)
       
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
@@ -109,7 +162,8 @@ def add_syslog_handler(logger):
 def update_log_level(config):
   # Setting loglevel based on config file
   global logger
-  log_cfg_file = os.path.join(os.path.dirname(AmbariConfig.AmbariConfig.getConfigFile()), "logging.conf")
+  global home_dir
+  log_cfg_file = os.path.join(os.path.dirname(AmbariConfig.AmbariConfig.getConfigFile(home_dir)), "logging.conf")
   if os.path.exists(log_cfg_file):
     logging.config.fileConfig(log_cfg_file)
     # create logger
@@ -131,11 +185,15 @@ def update_log_level(config):
       logger.info("Default loglevel=DEBUG")
 
 
-#  ToDo: move that function inside AmbariConfig
+# TODO AMBARI-18733, move inside AmbariConfig
 def resolve_ambari_config():
+  """
+  Load the configurations.
+  In production, home_dir will be "". When running multiple Agents per host, each agent will have a unique path.
+  """
   global config
-  configPath = os.path.abspath(AmbariConfig.AmbariConfig.getConfigFile())
-
+  global home_dir
+  configPath = os.path.abspath(AmbariConfig.AmbariConfig.getConfigFile(home_dir))
   try:
     if os.path.exists(configPath):
       config.read(configPath)
@@ -236,9 +294,11 @@ def stop_agent():
     sys.exit(0)
 
 def reset_agent(options):
+  global home_dir
   try:
     # update agent config file
     agent_config = ConfigParser.ConfigParser()
+    # TODO AMBARI-18733, calculate configFile based on home_dir
     agent_config.read(configFile)
     server_host = agent_config.get('server', 'hostname')
     new_host = options[2]
@@ -264,17 +324,34 @@ def reset_agent(options):
 
 MAX_RETRIES = 10
 
+def run_threads(server_hostname, heartbeat_stop_callback):
+  # Launch Controller communication
+  controller = Controller(config, server_hostname, heartbeat_stop_callback)
+  controller.start()
+  time.sleep(2) # in order to get controller.statusCommandsExecutor initialized
+  while controller.is_alive():
+    time.sleep(0.1)
+
+    if controller.get_status_commands_executor().need_relaunch:
+      controller.get_status_commands_executor().relaunch("COMMAND_TIMEOUT_OR_KILLED")
+
+  controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
+
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
 def main(heartbeat_stop_callback=None):
   global config
+  global home_dir
+
   parser = OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
   parser.add_option("-e", "--expected-hostname", dest="expected_hostname", action="store",
                     help="expected hostname of current host. If hostname differs, agent will fail", default=None)
+  parser.add_option("--home", dest="home_dir", action="store", help="Home directory", default="")
   (options, args) = parser.parse_args()
 
   expected_hostname = options.expected_hostname
+  home_dir = options.home_dir
 
   logging_level = logging.DEBUG if options.verbose else logging.INFO
 
@@ -283,6 +360,10 @@ def main(heartbeat_stop_callback=None):
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
+
+  if home_dir != "":
+    # When running multiple Ambari Agents on this host for simulation, each one will use a unique home directory.
+    Logger.info("Agent is using Home Dir: %s" % str(home_dir))
 
   # use the host's locale for numeric formatting
   try:
@@ -343,9 +424,9 @@ def main(heartbeat_stop_callback=None):
   # Keep trying to connect to a server or bail out if ambari-agent was stopped
   while not connected and not stopped:
     for server_hostname in server_hostnames:
+      server_url = config.get_api_url(server_hostname)
       try:
         server_ip = socket.gethostbyname(server_hostname)
-        server_url = config.get_api_url(server_hostname)
         logger.info('Connecting to Ambari server at %s (%s)', server_url, server_ip)
       except socket.error:
         logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)
@@ -360,10 +441,7 @@ def main(heartbeat_stop_callback=None):
         # Set the active server
         active_server = server_hostname
         # Launch Controller communication
-        controller = Controller(config, server_hostname, heartbeat_stop_callback)
-        controller.start()
-        while controller.is_alive():
-          time.sleep(0.1)
+        run_threads(server_hostname, heartbeat_stop_callback)
 
       #
       # If Ambari Agent connected to the server or

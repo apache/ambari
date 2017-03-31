@@ -19,8 +19,29 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false" supports_adding_forbidden="true">
+<configuration supports_final="false" supports_adding_forbidden="false">
   <property>
+    <name>yarn_rm_summary_log_max_backup_size</name>
+    <value>256</value>
+    <description>The maximum size of backup file before the log is rotated</description>
+    <display-name>YARN Log: backup file size</display-name>
+    <value-attributes>
+        <unit>MB</unit>
+    </value-attributes>
+     <on-ambari-upgrade add="false"/>
+   </property>
+   <property>
+      <name>yarn_rm_summary_log_number_of_backup_files</name>
+      <value>20</value>
+      <description>The number of backup files</description>
+      <display-name>YARN Log: # of backup files</display-name>
+    <value-attributes>
+        <type>int</type>
+        <minimum>0</minimum>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+    </property>
+    <property>
     <name>content</name>
     <display-name>yarn-log4j template</display-name>
     <description>Custom log4j.properties</description>
@@ -54,8 +75,8 @@ yarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}
 #    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
 log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
 log4j.appender.RMSUMMARY.File=${yarn.log.dir}/${yarn.server.resourcemanager.appsummary.log.file}
-log4j.appender.RMSUMMARY.MaxFileSize=256MB
-log4j.appender.RMSUMMARY.MaxBackupIndex=20
+log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB
+log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}
 log4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout
 log4j.appender.RMSUMMARY.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n
 log4j.appender.JSA.layout=org.apache.log4j.PatternLayout

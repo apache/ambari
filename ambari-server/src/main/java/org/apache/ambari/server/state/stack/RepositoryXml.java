@@ -147,6 +147,7 @@ public class RepositoryXml implements Validable{
     private String repoid = null;
     private String reponame = null;
     private String latest = null;
+    private boolean unique = false;
 
     private Repo() {
     }
@@ -183,7 +184,19 @@ public class RepositoryXml implements Validable{
       return latest;
     }
 
+    /**
+     * @return true if version of HDP that change with each release
+     */
+    public boolean isUnique() {
+      return unique;
+    }
 
+    /**
+     * @param unique set is version of HDP that change with each release
+     */
+    public void setUnique(boolean unique) {
+      this.unique = unique;
+    }
   }
 
   /**
@@ -205,6 +218,7 @@ public class RepositoryXml implements Validable{
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
           ri.setLatestBaseUrl(r.getBaseUrl());
+          ri.setUnique(r.isUnique());
 
           repos.add(ri);
         }

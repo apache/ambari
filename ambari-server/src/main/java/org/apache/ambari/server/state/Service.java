@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
@@ -73,12 +72,6 @@ public interface Service {
 
   void debugDump(StringBuilder sb);
 
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
-
   ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException;
 
@@ -99,12 +92,6 @@ public interface Service {
   void delete() throws AmbariException;
 
   /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
-
-  /**
    * Sets the maintenance state for the service
    * @param state the state
    */
@@ -114,6 +101,43 @@ public interface Service {
    * @return the maintenance state
    */
   MaintenanceState getMaintenanceState();
+
+  /**
+   * Refresh Service info due to current stack
+   * @throws AmbariException
+   */
+  void updateServiceInfo() throws AmbariException;
+
+
+  /**
+   * Get a true or false value specifying
+   * whether credential store is supported by this service.
+   * @return true or false
+   */
+  boolean isCredentialStoreSupported();
+
+  /**
+   * Get a true or false value specifying
+   * whether credential store is required by this service.
+   * @return true or false
+   */
+  boolean isCredentialStoreRequired();
+
+  /**
+   * Get a true or false value specifying whether
+   * credential store use is enabled for this service.
+   *
+   * @return true or false
+   */
+  boolean isCredentialStoreEnabled();
+
+  /**
+   * Set a true or false value specifying whether this
+   * service is to be enabled for credential store use.
+   *
+   * @param credentialStoreEnabled - true or false
+   */
+  void setCredentialStoreEnabled(boolean credentialStoreEnabled);
 
   enum Type {
     HDFS,

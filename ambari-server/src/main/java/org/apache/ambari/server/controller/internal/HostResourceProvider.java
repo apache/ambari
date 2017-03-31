@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -60,9 +62,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.InvalidTopologyException;
@@ -129,7 +130,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   public static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "recovery_summary");
   public static final String HOST_STATE_PROPERTY_ID =
-
       PropertyHelper.getPropertyId("Hosts", "host_state");
   public static final String HOST_LAST_AGENT_ENV_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "last_agent_env");
@@ -150,6 +150,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   //todo use the same json structure for cluster host addition (cluster template and upscale)
   public static final String HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID =
       PropertyHelper.getPropertyId(null, "rack_info");
+
+  protected static final String FORCE_DELETE_COMPONENTS = "force_delete_components";
 
 
   private static Set<String> pkPropertyIds =
@@ -334,6 +336,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<HostRequest> requests = new HashSet<>();
+    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+    final boolean forceDelete = requestInfoProperties.containsKey(FORCE_DELETE_COMPONENTS) &&
+                  requestInfoProperties.get(FORCE_DELETE_COMPONENTS).equals("true");
+
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
     }
@@ -341,11 +347,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     DeleteStatusMetaData deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
       @Override
       public DeleteStatusMetaData invoke() throws AmbariException {
-        return deleteHosts(requests, request.isDryRunRequest());
+        return deleteHosts(requests, request.isDryRunRequest(), forceDelete);
       }
     });
 
-    notifyDelete(Resource.Type.Host, predicate);
+    if (!request.isDryRunRequest()) {
+      notifyDelete(Resource.Type.Host, predicate);
+    }
 
     return getRequestStatus(null, null, deleteStatusMetaData);
   }
@@ -567,7 +575,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  public RequestStatusResponse install(final String cluster, final String hostname, final boolean skipFailure)
+  public RequestStatusResponse install(final String cluster, final String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, final boolean skipFailure)
       throws ResourceAlreadyExistsException,
       SystemException,
       NoSuchParentResourceException,
@@ -575,7 +583,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
 
     return ((HostComponentResourceProvider) getResourceProvider(Resource.Type.HostComponent)).
-        install(cluster, hostname, skipFailure);
+        install(cluster, hostname, skipInstallForComponents, dontSkipInstallForComponents, skipFailure);
   }
 
   public RequestStatusResponse start(final String cluster, final String hostname)
@@ -713,7 +721,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       try {
         // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping
         // table. This is done to detect duplicates during host create. In order to be robust, handle these gracefully.
-        clusters.mapHostToCluster(request.getHostname(), clusterName);
+        clusters.mapAndPublishHostsToCluster(new HashSet<>(Arrays.asList(request.getHostname())), clusterName);
       } catch (DuplicateResourceException e) {
         // do nothing
       }
@@ -765,30 +773,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clusters.getHostsForCluster(clusterName).containsKey(host.getHostName())) {
 
           for (ConfigurationRequest cr : request.getDesiredConfigs()) {
-            String configType = cr.getType();
-
-            // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
-            // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
-            String service = null;
-
-            try {
-              service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
-            } catch (IllegalArgumentException e) {
-              // Ignore this since we may have hit a config type that spans multiple services. This may
-              // happen in unit test cases but should not happen with later versions of stacks.
-            }
-
-            if(StringUtils.isEmpty(service)) {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
-              }
-            }
-            else {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-                throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
-              }
-            }
-
             if (null != cr.getProperties() && cr.getProperties().size() > 0) {
               LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
                   cr.getVersionTag(),
@@ -832,7 +816,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun)
+  @Transactional
+  protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
       throws AmbariException {
 
     AmbariManagementController controller = getManagementController();
@@ -847,7 +832,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       try {
-        validateHostInDeleteFriendlyState(hostRequest, clusters);
+        validateHostInDeleteFriendlyState(hostRequest, clusters, forceDelete);
         okToRemove.add(hostRequest);
       } catch (Exception ex) {
         deleteStatusMetaData.addException(hostName, ex);
@@ -865,16 +850,19 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     //Do not break behavior for existing clients where delete request contains only 1 host.
     //Response for these requests will have empty body with appropriate error code.
-    if (deleteStatusMetaData.getDeletedKeys().size() + deleteStatusMetaData.getExceptionForKeys().size() == 1) {
-      if (deleteStatusMetaData.getDeletedKeys().size() == 1) {
-        return null;
-      }
-      for (Map.Entry<String, Exception> entry : deleteStatusMetaData.getExceptionForKeys().entrySet()) {
-        Exception ex =  entry.getValue();
-        if (ex instanceof AmbariException) {
-          throw (AmbariException)ex;
-        } else {
-          throw new AmbariException(ex.getMessage(), ex);
+    //dryRun is a new feature so its ok to unify the behavior
+    if (!dryRun) {
+      if (deleteStatusMetaData.getDeletedKeys().size() + deleteStatusMetaData.getExceptionForKeys().size() == 1) {
+        if (deleteStatusMetaData.getDeletedKeys().size() == 1) {
+          return null;
+        }
+        for (Map.Entry<String, Exception> entry : deleteStatusMetaData.getExceptionForKeys().entrySet()) {
+          Exception ex = entry.getValue();
+          if (ex instanceof AmbariException) {
+            throw (AmbariException) ex;
+          } else {
+            throw new AmbariException(ex.getMessage(), ex);
+          }
         }
       }
     }
@@ -883,9 +871,54 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   private void processDeleteHostRequests(List<HostRequest> requests,  Clusters clusters, DeleteStatusMetaData deleteStatusMetaData) throws AmbariException {
+    Set<String> hostsClusters = new HashSet<>();
+    Set<String> hostNames = new HashSet<>();
+    Set<Cluster> allClustersWithHosts = new HashSet<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.
       String hostname = hostRequest.getHostname();
+      hostNames.add(hostname);
+
+      if (hostRequest.getClusterName() != null) {
+        hostsClusters.add(hostRequest.getClusterName());
+      }
+
+      LOG.info("Received Delete request for host {} from cluster {}.", hostname, hostRequest.getClusterName());
+
+      // delete all host components
+      Set<ServiceComponentHostRequest> schrs = new HashSet<>();
+      for (Cluster cluster : clusters.getClustersForHost(hostname)) {
+        List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostname);
+        for (ServiceComponentHost sch : list) {
+          ServiceComponentHostRequest schr = new ServiceComponentHostRequest(cluster.getClusterName(),
+                                                                             sch.getServiceName(),
+                                                                             sch.getServiceComponentName(),
+                                                                             sch.getHostName(),
+                                                                             null);
+          schrs.add(schr);
+        }
+      }
+      DeleteStatusMetaData componentDeleteStatus = null;
+      if (schrs.size() > 0) {
+        try {
+          componentDeleteStatus = getManagementController().deleteHostComponents(schrs);
+        } catch (Exception ex) {
+          deleteStatusMetaData.addException(hostname, ex);
+        }
+      }
+
+      if (componentDeleteStatus != null) {
+        for (String key : componentDeleteStatus.getDeletedKeys()) {
+          deleteStatusMetaData.addDeletedKey(key);
+        }
+        for (String key : componentDeleteStatus.getExceptionForKeys().keySet()) {
+          deleteStatusMetaData.addException(key, componentDeleteStatus.getExceptionForKeys().get(key));
+        }
+      }
+
+      if (hostRequest.getClusterName() != null) {
+        hostsClusters.add(hostRequest.getClusterName());
+      }
       try {
         clusters.deleteHost(hostname);
         deleteStatusMetaData.addDeletedKey(hostname);
@@ -896,44 +929,64 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
         logicalRequest.removeHostRequestByHostName(hostname);
       }
-
-      if (null != hostRequest.getClusterName()) {
-        clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
-      }
+    }
+    clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
+    for (String clustername : hostsClusters) {
+      clusters.getCluster(clustername).recalculateAllClusterVersionStates();
     }
   }
 
-  private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters ) throws AmbariException {
+  private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {
     Set<String> clusterNamesForHost = new HashSet<>();
     String hostName = hostRequest.getHostname();
-      if (null != hostRequest.getClusterName()) {
-        clusterNamesForHost.add(hostRequest.getClusterName());
-      } else {
-        Set<Cluster> clustersForHost = clusters.getClustersForHost(hostRequest.getHostname());
-        if (null != clustersForHost) {
-          for (Cluster c : clustersForHost) {
-            clusterNamesForHost.add(c.getClusterName());
-          }
+    if (null != hostRequest.getClusterName()) {
+      clusterNamesForHost.add(hostRequest.getClusterName());
+    } else {
+      Set<Cluster> clustersForHost = clusters.getClustersForHost(hostRequest.getHostname());
+      if (null != clustersForHost) {
+        for (Cluster c : clustersForHost) {
+          clusterNamesForHost.add(c.getClusterName());
         }
       }
+    }
 
-      for (String clusterName : clusterNamesForHost) {
-        Cluster cluster = clusters.getCluster(clusterName);
+    for (String clusterName : clusterNamesForHost) {
+      Cluster cluster = clusters.getCluster(clusterName);
 
-        List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
+      List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
 
-        if (!list.isEmpty()) {
-          List<String> componentsToRemove = new ArrayList<>();
-          for (ServiceComponentHost sch : list) {
-            componentsToRemove.add(sch.getServiceComponentName());
+      if (!list.isEmpty()) {
+        List<String> componentsToRemove = new ArrayList<>();
+        List<String> componentsStarted = new ArrayList<>();
+        for (ServiceComponentHost sch : list) {
+          componentsToRemove.add(sch.getServiceComponentName());
+          if (sch.getState() == State.STARTED) {
+            componentsStarted.add(sch.getServiceComponentName());
           }
+        }
 
+        if (forceDelete) {
+          // error if components are running
+          if (!componentsStarted.isEmpty()) {
+            StringBuilder reason = new StringBuilder("Cannot remove host ")
+                .append(hostName)
+                .append(" from ")
+                .append(hostRequest.getClusterName())
+                .append(
+                    ".  The following roles exist, and these components must be stopped: ");
+
+            reason.append(StringUtils.join(componentsToRemove, ", "));
+
+            throw new AmbariException(reason.toString());
+          }
+        } else {
           if (!componentsToRemove.isEmpty()) {
             StringBuilder reason = new StringBuilder("Cannot remove host ")
                 .append(hostName)
                 .append(" from ")
                 .append(hostRequest.getClusterName())
-                .append(".  The following roles exist, and these components must be stopped if running, and then deleted: ");
+                .append(
+                    ".  The following roles exist, and these components must be stopped if running, and then deleted: ");
 
             reason.append(StringUtils.join(componentsToRemove, ", "));
 
@@ -941,6 +994,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           }
         }
       }
+    }
   }
 
   /**

@@ -51,8 +51,8 @@ public class AmbariSolrCloudClientBuilder {
   String saslUsers;
   String propName;
   String propValue;
+  String securityJsonLocation;
   boolean secure;
-  String copyFromZnode;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -196,13 +196,13 @@ public class AmbariSolrCloudClientBuilder {
     return this;
   }
 
-  public AmbariSolrCloudClientBuilder withSecure(boolean isSecure) {
-    this.secure = isSecure;
+  public AmbariSolrCloudClientBuilder withSecurityJsonLocation(String securityJson) {
+    this.securityJsonLocation = securityJson;
     return this;
   }
 
-  public AmbariSolrCloudClientBuilder withCopyFromZnode(String copyFromZnode) {
-    this.copyFromZnode = copyFromZnode;
+  public AmbariSolrCloudClientBuilder withSecure(boolean isSecure) {
+    this.secure = isSecure;
     return this;
   }
 

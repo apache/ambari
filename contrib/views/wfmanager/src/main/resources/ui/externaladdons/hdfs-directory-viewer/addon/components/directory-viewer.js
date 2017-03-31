@@ -31,6 +31,9 @@ export default Ember.Component.extend({
   }),
 
   startFetch: Ember.on('didInitAttrs', function() {
+    this.get('uploaderService').on('uploadSuccess', function(){
+      this.fetchData();
+    }.bind(this));
     this.fetchData();
   }),
 
@@ -95,24 +98,22 @@ export default Ember.Component.extend({
   },
 
   insertPathToTreeData(treeData, paths, pathSegment) {
-    let firstPathSegment;
-    if (pathSegment.indexOf('/') !== -1) {
-      firstPathSegment = pathSegment.substring(0, pathSegment.indexOf('/'));
-    } else {
-      firstPathSegment = pathSegment;
-    }
-
+    let isFinalSegment = pathSegment.indexOf('/') === -1? true: false;
+    let firstPathSegment = isFinalSegment? pathSegment: pathSegment.substring(0, pathSegment.indexOf('/'));
     if(treeData.length === 0) {
       treeData.pushObjects(paths);
     } else {
       treeData.forEach((entry) => {
         entry.state = {};
         if (entry.pathSegment === firstPathSegment) {
+          let nodesLength = entry.nodes.length;
           entry.state.expanded = true;
-          if(entry.nodes.length === 0) {
+          if(nodesLength === 0) {
             paths.forEach((pathEntry) => {
               entry.nodes.push(pathEntry);
             });
+          } else if(nodesLength > 0 && nodesLength !== paths.length && isFinalSegment){
+            entry.nodes = paths;
           } else {
             this.insertPathToTreeData(entry.nodes, paths, pathSegment.substring(pathSegment.indexOf('/') + 1));
           }

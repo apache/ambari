@@ -18,20 +18,18 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Provider;
-import junit.framework.Assert;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.junit.Test;
-
-import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashSet;
-
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.junit.Test;
+
+import com.google.inject.Provider;
 
 /**
  * HostComponentStateDAO tests.
@@ -48,21 +46,11 @@ public class HostComponentStateDAOTest {
 
     HostComponentStateEntity hostComponentStateEntity = createNiceMock(HostComponentStateEntity.class);
 
-    expect(hostComponentStateEntity.getHostName()).andReturn("host1");
-    expect(hostDAO.findByName("host1")).andReturn(hostEntity);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
 
-
-    expect(entityManager.merge(hostComponentStateEntity)).andReturn(hostComponentStateEntity).anyTimes();
     entityManager.remove(hostComponentStateEntity);
 
-
-    hostEntity.removeHostComponentStateEntity(hostComponentStateEntity);
-
-    expect(hostDAO.merge(hostEntity)).andReturn(hostEntity).anyTimes();
-
     replay(entityManagerProvider, entityManager, hostDAO, hostEntity, hostComponentStateEntity);
-
 
     HostComponentStateDAO dao = new HostComponentStateDAO();
     dao.entityManagerProvider = entityManagerProvider;

@@ -18,6 +18,23 @@
 
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,9 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -72,9 +88,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -83,24 +97,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -112,11 +108,10 @@ public class UpgradeCatalog210Test {
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
 
-  @Before
-  public void init() {
-    reset(entityManagerProvider);
-    expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
-    replay(entityManagerProvider);
+  public void initData() {
+    //reset(entityManagerProvider);
+    //expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
+    //replay(entityManagerProvider);
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
@@ -128,9 +123,8 @@ public class UpgradeCatalog210Test {
     desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
-  @After
-  public void tearDown() {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test
@@ -805,6 +799,7 @@ public class UpgradeCatalog210Test {
 
   @Test
   public void testDeleteStormRestApiServiceComponent() throws Exception {
+    initData();
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
       "c1", desiredStackEntity);
     ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
@@ -863,6 +858,7 @@ public class UpgradeCatalog210Test {
 
     Assert.assertNull(componentDesiredStateDAO.findByName(clusterEntity.getClusterId(), "STORM",
         "STORM_REST_API"));
+    tearDown();
   }
 
 
@@ -880,6 +876,8 @@ public class UpgradeCatalog210Test {
 
     final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
     final Map<String, String> propertiesExpectedCoreSite = new HashMap<String, String>();
+    propertiesExpectedHdfs.put("dfs.nameservices", "nncl1,nncl2");
+    propertiesExpectedHdfs.put("dfs.ha.namenodes.nncl2", "nn1,nn2");
     propertiesExpectedCoreSite.put("fs.defaultFS", "hdfs://EXAMPLE.COM:8020");
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override

@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.sql.SQLException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -51,8 +52,8 @@ public class TopologyRequestDAOTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private void create() {

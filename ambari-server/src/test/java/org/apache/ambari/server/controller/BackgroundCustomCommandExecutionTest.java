@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller;
 
 import static org.mockito.Matchers.any;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,9 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.Request;
@@ -59,11 +59,12 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import junit.framework.Assert;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BackgroundCustomCommandExecutionTest {
@@ -72,39 +73,39 @@ public class BackgroundCustomCommandExecutionTest {
   private Clusters clusters;
 
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
-  
+
   @Captor ArgumentCaptor<Request> requestCapture;
   @Mock ActionManager am;
-  
+
   @Before
   public void setup() throws Exception {
     Configuration configuration;
     TopologyManager topologyManager;
 
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
-      
-      
+
+
       @Override
       protected void configure() {
-        getProperties().put(Configuration.CUSTOM_ACTION_DEFINITION_KEY, "src/main/resources/custom_action_definitions");
+        getProperties().put(Configuration.CUSTOM_ACTION_DEFINITION.getKey(), "src/main/resources/custom_action_definitions");
         super.configure();
         bind(ActionManager.class).toInstance(am);
       }
     };
     injector = Guice.createInjector(module);
-    
-    
+
+
     injector.getInstance(GuiceJpaInitializer.class);
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     configuration = injector.getInstance(Configuration.class);
     topologyManager = injector.getInstance(TopologyManager.class);
-    
+
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
 
     StageUtils.setTopologyManager(topologyManager);
     StageUtils.setConfiguration(configuration);
-    
+
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
     // Set the authenticated user
@@ -112,8 +113,8 @@ public class BackgroundCustomCommandExecutionTest {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 
@@ -122,7 +123,7 @@ public class BackgroundCustomCommandExecutionTest {
   public void testRebalanceHdfsCustomCommand() {
     try {
       createClusterFixture();
-      
+
       Map<String, String> requestProperties = new HashMap<String, String>() {
         {
           put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
@@ -134,9 +135,9 @@ public class BackgroundCustomCommandExecutionTest {
       ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
           "REBALANCEHDFS", new HashMap<String, String>(), false);
       actionRequest.getResourceFilters().add(new RequestResourceFilter("HDFS", "NAMENODE",Collections.singletonList("c6401")));
-      
+
       controller.createAction(actionRequest, requestProperties);
-      
+
       Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
       Request request = requestCapture.getValue();
@@ -144,41 +145,40 @@ public class BackgroundCustomCommandExecutionTest {
       Assert.assertNotNull(request.getStages());
       Assert.assertEquals(1, request.getStages().size());
       Stage stage = request.getStages().iterator().next();
-      
+
       System.out.println(stage);
-      
+
       Assert.assertEquals(1, stage.getHosts().size());
-      
+
       List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c6401");
       Assert.assertEquals(1, commands.size());
-      
+
       ExecutionCommand command = commands.get(0).getExecutionCommand();
-      
+
       Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND, command.getCommandType());
       Assert.assertEquals("{\"threshold\":13}", command.getCommandParams().get("namenode"));
-      
+
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
-  
+
   private void createClusterFixture() throws AmbariException, AuthorizationException {
     createCluster("c1");
     addHost("c6401","c1");
     addHost("c6402","c1");
-    
+
     clusters.getCluster("c1");
     createService("c1", "HDFS", null);
-    
+
     createServiceComponent("c1","HDFS","NAMENODE", State.INIT);
-    
+
     createServiceComponentHost("c1","HDFS","NAMENODE","c6401", null);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
-    clusters.getHost(hostname).persist();
     if (null != clusterName) {
       clusters.mapHostToCluster(hostname, clusterName);
     }
@@ -187,7 +187,7 @@ public class BackgroundCustomCommandExecutionTest {
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
-    
+
     host.setHostAttributes(hostAttributes);
   }
 
@@ -195,7 +195,7 @@ public class BackgroundCustomCommandExecutionTest {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-2.0.6", null);
     controller.createCluster(r);
   }
-  
+
   private void createService(String clusterName,
       String serviceName, State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;

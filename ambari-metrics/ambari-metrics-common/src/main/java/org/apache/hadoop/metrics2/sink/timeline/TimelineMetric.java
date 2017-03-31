@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -44,6 +45,7 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private String type;
   private String units;
   private TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+  private Map<String, String> metadata = new HashMap<>();
 
   // default
   public TimelineMetric() {
@@ -146,6 +148,15 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
 
   public void addMetricValues(Map<Long, Double> metricValues) {
     this.metricValues.putAll(metricValues);
+  }
+
+  @XmlElement(name = "metadata")
+  public Map<String,String> getMetadata () {
+    return metadata;
+  }
+
+  public void setMetadata (Map<String,String> metadata) {
+    this.metadata = metadata;
   }
 
   @Override

@@ -18,19 +18,23 @@
 
 package org.apache.ambari.view.filebrowser;
 
-import javax.ws.rs.Path;
-
-import org.apache.ambari.view.ViewContext;
-
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.commons.hdfs.FileOperationService;
 import org.apache.ambari.view.commons.hdfs.UploadService;
 import org.apache.ambari.view.commons.hdfs.UserService;
+import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
+
+import javax.ws.rs.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Root files service
  */
 public class FileBrowserService {
+  public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
 
   @Inject
   ViewContext context;
@@ -41,7 +45,12 @@ public class FileBrowserService {
    */
   @Path("/download")
   public DownloadService download() {
-    return new DownloadService(context);
+    return new DownloadService(context, getViewConfigs());
+  }
+
+  private Map<String,String> getViewConfigs() {
+    Optional<Map<String, String>> props = ViewPropertyHelper.getViewConfigs(context, VIEW_CONF_KEYVALUES);
+    return props.isPresent()? props.get() : new HashMap<String, String>();
   }
 
   /**
@@ -50,7 +59,7 @@ public class FileBrowserService {
    */
   @Path("/upload")
   public UploadService upload() {
-    return new UploadService(context);
+    return new UploadService(context, getViewConfigs());
   }
 
   /**
@@ -59,7 +68,7 @@ public class FileBrowserService {
    */
   @Path("/fileops")
   public FileOperationService fileOps() {
-    return new FileOperationService(context);
+    return new FileOperationService(context, getViewConfigs());
   }
 
   /**
@@ -68,7 +77,7 @@ public class FileBrowserService {
    */
   @Path("/help")
   public HelpService help() {
-    return new HelpService(context);
+    return new HelpService(context, getViewConfigs());
   }
 
   /**
@@ -76,7 +85,7 @@ public class FileBrowserService {
    * @return service
    */
   @Path("/user")
-  public UserService userService() { return new UserService(context); }
+  public UserService userService() { return new UserService(context, getViewConfigs()); }
 
   /**
    * @see org.apache.ambari.view.filebrowser.FilePreviewService
@@ -84,7 +93,7 @@ public class FileBrowserService {
    */
   @Path("/preview")
   public FilePreviewService preview() {
-    return new FilePreviewService(context);
+    return new FilePreviewService(context, getViewConfigs());
   }
 
 }

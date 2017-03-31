@@ -20,6 +20,7 @@ limitations under the License.
 from ambari_commons import OSCheck
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -29,4 +30,10 @@ else:
 java_home = config['hostLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 
+
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+# By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
+sysprep_skip_copy_oozie_share_lib_to_hdfs = False
+if host_sys_prepped:
+  sysprep_skip_copy_oozie_share_lib_to_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_oozie_share_lib_to_hdfs", False)

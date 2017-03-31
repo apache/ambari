@@ -140,6 +140,16 @@ def kms(upgrade_type=None):
       create_parents = True
     )
 
+    Directory("/etc/security/serverKeys",
+      create_parents = True,
+      cd_access = "a"
+    )
+
+    Directory("/etc/ranger/kms",
+      create_parents = True,
+      cd_access = "a"
+    )
+
     copy_jdbc_connector()
 
     File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
@@ -216,6 +226,14 @@ def kms(upgrade_type=None):
       create_parents=True
     )
 
+    if params.stack_supports_pid:
+      File(format('{kms_conf_dir}/ranger-kms-env-piddir.sh'),
+        content = format("export RANGER_KMS_PID_DIR_PATH={ranger_kms_pid_dir}\nexport KMS_USER={kms_user}"),
+        owner = params.kms_user,
+        group = params.kms_group,
+        mode=0755
+      )
+
     Directory(params.kms_log_dir,
       owner = params.kms_user,
       group = params.kms_group,
@@ -262,19 +280,37 @@ def kms(upgrade_type=None):
     do_keystore_setup(params.credential_provider_path, params.masterkey_alias, params.kms_master_key_password)
     if params.stack_support_kms_hsm and params.enable_kms_hsm:
       do_keystore_setup(params.credential_provider_path, params.hms_partition_alias, unicode(params.hms_partition_passwd))
+    if params.stack_supports_ranger_kms_ssl and params.ranger_kms_ssl_enabled:
+      do_keystore_setup(params.ranger_kms_cred_ssl_path, params.ranger_kms_ssl_keystore_alias, params.ranger_kms_ssl_passwd)
+
+    # remove plain-text password from xml configs
+    dbks_site_copy = {}
+    dbks_site_copy.update(params.config['configurations']['dbks-site'])
+
+    for prop in params.dbks_site_password_properties:
+      if prop in dbks_site_copy:
+        dbks_site_copy[prop] = "_"
 
     XmlConfig("dbks-site.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['dbks-site'],
+      configurations=dbks_site_copy,
       configuration_attributes=params.config['configuration_attributes']['dbks-site'],
       owner=params.kms_user,
       group=params.kms_group,
       mode=0644
     )
 
+    ranger_kms_site_copy = {}
+    ranger_kms_site_copy.update(params.config['configurations']['ranger-kms-site'])
+    if params.stack_supports_ranger_kms_ssl:
+      # remove plain-text password from xml configs
+      for prop in params.ranger_kms_site_password_properties:
+        if prop in ranger_kms_site_copy:
+          ranger_kms_site_copy[prop] = "_"
+
     XmlConfig("ranger-kms-site.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-site'],
+      configurations=ranger_kms_site_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-site'],
       owner=params.kms_user,
       group=params.kms_group,
@@ -293,7 +329,7 @@ def kms(upgrade_type=None):
     File(os.path.join(params.kms_conf_dir, "kms-log4j.properties"),
       owner=params.kms_user,
       group=params.kms_group,
-      content=params.kms_log4j,
+      content=InlineTemplate(params.kms_log4j),
       mode=0644
     )
     if params.security_enabled:
@@ -306,6 +342,8 @@ def kms(upgrade_type=None):
         group=params.kms_group,
         mode=0644
       )
+    else:
+      File(format('{kms_conf_dir}/core-site.xml'), action="delete")
 
 def copy_jdbc_connector(stack_version=None):
   import params
@@ -413,9 +451,16 @@ def enable_kms_plugin():
       mode = 0644        
     )
 
+    # remove plain-text password from xml configs
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(params.config['configurations']['ranger-kms-audit'])
+
+    if params.plugin_audit_password_property in plugin_audit_properties_copy:
+      plugin_audit_properties_copy[params.plugin_audit_password_property] = "crypted"
+
     XmlConfig("ranger-kms-audit.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-audit'],
+      configurations=plugin_audit_properties_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-audit'],
       owner=params.kms_user,
       group=params.kms_group,
@@ -429,9 +474,17 @@ def enable_kms_plugin():
       group=params.kms_group,
       mode=0744)
 
+    # remove plain-text password from xml configs
+    ranger_kms_policymgr_ssl_copy = {}
+    ranger_kms_policymgr_ssl_copy.update(params.config['configurations']['ranger-kms-policymgr-ssl'])
+
+    for prop in params.kms_plugin_password_properties:
+      if prop in ranger_kms_policymgr_ssl_copy:
+        ranger_kms_policymgr_ssl_copy[prop] = "crypted"
+
     XmlConfig("ranger-policymgr-ssl.xml",
       conf_dir=params.kms_conf_dir,
-      configurations=params.config['configurations']['ranger-kms-policymgr-ssl'],
+      configurations=ranger_kms_policymgr_ssl_copy,
       configuration_attributes=params.config['configuration_attributes']['ranger-kms-policymgr-ssl'],
       owner=params.kms_user,
       group=params.kms_group,
@@ -452,6 +505,19 @@ def enable_kms_plugin():
       group = params.kms_group,
       mode = 0640
       )
+
+    if params.xa_audit_hdfs_is_enabled and len(params.namenode_host) > 1:
+      Logger.info('Audit to Hdfs enabled in NameNode HA environment, creating hdfs-site.xml')
+      XmlConfig("hdfs-site.xml",
+        conf_dir=params.kms_conf_dir,
+        configurations=params.config['configurations']['hdfs-site'],
+        configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+        owner=params.kms_user,
+        group=params.kms_group,
+        mode=0644
+      )
+    else:
+      File(format('{kms_conf_dir}/hdfs-site.xml'), action="delete")
 
 def setup_kms_jce():
   import params

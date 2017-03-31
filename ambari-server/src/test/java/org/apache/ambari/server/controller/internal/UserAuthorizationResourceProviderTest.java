@@ -18,11 +18,19 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
@@ -37,7 +45,12 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -52,12 +65,12 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -70,15 +83,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
 
 
 /**
@@ -214,7 +225,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         .andReturn(null)
         .anyTimes();
 
-    Set<Resource> userPrivilegeResources = new HashSet<Resource>();
+    Set<Resource> userPrivilegeResources = new HashSet<>();
     userPrivilegeResources.add(clusterResource);
     userPrivilegeResources.add(viewResource);
     userPrivilegeResources.add(adminResource);
@@ -324,7 +335,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     Assert.assertEquals(3, resources.size());
 
-    LinkedList<String> expectedIds = new LinkedList<String>();
+    LinkedList<String> expectedIds = new LinkedList<>();
     expectedIds.add("CLUSTER.DO_SOMETHING");
     expectedIds.add("VIEW.DO_SOMETHING");
     expectedIds.add("ADMIN.DO_SOMETHING");
@@ -378,6 +389,9 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
     return Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
+        install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+        install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
@@ -388,7 +402,6 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(org.apache.ambari.server.actionmanager.RequestFactory.class).toInstance(createNiceMock(org.apache.ambari.server.actionmanager.RequestFactory.class));
         bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-        bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
         bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
@@ -401,10 +414,15 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
         bind(Users.class).toInstance(createMock(Users.class));
         bind(AmbariManagementController.class).to(AmbariManagementControllerImpl.class);
+        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
         bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
         bind(UserDAO.class).toInstance(createMock(UserDAO.class));
         bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
         bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
+        bind(HostRoleCommandDAO.class).toInstance(createMock(HostRoleCommandDAO.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
+        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       }
     });
   }

@@ -52,6 +52,8 @@ import org.slf4j.LoggerFactory;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UpgradePack {
 
+  private static final String ALL_VERSIONS = "*";
+
   private static Logger LOG = LoggerFactory.getLogger(UpgradePack.class);
 
   /**
@@ -287,10 +289,15 @@ public class UpgradePack {
     if (direction.isUpgrade()) {
       list = groups;
     } else {
-      if (type == UpgradeType.ROLLING) {
-        list = getDowngradeGroupsForRolling();
-      } else if (type == UpgradeType.NON_ROLLING) {
-        list = getDowngradeGroupsForNonrolling();
+      switch (type) {
+        case NON_ROLLING:
+          list = getDowngradeGroupsForNonrolling();
+          break;
+        case HOST_ORDERED:
+        case ROLLING:
+        default:
+          list = getDowngradeGroupsForRolling();
+          break;
       }
     }
 
@@ -315,7 +322,6 @@ public class UpgradePack {
   public boolean canBeApplied(String targetVersion){
     // check that upgrade pack can be applied to selected stack
     // converting 2.2.*.* -> 2\.2(\.\d+)?(\.\d+)?(-\d+)?
-
     String regexPattern = getTarget().replaceAll("\\.", "\\\\."); // . -> \.
     regexPattern = regexPattern.replaceAll("\\\\\\.\\*", "(\\\\\\.\\\\d+)?"); // \.* -> (\.\d+)?
     regexPattern = regexPattern.concat("(-\\d+)?");
@@ -356,6 +362,12 @@ public class UpgradePack {
    */
   private List<Grouping> getDowngradeGroupsForRolling() {
     List<Grouping> reverse = new ArrayList<Grouping>();
+
+    // !!! Testing exposed groups.size() == 1 issue.  Normally there's no precedent for
+    // a one-group upgrade pack, so take it into account anyway.
+    if (groups.size() == 1) {
+      return groups;
+    }
 
     int idx = 0;
     int iter = 0;
@@ -453,6 +465,15 @@ public class UpgradePack {
   }
 
   /**
+   * @return {@code true} if the upgrade targets any version or stack.  Both
+   * {@link #target} and {@link #targetStack} must equal "*"
+   */
+  public boolean isAllTarget() {
+    return ALL_VERSIONS.equals(target) && ALL_VERSIONS.equals(targetStack);
+  }
+
+
+  /**
    * A service definition that holds a list of components in the 'order' element.
    */
   public static class OrderService {
@@ -488,10 +509,10 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> preTasks;
 
-    @XmlElementWrapper(name="pre-downgrade")
-    @XmlElement(name="task")
+    @XmlElement(name="pre-downgrade")
+    private DowngradeTasks preDowngradeXml;
+    @XmlTransient
     public List<Task> preDowngradeTasks;
-
 
     @XmlElementWrapper(name="upgrade")
     @XmlElement(name="task")
@@ -501,9 +522,53 @@ public class UpgradePack {
     @XmlElement(name="task")
     public List<Task> postTasks;
 
-    @XmlElementWrapper(name="post-downgrade")
-    @XmlElement(name="task")
+
+    @XmlElement(name="post-downgrade")
+    private DowngradeTasks postDowngradeXml;
+    @XmlTransient
     public List<Task> postDowngradeTasks;
+
+    /**
+     * This method verifies that if {@code pre-upgrade} is defined, that there is also
+     * a sibling {@code pre-downgrade} defined.  Similarly, {@code post-upgrade} must have a
+     * sibling {@code post-downgrade}.  This is because the JDK (include 1.8) JAXB doesn't
+     * support XSD xpath assertions for siblings.
+     *
+     * @param unmarshaller  the unmarshaller
+     * @param parent        the parent
+     */
+    void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+      if (null != preDowngradeXml) {
+        preDowngradeTasks = preDowngradeXml.copyUpgrade ? preTasks :
+          preDowngradeXml.tasks;
+      }
+
+      if (null != postDowngradeXml) {
+        postDowngradeTasks = postDowngradeXml.copyUpgrade ? postTasks :
+          postDowngradeXml.tasks;
+      }
+
+      ProcessingService service = (ProcessingService) parent;
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Processing component {}/{} preUpgrade={} postUpgrade={} preDowngrade={} postDowngrade={}",
+            preTasks, preDowngradeTasks, postTasks, postDowngradeTasks);
+      }
+
+      if (null != preTasks && null == preDowngradeTasks) {
+        String error = String.format("Upgrade pack must contain pre-downgrade elements if "
+            + "pre-upgrade exists for processing component %s/%s", service.name, name);
+
+        throw new RuntimeException(error);
+      }
+
+      if (null != postTasks && null == postDowngradeTasks) {
+        String error = String.format("Upgrade pack must contain post-downgrade elements if "
+            + "post-upgrade exists for processing component %s/%s", service.name, name);
+
+        throw new RuntimeException(error);
+      }
+    }
   }
 
   /**
@@ -626,4 +691,17 @@ public class UpgradePack {
     @XmlValue
     public String value;
   }
+
+  /**
+   * A {@code (pre|post)-downgrade} can have an attribute as well as contain {@code task} elements.
+   */
+  private static class DowngradeTasks {
+
+    @XmlAttribute(name="copy-upgrade")
+    private boolean copyUpgrade = false;
+
+    @XmlElement(name="task")
+    private List<Task> tasks = new ArrayList<>();
+  }
+
 }

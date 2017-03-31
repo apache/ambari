@@ -25,7 +25,7 @@ describe('App.KerberosWizardStep3Controller', function() {
   beforeEach(function() {
     controller = App.KerberosWizardStep3Controller.create({});
   });
-  
+
   describe('#onTestKerberosError', function() {
 
     beforeEach(function(){
@@ -227,5 +227,67 @@ describe('App.KerberosWizardStep3Controller', function() {
       expect(controller.get('isSubmitDisabled')).to.be.false;
     });
 
+  });
+
+  describe('#statusDidChange', function() {
+    var cases;
+    beforeEach(function() {
+      controller.set('status', 'PENDING');
+      controller.set('tasks', [
+        Em.Object.create({
+          id: 0,
+          status: 'COMPLETED'
+        }),
+        Em.Object.create({
+          id: 1,
+          status: 'COMPLETED'
+        })
+      ]);
+      this.getHeartbeatLostHostsStub = sinon.stub(controller, 'getHeartbeatLostHosts');
+    });
+    afterEach(function() {
+      controller.getHeartbeatLostHosts.restore();
+    });
+
+    cases = [
+      {
+        m: 'Heartbeat lost host during kerberization',
+        heartBeatHosts: ['host1'],
+        getHeartbeatLostHostsResponse: {
+          items: [
+            {
+              Hosts: {
+                host_name: 'host1'
+              }
+            }
+          ]
+        },
+        expected: {
+          heartbeatHosts: ['host1'],
+          installClientsTaskStatus: ['FAILED']
+        }
+      },
+      {
+        m: 'All hosts in HEALTHY state',
+        heartBeatHosts: [],
+        getHeartbeatLostHostsResponse: {
+          items: []
+        },
+        expected: {
+          heartbeatHosts: [],
+          installClientsTaskStatus: ['COMPLETED']
+        }
+      }
+    ];
+
+    cases.forEach(function(test) {
+      it(test.m, function() {
+        this.getHeartbeatLostHostsStub.returns($.Deferred().resolve(test.getHeartbeatLostHostsResponse).promise());
+        controller.set('status', 'COMPLETED');
+        controller.propertyDidChange('status');
+        assert.sameMembers(controller.get('heartBeatLostHosts'), test.expected.heartbeatHosts, 'heartbeat lost host stored in controller');
+        assert.equal(controller.get('tasks').objectAt(0).get('status'), test.expected.installClientsTaskStatus, 'Install Clients task status')
+      });
+    });
   });
 });

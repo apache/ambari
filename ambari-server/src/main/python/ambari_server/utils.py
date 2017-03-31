@@ -26,7 +26,10 @@ import time
 import glob
 import subprocess
 import logging
+import platform
 from ambari_commons import OSConst,OSCheck
+from ambari_commons.logging_utils import print_error_msg
+from ambari_commons.exceptions import FatalException
 
 logger = logging.getLogger(__name__)
 
@@ -117,25 +120,29 @@ def save_pid(pid, pidfile):
       pass
 
 
-def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, skip_daemonize=False):
+def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
-    Save pid which is not included to exclude_list to pidfile.
-    If kill_exclude_list is set to true,  all processes in that
-    list would be killed. It's might be useful to daemonize child process
+    Saves and returns the first (and supposingly only) pid from the list of pids
+    which is not included in the exclude_list.
+
+    pidfile is the name of the file to save the pid to
 
     exclude_list contains list of full executable paths which should be excluded
   """
+  pid_saved = False
   try:
-    pfile = open(pidfile, "w")
-    for item in pids:
-      if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
-        pfile.write("%s\n" % item["pid"])
-        logger.info("Ambari server started with PID " + str(item["pid"]))
-      if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
-        try:
-          os.kill(int(item["pid"]), signal.SIGKILL)
-        except:
-          pass
+    if pids:
+      pfile = open(pidfile, "w")
+      for item in pids:
+        if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
+          pfile.write("%s\n" % item["pid"])
+          pid_saved = item["pid"]
+          logger.info("Ambari server started with PID " + str(item["pid"]))
+        if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
+          try:
+            os.kill(int(item["pid"]), signal.SIGKILL)
+          except:
+            pass
   except IOError as e:
     logger.error("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
@@ -145,24 +152,36 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
     except Exception as e:
       logger.error("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
+  return pid_saved
 
+def get_live_pids_count(pids):
+  """
+    Check pids for existence
+  """
+  return len([pid for pid in pids if pid_exists(pid)])
 
-def wait_for_pid(pids, timeout):
-  """
-    Check pid for existence during timeout
-  """
+def wait_for_ui_start(ambari_server_ui_port, pid, timeout=1):
+
   tstart = time.time()
-  pid_live = 0
-  while int(time.time()-tstart) <= timeout and len(pids) > 0:
+  while int(time.time()-tstart) <= timeout:
+    try:
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      sock.settimeout(1)
+      sock.connect(('localhost', ambari_server_ui_port))
+      print "\nServer started listening on " + str(ambari_server_ui_port)
+      return True
+    except Exception as e:
+      #print str(e)
+      pass
+
     sys.stdout.write('.')
     sys.stdout.flush()
-    pid_live = 0
-    for item in pids:
-      if pid_exists(item["pid"]):
-        pid_live += 1
-    time.sleep(1)
-  return pid_live
+    if pid_exists(pid):
+      time.sleep(1)
+    else:
+      break
 
+  return False
 
 def get_symlink_path(path_to_link):
   """
@@ -311,3 +330,8 @@ def check_reverse_lookup():
   except socket.error:
     pass
   return False
+
+def on_powerpc():
+  """ True if we are running on a Power PC platform."""
+  return platform.processor() == 'powerpc' or \
+         platform.machine().startswith('ppc')

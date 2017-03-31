@@ -20,6 +20,8 @@ import httplib
 import sys
 from ssl import SSLError
 from HeartbeatHandlers import HeartbeatStopHandlers
+from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_commons.inet_utils import ensure_ssl_using_protocol
 
 ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
               "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
@@ -27,10 +29,11 @@ LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
 
 logger = logging.getLogger(__name__)
 
+ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol())
 
 class NetUtil:
 
-  CONNECT_SERVER_RETRY_INTERVAL_SEC = 10
+  DEFAULT_CONNECT_RETRY_DELAY_SEC = 10
   HEARTBEAT_IDLE_INTERVAL_DEFAULT_MIN_SEC = 1
   HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC = 10
   MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
@@ -52,6 +55,8 @@ class NetUtil:
       stop_callback = HeartbeatStopHandlers()
     self.stopCallback = stop_callback
     self.config = config
+    self.connect_retry_delay = int(config.get('server','connect_retry_delay',
+                                              default=self.DEFAULT_CONNECT_RETRY_DELAY_SEC))
 
   def checkURL(self, url):
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
@@ -94,7 +99,7 @@ class NetUtil:
       return False, responseBody
 
   def try_to_connect(self, server_url, max_retries, logger=None):
-    """Try to connect to a given url, sleeping for CONNECT_SERVER_RETRY_INTERVAL_SEC seconds
+    """Try to connect to a given url, sleeping for connect_retry_delay seconds
     between retries. No more than max_retries is performed. If max_retries is -1, connection
     attempts will be repeated forever until server is not reachable
 
@@ -113,10 +118,10 @@ class NetUtil:
       else:
         if logger is not None:
           logger.warn('Server at {0} is not reachable, sleeping for {1} seconds...'.format(server_url,
-            self.CONNECT_SERVER_RETRY_INTERVAL_SEC))
+            self.connect_retry_delay))
         retries += 1
 
-      if 0 == self.stopCallback.wait(self.CONNECT_SERVER_RETRY_INTERVAL_SEC):
+      if 0 == self.stopCallback.wait(self.connect_retry_delay):
         #stop waiting
         if logger is not None:
           logger.info("Stop event received")

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AggregateAlertRecalculateEvent;
 import org.apache.ambari.server.events.AlertEvent;
@@ -52,12 +53,12 @@ import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
@@ -68,6 +69,7 @@ import junit.framework.Assert;
  * should only be created when received alerts which have a firmness of
  * {@link AlertFirmness#HARD}.
  */
+@Category({ category.AlertTest.class})
 public class AlertStateChangedEventTest extends EasyMockSupport {
 
   private AlertEventPublisher eventPublisher;
@@ -99,7 +101,7 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
    */
   @After
   public void teardown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     injector = null;
   }
 
@@ -132,8 +134,9 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
 
-    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
-    EasyMock.expectLastCall().once();
+    EasyMock.expect(
+        dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
+            new ArrayList<AlertNoticeEntity>()).once();
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
@@ -502,7 +505,9 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
     EasyMock.expect(definition.getLabel()).andReturn("ambari-foo-alert").anyTimes();
     EasyMock.expect(definition.getDescription()).andReturn("Ambari Foo Alert").anyTimes();
 
-    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
+    EasyMock.expect(
+        dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
+            new ArrayList<AlertNoticeEntity>()).once();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
     AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);

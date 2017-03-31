@@ -53,7 +53,7 @@
         <td class="col-sm-8">
           <link-to route="groups.edit" class="link-to-group" id="{{group.group_name}}">{{group.group_name}}</link-to>
         </td>
-        <td class="col-sm-2">{{'common.' + (group.ldap_group ? 'ldap' : 'local') | translate}}</td>
+        <td class="col-sm-2">{{group.groupTypeName | translate}}</td>
         <td class="col-sm-2">{{'groups.membersPlural' | translate: '{n: group.members && group.members.length || 0}'}}</td>
       </tr>
     </tbody>

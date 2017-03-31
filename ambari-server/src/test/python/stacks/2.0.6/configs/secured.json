@@ -387,7 +387,7 @@
             "ipc.client.connection.maxidletime": "30000"
         }, 
         "ranger-hdfs-plugin-properties" : {
-            "ranger-hdfs-plugin-enabled":"yes"
+            "ranger-hdfs-plugin-enabled":"No"
         },
 		"ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
@@ -538,7 +538,7 @@
         },
         "hiveserver2-site": {
             "hive.metastore.metrics.enabled": "true",
-            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+            "hive.service.metrics.reporter": "HADOOP2"
         },
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 
@@ -562,7 +562,7 @@
             "yarn.nodemanager.principal": "nm/_HOST@EXAMPLE.COM", 
             "yarn.nodemanager.local-dirs": "/hadoop/yarn/local", 
             "yarn.nodemanager.log-aggregation.compression-type": "gz", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.delete.debug-delay-sec": "0", 
             "yarn.nodemanager.keytab": "/etc/security/keytabs/nm.service.keytab", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
@@ -591,6 +591,9 @@
             "yarn.timeline-service.keytab" : "/etc/security/keytabs/yarn.service.keytab",
             "yarn.http.policy": "HTTP_ONLY",
             "yarn.resourcemanager.webapp.https.address": "c6402.ambari.apache.org:8090"
+        },
+        "ranger-yarn-plugin-properties" : {
+            "ranger-yarn-plugin-enabled":"No"
         },
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 
@@ -649,7 +652,8 @@
             "hive_log_dir": "/var/log/hive", 
             "hive_user": "hive", 
             "hcat_log_dir": "/var/log/webhcat", 
-            "hive_database": "New MySQL Database"
+            "hive_database": "New MySQL Database",
+            "hive_security_authorization": "None"
         },
         "hbase-env": {
             "hbase_pid_dir": "/var/run/hbase", 
@@ -771,7 +775,7 @@
             "XAAUDIT.HDFS.IS_ENABLED": "false", 
             "SQL_CONNECTOR_JAR": "{{sql_connector_jar}}", 
             "XAAUDIT.HDFS.LOCAL_BUFFER_FILE": "%time:yyyyMMdd-HHmm.ss%.log", 
-            "ranger-hbase-plugin-enabled": "Yes", 
+            "ranger-hbase-plugin-enabled": "No", 
             "REPOSITORY_NAME": "{{repo_name}}", 
             "SSL_KEYSTORE_PASSWORD": "myKeyFilePassword", 
             "XAAUDIT.DB.IS_ENABLED": "true", 
@@ -812,7 +816,7 @@
             "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits", 
             "XAAUDIT.SOLR.IS_ENABLED": "false", 
             "hadoop.rpc.protection": "-", 
-            "ranger-hdfs-plugin-enabled": "Yes", 
+            "ranger-hdfs-plugin-enabled": "No", 
             "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
             "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
             "policy_user": "ambari-qa", 
@@ -827,6 +831,9 @@
             "SSL_TRUSTSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-truststore.jks", 
             "REPOSITORY_CONFIG_PASSWORD": "hadoop", 
             "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
+        },
+        "hadoop-metrics2.properties": {
+            "content": "# Licensed to the Apache Software Foundation (ASF) under one or more\r\n# contributor license agreements. See the NOTICE file distributed with\r\n# this work for additional information regarding copyright ownership.\r\n# The ASF licenses this file to You under the Apache License, Version 2.0\r\n# (the \"License\"); you may not use this file except in compliance with\r\n# the License. You may obtain a copy of the License at\r\n#\r\n# http:\/\/www.apache.org\/licenses\/LICENSE-2.0\r\n#\r\n# Unless required by applicable law or agreed to in writing, software\r\n# distributed under the License is distributed on an \"AS IS\" BASIS,\r\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\r\n# See the License for the specific language governing permissions and\r\n# limitations under the License.\r\n\r\n# syntax: [prefix].[source|sink|jmx].[instance].[options]\r\n# See package.html for org.apache.hadoop.metrics2 for details\r\n\r\n{% if has_ganglia_server %}\r\n*.period=60\r\n\r\n*.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31\r\n*.sink.ganglia.period=10\r\n\r\n# default for supportsparse is false\r\n*.sink.ganglia.supportsparse=true\r\n\r\n.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both\r\n.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40\r\n\r\n# Hook up to the server\r\nnamenode.sink.ganglia.servers={{ganglia_server_host}}:8661\r\ndatanode.sink.ganglia.servers={{ganglia_server_host}}:8659\r\njobtracker.sink.ganglia.servers={{ganglia_server_host}}:8662\r\ntasktracker.sink.ganglia.servers={{ganglia_server_host}}:8658\r\nmaptask.sink.ganglia.servers={{ganglia_server_host}}:8660\r\nreducetask.sink.ganglia.servers={{ganglia_server_host}}:8660\r\nresourcemanager.sink.ganglia.servers={{ganglia_server_host}}:8664\r\nnodemanager.sink.ganglia.servers={{ganglia_server_host}}:8657\r\nhistoryserver.sink.ganglia.servers={{ganglia_server_host}}:8666\r\njournalnode.sink.ganglia.servers={{ganglia_server_host}}:8654\r\nnimbus.sink.ganglia.servers={{ganglia_server_host}}:8649\r\nsupervisor.sink.ganglia.servers={{ganglia_server_host}}:8650\r\n\r\nresourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue\r\n\r\n{% endif %}\r\n\r\n{% if has_metric_collector %}\r\n\r\n*.period={{metrics_collection_period}}\r\n*.sink.timeline.plugin.urls=file:\/\/\/usr\/lib\/ambari-metrics-hadoop-sink\/ambari-metrics-hadoop-sink.jar\r\n*.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink\r\n*.sink.timeline.period={{metrics_collection_period}}\r\n*.sink.timeline.sendInterval={{metrics_report_interval}}000\r\n*.sink.timeline.slave.host.name={{hostname}}\r\n*.sink.timeline.zookeeper.quorum={{zookeeper_quorum}}\r\n*.sink.timeline.protocol={{metric_collector_protocol}}\r\n*.sink.timeline.port={{metric_collector_port}}\r\n\r\n# HTTPS properties\r\n*.sink.timeline.truststore.path = {{metric_truststore_path}}\r\n*.sink.timeline.truststore.type = {{metric_truststore_type}}\r\n*.sink.timeline.truststore.password = {{metric_truststore_password}}\r\n\r\ndatanode.sink.timeline.collector={{metric_collector_hosts}}\r\nnamenode.sink.timeline.collector={{metric_collector_hosts}}\r\nresourcemanager.sink.timeline.collector={{metric_collector_hosts}}\r\nnodemanager.sink.timeline.collector={{metric_collector_hosts}}\r\njobhistoryserver.sink.timeline.collector={{metric_collector_hosts}}\r\njournalnode.sink.timeline.collector={{metric_collector_hosts}}\r\nmaptask.sink.timeline.collector={{metric_collector_hosts}}\r\nreducetask.sink.timeline.collector={{metric_collector_hosts}}\r\napplicationhistoryserver.sink.timeline.collector={{metric_collector_hosts}}\r\n\r\nresourcemanager.sink.timeline.tagsForPrefix.yarn=Queue\r\n\r\n{% if is_nn_client_port_configured %}\r\n# Namenode rpc ports customization\r\nnamenode.sink.timeline.metric.rpc.client.port={{nn_rpc_client_port}}\r\n{% endif %}\r\n{% if is_nn_dn_port_configured %}\r\nnamenode.sink.timeline.metric.rpc.datanode.port={{nn_rpc_dn_port}}\r\n{% endif %}\r\n{% if is_nn_healthcheck_port_configured %}\r\nnamenode.sink.timeline.metric.rpc.healthcheck.port={{nn_rpc_healthcheck_port}}\r\n{% endif %}\r\n\r\n{% endif %}"
         }
     },
     "configuration_attributes": {

@@ -18,7 +18,7 @@
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
   <div class="span3 quick-links-wrapper">
-    {{#view App.QuickViewLinks contentBinding="view.service"}}
+    {{#view App.QuickLinksView contentBinding="view.service"}}
       {{#if view.showQuickLinks}}
         <ul class="nav nav-pills move">
           <li class="dropdown quick-links-dropdown">

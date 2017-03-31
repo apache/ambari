@@ -1,0 +1,43 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="col-md-2">
+  <p class="text-left text-uppercase"><strong>{{heading}}</strong></p>
+  <p class="text-left text-muted"><small>{{subHeading}}</small></p>
+</div>
+<div class="col-md-9">
+  <div class="input-group-lg">
+    {{#power-select-multiple
+    class="multiple-db-select"
+    placeholder="Search databases"
+    options=allDbs
+    selected=selectedMultiDb
+    onchange=(pipe-action (action (mut selectedDbs)) (action "updateTables"))
+    onfocus=(action "handleFocus")
+    onblur=(action "handleBlur")
+    onkeydown=(action "createOnEnter")
+    as |number|}}
+      {{fa-icon "database"}} {{number}}
+    {{/power-select-multiple}}
+    <span class="input-group-btn browse" style="top: 0;right: 130px;position: absolute;">
+      <button type="button" class="btn btn-default" {{action "browse" }}>{{fa-icon "folder"}} Browse <span class="caret"></span></button>
+    </span>
+  </div>
+</div>
+
+{{yield}}

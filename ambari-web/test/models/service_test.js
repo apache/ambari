@@ -133,20 +133,25 @@ describe('App.Service', function () {
     beforeEach(function () {
       service.reopen({
         serviceName: 'HDFS',
-        hostComponents: []
+        clientComponents: [],
+        slaveComponents: [],
+        masterComponents: []
       });
     });
-    hostComponentsDataFalse.forEach(function (item) {
-      it('should be false', function () {
-        service.set('hostComponents', item);
-        expect(service.get('isRestartRequired')).to.be.false;
-      });
+    it('should be false when no component has stale configs', function () {
+      expect(service.get('isRestartRequired')).to.be.false;
     });
-    hostComponentsDataTrue.forEach(function (item) {
-      it('should be true', function () {
-        service.set('hostComponents', item);
-        expect(service.get('isRestartRequired')).to.be.true;
-      });
+    it('should be true when clientComponents has stale configs', function () {
+      service.set('clientComponents', [Em.Object.create({staleConfigHosts: ['host1']})]);
+      expect(service.get('isRestartRequired')).to.be.true;
+    });
+    it('should be true when slaveComponents has stale configs', function () {
+      service.set('slaveComponents', [Em.Object.create({staleConfigHosts: ['host1']})]);
+      expect(service.get('isRestartRequired')).to.be.true;
+    });
+    it('should be true when masterComponents has stale configs', function () {
+      service.set('masterComponents', [Em.Object.create({staleConfigHosts: ['host1']})]);
+      expect(service.get('isRestartRequired')).to.be.true;
     });
   });
 

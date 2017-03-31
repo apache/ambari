@@ -79,8 +79,6 @@ define(['require',
 		 */
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'vent','globalVent','params'));
-//			this.collection = new VLogLevel();
-//			this.collection.url = Globals.baseURL+"dashboard/components_count";
 			this.treeModel = new VCommonModel();
 			this.searchParams = (this.params)? this.params :{};
 			this.bindEvents();
@@ -153,7 +151,7 @@ define(['require',
 			this.restoreCheckbox();
 		},
 		restoreCheckbox : function(){
-			var params = (this.params.treeParams) ? JSON.parse(this.params.treeParams) : undefined,that=this;
+			var params = (this.params.hostList) ? JSON.parse(this.params.hostList) : undefined,that=this;
 			if(params){
 				that.$("input[data-node]").prop("checked",false);
 				_.each(params,function(node){
@@ -276,8 +274,8 @@ define(['require',
 			}else
 				this.$('.tree  input[type="checkbox"]').prop({"checked":false,"indeterminate":false});
 			var data = this.getCheckedHierarchyData();
-			this.params.treeParams = _.extend({},data);
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.params.hostList = _.extend({},data);
+			this.vent.trigger("tree:search",{hostList : data.toString()});
 			
 		},
 		onChangeNodeCheckbox : function(e){
@@ -302,7 +300,7 @@ define(['require',
 				
 			}
 			var data = this.getCheckedHierarchyData();
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.vent.trigger("tree:search",{hostList : data.toString()});
 		},
 		onNewTabIconClick : function(e){
 			var $el = $(e.currentTarget),host,component,that=this;
@@ -311,9 +309,9 @@ define(['require',
 				component = $el.data("node");
 				that.globalVent.trigger("render:tab",/*new LogFileView(*/{
 					params:_.extend({},{
-						host :  host,
-						component : component
-					},that.searchParams,{treeParams:null}),
+						host_name :  host,
+						component_name : component
+					},that.searchParams,{hostList:null}),
 					globalVent : that.globalVent
 				}/*)*/);
 			}

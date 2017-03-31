@@ -84,4 +84,14 @@
     <targetType>ANY</targetType>
     <permissions>CLUSTER.UPGRADE_DOWNGRADE_STACK</permissions>
   </actionDefinition>
+  <actionDefinition>
+    <actionName>remove_previous_stacks</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs>version</inputs>
+    <targetService/>
+    <targetComponent/>
+    <defaultTimeout>600</defaultTimeout>
+    <description>Perform remove old stack version action</description>
+    <targetType>ANY</targetType>
+  </actionDefinition>
 </actionDefinitions>

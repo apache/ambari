@@ -16,9 +16,14 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel.script': validator('presence', {
+    presence : true
+  })
+});
+export default Ember.Component.extend(Validations,{
   setUp : function(){
     if(this.get('actionModel.jobXml') === undefined){
       this.set("actionModel.jobXml", Ember.A([]));
@@ -54,13 +59,6 @@ export default Ember.Component.extend(EmberValidations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.script': {
-      presence: {
-        'message' : 'You need to provide a value for Script',
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

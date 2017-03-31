@@ -17,6 +17,9 @@ limitations under the License.
 
 """
 import datanode_upgrade
+
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
+
 from hdfs_datanode import datanode
 from resource_management import *
 from resource_management.libraries.functions import conf_select
@@ -66,7 +69,7 @@ class DataNode(Script):
     # pre-upgrade steps shutdown the datanode, so there's no need to call
 
     hdfs_binary = self.get_hdfs_binary()
-    if upgrade_type == "rolling":
+    if upgrade_type == UPGRADE_TYPE_ROLLING:
       stopped = datanode_upgrade.pre_rolling_upgrade_shutdown(hdfs_binary)
       if not stopped:
         datanode(action="stop")

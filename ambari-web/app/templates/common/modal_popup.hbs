@@ -48,13 +48,13 @@
     {{else}}
       <div class="modal-footer">
         {{#if view.third}}
-          <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass"}} {{action onThird target="view"}}>{{view.third}}</button>
+          <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass" id="view.thirdId"}} {{action onThird target="view"}}>{{view.third}}</button>
         {{/if}}
         {{#if view.secondary}}
-          <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
+          <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass" id="view.secondaryId"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
         {{/if}}
         {{#if view.primary}}
-          <button {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass"}} {{action onPrimary target="view"}}>{{view.primary}}</button>
+          <button {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass" id="view.primaryId"}} {{action onPrimary target="view"}}>{{view.primary}}</button>
         {{/if}}
       </div>
     {{/if}}

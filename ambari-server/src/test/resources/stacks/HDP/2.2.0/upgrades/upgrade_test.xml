@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade    xsi:noNamespaceSchemaLocation="upgrade-pack.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <target>2.2.*</target>
   <target-stack>HDP-2.2.0</target-stack>
   <type>ROLLING</type>
@@ -45,7 +45,8 @@
       </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Finalize HDFS">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
       <execute-stage title="Confirm 2">
@@ -114,7 +115,7 @@
           <function>actionexecute</function>
         </task>
       </execute-stage>
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
@@ -132,12 +133,14 @@
             <message>This is a manual task with a placeholder of {{foo/bar}}</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
-          <task xsi:type="configure" />
+          <task xsi:type="configure" id="foo" />
         </post-upgrade>
+        <post-downgrade copy-upgrade="true" />
       </component>
     </service>
     
@@ -145,24 +148,25 @@
       <component name="NAMENODE">
         <pre-upgrade>
           <task xsi:type="execute" hosts="master">
-            <command>su - {hdfs-user} -c 'dosomething'</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
-          <task xsi:type="configure">
-            <type>hdfs-site</type>
-            <set key="myproperty" value="mynewvalue"/>
-          </task>
+          <task xsi:type="configure" id="foo" />
           <task xsi:type="manual">
             <message>{{direction.verb.proper}} your database</message>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
         <post-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </post-upgrade>
+        <post-downgrade copy-upgrade="true" />
       </component>
       <component name="DATANODE">
         <pre-downgrade />
@@ -181,16 +185,22 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
+        <upgrade />
       </component>
       <component name="NODEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
+        <upgrade />
       </component>
     </service>
     
@@ -201,20 +211,9 @@
             <summary>HiveServer Port Availability</summary>
             <message>The HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
-
-          <task xsi:type="configure">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </task>
         </pre-upgrade>
+        <pre-downgrade copy-upgrade="true" />
+        <upgrade />
        </component>
      </service>    
   </processing>

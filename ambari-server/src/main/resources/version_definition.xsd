@@ -122,6 +122,7 @@
                   <xs:element name="baseurl" type="xs:string" />
                   <xs:element name="repoid" type="xs:string" />
                   <xs:element name="reponame" type="xs:string" />
+                  <xs:element name="unique" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>

@@ -19,20 +19,43 @@
     <parent>
         <groupId>org.apache.ambari.contrib.views</groupId>
         <artifactId>ambari-contrib-views</artifactId>
-        <version>2.4.2.0.0</version>
+        <version>2.5.0.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>jobs</artifactId>
     <packaging>jar</packaging>
     <name>Jobs</name>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
     <description>Jobs View</description>
     <properties>
       <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
     </properties>
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-artifact</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>${project.packaging}</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${views.jars.dir.rel}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -65,8 +88,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>0.0.16</version>
                 <configuration>
-                    <nodeVersion>v0.10.26</nodeVersion>
-                    <npmVersion>1.4.3</npmVersion>
+                    <nodeVersion>v4.5.0</nodeVersion>
+                    <npmVersion>2.15.0</npmVersion>
                     <workingDirectory>src/main/resources/ui</workingDirectory>
                 </configuration>
                 <executions>

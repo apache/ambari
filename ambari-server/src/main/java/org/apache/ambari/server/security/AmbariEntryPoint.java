@@ -17,17 +17,49 @@
  */
 package org.apache.ambari.server.security;
 
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 public class AmbariEntryPoint implements AuthenticationEntryPoint {
+
+  /**
+   * A Boolean value declaring whether Kerberos authentication has been enabled (<code>true</code>)
+   * or not (<code>false</code>).
+   * <p>
+   * This value determines the behavior this entry point when authentication fails.
+   */
+  private final boolean kerberosAuthenticationEnabled;
+
+  public AmbariEntryPoint(Configuration configuration) {
+    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = (configuration == null)
+        ? null
+        : configuration.getKerberosAuthenticationProperties();
+
+    kerberosAuthenticationEnabled = (kerberosAuthenticationProperties != null) && kerberosAuthenticationProperties.isKerberosAuthenticationEnabled();
+  }
+
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-    response.sendError(HttpServletResponse.SC_FORBIDDEN, authException.getMessage());
+    /* *****************************************************************************************
+     * If Kerberos authentication is enabled (authentication.kerberos.enabled = true), respond such
+     * that the client is challenged to Negotiate and reissue the request with a Kerberos token.
+     * This response is an HTTP 401 status with the "WWW-Authenticate: Negotiate" header.
+     *
+     * If Kerberos authentication is not enabled, return an HTTP 403 status.
+     * ****************************************************************************************** */
+    if (kerberosAuthenticationEnabled) {
+      response.setHeader("WWW-Authenticate", "Negotiate");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication requested");
+    } else {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, authException.getMessage());
+    }
   }
 }

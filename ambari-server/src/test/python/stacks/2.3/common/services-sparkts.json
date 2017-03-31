@@ -4318,10 +4318,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/YARN/configurations/yarn.nodemanager.log.retain-second",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/YARN/configurations/yarn.nodemanager.log.retain-seconds",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "yarn.nodemanager.log.retain-second",
+        "property_name" : "yarn.nodemanager.log.retain-seconds",
         "service_name" : "YARN",
         "stack_name" : "HDP",
         "stack_version" : "2.3",

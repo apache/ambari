@@ -20,8 +20,11 @@ Ambari Agent
 
 """
 
+import time
+import os
 import contextlib
 import sys
+import signal
 import cStringIO
 from functools import wraps
 from resource_management.core.exceptions import Fail

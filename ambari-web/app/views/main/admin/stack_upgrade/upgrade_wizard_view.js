@@ -68,7 +68,11 @@ App.upgradeWizardView = Em.View.extend({
    * when downgrade already started
    * @type {boolean}
    */
-  isDowngradeAvailable: Em.computed.and('!controller.isDowngrade', 'controller.downgradeAllowed'),
+  isDowngradeAvailable: Em.computed.and(
+    '!controller.isDowngrade',
+    'controller.downgradeAllowed',
+    '!controller.cantBeStarted'
+  ),
 
   /**
    * progress value is rounded to floor

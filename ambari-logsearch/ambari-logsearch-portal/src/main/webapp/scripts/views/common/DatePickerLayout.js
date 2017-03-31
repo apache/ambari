@@ -59,6 +59,7 @@ define(['require',
                 this.bindEvents();
                 this.graphParams = {};
                 this.unit = this.params.unit ? this.params.unit : "+1HOUR";
+                this.isEventTriggerdFromVent = false;
             },
             bindEvents: function() {
                 this.listenTo(this.vent, "tab:refresh", function(params) {
@@ -68,21 +69,22 @@ define(['require',
                     this.setValues(options);
                 }, this);
                 this.listenTo(this.vent, "date:click", function(options) {
+                    this.isEventTriggerdFromVent = true;
                     this.setValues(options);
                     this.ui.dateRange.data('daterangepicker').clickApply();
                 }, this);
                 this.listenTo(this.vent, "date:getValues", function(obj) {
-                	var dates = this.getValues();
-                	obj.dates = [dates[0], dates[1]];
-                	obj.dateRangeLabel = this.dateRangeLabel;
-                	obj.unit = this.unit;
+                    var dates = this.getValues();
+                    obj.dates = [dates[0], dates[1]];
+                    obj.dateRangeLabel = this.dateRangeLabel;
+                    obj.unit = this.unit;
                 }, this);
 
             },
             onRender: function() {
                 var that = this;
                 if(this.hideFireButton){
-                	this.$(".goBtn").hide();
+                    this.$(".goBtn").hide();
                 }
                 if(this.buttonLabel){
                 	this.$(".goBtn").text(this.buttonLabel);
@@ -126,10 +128,10 @@ define(['require',
                 this.dateRangeLabel = val.dateRangeLabel;
             },
             getValues : function(){
-            	var obj = this.ui.dateRange.data("daterangepicker");
-            	if(obj){
-            		return [obj.startDate, obj.endDate];
-            	}
+                var obj = this.ui.dateRange.data("daterangepicker");
+                if(obj){
+                    return [obj.startDate, obj.endDate];
+                }
             },
             initializeDateRangePicker: function() {
                 var that = this,
@@ -139,7 +141,7 @@ define(['require',
                     ranges[k.text] = [];
                 })
                 this.ui.dateRange.daterangepicker(_.extend({
-                    'ranges': ranges
+                    'ranges': Object.keys(ranges)
                 }, {
                     "timePicker": true,
                     "timePickerIncrement": 1,
@@ -165,6 +167,15 @@ define(['require',
 
 
                 this.ui.dateRange.on('apply.daterangepicker ', function(ev, picker) {
+                    if(! that.isEventTriggerdFromVent && !(_.isUndefined(picker.chosenLabel)) ){
+                        that.dateRangeLabel = picker.chosenLabel;
+                    }else{
+                        that.isEventTriggerdFromVent = false;
+                    }
+                    if (that.dateRangeLabel !== "Custom Range") {
+                        var range = that.dateUtil.getRelativeDateFromString(that.dateRangeLabel);
+                        that.setDateText(range[0], range[1]);  
+                    }
                     that.ui.dateRangeTitle.html(that.dateRangeLabel);
                     that.unit = that.checkDateRange(picker);
                     var options = {
@@ -178,7 +189,8 @@ define(['require',
                 });
                 this.ui.dateRange.on('show.daterangepicker', function(ev, picker) {
                     elem.find('li').removeClass('active');
-                    elem.find('li:contains(' + that.dateRangeLabel + ')').addClass('active')
+                    elem.find('li:contains(' + that.dateRangeLabel + ')').addClass('active');
+                       picker.chosenLabel = that.dateRangeLabel; 
                 });
                 this.ui.dateRange.on('hide.daterangepicker', function(ev, picker) {
                     that.pickerOpend = true
@@ -195,15 +207,6 @@ define(['require',
                     }
                     that.ui.dateRange.data('daterangepicker').clickApply();
 
-                });
-
-                elem.on("click", '.ranges ul li', function(e) {
-                    that.dateRangeLabel = $(this).text();
-                    if (that.dateRangeLabel !== "Custom Range") {
-                        var last1Hour = that.dateUtil.getRelativeDateFromString(that.dateRangeLabel);
-                        that.setDateText(last1Hour[0], last1Hour[1]);
-                        that.ui.dateRange.data('daterangepicker').clickApply();
-                    }
                 });
             },
             checkDateRange: function(picker) {

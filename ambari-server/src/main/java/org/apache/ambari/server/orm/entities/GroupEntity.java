@@ -19,9 +19,12 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Set;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -34,6 +37,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
+
+import org.apache.ambari.server.security.authorization.GroupType;
 
 @Entity
 @Table(name = "groups", uniqueConstraints = {@UniqueConstraint(columnNames = {"group_name", "ldap_group"})})
@@ -58,6 +63,11 @@ public class GroupEntity {
 
   @Column(name = "ldap_group")
   private Integer ldapGroup = 0;
+
+  @Column(name = "group_type")
+  @Enumerated(EnumType.STRING)
+  @Basic
+  private GroupType groupType = GroupType.LOCAL;
 
   @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
   private Set<MemberEntity> memberEntities;
@@ -91,12 +101,21 @@ public class GroupEntity {
     return ldapGroup == 0 ? Boolean.FALSE : Boolean.TRUE;
   }
 
-  public void setLdapGroup(Boolean ldapGroup) {
+  private void setLdapGroup(Boolean ldapGroup) {
     if (ldapGroup == null) {
       this.ldapGroup = null;
     } else {
       this.ldapGroup = ldapGroup ? 1 : 0;
     }
+  }
+
+  public GroupType getGroupType() {
+    return groupType;
+  }
+
+  public void setGroupType(GroupType groupType) {
+    this.groupType = groupType;
+    setLdapGroup(groupType == GroupType.LDAP);
   }
 
   public Set<MemberEntity> getMemberEntities() {

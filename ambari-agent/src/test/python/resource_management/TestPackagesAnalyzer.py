@@ -73,7 +73,6 @@ class TestPackagesAnalyzer(TestCase):
       checked_call_mock.return_value = (0, test_case["cheked_call_result"])
       self.assertFalse(packages_analyzer.verifyDependencies(), "test_verify_dependency failed on '%s'" % test_case["name"])
 
-      #
       try:
         in_family_patch_mock.side_effect = lambda current_family, family: False
         packages_analyzer.verifyDependencies()

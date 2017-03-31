@@ -656,7 +656,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set('content.installedServiceNames', savedInstalledServices);
     if (!savedSelectedServices) {
       jsonData.items.forEach(function (service) {
-        service.StackServices.is_selected = true;
+        service.StackServices.is_selected = !(service.StackServices.selection === "TECH_PREVIEW");
       }, this);
     } else {
       jsonData.items.forEach(function (service) {
@@ -698,11 +698,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   serviceVersionsMap: {},
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var versions = Em.getWithDefault(jsonData, 'items', []);
-    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
-    var rv = currentVersion || versions.filter(function(i) {
-      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
-       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    var rv = Em.getWithDefault(jsonData, 'items', []).filter(function(i) {
+      return Em.getWithDefault(i, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
+        Em.getWithDefault(i, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
     })[0];
     var map = this.get('serviceVersionsMap');
     var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
@@ -1309,10 +1307,53 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var hasServicesWithSlave = services.someProperty('hasSlave');
     var hasServicesWithClient = services.someProperty('hasClient');
     var hasServicesWithCustomAssignedNonMasters = services.someProperty('hasNonMastersWithCustomAssignment');
-    this.set('content.skipSlavesStep', !hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters);
+    var hasDependentSlaveComponent = this.get('name') === 'addServiceController' ? this.hasDependentSlaveComponent(services) : false;
+    this.set('content.skipSlavesStep', (!hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters) && !hasDependentSlaveComponent);
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', step).set('value', this.get('content.skipSlavesStep'));
     }
+  },
+
+  /**
+   * Determine if there is some service with some component, that has dependent slave component already installed in cluster, but not on all hosts
+   * @param services
+   * @returns {boolean}
+   */
+  hasDependentSlaveComponent: function (services) {
+    var result = false;
+    var dependentSlaves = [];
+    var hosts = this.get('content.hosts');
+
+    if (hosts) {
+      services.forEach(function (service) {
+        service.get('serviceComponents').forEach(function (component) {
+          component.get('dependencies').forEach(function (dependency) {
+            var dependentService = App.StackService.find().findProperty('serviceName', dependency.serviceName);
+            var dependentComponent = dependentService && dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
+            if (dependentComponent && dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
+              dependentSlaves.push({component: dependentComponent.get('componentName'), count: 0});
+            }
+          });
+        });
+      });
+
+      var hostNames = Em.keys(hosts);
+      for (var i = 0; i < dependentSlaves.length; i++) {
+        var maxToInstall = App.StackServiceComponent.find().findProperty('componentName', dependentSlaves[i].component).get('maxToInstall');
+        maxToInstall = maxToInstall === Infinity ? hostNames.length : maxToInstall;
+        hostNames.forEach(function (hostName) {
+          var hostComponents = hosts[hostName].hostComponents.mapProperty('HostRoles.component_name');
+          dependentSlaves[i].count += hostComponents.contains(dependentSlaves[i].component);
+        });
+
+        if (dependentSlaves[i].count < maxToInstall) {
+          result = true;
+          break;
+        }
+      }
+    }
+
+    return result;
   },
 
   /**
@@ -1438,6 +1479,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   loadRecommendations: function () {
     this.set("content.recommendations", this.getDBProperty('recommendations'));
+  },
+
+  loadHdfsUserFromServer: function () {
+    return App.get('router.configurationController').loadFromServer([{'siteName': 'hadoop-env'}]);
   },
 
   /**

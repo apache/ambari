@@ -25,12 +25,15 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -46,6 +49,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -60,6 +64,7 @@ import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,7 +117,13 @@ public class RestMetricsPropertyProviderTest {
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", new StackId("HDP-2.1.1"));
     c1 = clusters.getCluster("c1");
-    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
+
+    // disable request TTL for these tests
+    Configuration configuration = injector.getInstance(Configuration.class);
+    configuration.setProperty(Configuration.METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED.getKey(),
+        "false");
+
+    JMXPropertyProvider.init(configuration);
 
     MetricsRetrievalService metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);
@@ -129,6 +140,7 @@ public class RestMetricsPropertyProviderTest {
 
     ConfigHelper configHelperMock = createNiceMock(ConfigHelper.class);
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(amc.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
     expect(amc.findConfigurationTagsWithOverrides(eq(c1), anyString())).andReturn(Collections.singletonMap("storm-site",
         Collections.singletonMap("tag", "version1"))).anyTimes();
     expect(amc.getConfigHelper()).andReturn(configHelperMock).anyTimes();
@@ -136,6 +148,11 @@ public class RestMetricsPropertyProviderTest {
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(Collections.singletonMap("storm-site",
         Collections.singletonMap("ui.port", DEFAULT_STORM_UI_PORT))).anyTimes();
     replay(amc, configHelperMock);
+  }
+
+  @AfterClass
+  public static void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private RestMetricsPropertyProvider createRestMetricsPropertyProvider(MetricDefinition metricDefinition,
@@ -239,7 +256,7 @@ public class RestMetricsPropertyProviderTest {
     Map<String, String> customMetricsProperties = new HashMap<>(metricsProperties);
     customMetricsProperties.put("port_property_name", "wrong_property");
     String resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
-        "STORM_REST_API", customMetricsProperties);
+        "STORM_REST_API", customMetricsProperties, "http");
     Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
 
     // a port property exists (8745). Should return it, not a default_port (8746)
@@ -247,7 +264,7 @@ public class RestMetricsPropertyProviderTest {
     // custom default
     customMetricsProperties.put("default_port", "8746");
     resolvedPort = restMetricsPropertyProvider.resolvePort(c1, "domu-12-31-39-0e-34-e1.compute-1.internal",
-        "STORM_REST_API", customMetricsProperties);
+        "STORM_REST_API", customMetricsProperties, "http");
     Assert.assertEquals(DEFAULT_STORM_UI_PORT, resolvedPort);
 
   }

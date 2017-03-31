@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.security;
 
+import static org.easymock.EasyMock.expect;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,8 +27,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ambari.server.configuration.Configuration;
-
-import static org.easymock.EasyMock.expect;
 
 public class AmbariServerSecurityHeaderFilterTest extends AbstractSecurityHeaderFilterTest {
 
@@ -37,15 +37,22 @@ public class AmbariServerSecurityHeaderFilterTest extends AbstractSecurityHeader
 
     Map<String, String> map;
     map = new HashMap<String, String>();
-    map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY);
-    map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY);
-    map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY);
+    map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER, Configuration.HTTP_X_CONTENT_TYPE_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER, Configuration.HTTP_CACHE_CONTROL_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.PRAGMA_HEADER, Configuration.HTTP_PRAGMA_HEADER_VALUE.getKey());
+
     PROPERTY_NAME_MAP = Collections.unmodifiableMap(map);
 
     map = new HashMap<String, String>();
-    map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT);
-    map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
-    map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+    map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER, Configuration.HTTP_X_CONTENT_TYPE_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER, Configuration.HTTP_CACHE_CONTROL_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.PRAGMA_HEADER, Configuration.HTTP_PRAGMA_HEADER_VALUE.getDefaultValue());
     DEFAULT_PROPERTY_VALUE_MAP = Collections.unmodifiableMap(map);
   }
 

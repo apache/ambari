@@ -75,7 +75,6 @@ define(['require',
 
                 var that = this;
                 $.extend(this.collection.queryParams, {
-                    userId: "admin",
                     rowType:"history"
                 });
                 this.collection.getFirstPage({
@@ -142,31 +141,32 @@ define(['require',
             },
             showParams: function(params, id) {
                
-                return '<pre class="applyFilter"><button class="btn btn-primary btn-app-sm pull-right" data-nameId="' + id + '" data-id="applyFilter">' +
-                    '<i class="fa fa-check"></i></button> <button style="display:none"class="btn btn-primary btn-app-sm pull-right" data-nameId="' + id + '" data-id="deleteFilter">' +
-                     '<i class="fa fa-times"></i></button><strong>Range:</strong>' + (this.createInnerSpan(params, "from")) +
-                    '<strong>&nbsp:To:&nbsp:</strong>' + (this.createInnerSpan(params, "to")) +
-                    '<br><strong>Level:</strong>' + (this.createInnerSpan(params, "level")) +
-                    '<br><strong>Include Components:</strong>' + (this.createInnerSpan(params, "mustBe")) +
-                    '<br><strong>Exclude Components:</strong>' + (this.createInnerSpan(params, "mustNot")) +
-                    '<br><strong>Include Columns:</strong>' + (this.createInnerSpan(params, "includeQuery")) +
-                    '<br><strong>Exclude Columns:</strong>' + (this.createInnerSpan(params, "excludeQuery")) + '</pre>';
-                
+                return '<pre class="applyFilter">' +
+                       '<button class="btn btn-primary btn-app-sm pull-right" data-nameId="' + id + '" data-id="applyFilter"><i class="fa fa-check"></i></button>' +
+                       '<button class="btn btn-primary btn-app-sm pull-right" data-nameId="' + id + '" data-id="deleteFilter"><i class="fa fa-times"></i></button>' +
+                       '<strong>Range:</strong>' + (this.createInnerSpan(params, "from")) + '<strong>&nbsp:To:&nbsp:</strong>' + (this.createInnerSpan(params, "to")) + '<br>' +
+                       '<strong>Level:</strong>' + (this.createInnerSpan(params, "level")) + '<br>' +
+                       '<strong>Include Components:</strong>' + (this.createInnerSpan(params, "mustBe")) + '<br>' +
+                       '<strong>Exclude Components:</strong>' + (this.createInnerSpan(params, "mustNot")) + '<br>' +
+                       '<strong>Include Columns:</strong>' + (this.createInnerSpan(params, "includeQuery")) + '<br>' +
+                       '<strong>Exclude Columns:</strong>' + (this.createInnerSpan(params, "excludeQuery")) +
+                       '</pre>';
+
             },
             createInnerSpan: function(params, type) {
                 var typeString = "",
                     that = this;
                 if (params[type]) {
-                	if(type == "includeQuery" || type == "excludeQuery"){
-                		typeString += "<span>"+params[type].replace("},{",",").replace("[{","").replace("}]","")+"</span>";
-                	}else{
-                		Utils.encodeIncludeExcludeStr(params[type], false, ((type == "iMessage" || type == "eMessage") ? ("|i::e|") : (","))).map(function(typeName) {
+                    if(type == "includeQuery" || type == "excludeQuery"){
+                        typeString += "<span>"+params[type].replace("},{",",").replace("[{","").replace("}]","")+"</span>";
+                    }else{
+                        Utils.encodeIncludeExcludeStr(params[type], false, ((type == "iMessage" || type == "eMessage") ? ("|i::e|") : (","))).map(function(typeName) {
                             typeString += '<span class="' + ((type != "level") ? (type) : (typeName)) + '">' +
                                 ((type == "from" || type == "to") ? (that.dateUtil.getTimeZone(params[type])) : (Utils.escapeHtmlChar(typeName))) + '</span>' +
                                 ((type == "level") ? (",") : (""));
                         });
-                	}
-                    
+                    }
+
                 }
                 return ((typeString.length == 0) ? ("-") : ((type == "level") ? ((typeString).slice(0, -1)) : (typeString)))
             },
@@ -178,11 +178,8 @@ define(['require',
             },
             onDeleteClick: function(e) {
                 var that = this;
-                var deleteModel = this.collection.findWhere({
-                    id: parseInt($(arguments[0].currentTarget).attr('data-nameId'))
-                });
                 var postObject = {
-                    id: deleteModel.get('id')
+                    id: parseInt($(arguments[0].currentTarget).attr('data-nameId'))
                 }
                 this.collection.deleteEventHistory(postObject, {
                     success: function(data, textStatus, jqXHR) {
@@ -202,7 +199,7 @@ define(['require',
             onSearchFilterClick: function() {
                 var filterName = this.$("[data-id='filterName']").val();
                 $.extend(this.collection.queryParams, {
-                	filterName: filterName
+                    filterName: filterName
                 });
                 this.fetchFilters();
             },

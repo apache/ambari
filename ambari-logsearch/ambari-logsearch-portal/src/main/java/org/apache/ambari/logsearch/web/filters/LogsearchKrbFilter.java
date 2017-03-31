@@ -49,6 +49,8 @@ import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_SESSION_ID;
+
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class LogsearchKrbFilter implements Filter {
@@ -506,7 +508,7 @@ public class LogsearchKrbFilter implements Filter {
             Collection<String> headerNames = httpResponse.getHeaderNames();
             for(String headerName : headerNames){
                 String value = httpResponse.getHeader(headerName);
-                if(headerName.equalsIgnoreCase("Set-Cookie") && value.startsWith("JSESSIONID")){
+                if(headerName.equalsIgnoreCase("Set-Cookie") && value.startsWith(LOGSEARCH_SESSION_ID)){
                     chk = false;
                     break;
                 }

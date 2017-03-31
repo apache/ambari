@@ -221,9 +221,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var dependencies = {};
     var hiveMetastore = App.configsCollection.getConfigByName('hive.metastore.uris', 'hive-site.xml');
     var clientPort = App.configsCollection.getConfigByName('clientPort', 'zoo.cfg.xml');
+    var atlasTls = App.configsCollection.getConfigByName('atlas.enableTLS', 'application-properties.xml');
+    var atlasHttpPort = App.configsCollection.getConfigByName('atlas.server.http.port', 'application-properties.xml');
+    var atlasHttpsPort = App.configsCollection.getConfigByName('atlas.server.https.port', 'application-properties.xml');
 
     if (hiveMetastore) dependencies['hive.metastore.uris'] = hiveMetastore.recommendedValue;
     if (clientPort) dependencies.clientPort = clientPort.recommendedValue;
+    if (atlasTls) dependencies['atlas.enableTLS'] = atlasTls.recommendedValue;
+    if (atlasHttpPort) dependencies['atlas.server.http.port'] = atlasHttpPort.recommendedValue;
+    if (atlasHttpsPort) dependencies['atlas.server.https.port'] = atlasHttpsPort.recommendedValue;
     return dependencies;
   }.property(),
 
@@ -293,6 +299,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method clearStep
    */
   clearStep: function () {
+    this.abortRequests();
     this.setProperties({
       configValidationGlobalMessage: [],
       submitButtonClicked: false,
@@ -472,12 +479,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
     var storedConfigs = this.get('content.serviceConfigProperties');
-    debugger
-
     var configs = storedConfigs && storedConfigs.length ? storedConfigs : App.configsCollection.getAll();
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
-    if (this.get('wizardController.name') === 'addServiceController' && !this.get('content.serviceConfigProperties.length')) {
+    if (this.get('wizardController.name') === 'addServiceController' && !storedConfigs) {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
         configs = self.setInstalledServiceConfigs(configs, loadedConfigs, self.get('installedServiceNames'));
         self.applyServicesConfigs(configs);
@@ -518,7 +523,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') === 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
-    App.configTheme.resolveConfigThemeConditions(configs);
     var stepConfigs = this.createStepConfigs();
     var serviceConfigs = this.renderConfigs(stepConfigs, configs);
     // if HA is enabled -> Make some reconfigurations
@@ -531,13 +535,40 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
     this.selectProperService();
+    var isInstallerWizard = (this.get("content.controllerName") === 'installerController');
+    var self = this;
     var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
-    if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
+    var isRangerServiceAbsent =  rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected');
+    if (isRangerServiceAbsent) {
+      var isExternalRangerSetup;
+      if (isInstallerWizard) {
+        isExternalRangerSetup = configs.filterProperty('fileName','cluster-env.xml').findProperty('name','enable_external_ranger');
+        if (Em.isNone(isExternalRangerSetup) || isExternalRangerSetup.value !== "true") {
+          App.config.removeRangerConfigs(this.get('stepConfigs'));
+        }
+        console.timeEnd('applyServicesConfigs execution time: ');
+        console.time('loadConfigRecommendations execution time: ');
+        self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
+      } else {
+        var mainController = App.get('router.mainController');
+        var clusterController = App.get('router.clusterController');
+        mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
+          isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+          if (isExternalRangerSetup !== "true") {
+            App.config.removeRangerConfigs(self.get('stepConfigs'));
+          }
+          console.timeEnd('applyServicesConfigs execution time: ');
+          console.time('loadConfigRecommendations execution time: ');
+          self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
+        });
+      }
+
+    } else {
+      console.timeEnd('applyServicesConfigs execution time: ');
+      console.time('loadConfigRecommendations execution time: ');
+      self.loadConfigRecommendations(null, self.completeConfigLoading.bind(self));
     }
-    console.timeEnd('applyServicesConfigs execution time: ');
-    console.time('loadConfigRecommendations execution time: ');
-    this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
+
   },
 
   /**
@@ -573,6 +604,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   completeConfigLoading: function() {
+    this.get('stepConfigs').forEach(function(service) {
+      App.configTheme.resolveConfigThemeConditions(service.get('configs'));
+    });
     this.clearRecommendationsByServiceName(App.StackService.find().filter(function (s) {
       return s.get('isSelected') && !s.get('isInstalled');
     }).mapProperty('serviceName'));
@@ -636,7 +670,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         console.time('loadConfigGroups execution time: ');
         this.loadConfigGroups(this.get('allSelectedServiceNames')).done(this.loadOverrides.bind(this));
       } else {
-        App.store.commit();
+        App.store.fastCommit();
         App.configGroupsMapper.map(null, false, this.get('allSelectedServiceNames'));
         this.onLoadOverrides();
       }
@@ -1041,6 +1075,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           this.get('configDependencies').clientPort = config.savedValue;
         }
     }
+    if (config.filename === 'application-properties.xml') {
+      if (this.get('configDependencies').hasOwnProperty(config.name)) {
+        this.get('configDependencies')[config.name] = config.savedValue;
+      }
+    }
   },
 
   /**
@@ -1093,9 +1132,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (service.get('serviceName') === 'MISC') return;
       var serviceRawGroups = serviceConfigGroups.filterProperty('service_name', service.serviceName);
       if (serviceRawGroups.length) {
-        App.store.commit();
-        App.store.loadMany(App.ServiceConfigGroup, serviceRawGroups);
-        App.store.commit();
+        App.store.safeLoadMany(App.ServiceConfigGroup, serviceRawGroups);
         serviceRawGroups.forEach(function(item){
           var modelGroup = App.ServiceConfigGroup.find(item.id);
           modelGroup.set('properties', []);
@@ -1469,10 +1506,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         deferred.resolve();
         this._super();
       },
+      onClose: function () {
+        this.onSecondary();
+      },
       onSecondary: function () {
-        self.set('submitButtonClicked', false);
-        deferred.reject();
         this._super();
+        self.setButtonClickFinish();
+        deferred.reject();
       }
     });
   },
@@ -1494,8 +1534,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             }
           },
           onSecondary: function() {
-            App.set('router.nextBtnClickInProgress', false);
-            self.set('submitButtonClicked', false);
+            self.setButtonClickFinish();
             this.hide();
           },
           onClose: function() {
@@ -1529,6 +1568,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       return false;
     }
     App.set('router.nextBtnClickInProgress', true);
+    if (this.get('wizardController.name') === 'addServiceController' && this.get('hasChangedDependencies')) {
+      return this.showChangedDependentConfigs({}, this.proceedWithChecks.bind(this), this.setButtonClickFinish.bind(this));
+    } else {
+      return this.proceedWithChecks();
+    }
+  },
+
+  proceedWithChecks: function () {
     if (this.get('supportsPreInstallChecks')) {
       var preInstallChecksController = App.router.get('preInstallChecksController');
       if (preInstallChecksController.get('preInstallChecksWhereRun')) {
@@ -1539,6 +1586,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return this.postSubmit();
   },
 
+  setButtonClickFinish: function () {
+    this.set('submitButtonClicked', false);
+    App.set('router.nextBtnClickInProgress', false);
+  },
+
   postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
@@ -1547,8 +1599,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     })
       .fail(function (value) {
         if ("invalid_configs" === value) {
-          self.set('submitButtonClicked', false);
-          App.set('router.nextBtnClickInProgress', false);
+          self.setButtonClickFinish();
         } else {
           // Failed due to validation mechanism failure.
           // Should proceed with other checks

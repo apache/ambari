@@ -27,6 +27,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     'putHostComponentsInMaintenanceMode',
     'stopHostComponentsInMaintenanceMode',
     'deleteHostComponents',
+    'startDatanodes',
     'startAllServices'
   ],
 
@@ -97,25 +98,9 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.removeTasks(['stopHostComponentsInMaintenanceMode']);
     }
-  },
-
-  /**
-   * remove tasks by command name
-   */
-  removeTasks: function(commands) {
-    var tasks = this.get('tasks');
-
-    commands.forEach(function(command) {
-      var index;
-      tasks.forEach(function(_task, _index) {
-        if (_task.get('command') === command) {
-          index = _index;
-        }
-      });
-      if (!Em.isNone(index)) {
-        tasks.splice(index, 1);
-      }
-    }, this);
+    if (!(this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled'))) {
+      this.removeTasks(['startDatanodes']);
+    }
   },
 
   hideRollbackButton: function () {
@@ -219,5 +204,10 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
       success: 'startPolling',
       error: 'onTaskError'
     });
+  },
+
+  startDatanodes: function () {
+    this.updateComponent('DATANODE', null, 'HDFS', 'Start');
   }
+
 });

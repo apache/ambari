@@ -22,6 +22,7 @@ import ConfigParser
 import StringIO
 import json
 import os
+import ast
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -86,6 +87,9 @@ EXITCODE_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.exitcode"
 SERVICE_USERNAME_KEY = "TMP_AMHM_USERNAME"
 SERVICE_PASSWORD_KEY = "TMP_AMHM_PASSWORD"
 
+# Failover strategies
+ROUND_ROBIN_FAILOVER_STRATEGY = 'round-robin'
+
 SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
@@ -97,6 +101,8 @@ AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 config_content = """
 [default]
 debug_level = INFO
+hostname = localhost
+metrics_servers = localhost
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -106,6 +112,8 @@ send_interval = 60
 [collector]
 collector_sleep_interval = 5
 max_queue_size = 5000
+failover_strategy = round-robin
+failover_strategy_blacklisted_interval_seconds = 60
 host = localhost
 port = 6188
 https_enabled = false
@@ -207,6 +215,16 @@ class Configuration:
   def get_hostname_config(self):
     return self.get("default", "hostname", None)
 
+  def get_metrics_collector_hosts(self):
+    hosts = self.get("default", "metrics_servers", "localhost")
+    return hosts.split(",")
+
+  def get_failover_strategy(self):
+    return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
+
+  def get_failover_strategy_blacklisted_interval_seconds(self):
+    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 300)
+
   def get_hostname_script(self):
     if self.hostname_script:
       return self.hostname_script
@@ -233,3 +251,6 @@ class Configuration:
 
   def get_ca_certs(self):
     return self._ca_cert_file_path
+
+  def get_disk_metrics_skip_pattern(self):
+    return self.get("default", "skip_disk_patterns")

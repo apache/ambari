@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +31,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NamedQuery;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
@@ -63,7 +65,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
@@ -103,6 +104,7 @@ public class TestActionDBAccessorImpl {
     injector  = Guice.createInjector(Modules.override(defaultTestModule)
       .with(new TestActionDBAccessorModule()));
 
+    H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
 
     // initialize AmbariMetaInfo so that the stacks are populated into the DB
@@ -112,10 +114,7 @@ public class TestActionDBAccessorImpl {
 
     // Add this host's name since it is needed for server-side actions.
     clusters.addHost(serverHostName);
-    clusters.getHost(serverHostName).persist();
-
     clusters.addHost(hostName);
-    clusters.getHost(hostName).persist();
 
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
@@ -127,8 +126,8 @@ public class TestActionDBAccessorImpl {
   }
 
   @After
-  public void tearDown() throws AmbariException {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test
@@ -273,7 +272,6 @@ public class TestActionDBAccessorImpl {
     for (int i = 0; i < 1000; i++) {
       String hostName = "c64-" + i;
       clusters.addHost(hostName);
-      clusters.getHost(hostName).persist();
     }
 
     // create 1 request, 3 stages per host, each with 2 commands
@@ -460,7 +458,6 @@ public class TestActionDBAccessorImpl {
     requestIds.add(requestId);
     populateActionDB(db, hostName, requestId, stageId);
     clusters.addHost("host2");
-    clusters.getHost("host2").persist();
     populateActionDB(db, hostName, requestId + 1, stageId);
     List<Long> requestIdsResult =
       db.getRequestsByStatus(null, BaseRequest.DEFAULT_PAGE_SIZE, false);
@@ -546,11 +543,8 @@ public class TestActionDBAccessorImpl {
     s.setStageId(stageId);
 
     clusters.addHost("host2");
-    clusters.getHost("host2").persist();
     clusters.addHost("host3");
-    clusters.getHost("host3").persist();
     clusters.addHost("host4");
-    clusters.getHost("host4").persist();
 
     s.addHostRoleExecutionCommand("host1", Role.HBASE_MASTER,
         RoleCommand.START,
@@ -680,7 +674,6 @@ public class TestActionDBAccessorImpl {
       String host = "host" + i;
 
       clusters.addHost(host);
-      clusters.getHost(host).persist();
 
       s.addHostRoleExecutionCommand("host" + i, Role.HBASE_MASTER,
         RoleCommand.START, null, "cluster1", "HBASE", false, false);

@@ -26,5 +26,7 @@ export default Model.extend({
   userNameofhue: DS.attr('string'),
   totalTimeTaken: DS.attr('string'),
   jobtype: DS.attr('string'),
-  isNoQuerySelected: DS.attr('string')
+  isNoQuerySelected: DS.attr('string'),
+  flag: DS.attr('string'),
+  error: DS.attr('string')
 });

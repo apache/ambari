@@ -61,11 +61,14 @@ App.healthStatusOrange = '#FF8E00';
 App.inactivityRemainTime = 60; // in seconds
 App.enableLogger = true;
 App.stackVersionsAvailable = true;
+App.upgradeHistoryAvailable = false;
+App.enableDigitalClock = false;
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;
 
 App.supports = {
+  disableHostCheckOnAddHostWizard: false,
   preUpgradeCheck: true,
   displayOlderVersions: false,
   autoRollbackHA: false,
@@ -78,14 +81,15 @@ App.supports = {
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
   preInstallChecks: false,
-  hostComboSearchBox: true,
-  serviceAutoStart: false,
+  serviceAutoStart: true,
   logSearch: true,
   redhatSatellite: false,
   enableIpa: false,
   addingNewRepository: false,
   kerberosStackAdvisor: true,
-  logCountVizualization: false
+  logCountVizualization: false,
+  enabledWizardForHostOrderedUpgrade: true,
+  manageJournalNode: true
 };
 
 if (App.enableExperimental) {

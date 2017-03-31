@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.api.resources;
 
+
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
-
-import java.util.HashSet;
-
 import static org.junit.Assert.assertEquals;
+
+import com.google.common.collect.Sets;
 
 /**
  * UpgradeResourceDefinition tests.
@@ -52,8 +52,7 @@ public class UpgradeResourceDefinitionTest {
   public void testGetCreateDirectives() {
     ResourceDefinition resourceDefinition = new UpgradeResourceDefinition();
 
-    assertEquals(
-        new HashSet<String>() {{add(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE); add(UpgradeResourceDefinition.SKIP_SERVICE_CHECKS_DIRECTIVE);}},
+    assertEquals(Sets.newHashSet(UpgradeResourceDefinition.SKIP_SERVICE_CHECKS_DIRECTIVE),
         resourceDefinition.getCreateDirectives());
   }
 }

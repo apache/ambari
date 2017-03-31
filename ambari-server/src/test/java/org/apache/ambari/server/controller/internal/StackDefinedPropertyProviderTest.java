@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -76,7 +78,6 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 /**
@@ -146,7 +147,6 @@ public class StackDefinedPropertyProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c2");
 
@@ -158,6 +158,7 @@ public class StackDefinedPropertyProviderTest {
     field.set(null, amc);
     Clusters clustersMock = createNiceMock(Clusters.class);
     Cluster clusterMock = createNiceMock(Cluster.class);
+    expect(amc.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
     expect(amc.getClusters()).andReturn(clustersMock).anyTimes();
     expect(clustersMock.getCluster(CLUSTER_NAME_PROPERTY_ID)).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getResourceId()).andReturn(2L).anyTimes();
@@ -171,7 +172,7 @@ public class StackDefinedPropertyProviderTest {
 
   @After
   public void teardown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

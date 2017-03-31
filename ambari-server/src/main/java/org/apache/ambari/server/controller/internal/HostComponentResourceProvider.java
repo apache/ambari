@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -298,20 +299,20 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(changeRequest(propertyMap));
     }
-    RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
+    DeleteStatusMetaData deleteStatusMetaData = modifyResources(new Command<DeleteStatusMetaData>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
+      public DeleteStatusMetaData invoke() throws AmbariException, AuthorizationException {
         return getManagementController().deleteHostComponents(requests);
       }
     });
 
     notifyDelete(Resource.Type.HostComponent, predicate);
 
-    return getRequestStatus(response);
+    return getRequestStatus(null, null, deleteStatusMetaData);
   }
 
   @Override
@@ -334,7 +335,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return unsupportedProperties;
   }
 
-  public RequestStatusResponse install(String cluster, String hostname, boolean skipFailure) throws  SystemException,
+  public RequestStatusResponse install(String cluster, String hostname, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, boolean skipFailure) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     RequestStageContainer requestStages;
@@ -346,7 +347,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     Map<String, String> requestInfo = new HashMap<>();
     requestInfo.put("context", String.format("Install components on host %s", hostname));
     requestInfo.put("phase", "INITIAL_INSTALL");
-    requestInfo.put(Setting.SETTING_NAME_SKIP_FAILURE, Boolean.toString(skipFailure));
+    requestInfo.put(AmbariManagementControllerImpl.SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
+      (skipInstallForComponents, ";"));
+    requestInfo.put(AmbariManagementControllerImpl.DONT_SKIP_INSTALL_FOR_COMPONENTS, StringUtils.join
+      (dontSkipInstallForComponents, ";"));
+
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
     Predicate statePredicate = new EqualsPredicate<>(HOST_COMPONENT_STATE_PROPERTY_ID, "INIT");
@@ -469,7 +474,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   //todo: This was moved from AmbariManagementController and needs a lot of refactoring.
   //todo: Look into using the predicate instead of Set<ServiceComponentHostRequest>
   //todo: change to private access when all AMC tests have been moved.
-  protected synchronized RequestStageContainer updateHostComponents(RequestStageContainer stages,
+  protected RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
                                                                     boolean runSmokeTest) throws AmbariException, AuthorizationException {

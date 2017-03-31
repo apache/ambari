@@ -39,11 +39,9 @@ import org.junit.runner.RunWith;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.google.inject.Inject;
-
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-  name = "Test",
+  name = "AmbariLdapAuthenticationProviderForDuplicateUserTest",
   partitions = {
     @CreatePartition(name = "Root",
       suffix = "dc=apache,dc=org",
@@ -59,7 +57,7 @@ import com.google.inject.Inject;
             "objectClass: domain\n\n"))
   })
 @CreateLdapServer(allowAnonymousAccess = true,
-  transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+  transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users_with_duplicate_uid.ldif")
 public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -80,13 +78,14 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   @Before
   public void setUp() {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.CLIENT_SECURITY_KEY, "ldap");
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
-    properties.setProperty(Configuration.LDAP_BASE_DN_KEY, "dc=apache,dc=org");
+    properties.setProperty(Configuration.CLIENT_SECURITY.getKey(), "ldap");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(),"src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(),"src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=apache,dc=org");
+    properties.setProperty(Configuration.LDAP_PRIMARY_URL.getKey(), "localhost:" + getLdapServer().getPort());
 
     Configuration configuration = new Configuration(properties);
 
@@ -97,7 +96,7 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   public void testAuthenticateDuplicateUserAltUserSearchDisabled() throws Exception {
     // Given
     Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
-    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "false");
+    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "false");
 
     expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
     expectedException.expectMessage("Login Failed: More than one user with that username found, please work with your Ambari Administrator to adjust your LDAP configuration");
@@ -115,7 +114,7 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
   public void testAuthenticateDuplicateUserAltUserSearchEnabled() throws Exception {
     // Given
     Authentication authentication = new UsernamePasswordAuthenticationToken("user_dup", "password");
-    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+    authenticationProvider.configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
     expectedException.expect(DuplicateLdapUserFoundAuthenticationException.class);
     expectedException.expectMessage("Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain");

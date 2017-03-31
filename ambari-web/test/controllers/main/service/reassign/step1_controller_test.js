@@ -33,7 +33,7 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
   });
   controller.set('_super', Em.K);
 
-  describe('#loadConfigTags', function() {
+  describe('#loadConfigsTags', function() {
     beforeEach(function() {
       this.stub = sinon.stub(App.router, 'get');
     });
@@ -42,7 +42,7 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       this.stub.restore();
     });
 
-    it('tests loadConfigTags', function() {
+    it('tests loadConfigsTags', function() {
       controller.loadConfigsTags();
       var args = testHelpers.findAjaxRequest('name', 'config.tags');
       expect(args).exists;
@@ -77,8 +77,11 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
     });
 
     it('tests getDatabaseHost', function() {
-      controller.set('content.serviceProperties', {
-        'javax.jdo.option.ConnectionURL': "jdbc:mysql://c6401/hive?createDatabaseIfNotExist=true"
+      controller.set('content.configs', {
+        'hive-site': {
+          'javax.jdo.option.ConnectionURL': 'jdbc:mysql://c6401/hive?createDatabaseIfNotExist=true'
+
+        }
       });
 
       controller.set('content.reassign.service_id', 'HIVE');
@@ -108,7 +111,8 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       sinon.stub(controller, 'getDatabaseHost', Em.K);
       sinon.stub(controller, 'saveDatabaseType', Em.K);
       sinon.stub(controller, 'saveServiceProperties', Em.K);
-    
+      sinon.stub(controller, 'saveConfigs', Em.K);
+
       reassignCtrl = App.router.reassignMasterController;
       reassignCtrl.set('content.hasManualSteps', true);
     });
@@ -117,12 +121,14 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       controller.getDatabaseHost.restore();
       controller.saveDatabaseType.restore();
       controller.saveServiceProperties.restore();
+      controller.saveConfigs.restore();
     });
   
     it('should not set hasManualSteps to false for oozie with derby db', function() {
       var data = {
         items: [
           {
+            type: 'oozie-site',
             properties: {
               'oozie.service.JPAService.jdbc.driver': 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true'
             }
@@ -141,6 +147,7 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
       var data = {
         items: [
           {
+            type: 'oozie-site',
             properties: {
               'oozie.service.JPAService.jdbc.driver': 'mysql'
             }

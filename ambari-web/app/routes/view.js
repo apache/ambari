@@ -21,8 +21,15 @@ var App = require('app');
 module.exports = Em.Route.extend({
   route: '/view',
   enter: function (router) {
+    Em.$('body').addClass('contribview');
     router.get('mainViewsController').loadAmbariViews();
   },
+
+  exit:function (router) {
+    this._super();
+    Em.$('body').removeClass('contribview');
+  },
+
   index: Em.Route.extend({
     route: '/',
     connectOutlets: function (router) {

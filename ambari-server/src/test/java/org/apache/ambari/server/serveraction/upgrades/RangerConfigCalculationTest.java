@@ -35,7 +35,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,54 +56,27 @@ public class RangerConfigCalculationTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
-    Config adminConfig = new ConfigImpl("admin-properties") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("DB_FLAVOR", "MYSQL");
-        put("db_host", "host1");
-        put("db_name", "ranger");
-        put("audit_db_name", "ranger_audit");
-      }};
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("DB_FLAVOR", "MYSQL");
+      put("db_host", "host1");
+      put("db_name", "ranger");
+      put("audit_db_name", "ranger_audit");
+    }};
 
-    Config adminSiteConfig = new ConfigImpl("admin-properties") {
-      Map<String, String> mockProperties = new HashMap<String, String>();
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    Config adminConfig = EasyMock.createNiceMock(Config.class);
+    expect(adminConfig.getType()).andReturn("admin-properties").anyTimes();
+    expect(adminConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
+    mockProperties = new HashMap<String, String>();
 
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
+    Config adminSiteConfig = EasyMock.createNiceMock(Config.class);
+    expect(adminSiteConfig.getType()).andReturn("admin-properties").anyTimes();
+    expect(adminSiteConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-    Config rangerEnv = new ConfigImpl("ranger-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>();
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    Config rangerEnv = EasyMock.createNiceMock(Config.class);
+    expect(rangerEnv.getType()).andReturn("ranger-env").anyTimes();
+    expect(rangerEnv.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
 
     expect(cluster.getDesiredConfigByType("admin-properties")).andReturn(adminConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("ranger-admin-site")).andReturn(adminSiteConfig).atLeastOnce();
@@ -113,7 +85,7 @@ public class RangerConfigCalculationTest {
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
 
-    replay(m_injector, m_clusters, cluster);
+    replay(m_injector, m_clusters, cluster, adminConfig, adminSiteConfig, rangerEnv);
 
     m_clusterField = RangerConfigCalculation.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);

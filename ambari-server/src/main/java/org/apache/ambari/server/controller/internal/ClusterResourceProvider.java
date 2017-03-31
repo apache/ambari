@@ -82,6 +82,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
   public static final String SECURITY_PROPERTY_ID = PropertyHelper.getPropertyId(null, "security");
   public static final String CREDENTIALS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "credentials");
+  public static final String QUICKLINKS_PROFILE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "quicklinks_profile");
   public static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
 
   public static final String CLUSTER_REPO_VERSION = "Clusters/repository_version";
@@ -152,6 +153,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SECURITY_PROPERTY_ID);
     propertyIds.add(CREDENTIALS_PROPERTY_ID);
     propertyIds.add(CLUSTER_REPO_VERSION);
+    propertyIds.add(QUICKLINKS_PROFILE_PROPERTY_ID);
   }
 
 
@@ -356,13 +358,13 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final ClusterRequest clusterRequest = getRequest(propertyMap);
-        modifyResources(new Command<Void>() {
-          @Override
-          public Void invoke() throws AmbariException {
-            getManagementController().deleteCluster(clusterRequest);
-            return null;
-          }
-        });
+      modifyResources(new Command<Void>() {
+        @Override
+        public Void invoke() throws AmbariException {
+          getManagementController().deleteCluster(clusterRequest);
+          return null;
+        }
+      });
     }
     notifyDelete(Resource.Type.Cluster, predicate);
     return getRequestStatus(null);
@@ -435,6 +437,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     return cr;
   }
+
 
   /**
    * Get the map of session attributes from the given property map.
@@ -542,6 +545,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       throw new IllegalArgumentException("Topology validation failed: " + e, e);
     } catch (AmbariException e) {
       throw new SystemException("Unknown exception when asking TopologyManager to provision cluster", e);
+    } catch (RuntimeException e) {
+      throw new SystemException("An exception occurred during cluster provisioning: " + e.getMessage(), e);
     }
   }
 

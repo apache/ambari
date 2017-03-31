@@ -87,12 +87,17 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
-  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException {
+  public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException {
     return null;
   }
 
   @Override
   public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
     return Collections.emptyMap();
+  }
+
+  @Override
+  public List<String> getLiveInstances() {
+    return Collections.emptyList();
   }
 }

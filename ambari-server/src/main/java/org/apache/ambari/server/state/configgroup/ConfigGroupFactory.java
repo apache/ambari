@@ -17,22 +17,38 @@
  */
 package org.apache.ambari.server.state.configgroup;
 
-import com.google.inject.assistedinject.Assisted;
+import java.util.Map;
+
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
 
-import java.util.Map;
+import com.google.inject.assistedinject.Assisted;
 
 public interface ConfigGroupFactory {
-  ConfigGroup createNew(@Assisted("cluster") Cluster cluster,
-                       @Assisted("name") String name,
-                       @Assisted("tag") String tag,
-                       @Assisted("description") String description,
-                       @Assisted("configs") Map<String, Config> configs,
-                       @Assisted("hosts") Map<Long, Host> hosts);
+  /**
+   * Creates and saves a new {@link ConfigGroup}.
+   *
+   * @param cluster
+   * @param name
+   * @param tag
+   * @param description
+   * @param configs
+   * @param hosts
+   * @param serviceName
+   * @return
+   */
+  ConfigGroup createNew(@Assisted("cluster") Cluster cluster, @Assisted("name") String name,
+      @Assisted("tag") String tag, @Assisted("description") String description,
+      @Assisted("configs") Map<String, Config> configs, @Assisted("hosts") Map<Long, Host> hosts);
 
+  /**
+   * Instantiates a {@link ConfigGroup} fron an existing, persisted entity.
+   *
+   * @param cluster
+   * @param entity
+   * @return
+   */
   ConfigGroup createExisting(Cluster cluster, ConfigGroupEntity entity);
 }

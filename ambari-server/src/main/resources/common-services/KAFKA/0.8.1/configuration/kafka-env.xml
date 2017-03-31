@@ -40,6 +40,7 @@
   <property>
     <name>kafka_principal_name</name>
     <description>Kafka principal name</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

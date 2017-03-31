@@ -15,9 +15,19 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations,{ validator } from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'parameters.configuration.property': {
+    validators: [
+      validator('unique-name', {
+        dependentKeys: ['parameters.configuration.property.[]']
+      })
+    ]
+  }
+});
+export default Ember.Component.extend(Validations, {
+  saveClicked : false,
   initialize : function(){
     if(this.get('parameters') === undefined || this.get('parameters') === null){
       this.set('parameters',{});
@@ -29,27 +39,15 @@ export default Ember.Component.extend(EmberValidations, {
     this.sendAction('register','workflowParameters',this);
 
   }.on('init'),
-  validations : {
-    'parameters': {
-      inline : validator(function() {
-        var nameMap = [], errorMsg = undefined;
-        if(this.get('parameters.configuration.property')){
-          this.get('parameters.configuration.property').forEach(function(item, index){
-            if(!item.name){
-              errorMsg = "Name cannot be blank";
-            } else if(nameMap.indexOf(item.name) > -1){
-              errorMsg = "Name cannot be duplicate";
-            } else{
-              nameMap.push(item.name);
-            }
-          });
-          if(errorMsg){
-            return errorMsg;
-          }
-        }
-      })
+  displayName : Ember.computed('type', function(){
+    if(this.get('type') === 'wf'){
+      return "Workflow";
+    }else if(this.get('type') === 'coord'){
+      return "Coordinator";
+    }else{
+      return "Bundle";
     }
-  },
+  }),
   rendered : function(){
     this.$('#workflow_parameters_dialog').modal({
       backdrop: 'static',
@@ -57,24 +55,28 @@ export default Ember.Component.extend(EmberValidations, {
     });
     this.$('#workflow_parameters_dialog').modal('show');
     this.$('#workflow_parameters_dialog').modal().on('hidden.bs.modal', function() {
-      if(this.get('saveClicked')){
-        this.sendAction('saveWorkFlowParam');
-      }else{
-        this.sendAction('closeWorkFlowParam');
-      }
+    if(this.get('saveClicked')){
+      this.sendAction('saveWorkFlowParam');
+    }else{
+      this.sendAction('closeWorkFlowParam');
+    }
     }.bind(this));
   }.on('didInsertElement'),
   actions : {
     register(component, context){
       this.set('nameValueContext', context);
     },
+    close (){
+      this.$('#workflow_parameters_dialog').modal('hide');
+      this.set('saveClicked', false);
+    },
     saveParameters (){
-      this.get("nameValueContext").trigger("bindInputPlaceholder");
-      this.validate().then(function(){
+      if(!this.get('validations.isInvalid')){
+        this.get("nameValueContext").trigger("bindInputPlaceholder");
         this.set('saveClicked', true);
         this.$('#workflow_parameters_dialog').modal('hide');
-      }.bind(this)).catch(function(e){
-      }.bind(this));
+        return ;
+      }
     }
   }
 });

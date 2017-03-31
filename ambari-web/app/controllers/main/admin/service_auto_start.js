@@ -25,6 +25,8 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
   componentsConfigs: [],
   isSaveDisabled: true,
   valueChanged: false,
+  syncTrigger: false, // trigger status reset in switch view after "save"
+  revertTrigger: false, // trigger status reset in switch view after "discard"
 
   loadClusterConfig: function () {
     return App.ajax.send({
@@ -60,7 +62,9 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
             component_name: serviceComponentInfo.component_name,
             recovery_enabled: serviceComponentInfo.recovery_enabled === 'true',
             valueChanged: false,
-            service_name: serviceComponentInfo.service_name
+            service_name: serviceComponentInfo.service_name,
+            syncTrigger: false,
+            revertTrigger: false,
           });
           if (services[serviceComponentInfo.service_name]) {
             services[serviceComponentInfo.service_name].get('componentRecovery').push(componentRecovery);
@@ -121,6 +125,34 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     this.set('isSaveDisabled', !valuesChanged);
   }.observes('valueChanged'),
 
+  syncStatus: function () {
+    // component level switches
+    this.get('tabs').forEach(function (service) {
+      service.get('componentRecovery').forEach(function (component) {
+        component.set('valueChanged', false);
+        component.toggleProperty('syncTrigger');
+      });
+    });
+    // service level switch
+    this.toggleProperty('syncTrigger');
+    this.set('valueChanged', false);
+    this.set('isSaveDisabled', true);
+  },
+
+  revertStatus: function () {
+    // component level switches
+    this.get('tabs').forEach(function (service) {
+      service.get('componentRecovery').forEach(function (component) {
+        component.set('valueChanged', false);
+        component.toggleProperty('revertTrigger');
+      });
+    });
+    // service level switch
+    this.toggleProperty('revertTrigger');
+    this.set('valueChanged', false);
+    this.set('isSaveDisabled', true);
+  },
+
   enableAll: function (event) {
     event.context.get('componentRecovery').forEach(function (component) {
       component.set('recoveryEnabled', true);
@@ -131,10 +163,6 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
     event.context.get('componentRecovery').forEach(function (component) {
       component.set('recoveryEnabled', false);
     });
-  },
-
-  doReload: function () {
-    window.location.reload();
   },
 
   /**
@@ -184,7 +212,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
           });
         });
         if (enabledComponents.length){
-          App.ajax.send({
+          var promise1 = App.ajax.send({
             name: 'components.update',
             sender: this,
             data: {
@@ -196,7 +224,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
           });
         }
         if (disabledComponents.length){
-          App.ajax.send({
+          var promise2 = App.ajax.send({
             name: 'components.update',
             sender: this,
             data: {
@@ -207,19 +235,21 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
             }
           });
         }
-        if (typeof transitionCallback === 'function') {
-          transitionCallback();
-        } else {
-          self.doReload();
-        }
+        $.when(promise1, promise2).done(
+          function () {
+            if (typeof transitionCallback === 'function') {
+              transitionCallback();
+            }
+            self.syncStatus();
+          }
+        );
         this.hide();
       },
       onDiscard: function () {
         if (typeof transitionCallback === 'function') {
           transitionCallback();
-        } else {
-          self.doReload();
         }
+        self.revertStatus();
         this.hide();
       },
       onCancel: function () {

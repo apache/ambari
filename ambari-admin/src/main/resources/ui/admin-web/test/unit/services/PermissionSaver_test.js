@@ -40,6 +40,7 @@ describe('PermissionSaver Service', function () {
               PermissionInfo: {
                 permission_name: 'CLUSTER.ADMINISTRATOR'
               },
+              ROLE: {},
               USER: ['u0', 'u1', 'g0'],
               GROUP: ['g0', 'g1', 'u0']
             },
@@ -47,6 +48,7 @@ describe('PermissionSaver Service', function () {
               PermissionInfo: {
                 permission_name: 'CLUSTER.OPERATOR'
               },
+              ROLE: {},
               USER: ['g1'],
               GROUP: ['u1']
             }
@@ -118,6 +120,7 @@ describe('PermissionSaver Service', function () {
               PermissionInfo: {
                 permission_name: 'CLUSTER.ADMINISTRATOR'
               },
+              ROLE: {},
               USER: ['u0', 'u1'],
               GROUP: ['g0', 'g1']
             },
@@ -125,6 +128,7 @@ describe('PermissionSaver Service', function () {
               PermissionInfo: {
                 permission_name: 'CLUSTER.OPERATOR'
               },
+              ROLE: {},
               USER: ['u0'],
               GROUP: ['g2']
             },
@@ -132,6 +136,7 @@ describe('PermissionSaver Service', function () {
               PermissionInfo: {
                 permission_name: 'CLUSTER.USER'
               },
+              ROLE: {},
               USER: ['u2'],
               GROUP: ['g0']
             }

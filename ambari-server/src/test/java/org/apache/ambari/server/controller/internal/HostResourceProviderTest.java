@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
@@ -904,7 +905,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getHosts()).andReturn(Arrays.asList(host100)).anyTimes();
     expect(clusters.getHostsForCluster("Cluster100")).andReturn(Collections.singletonMap("Host100", host100)).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host100).anyTimes();
-    clusters.mapHostToCluster("Host100", "Cluster100");
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
@@ -997,7 +998,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host100).anyTimes();
     expect(clusters.getHostsForCluster("Cluster100")).andReturn(Collections.singletonMap("Host100", host100)).anyTimes();
-    clusters.mapHostToCluster("Host100", "Cluster100");
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
@@ -1078,6 +1079,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(cluster.getClusterId()).andReturn(100L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
     clusters.deleteHost("Host100");
+    clusters.publishHostsDeletion(Collections.EMPTY_SET, Collections.singleton("Host100"));
     cluster.recalculateAllClusterVersionStates();
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
@@ -1340,7 +1342,20 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     HostResourceProvider provider = getHostProvider(controller);
     HostResourceProvider.setTopologyManager(topologyManager);
-    provider.deleteHosts(requests, false);
+    provider.deleteHosts(requests, false, false);
+  }
+
+  public static DeleteStatusMetaData deleteHosts(AmbariManagementController controller,
+                                                 Set<HostRequest> requests, boolean dryRun, boolean forceDelete)
+      throws AmbariException {
+    TopologyManager topologyManager = EasyMock.createNiceMock(TopologyManager.class);
+    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+
+    replay(topologyManager);
+
+    HostResourceProvider provider = getHostProvider(controller);
+    HostResourceProvider.setTopologyManager(topologyManager);
+    return provider.deleteHosts(requests, dryRun, forceDelete);
   }
 
   public static void updateHosts(AmbariManagementController controller, Set<HostRequest> requests)

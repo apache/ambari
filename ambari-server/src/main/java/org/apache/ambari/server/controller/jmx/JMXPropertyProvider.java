@@ -41,6 +41,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
+import org.apache.ambari.server.state.services.MetricsRetrievalService.MetricSourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +263,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
         String jmxUrl = getSpec(protocol, hostName, port, "/jmx");
 
         // always submit a request to cache the latest data
-        metricsRetrievalService.submitJMXRequest(streamProvider, jmxUrl);
+        metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, jmxUrl);
 
         // check to see if there is a cached value and use it if there is
         JMXMetricHolder jmxMetricHolder = metricsRetrievalService.getCachedJMXMetric(jmxUrl);
@@ -286,7 +287,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
               }
               if (queryURL != null) {
                 String adHocUrl = getSpec(protocol, hostName, port, queryURL);
-                metricsRetrievalService.submitJMXRequest(streamProvider, adHocUrl);
+                metricsRetrievalService.submitRequest(MetricSourceType.JMX, streamProvider, adHocUrl);
                 JMXMetricHolder adHocJMXMetricHolder = metricsRetrievalService.getCachedJMXMetric(adHocUrl);
 
                 // if the ticket becomes invalid (timeout) then bail out

@@ -1,0 +1,11 @@
+Aug  9 11:53:53 logsearch.apache.org su: pam_unix(su-l:session): session opened for user ambari-qa by (uid=0)
+Aug  9 11:53:53 logsearch.apache.org su: pam_unix(su-l:session): session closed for user ambari-qa
+Aug  9 11:53:53 logsearch.apache.org su: pam_unix(su-l:session): session opened for user ambari-qa by (uid=0)
+Aug  9 11:53:53 logsearch.apache.org su: pam_unix(su-l:session): session closed for user ambari-qa
+Aug  9 11:54:19 logsearch.apache.org su: pam_unix(su-l:session): session opened for user ambari-qa by (uid=0)
+Aug  9 11:54:19 logsearch.apache.org su: pam_unix(su-l:session): session closed for user ambari-qa
+Aug  9 11:54:19 logsearch.apache.org su: pam_unix(su-l:session): session opened for user ambari-qa by (uid=0)
+Aug  9 11:54:19 logsearch.apache.org su: pam_unix(su-l:session): session closed for user ambari-qa
+Aug  9 11:54:22 logsearch.apache.org su: pam_unix(su-l:session): session opened for user yarn by (uid=0)
+Aug  9 11:54:22 logsearch.apache.org su: pam_unix(su-l:session): session closed for user yarn
+Aug  9 11:54:22 logsearch.apache.org su: pam_unix(su-l:session): session opened for user yarn by (uid=0)

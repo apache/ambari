@@ -27,7 +27,7 @@ define(['require',
 	var VCommonModelBase = BaseModel.extend(
 	/** @lends VCommonModelBase.prototype */
 	{
-		urlRoot: Globals.baseURL + 'dashboard/getTreeExtension',
+		urlRoot: Globals.baseURL + 'service/logs/tree',
 		
 		defaults: {},
 		

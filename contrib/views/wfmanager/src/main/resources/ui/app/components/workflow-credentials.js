@@ -42,51 +42,44 @@ export default Ember.Component.extend(Ember.Evented, {
       }
     });
   },
-  validateChildrenComponents(){
-    var validationPromises = [];
-    var deferred = Ember.RSVP.defer();
-    if(this.get('childComponents').size === 0){
-      deferred.resolve(true);
-    }else{
-      this.get('childComponents').forEach((childComponent)=>{
-        if(!childComponent.validations){
-          return;
-        }
-        var validationDeferred = Ember.RSVP.defer();
-        childComponent.validate().then(()=>{
-          validationDeferred.resolve();
-        }).catch((e)=>{
-          validationDeferred.reject(e);
-        });
-        validationPromises.push(validationDeferred.promise);
-      });
-      Ember.RSVP.Promise.all(validationPromises).then(function(){
-        deferred.resolve(true);
-      }).catch(function(e){
-        deferred.reject(e);
-      });
-    }
-    return deferred;
-  },
   actions : {
     register(component, context){
       this.get('childComponents').set(component, context);
     },
+    createCredentials(){
+      this.set('editMode', false);
+      this.set('createMode',true);
+    },
+    editCredentials(index){
+      this.set('createMode', false);
+      this.set('editMode',true);
+      this.set('currentCredentialIndex', index);
+      this.set('currentCredentials', Ember.copy(this.get('credentialsList').objectAt(index)));
+    },
+    updateCredentials(){
+      this.set('editMode', false);
+      this.get('credentialsList').replace(this.get('currentCredentialIndex'), 1, Ember.copy(this.get('currentCredentials')));
+    },
     addCredentials (credentialsInfo){
       this.get('credentialsList').pushObject(credentialsInfo);
+      this.set('createMode', false);
     },
-    deleteCredentials(name){
-      var credentials = this.get('credentialsList').findBy('name', name);
-      this.get('credentialsList').removeObject(credentials);
+    deleteCredentials(index){
+      this.get('credentialsList').removeAt(index);
+      if(index === this.get('currentCredentialIndex')){
+        this.set('editMode', false);
+      }
+    },
+    cancelCreateMode(){
+      this.set('createMode', false);
+    },
+    cancelEditMode(){
+      this.set('editMode', false);
     },
     saveCredentials (){
-      var isFormValid = this.validateChildrenComponents();
-      isFormValid.promise.then(function(){
-        this.processMultivaluedComponents();
-        this.set('workflowCredentials', Ember.copy(this.get('credentialsList')));
-        this.$('#workflow_credentials_dialog').modal('hide');
-      }.bind(this)).catch(function (e) {
-      });
+      this.processMultivaluedComponents();
+      this.set('workflowCredentials', Ember.copy(this.get('credentialsList')));
+      this.$('#workflow_credentials_dialog').modal('hide');
     }
   }
 });

@@ -19,6 +19,9 @@ package org.apache.ambari.server.state.alerts;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.MockEventListener;
@@ -41,13 +44,13 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
@@ -55,6 +58,7 @@ import junit.framework.Assert;
 /**
  * Tests that {@link InitialAlertEventTest} instances are fired correctly.
  */
+@Category({ category.AlertTest.class })
 public class InitialAlertEventTest {
 
   private AlertsDAO m_alertsDao;
@@ -110,7 +114,7 @@ public class InitialAlertEventTest {
    */
   @After
   public void teardown() throws Exception {
-    m_injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
     m_injector = null;
   }
 
@@ -175,7 +179,6 @@ public class InitialAlertEventTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);
-    service.persist();
     service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

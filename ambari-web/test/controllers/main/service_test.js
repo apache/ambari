@@ -116,18 +116,17 @@ describe('App.MainServiceController', function () {
   describe("#isAllServicesInstalled", function() {
 
     beforeEach(function() {
-      sinon.stub(App.StackService, 'find').returns([
-        Em.Object.create({serviceName: 'S1'})
-      ]);
+      this.mock = sinon.stub(App.ServiceSimple, 'find');
     });
     afterEach(function() {
-      App.StackService.find.restore();
+      App.ServiceSimple.find.restore();
     });
 
     it("content is null", function() {
       mainServiceController.reopen({
         'content': null
       });
+      this.mock.returns([]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
@@ -136,6 +135,9 @@ describe('App.MainServiceController', function () {
       mainServiceController.reopen({
         'content': []
       });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
@@ -144,8 +146,22 @@ describe('App.MainServiceController', function () {
       mainServiceController.reopen({
         'content': [Em.Object.create({serviceName: 'S1'})]
       });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.true;
+    });
+    it("content doesn't match stack services", function() {
+      mainServiceController.reopen({
+        'content': [Em.Object.create({serviceName: 'S1'})]
+      });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false},
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
+      mainServiceController.propertyDidChange('isAllServicesInstalled');
+      expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
   });
 
@@ -373,41 +389,26 @@ describe('App.MainServiceController', function () {
     beforeEach(function () {
       sinon.spy(App, 'showConfirmationPopup');
       sinon.spy(mainServiceController, 'restartHostComponents');
-      sinon.stub(App.HostComponent, 'find', function() {
+      sinon.stub(App.Service, 'find', function() {
         return [
           Em.Object.create({
-            componentName: 'componentName1',
-            hostName: 'hostName1',
-            service: {
-              serviceName: 'serviceName1',
-              displayName: 'displayName1'
-            },
-            staleConfigs: true
+            displayName: 'displayName1',
+            isRestartRequired: true
           }),
           Em.Object.create({
-            componentName: 'componentName2',
-            hostName: 'hostName2',
-            service: {
-              serviceName: 'serviceName2',
-              displayName: 'displayName2'
-            },
-            staleConfigs: true
+            displayName: 'displayName2',
+            isRestartRequired: true
           }),
           Em.Object.create({
-            componentName: 'componentName3',
-            hostName: 'hostName3',
-            service: {
-              serviceName: 'serviceName3',
-              displayName: 'displayName3'
-            },
-            staleConfigs: false
+            displayName: 'displayName3',
+            isRestartRequired: false
           })
         ];
       });
     });
 
     afterEach(function () {
-      App.HostComponent.find.restore();
+      App.Service.find.restore();
       App.showConfirmationPopup.restore();
       mainServiceController.restartHostComponents.restore();
     });
@@ -461,7 +462,8 @@ describe('App.MainServiceController', function () {
             state: 'INSTALLED'
           }
         },
-        success: 'silentStopSuccess'
+        success: 'silentStopSuccess',
+        showLoadingPopup: true
       });
     });
   });
@@ -597,7 +599,8 @@ describe('App.MainServiceController', function () {
             state: 'STARTED'
           }
         },
-        success: 'silentCallSuccessCallback'
+        success: 'silentCallSuccessCallback',
+        showLoadingPopup: true
       });
       expect(mainServiceController.get('shouldStart')).to.be.false;
     });
@@ -686,28 +689,5 @@ describe('App.MainServiceController', function () {
       mainServiceController.restartAllRequiredSuccessCallback();
       expect(mock.showPopup.calledOnce).to.be.true;
     });
-  });
-
-  describe('#restartHostComponents', function () {
-
-    beforeEach(function () {
-      this.mock = sinon.stub(App.HostComponent, 'find');
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
-    });
-
-    it('should make batch request to refresh YARN queues', function () {
-      this.mock.returns([Em.Object.create({componentName: 'HIVE_SERVER_INTERACTIVE', staleConfigs: true}), Em.Object.create({componentName: 'RESOURCEMANAGER', staleConfigs: false})]);
-      mainServiceController.restartHostComponents();
-      expect(testHelpers.findAjaxRequest('name', 'common.batch.request_schedules')).not.to.be.undefined;
-    });
-
-    it('should make single request without refresh YARN queues', function () {
-      this.mock.returns([Em.Object.create({componentName: 'HIVE_SERVER_INTERACTIVE', staleConfigs: false}), Em.Object.create({componentName: 'RESOURCEMANAGER', staleConfigs: false})]);
-      mainServiceController.restartHostComponents();
-      expect(testHelpers.findAjaxRequest('name', 'request.post')).not.to.be.undefined;
-    });
-
   });
 });

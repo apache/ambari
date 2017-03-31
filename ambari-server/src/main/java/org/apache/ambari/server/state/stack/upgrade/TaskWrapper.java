@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Objects;
+
 /**
  * Aggregates all upgrade tasks for a HostComponent into one wrapper.
  */
@@ -43,7 +45,7 @@ public class TaskWrapper {
   public TaskWrapper(String s, String c, Set<String> hosts, Task... tasks) {
     this(s, c, hosts, null, Arrays.asList(tasks));
   }
-  
+
   /**
    * @param s the service name for the tasks
    * @param c the component name for the tasks
@@ -92,10 +94,16 @@ public class TaskWrapper {
     return hosts;
   }
 
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
-    return service + ":" + component + ":" + tasks + ":" + hosts;
+    return Objects.toStringHelper(this).add("service", service)
+        .add("component", component)
+        .add("tasks", tasks)
+        .add("hosts", hosts)
+        .omitNullValues().toString();
   }
 
   /**

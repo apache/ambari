@@ -45,8 +45,10 @@ public class AMSJMeterLoadTest {
   private List<AppGetMetric> appGetMetrics;
   private Properties amsJmeterProperties = null;
 
-  public AMSJMeterLoadTest(String testType, String userDefinedPropertiesFile) {
+  public AMSJMeterLoadTest(Map<String, String> args) {
 
+    String testType = args.get("type");
+    String userDefinedPropertiesFile = args.get("amsJmeterPropertiesFile");
     if (null == userDefinedPropertiesFile || userDefinedPropertiesFile.isEmpty()) {
       this.amsJmeterProperties = readProperties(PROPERTIES_FILE);
     } else {
@@ -60,12 +62,14 @@ public class AMSJMeterLoadTest {
       this.runTest(numInstances);
     } else {                    //PUT Metrics simulator
       Map<String, String> mapArgs = new HashMap<String, String>();
-      mapArgs.put("hostName", amsJmeterProperties.getProperty("host-prefix"));
-      mapArgs.put("numberOfHosts", amsJmeterProperties.getProperty("num-hosts"));
-      mapArgs.put("metricsHostName", amsJmeterProperties.getProperty("ams-host-port"));
-      mapArgs.put("collectInterval", amsJmeterProperties.getProperty("collection-interval"));
-      mapArgs.put("sendInterval", amsJmeterProperties.getProperty("send-interval"));
-      mapArgs.put("master", amsJmeterProperties.getProperty("create-master"));
+      mapArgs.put("hostName", (args.get("host-prefix") != null) ? args.get("host-prefix") : amsJmeterProperties.getProperty("host-prefix"));
+      mapArgs.put("minHostIndex", (args.get("min-host-index") != null) ? args.get("min-host-index") : amsJmeterProperties.getProperty("min-host-index"));
+      mapArgs.put("numberOfHosts", (args.get("num-hosts") != null) ? args.get("num-hosts") : amsJmeterProperties.getProperty("num-hosts"));
+      mapArgs.put("metricsHostName", (args.get("ams-host-port") != null) ? args.get("ams-host-port") : amsJmeterProperties.getProperty("ams-host-port"));
+      mapArgs.put("collectInterval", (args.get("collection-interval") != null) ? args.get("collection-interval") : amsJmeterProperties.getProperty("collection-interval"));
+      mapArgs.put("sendInterval", (args.get("send-interval") != null) ? args.get("send-interval") : amsJmeterProperties.getProperty("send-interval"));
+      mapArgs.put("master", (args.get("create-master") != null) ? args.get("create-master") : amsJmeterProperties.getProperty("create-master"));
+      System.out.println("AMS Load Simulation Parameters : " + mapArgs);
       MetricsLoadSimulator.startTest(mapArgs);
     }
   }
@@ -165,9 +169,7 @@ public class AMSJMeterLoadTest {
    */
   public static void main(String[] args) {
     Map<String, String> mapArgs = parseArgs(args);
-    String testType = mapArgs.get("type");
-    String amsJmeterPropertiesFile = mapArgs.get("amsJmeterPropertiesFile");
-    new AMSJMeterLoadTest(testType, amsJmeterPropertiesFile);
+    new AMSJMeterLoadTest(mapArgs);
   }
 
   private static Map<String, String> parseArgs(String[] args) {
@@ -178,14 +180,7 @@ public class AMSJMeterLoadTest {
     } else {
       for (int i = 0; i < args.length; i += 2) {
         String arg = args[i];
-        if (arg.equals("-t")) {
-          mapProps.put("type", args[i + 1]);
-        } else if (arg.equals("-p")) {
-          mapProps.put("amsJmeterPropertiesFile", args[i + 1]);
-        } else {
-          printUsage();
-          throw new IllegalArgumentException("Unexpected argument, See usage message.");
-        }
+        mapProps.put(arg.substring(1), args[i+1]);
       }
     }
     return mapProps;
@@ -194,7 +189,8 @@ public class AMSJMeterLoadTest {
   public static void printUsage() {
     System.err.println("Usage: java AMSJmeterLoadTest [OPTIONS]");
     System.err.println("Options: ");
-    System.err.println("[-t type (S=>Sink/U=>UI)] [-p amsJmeterPropertiesFile (Optional)]");
+    System.err.println("[--t type (S=>Sink/U=>UI)] [-ams-host-port localhost:6188] [-min-host-index 2] [-host-prefix TestHost.] [-num-hosts 2] " +
+      "[-create-master true] [-collection-interval 10000 ] [-send-interval 60000 ] [-p amsJmeterPropertiesFile (Optional)]");
   }
 
 }

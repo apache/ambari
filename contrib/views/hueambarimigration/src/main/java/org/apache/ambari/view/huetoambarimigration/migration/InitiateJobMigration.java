@@ -26,6 +26,7 @@ import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.Migr
 import org.apache.ambari.view.huetoambarimigration.migration.hive.savedquery.HiveSavedQueryStartJob;
 import org.apache.ambari.view.huetoambarimigration.migration.pig.pigjob.PigJobStartJob;
 import org.apache.ambari.view.huetoambarimigration.migration.pig.pigscript.PigSavedScriptStartJob;
+import org.apache.ambari.view.huetoambarimigration.migration.pig.pigudf.PigUdfStartJob;
 import org.json.simple.JSONObject;
 
 import javax.ws.rs.GET;
@@ -84,6 +85,10 @@ public class InitiateJobMigration implements Runnable {
     } else if (jobtype.contains("pigsavedscriptmigration")) {
 
       new PigSavedScriptStartJob(username, instance, startdate, enddate, jobid, view).start();
+
+    } else if (jobtype.contains("pigudfmigration")) {
+
+      new PigUdfStartJob(username, instance, jobid, view).start();
 
     }
 

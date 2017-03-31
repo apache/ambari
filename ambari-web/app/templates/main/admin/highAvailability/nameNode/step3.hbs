@@ -52,12 +52,10 @@
         </td>
         <td>
           <ul>
-            <li><span class="to-be-installed-green"><i
-                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
-            <li><span class="to-be-installed-green"><i
-                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
-            <li><span class="to-be-installed-green"><i
-                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
+              {{#each item in view.journalNodes}}
+                  <li><span class="to-be-installed-green"><i
+                          class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
+              {{/each}}
           </ul>
         </td>
       </tr>

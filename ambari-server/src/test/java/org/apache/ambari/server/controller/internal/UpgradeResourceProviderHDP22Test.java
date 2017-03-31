@@ -17,24 +17,22 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
@@ -60,13 +58,11 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -74,30 +70,23 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * UpgradeResourceDefinition tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AuthorizationHelper.class})
-@PowerMockIgnore({"javax.management.*", "javax.crypto.*"})
 public class UpgradeResourceProviderHDP22Test {
 
   private UpgradeDAO upgradeDao = null;
@@ -108,6 +97,7 @@ public class UpgradeResourceProviderHDP22Test {
   private AmbariManagementController amc;
   private StackDAO stackDAO;
   private TopologyManager topologyManager;
+  private ConfigFactory configFactory;
 
   private static final String configTagVersion1 = "version1";
   private static final String configTagVersion2 = "version2";
@@ -120,6 +110,9 @@ public class UpgradeResourceProviderHDP22Test {
 
   @Before
   public void before() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
     // create an injector which will inject the mocks
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
 
@@ -136,6 +129,7 @@ public class UpgradeResourceProviderHDP22Test {
     stackDAO = injector.getInstance(StackDAO.class);
     upgradeDao = injector.getInstance(UpgradeDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
 
     AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
     replay(publisher);
@@ -169,19 +163,17 @@ public class UpgradeResourceProviderHDP22Test {
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single HIVE server
     Service service = cluster.addService("HIVE");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -194,18 +186,11 @@ public class UpgradeResourceProviderHDP22Test {
     StageUtils.setTopologyManager(topologyManager);
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
     ActionManager.setTopologyManager(topologyManager);
-
-
-    Method isAuthorizedMethod = AuthorizationHelper.class.getMethod("isAuthorized", ResourceType.class, Long.class, Set.class);
-    PowerMock.mockStatic(AuthorizationHelper.class, isAuthorizedMethod);
-    expect(AuthorizationHelper.isAuthorized(eq(ResourceType.CLUSTER), anyLong(),
-        eq(EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK)))).andReturn(true).anyTimes();
-    PowerMock.replay(AuthorizationHelper.class);
   }
 
   @After
-  public void after() {
-    injector.getInstance(PersistService.class).stop();
+  public void after() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
     injector = null;
   }
 
@@ -235,17 +220,14 @@ public class UpgradeResourceProviderHDP22Test {
       }
     }
 
-    Config config = new ConfigImpl("hive-site");
-    config.setProperties(configTagVersion1Properties);
-    config.setTag(configTagVersion1);
-
-    cluster.addConfig(config);
+    Config config = configFactory.createNew(cluster, "hive-site", configTagVersion1, configTagVersion1Properties, null);
     cluster.addDesiredConfig("admin", Collections.singleton(config));
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.4.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -288,9 +270,7 @@ public class UpgradeResourceProviderHDP22Test {
     // Hive service checks have generated the ExecutionCommands by now.
     // Change the new desired config tag and verify execution command picks up new tag
     assertEquals(configTagVersion1, cluster.getDesiredConfigByType("hive-site").getTag());
-    final Config newConfig = new ConfigImpl("hive-site");
-    newConfig.setProperties(configTagVersion2Properties);
-    newConfig.setTag(configTagVersion2);
+    final Config newConfig = configFactory.createNew(cluster, "hive-site", configTagVersion2, configTagVersion2Properties, null);
     Set<Config> desiredConfigs = new HashSet<Config>() {
       {
         add(newConfig);
@@ -309,7 +289,7 @@ public class UpgradeResourceProviderHDP22Test {
 
       // ensure that the latest tag is being used - this is absolutely required
       // for upgrades
-      Set<String> roleCommandsThatMustHaveRefresh = new HashSet<String>();
+      Set<String> roleCommandsThatMustHaveRefresh = new HashSet<>();
       roleCommandsThatMustHaveRefresh.add("SERVICE_CHECK");
       roleCommandsThatMustHaveRefresh.add("RESTART");
       roleCommandsThatMustHaveRefresh.add("ACTIONEXECUTE");

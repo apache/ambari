@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.logger import Logger
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
@@ -105,6 +106,18 @@ class InfraSolr(Script):
        action="delete"
        )
 
+  def disable_security(self, env):
+    import params
+    if not params.infra_solr_znode:
+      Logger.info("Skipping reverting ACL")
+      return
+    zkmigrator = ZkMigrator(
+      zk_host=params.zookeeper_quorum,
+      java_exec=params.java_exec,
+      java_home=params.java64_home,
+      jaas_file=params.infra_solr_jaas_file,
+      user=params.infra_solr_user)
+    zkmigrator.set_acls(params.infra_solr_znode, 'world:anyone:crdwa')
 
 if __name__ == "__main__":
   InfraSolr().execute()

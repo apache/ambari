@@ -99,12 +99,6 @@ describe('App.MainConfigHistoryView', function() {
       it('setDisplayLength is called with correct arguments', function () {
         expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '50')).to.be.true;
       });
-      it('paginationProps.startIndex = 0', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(0);
-      });
-      it('paginationProps.displayLength = 50', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
-      });
     });
 
     describe('startIndex is correct', function() {
@@ -122,12 +116,6 @@ describe('App.MainConfigHistoryView', function() {
       });
       it('setDisplayLength is not called', function () {
         expect(App.db.setDisplayLength.called).to.be.false;
-      });
-      it('paginationProps.startIndex = 10', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(10);
-      });
-      it('paginationProps.displayLength = 50', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('50');
       });
     });
 
@@ -147,12 +135,6 @@ describe('App.MainConfigHistoryView', function() {
       it('setDisplayLength is called with valid arguments', function () {
         expect(App.db.setDisplayLength.calledWith('mainConfigHistoryController', '100')).to.be.true;
       });
-      it('paginationProps.startIndex = 20', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      });
-      it('paginationProps.displayLength = 100', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
-      });
     });
 
     describe('displayLength and startIndex are null', function() {
@@ -170,12 +152,6 @@ describe('App.MainConfigHistoryView', function() {
       it('setDisplayLength is not called', function () {
       expect(App.db.setDisplayLength.called).to.be.false;
       });
-      it('paginationProps.startIndex = 20', function () {
-      expect(view.get('controller.paginationProps').findProperty('name', 'startIndex').value).to.equal(20);
-      });
-      it('paginationProps.displayLength = 100', function () {
-        expect(view.get('controller.paginationProps').findProperty('name', 'displayLength').value).to.equal('100');
-      });
     });
   });
 
@@ -183,12 +159,14 @@ describe('App.MainConfigHistoryView', function() {
     beforeEach(function () {
       sinon.stub(view, 'saveFilterConditions', Em.K);
       sinon.stub(view, 'refresh', Em.K);
+      sinon.stub(view, 'resetStartIndex');
       sinon.spy(view, 'updateFilter');
       this.clock = sinon.useFakeTimers();
     });
     afterEach(function () {
       view.saveFilterConditions.restore();
       view.updateFilter.restore();
+      view.resetStartIndex.restore();
       view.refresh.restore();
       this.clock.restore();
     });
@@ -231,12 +209,22 @@ describe('App.MainConfigHistoryView', function() {
   });
 
   describe('#resetStartIndex()', function() {
+    beforeEach(function () {
+      sinon.stub(view, 'updatePagination');
+      sinon.spy(view, 'saveStartIndex');
+    });
+    afterEach(function () {
+      view.saveStartIndex.restore();
+      view.updatePagination.restore();
+    });
     it('resetStartIndex is false and filteredCount is 0', function() {
       view.set('filteredCount', 0);
       view.set('controller.resetStartIndex', false);
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
+      expect(view.saveStartIndex.called).to.be.false;
+      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is true and filteredCount is 0', function() {
       view.set('filteredCount', 0);
@@ -244,6 +232,8 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
+      expect(view.saveStartIndex.called).to.be.false;
+      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is false and filteredCount is 5', function() {
       view.set('filteredCount', 5);
@@ -251,6 +241,8 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(0);
+      expect(view.saveStartIndex.called).to.be.false;
+      expect(view.updatePagination.called).to.be.false;
     });
     it('resetStartIndex is true and filteredCount is 5', function() {
       view.set('controller.resetStartIndex', true);
@@ -258,6 +250,8 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(1);
+      expect(view.saveStartIndex.called).to.be.true;
+      expect(view.updatePagination.called).to.be.true;
     });
   });
 

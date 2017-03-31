@@ -33,6 +33,9 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.quicklinks.Link;
+import org.apache.ambari.server.state.quicklinks.QuickLinks;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -174,6 +177,8 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
           }
         }
 
+        setVisibility(serviceInfo.getName(), serviceQuickLinks);
+
         List<Resource> serviceResources = new ArrayList<Resource>();
         for (QuickLinksConfigurationInfo quickLinksConfigurationInfo : serviceQuickLinks) {
           Resource resource = new ResourceImpl(Resource.Type.QuickLink);
@@ -192,6 +197,23 @@ public class QuickLinkArtifactResourceProvider extends AbstractControllerResourc
       }
     }
     return resources;
+  }
+
+  /**
+   * Sets the visibility flag of the links based on the actual quicklinks profile (if exists).
+   * @param serviceName the name of the service
+   * @param serviceQuickLinks the links
+   */
+  private void setVisibility(String serviceName, List<QuickLinksConfigurationInfo> serviceQuickLinks) {
+    QuickLinkVisibilityController visibilityController = getManagementController().getQuicklinkVisibilityController();
+
+    for(QuickLinksConfigurationInfo configurationInfo: serviceQuickLinks) {
+      for (QuickLinks links: configurationInfo.getQuickLinksConfigurationMap().values()) {
+        for(Link link: links.getQuickLinksConfiguration().getLinks()) {
+          link.setVisible(visibilityController.isVisible(serviceName, link));
+        }
+      }
+    }
   }
 
   @Override

@@ -39,6 +39,9 @@ class ExitHelper(object):
   """
   Class to cleanup resources before exiting. Replacement for atexit module. sys.exit(code) works only from threads and
   os._exit(code) will ignore atexit and cleanup will be ignored.
+
+  WARNING: always import as `ambari_agent.ExitHelper import ExitHelper`, otherwise it will be imported twice and nothing
+  will work as expected.
   """
   __metaclass__ = _singleton
 

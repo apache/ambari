@@ -333,13 +333,6 @@ class TestHBaseMaster(RMFTestCase):
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
     )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop'
@@ -385,7 +378,7 @@ class TestHBaseMaster(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
 
     self.assertResourceCalled('HdfsResource', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
@@ -471,13 +464,6 @@ class TestHBaseMaster(RMFTestCase):
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
     )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/etc/hadoop/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -527,7 +513,7 @@ class TestHBaseMaster(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2'
+                              content=InlineTemplate('log4jproperties\nline2')
     )
     self.assertResourceCalled('HdfsResource', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -620,13 +606,6 @@ class TestHBaseMaster(RMFTestCase):
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
 
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
-
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -677,7 +656,7 @@ class TestHBaseMaster(RMFTestCase):
                               mode=0644,
                               group='hadoop',
                               owner='hbase',
-                              content='log4jproperties\nline2')
+                              content=InlineTemplate('log4jproperties\nline2'))
 
     self.assertResourceCalled('HdfsResource', 'hdfs://nn1/apps/hbase/data',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

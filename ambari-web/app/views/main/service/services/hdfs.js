@@ -74,10 +74,12 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
       $('[rel=healthTooltip]').tooltip('destroy')
     }
   }),
-
-  didInsertElement: function() {
-    App.tooltip($("[rel='tooltip']"));
-  },
+  
+  metricsNotAvailableObserver: function () {
+    if(!this.get("service.metricsNotAvailable")) {
+      App.tooltip($("[rel='tooltip']"));
+    }
+  }.observes("service.metricsNotAvailable"),
 
   willDestroyElement: function() {
     $("[rel='tooltip']").tooltip('destroy');
@@ -151,7 +153,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
   }.property(),
 
-  journalNodeComponent: Em.computed.alias('service.journalNodes.firstObject'),
+  journalNodeComponent: Em.Object.create({
+    componentName: 'JOURNALNODE'
+  }),
 
   /**
    * @type {string}

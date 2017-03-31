@@ -27,18 +27,20 @@ import com.google.inject.assistedinject.Assisted;
  * Factory for creating configuration objects using {@link Assisted} constructor parameters
  */
 public interface ConfigFactory {
-  
+
   /**
    * Creates a new {@link Config} object using provided values.
    *
    * @param cluster
    * @param type
+   * @param tag
    * @param map
    * @param mapAttributes
    * @return
    */
-  Config createNew(Cluster cluster, String type, Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
-  
+  Config createNew(Cluster cluster, @Assisted("type") String type, @Assisted("tag") String tag,
+      Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
+
   /**
    * Creates a new {@link Config} object using provided entity
    *
@@ -48,4 +50,16 @@ public interface ConfigFactory {
    */
   Config createExisting(Cluster cluster, ClusterConfigEntity entity);
 
+  /**
+   * Creates a read-only instance of a {@link Config} suitable for returning in
+   * REST responses.
+   *
+   * @param type
+   * @param tag
+   * @param map
+   * @param mapAttributes
+   * @return
+   */
+  Config createReadOnly(@Assisted("type") String type, @Assisted("tag") String tag,
+      Map<String, String> map, Map<String, Map<String, String>> mapAttributes);
 }

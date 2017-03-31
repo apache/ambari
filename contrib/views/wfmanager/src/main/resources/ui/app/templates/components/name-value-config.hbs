@@ -19,19 +19,11 @@
   {{#each configuration.property as |property index|}}
   {{#if (not property.static)}}
   <div class="form-group">
-    {{#if (eq index 0)}}
-      <label class="control-label col-xs-2">Name</label>
-    {{else}}
-      <label class="control-label col-xs-2"></label>
-    {{/if}}
+    <label class="control-label col-xs-2 {{if (not-eq index 0) 'visibility-hidden'}}">Name</label>
     <div class=" col-xs-3">
       {{input type="text" class="form-control" value=property.name placeholder="name"}}
     </div>
-    {{#if (eq index 0)}}
-      <label class="control-label col-xs-1">Value</label>
-    {{else}}
-      <label class="control-label col-xs-1"></label>
-    {{/if}}
+    <label class="control-label col-xs-1 {{if (not-eq index 0) 'visibility-hidden'}}">Value</label>
     <div class=" col-xs-3">
       {{input class="form-control" type="text" value=property.value placeholder="value"}}
     </div>
@@ -43,7 +35,7 @@
   {{/each}}
   <div class="form-group">
     {{#if configuration.property}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">Name</label>
     {{else}}
       <label class="control-label col-xs-2">Name</label>
     {{/if}}
@@ -51,7 +43,7 @@
       {{input type="text" class="form-control" name="name" value=propertyName placeholder="name"}}
     </div>
     {{#if configuration.property}}
-      <label class="control-label col-xs-1"></label>
+      <label class="control-label col-xs-1 visibility-hidden">Value</label>
     {{else}}
       <label class="control-label col-xs-1">Value</label>
     {{/if}}
@@ -59,7 +51,7 @@
       {{input class="form-control" type="text" indValidations="required"  name="value" value=propertyValue placeholder="value"}}
     </div>
     <div class="col-xs-1">
-      <input class="form-control btn btn-success" type="button" {{action "addProperty"}} value="+">
+      <input class="form-control btn btn-secondary" type="button" {{action "addProperty"}} value="+">
     </div>
   </div>
 </div>

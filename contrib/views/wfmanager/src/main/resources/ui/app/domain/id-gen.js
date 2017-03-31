@@ -29,6 +29,10 @@ var IdGen = Ember.Object.extend({
   reset(){
     this.nameCount=0;
     this.idCount=0;
+  },
+  resetTo(val){
+    this.nameCount=val;
+    this.idCount=val;
   }
 });
 var idGen=IdGen.create({});

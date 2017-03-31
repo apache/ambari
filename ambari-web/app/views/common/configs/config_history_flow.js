@@ -30,7 +30,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
   leftArrowTooltip: Em.computed.ifThenElse('showLeftArrow', Em.I18n.t('services.service.config.configHistory.leftArrow.tooltip'), null),
   rightArrowTooltip: Em.computed.ifThenElse('showRightArrow', Em.I18n.t('services.service.config.configHistory.rightArrow.tooltip'), null),
   VERSIONS_IN_FLOW: 6,
-  VERSIONS_IN_DROPDOWN: 6,
+  VERSIONS_IN_DROPDOWN: 25,
   /**
    * flag identify whether to show all versions or short list of them
    */
@@ -45,6 +45,19 @@ App.ConfigHistoryFlowView = Em.View.extend({
     COMPARE: 'compare',
     REVERT: 'revert'
   },
+
+  /**
+   * serviceVersion object that is currently being hovered in the dropdown menu
+   */
+  hoveredServiceVersion: null,
+  /**
+   * flag to check if sub-menu popup is currently being hovered
+   */
+  displaySubMenuFlag: false,
+  /**
+   * flag to check if any dropdown item is currently hovered by the user
+   */
+  isHovered: false,
 
   /**
    * In reason of absence of properties dynamic values support which passed to an action,
@@ -151,21 +164,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.set('showFullList', !(this.get('serviceVersions.length') > this.VERSIONS_IN_DROPDOWN));
   },
 
-  computePosition: function(event) {
-    var $el = this.$('.dropdown-menu', event.currentTarget);
-    // remove existing style - in case user scrolls the page
-    $el.removeAttr('style');
-    var elHeight = $el.outerHeight(),
-      parentHeight = $el.parent().outerHeight(),
-      pagePosition = window.innerHeight + window.pageYOffset,
-      elBottomPosition = $el.offset().top + elHeight,
-      shouldShowUp = elBottomPosition > pagePosition ;
-    if (shouldShowUp) {
-      $el.css('margin-top', -(elHeight - parentHeight));
-    }
-    $el = null;
-  },
-
   didInsertElement: function () {
     App.tooltip(this.$('[data-toggle=tooltip]'),{
       placement: 'bottom',
@@ -175,6 +173,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       placement: 'top'
     });
     this.$(".version-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 10});
+    this.onChangeConfigGroup();
   },
 
   willDestroyElement: function() {
@@ -213,38 +212,37 @@ App.ConfigHistoryFlowView = Em.View.extend({
   onChangeConfigGroup: function () {
     var serviceVersions = this.get('serviceVersions');
     var selectedGroupName = this.get('controller.selectedConfigGroup.name');
+    var preselectedVersion = this.get('controller.selectedVersion');
     var startIndex = 0;
     var currentIndex = 0;
+    var isCurrentInDefaultGroupIndex = null;
+
 
     serviceVersions.setEach('isDisplayed', false);
-    //display the version belongs to current group
-    if (this.get('controller.selectedConfigGroup.isDefault')) {
-      // display current in default group
-      serviceVersions.forEach(function (serviceVersion, index) {
-        // find current in default group
-        if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
-          serviceVersion.set('isDisplayed', true);
-          currentIndex = index + 1;
-        }
-      });
-    } else {
-      // display current in selected group
+    // display selected version from config history
+    serviceVersions.forEach(function (serviceVersion, index) {
+      // find selected version in group
+      if (serviceVersion.get('version') === preselectedVersion && serviceVersion.get('groupName') === selectedGroupName) {
+        serviceVersion.set('isDisplayed', true);
+        currentIndex = index + 1;
+      }
+    });
+    // display current in selected group
+    if (!currentIndex) {
       serviceVersions.forEach(function (serviceVersion, index) {
         // find current in selected group
         if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === selectedGroupName) {
           serviceVersion.set('isDisplayed', true);
           currentIndex = index + 1;
         }
+        if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
+          isCurrentInDefaultGroupIndex = index;
+        }
       });
-      // no current version for selected group, show default group current version
-      if (currentIndex == 0) {
-        serviceVersions.forEach(function (serviceVersion, index) {
-          // find current in default group
-          if (serviceVersion.get('isCurrent') && serviceVersion.get('groupName') === App.ServiceConfigGroup.defaultGroupName) {
-            currentIndex = index + 1;
-            serviceVersion.set('isDisplayed', true);
-          }
-        });
+      // if there is no current version in selected group show current version from default group
+      if (!currentIndex) {
+        serviceVersions[isCurrentInDefaultGroupIndex].set('isDisplayed', true);
+        currentIndex = isCurrentInDefaultGroupIndex + 1;
       }
     }
     // show current version as the last one
@@ -253,7 +251,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-  }.observes('controller.selectedConfigGroup.name'),
+  }.observes('controller.selectedConfigGroup'),
 
   /**
    *  define the first element in viewport
@@ -276,11 +274,16 @@ App.ConfigHistoryFlowView = Em.View.extend({
     var type = event.contexts[1],
         controller = this.get('controller'),
         self = this;
-
+    if (!controller.get('versionLoaded')) {
+      return;
+    }
+    // action from right popup of pull down version list will have context[0] == undefined, and use 'hoveredServiceVersion'.
+    // refer to AMBARI-19871 for more info
+    var configVersion = event.contexts[0] || this.get('hoveredServiceVersion');
     if (type === 'switchVersion') {
-      if (event.context.get("isDisplayed"))  return;
+      if (configVersion && configVersion.get("isDisplayed"))  return;
     } else {
-      var isDisabled = event.context ? event.context.get('isDisabled') : false;
+      var isDisabled = configVersion ? configVersion.get('isDisabled') : false;
       if (isDisabled) return;
     }
 
@@ -297,15 +300,16 @@ App.ConfigHistoryFlowView = Em.View.extend({
       self.disableVersions();
       callback();
     });
+    $("#config_version_popup").removeAttr('style');
   },
 
   /**
    * switch configs view version to chosen
    */
   switchVersion: function (event) {
-    var version = event.context.get('version');
+    var configVersion = event.contexts[0] || this.get('hoveredServiceVersion');
+    var version = configVersion.get('version');
     var versionIndex = 0;
-
     this.set('compareServiceVersion', null);
     this.get('serviceVersions').forEach(function (serviceVersion, index) {
       if (serviceVersion.get('version') === version) {
@@ -324,8 +328,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
-    this.set('controller.compareServiceVersion', event.context);
-    this.set('compareServiceVersion', event.context);
+    var serviceConfigVersion = event.contexts[0] || this.get('hoveredServiceVersion');
+    this.set('controller.compareServiceVersion', serviceConfigVersion);
+    this.set('compareServiceVersion', serviceConfigVersion);
+
     var controller = this.get('controller');
     controller.get('stepConfigs').clear();
     controller.loadCompareVersionConfigs(controller.get('allConfigs')).done(function() {
@@ -359,7 +365,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   revert: function (event) {
     var self = this;
-    var serviceConfigVersion = event.context || Em.Object.create({
+    var serviceConfigVersion = event.contexts[0] || this.get('hoveredServiceVersion') || Em.Object.create({
       version: this.get('displayedServiceVersion.version'),
       serviceName: this.get('displayedServiceVersion.serviceName'),
       notes:''
@@ -554,4 +560,86 @@ App.ConfigsServiceVersionBoxView = Em.View.extend({
     this.$('[data-toggle=tooltip]').tooltip('destroy');
     this.$('[data-toggle=arrow-tooltip]').tooltip('destroy');
   }
+});
+
+App.ConfigHistoryDropdownRowView = Em.View.extend({
+
+  templateName: require('templates/common/configs/config_history_dropdown_row'),
+
+  tagName: "li",
+
+  classNameBindings: [':pointer', ':dropdown-submenu', 'isDisplayed:not-allowed'],
+
+  serviceVersion: null,
+
+  isDisplayed: function() {
+    var serviceVersion = this.get('serviceVersion');
+    if(serviceVersion) {
+      return serviceVersion.get('isDisplayed');
+    }
+    return false;
+  }.property('serviceVersion'),
+
+  actionTypesBinding: 'parentView.actionTypes',
+
+  doAction: function(event) {
+    this.get('parentView').doAction(event);
+  },
+
+  eventManager: Ember.Object.create({
+    mouseEnter: function(event, view) {
+      var serviceVersion = view.get('serviceVersion');
+      var version = serviceVersion.get('version');
+      var $el = $('#config_version_popup');
+      var $currentTarget = $(event.currentTarget);
+      var parentView = view.get('parentView');
+      parentView.set('hoveredServiceVersion', null);
+      if (!serviceVersion.get("isDisplayed"))  {
+        parentView.set('hoveredServiceVersion', serviceVersion);
+        parentView.set('isHovered', true);
+        var elHeight = $el.outerHeight(),
+          pagePosition = window.innerHeight + window.pageYOffset,
+          elBottomPosition = $currentTarget[0].getBoundingClientRect().top + elHeight,
+          shouldShowUp = elBottomPosition > pagePosition;
+        $el.css({
+          "position": "fixed",
+          "top": $currentTarget[0].getBoundingClientRect().top,
+          "left": $currentTarget[0].getBoundingClientRect().left + 400,
+          "margin-top": -(elHeight/3),
+          "display": "block"
+        });
+        if (shouldShowUp) {
+          $el.css('margin-top', -(elHeight - $currentTarget.outerHeight()));
+        }
+      }
+      $el = null;
+    },
+    mouseLeave: function(event, view) {
+      var parentView = view.get('parentView');
+      parentView.set('isHovered', false);
+      Em.run.later(function() {
+        if(!parentView.get('displaySubMenuFlag') && !parentView.get('isHovered')) {
+          $('#config_version_popup').removeAttr('style');
+        }
+      }, 200);
+    }
+  })
+});
+
+App.ConfigHistoryDropdownSubMenuView = Em.View.extend({
+
+  tagName: 'ul',
+
+  classNameBindings: [':dropdown-menu', ':version-info-operations'],
+
+  eventManager: Ember.Object.create({
+    mouseEnter: function(event, view) {
+      view.get('parentView').set('displaySubMenuFlag', true);
+    },
+    mouseLeave: function(event, view) {
+      var parentView = view.get('parentView');
+      parentView.set('displaySubMenuFlag', false);
+      $("#config_version_popup").removeAttr('style');
+    }
+  })
 });

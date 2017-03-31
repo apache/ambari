@@ -28,6 +28,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -117,7 +118,7 @@ public class ServiceComponentDesiredStateDAO {
 
   @Transactional
   public void remove(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
-    entityManagerProvider.get().remove(merge(serviceComponentDesiredStateEntity));
+    entityManagerProvider.get().remove(serviceComponentDesiredStateEntity);
   }
 
   @Transactional
@@ -175,7 +176,27 @@ public class ServiceComponentDesiredStateDAO {
     query.setParameter("serviceName", serviceName);
     query.setParameter("componentName", componentName);
 
-    ServiceComponentDesiredStateEntity entity = null;
     return daoUtils.selectList(query);
   }
+
+  /**
+   * @param clusterId     the cluster id
+   * @param serviceName   the service name
+   * @param componentName the component name
+   * @return the list of repository versions for a component
+   */
+  @RequiresSession
+  public List<ServiceComponentVersionEntity> findVersions(long clusterId, String serviceName,
+      String componentName) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<ServiceComponentVersionEntity> query = entityManager.createNamedQuery(
+        "ServiceComponentVersionEntity.findByComponent", ServiceComponentVersionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+    query.setParameter("componentName", componentName);
+
+    return daoUtils.selectList(query);
+  }
+
 }

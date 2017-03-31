@@ -9,7 +9,7 @@
         {
           "name": "hbase",
           "principal": {
-            "value": "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}",
+            "value": "${hbase-env/hbase_user}${principal_suffix}@${realm}",
             "type" : "user",
             "configuration": "hbase-env/hbase_principal_name",
             "local_username": "${hbase-env/hbase_user}"

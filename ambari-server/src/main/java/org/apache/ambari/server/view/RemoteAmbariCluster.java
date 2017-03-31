@@ -21,8 +21,10 @@ package org.apache.ambari.server.view;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.RemoteAmbariClusterEntity;
 import org.apache.ambari.view.AmbariHttpException;
@@ -35,8 +37,10 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -155,6 +159,32 @@ public class RemoteAmbariCluster implements Cluster {
     if (property == null || !property.isJsonPrimitive()) return null;
 
     return property.getAsJsonPrimitive().getAsString();
+  }
+
+  @Override
+  public Map<String, String> getConfigByType(String type) {
+    JsonElement config = null;
+    try {
+      String desiredTag = getDesiredConfig(type);
+      if (desiredTag != null) {
+        config = configurationCache.get(String.format("%s/configurations?(type=%s&tag=%s)",this.clusterPath, type, desiredTag));
+      }
+    } catch (ExecutionException e) {
+      throw new RemoteAmbariConfigurationReadException("Can't retrieve configuration from Remote Ambari", e);
+    }
+    if (config == null || !config.isJsonObject()) return null;
+    JsonElement items = config.getAsJsonObject().get("items");
+
+    if (items == null || !items.isJsonArray()) return null;
+    JsonElement item = items.getAsJsonArray().get(0);
+
+    if (item == null || !item.isJsonObject()) return null;
+    JsonElement properties = item.getAsJsonObject().get("properties");
+
+    if (properties == null || !properties.isJsonObject()) return null;
+
+    Map<String, String> retMap = new Gson().fromJson(properties, new TypeToken<HashMap<String, String>>() {}.getType());
+    return retMap;
   }
 
   @Override

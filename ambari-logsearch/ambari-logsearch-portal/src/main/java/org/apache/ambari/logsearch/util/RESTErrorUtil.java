@@ -26,35 +26,39 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.view.VMessage;
-import org.apache.ambari.logsearch.view.VResponse;
+import org.apache.ambari.logsearch.common.MessageData;
+import org.apache.ambari.logsearch.common.VResponse;
 import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
 
-@Component
 public class RESTErrorUtil {
+  private static final Logger logger = Logger.getLogger(RESTErrorUtil.class);
 
-  private static Logger logger = Logger.getLogger(RESTErrorUtil.class);
-
-  public WebApplicationException createRESTException(VResponse response) {
+  private RESTErrorUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static WebApplicationException createRESTException(VResponse response) {
     return createRESTException(response, HttpServletResponse.SC_BAD_REQUEST);
   }
 
-  public WebApplicationException createRESTException(String errorMessage,
-                                                     MessageEnums messageEnum) {
-    List<VMessage> messageList = new ArrayList<VMessage>();
+  public static VResponse createMessageResponse(String errorMessage, MessageEnums messageEnum) {
+    List<MessageData> messageList = new ArrayList<>();
     messageList.add(messageEnum.getMessage());
-
     VResponse response = new VResponse();
     response.setStatusCode(VResponse.STATUS_ERROR);
     response.setMsgDesc(errorMessage);
     response.setMessageList(messageList);
+    return response;
+  }
+
+  public static WebApplicationException createRESTException(String errorMessage, MessageEnums messageEnum) {
+    VResponse response = createMessageResponse(errorMessage, messageEnum);
     WebApplicationException webAppEx = createRESTException(response);
     logger.error("Operation error. response=" + response, webAppEx);
     return webAppEx;
   }
 
-  public WebApplicationException createRESTException(VResponse response, int sc) {
+  private static WebApplicationException createRESTException(VResponse response, int sc) {
     Response errorResponse = Response.status(sc).entity(response).build();
     WebApplicationException restException = new WebApplicationException(errorResponse);
     restException.fillInStackTrace();

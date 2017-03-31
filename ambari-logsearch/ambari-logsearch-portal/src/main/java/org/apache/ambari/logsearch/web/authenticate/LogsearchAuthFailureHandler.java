@@ -24,27 +24,20 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 
 public class LogsearchAuthFailureHandler extends ExceptionMappingAuthenticationFailureHandler {
-
   private static final Logger logger = Logger.getLogger(LogsearchAuthFailureHandler.class);
 
-  @Autowired
-  RESTErrorUtil restErrorUtil;
-
-  public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                                      AuthenticationException exception) throws IOException, ServletException {
+  public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+      throws IOException, ServletException {
     logger.debug(" AuthFailureHandler + onAuthenticationFailure");
     // TODO UI side handle status and redirect to login page with proper
     response.setContentType("application/json");
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.getOutputStream().println("{ \"error\": \"" + "login failed !!" + "\" }");
-
   }
 
 }

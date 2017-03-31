@@ -59,7 +59,7 @@
           <commandScript>
             <script>scripts/oozie_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
+            <timeout>1800</timeout>
           </commandScript>
           <logs>
             <log>
@@ -125,7 +125,7 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysl_connector</condition>
+              <condition>should_install_mysql_connector</condition>
             </package>
             <package>
               <name>extjs</name>
@@ -155,9 +155,6 @@
             <package>
               <name>extjs</name>
             </package>
-            <package>
-              <name>libxml2-utils</name>
-            </package>
           </packages>
         </osSpecific>
       </osSpecifics>
@@ -179,6 +176,8 @@
         <config-type>yarn-site</config-type>
         <config-type>hive-site</config-type>
         <config-type>tez-site</config-type>
+        <config-type>mapred-site</config-type>
+        <config-type>core-site</config-type>
       </configuration-dependencies>
 
       <quickLinksConfigurations>

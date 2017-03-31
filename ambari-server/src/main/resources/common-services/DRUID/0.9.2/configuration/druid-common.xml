@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>druid.extensions.pullList</name>
+    <value>[]</value>
+    <description>A comma-separated list of one or more druid extensions to download from maven.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.extensions.repositoryList</name>
+    <value>[]</value>
+    <description>A comma-separated list of maven repositories to download extensions.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.extensions.loadList</name>
+    <value>["druid-datasketches"]
+    </value>
+    <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.type</name>
+      </property>
+    </depends-on>
+    <description>A comma-separated list of one or more druid extensions to load.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.security.extensions.loadList</name>
+    <value>[]</value>
+    <description>A comma-separated list of one or more druid security extensions to load. This property will be set via the kerberos wizard and User will not be allowed to modify this when security is enabled.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.zk.service.host</name>
+    <value>localhost:2181</value>
+    <description>
+      zookeeper connection string.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.zk.paths.base</name>
+    <value>/druid</value>
+    <description>
+      Base Zookeeper path
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.discovery.curator.path</name>
+    <value>/druid/discovery</value>
+    <description>
+      Services announce themselves under this ZooKeeper path.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.storage.type</name>
+    <value></value>
+    <description>
+      Choices:local, noop, s3, hdfs, c*. The type of deep storage to use.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.storage.storageDirectory</name>
+    <value></value>
+    <description>
+      directory to use as deep storage.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.metadata.storage.connector.password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Metadata storage password</display-name>
+    <description>Password for the metadata storage data base.</description>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.metadata.storage.connector.user</name>
+    <value>druid</value>
+    <display-name>Metadata storage user</display-name>
+    <description>Metadata storage user</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.metadata.storage.connector.port</name>
+    <value>1527</value>
+    <display-name>Metadata storage port</display-name>
+    <description>Metadata storage port</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.type</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>database_name</name>
+    <value>druid</value>
+    <display-name>Druid Metadata storage database name</display-name>
+    <description>Druid Metadata storage database name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>metastore_hostname</name>
+    <value>localhost</value>
+    <display-name>Metadata storage hostname</display-name>
+    <description>Metadata storage hostname</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>druid.metadata.storage.type</name>
+    <display-name>Druid Metadata storage type</display-name>
+    <value>derby</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>mysql</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>derby</value>
+          <label>DERBY</label>
+        </entry>
+        <entry>
+          <value>postgresql</value>
+          <label>POSTGRESQL</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <description>Type of the metadata storage. Note that derby will work only if all the druid node are located
+      within the same node. Use mysql or postgres for distributed mode.
+      mysql installed by ambari is only for development and not suitable for production use cases due to it being not HA
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>druid.metadata.storage.connector.connectURI</name>
+    <value>jdbc:derby://localhost:1527/druid;create=true</value>
+    <display-name>Metadata storage connector url</display-name>
+    <description>Metadata storage connector url</description>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>druid-common</type>
+        <name>database_name</name>
+      </property>
+      <property>
+        <type>druid-common</type>
+        <name>metastore_hostname</name>
+      </property>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.type</name>
+      </property>
+      <property>
+        <type>druid-common</type>
+        <name>druid.metadata.storage.connector.port</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>druid.hadoop.security.kerberos.principal</name>
+    <display-name>kerberos principal</display-name>
+    <description>Kerberos principal e.g druid@EXAMPLE.COM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.hadoop.security.kerberos.keytab</name>
+    <display-name>Kerberos keytab location</display-name>
+    <description>Kerberos keytab location</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>druid.emitter</name>
+    <value>{{metric_emitter_type}}</value>
+    <description>Emitter used to emit metrics. Values - "noop", "logging", "ambari-metrics", or "http" will initialize
+      one of the emitter modules.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.hostname</name>
+    <value>{{metric_collector_host}}</value>
+    <description>Timeline host</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.port</name>
+    <value>{{metric_collector_port}}</value>
+    <description>Timeline port</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.protocol</name>
+    <value>{{metric_collector_protocol}}</value>
+    <description>Timeline protocol(http or https)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStorePath</name>
+    <value>{{metric_truststore_path}}</value>
+    <description>Location of the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStoreType</name>
+    <value>{{metric_truststore_type}}</value>
+    <description>Optional. Default value is "jks".</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.trustStorePassword</name>
+    <value>{{metric_truststore_password}}</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.emitter.ambari-metrics.eventConverter</name>
+    <value>{"type":"whiteList"}</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.monitoring.monitors</name>
+    <value>["com.metamx.metrics.JvmMonitor"]</value>
+    <description>Password to open the trust store file.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+</configuration>

@@ -18,6 +18,14 @@
 
 <div class="scheduler-panel">
   <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="panel-title">
+        Scheduler Configurations
+        {{#if isSchedulerDirty}}
+          {{warning-info class="yellow-warning" tooltip="Need restart RM to take effect"}}
+        {{/if}}
+      </div>
+    </div>
     <div class="panel-body">
       <div class="row form-group">
         <div class="col-md-4">
@@ -30,7 +38,7 @@
         {{#if isOperator}}
           <div class="col-sm-3">
             {{int-input value=scheduler.maximum_applications maxlength=15 class="input-sm input-int input-control"}}
-            {{#if schedulerDirtyFilelds.maximum_applications}}
+            {{#if schedulerDirtyFields.maximum_applications}}
               <div class="btn-group btn-group-xs">
                   <a {{action 'rollbackProp' 'maximum_applications' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
               </div>
@@ -56,7 +64,7 @@
               {{int-input value=scheduler.maximum_am_resource_percent class="input-sm" maxVal=100}}
               <span class="input-group-addon">%</span>
             </div>
-            {{#if schedulerDirtyFilelds.maximum_am_resource_percent}}
+            {{#if schedulerDirtyFields.maximum_am_resource_percent}}
               <div class="btn-group btn-group-xs rollback-resource-percent">
                   <a {{action 'rollbackProp' 'maximum_am_resource_percent' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
               </div>
@@ -83,7 +91,7 @@
         {{#if isOperator}}
           <div class="col-sm-3">
             {{int-input value=scheduler.node_locality_delay maxlength=10 class="input-sm input-int input-control"}}
-            {{#if schedulerDirtyFilelds.node_locality_delay}}
+            {{#if schedulerDirtyFields.node_locality_delay}}
               <div class="btn-group btn-group-xs" >
                   <a {{action 'rollbackProp' 'node_locality_delay' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
               </div>
@@ -116,7 +124,7 @@
               optionValuePath="content.value"
               value=scheduler.resource_calculator
             }}
-            {{#if schedulerDirtyFilelds.resource_calculator}}
+            {{#if schedulerDirtyFields.resource_calculator}}
               <div class="btn-group btn-group-xs">
                 <a {{action 'rollbackProp' 'resource_calculator' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
               </div>
@@ -129,14 +137,19 @@
 </div>
 {{#if isOperator}}
   <div class="row">
-    <div class="btn btn-group-md col-md-offset-3">
+    <div class="btn btn-group-sm col-sm-offset-2">
+      {{#if isSchedulerPropsNeedSaveOrRestart}}
+        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Restart RM is required" placement="top"}}
+      {{/if}}
       <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveOnly" {{action 'showSaveConfigDialog'}}>Save Only</button>
-      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveRestart" {{action 'showSaveConfigDialog' 'restart'}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerPropsNeedSaveOrRestart::disabled"}} name="saveRestart" {{action 'showSaveConfigDialog' 'restart'}}>Save And Restart RM</button>
       <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'showConfirmDialog'}}>Discard Changes</button>
+      <button type="button" {{bind-attr class=":btn :btn-primary isSchedulerDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}}>View Diff</button>
+      <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
     </div>
   </div>
 {{/if}}
 
 {{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="rollbackSchedulerProps"}}
 
-{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode forceRefresh=forceRestartRequired}}

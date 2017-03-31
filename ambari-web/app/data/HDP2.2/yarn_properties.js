@@ -30,6 +30,7 @@ var yarnPropsToCategory = {
   ],
 
   'Isolation': [
+    'yarn.nodemanager.linux-container-executor.cgroups.mount-path',
     'yarn.nodemanager.linux-container-executor.group',
     'yarn.nodemanager.container-executor.class',
     'yarn.nodemanager.linux-container-executor.resources-handler.class',

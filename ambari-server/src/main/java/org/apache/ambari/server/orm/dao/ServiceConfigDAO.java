@@ -115,14 +115,13 @@ public class ServiceConfigDAO {
 
   @RequiresSession
   public List<ServiceConfigEntity> getLastServiceConfigs(Long clusterId) {
-    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
-      createQuery("SELECT scv FROM ServiceConfigEntity scv " +
-        "WHERE scv.clusterId = ?1 AND scv.createTimestamp = (" +
-        "SELECT MAX(scv2.createTimestamp) FROM ServiceConfigEntity scv2 " +
-        "WHERE scv2.serviceName = scv.serviceName AND scv2.clusterId = ?1 AND scv2.groupId IS NULL)",
-        ServiceConfigEntity.class);
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+      "ServiceConfigEntity.findLatestServiceConfigsByCluster",
+      ServiceConfigEntity.class);
 
-    return daoUtils.selectList(query, clusterId);
+    query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
   }
 
   /**

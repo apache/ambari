@@ -48,7 +48,6 @@ import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
-import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
@@ -57,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link AlertTargetResourceProvider} class deals with managing the CRUD
@@ -127,10 +127,7 @@ public class AlertTargetResourceProvider extends
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
 
-    // For now only allow an Ambari administrator to create, update, and manage Alert Targets.
-    // If an alert target can associated with a particular cluster, than a cluster administrator
-    // should be able to do this as well.
-    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERTS);
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERT_NOTIFICATIONS);
     setRequiredCreateAuthorizations(requiredAuthorizations);
     setRequiredUpdateAuthorizations(requiredAuthorizations);
     setRequiredDeleteAuthorizations(requiredAuthorizations);
@@ -251,11 +248,6 @@ public class AlertTargetResourceProvider extends
     return PK_PROPERTY_IDS;
   }
 
-  @Override
-  protected ResourceType getResourceType(Request request, Predicate predicate) {
-    return ResourceType.AMBARI;
-  }
-
   /**
    * Create and persist {@link AlertTargetEntity} from the map of properties.
    *
@@ -371,8 +363,9 @@ public class AlertTargetResourceProvider extends
    * @throws AmbariException
    *           if the entity could not be found.
    */
+  @Transactional
   @SuppressWarnings("unchecked")
-  private void updateAlertTargets(long alertTargetId,
+  void updateAlertTargets(long alertTargetId,
       Map<String, Object> requestMap)
       throws AmbariException {
 
@@ -447,13 +440,10 @@ public class AlertTargetResourceProvider extends
       entity.setAlertGroups(groups);
     } else if (entity.isGlobal()){
       Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>(s_dao.findAllGroups());
-      for (AlertGroupEntity group : groups) {
-        group.addAlertTarget(entity);
-        s_dao.merge(group);
-      }
       entity.setAlertGroups(groups);
     }
 
+    // merge the entity, cascading the merge to other entities, like groups
     s_dao.merge(entity);
   }
 

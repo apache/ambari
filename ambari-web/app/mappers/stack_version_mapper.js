@@ -82,7 +82,6 @@ App.stackVersionMapper = App.QuickDataMapper.create({
         resultStack.push(this.parseIt(stack, this.get('modelStack')));
       }, this);
     }
-    App.store.commit();
-    App.store.loadMany(modelStackVerion, resultStack);
+    App.store.safeLoadMany(modelStackVerion, resultStack);
   }
 });

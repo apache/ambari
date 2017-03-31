@@ -183,7 +183,7 @@ public class ExecutionCommandWrapper {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs
       LOG.warn(
-          "Unable to lookup the cluster byt ID; assuming that there is no cluster and therefore no configs for this execution command: {}",
+          "Unable to lookup the cluster by ID; assuming that there is no cluster and therefore no configs for this execution command: {}",
           cnfe.getMessage());
 
       return executionCommand;

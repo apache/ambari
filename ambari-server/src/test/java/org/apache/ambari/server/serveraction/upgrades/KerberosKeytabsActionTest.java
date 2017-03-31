@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
@@ -65,26 +64,13 @@ public class KerberosKeytabsActionTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     m_kerberosHelper = EasyMock.createMock(KerberosHelper.class);
 
-    m_kerberosConfig = new ConfigImpl("kerberos-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("kerberos-env", "");
-      }};
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("kerberos-env", "");
+    }};
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
+    m_kerberosConfig = EasyMock.createNiceMock(Config.class);
+    expect(m_kerberosConfig.getType()).andReturn("kerberos-env").anyTimes();
+    expect(m_kerberosConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
@@ -92,7 +78,7 @@ public class KerberosKeytabsActionTest {
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 
-    replay(m_clusters, cluster);
+    replay(m_clusters, cluster, m_kerberosConfig);
 
     m_injector = Guice.createInjector(new AbstractModule() {
 

@@ -20,22 +20,48 @@
   <div class="form-group padding10">
     <label class="control-label col-xs-2">Send As</label>
     <div class="col-xs-2">
-      <input type="radio" name="sendType" checked={{if (eq isArg false) 'checked'}}  {{action "onSendTypeChange" "command" preventDefault=false on="change"}}> Command
+      <input type="radio" name="sendType" checked={{if (eq isArg false) 'checked'}}  {{action "setIsArg" false preventDefault=false on="change"}}> Command
     </div>
     <div class="col-xs-2">
-      <input type="radio" name="sendType" checked={{if (eq isArg true) 'checked'}}  {{action "onSendTypeChange" "arg" preventDefault=false on="change"}}> Args
+      <input type="radio" name="sendType" checked={{if (eq isArg true) 'checked'}}  {{action "setIsArg" true preventDefault=false on="change"}}> Args
     </div>
   </div>
-  {{#if isArg}}
-    {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
-  {{else}}
+  <div id="arg-option">
+    {{#each actionModel.arg as |arg index|}}
+      <div class="form-group">
+        <label class="control-label col-xs-2 {{if (or (not-eq index 0) hideLabel) 'visibility-hidden'}}">Arg<span class="requiredField">&nbsp;*</span></label>
+        <div class=" col-xs-7">
+          {{input type="text" class="form-control" value=arg.value placeholder=title}}
+        </div>
+        {{#if (eq arg actionModel.arg.lastObject)}}
+          <div class="col-xs-1">
+            <input class="form-control btn btn-secondary" type="button" value="+" {{action "addArg"}}>
+          </div>
+        {{else}}
+          <div class="col-xs-1">
+            <input class="form-control btn btn-danger" type="button" {{action "deleteArg" index}} value="-">
+          </div>
+        {{/if}}
+      </div>
+    {{/each}}
+    {{#if validations.attrs.actionModel.arg.isInvalid}}
+      <div class="form-group">
+        <label class="control-label col-xs-2"></label>
+        <div class=" col-xs-7">
+          {{field-error model=this field='actionModel.arg' showErrorMessage=showErrorMessage}}
+        </div>
+      </div>
+    {{/if}}
+  </div>
+  <div id="command-option">
     <div class="form-group padding10">
-      <label for="inputEmail" class="control-label col-xs-2">Command</label>
+      <label for="inputEmail" class="control-label col-xs-2">Command<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
-        {{input type="text" class="form-control" name="command" value=actionModel.command placeholder="Sqoop Command"}}
+        {{input type="text" class="form-control" name="command" value=actionModel.command placeholder="Command" title="eg. import --connect jdbc:hsqldb:file:db.hsqldb --table TT --target-dir /user/${wf:user()}/output-data/sqoop -m 1"}}
+        {{field-error model=this field='actionModel.command' showErrorMessage=showErrorMessage}}
       </div>
     </div>
-  {{/if}}
+  </div>
   {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
 </div>
 <div class="panel panel-default">

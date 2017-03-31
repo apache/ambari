@@ -36,6 +36,7 @@
 
   <table class="table">
     <tbody>
+    {{#if model.serviceCheckPolicy.checkHdfs}}
     <tr>
       <td>
         {{#if modelhdfsTestDone}}
@@ -50,6 +51,9 @@
       </td>
       <td>HDFS test</td>
     </tr>
+    {{/if}}
+
+    {{#if model.serviceCheckPolicy.checkHive}}
     <tr>
       <td>
         {{#if modelhiveserverTestDone}}
@@ -64,6 +68,9 @@
       </td>
       <td>HiveServer test</td>
     </tr>
+    {{/if}}
+
+    {{#if model.serviceCheckPolicy.checkATS}}
     <tr>
       <td>
         {{#if modelatsTestDone}}
@@ -78,7 +85,9 @@
       </td>
       <td>ATS test</td>
     </tr>
+    {{/if}}
 
+    {{#if model.serviceCheckPolicy.checkHomeDirectory}}
     <tr>
       <td>
         {{#if modeluserhomeTestDone}}
@@ -93,6 +102,7 @@
       </td>
       <td>User Home Directory test</td>
     </tr>
+    {{/if}}
 
     </tbody>
   </table>

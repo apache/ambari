@@ -29,7 +29,7 @@
           <name>METRICS_COLLECTOR</name>
           <displayName>Metrics Collector</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>1+</cardinality>
           <versionAdvertised>false</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
           <timelineAppid>AMS-HBASE</timelineAppid>
@@ -101,6 +101,7 @@
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
           <versionAdvertised>false</versionAdvertised>
+          <customFolder>dashboards</customFolder>
           <commandScript>
             <script>scripts/metrics_grafana.py</script>
             <scriptType>PYTHON</scriptType>
@@ -147,7 +148,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-assembly</name>
@@ -158,6 +159,21 @@
             </package>
             <package>
               <name>libsnappy1*</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>ambari-metrics-assembly</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>gcc</name>
+            </package>
+            <package>
+              <name>libsnappy1v5*</name>
             </package>
           </packages>
         </osSpecific>
@@ -193,10 +209,6 @@
       <configuration-dependencies>
         <config-type>ams-env</config-type>
       </configuration-dependencies>
-
-      <excluded-config-types>
-        <config-type>storm-site</config-type>
-      </excluded-config-types>
 
       <quickLinksConfigurations>
         <quickLinksConfiguration>

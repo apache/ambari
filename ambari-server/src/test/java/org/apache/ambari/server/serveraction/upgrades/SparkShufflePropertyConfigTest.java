@@ -36,7 +36,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,33 +57,20 @@ public class SparkShufflePropertyConfigTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     cluster = EasyMock.createMock(Cluster.class);
 
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("yarn.nodemanager.aux-services", "some_service");
+    }};
 
-    Config adminConfig = new ConfigImpl("yarn-site") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("yarn.nodemanager.aux-services", "some_service");
-      }};
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    Config yarnConfig = EasyMock.createNiceMock(Config.class);
+    expect(yarnConfig.getType()).andReturn("yarn-site").anyTimes();
+    expect(yarnConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
-
-    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(adminConfig).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(yarnConfig).atLeastOnce();
 
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
 
-    replay(m_injector, m_clusters);
+    replay(m_injector, m_clusters, yarnConfig);
 
     clusterField = SparkShufflePropertyConfig.class.getDeclaredField("clusters");
     clusterField.setAccessible(true);

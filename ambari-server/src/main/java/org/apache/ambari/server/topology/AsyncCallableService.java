@@ -18,14 +18,16 @@
 
 package org.apache.ambari.server.topology;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Callable service implementation for executing tasks asynchronously.
@@ -34,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> the type returned by the task to be executed
  */
-public class AsyncCallableService<T> implements Callable<Boolean> {
+public class AsyncCallableService<T> implements Callable<T> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AsyncCallableService.class);
 
@@ -51,8 +53,9 @@ public class AsyncCallableService<T> implements Callable<Boolean> {
   // the delay between two consecutive execution trials in milliseconds
   private final long delay;
 
+  private T serviceResult;
 
-  private Boolean serviceResult = Boolean.FALSE;
+  private final Set<Exception> errors = new HashSet<>();
 
   public AsyncCallableService(Callable<T> task, long timeout, long delay,
                               ScheduledExecutorService executorService) {
@@ -63,7 +66,7 @@ public class AsyncCallableService<T> implements Callable<Boolean> {
   }
 
   @Override
-  public Boolean call() {
+  public T call() {
 
     long startTimeInMillis = Calendar.getInstance().getTimeInMillis();
     LOG.info("Task execution started at: {}", startTimeInMillis);
@@ -104,11 +107,13 @@ public class AsyncCallableService<T> implements Callable<Boolean> {
 
       // task failures are expected to be reportesd as exceptions
       LOG.debug("Task successfully executed: {}", taskResult);
-      setServiceResult(Boolean.TRUE);
+      setServiceResult(taskResult);
+      errors.clear();
       completed = true;
     } catch (Exception e) {
       // Future.isDone always true here!
       LOG.info("Exception during task execution: ", e);
+      errors.add(e);
     }
     return completed;
   }
@@ -117,8 +122,12 @@ public class AsyncCallableService<T> implements Callable<Boolean> {
     return timeout < Calendar.getInstance().getTimeInMillis() - startTimeInMillis;
   }
 
-  private void setServiceResult(Boolean serviceResult) {
+  private void setServiceResult(T serviceResult) {
     this.serviceResult = serviceResult;
+  }
+
+  public Set<Exception> getErrors() {
+    return errors;
   }
 
 }

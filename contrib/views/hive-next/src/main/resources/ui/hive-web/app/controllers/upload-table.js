@@ -35,10 +35,8 @@ export default Ember.Controller.extend({
     {"id":"7", "name":"BEL", "description":"(bell)"},
     {"id":"8", "name":"BS", "description":"(backspace)"},
     {"id":"9", "name":"TAB", "description":"(horizontal tab)"},
-    {"id":"10", "name":"LF", "description":"(NL line feed - new line)"},
     {"id":"11", "name":"VT", "description":"(vertical tab)"},
     {"id":"12", "name":"FF", "description":"(NP form feed - new page)"},
-    {"id":"13", "name":"CR", "description":"(carriage return)"},
     {"id":"14", "name":"SO", "description":"(shift out)"},
     {"id":"15", "name":"SI", "description":"(shift in)"},
     {"id":"16", "name":"DLE", "description":"(data link escape)"},
@@ -153,18 +151,24 @@ export default Ember.Controller.extend({
   onChangeUploadSource : function(){
     this.clearFields();
   }.observes("uploadSource"),
+  asciiFormatter: function( option, escape ){
+    if( option.data.id  != -1 )
+      return "<div><span style='font-weight: bold;margin: 5px'>" + option.data.id + "</span><span style='font-style: italic; color: grey; margin: 5px'>" + option.data.name + "</span></div>";
+    else return "<div></div>";
+  },
   fillAsciiList: function(){
     var list = this.get('asciiList');
     list.push({"id": -1, "name": ""});
     var nonPrintable = this.get('NON_PRINTABLE_CHARS');
     for( var i = 0 ; i <= 127 ; i++ ){
+      if( i == 10 || i == 13 ) continue;
       var charInfo = nonPrintable.find(function(item){
         return item.id == i;
       });
       if(!charInfo){
         charInfo = {"id": i, "name": String.fromCodePoint(i), "description":"" };
       }
-      var option = {"id": i, "name": charInfo.id + "    " + charInfo.name + charInfo.description};
+      var option = {"id": i, "name": charInfo.name + charInfo.description};
       list.push(option);
       if(i === 44){
         this.set("csvDelimiter", option);

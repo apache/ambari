@@ -24,7 +24,7 @@
     <name>proxy</name>
     <service-class>org.apache.oozie.ambari.view.OozieProxyImpersonator</service-class>
   </resource>
-
+	
   <parameter>
     <name>oozie.service.uri</name>
     <description>Oozie service URI for the Oozie API.</description>
@@ -104,14 +104,14 @@
         <required>false</required>
         <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
     </parameter>
-<!--
+
     <parameter>
         <name>webhdfs.username</name>
         <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
         <label>WebHDFS Username</label>
         <default-value>${username}</default-value>
         <required>false</required>
-    </parameter> -->
+    </parameter>
     <parameter>
         <name>webhdfs.auth</name>
         <description>Semicolon-separated authentication configs.</description>
@@ -119,6 +119,48 @@
         <label>WebHDFS Authorization</label>
         <required>false</required>
     </parameter>
+	<parameter>
+        <name>hadoop.security.authentication</name>
+        <description>Security Authentication (simple/kerberos).</description>
+        <label>Security Authentication Type</label>
+        <placeholder>simple</placeholder>
+        <cluster-config>core-site/hadoop.security.authentication</cluster-config>
+		<default-value>simple</default-value>
+        <required>true</required>
+    </parameter>
+    <parameter>
+        <name>yarn.resourcemanager.address</name>
+        <description>yarn.resourcemanager.address</description>
+        <label>yarn.resourcemanager.address</label>
+        <placeholder>http://sandbox.hortonworks.com:8050</placeholder>
+        <cluster-config>yarn-site/yarn.resourcemanager.address</cluster-config>
+        <required>true</required>
+    </parameter>
+
+  <parameter>
+    <name>view.conf.keyvalues</name>
+    <description>The key values that will be copied to hdfs connection configuration verbatim. Format : key1=value1;
+      key2=value2</description>
+    <label>View Configs</label>
+    <required>false</required>
+  </parameter>
+
+    <persistence>
+
+        <entity>
+             <class>org.apache.oozie.ambari.view.workflowmanager.model.Workflow</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.oozie.ambari.view.assets.model.ActionAssetDefinition</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.oozie.ambari.view.assets.model.ActionAsset</class>
+            <id-property>id</id-property>
+        </entity>
+
+    </persistence>
 
   <!--<auto-instance>
     <name>AUTO_OOZIE_VIEW</name>

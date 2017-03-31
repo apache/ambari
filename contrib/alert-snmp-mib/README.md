@@ -29,7 +29,7 @@ Install SNMP Utils
 
 Make SNMP Utils aware of the Apache Ambari MIB
 
-    cp APACHE-AMBARI-MIB.txt /usr/share/snmp/mibs
+    cp /var/lib/ambari-server/resources/APACHE-AMBARI-MIB.txt /usr/share/snmp/mibs
 
 Startup a simple SNMP trap daemon to log all traps to the `/tmp/traps.log` file for testing purposes.
 

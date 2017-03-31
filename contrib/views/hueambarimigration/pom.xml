@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
   </parent>
 
   <properties>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>org.apache.ambari</groupId>
       <artifactId>ambari-views</artifactId>
-      <version>2.4.2.0.0</version>
+      <version>2.5.0.0.0</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -80,11 +80,6 @@
       <groupId>postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>8.4-701.jdbc3</version>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.35</version>
     </dependency>
 
     <dependency>
@@ -170,8 +165,8 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.16</version>
         <configuration>
-          <nodeVersion>v0.12.2</nodeVersion>
-          <npmVersion>1.4.8</npmVersion>
+          <nodeVersion>v4.5.0</nodeVersion>
+          <npmVersion>2.15.0</npmVersion>
           <workingDirectory>${project.basedir}/src/main/resources/ui/hueambarimigration-view/</workingDirectory>
         </configuration>
         <executions>
@@ -231,6 +226,24 @@
             <configuration>
               <outputDirectory>${project.build.outputDirectory}/WEB-INF/lib</outputDirectory>
               <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>${project.packaging}</type>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${views.jars.dir.rel}</outputDirectory>
             </configuration>
           </execution>
         </executions>

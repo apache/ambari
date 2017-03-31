@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.fail;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.HostInfo;
@@ -54,7 +56,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
@@ -77,7 +78,7 @@ import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.TopologyTask;
+import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
@@ -87,7 +88,6 @@ import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
 
@@ -116,8 +116,8 @@ public class ClustersTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
@@ -296,9 +296,6 @@ public class ClustersTest {
     setOsFamily(clusters.getHost(h1), "redhat", "6.4");
     setOsFamily(clusters.getHost(h2), "redhat", "5.9");
     setOsFamily(clusters.getHost(h3), "redhat", "6.4");
-    clusters.getHost(h1).persist();
-    clusters.getHost(h2).persist();
-    clusters.getHost(h3).persist();
 
     try {
         clusters.getClustersForHost(h4);
@@ -330,7 +327,7 @@ public class ClustersTest {
     hostnames.add(h1);
     hostnames.add(h2);
 
-    clusters.mapHostsToCluster(hostnames, c2);
+    clusters.mapAndPublishHostsToCluster(hostnames, c2);
 
     c = clusters.getClustersForHost(h1);
     Assert.assertEquals(2, c.size());
@@ -381,9 +378,6 @@ public class ClustersTest {
     setOsFamily(clusters.getHost(h1), "redhat", "6.4");
     setOsFamily(clusters.getHost(h2), "redhat", "5.9");
     setOsFamily(clusters.getHost(h3), "redhat", "6.4");
-    clusters.getHost(h1).persist();
-    clusters.getHost(h2).persist();
-    clusters.getHost(h3).persist();
     clusters.mapHostToCluster(h1, c1);
     clusters.mapHostToCluster(h2, c1);
 
@@ -411,19 +405,15 @@ public class ClustersTest {
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
-    final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+    final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{
           put("prop1", "val1");
         }}, new HashMap<String, Map<String,String>>());
-    config1.setTag("1");
-    config1.persist();
 
-    Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
+    Config config2 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "2",
         new HashMap<String, String>() {{
           put("prop2", "val2");
         }}, new HashMap<String, Map<String,String>>());
-    config2.setTag("2");
-    config2.persist();
 
     // cluster desired config
     cluster.addDesiredConfig("_test", Collections.singleton(config1));
@@ -435,10 +425,8 @@ public class ClustersTest {
     Host host2 = clusters.getHost(h2);
     setOsFamily(clusters.getHost(h1), "centos", "5.9");
     setOsFamily(clusters.getHost(h2), "centos", "5.9");
-    host1.persist();
-    host2.persist();
 
-    clusters.mapHostsToCluster(new HashSet<String>() {
+    clusters.mapAndPublishHostsToCluster(new HashSet<String>() {
       {
         addAll(Arrays.asList(h1, h2));
       }
@@ -446,45 +434,35 @@ public class ClustersTest {
 
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
-    host1.persist();
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
 
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
-    dataNode.persist();
 
     ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
-    serviceCheckNode.persist();
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
-    nameNodeHost.persist();
     HostEntity nameNodeHostEntity = hostDAO.findByName(nameNodeHost.getHostName());
     Assert.assertNotNull(nameNodeHostEntity);
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
-    dataNodeHost.persist();
 
     ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
-    serviceCheckNodeHost.persist();
     serviceCheckNodeHost.setState(State.UNKNOWN);
-
-    HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
-
-    hkdspk.setClusterId(nameNodeHost.getClusterId());
-    hkdspk.setHostId(nameNodeHostEntity.getHostId());
-    hkdspk.setServiceName(nameNodeHost.getServiceName());
-    hkdspk.setComponentName(nameNodeHost.getServiceComponentName());
 
     Assert.assertNotNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(
       nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
-    Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertNotNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
+      nameNodeHost.getClusterId(),
+      nameNodeHost.getServiceName(),
+      nameNodeHost.getServiceComponentName(),
+      nameNodeHostEntity.getHostId()
+    ));
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
@@ -522,7 +500,10 @@ public class ClustersTest {
       nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
       nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()));
 
-    Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
+    Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByIndex(
+      nameNodeHost.getClusterId(), nameNodeHost.getServiceName(),
+      nameNodeHost.getServiceComponentName(), nameNodeHostEntity.getHostId()
+    ));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
@@ -705,11 +686,10 @@ public class ClustersTest {
 
     Host host = clusters.getHost(hostName);
     setOsFamily(clusters.getHost(hostName), "centos", "5.9");
-    host.persist();
 
     Set<String> hostnames = new HashSet<>();
     hostnames.add(hostName);
-    clusters.mapHostsToCluster(hostnames, clusterName);
+    clusters.mapAndPublishHostsToCluster(hostnames, clusterName);
   }
 
   private Cluster createCluster(String clusterName) throws AmbariException {

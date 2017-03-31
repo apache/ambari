@@ -141,6 +141,13 @@
         <default-value>/user/${username}/files-view/tmp</default-value>
         <required>true</required>
     </parameter>
+    <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim. Format : key1=value1;
+          key2=value2</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
 
     <resource>
         <name>files</name>
@@ -155,5 +162,12 @@
         <services>
           <service>HDFS</service>
         </services>
+        <roles>
+            <role>CLUSTER.ADMINISTRATOR</role>
+            <role>CLUSTER.OPERATOR</role>
+            <role>SERVICE.ADMINISTRATOR</role>
+            <role>SERVICE.OPERATOR</role>
+            <role>CLUSTER.USER</role>
+        </roles>
     </auto-instance>
 </view>

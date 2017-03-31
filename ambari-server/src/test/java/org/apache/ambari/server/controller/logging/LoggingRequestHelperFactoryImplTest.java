@@ -18,6 +18,17 @@
 
 package org.apache.ambari.server.controller.logging;
 
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
@@ -29,15 +40,6 @@ import org.apache.ambari.server.state.State;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 public class LoggingRequestHelperFactoryImplTest {
 
   @Test
@@ -45,6 +47,8 @@ public class LoggingRequestHelperFactoryImplTest {
     final String expectedClusterName = "testclusterone";
     final String expectedHostName = "c6410.ambari.apache.org";
     final String expectedPortNumber = "61889";
+    final int expectedConnectTimeout = 3000;
+    final int expectedReadTimeout = 3000;
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
@@ -66,6 +70,9 @@ public class LoggingRequestHelperFactoryImplTest {
     CredentialStoreService credentialStoreServiceMock =
       mockSupport.createMock(CredentialStoreService.class);
 
+    Configuration serverConfigMock =
+      mockSupport.createMock(Configuration.class);
+
     Map<String, String> testProperties =
       new HashMap<String, String>();
     testProperties.put("logsearch_ui_port", expectedPortNumber);
@@ -79,12 +86,16 @@ public class LoggingRequestHelperFactoryImplTest {
     expect(logSearchEnvConfig.getProperties()).andReturn(testProperties).atLeastOnce();
     expect(serviceComponentHostMock.getHostName()).andReturn(expectedHostName).atLeastOnce();
     expect(serviceComponentHostMock.getState()).andReturn(State.STARTED).atLeastOnce();
-
+    expect(serverConfigMock.getLogSearchPortalConnectTimeout()).andReturn(expectedConnectTimeout);
+    expect(serverConfigMock.getLogSearchPortalReadTimeout()).andReturn(expectedReadTimeout);
 
     mockSupport.replayAll();
 
     LoggingRequestHelperFactory helperFactory =
       new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(serverConfigMock);
 
     LoggingRequestHelper helper =
       helperFactory.getHelper(controllerMock, expectedClusterName);
@@ -94,6 +105,12 @@ public class LoggingRequestHelperFactoryImplTest {
 
     assertTrue("Helper created was not of the expected type",
       helper instanceof LoggingRequestHelperImpl);
+
+    assertEquals("Helper factory did not set the expected connect timeout on the helper instance",
+      expectedConnectTimeout, ((LoggingRequestHelperImpl)helper).getLogSearchConnectTimeoutInMilliseconds());
+
+    assertEquals("Helper factory did not set the expected read timeout on the helper instance",
+      expectedReadTimeout, ((LoggingRequestHelperImpl)helper).getLogSearchReadTimeoutInMilliseconds());
 
     mockSupport.verifyAll();
   }
@@ -121,6 +138,9 @@ public class LoggingRequestHelperFactoryImplTest {
     ServiceComponentHost serviceComponentHostMock =
       mockSupport.createMock(ServiceComponentHost.class);
 
+    Configuration serverConfigMock =
+      mockSupport.createMock(Configuration.class);
+
     Map<String, String> testProperties =
       new HashMap<String, String>();
     testProperties.put("logsearch_ui_port", expectedPortNumber);
@@ -140,6 +160,9 @@ public class LoggingRequestHelperFactoryImplTest {
 
     LoggingRequestHelperFactory helperFactory =
       new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(serverConfigMock);
 
     LoggingRequestHelper helper =
       helperFactory.getHelper(controllerMock, expectedClusterName);
@@ -168,6 +191,9 @@ public class LoggingRequestHelperFactoryImplTest {
     Config logSearchEnvConfig =
       mockSupport.createMock(Config.class);
 
+    Configuration serverConfigMock =
+      mockSupport.createMock(Configuration.class);
+
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     expect(clusterMock.getDesiredConfigByType("logsearch-env")).andReturn(logSearchEnvConfig).atLeastOnce();
@@ -178,6 +204,9 @@ public class LoggingRequestHelperFactoryImplTest {
 
     LoggingRequestHelperFactory helperFactory =
       new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(serverConfigMock);
 
     LoggingRequestHelper helper =
       helperFactory.getHelper(controllerMock, expectedClusterName);
@@ -203,6 +232,9 @@ public class LoggingRequestHelperFactoryImplTest {
     Cluster clusterMock =
       mockSupport.createMock(Cluster.class);
 
+    Configuration serverConfigMock =
+      mockSupport.createMock(Configuration.class);
+
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster(expectedClusterName)).andReturn(clusterMock).atLeastOnce();
     // do not include LOGSEARCH in this map, to simulate the case when LogSearch is not deployed
@@ -212,6 +244,36 @@ public class LoggingRequestHelperFactoryImplTest {
 
     LoggingRequestHelperFactory helperFactory =
       new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(serverConfigMock);
+
+    LoggingRequestHelper helper =
+      helperFactory.getHelper(controllerMock, expectedClusterName);
+
+    assertNull("LoggingRequestHelper object returned by the factory should have been null",
+      helper);
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testHelperCreationWithNoAmbariServerConfiguration() throws Exception {
+    final String expectedClusterName = "testclusterone";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    AmbariManagementController controllerMock =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    mockSupport.replayAll();
+
+    LoggingRequestHelperFactory helperFactory =
+      new LoggingRequestHelperFactoryImpl();
+
+    // set the configuration mock using the concrete type
+    // set the configuration object to null, to simulate an error in dependency injection
+    ((LoggingRequestHelperFactoryImpl)helperFactory).setAmbariServerConfiguration(null);
 
     LoggingRequestHelper helper =
       helperFactory.getHelper(controllerMock, expectedClusterName);

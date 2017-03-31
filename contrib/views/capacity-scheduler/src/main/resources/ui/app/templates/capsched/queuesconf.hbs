@@ -22,14 +22,17 @@
       <div class="row">
         <div class="col-sm-7">
           <div class="list-group queue-hierarchy">
-            {{queue-hierarchy depth=0 queues=queues}}
+            {{queue-hierarchy depth=0 queues=queues deletedQs=deletedQueues}}
           </div>
           {{#if isOperator}}
             {{#if selectedQueue}}
               <div class="queue-actions-wrapper">
                 <div class="pull-left">
-                  <button type="button" {{bind-attr class=":btn :btn-primary :btn-xs isSelectedQLeafAndRunning:disabled"}} name="addQueueBtn" {{action "addNewQueue"}}>Add Queue</button>
+                  <button type="button" {{bind-attr class=":btn :btn-primary :btn-xs canAddChildrenQueues::disabled"}} name="addQueueBtn" {{action "addNewQueue"}}>Add Queue</button>
                 </div>
+                {{#unless canAddChildrenQueues}}
+                  {{warning-info class="yellow-warning" tooltip="Queue must be STOPPED to add children queues"}}
+                {{/unless}}
                 <div class="pull-right">
                   {{#if isSelectedQRunning}}
                     <button type="button" class="btn btn-primary btn-xs" name="queueStateBtn" {{action "stopQueue"}}>Stop Queue</button>
@@ -38,9 +41,9 @@
                     <button type="button" class="btn btn-primary btn-xs" name="queueStateBtn" {{action "startQueue"}}>Start Queue</button>
                   {{/if}}
                   {{#unless isRootQSelected}}
-                    <button type="button" {{bind-attr class=":btn :btn-danger :btn-xs isSelectedQDeletable::disabled"}} class="btn btn-danger btn-xs" name="deleteQueueBtn" {{action "showDeleteQueueDialog" target="view"}}>Delete Queue</button>
-                    {{#unless isSelectedQDeletable}}
-                      {{warning-info class="yellow-warning" tooltip="Queue should be STOPPED to delete"}}
+                    <button type="button" {{bind-attr class=":btn :btn-danger :btn-xs isSelectedQueueDeletable::disabled"}} class="btn btn-danger btn-xs" name="deleteQueueBtn" {{action "showDeleteQueueDialog" target="view"}}>Delete Queue</button>
+                    {{#unless isSelectedQueueDeletable}}
+                      {{warning-info class="yellow-warning" tooltip="Queue must be STOPPED to delete"}}
                     {{/unless}}
                   {{/unless}}
                 </div>
@@ -66,7 +69,7 @@
           {{/if}}
         </div>
         <div class="col-sm-5">
-          {{queue-summary queue=selectedQueue allQueues=queues}}
+          {{queue-summary queue=selectedQueue allQueues=queues queuesNeedRefresh=queuesNeedRefresh}}
         </div>
       </div>
       <hr>
@@ -78,16 +81,21 @@
     </div>
   </div>
   {{#if isOperator}}
-    <div class="btn btn-group-sm col-sm-offset-2">
+    <div class="btn btn-group-sm col-sm-offset-1">
+      {{#if showNeedRefreshOrRestartWarning}}
+        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Require refresh queues/restart RM" placement="top"}}
+      {{/if}}
       <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needSave::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRefresh::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isDirtyQueuesNeedRefreshQsOp::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isDirtyQueuesNeedRestartRmOp::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
       <button type="button" {{bind-attr class=":btn :btn-danger isAnyQueueDirty::disabled"}} name="cancelQueuesconfBtn" {{action "showConfirmDialog"}}>Discard Changes</button>
+      <button type="button" {{bind-attr class=":btn :btn-primary isAnyQueueDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}}>View Diff</button>
+      <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
     </div>
   {{/if}}
 </div>
 
-{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode forceRefresh=forceRefreshOrRestartRequired}}
 
 {{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="discardQueuesChanges"}}
 

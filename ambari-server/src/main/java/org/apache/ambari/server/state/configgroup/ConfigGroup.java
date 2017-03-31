@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.state.configgroup;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
-
-import java.util.Map;
 
 /**
  * Configuration group or Config group is a type of Ambari resource that
@@ -80,27 +80,18 @@ public interface ConfigGroup {
   public void setDescription(String description);
 
   /**
-   * List of hosts to which configs are applied
+   * Gets an unmodifiable list of {@link Host}s.
+   *
    * @return
    */
   public Map<Long, Host> getHosts();
 
   /**
-   * List of @Config objects
+   * Gets an unmodifiable map of {@link Config}s.
+   *
    * @return
    */
   public Map<String, Config> getConfigurations();
-
-  /**
-   * Persist the Config group along with the related host and config mapping
-   * entities to the persistence store
-   */
-  void persist();
-
-  /**
-   * Persist the host mapping entity to the persistence store
-   */
-  void persistHostMapping();
 
   /**
    * Delete config group and the related host and config mapping
@@ -116,24 +107,12 @@ public interface ConfigGroup {
   public void addHost(Host host) throws AmbariException;
 
   /**
-   * Add config to the config group
-   * @param config
-   * @throws AmbariException
-   */
-  public void addConfiguration(Config config) throws AmbariException;
-
-  /**
    * Return @ConfigGroupResponse for the config group
    *
    * @return @ConfigGroupResponse
    * @throws AmbariException
    */
   public ConfigGroupResponse convertToResponse() throws AmbariException;
-
-  /**
-   * Refresh Config group and the host and config mappings for the group
-   */
-  public void refresh();
 
   /**
    * Reassign the set of hosts associated with this config group

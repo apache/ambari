@@ -33,9 +33,17 @@ case "${1:-}" in
         ;;
 esac
 
+export HOME_DIR=""
+if [ "$#" = 3 ] && [ $2 = "--home" ] ; then
+  export HOME_DIR=$3
+  echo "Allow running multiple agents on this host; will use custom Home Dir: $HOME_DIR"
+fi
+
+export CONFIG_FILE="$HOME_DIR/etc/ambari-agent/conf/ambari-agent.ini"
+
 get_agent_property() {
   property_name="$1"
-  value=$(awk -F "=" "/^$property_name/ {print \$2}" /etc/ambari-agent/conf/ambari-agent.ini)
+  value=$(awk -F "=" "/^$property_name/ {print \$2}" $CONFIG_FILE)
   echo $value
 }
 
@@ -51,7 +59,7 @@ valid_path() {
 
 
 export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
-export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
+export AMBARI_CONF_DIR=$HOME_DIR/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
 export PYTHONPATH=/usr/lib/python2.6/site-packages:${PYTHONPATH:-}
@@ -103,6 +111,7 @@ change_files_permissions() {
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
+	ambari-sudo.sh chown  $current_user "/var/lib/ambari-agent/cred"
 }
 
 
@@ -166,7 +175,7 @@ case "${1:-}" in
         fi
         echo "Checking for previously running Ambari Agent..."
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$PIDFILE found with no process. Removing $PID..."
             ambari-sudo.sh rm -f $PIDFILE
@@ -214,7 +223,7 @@ case "${1:-}" in
         ;;
   status)
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
@@ -240,7 +249,7 @@ case "${1:-}" in
           exit -1
         fi
         if [ -f $PIDFILE ]; then
-          PID=`cat $PIDFILE`
+          PID=`ambari-sudo.sh cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             tput bold

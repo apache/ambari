@@ -27,6 +27,7 @@ import org.apache.ambari.view.hive2.ConnectionFactory;
 import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.apache.ambari.view.hive2.actor.message.job.Failure;
 import org.apache.ambari.view.hive2.backgroundjobs.BackgroundJobController;
+import org.apache.ambari.view.hive2.backgroundjobs.BackgroundJobException;
 import org.apache.ambari.view.hive2.client.AsyncJobRunner;
 import org.apache.ambari.view.hive2.client.AsyncJobRunnerImpl;
 import org.apache.ambari.view.hive2.client.ColumnDescription;
@@ -291,9 +292,9 @@ public class JobService extends BaseService {
               stream.close();
 
             } catch (IOException e) {
-              throw new ServiceFormattedException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
+              throw new BackgroundJobException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
             } catch (InterruptedException e) {
-              throw new ServiceFormattedException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
+              throw new BackgroundJobException("F010 Could not write CSV to HDFS for job#" + jobController.getJob().getId(), e);
             }
           }
         });

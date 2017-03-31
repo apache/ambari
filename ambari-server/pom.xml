@@ -12,7 +12,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -20,7 +20,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>${packagingFormat}</packaging>
   <name>Ambari Server</name>
-  <version>2.4.2.0.0</version>
+  <version>2.5.0.0.0</version>
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,7 +44,7 @@
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
-    <hadoop.version>2.7.1</hadoop.version>
+    <hadoop.version>2.7.2</hadoop.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
   </properties>
   <build>
@@ -104,7 +104,10 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.2</version>
+        <configuration>
+          <useIncrementalCompilation>false</useIncrementalCompilation>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -121,6 +124,15 @@
                   <manifest>
                     <attribute name="Main-Class"
                       value="org.apache.ambari.server.DBConnectionVerification" />
+                  </manifest>
+                </jar>
+                <jar destfile="target/CredentialUtil.jar">
+                  <fileset dir="${basedir}/target/classes/">
+                    <include name="**/CredentialUtil*.class" />
+                  </fileset>
+                  <manifest>
+                    <attribute name="Main-Class"
+                               value="org.apache.ambari.server.credentialapi.CredentialUtil" />
                   </manifest>
                 </jar>
               </tasks>
@@ -261,7 +273,6 @@
         <configuration>
           <excludes>
             <exclude>pass.txt</exclude>
-            <exclude>derby.log</exclude>
             <exclude>src/test/resources/version</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/gsInstaller-hosts.txt</exclude>
@@ -269,6 +280,8 @@
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/mpacks_replay.log</exclude>
             <exclude>src/test/python/stacks/2.5/HIVE/*.txt</exclude>
+            <exclude>src/test/python/mpacks/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards/service-metrics/STORM.txt</exclude>
+            <exclude>src/test/python/uninstall/dashboards/files/STORM.txt</exclude>
             <exclude>src/main/resources/hive-schema-0.10.0.oracle.sql</exclude>
             <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
@@ -285,6 +298,7 @@
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
+            <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>conf/windows/ca.config</exclude>
@@ -297,6 +311,7 @@
             <exclude>**/cluster.properties.j2</exclude>
             <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
+            <exclude>**/.hash</exclude>
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
@@ -312,6 +327,9 @@
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
+
+            <!-- generated DDL-->
+            <exclude>**/createDDL.jdbc</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -569,6 +587,9 @@
         <configuration>
           <skip>${skipSurefireTests}</skip>
           <argLine>-Xmx1024m -XX:MaxPermSize=512m -Xms512m</argLine>
+
+          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
+          <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -678,6 +699,31 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>configuration-markdown</id>
+            <phase>site</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
+          <arguments>
+            <argument>-output</argument>
+            <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
+          </arguments>
+        </configuration>
+      </plugin>
     </plugins>
     <resources>
       <resource>
@@ -713,25 +759,7 @@
                       <arg value="${basedir}/set-hdp-repo-url.sh" />
                       <arg value="${hdpUrlForCentos6}" />
                       <arg value="${hdpLatestUrl}" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-              <execution>
-                <id>set-hdp-url-packages</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="ambari-server-compile">
-                    <exec dir="${basedir}" executable="bash"
-                      failonerror="true">
-                      <arg value="${basedir}/set-hdp-repo-url.sh" />
-                      <arg value="${hdpUrlForCentos6}" />
-                      <arg value="${hdpLatestUrl}" />
-                      <arg
-                        value="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}" />
+                      <arg value="${basedir}" />
                     </exec>
                   </target>
                 </configuration>
@@ -991,6 +1019,11 @@
       <artifactId>commons-csv</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
       <groupId>uk.com.robust-it</groupId>
       <artifactId>cloning</artifactId>
       <version>1.9.2</version>
@@ -1013,14 +1046,9 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbytools</artifactId>
-      <version>10.11.1.1</version>
-      <scope>test</scope>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.193</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -1033,6 +1061,10 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.kerberos</groupId>
+      <artifactId>spring-security-kerberos-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -1415,6 +1447,21 @@
       <version>${hadoop.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>jetty-util</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
       <version>${jetty.version}</version>
@@ -1434,6 +1481,34 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
       <version>1.7.2</version>
+    </dependency>
+
+    <!-- Dependency in order to annotate unit tests with a category. -->
+    <dependency>
+      <groupId>utility</groupId>
+      <artifactId>utility</artifactId>
+      <version>1.0.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>libpam4j</artifactId>
+      <version>1.8</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jvm</artifactId>
+      <version>3.1.0</version>
     </dependency>
   </dependencies>
 

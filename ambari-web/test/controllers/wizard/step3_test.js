@@ -3076,9 +3076,9 @@ describe('App.WizardStep3Controller', function () {
 
     var data = {
       tasks: [
-        {Tasks: {status: 'COMPLETED', host_name: 'h1', structured_out: {host_resolution_check: {failed_count: 2, failures: [{host: 'h2'}, {host: 'h3'}]}}}},
-        {Tasks: {status: 'COMPLETED', host_name: 'h4', structured_out: {host_resolution_check: {failed_count: 2, failures: [{host: 'h5'}, {host: 'h6'}]}}}},
-        {Tasks: {status: 'COMPLETED', host_name: 'h7', structured_out: {host_resolution_check: {failed_count: 1, failures: [{host: 'h8'}]}}}}
+        {Tasks: {status: 'COMPLETED', host_name: 'h1', structured_out: {host_resolution_check: {failed_count: 2, hosts_with_failures: ['h2', 'h3']}}}},
+        {Tasks: {status: 'COMPLETED', host_name: 'h4', structured_out: {host_resolution_check: {failed_count: 2, hosts_with_failures: ['h5', 'h6']}}}},
+        {Tasks: {status: 'COMPLETED', host_name: 'h7', structured_out: {host_resolution_check: {failed_count: 1, hosts_with_failures: ['h8']}}}}
       ]
     };
     var hostCheckWarnings = [];

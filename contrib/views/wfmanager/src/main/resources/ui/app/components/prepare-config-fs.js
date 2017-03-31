@@ -15,9 +15,8 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+export default Ember.Component.extend({
   mkdirORdeleteORtouchz: true,
   mkdir: 1,
   delete: 0,
@@ -33,9 +32,7 @@ export default Ember.Component.extend(EmberValidations, {
       var filePathModel = this.get('filePathModel');
       if(filePathModel && filePathModel.hasOwnProperty("index") && filePathModel.hasOwnProperty("property")){
         var fileOperation = this.get('fsOps').objectAt(filePathModel.index);
-        var settings = fileOperation.settings;
-        Ember.set(settings, filePathModel.property, fileName);
-        Ember.set(fileOperation, "settings", settings);
+        Ember.set(fileOperation, filePathModel.property, fileName);
       }else{
         this.set(this.get('filePathModel'), fileName);
       }
@@ -85,9 +82,7 @@ export default Ember.Component.extend(EmberValidations, {
       case "delete":
       case "touchz":
       this.get('fsOps').pushObject({
-        settings: {
-          path: this.get('path')
-        },
+        path :this.get('path'),
         type: value
       });
       break;
@@ -96,37 +91,31 @@ export default Ember.Component.extend(EmberValidations, {
       var gPerm = this.formPermissions(this.get("gread"), this.get("gwrite"), this.get("gexecute"), "g");
       var rPerm = this.formPermissions(this.get("rread"), this.get("rwrite"), this.get("rexecute"), "r");
       var permissionsObj = {};
-      permissionsObj = $.extend(true, oPerm, gPerm);
-      permissionsObj = $.extend(true, permissionsObj, rPerm);
+      permissionsObj = Ember.$.extend(true, oPerm, gPerm);
+      permissionsObj = Ember.$.extend(true, permissionsObj, rPerm);
       var perm = oPerm.operm + ""+ gPerm.gperm + ""+ rPerm.rperm;
       this.get('fsOps').pushObject({
-        settings: {
           path: this.get('path'),
           permissions: perm,
           permissionsObj: permissionsObj,
           recursive: this.get('recursive'),
-          dirfiles: this.get('dirFiles')
-        },
+          dirfiles: this.get('dirFiles'),
         type: value
       });
       break;
       case "chgrp":
       this.get('fsOps').pushObject({
-        settings: {
           path: this.get('path'),
           group: this.get('group'),
           recursive: this.get('recursive'),
-          dirfiles: this.get('dirFiles')
-        },
+          dirfiles: this.get('dirFiles'),
         type: value
       });
       break;
       case "move":
       this.get('fsOps').pushObject({
-        settings: {
           source: this.get('source'),
-          target: this.get('target')
-        },
+          target: this.get('target'),
         type: value
       });
       break;

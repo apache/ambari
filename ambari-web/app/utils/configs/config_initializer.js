@@ -20,7 +20,6 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 require('utils/configs/config_initializer_class');
-require('utils/configs/mount_points_based_initializer_mixin');
 require('utils/configs/hosts_based_initializer_mixin');
 
 /**
@@ -53,7 +52,7 @@ function getZKBasedConfig() {
  *
  * @instance ConfigInitializer
  */
-App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedInitializerMixin, App.HostsBasedInitializerMixin, {
+App.ConfigInitializer = App.ConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
   initializers: function() {
     return {
@@ -111,26 +110,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
       'templeton.zookeeper.hosts': getZKBasedConfig(),
       'hadoop.registry.zk.quorum': getZKBasedConfig(),
       'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
-      'instance.zookeeper.host': getZKBasedConfig(),
-
-      'dfs.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
-      'dfs.namenode.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
-      'dfs.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
-      'dfs.datanode.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
-      'yarn.nodemanager.local-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
-      'yarn.nodemanager.log-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
-      'mapred.local.dir': this.getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
-      'log.dirs': this.getMultipleMountPointsConfig('KAFKA_BROKER'),
-
-      'fs.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-      'dfs.namenode.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-      'yarn.timeline-service.leveldb-timeline-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-      'yarn.timeline-service.leveldb-state-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-      'dataDir': this.getSingleMountPointConfig('ZOOKEEPER_SERVER'),
-      'oozie_data_dir': this.getSingleMountPointConfig('OOZIE_SERVER'),
-      'storm.local.dir': this.getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
-      '*.falcon.graph.storage.directory': this.getSingleMountPointConfig('FALCON_SERVER'),
-      '*.falcon.graph.serialize.path': this.getSingleMountPointConfig('FALCON_SERVER')
+      'instance.zookeeper.host': getZKBasedConfig()
     }
   }.property(''),
 
@@ -141,13 +121,12 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
     'hbase.zookeeper.quorum': '_initHBaseZookeeperQuorum',
     'yarn.resourcemanager.zk-address': '_initYarnRMzkAddress',
     'RANGER_HOST': '_initRangerHost',
-    'hive.metastore.uris': '_initHiveMetastoreUris'
+    'hive.metastore.uris': '_initHiveMetastoreUris',
+    'atlas.rest.address': '_initAtlasRestAddress'
   },
 
   initializerTypes: [
-    {name: 'zookeeper_based', method: '_initAsZookeeperServersList'},
-    {name: 'single_mountpoint', method: '_initAsSingleMountPoint'},
-    {name: 'multiple_mountpoints', method: '_initAsMultipleMountPoints'}
+    {name: 'zookeeper_based', method: '_initAsZookeeperServersList'}
   ],
 
   /**
@@ -173,9 +152,9 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
   _initHiveDatabaseValue: function (configProperty) {
     var newMySQLDBOption = Em.get(configProperty, 'options').findProperty('displayName', 'New MySQL Database');
     if (newMySQLDBOption) {
-      var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') != 'configs' &&
+      var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') !== 'configs' &&
         !App.get('isManagedMySQLForHiveEnabled');
-      if (isNewMySQLDBOptionHidden && Em.get(configProperty, 'value') == 'New MySQL Database') {
+      if (isNewMySQLDBOptionHidden && Em.get(configProperty, 'value') === 'New MySQL Database') {
         Em.set(configProperty, 'value', 'Existing MySQL Database');
       }
       Em.set(newMySQLDBOption, 'hidden', isNewMySQLDBOptionHidden);
@@ -309,6 +288,31 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
         this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
       }
     }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>atlas.rest.address</code>
+   *
+   * @param {configProperty} configProperty
+   * @param {topologyLocalDB} localDB
+   * @param {object} dependencies
+   * @return {Object}
+   * @private
+   */
+  _initAtlasRestAddress: function (configProperty, localDB, dependencies) {
+    var atlasTls = dependencies['atlas.enableTLS'];
+    var httpPort = dependencies['atlas.server.http.port'];
+    var httpsPort = dependencies['atlas.server.https.port'];
+    var protocol = atlasTls ? 'https': 'http';
+    var port = atlasTls ? httpsPort : httpPort;
+    var value = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').map(function (component) {
+      return protocol + '://' + component.hostName + ':' + port;
+    }).join(',');
+    Em.setProperties(configProperty, {
+      value: value,
+      recommendedValue: value
+    });
     return configProperty;
   },
 

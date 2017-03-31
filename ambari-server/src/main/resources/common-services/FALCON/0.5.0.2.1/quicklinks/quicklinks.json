@@ -7,9 +7,9 @@
       "type":"https",
       "checks":[
         {
-          "property":"*.falcon.enableTLS",
+          "property":"falcon.enableTLS",
           "desired":"true",
-          "site":"falcon-startup.properties"
+          "site":"falcon-startup-properties"
         }
       ]
     },
@@ -20,7 +20,8 @@
         "label": "Falcon Web UI",
         "requires_user_name": "true",
         "component_name": "FALCON_SERVER",
-        "url":"%@://%@:%@/index.html?user.name=%@",
+        "url": "%@://%@:%@/",
+        "attributes": ["authenticated"],
         "port":{
           "http_property": "falcon_port",
           "http_default_port": "15000",

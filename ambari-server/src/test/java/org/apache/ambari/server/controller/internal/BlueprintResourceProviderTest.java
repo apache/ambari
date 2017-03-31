@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
@@ -52,6 +53,7 @@ import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -123,6 +125,10 @@ public class BlueprintResourceProviderTest {
 
   }
 
+  private Map<String, Set<HashMap<String, String>>> getSettingProperties() {
+    return new HashMap<String, Set<HashMap<String, String>>>();
+  }
+
   @Before
   public void resetGlobalMocks() {
     reset(dao, metaInfo, blueprintFactory, securityFactory, blueprint, entity);
@@ -133,15 +139,19 @@ public class BlueprintResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     expect(securityFactory.createSecurityConfigurationFromRequest(null, true)).andReturn(null).anyTimes();
     blueprint.validateRequiredProperties();
     blueprint.validateTopology();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -149,7 +159,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -210,8 +220,9 @@ public class BlueprintResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
 
-
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     requestInfoProperties.put("validate_topology", "false");
@@ -219,6 +230,8 @@ public class BlueprintResourceProviderTest {
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -226,7 +239,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -299,11 +312,15 @@ public class BlueprintResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
     blueprint.validateTopology();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -311,7 +328,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -368,9 +385,11 @@ public class BlueprintResourceProviderTest {
   public void testCreateResources_withSecurityConfiguration() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
 
     // set expectations
@@ -379,6 +398,8 @@ public class BlueprintResourceProviderTest {
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), securityConfiguration)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
     blueprint.validateTopology();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -386,7 +407,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, securityFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -496,13 +517,17 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[]}");
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
     blueprint.validateTopology();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -510,7 +535,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -541,13 +566,17 @@ public class BlueprintResourceProviderTest {
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, Set<HashMap<String, String>>> settingProperties = getSettingProperties();
     requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[{\"configuration-type\":{\"properties\":{\"property\":\"value\"}}}]}");
     Request request = createMock(Request.class);
+    Setting setting = createStrictMock(Setting.class);
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next(), null)).andReturn(blueprint).once();
     blueprint.validateRequiredProperties();
     blueprint.validateTopology();
+    expect(blueprint.getSetting()).andReturn(setting).anyTimes();
+    expect(setting.getProperties()).andReturn(settingProperties).anyTimes();
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
@@ -555,7 +584,7 @@ public class BlueprintResourceProviderTest {
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
-    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, setting, request, managementController);
     // end expectations
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -1109,6 +1138,109 @@ public class BlueprintResourceProviderTest {
     assertEquals(2, finalAttrs.size());
     assertEquals("attrValue1", finalAttrs.get("key3"));
     assertEquals("attrValue2", finalAttrs.get("key4"));
+  }
+
+  @Test
+  public void testPopulateSettingList() throws Exception {
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("test-stack-name");
+    stackEntity.setStackVersion("test-stack-version");
+    BlueprintEntity entity = createMock(BlueprintEntity.class);
+    expect(entity.getStack()).andReturn(stackEntity).anyTimes();
+
+    HashMap<PropertyInfo.PropertyType, Set<String>> pwdProperties = new HashMap<PropertyInfo.PropertyType, Set<String>>() {{
+      put(PropertyInfo.PropertyType.PASSWORD, new HashSet<String>(){{
+        add("test.password");
+      }});
+    }};
+
+    StackInfo info = createMock(StackInfo.class);
+    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
+    expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
+    expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
+
+    replay(info, metaInfo, entity);
+
+    // Blueprint setting entities
+    // Global recovery setting
+    BlueprintSettingEntity settingEntity1 = new BlueprintSettingEntity();
+    settingEntity1.setSettingName("recovery_settings");
+    settingEntity1.setSettingData("[{\"recovery_enabled\":\"true\"}]");
+    settingEntity1.setBlueprintEntity(entity);
+
+    // Service exceptions setting
+    BlueprintSettingEntity settingEntity2 = new BlueprintSettingEntity();
+    settingEntity2.setSettingName("service_settings");
+    settingEntity2.setSettingData("[{\"name\":\"HDFS\", \"recovery_enabled\":\"false\"}, " +
+            "{\"name\":\"ZOOKEEPER\", \"recovery_enabled\":\"false\"}]");
+    settingEntity2.setBlueprintEntity(entity);
+
+    // Service component exceptions setting
+    BlueprintSettingEntity settingEntity3 = new BlueprintSettingEntity();
+    settingEntity3.setSettingName("component_settings");
+    settingEntity3.setSettingData("[{\"name\":\"METRICS_MONITOR\", \"recovery_enabled\":\"false\"}," +
+            "{\"name\":\"KAFKA_CLIENT\", \"recovery_enabled\":\"false\"}]");
+    settingEntity3.setBlueprintEntity(entity);
+
+    List<BlueprintSettingEntity> settingEntities = new ArrayList();
+    settingEntities.add(settingEntity1);
+    settingEntities.add(settingEntity2);
+    settingEntities.add(settingEntity3);
+
+    List<Map<String, Object>> settings = provider.populateSettingList(settingEntities);
+
+    assertNotNull(settings);
+    assertEquals(settingEntities.size(), settings.size());
+
+    // Verify global recovery setting
+    Map<String, Object> setting1 = settings.get(0);
+    assertNotNull(setting1);
+    assertEquals(1, setting1.size());
+    assertTrue(setting1.containsKey("recovery_settings"));
+    List<Map<String, String>> setting1value = (List<Map<String, String>>) setting1.get("recovery_settings");
+    assertNotNull(setting1value);
+    assertEquals(1, setting1value.size());
+    assertTrue(setting1value.get(0).containsKey("recovery_enabled"));
+    assertEquals(setting1value.get(0).get("recovery_enabled"), "true");
+
+    // Verify service exceptions
+    Map<String, Object> setting2 = settings.get(1);
+    assertNotNull(setting2);
+    assertEquals(1, setting2.size());
+    assertTrue(setting2.containsKey("service_settings"));
+    List<Map<String, String>> setting2value = (List<Map<String, String>>) setting2.get("service_settings");
+    assertNotNull(setting2value);
+    assertEquals(2, setting2value.size());
+    // first service exception is HDFS
+    assertTrue(setting2value.get(0).containsKey("name"));
+    assertEquals(setting2value.get(0).get("name"), "HDFS");
+    assertTrue(setting2value.get(0).containsKey("recovery_enabled"));
+    assertEquals(setting2value.get(0).get("recovery_enabled"), "false");
+    // second service exception is ZOOKEEPER
+    assertTrue(setting2value.get(1).containsKey("name"));
+    assertEquals(setting2value.get(1).get("name"), "ZOOKEEPER");
+    assertTrue(setting2value.get(1).containsKey("recovery_enabled"));
+    assertEquals(setting2value.get(1).get("recovery_enabled"), "false");
+
+    // Verify service component exceptions
+    Map<String, Object> setting3 = settings.get(2);
+    assertNotNull(setting3);
+    assertEquals(1, setting3.size());
+    assertTrue(setting3.containsKey("component_settings"));
+    List<Map<String, String>> setting3value = (List<Map<String, String>>) setting3.get("component_settings");
+    assertNotNull(setting3value);
+    assertEquals(2, setting3value.size());
+    // first service component exception is METRICS_MONITOR
+    assertTrue(setting3value.get(0).containsKey("name"));
+    assertEquals(setting3value.get(0).get("name"), "METRICS_MONITOR");
+    assertTrue(setting3value.get(0).containsKey("recovery_enabled"));
+    assertEquals(setting3value.get(0).get("recovery_enabled"), "false");
+    // second service component exception is KAFKA_CLIENT
+    assertTrue(setting3value.get(1).containsKey("name"));
+    assertEquals(setting3value.get(1).get("name"), "KAFKA_CLIENT");
+    assertTrue(setting3value.get(1).containsKey("recovery_enabled"));
+    assertEquals(setting3value.get(1).get("recovery_enabled"), "false");
   }
 }
 

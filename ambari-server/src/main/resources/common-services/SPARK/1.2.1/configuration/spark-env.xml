@@ -79,6 +79,7 @@
     <name>hive_kerberos_principal</name>
     <value>{{hive_kerberos_principal}}</value>
     <description>hive principal for spark thrift server</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- spark-env.sh -->

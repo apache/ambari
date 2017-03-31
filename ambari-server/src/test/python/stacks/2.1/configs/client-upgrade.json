@@ -38,7 +38,7 @@
         "service_package_folder": "stacks/HDP/2.0.6/services/HBASE/package", 
         "script": "scripts/hbase_client.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "version": "2.2.1.0-2067", 
         "command_timeout": "900", 
         "script_type": "PYTHON"
@@ -417,7 +417,7 @@
             "yarn.nodemanager.resource.percentage-physical-cpu-limit": "100", 
             "yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb": "1000", 
             "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
             "yarn.timeline-service.client.max-retries": "30", 
             "yarn.nodemanager.health-checker.interval-ms": "135000", 

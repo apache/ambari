@@ -52,7 +52,7 @@ define(['require',
                 events["click [data-value]"] = 'onLogLevelHeaderClick';
                 events["click #filterContent input[type='checkbox']"] = 'onAnyCheckboxClick';
                 events["click .overrideRow a"] = 'onEditHost';
-                
+
                 return events;
             },
 
@@ -76,12 +76,12 @@ define(['require',
                     }
                 });
 
-                this.componentsList.url = Globals.baseURL + "dashboard/components";
-                this.hostList.url = Globals.baseURL + "dashboard/hosts";
+                this.componentsList.url = Globals.baseURL + "service/logs/components";
+                this.hostList.url = Globals.baseURL + "service/logs/hosts";
                 this.model = new VUserFilter();
 
                 this.levelCollection = new Backbone.Collection();
-                var levelArr = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
+                var levelArr = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "UNKNOWN"];
 
                 for (var i in levelArr) {
                     this.levelCollection.add(new Backbone.Model({ type: levelArr[i] }));
@@ -100,7 +100,7 @@ define(['require',
             onRender: function() {
                 var that = this;
                 // this.setupSelect2Fields(this.levelCollection, "type", "type", "levelSelect2", 'Select Level');
-                
+
                 $.when(this.hostList.fetch({ reset: true }), this.componentsList.fetch({ reset: true }), this.model.fetch({})).then(function(c1, c2, m1) {
                     // if (!_.isUndefined(that.model.get('components'))) {
                     //     that.ui.componentSelect2.select2('val', that.model.get('components'));
@@ -116,7 +116,7 @@ define(['require',
 
                     //that.dataLevels = [];
                     //that.dataLevels = _.pluck(that.levelCollection.models, 'attributes');
-                    
+
                     //that.dataList = [];
                     //that.dataList = _.pluck(that.componentsList.models, 'attributes');
                     that.renderComponents();
@@ -133,14 +133,30 @@ define(['require',
             	this.ui.loader.hide();
             },
             renderComponents : function(){
-            	var that =this;
-            	_.each(that.componentsList.models, function(model){
-                    var levels='<td align="left">'+model.get("type")+'</td>';
-                    var override = '<td class="text-left"><span class="pull-left"><!--small><i>Override</i></small--> <input data-override type="checkbox" data-name='+model.get("type")+'></span></td>';
-                    levels +=  override + that.getLevelForComponent(model.get("type"),false);
-                    var html = '<tr class="overrideSpacer"></tr><tr class="componentRow borderShow" data-component="'+model.get("type")+'">'+levels+'</tr><tr></tr>';
-                    that.ui.filterContent.append(html);
-                });
+              var that = this;
+              var set = new Set();
+              _.each(that.componentsList.models, function(model){
+                that.createRow(model.get("type"), that);
+                set.add(model.get("type"));
+              });
+              
+              if (set.size > 0) {
+                that.ui.filterContent.append('<tr class="overrideSpacer"></tr><tr class="overrideSpacer"></tr><tr class="overrideSpacer"></tr>');
+              }
+              
+              var components = this.model.get("filter");
+              _.each(components,function(value,key){
+                if (!set.has(key)) {
+                  that.createRow(key, that);
+                }
+              });
+            },
+            createRow : function(type, that) {
+              var levels = '<td align="left">'+type+'</td>';
+              var override = '<td class="text-left"><span class="pull-left"><!--small><i>Override</i></small--> <input data-override type="checkbox" data-name='+type+'></span></td>';
+              levels +=  override + that.getLevelForComponent(type,false);
+              var html = '<tr class="overrideSpacer"></tr><tr class="componentRow borderShow" data-component="'+type+'">'+levels+'</tr><tr></tr>';
+              that.ui.filterContent.append(html);
             },
             populateValues : function(){
             	var that =this;
@@ -148,13 +164,13 @@ define(['require',
             		var components = this.model.get("filter");
             		_.each(components,function(value,key){
             			var obj = components[key];
-            			
-            			if((_.isArray(obj.overrideLevels) && obj.overrideLevels.length) || 
+
+            			if((_.isArray(obj.overrideLevels) && obj.overrideLevels.length) ||
             					(_.isArray(obj.hosts) && obj.hosts.length) || obj.expiryTime){
             				var $el = that.$("input[data-name='"+key+"']").filter("[data-override]");
         					$el.click();
             			}
-            			
+
             			//setting override data
             			if(_.isArray(obj.overrideLevels)){
             				if(obj.overrideLevels.length){
@@ -202,7 +218,7 @@ define(['require',
             	_.each(this.levelCollection.models,function(model){
             		that.setCheckAllValue(model.get("type"));
             	});
-            	
+
             },
             onAnyCheckboxClick : function(e){
             	var $el = $(e.currentTarget);
@@ -332,34 +348,35 @@ define(['require',
 
             },
             setValues : function(){
-            	var obj = {filter: {}},that= this;
-            	_.each(that.componentsList.models, function(model){
-            		var comp = model.get("type"),date = that.$("[data-date='"+comp+"']").data("daterangepicker");
-            		var host = (that.$("[data-host='"+comp+"']").length) ? that.$("[data-host='"+comp+"']").select2('val') : [];
-            		obj.filter[comp] = {
-            				label : comp,
-            				hosts: host,
-            				defaultLevels : that.getDefaultValues(comp),
-            				overrideLevels : that.getOverideValues(comp),
-            				expiryTime : (date && date.startDate) ? date.startDate.toJSON() : ""
-            		};
-            	});
-            	return (obj);
+              var obj = {filter: {}},that = this;
+              var components = this.model.get("filter");
+              _.each(components,function(value,key){
+                var date = that.$("[data-date='"+key+"']").data("daterangepicker");
+                var host = (that.$("[data-host='"+key+"']").length) ? that.$("[data-host='"+key+"']").select2('val') : [];
+                obj.filter[key] = {
+                    label : key,
+                    hosts: host,
+                    defaultLevels : that.getDefaultValues(key),
+                    overrideLevels : that.getOverideValues(key),
+                    expiryTime : (date && date.startDate) ? date.startDate.toJSON() : ""
+                };
+              });
+              return (obj);
             },
             getOverideValues : function(ofComponent){
-            	var $els = this.$("tr.overrideRow."+ofComponent).find("input:checked"),values=[];
-            	for(var i=0; i<$els.length; i++){
-            		values.push($($els[i]).data("id"));
-            	}
-            	return values;
+              var $els = this.$("tr.overrideRow."+ofComponent).find("input:checked"),values=[];
+              for(var i=0; i<$els.length; i++){
+                values.push($($els[i]).data("id"));
+              }
+              return values;
             },
             getDefaultValues : function(ofComponent){
-            	var $els = this.$("tr[data-component='"+ofComponent+"']").find("input:checked"),values=[];
-            	for(var i=0; i<$els.length; i++){
-            		if($($els[i]).data("id"))
-            			values.push($($els[i]).data("id"));
-            	}
-            	return values;
+              var $els = this.$("tr[data-component='"+ofComponent+"']").find("input:checked"),values=[];
+              for(var i=0; i<$els.length; i++){
+                if($($els[i]).data("id"))
+                  values.push($($els[i]).data("id"));
+              }
+              return values;
             }
         });
 

@@ -65,6 +65,9 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
@@ -73,14 +76,11 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.easymock.EasyMockSupport;
@@ -111,8 +111,6 @@ public class StageUtilsTest extends EasyMockSupport {
 
       @Override
       protected void configure() {
-        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
-
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(ClusterFactory.class).toInstance(createNiceMock(ClusterFactory.class));
@@ -122,7 +120,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
-        bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
+        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
         bind(StageFactory.class).to(StageFactoryImpl.class);
@@ -132,6 +130,8 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
 
         install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
+        install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
+        install(new FactoryModuleBuilder().build(ConfigureClusterTaskFactory.class));
       }
     });
 

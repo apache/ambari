@@ -384,12 +384,13 @@ public class TimelineWebServices {
   @Produces({ MediaType.APPLICATION_JSON })
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(
     @Context HttpServletRequest req,
-    @Context HttpServletResponse res
-  ) {
+    @Context HttpServletResponse res,
+    @QueryParam("query") String query
+    ) {
     init(res);
 
     try {
-      return timelineMetricStore.getTimelineMetricMetadata();
+      return timelineMetricStore.getTimelineMetricMetadata(query);
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
@@ -409,6 +410,26 @@ public class TimelineWebServices {
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  /**
+   * This is a discovery endpoint that advertises known live collector
+   * instances. Note: It will always answer with current instance as live.
+   * This can be utilized as a liveliness pinger endpoint since the instance
+   * names are cached and thereby no synchronous calls result from this API
+   *
+   * @return List<String> hostnames</String>
+   */
+  @GET
+  @Path("/metrics/livenodes")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public List<String> getLiveCollectorNodes(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res
+  ) {
+    init(res);
+
+    return timelineMetricStore.getLiveInstances();
   }
 
   /**

@@ -52,6 +52,7 @@ public class PigSavedScriptStartJob extends Thread{
     migrationresult.setIntanceName(instance);
     migrationresult.setUserNameofhue(username);
     migrationresult.setProgressPercentage(0);
+    migrationresult.setFlag(0);
 
     PigScriptMigrationUtility pigsavedscript =new PigScriptMigrationUtility();
     try {

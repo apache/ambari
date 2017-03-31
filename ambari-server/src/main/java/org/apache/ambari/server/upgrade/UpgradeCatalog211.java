@@ -212,8 +212,8 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
         statement = dbAccessor.getConnection().createStatement();
         if (statement != null) {
           String selectSQL = MessageFormat.format(
-              "SELECT cluster_id, service_name, component_name, host_id FROM {0}",
-              HOST_COMPONENT_STATE_TABLE);
+              "SELECT id, cluster_id, service_name, component_name, host_id FROM {0} ORDER BY {1} {2}",
+              HOST_COMPONENT_STATE_TABLE, "id", "DESC");
 
           resultSet = statement.executeQuery(selectSQL);
           while (resultSet.next()) {
@@ -221,13 +221,19 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
             final String serviceName = resultSet.getString("service_name");
             final String componentName = resultSet.getString("component_name");
             final Long hostId = resultSet.getLong("host_id");
+            final Long idKey = resultSet.getLong("id");
 
-            String updateSQL = MessageFormat.format(
-                "UPDATE {0} SET {1} = {2,number,#} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6,number,#}",
-                HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, m_hcsId.getAndIncrement(),
-                clusterId, serviceName, componentName, hostId);
+            if (idKey != 0 && m_hcsId.get() == 1) {
+              m_hcsId.set(idKey);
+              m_hcsId.getAndIncrement();
+            } else if(idKey == 0) {
+              String updateSQL = MessageFormat.format(
+                  "UPDATE {0} SET {1} = {2,number,#} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6,number,#}",
+                  HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, m_hcsId.getAndIncrement(),
+                  clusterId, serviceName, componentName, hostId);
 
-            dbAccessor.executeQuery(updateSQL);
+              dbAccessor.executeQuery(updateSQL);
+            }
           }
         }
       } finally {

@@ -33,10 +33,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -46,39 +46,47 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
-  private Injector injector;
-  private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  private EntityManager entityManager = createNiceMock(EntityManager.class);
-  private UpgradeCatalogHelper upgradeCatalogHelper;
-  private StackEntity desiredStackEntity;
+  private static Injector injector;
+  private static Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
+  private static EntityManager entityManager = createNiceMock(EntityManager.class);
+  private static UpgradeCatalogHelper upgradeCatalogHelper;
+  private static StackEntity desiredStackEntity;
 
-  @Before
-  public void init() {
+  @BeforeClass
+  public static void init() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
@@ -93,8 +101,8 @@ public class UpgradeCatalog221Test {
     desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
-  @After
-  public void tearDown() {
+  @AfterClass
+  public static void tearDown() {
     injector.getInstance(PersistService.class).stop();
   }
 

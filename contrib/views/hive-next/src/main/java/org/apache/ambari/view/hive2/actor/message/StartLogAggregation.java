@@ -18,14 +18,22 @@
 
 package org.apache.ambari.view.hive2.actor.message;
 
+import org.apache.hive.jdbc.HiveStatement;
+
 public class StartLogAggregation {
   private String statement;
+  private HiveStatement hiveStatement;
 
   public StartLogAggregation() {
   }
 
-  public StartLogAggregation(String statement) {
+  public StartLogAggregation(String statement, HiveStatement hiveStatement) {
     this.statement = statement;
+    this.hiveStatement = hiveStatement;
+  }
+
+  public HiveStatement getHiveStatement() {
+    return hiveStatement;
   }
 
   public String getStatement() {

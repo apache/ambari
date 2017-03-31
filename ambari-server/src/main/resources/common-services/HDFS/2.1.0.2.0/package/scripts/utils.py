@@ -28,15 +28,17 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell
 from resource_management.core.shell import as_user, as_sudo
+from resource_management.core.source import Template
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
-from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.functions.show_logs import show_logs
-
+from ambari_commons.inet_utils import ensure_ssl_using_protocol
 from zkfc_slave import ZkfcSlaveDefault
+
+ensure_ssl_using_protocol(Script.get_force_https_protocol())
 
 def safe_zkfc_op(action, env):
   """
@@ -380,3 +382,29 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode = False):
   else:
     dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address}")
   return dfsadmin_base_command
+
+
+def set_up_zkfc_security(params):
+    """ Sets up security for accessing zookeper on secure clusters """
+
+    if params.stack_supports_zk_security is False:
+      Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for HDP 2.6 and above.")
+      return
+
+    # check if the namenode is HA
+    if params.dfs_ha_enabled is False:
+        Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for NameNode HA mode.")
+        return
+
+    # check if the cluster is secure (skip otherwise)
+    if params.security_enabled is False:
+        Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for secure clusters.")
+        return
+
+    # process the JAAS template
+    File(os.path.join(params.hadoop_conf_secure_dir, 'hdfs_jaas.conf'),
+         owner=params.hdfs_user,
+         group=params.user_group,
+         mode=0644,
+         content=Template("hdfs_jaas.conf.j2")
+         )

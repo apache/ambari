@@ -17,8 +17,9 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
-  from : null,
-  fromType : null,
+  dashboardContext: Ember.inject.service(),
+  fromBundleId: null,
+  fromCoordId: null,
   actions : {
     close : function(){
       this.sendAction('onCloseJobDetails');
@@ -27,32 +28,33 @@ export default Ember.Controller.extend({
       this.get('target.router').refresh();
     },
     showWorkflow : function(workflowId){
-      this.transitionToRoute('job', {
+      this.get('dashboardContext').setCurrentCoordName(this.get('model.coordJobName'));
+      this.transitionToRoute('design.jobtab', {
         queryParams: {
           jobType: 'wf',
           id: workflowId,
-          from : this.get('model.coordJobId'),
-          fromType : this.get('model.jobType')
+          fromBundleId: this.get('fromBundleId'),
+          fromCoordId: this.get('model.coordJobId')
         }
       });
     },
     showCoord : function(coordJobId){
-      this.transitionToRoute('job', {
+      this.get('dashboardContext').setCurrentBundleName(this.get('model.bundleJobName'));
+      this.transitionToRoute('design.jobtab', {
         queryParams: {
           jobType: 'coords',
           id: coordJobId,
-          from : this.get('model.bundleJobId'),
-          fromType : this.get('model.jobType')
+          fromBundleId: this.get('model.bundleJobId')
         }
       });
     },
-    back : function (){
-      this.transitionToRoute('job', {
+    back : function (jobType, jobId){
+      this.transitionToRoute('design.jobtab', {
         queryParams: {
-          jobType: this.get('fromType'),
-          id: this.get('from'),
-          from : null,
-          fromType : null
+          jobType: jobType,
+          id: jobId,
+          fromBundleId : (jobType === 'coords') ? this.get('fromBundleId') : null,
+          fromCoordId : null
         }
       });
     },

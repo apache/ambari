@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,7 +157,7 @@ public interface Clusters {
    * @param clusterName
    * @throws AmbariException
    */
-  void mapHostsToCluster(Set<String> hostnames, String clusterName)
+  void mapAndPublishHostsToCluster(Set<String> hostnames, String clusterName)
       throws AmbariException;
 
   /**
@@ -240,14 +239,16 @@ public interface Clusters {
    * Removes a host.  Inverts {@link #addHost(String)}
    * @param hostname
    */
-  void deleteHost(String hostname)
-      throws AmbariException;
+  void deleteHost(String hostname) throws AmbariException;
 
   /**
-   * Deletes hosts in bulk
-   * @param hostnames list of hostnames to delete
+   * Publish event set of hosts were removed
+   * @param clusters
+   * @param hostNames
+   * @throws AmbariException
    */
-  void deleteHosts(Collection<String> hostnames) throws AmbariException;
+  void publishHostsDeletion(Set<Cluster> clusters, Set<String> hostNames)
+      throws AmbariException;
 
   /**
    * Determine whether or not access to the cluster resource identified
@@ -284,5 +285,14 @@ public interface Clusters {
    * @return  number of hosts that form the cluster
    */
   int getClusterSize(String clusterName);
+
+  /**
+   * Invalidates the specified cluster by retrieving it from the database and
+   * refreshing all of the internal stateful collections.
+   *
+   * @param cluster
+   *          the cluster to invalidate and refresh (not {@code null}).
+   */
+  void invalidate(Cluster cluster);
 
 }

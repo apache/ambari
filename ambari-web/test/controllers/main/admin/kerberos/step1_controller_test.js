@@ -34,14 +34,8 @@ describe('App.KerberosWizardStep1Controller', function() {
     it("test", function() {
       var options=controller.get('options');
       controller.propertyDidChange('selectedOption');
-      options.forEach(function(option) {
-        if (option.value === controller.get('selectedItem')) {
-          var preConditions=option.preConditions;
-          preConditions.forEach(function(condition) {
-            expect(condition.get('checked')).to.be.false;
-          });
-        }          
-      }, this);
+      var option = options.findProperty('value', controller.get('selectedItem'));
+      expect(option.preConditions.everyProperty('checked', false)).to.be.true;
     });
     
   });
@@ -73,7 +67,7 @@ describe('App.KerberosWizardStep1Controller', function() {
     });
   });
 
-  describe("#next()", function () {
+  describe("#submit()", function () {
 
     beforeEach(function() {
       sinon.stub(App.router, 'send');
@@ -87,7 +81,7 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.reopen({
         'isSubmitDisabled': false
       });
-      controller.next();
+      controller.submit();
       expect(App.router.send.calledOnce).to.be.true;
     });
 
@@ -95,7 +89,7 @@ describe('App.KerberosWizardStep1Controller', function() {
       controller.reopen({
         'isSubmitDisabled': true
       });
-      controller.next();
+      controller.submit();
       expect(App.router.send.called).to.be.false;
     });
   });

@@ -42,7 +42,7 @@ class JobHistoryServer(Script):
     
     self.install_packages(env)
     
-  def configure(self, env, upgrade_type=None):
+  def configure(self, env, upgrade_type=None, config_dir=None):
     import params
     env.set_params(params)
     
@@ -87,7 +87,7 @@ class JobHistoryServer(Script):
           "tez",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped)
+          skip=params.sysprep_skip_copy_tarballs_hdfs)
         if resource_created:
           params.HdfsResource(None, action="execute")
           

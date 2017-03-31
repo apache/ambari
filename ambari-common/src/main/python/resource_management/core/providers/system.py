@@ -243,17 +243,6 @@ class LinkProvider(Provider):
       Logger.info("Deleting %s" % self.resource)
       sudo.unlink(path)
 
-
-def _preexec_fn(resource):
-  def preexec():
-    if resource.group:
-      gid = grp.getgrnam(resource.group).gr_gid
-      os.setgid(gid)
-      os.setegid(gid)
-
-  return preexec
-
-
 class ExecuteProvider(Provider):
   def action_run(self):
     if self.resource.creates:
@@ -263,11 +252,11 @@ class ExecuteProvider(Provider):
       
     shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                         cwd=self.resource.cwd, env=self.resource.environment,
-                        preexec_fn=_preexec_fn(self.resource), user=self.resource.user,
-                        wait_for_finish=self.resource.wait_for_finish,
+                        user=self.resource.user, wait_for_finish=self.resource.wait_for_finish,
                         timeout=self.resource.timeout,on_timeout=self.resource.on_timeout,
                         path=self.resource.path,
                         sudo=self.resource.sudo,
+                        timeout_kill_strategy=self.resource.timeout_kill_strategy,
                         on_new_line=self.resource.on_new_line,
                         stdout=self.resource.stdout,stderr=self.resource.stderr,
                         tries=self.resource.tries, try_sleep=self.resource.try_sleep)

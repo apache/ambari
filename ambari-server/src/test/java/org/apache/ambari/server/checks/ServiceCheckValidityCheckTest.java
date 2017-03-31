@@ -169,7 +169,7 @@ public class ServiceCheckValidityCheckTest {
     HostRoleCommandEntity hostRoleCommandEntity2 = new HostRoleCommandEntity();
     hostRoleCommandEntity2.setRoleCommand(RoleCommand.SERVICE_CHECK);
     hostRoleCommandEntity2.setCommandDetail(COMMAND_DETAIL);
-    hostRoleCommandEntity2.setStartTime(SERVICE_CHECK_START_TIME + 3000L);
+    hostRoleCommandEntity2.setStartTime(CONFIG_CREATE_TIMESTAMP - 1L);
     hostRoleCommandEntity2.setRole(Role.HDFS_SERVICE_CHECK);
 
     when(serviceConfigDAO.getLastServiceConfig(eq(CLUSTER_ID), eq(SERVICE_NAME))).thenReturn(serviceConfigEntity);
@@ -177,6 +177,6 @@ public class ServiceCheckValidityCheckTest {
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, CLUSTER_NAME);
     serviceCheckValidityCheck.perform(check, new PrereqCheckRequest(CLUSTER_NAME));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
   }
 }

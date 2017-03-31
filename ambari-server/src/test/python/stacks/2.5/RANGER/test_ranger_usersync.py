@@ -98,6 +98,13 @@ class TestRangerUsersync(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/ranger-usersync-env-piddir.sh',
+      content = 'export USERSYNC_PID_DIR_PATH=/var/run/ranger\nexport UNIX_USERSYNC_USER=ranger',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/var/log/ranger/usersync',
       owner='ranger',
       group='ranger',
@@ -121,15 +128,21 @@ class TestRangerUsersync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
-      content = self.getConfig()['configurations']['usersync-log4j']['content'],
+      content = InlineTemplate(self.getConfig()['configurations']['usersync-log4j']['content']),
       mode = 0644
     )
+
+    ranger_ugsync_site_copy = {}
+    ranger_ugsync_site_copy.update(self.getConfig()['configurations']['ranger-ugsync-site'])
+    for prop in ['ranger.usersync.ldap.ldapbindpassword']:
+      if prop in ranger_ugsync_site_copy:
+        ranger_ugsync_site_copy[prop] = "_"
 
     self.assertResourceCalled('XmlConfig', 'ranger-ugsync-site.xml',
       owner = 'ranger',
       group = 'ranger',
       conf_dir = '/usr/hdp/current/ranger-usersync/conf',
-      configurations = self.getConfig()['configurations']['ranger-ugsync-site'],
+      configurations = ranger_ugsync_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-ugsync-site'],
       mode = 0644
     )

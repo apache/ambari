@@ -763,6 +763,7 @@ App.popover = function (self, options) {
   self.on("remove", function () {
     $(this).trigger('mouseleave').off().removeData('popover');
   });
+  self = null;
 };
 
 /**
@@ -780,6 +781,7 @@ App.tooltip = function (self, options) {
   self.on("remove", function () {
     $(this).trigger('mouseleave').off().removeData('tooltip');
   });
+  self = null
 };
 
 /**

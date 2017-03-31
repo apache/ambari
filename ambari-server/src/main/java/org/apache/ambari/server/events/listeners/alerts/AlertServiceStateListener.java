@@ -20,6 +20,7 @@ package org.apache.ambari.server.events.listeners.alerts;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
@@ -34,7 +35,6 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -95,7 +96,13 @@ public class AlertServiceStateListener {
    * Used to retrieve a cluster using clusterId from event.
    */
   @Inject
-  private Provider<Clusters> clusters;
+  private Provider<Clusters> m_clusters;
+
+  /**
+   * Used for ensuring that the concurrent nature of the event handler methods
+   * don't collide when attempting to perform operations on the same service.
+   */
+  private Striped<Lock> m_locksByService = Striped.lazyWeakLock(20);
 
   /**
    * Constructor.
@@ -125,38 +132,46 @@ public class AlertServiceStateListener {
     String stackVersion = event.getStackVersion();
     String serviceName = event.getServiceName();
 
-    // create the default alert group for the new service if absent; this MUST
-    // be done before adding definitions so that they are properly added to the
-    // default group
-    if (null == m_alertDispatchDao.findDefaultServiceGroup(clusterId, serviceName)) {
+    Lock lock = m_locksByService.get(serviceName);
+    lock.lock();
+
+    try {
+      // create the default alert group for the new service if absent; this MUST
+      // be done before adding definitions so that they are properly added to the
+      // default group
+      if (null == m_alertDispatchDao.findDefaultServiceGroup(clusterId, serviceName)) {
+        try {
+          m_alertDispatchDao.createDefaultGroup(clusterId, serviceName);
+        } catch (AmbariException ambariException) {
+          LOG.error("Unable to create a default alert group for {}",
+            event.getServiceName(), ambariException);
+        }
+      }
+
+      // populate alert definitions for the new service from the database, but
+      // don't worry about sending down commands to the agents; the host
+      // components are not yet bound to the hosts so we'd have no way of knowing
+      // which hosts are invalidated; do that in another impl
       try {
-        m_alertDispatchDao.createDefaultGroup(clusterId, serviceName);
-      } catch (AmbariException ambariException) {
-        LOG.error("Unable to create a default alert group for {}",
-          event.getServiceName(), ambariException);
+        Set<AlertDefinition> alertDefinitions = m_metaInfoProvider.get().getAlertDefinitions(
+            stackName, stackVersion, serviceName);
+
+        for (AlertDefinition definition : alertDefinitions) {
+          AlertDefinitionEntity entity = m_alertDefinitionFactory.coerce(
+              clusterId,
+              definition);
+
+          m_definitionDao.create(entity);
+        }
+      } catch (AmbariException ae) {
+        String message = MessageFormat.format(
+            "Unable to populate alert definitions from the database during installation of {0}",
+            serviceName);
+        LOG.error(message, ae);
       }
     }
-
-    // populate alert definitions for the new service from the database, but
-    // don't worry about sending down commands to the agents; the host
-    // components are not yet bound to the hosts so we'd have no way of knowing
-    // which hosts are invalidated; do that in another impl
-    try {
-      Set<AlertDefinition> alertDefinitions = m_metaInfoProvider.get().getAlertDefinitions(
-          stackName, stackVersion, serviceName);
-
-      for (AlertDefinition definition : alertDefinitions) {
-        AlertDefinitionEntity entity = m_alertDefinitionFactory.coerce(
-            clusterId,
-            definition);
-
-        m_definitionDao.create(entity);
-      }
-    } catch (AmbariException ae) {
-      String message = MessageFormat.format(
-          "Unable to populate alert definitions from the database during installation of {0}",
-          serviceName);
-      LOG.error(message, ae);
+    finally {
+      lock.unlock();
     }
   }
 
@@ -170,43 +185,44 @@ public class AlertServiceStateListener {
   @AllowConcurrentEvents
   public void onAmbariEvent(ServiceRemovedEvent event) {
     LOG.debug("Received event {}", event);
-    Cluster cluster = null;
 
     try {
-      cluster = clusters.get().getClusterById(event.getClusterId());
+      m_clusters.get().getClusterById(event.getClusterId());
     } catch (AmbariException e) {
-      LOG.warn("Unable to retrieve cluster info for id: " + event.getClusterId());
+      LOG.warn("Unable to retrieve cluster with id {}", event.getClusterId());
+      return;
     }
 
-    if (cluster != null) {
-      // TODO: Explicit locking used to prevent deadlock situation caused during cluster delete
-      cluster.getClusterGlobalLock().writeLock().lock();
-      try {
-        List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
+    String serviceName = event.getServiceName();
+    Lock lock = m_locksByService.get(serviceName);
+    lock.lock();
+
+    try {
+      List<AlertDefinitionEntity> definitions = m_definitionDao.findByService(event.getClusterId(),
           event.getServiceName());
 
-        for (AlertDefinitionEntity definition : definitions) {
-          try {
-            m_definitionDao.remove(definition);
-          } catch (Exception exception) {
-            LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(), exception);
-          }
+      for (AlertDefinitionEntity definition : definitions) {
+        try {
+          m_definitionDao.remove(definition);
+        } catch (Exception exception) {
+          LOG.error("Unable to remove alert definition {}", definition.getDefinitionName(),
+              exception);
         }
-
-        // remove the default group for the service
-        AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
-          event.getServiceName());
-
-        if (null != group && group.isDefault()) {
-          try {
-            m_alertDispatchDao.remove(group);
-          } catch (Exception exception) {
-            LOG.error("Unable to remove default alert group {}", group.getGroupName(), exception);
-          }
-        }
-      } finally {
-        cluster.getClusterGlobalLock().writeLock().unlock();
       }
+
+      // remove the default group for the service
+      AlertGroupEntity group = m_alertDispatchDao.findGroupByName(event.getClusterId(),
+          event.getServiceName());
+
+      if (null != group && group.isDefault()) {
+        try {
+          m_alertDispatchDao.remove(group);
+        } catch (Exception exception) {
+          LOG.error("Unable to remove default alert group {}", group.getGroupName(), exception);
+        }
+      }
+    } finally {
+      lock.unlock();
     }
   }
 }

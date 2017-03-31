@@ -91,8 +91,12 @@ public class TabLayout {
         if (childSection.isRemoved()) {
           mergedSections.remove(childSection.getName());
         } else {
-          Section parentSection = mergedSections.get(childSection.getName());
-          childSection.mergeWithParent(parentSection);
+          if(mergedSections.containsKey(childSection.getName())) {
+            Section parentSection = mergedSections.get(childSection.getName());
+            childSection.mergeWithParent(parentSection);
+          }else{
+            childSection.mergeWithParent(childSection);
+          }
           mergedSections.put(childSection.getName(), childSection);
         }
       }

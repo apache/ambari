@@ -1,0 +1,566 @@
+{
+	"variables": [],
+	"info": {
+		"name": "hive20",
+		"_postman_id": "6dddb63b-c935-0982-65dc-4b9542ac8074",
+		"description": "REST call tests examples for hive 2.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "fetch  table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/info?_=1481634018195",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch d1.t2 table"
+			},
+			"response": []
+		},
+		{
+			"name": "create new table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"tableInfo\" : {\n    \"database\": \"d1\",\n    \"table\": \"t11\",\n    \"columns\": [\n      {\n        \"name\": \"col_name1\",\n        \"type\": \"string\",\n        \"comment\": \"col_name1 comment\"\n      },\n      {\n        \"name\": \"col_name2\",\n        \"type\": \"decimal(10,2)\",\n        \"comment\": \"col_name2 comment\"\n      }\n    ],\n    \"partitionInfo\": {\n      \"columns\": [\n        {\n          \"name\": \"col_name4\",\n          \"type\": \"char(1)\",\n          \"comment\": \"col_name4 comment\"\n        },\n        {\n          \"name\": \"col_name3\",\n          \"type\": \"string\",\n          \"comment\": \"col_name3 comment\"\n        }\n      ]\n    },\n    \"detailedInfo\": {\n      \"dbName\": \"d1\",\n      \"owner\": \"admin\",\n      \"createTime\": \"Mon Dec 12 05:21:17 UTC 2016\",\n      \"lastAccessTime\": \"UNKNOWN\",\n      \"retention\": \"0\",\n      \"tableType\": \"MANAGED_TABLE\",\n      \"location\": \"hdfs://c6401.ambari.apache.org:8020/user/hive/tables/d1/t1\",\n      \"parameters\": {\n        \"immutable\": \"false\",\n        \"orc.compress\": \"SNAPPY\",\n        \"transient_lastDdlTime\": \"1481520077\",\n        \"NO_AUTO_COMPACTION\": \"true\",\n        \"comment\": \"table t1 comment\",\n        \"SORTBUCKETCOLSPREFIX\": \"TRUE\"\n      }\n    },\n    \"storageInfo\": {\n      \"serdeLibrary\": \"org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe\",\n      \"inputFormat\": \"org.apache.hadoop.mapred.SequenceFileInputFormat\",\n      \"outputFormat\": \"org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat\",\n      \"compressed\": \"No\",\n      \"numBuckets\": \"5\",\n      \"bucketCols\": [\n        \"col_name1\",\n        \" col_name2\"\n      ],\n      \"sortCols\": [\n        {\n          \"columnName\": \"col_name1\",\n          \"order\": \"ASC\"\n        },\n        {\n          \"columnName\": \"col_name2\",\n          \"order\": \"DESC\"\n        }\n      ],\n      \"parameters\": {\n        \"escape.delim\": \"\\\\\\\\\",\n        \"field.delim\": \",\",\n        \"serialization.format\": \",\"\n      }\n    }\n  }\n}"
+				},
+				"description": "create new table "
+			},
+			"response": []
+		},
+		{
+			"name": "delete  table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/t11",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "delete d1.t2 table"
+			},
+			"response": []
+		},
+		{
+			"name": "ddl for create new table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/ddl?query_type=create-table",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"tableInfo\" : {\n    \"database\": \"d1\",\n    \"table\": \"t7\",\n    \"columns\": [\n      {\n        \"name\": \"col_name1\",\n        \"type\": \"string\",\n        \"comment\": \"col_name1 comment\"\n      },\n      {\n        \"name\": \"col_name2\",\n        \"type\": \"decimal(10,2)\",\n        \"comment\": \"col_name2 comment\"\n      }\n    ],\n    \"partitionInfo\": {\n      \"columns\": [\n        {\n          \"name\": \"col_name4\",\n          \"type\": \"char(1)\",\n          \"comment\": \"col_name4 comment\"\n        },\n        {\n          \"name\": \"col_name3\",\n          \"type\": \"string\",\n          \"comment\": \"col_name3 comment\"\n        }\n      ]\n    },\n    \"detailedInfo\": {\n      \"dbName\": \"d1\",\n      \"owner\": \"admin\",\n      \"createTime\": \"Mon Dec 12 05:21:17 UTC 2016\",\n      \"lastAccessTime\": \"UNKNOWN\",\n      \"retention\": \"0\",\n      \"tableType\": \"MANAGED_TABLE\",\n      \"location\": \"hdfs://c6401.ambari.apache.org:8020/user/hive/tables/d1/t1\",\n      \"parameters\": {\n        \"immutable\": \"false\",\n        \"orc.compress\": \"SNAPPY\",\n        \"transient_lastDdlTime\": \"1481520077\",\n        \"NO_AUTO_COMPACTION\": \"true\",\n        \"comment\": \"table t1 comment\",\n        \"SORTBUCKETCOLSPREFIX\": \"TRUE\"\n      }\n    },\n    \"storageInfo\": {\n      \"serdeLibrary\": \"org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe\",\n      \"inputFormat\": \"org.apache.hadoop.mapred.SequenceFileInputFormat\",\n      \"outputFormat\": \"org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat\",\n      \"compressed\": \"No\",\n      \"numBuckets\": \"5\",\n      \"bucketCols\": [\n        \"col_name1\",\n        \" col_name2\"\n      ],\n      \"sortCols\": [\n        {\n          \"columnName\": \"col_name1\",\n          \"order\": \"ASC\"\n        },\n        {\n          \"columnName\": \"col_name2\",\n          \"order\": \"DESC\"\n        }\n      ],\n      \"parameters\": {\n        \"escape.delim\": \"\\\\\\\\\",\n        \"field.delim\": \",\",\n        \"serialization.format\": \",\"\n      }\n    }\n  }\n}"
+				},
+				"description": "generates ddl for create new table"
+			},
+			"response": []
+		},
+		{
+			"name": "ddl for alter table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/ddl?query_type=alter-table",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"tableInfo\" : {\n    \"database\": \"d1\",\n    \"table\": \"x24\",\n    \"columns\": [\n      {\n        \"name\": \"col_name1\",\n        \"type\": \"string\",\n        \"comment\": \"col_name1 comment\"\n      },\n      {\n        \"name\": \"col_name2\",\n        \"type\": \"decimal(10,2)\",\n        \"comment\": \"col_name2 comment\"\n      },\n      {\n        \"name\": \"col_name5\",\n        \"type\": \"varchar(102)\",\n        \"comment\": \"col_name_extra comment\"\n      },\n      {\n        \"name\": \"col_name_extra\",\n        \"type\": \"varchar(102)\",\n        \"comment\": \"col_name_extra comment\"\n      }\n    ],\n    \"partitionInfo\": {\n      \"columns\": [\n        {\n          \"name\": \"col_name4\",\n          \"type\": \"char(1)\",\n          \"comment\": \"col_name4 comment\"\n        },\n        {\n          \"name\": \"col_name3\",\n          \"type\": \"string\",\n          \"comment\": \"col_name3 comment\"\n        }\n      ]\n    },\n    \"detailedInfo\": {\n      \"dbName\": \"d1\",\n      \"owner\": \"admin\",\n      \"createTime\": \"Mon Dec 12 05:21:17 UTC 2016\",\n      \"lastAccessTime\": \"UNKNOWN\",\n      \"retention\": \"0\",\n      \"tableType\": \"MANAGED_TABLE\",\n      \"location\": \"hdfs://c6401.ambari.apache.org:8020/user/hive/tables/d1/t1\",\n      \"parameters\": {\n        \"immutable\": \"false\",\n        \"orc.compress\": \"SNAPPY\",\n        \"transient_lastDdlTime\": \"1481520077\",\n        \"NO_AUTO_COMPACTION\": \"true\",\n        \"comment\": \"table t1 comment\",\n        \"SORTBUCKETCOLSPREFIX\": \"TRUE\"\n      }\n    },\n    \"storageInfo\": {\n      \"serdeLibrary\": \"org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe\",\n      \"inputFormat\": \"org.apache.hadoop.mapred.SequenceFileInputFormat\",\n      \"outputFormat\": \"org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat\",\n      \"compressed\": \"No\",\n      \"numBuckets\": \"7\",\n      \"bucketCols\": [\n        \"col_name1\",\n        \" col_name_extra\"\n      ],\n      \"parameters\": {\n        \"escape.delim\": \"\\\\\\\\\",\n        \"field.delim\": \",\",\n        \"serialization.format\": \",\"\n      }\n    }\n  }\n}"
+				},
+				"description": "generates ddl for alter table"
+			},
+			"response": []
+		},
+		{
+			"name": "simple create new table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"tableInfo\": {\n\t\t\"database\": \"d1\",\n\t\t\"table\": \"x25\",\n\t\t\"columns\": [{\n\t\t\t\"name\": \"c1\",\n\t\t\t\"type\": \"TINYINT\",\n\t\t\t\"comment\": \"\",\n\t\t\t\"precision\": null,\n\t\t\t\"scale\": null\n\t\t}, {\n\t\t\t\"name\": \"c4\",\n\t\t\t\"type\": \"TINYINT\",\n\t\t\t\"comment\": \"\",\n\t\t\t\"precision\": null,\n\t\t\t\"scale\": null\n\t\t}, {\n\t\t\t\"name\": \"c5\",\n\t\t\t\"type\": \"TINYINT\",\n\t\t\t\"comment\": \"\",\n\t\t\t\"precision\": null,\n\t\t\t\"scale\": null\n\t\t}],\n\t\t\"partitionInfo\": {\n\t\t\t\"columns\": [{\n\t\t\t\t\"name\": \"c2\",\n\t\t\t\t\"type\": \"TINYINT\",\n\t\t\t\t\"comment\": \"\",\n\t\t\t\t\"precision\": null,\n\t\t\t\t\"scale\": null\n\t\t\t}, {\n\t\t\t\t\"name\": \"c3\",\n\t\t\t\t\"type\": \"TINYINT\",\n\t\t\t\t\"comment\": \"\",\n\t\t\t\t\"precision\": null,\n\t\t\t\t\"scale\": null\n\t\t\t}]\n\t\t},\n\t\t\"detailedInfo\": {\n\t\t\t\n\t\t},\n\t\t\"storageInfo\": {\n\t\t\t\"fileFormat\": \"TEXTFILE\",\n\t\t\t\"numBuckets\": \"5\",\n\t\t\t\"bucketCols\": [\"c4\", \"c5\"]\n\t\t}\n\t}\n}"
+				},
+				"description": "create new table table"
+			},
+			"response": []
+		},
+		{
+			"name": "ddl for column alter table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/ddl?query_type=alter-table",
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"tableInfo\" : {\n    \"database\": \"default\",\n    \"table\": \"table1\",\n    \"columns\": [\n      {\n        \"name\": \"col_name1\",\n        \"type\": \"string\",\n        \"comment\": \"col_name1 comment\"\n      },\n      {\n        \"name\": \"col_name2\",\n        \"type\": \"decimal(10,2)\",\n        \"comment\": \"col_name2 comment\"\n      },\n      {\n        \"name\": \"col_name3\",\n        \"type\": \"varchar(102)\",\n        \"comment\": \"col_name3 comment\"\n      },\n      {\n        \"name\": \"col_name4\",\n        \"type\": \"varchar(222)\",\n        \"comment\": \"col_name4 comment\"\n      }\n    ]\n  }\n}"
+				},
+				"description": "generates ddl for alter table"
+			},
+			"response": []
+		},
+		{
+			"name": "alter table ",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/table1",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"tableInfo\" : {\n    \"database\": \"default\",\n    \"table\": \"table1\",\n    \"columns\": [\n      {\n        \"name\": \"col_name1\",\n        \"type\": \"string\",\n        \"comment\": \"col_name1 comment\"\n      },\n      {\n        \"name\": \"col_name2\",\n        \"type\": \"decimal(10,2)\",\n        \"comment\": \"col_name2 comment\"\n      },\n      {\n        \"name\": \"col_name3\",\n        \"type\": \"varchar(102)\",\n        \"comment\": \"col_name3 comment\"\n      },\n      {\n        \"name\": \"col_name4\",\n        \"type\": \"varchar(222)\",\n        \"comment\": \"col_name4 comment\"\n      }\n    ]\n  }\n}"
+				},
+				"description": "to alter an existing table."
+			},
+			"response": []
+		},
+		{
+			"name": "rename table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d1/tables/t2/rename",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "new_database_id",
+							"value": "default",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "new_table_id",
+							"value": "t2",
+							"type": "text",
+							"enabled": true
+						}
+					]
+				},
+				"description": "RENAME TABLE"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch job",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/jobs/257",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "new_database_id",
+							"value": "default",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "new_table_id",
+							"value": "t2",
+							"type": "text",
+							"enabled": true
+						}
+					]
+				},
+				"description": "fetches the job"
+			},
+			"response": []
+		},
+		{
+			"name": "delete  database",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/d2",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "drop database "
+			},
+			"response": []
+		},
+		{
+			"name": "fetch column stats",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/column/i/stats",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch column stats"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch job results",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/jobs/101/results?first=true&_=1484636273461",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch job results"
+			},
+			"response": []
+		},
+		{
+			"name": "fetch column Stats result",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/tt1/column/i/fetch_stats?job_id=255",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "fetch column Stats result"
+			},
+			"response": []
+		},
+		{
+			"name": "analyze table",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"username": "admin",
+						"password": "admin",
+						"saveHelperData": true,
+						"showPassword": false
+					}
+				},
+				"url": "{{APP_BASE_URL}}/resources/ddl/databases/default/tables/t1/analyze?analyze_columns=true",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-Requested-By",
+						"value": "ambari",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWRtaW46YWRtaW4=",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": "analyze table"
+			},
+			"response": []
+		}
+	]
+}

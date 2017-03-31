@@ -20,7 +20,6 @@ package org.apache.ambari.server.api.services;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.After;
@@ -30,6 +29,7 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 
 public class PersistKeyValueImplTest extends Assert {
 
@@ -45,7 +45,7 @@ public class PersistKeyValueImplTest extends Assert {
 
   @After
   public void tearDown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

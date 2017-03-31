@@ -19,7 +19,7 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;;
+import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 

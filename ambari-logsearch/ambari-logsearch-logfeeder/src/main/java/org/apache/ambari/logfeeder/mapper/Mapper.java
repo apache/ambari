@@ -26,22 +26,18 @@ public abstract class Mapper {
   protected String fieldName;
   private String mapClassCode;
 
-  public boolean init(String inputDesc, String fieldName,
-                      String mapClassCode, Object mapConfigs) {
+  public abstract boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs);
+
+  protected void init(String inputDesc, String fieldName, String mapClassCode) {
     this.inputDesc = inputDesc;
     this.fieldName = fieldName;
     this.mapClassCode = mapClassCode;
-    return true;
   }
 
-  public Object apply(Map<String, Object> jsonObj, Object value) {
-    return value;
-  }
+  public abstract Object apply(Map<String, Object> jsonObj, Object value);
 
   @Override
   public String toString() {
-    return "mapClass=" + mapClassCode + ", input=" + inputDesc
-      + ", fieldName=" + fieldName;
+    return "mapClass=" + mapClassCode + ", input=" + inputDesc + ", fieldName=" + fieldName;
   }
-
 }

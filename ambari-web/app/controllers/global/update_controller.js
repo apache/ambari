@@ -244,16 +244,16 @@ App.UpdateController = Em.Controller.extend({
           {
             key: 'Hosts/host_name',
             value: [hostDetailsFilter],
-            type: 'MULTIPLE'
+            type: 'MULTIPLE',
+            isHostDetails: true
           }
         ]);
       }
       else {
-        // clusterController.isHostsLoaded may be changed in callback, that is why it's value is cached before calling callback
-        isHostsLoaded = App.router.get('clusterController.isHostsLoaded');
-        callback();
         // On pages except for hosts/hostDetails, making sure hostsMapper loaded only once on page load, no need to update, but at least once
+        isHostsLoaded = App.router.get('clusterController.isHostsLoaded');
         if (isHostsLoaded) {
+          callback();
           return;
         }
       }
@@ -266,7 +266,7 @@ App.UpdateController = Em.Controller.extend({
       realUrl += loggingResource;
     }
 
-    var clientCallback = function (skipCall, queryParams) {
+    var clientCallback = function (skipCall, queryParams, itemTotal) {
       var completeCallback = function () {
         callback();
         if (loadMetricsSeparately) {
@@ -290,6 +290,11 @@ App.UpdateController = Em.Controller.extend({
 
         App.HttpClient.get(realUrl, App.hostsMapper, {
           complete: completeCallback,
+          beforeMap: function(response) {
+            if (itemTotal) {
+              response.itemTotal = itemTotal;
+            }
+          },
           doGetAsPost: true,
           params: self.computeParameters(queryParams),
           error: error
@@ -398,17 +403,12 @@ App.UpdateController = Em.Controller.extend({
     if (skipCall) {
       params.callback(skipCall);
     } else {
-      // get all non-hostcomponent related keys
-      queryParams = queryParams.filter(function (param) {
-        return !param.isComponentRelatedFilter;
-      });
-      // force specific hosts
-      queryParams.push({
+      queryParams = [{
         key: 'Hosts/host_name',
         value: hostNames,
         type: 'MULTIPLE'
-      });
-      params.callback(skipCall, queryParams);
+      }];
+      params.callback(skipCall, queryParams, itemTotal);
     }
   },
   getHostByHostComponentsErrorCallback: function () {

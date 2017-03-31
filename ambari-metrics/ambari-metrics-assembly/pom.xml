@@ -23,13 +23,13 @@
   <parent>
     <artifactId>ambari-metrics</artifactId>
     <groupId>org.apache.ambari</groupId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics-assembly</artifactId>
   <name>Ambari Metrics Assembly</name>
   <packaging>pom</packaging>
-  <version>2.4.2.0.0</version>
+  <version>2.5.0.0.0</version>
   <description>Ambari Metrics Assembly</description>
 
   <properties>
@@ -309,6 +309,19 @@
                       </sources>
                     </mapping>
                     <mapping>
+                      <directory>/usr/lib/ambari-metrics-collector/bin</directory>
+                      <filemode>755</filemode>
+                      <username>root</username>
+                      <groupname>root</groupname>
+                      <directoryIncluded>false</directoryIncluded>
+                      <sources>
+                        <source>
+                          <location>${collector.dir}/conf/unix/sqlline</location>
+                          <filter>false</filter>
+                        </source>
+                      </sources>
+                    </mapping>
+                    <mapping>
                       <directory>/etc/ambari-metrics-collector/conf</directory>
                       <configuration>true</configuration>
                       <sources>
@@ -320,6 +333,12 @@
                         </source>
                         <source>
                           <location>${collector.dir}/conf/unix/log4j.properties</location>
+                        </source>
+                        <source>
+                          <location>${collector.dir}/conf/unix/metrics_whitelist</location>
+                        </source>
+                        <source>
+                          <location>${collector.dir}/conf/unix/amshbase_metrics_whitelist</location>
                         </source>
                         <source>
                           <location>${collector.dir}/target/embedded/${hbase.folder}/conf/hbase-site.xml</location>
@@ -853,6 +872,24 @@
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/metrics_whitelist</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
+                    <prefix>/etc/ambari-metrics-collector/conf</prefix>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${collector.dir}/conf/unix/amshbase_metrics_whitelist</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <filemode>755</filemode>
                     <prefix>/etc/ambari-metrics-collector/conf</prefix>
                   </mapper>
                 </data>

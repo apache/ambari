@@ -18,6 +18,13 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -25,13 +32,6 @@ import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * PrepareEnableKerberosServerAction is a ServerAction implementation that prepares metadata needed
@@ -79,9 +79,22 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
-    Map<String, Set<String>> propertiesToBeRemoved = new HashMap<>();
+    KerberosHelper kerberosHelper = getKerberosHelper();
+    Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+    Map<String, Set<String>> propertiesToRemove = new HashMap<>();
+    Map<String, Set<String>> propertiesToIgnore = new HashMap<>();
+    Set<String> services = cluster.getServices().keySet();
+
+    // Calculate the current host-specific configurations. These will be used to replace
+    // variables within the Kerberos descriptor data
+    Map<String, Map<String, String>> configurations = kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptorProperties);
+
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-      kerberosConfigurations, null, propertiesToBeRemoved, true, true);
+        configurations, kerberosConfigurations, true, propertiesToIgnore);
+
+    kerberosHelper.applyStackAdvisorUpdates(cluster, services, configurations, kerberosConfigurations,
+          propertiesToIgnore, propertiesToRemove, true);
+
     processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
 
     // Ensure the cluster-env/security_enabled flag is set properly
@@ -92,7 +105,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     }
     clusterEnvProperties.put(KerberosHelper.SECURITY_ENABLED_PROPERTY_NAME, "true");
 
-    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToBeRemoved);
+    processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToRemove);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
   }

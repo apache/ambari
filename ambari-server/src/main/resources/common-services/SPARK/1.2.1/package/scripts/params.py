@@ -30,6 +30,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -60,7 +61,8 @@ stack_version_unformatted = config['hostLevelParams']['stack_version']
 if upgrade_direction == Direction.DOWNGRADE:
   stack_version_unformatted = config['commandParams']['original_stack'].split("-")[1]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -221,6 +223,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   user_group = status_params.user_group
   livy_hdfs_user_dir = format("/user/{livy_user}")
   livy_server_pid_file = status_params.livy_server_pid_file
+  livy_recovery_dir = default("/configurations/livy-conf/livy.server.recovery.state-store.url", "/livy-recovery")
 
   livy_server_start = format("{livy_home}/bin/livy-server start")
   livy_server_stop = format("{livy_home}/bin/livy-server stop")
@@ -230,8 +233,14 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   livy_log4j_properties = config['configurations']['livy-log4j-properties']['content']
   livy_spark_blacklist_properties = config['configurations']['livy-spark-blacklist']['content']
 
-  livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.kerberos.keytab']
-  livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.kerberos.principal']
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy-conf']:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.launch.kerberos.principal']
 
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 

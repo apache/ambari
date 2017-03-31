@@ -27,12 +27,15 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -52,7 +55,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class StackArtifactResourceProviderTest {
   private AmbariMetaInfo metaInfo;
@@ -69,8 +71,8 @@ public class StackArtifactResourceProviderTest {
   }
 
   @After
-  public void tearDown() {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private StackArtifactResourceProvider getStackArtifactResourceProvider(

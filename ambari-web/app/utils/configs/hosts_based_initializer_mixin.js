@@ -118,9 +118,8 @@ App.HostsBasedInitializerMixin = Em.Mixin.create({
       var hasFound = initializer.components.contains(masterComponent.component);
       if (Em.isNone(initializer.isInstalled)) {
         return hasFound;
-      } else {
-        return hasFound && masterComponent.isInstalled === initializer.isInstalled;
       }
+      return hasFound && masterComponent.isInstalled === initializer.isInstalled;
     }).sortProperty('hostName').mapProperty('hostName');
     if (!initializer.asArray) {
       hostNames = hostNames.uniq().join(',');
@@ -372,7 +371,7 @@ App.HostsBasedInitializerMixin = Em.Mixin.create({
       component: component,
       componentExists: componentExists,
       modifier: {
-        delmitier: Em.isNone(delimiter) ? ',' : delimiter
+        delimiter: Em.isNone(delimiter) ? ',' : delimiter
       }
     };
   },

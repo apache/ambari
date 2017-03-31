@@ -17,18 +17,17 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import org.apache.log4j.Logger;
-import org.easymock.Capture;
-import org.easymock.EasyMockSupport;
-import org.junit.Test;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.junit.Assert.assertSame;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.eq;
-
-import static org.junit.Assert.assertSame;
+import org.easymock.Capture;
+import org.easymock.EasyMockSupport;
+import org.junit.Test;
+import org.slf4j.Logger;
 
 public class UtilsTest {
 

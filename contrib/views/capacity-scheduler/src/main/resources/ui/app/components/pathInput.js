@@ -27,7 +27,8 @@ App.PathInputComponent = Em.Component.extend({
           basedir = path.substr(0,path.lastIndexOf('.')) || currentBasedir,
           queuePath = [basedir,path.substr(path.lastIndexOf('.')+1)].join('.'),
           queueName = path.substr(path.lastIndexOf('.')+1),
-          alreadyExists = this.get('queues.firstObject.store').hasRecordForId('queue',queuePath.toLowerCase());
+          deletedQueues = this.get('queues.firstObject.store').get('deletedQueues'),
+          alreadyExists = (this.get('queues').findBy('name',queueName)||deletedQueues.findBy('name',queueName))?true:false;
 
       if (!path || !queueName) {
         return this.setProperties({'isError':true,'errorMessage':'Enter queue name.'});

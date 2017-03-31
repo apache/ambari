@@ -43,7 +43,7 @@ App.usersMapper = App.QuickDataMapper.create({
         item.Users.operator = self.isOperator(item.permissions);
         item.Users.cluster_user = self.isClusterUser(item.permissions);
         result.push(self.parseIt(item, self.config));
-        App.store.loadMany(self.get('model'), result);
+        App.store.safeLoadMany(self.get('model'), result);
       }
     });
   },

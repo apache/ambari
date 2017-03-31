@@ -56,6 +56,12 @@ class TestStormBase(RMFTestCase):
       create_parents = True,
       cd_access='a'
     )
+    self.assertResourceCalled('File', '/etc/security/limits.d/storm.conf',
+        content = Template('storm.conf.j2'),
+        owner = 'root',
+        group = 'root',
+        mode = 0644,
+    )
     self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
@@ -99,6 +105,12 @@ class TestStormBase(RMFTestCase):
       group = 'hadoop',
       create_parents = True,
       cd_access='a'
+    )
+    self.assertResourceCalled('File', '/etc/security/limits.d/storm.conf',
+        content = Template('storm.conf.j2'),
+        owner = 'root',
+        group = 'root',
+        mode = 0644,
     )
     self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',

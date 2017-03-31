@@ -24,9 +24,11 @@ App.CapschedSchedulerController = Ember.Controller.extend({
   needs: ['capsched'],
   scheduler: cmp.alias('controllers.capsched.content'),
   schedulerProps: ['maximum_am_resource_percent', 'maximum_applications', 'node_locality_delay', 'resource_calculator'],
+  isRefreshOrRestartNeeded: false,
 
   actions: {
     rollbackSchedulerProps: function() {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
       var sched = this.get('scheduler'),
       attributes = sched.changedAttributes(),
       props = this.schedulerProps;
@@ -35,6 +37,16 @@ App.CapschedSchedulerController = Ember.Controller.extend({
           sched.set(prop, attributes[prop][0]);
         }
       });
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+    },
+    rollbackProp: function(prop, item) {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop, attributes[prop][0]);
+      }
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+      this.afterRollbackProp();
     },
     showConfirmDialog: function() {
       this.set('isConfirmDialogOpen', true);
@@ -49,6 +61,21 @@ App.CapschedSchedulerController = Ember.Controller.extend({
     }
   },
 
+  initEvents: function() {
+    this.get('eventBus').subscribe('beforeSavingConfigs', function() {
+      this.set("tempRefreshNeed", this.get('isRefreshOrRestartNeeded') || false);
+    }.bind(this));
+
+    this.get('eventBus').subscribe('afterConfigsSaved', function(refresh) {
+      this.set('isRefreshOrRestartNeeded', refresh !== undefined? refresh:this.get('tempRefreshNeed'));
+    }.bind(this));
+  }.on('init'),
+
+  teardownEvents: function() {
+    this.get('eventBus').unsubscribe('beforeSavingConfigs');
+    this.get('eventBus').unsubscribe('afterConfigsSaved');
+  }.on('willDestroy'),
+
   isOperator: cmp.alias('controllers.capsched.isOperator'),
 
   saveMode: '',
@@ -60,21 +87,29 @@ App.CapschedSchedulerController = Ember.Controller.extend({
 
   isSchedulerDirty: false,
 
+  isSchedulerPropsNeedSaveOrRestart: cmp.or('isRefreshOrRestartNeeded', 'isSchedulerDirty'),
+
+  forceRestartRequired: function() {
+    return !this.get('isSchedulerDirty') && this.get('isRefreshOrRestartNeeded');
+  }.property('isSchedulerDirty', 'isRefreshOrRestartNeeded'),
+
   schedulerBecomeDirty: function() {
     var sched = this.get('scheduler'),
-    attributes = sched.changedAttributes(),
-    props = this.schedulerProps;
+      attributes = sched.changedAttributes(),
+      props = this.schedulerProps;
+
     var isDirty = props.any(function(prop){
       return attributes.hasOwnProperty(prop);
     });
     this.set('isSchedulerDirty', isDirty);
+    this.set('isRefreshOrRestartNeeded', isDirty);
   }.observes('scheduler.maximum_am_resource_percent', 'scheduler.maximum_applications', 'scheduler.node_locality_delay', 'scheduler.resource_calculator'),
 
   /**
    * Collection of modified fields in Scheduler.
    * @type {Object} - { [fileldName] : {Boolean} }
    */
-  schedulerDirtyFilelds: {},
+  schedulerDirtyFields: {},
 
   dirtyObserver:function () {
     this.get('scheduler.constructor.transformedAttributes.keys.list').forEach(function(item) {
@@ -84,7 +119,7 @@ App.CapschedSchedulerController = Ember.Controller.extend({
 
   propertyBecomeDirty:function (controller, property) {
     var schedProp = property.split('.').objectAt(1);
-    this.set('schedulerDirtyFilelds.' + schedProp, this.get('scheduler').changedAttributes().hasOwnProperty(schedProp));
+    this.set('schedulerDirtyFields.' + schedProp, this.get('scheduler').changedAttributes().hasOwnProperty(schedProp));
   },
 
   resourceCalculatorValues: [{
@@ -93,5 +128,13 @@ App.CapschedSchedulerController = Ember.Controller.extend({
   }, {
     label: 'Dominant Resource Calculator',
     value: 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
-  }]
+  }],
+
+  afterRollbackProp: function() {
+    if (this.get('isSchedulerDirty')) {
+      this.set('isRefreshOrRestartNeeded', true);
+    } else {
+      this.set('isRefreshOrRestartNeeded', false);
+    }
+  }
 });

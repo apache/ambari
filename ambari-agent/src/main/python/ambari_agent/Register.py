@@ -31,8 +31,8 @@ class Register:
   """ Registering with the server. Get the hardware profile and
   declare success for now """
   def __init__(self, config):
-    self.hardware = Hardware()
     self.config = config
+    self.hardware = Hardware(self.config)
 
   def build(self, version, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact

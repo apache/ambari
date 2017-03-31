@@ -1,0 +1,406 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<view>
+    <name>HIVE</name>
+    <label>Hive</label>
+    <version>2.0.0</version>
+    <build>${env.BUILD_NUMBER}</build>
+
+    <min-ambari-version>2.0.*</min-ambari-version>
+
+    <data-version>2</data-version>
+    <data-migrator-class>org.apache.ambari.view.hive20.DataMigrator</data-migrator-class>
+
+    <validator-class>org.apache.ambari.view.hive20.PropertyValidator</validator-class>
+    <view-class>org.apache.ambari.view.hive20.HiveViewImpl</view-class>
+
+    <!-- Hive Configs -->
+    <parameter>
+      <name>hive.jdbc.url</name>
+      <description>Enter JDBC Url to connect to Hive Server 2</description>
+      <label>HiveServer2 JDBC Url</label>
+      <placeholder>jdbc:hive2://127.0.0.1:10000</placeholder>
+      <cluster-config>fake</cluster-config>
+      <required>true</required>
+    </parameter>
+
+    <parameter>
+      <name>hive.session.params</name>
+      <description>Semicolon-separated key value parameters to be used in JDBC URL generation to connect to hive server 2</description>
+      <label>Hive Session Parameters</label>
+      <placeholder>transportMode=http;httpPath=cliservice</placeholder>
+      <default-value></default-value>
+      <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.ldap.configured</name>
+        <description>Set to true if Hive server is configured through LDAP</description>
+        <label>Hive LDAP configuration</label>
+        <placeholder>false</placeholder>
+        <default-value>false</default-value>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.ranger.servicename</name>
+        <description>Set the service name of ranger configured for this hive cluster</description>
+        <label>Ranger Service Name</label>
+        <placeholder>c1_hive</placeholder>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.ranger.username</name>
+        <description>Admin username for ranger</description>
+        <label>Ranger Username</label>
+        <default-value>admin</default-value>
+        <required>false</required>
+    </parameter>
+    <parameter>
+        <name>hive.ranger.password</name>
+        <description>Admin password for ranger</description>
+        <label>Ranger Password</label>
+        <default-value>admin</default-value>
+        <masked>true</masked>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.metastore.warehouse.dir</name>
+        <description>Hive Metastore directory (example: /apps/hive/warehouse)</description>
+        <label>Hive Metastore directory</label>
+        <placeholder>/apps/hive/warehouse</placeholder>
+        <default-value>/apps/hive/warehouse</default-value>
+        <cluster-config>hive-site/hive.metastore.warehouse.dir</cluster-config>
+        <required>false</required>
+    </parameter>
+
+    <!-- HDFS Configs -->
+    <parameter>
+        <name>webhdfs.url</name>
+        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address
+            property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
+        <label>WebHDFS FileSystem URI</label>
+        <placeholder>webhdfs://namenode:50070</placeholder>
+        <required>true</required>
+        <cluster-config>core-site/fs.defaultFS</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.nameservices</name>
+        <description>Comma-separated list of nameservices. Value of hdfs-site/dfs.nameservices property</description>
+        <label>Logical name of the NameNode cluster</label>
+        <required>false</required>
+        <cluster-config>hdfs-site/dfs.nameservices</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenodes.list</name>
+        <description>Comma-separated list of namenodes for a given nameservice.
+          Value of hdfs-site/dfs.ha.namenodes.[nameservice] property</description>
+        <label>List of NameNodes</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn1</name>
+        <description>RPC address for first name node.
+          Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn2</name>
+        <description>RPC address for second name node.
+          Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn1</name>
+        <description>WebHDFS address for first name node.
+          Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn2</name>
+        <description>WebHDFS address for second name node.
+          Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.https-address.nn1</name>
+        <description>WebHDFS Https address for first name node.
+            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode HTTPS (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.https-address.nn2</name>
+        <description>WebHDFS Https address for second name node.
+            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode HTTPS (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.client.failover.proxy.provider</name>
+        <description>The Java class that HDFS clients use to contact the Active NameNode
+          Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property</description>
+        <label>Failover Proxy Provider</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+
+    <parameter>
+        <name>hive.ranger.url</name>
+        <description>Ranger URL</description>
+        <label>Ranger URL</label>
+        <placeholder>http://rangerhost:post</placeholder>
+        <cluster-config>fake</cluster-config>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>webhdfs.username</name>
+        <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
+        <label>WebHDFS Username</label>
+        <default-value>${username}</default-value>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>webhdfs.auth</name>
+        <description>Semicolon-separated authentication configs.</description>
+        <label>WebHDFS Authentication</label>
+        <placeholder>auth=SIMPLE</placeholder>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>hdfs.umask-mode</name>
+        <description>The umask used when creating files and directories. Defaults to 022</description>
+        <label>Umask</label>
+        <default-value>022</default-value>
+        <required>false</required>
+        <cluster-config>hdfs-site/fs.permissions.umask-mode</cluster-config>
+    </parameter>
+
+    <parameter>
+        <name>hdfs.auth_to_local</name>
+        <description>Auth to Local Configuration</description>
+        <label>Auth To Local</label>
+        <required>false</required>
+        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+    </parameter>
+
+    <!-- General Configs -->
+
+    <parameter>
+        <name>views.tez.instance</name>
+        <description>Instance name of Tez view.</description>
+        <label>Instance name of Tez view</label>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>scripts.dir</name>
+        <description>HDFS directory path to store Hive scripts.</description>
+        <label>Scripts HDFS Directory</label>
+        <placeholder>/user/${username}/hive/scripts</placeholder>
+        <default-value>/user/${username}/hive/scripts</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>jobs.dir</name>
+        <description>HDFS directory path to store Hive job status.</description>
+        <label>Jobs HDFS Directory</label>
+        <placeholder>/user/${username}/hive/jobs</placeholder>
+        <default-value>/user/${username}/hive/jobs</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>scripts.settings.defaults-file</name>
+        <description>File path for saving default settings for query</description>
+        <label>Default script settings file</label>
+        <default-value>/user/${username}/.${instanceName}.defaultSettings</default-value>
+        <required>true</required>
+    </parameter>
+
+
+    <parameter>
+        <name>use.hive.interactive.mode</name>
+        <description>Connects to the hive interactive server if set true</description>
+        <label>Use Interactive Mode</label>
+        <default-value>false</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>yarn.ats.url</name>
+        <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration.</description>
+        <label>YARN Application Timeline Server URL</label>
+        <placeholder>http://yarn.ats.address:8188</placeholder>
+        <cluster-config>yarn-site/yarn.timeline-service.webapp.address</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>yarn.resourcemanager.url</name>
+        <description>The URL to the YARN ResourceManager, used to provide YARN Application data. If YARN ResourceManager HA is enabled, provide a comma separated list of URLs for all the Resource Managers.</description>
+        <label>YARN ResourceManager URL</label>
+        <placeholder>http://yarn.resourcemanager.address:8088</placeholder>
+        <cluster-config>yarn-site/yarn.resourcemanager.webapp.address</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim. Format : key1=value1;
+          key2=value2</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
+
+
+    <resource>
+        <name>savedQuery</name>
+        <plural-name>savedQueries</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive20.resources.savedQueries.SavedQuery</resource-class>
+        <provider-class>org.apache.ambari.view.hive20.resources.savedQueries.SavedQueryResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive20.resources.savedQueries.SavedQueryService</service-class>
+    </resource>
+
+    <resource>
+        <name>fileResource</name>
+        <plural-name>fileResources</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive20.resources.resources.FileResourceItem</resource-class>
+        <provider-class>org.apache.ambari.view.hive20.resources.resources.FileResourceResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive20.resources.resources.FileResourceService</service-class>
+    </resource>
+
+    <resource>
+        <name>udf</name>
+        <plural-name>udfs</plural-name>
+        <id-property>id</id-property>
+        <resource-class>org.apache.ambari.view.hive20.resources.udfs.UDF</resource-class>
+        <provider-class>org.apache.ambari.view.hive20.resources.udfs.UDFResourceProvider</provider-class>
+        <service-class>org.apache.ambari.view.hive20.resources.udfs.UDFService</service-class>
+    </resource>
+
+    <resource>
+        <name>jobs</name>
+        <service-class>org.apache.ambari.view.hive20.resources.jobs.JobService</service-class>
+    </resource>
+
+    <resource>
+        <name>upload</name>
+        <plural-name>uploads</plural-name>
+        <service-class>org.apache.ambari.view.hive20.resources.uploads.UploadService</service-class>
+    </resource>
+
+    <resource>
+        <name>files</name>
+        <service-class>org.apache.ambari.view.hive20.resources.files.FileService</service-class>
+    </resource>
+
+    <resource>
+        <name>hive</name>
+        <service-class>org.apache.ambari.view.hive20.HelpService</service-class>
+    </resource>
+
+
+    <resource>
+        <name>connection</name>
+        <service-class>org.apache.ambari.view.hive20.resources.browser.ConnectionService</service-class>
+    </resource>
+
+    <resource>
+        <name>system</name>
+        <service-class>org.apache.ambari.view.hive20.resources.system.SystemService</service-class>
+    </resource>
+
+    <resource>
+        <name>settings</name>
+        <resource-class>org.apache.ambari.view.hive20.resources.settings.Setting</resource-class>
+        <service-class>org.apache.ambari.view.hive20.resources.settings.SettingsService</service-class>
+    </resource>
+
+    <resource>
+        <name>ddl</name>
+        <service-class>org.apache.ambari.view.hive20.resources.browser.DDLService</service-class>
+    </resource>
+
+    <resource>
+        <name>directories</name>
+        <service-class>org.apache.ambari.view.hive20.resources.browser.FileService</service-class>
+    </resource>
+
+    <persistence>
+        <entity>
+            <class>org.apache.ambari.view.hive20.resources.jobs.viewJobs.JobImpl</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive20.resources.savedQueries.SavedQuery</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive20.resources.udfs.UDF</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive20.resources.resources.FileResourceItem</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive20.resources.settings.Setting</class>
+            <id-property>id</id-property>
+        </entity>
+        <entity>
+            <class>org.apache.ambari.view.hive20.TestBean</class>
+            <id-property>id</id-property>
+        </entity>
+    </persistence>
+
+    <auto-instance>
+        <name>AUTO_HIVE20_INSTANCE</name>
+        <label>Hive View 2.0</label>
+        <description>This view instance is auto created when the Hive service is added to a cluster.</description>
+        <stack-id>HDP-2.*</stack-id>
+        <services>
+            <service>HIVE</service>
+        </services>
+        <roles>
+            <role>CLUSTER.ADMINISTRATOR</role>
+            <role>CLUSTER.OPERATOR</role>
+            <role>SERVICE.ADMINISTRATOR</role>
+            <role>SERVICE.OPERATOR</role>
+            <role>CLUSTER.USER</role>
+        </roles>
+    </auto-instance>
+</view>

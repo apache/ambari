@@ -24,23 +24,24 @@
     {{t admin.serviceAutoStart.header.text}}
   </div>
   <br/>
+  {{#if view.isLoaded}}
   <div class="cluster-switcher row-fluid">
-      <div class="span2">
+      <div class="span3">
           <strong>{{t admin.serviceAutoStart.body.text}}</strong>
       </div>
       <div class="span4">
           {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
       </div>
       <div class="pull-right operations-button pull-right">
-          <button class="btn" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
           <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
   </div>
     {{#if view.switcherValue}}
         <hr>
-        <div class="row-fluid mlm"><h5 class="span2">{{t common.service}}</h5><h5 class="span4">{{t common.component}}</h5><h5 class="span4">{{t common.status}}</h5></div>
+        <div class="row-fluid mlm"><h5 class="span3">{{t common.service}}</h5><h5 class="span4">{{t common.component}}</h5><h5 class="span4">{{t common.status}}</h5></div>
         <div class="tabs-left">
-            <ul class="nav nav-tabs span2">
+            <ul class="nav nav-tabs span3">
                 {{#each tab in controller.tabs}}
                     <li {{bindAttr class="tab.isActive:active"}}>
                         <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
@@ -63,13 +64,18 @@
                                 </div>
                             </div>
                         {{/each}}
-                        <div class="offset4">
-                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
-                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                        </div>
+                        {{#isAuthorized "SERVICE.MANAGE_AUTO_START"}}
+                            <div class="offset4">
+                                <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                                <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                            </div>
+                        {{/isAuthorized}}
                     </div>
                 {{/each}}
             </div>
         </div>
     {{/if}}
+  {{else}}
+    {{view App.SpinnerView}}
+  {{/if}}
 </div>

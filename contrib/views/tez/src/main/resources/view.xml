@@ -91,5 +91,12 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <services>
       <service>TEZ</service>
     </services>
+    <roles>
+      <role>CLUSTER.ADMINISTRATOR</role>
+      <role>CLUSTER.OPERATOR</role>
+      <role>SERVICE.ADMINISTRATOR</role>
+      <role>SERVICE.OPERATOR</role>
+      <role>CLUSTER.USER</role>
+    </roles>
   </auto-instance>
 </view>

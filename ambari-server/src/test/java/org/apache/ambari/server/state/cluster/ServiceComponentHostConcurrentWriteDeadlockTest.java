@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
@@ -58,7 +60,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 /**
@@ -114,23 +115,17 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     cluster.createClusterVersion(stackId,
         stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
-    Config config1 = configFactory.createNew(cluster, "test-type1", new HashMap<String, String>(), new HashMap<String,
+    Config config1 = configFactory.createNew(cluster, "test-type1", null, new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
 
-    Config config2 = configFactory.createNew(cluster, "test-type2", new HashMap<String, String>(), new HashMap<String,
+    Config config2 = configFactory.createNew(cluster, "test-type2", null, new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
 
-    config1.persist();
-    config2.persist();
-
-    cluster.addConfig(config1);
-    cluster.addConfig(config2);
     cluster.addDesiredConfig("test user", new HashSet<Config>(Arrays.asList(config1, config2)));
 
     String hostName = "c6401";
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-    clusters.getHost(hostName).persist();
     clusters.mapHostToCluster(hostName, "c1");
 
     Service service = installService("HDFS");
@@ -138,8 +133,8 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   /**
@@ -242,7 +237,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 
@@ -254,7 +248,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;
@@ -270,7 +263,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
           componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;

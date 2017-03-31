@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -27,9 +30,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * Computes HBase properties.  This class is only used when moving from
@@ -79,8 +80,9 @@ public class HBaseConfigCalculation extends AbstractServerAction {
                                    "Upper or lower memstore limit setting value is malformed, skipping", "");
     }
 
-    if (lowerLimit.scale() < 2) //make sure result will have at least 2 digits after decimal point
+    if (lowerLimit.scale() < 2) {
       lowerLimit = lowerLimit.setScale(2, BigDecimal.ROUND_HALF_UP);
+    }
     BigDecimal lowerLimitNew = lowerLimit.divide(upperLimit, BigDecimal.ROUND_HALF_UP);
 
     properties.put(NEW_LOWER_LIMIT_PROPERTY_NAME, lowerLimitNew.toString());
@@ -90,7 +92,7 @@ public class HBaseConfigCalculation extends AbstractServerAction {
     properties.remove(OLD_LOWER_LIMIT_PROPERTY_NAME);
 
     config.setProperties(properties);
-    config.persist(false);
+    config.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
                   String.format("%s was set to %s", NEW_LOWER_LIMIT_PROPERTY_NAME, lowerLimitNew.toString()), "");

@@ -20,11 +20,10 @@ package org.apache.ambari.server.controller.internal;
 
 
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
-import org.apache.ambari.server.topology.Blueprint;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 import static org.powermock.api.easymock.PowerMock.createMock;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
@@ -77,6 +76,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelperInitia
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.LogicalRequest;
@@ -1200,7 +1200,7 @@ public class RequestResourceProviderTest {
       }
     }
     Assert.assertNotNull(propertyIdToAssert);
-    Assert.assertEquals("true", (String) propertyValueToAssert);
+    Assert.assertEquals("true", propertyValueToAssert);
   }
 
   @Test
@@ -1624,6 +1624,12 @@ public class RequestResourceProviderTest {
     verify(managementController, actionManager, clusters, requestMock, requestDAO, hrcDAO);
   }
 
+  /**
+   * Tests that topology requests return different status (PENDING) if there are
+   * no tasks. Normal requests should return COMPLETED.
+   *
+   * @throws Exception
+   */
   @Test
   @PrepareForTest(AmbariServer.class)
   public void testGetLogicalRequestStatusWithNoTasks() throws Exception {

@@ -32,6 +32,9 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
+import org.apache.ambari.server.events.StackUpgradeFinishEvent;
+import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -125,6 +128,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  VersionEventPublisher versionEventPublisher;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
@@ -300,6 +306,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           String.format("Finalizing the version for %d host(s).\n", hostVersionsAllowed.size()));
       cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
 
+      versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 
@@ -447,6 +454,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       // ensure that when downgrading, we set the desired back to the
       // original value
       cluster.setDesiredStackVersion(currentClusterStackId);
+      versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 

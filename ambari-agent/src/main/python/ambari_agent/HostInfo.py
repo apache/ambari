@@ -30,6 +30,7 @@ import time
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.firewall import Firewall
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core import shell
 
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
@@ -66,15 +67,20 @@ class HostInfo(object):
     return 'unknown'
 
   def checkLiveServices(self, services, result):
-    osType = OSCheck.get_os_family()
     for service in services:
       svcCheckResult = {}
-      serviceName = service
-      svcCheckResult['name'] = serviceName
+      svcCheckResult['name'] = " or ".join(service)
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        out, err, code = self.getServiceStatus(serviceName)
+        out = ""
+        err = ""
+        for serviceName in service:
+          sys_out, sys_err, code = self.getServiceStatus(serviceName)
+          if code == 0:
+            break
+          out += sys_out if len(out) == 0 else os.linesep + sys_out
+          err += sys_err if len(err) == 0 else os.linesep + sys_err
         if 0 != code:
           svcCheckResult['status'] = "Unhealthy"
           svcCheckResult['desc'] = out
@@ -117,9 +123,11 @@ class HostInfo(object):
 
 def get_ntp_service():
   if OSCheck.is_redhat_family():
-    return "ntpd"
-  elif OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    return "ntp"
+    return ("ntpd", "chronyd",)
+  elif OSCheck.is_suse_family():
+    return ("ntpd", "ntp",)
+  elif OSCheck.is_ubuntu_family():
+    return ("ntp", "chrony",)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -162,6 +170,7 @@ class HostInfoLinux(HostInfo):
 
   DEFAULT_SERVICE_NAME = "ntpd"
   SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  SERVICE_STATUS_CMD_LIST = shlex.split(SERVICE_STATUS_CMD)
 
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
@@ -326,13 +335,16 @@ class HostInfoLinux(HostInfo):
 
     pass
 
-  def getServiceStatus(self, serivce_name):
-    service_check_live = shlex.split(self.SERVICE_STATUS_CMD)
-    service_check_live[1] = serivce_name
-    osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-    out, err = osStat.communicate()
-    return out, err, osStat.returncode
+  def getServiceStatus(self, service_name):
+    service_check_live = list(self.SERVICE_STATUS_CMD_LIST)
+    service_check_live[1] = service_name
+    try:
+      code, out, err = shell.call(service_check_live, stdout = subprocess.PIPE, stderr = subprocess.PIPE, timeout = 5, quiet = True)
+      return out, err, code
+    except Exception as ex:
+      logger.warn("Checking service {0} status failed".format(service_name))
+      return '', str(ex), 1
+
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -341,7 +353,7 @@ class HostInfoWindows(HostInfo):
   GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "name = \'{0}\' and Disabled=\'False\'" -ErrorAction Stop); foreach ($acc in $accounts) {{Write-Host ($acc.Domain + "\\" + $acc.Name)}}'
   GET_JAVA_PROC_CMD = 'foreach ($process in (gwmi Win32_Process -Filter "name = \'java.exe\'")){{echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}}'
   DEFAULT_LIVE_SERVICES = [
-    "W32Time"
+    ("W32Time",)
   ]
   DEFAULT_USERS = "hadoop"
 

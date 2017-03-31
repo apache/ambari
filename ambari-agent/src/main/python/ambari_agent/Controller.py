@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import multiprocessing
 import logging
 import ambari_simplejson as json
 import sys
@@ -47,6 +48,7 @@ from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
+from ambari_agent.StatusCommandsExecutor import MultiProcessStatusCommandsExecutor, SingleProcessStatusCommandsExecutor
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_utils import get_used_ram
 
@@ -58,7 +60,7 @@ AGENT_RAM_OVERUSE_MESSAGE = "Ambari-agent RAM usage {used_ram} MB went above {co
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, server_hostname, heartbeat_stop_callback = None, range=30):
+  def __init__(self, config, server_hostname, heartbeat_stop_callback = None):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     if heartbeat_stop_callback is None:
@@ -81,8 +83,10 @@ class Controller(threading.Thread):
     self.repeatRegistration = False
     self.isRegistered = False
     self.cachedconnect = None
-    self.range = range
+    self.max_reconnect_retry_delay = int(config.get('server','max_reconnect_retry_delay', default=30))
     self.hasMappedComponents = True
+    self.statusCommandsExecutor = None
+
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
     self.heartbeat_stop_callback = heartbeat_stop_callback
@@ -99,6 +103,7 @@ class Controller(threading.Thread):
 
     stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
     common_services_cache_dir = os.path.join(cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
+    extensions_cache_dir = os.path.join(cache_dir, FileCache.EXTENSIONS_CACHE_DIRECTORY)
     host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
     alerts_cache_dir = os.path.join(cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
     cluster_config_cache_dir = os.path.join(cache_dir, FileCache.CLUSTER_CONFIGURATION_CACHE_DIRECTORY)
@@ -122,8 +127,9 @@ class Controller(threading.Thread):
     self.move_data_dir_mount_file()
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
-      stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.cluster_configuration, config, self.recovery_manager)
+      stacks_cache_dir, common_services_cache_dir, extensions_cache_dir,
+      host_scripts_cache_dir, self.cluster_configuration, config,
+      self.recovery_manager)
 
     self.alert_scheduler_handler.start()
 
@@ -194,6 +200,10 @@ class Controller(threading.Thread):
         self.config.update_configuration_from_registration(ret)
         logger.debug("Updated config:" + str(self.config))
 
+        # Start StatusCommandExecutor child process or restart it if already running
+        # in order to receive up to date agent config.
+        self.statusCommandsExecutor.relaunch("REGISTER_WITH_SERVER")
+
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
@@ -208,7 +218,7 @@ class Controller(threading.Thread):
         return
       except Exception, ex:
         # try a reconnect only after a certain amount of random time
-        delay = randint(0, self.range)
+        delay = randint(0, self.max_reconnect_retry_delay)
         logger.error("Unable to connect to: " + self.registerUrl, exc_info=True)
         logger.error("Error:" + str(ex))
         logger.warn(""" Sleeping for {0} seconds and then trying again """.format(delay,))
@@ -232,13 +242,17 @@ class Controller(threading.Thread):
       logger.debug("No commands received from %s", self.serverHostname)
     else:
       """Only add to the queue if not empty list """
+      logger.info("Adding %s commands. Heartbeat id = %s", len(commands), self.responseId)
+      if 'clusterName' in commands[0].keys():
+        self.updateComponents(commands[0]['clusterName'])
       self.actionQueue.put(commands)
 
   def addToStatusQueue(self, commands):
     if not commands:
       logger.debug("No status commands received from %s", self.serverHostname)
     else:
-      if not LiveStatus.SERVICES:
+      logger.info("Adding %s status commands. Heartbeat id = %s", len(commands), self.responseId)
+      if 'clusterName' in commands[0].keys():
         self.updateComponents(commands[0]['clusterName'])
       self.recovery_manager.process_status_commands(commands)
       self.actionQueue.put_status(commands)
@@ -257,7 +271,7 @@ class Controller(threading.Thread):
     self.DEBUG_SUCCESSFULL_HEARTBEATS = 0
     retry = False
     certVerifFailed = False
-    state_interval = self.config.get('heartbeat', 'state_interval_seconds', '60')
+    state_interval = int(self.config.get('heartbeat', 'state_interval_seconds', '60'))
 
     # last time when state was successfully sent to server
     last_state_timestamp = 0.0
@@ -268,27 +282,38 @@ class Controller(threading.Thread):
     # we log the message at the same interval as 'state interval'
     heartbeat_running_msg_timestamp = 0.0
 
+    # Prevent excessive logging by logging only at specific intervals
+    getrecoverycommands_timestamp = 0.0
+    getrecoverycommands_interval = self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
+
+    heartbeat_interval = self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
+
     while not self.DEBUG_STOP_HEARTBEATING:
-      heartbeat_interval = self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
+      current_time = time.time()
+      logging_level = logging.DEBUG
+      if current_time - heartbeat_running_msg_timestamp > state_interval:
+        # log more steps every minute or so
+        logging_level = logging.INFO
+        heartbeat_running_msg_timestamp = current_time
 
       try:
-        crt_time = time.time()
-        if crt_time - heartbeat_running_msg_timestamp > int(state_interval):
-          logger.info("Heartbeat with server is running...")
-          heartbeat_running_msg_timestamp = crt_time
+        logger.log(logging_level, "Heartbeat (response id = %s) with server is running...", self.responseId)
 
         send_state = False
         if not retry:
-          if crt_time - last_state_timestamp > int(state_interval):
+          if current_time - last_state_timestamp > state_interval:
             send_state = True
 
-          data = json.dumps(
-              self.heartbeat.build(self.responseId, send_state, self.hasMappedComponents))
+          logger.log(logging_level, "Building heartbeat message")
+
+          data = json.dumps(self.heartbeat.build(self.responseId, send_state, self.hasMappedComponents))
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
 
-
-        logger.debug("Sending Heartbeat (id = %s): %s", self.responseId, data)
+        if logger.isEnabledFor(logging.DEBUG):
+          logger.log(logging_level, "Sending Heartbeat (id = %s): %s", self.responseId, data)
+        else:
+          logger.log(logging_level, "Sending Heartbeat (id = %s)", self.responseId)
 
         response = self.sendRequest(self.heartbeatUrl, data)
         exitStatus = 0
@@ -300,8 +325,7 @@ class Controller(threading.Thread):
 
         serverId = int(response['responseId'])
 
-
-        logger.debug('Heartbeat response received (id = %s)', serverId)
+        logger.log(logging_level, 'Heartbeat response received (id = %s)', serverId)
 
         cluster_size = int(response['clusterSize']) if 'clusterSize' in response.keys() else -1
 
@@ -310,8 +334,7 @@ class Controller(threading.Thread):
           if cluster_size > 0 \
           else self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
 
-
-        logger.debug("Heartbeat interval is %s seconds", heartbeat_interval)
+        logger.log(logging_level, "Heartbeat interval is %s seconds", heartbeat_interval)
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] is not False
@@ -343,36 +366,49 @@ class Controller(threading.Thread):
         else:
           self.responseId = serverId
           if send_state:
-            last_state_timestamp = time.time()
+            last_state_timestamp = current_time
 
         # if the response contains configurations, update the in-memory and
         # disk-based configuration cache (execution and alert commands have this)
+        logger.log(logging_level, "Updating configurations from heartbeat")
         self.cluster_configuration.update_configurations_from_heartbeat(response)
 
         response_keys = response.keys()
-        if 'cancelCommands' in response_keys:
-          self.cancelCommandInQueue(response['cancelCommands'])
 
-        if 'executionCommands' in response_keys:
-          execution_commands = response['executionCommands']
-          self.recovery_manager.process_execution_commands(execution_commands)
-          self.addToQueue(execution_commands)
+        # there's case when canceled task can be processed in Action Queue.execute before adding rescheduled task to queue
+        # this can cause command failure instead result suppression
+        # so canceling and putting rescheduled commands should be executed atomically
+        if 'cancelCommands' in response_keys or 'executionCommands' in response_keys:
+          logger.log(logging_level, "Adding cancel/execution commands")
+        with self.actionQueue.lock:
+          if 'cancelCommands' in response_keys:
+            self.cancelCommandInQueue(response['cancelCommands'])
+
+          if 'executionCommands' in response_keys:
+            execution_commands = response['executionCommands']
+            self.recovery_manager.process_execution_commands(execution_commands)
+            self.addToQueue(execution_commands)
 
         if 'statusCommands' in response_keys:
           # try storing execution command details and desired state
           self.addToStatusQueue(response['statusCommands'])
 
-        if not self.actionQueue.tasks_in_progress_or_pending():
-          recovery_commands = self.recovery_manager.get_recovery_commands()
-          for recovery_command in recovery_commands:
-            logger.info("Adding recovery command %s for component %s",
-                        recovery_command['roleCommand'], recovery_command['role'])
-            self.addToQueue([recovery_command])
+        if current_time - getrecoverycommands_timestamp > getrecoverycommands_interval:
+          getrecoverycommands_timestamp = current_time
+          if not self.actionQueue.tasks_in_progress_or_pending():
+            logger.log(logging_level, "Adding recovery commands")
+            recovery_commands = self.recovery_manager.get_recovery_commands()
+            for recovery_command in recovery_commands:
+              logger.info("Adding recovery command %s for component %s",
+                          recovery_command['roleCommand'], recovery_command['role'])
+              self.addToQueue([recovery_command])
 
         if 'alertDefinitionCommands' in response_keys:
+          logger.log(logging_level, "Updating alert definitions")
           self.alert_scheduler_handler.update_definitions(response)
 
         if 'alertExecutionCommands' in response_keys:
+          logger.log(logging_level, "Executing alert commands")
           self.alert_scheduler_handler.execute_alert(response['alertExecutionCommands'])
 
         if "true" == response['restartAgent']:
@@ -386,6 +422,7 @@ class Controller(threading.Thread):
 
         if "recoveryConfig" in response:
           # update the list of components enabled for recovery
+          logger.log(logging_level, "Updating recovery config")
           self.recovery_manager.update_configuration_from_registration(response)
 
         retry = False
@@ -422,27 +459,35 @@ class Controller(threading.Thread):
         retry = True
 
         #randomize the heartbeat
-        delay = randint(0, self.range)
+        delay = randint(0, self.max_reconnect_retry_delay)
         time.sleep(delay)
 
       # Sleep for some time
       timeout = heartbeat_interval - self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS
+      logger.log(logging_level, "Waiting %s for next heartbeat", timeout)
 
       if 0 == self.heartbeat_stop_callback.wait(timeout, self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS):
         # Stop loop when stop event received
         logger.info("Stop event received")
         self.DEBUG_STOP_HEARTBEATING=True
 
+      logger.log(logging_level, "Wait for next heartbeat over")
+
   def run(self):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
+      if self.config.get_multiprocess_status_commands_executor_enabled():
+        self.statusCommandsExecutor = MultiProcessStatusCommandsExecutor(self.config, self.actionQueue)
+      else:
+        self.statusCommandsExecutor = SingleProcessStatusCommandsExecutor(self.config, self.actionQueue)
+      ExitHelper().register(self.statusCommandsExecutor.kill, "CLEANUP_KILLING", can_relaunch=False)
       self.actionQueue.start()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
-  
+ 
       opener = urllib2.build_opener()
       urllib2.install_opener(opener)
-  
+ 
       while True:
         self.repeatRegistration = False
         self.registerAndHeartbeat()
@@ -452,7 +497,7 @@ class Controller(threading.Thread):
     except:
       logger.exception("Controller thread failed with exception:")
       raise
-    
+
     logger.info("Controller thread has successfully finished")
 
   def registerAndHeartbeat(self):
@@ -500,23 +545,36 @@ class Controller(threading.Thread):
 
 
   def updateComponents(self, cluster_name):
+    if LiveStatus.SERVICES:
+      return
+
     logger.debug("Updating components map of cluster " + cluster_name)
 
     # May throw IOError on server connection error
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
     logger.debug("Response from %s was %s", self.serverHostname, str(response))
 
+    services, client_components, server_components = [], [], []
     for service, components in response['components'].items():
-      LiveStatus.SERVICES.append(service)
+      services.append(service)
       for component, category in components.items():
+        service_component = {"serviceName": service, "componentName": component}
         if category == 'CLIENT':
-          LiveStatus.CLIENT_COMPONENTS.append({"serviceName": service, "componentName": component})
+          client_components.append(service_component)
         else:
-          LiveStatus.COMPONENTS.append({"serviceName": service, "componentName": component})
+          server_components.append(service_component)
+
+    LiveStatus.SERVICES = services
+    LiveStatus.CLIENT_COMPONENTS = client_components
+    LiveStatus.COMPONENTS = server_components
+
     logger.debug("Components map updated")
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
     logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
+
+  def get_status_commands_executor(self):
+    return self.statusCommandsExecutor
 
   def move_data_dir_mount_file(self):
     """
@@ -540,6 +598,8 @@ class Controller(threading.Thread):
           logger.info("Return code: %d" % return_code)
     except Exception, e:
       logger.info("Exception in move_data_dir_mount_file(). Error: {0}".format(str(e)))
+
+
 
 def main(argv=None):
   # Allow Ctrl-C

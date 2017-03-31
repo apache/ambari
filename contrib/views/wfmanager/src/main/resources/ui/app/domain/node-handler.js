@@ -17,49 +17,8 @@
 
 import Ember from 'ember';
 import {NodeFactory} from '../domain/node-factory';
-import * as actionJobHandler from '../domain/actionjob_hanlder';
-import {SlaInfo} from '../domain/sla-info';
 import {SLAMapper} from "../domain/mapping-utils";
-var ActionTypeResolver=Ember.Object.extend({
-  actionJobHandlerMap:null,
-  validStandardActionProps:["ok","error","info"],
-  init(){
-    var settings={schemaVersions:this.schemaVersions};
-    this.actionJobHandlerMap=new Map();
-    this.actionJobHandlerMap.set("java",actionJobHandler.JavaActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("pig",actionJobHandler.PigActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("hive",actionJobHandler.HiveActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("hive2",actionJobHandler.Hive2ActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("sqoop",actionJobHandler.SqoopActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("shell",actionJobHandler.ShellActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("spark",actionJobHandler.SparkActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("map-reduce",actionJobHandler.MapRedActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("sub-workflow",actionJobHandler.SubWFActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("distcp",actionJobHandler.DistCpJobHandler.create(settings));
-    this.actionJobHandlerMap.set("ssh",actionJobHandler.SshActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("email",actionJobHandler.EmailActionJobHandler.create(settings));
-    this.actionJobHandlerMap.set("fs",actionJobHandler.FSActionJobHandler.create(settings));
-  },
-  getActionType(json){
-    var self=this;
-    var resolvedType=null;
-    var problaleActionsTypes=[];
-    Object.keys(json).forEach(function functionName(key) {
-      if (!self.validStandardActionProps.contains(key) && !key.startsWith("_")){
-        problaleActionsTypes.push(key);
-      }
-    });
-    if (problaleActionsTypes.length===1){
-      return problaleActionsTypes[0];
-    }else{
-      console.error("Invalid Action spec..",json);
-    }
-    return resolvedType;
-  },
-  getActionJobHandler(jobType){
-    return this.actionJobHandlerMap.get(jobType);
-  }
-});
+
 var NodeHandler=Ember.Object.extend({
   nodeFactory:NodeFactory.create({}),
   context : {},
@@ -75,12 +34,14 @@ var NodeHandler=Ember.Object.extend({
   handleNode(node){
     return {"_name":node.get("name")};
   },
-
+  /* jshint unused:vars */
   handleTransitions(transitions,nodeObj){
 
   },
+  /* jshint unused:vars */
   handleImportNode(type,node){
   },
+    /* jshint unused:vars */
   handleImportTransitions(node,json,nodeMap){
   }
 });
@@ -155,7 +116,7 @@ var ActionNodeHandler= NodeHandler.extend({
       }
     });
   },
-  handleImportNode(type,nodeJson,workflow){
+  handleImportNode(type,nodeJson,workflow,xmlDoc){
     var actionType=this.get("actionTypeResolver").getActionType(nodeJson);
 
     var actionNode = this.nodeFactory.createActionNode(actionType,nodeJson._name);
@@ -164,16 +125,16 @@ var ActionNodeHandler= NodeHandler.extend({
       return actionNode;
     }
     var actionJobHandler=this.get("actionTypeResolver").getActionJobHandler(actionType);
-    if (!actionJobHandler){
-      console.error("cannot handle unsupported action type:"+actionType+" for "+nodeJson._name);//TODO error handling...
-      return actionNode;
+    if(actionJobHandler){
+      actionJobHandler.handleImport(actionNode,nodeJson[actionType],xmlDoc);
     }
-    actionJobHandler.handleImport(actionNode,nodeJson[actionType]);
     if (nodeJson.info && nodeJson.info.__prefix==="sla") {
       actionNode.domain.slaEnabled=true;
       this.slaMapper.handleImport(actionNode.domain,nodeJson.info,"slaInfo");
     }
-    actionNode.domain.credentials=nodeJson._cred;
+    if(nodeJson._cred){
+      actionNode.domain.credentials=nodeJson._cred;
+    }
     return actionNode;
   },
   handleImportTransitions(node,json,nodeMap){
@@ -203,8 +164,10 @@ var DecisionNodeHandler= NodeHandler.extend({
     return this.nodeFactory.createEmptyDecisionNode(node._name);
   },
   handleImportTransitions(node,json,nodeMap){
+    var self=this;
     var defaultPath=json.switch.default._to;
-    node.addTransitionTo(nodeMap.get(defaultPath).node,"default");
+    var placeholder=self.nodeFactory.createPlaceholderNode(nodeMap.get(defaultPath).node);
+    node.addTransitionTo(placeholder,"default");
     var cases=[];
     if (Ember.isArray(json.switch.case)){
       cases=json.switch.case;
@@ -212,7 +175,8 @@ var DecisionNodeHandler= NodeHandler.extend({
       cases.push(json.switch.case);
     }
     cases.forEach(function(caseExpr){
-      node.addTransitionTo(nodeMap.get(caseExpr._to).node,caseExpr.__text);
+      var placeholder=self.nodeFactory.createPlaceholderNode(nodeMap.get(caseExpr._to).node);
+      node.addTransitionTo(placeholder,caseExpr.__text);
     });
   }
 });
@@ -229,7 +193,8 @@ var ForkNodeHandler= NodeHandler.extend({
     return this.nodeFactory.createEmptyForkNode(node._name);
   },
   handleImportTransitions(node,json,nodeMap){
-    json.path.forEach(function(path){
+    var paths=Ember.isArray(json.path)?json.path:[json.path];
+    paths.forEach(function(path){
       node.addTransitionTo(nodeMap.get(path._start).node);
     });
   }
@@ -248,4 +213,4 @@ var JoinNodeHandler= NodeHandler.extend({
     node.addTransitionTo(nodeMap.get(json._to).node);
   }
 });
-export{ActionTypeResolver,NodeHandler,StartNodeHandler,EndNodeHandler,KillNodeHandler,ActionNodeHandler,DecisionNodeHandler,ForkNodeHandler,JoinNodeHandler};
+export{NodeHandler,StartNodeHandler,EndNodeHandler,KillNodeHandler,ActionNodeHandler,DecisionNodeHandler,ForkNodeHandler,JoinNodeHandler};

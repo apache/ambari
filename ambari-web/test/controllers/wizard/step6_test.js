@@ -193,6 +193,7 @@ describe('App.WizardStep6Controller', function () {
       sinon.stub(controller, 'setInstalledComponents');
       sinon.stub(controller, 'restoreComponentsSelection');
       sinon.stub(controller, 'selectClientHost');
+      sinon.stub(controller, 'enableCheckboxesForDependentComponents');
     });
 
     afterEach(function() {
@@ -200,12 +201,14 @@ describe('App.WizardStep6Controller', function () {
       controller.setInstalledComponents.restore();
       controller.restoreComponentsSelection.restore();
       controller.selectClientHost.restore();
+      controller.enableCheckboxesForDependentComponents.restore();
     });
 
     describe("slaveComponents is null", function() {
 
       beforeEach(function() {
         controller.set('content.slaveComponentHosts', null);
+        controller.set('content.controllerName', null);
       });
 
       it("selectRecommendedComponents should be called", function() {
@@ -223,6 +226,15 @@ describe('App.WizardStep6Controller', function () {
       it("selectClientHost should be called", function() {
         expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
         expect(controller.selectClientHost.calledWith(hostsObj)).to.be.true;
+      });
+      it("enableCheckboxesForDependentComponents should not be called", function() {
+        expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
+        expect(controller.enableCheckboxesForDependentComponents.calledOnce).to.be.false;
+      });
+      it("enableCheckboxesForDependentComponents should be called", function() {
+        controller.set('content.controllerName', 'addServiceController');
+        expect(controller.renderSlaves(hostsObj)).to.eql(hostsObj);
+        expect(controller.enableCheckboxesForDependentComponents.calledOnce).to.be.true;
       });
     });
 
@@ -1897,6 +1909,89 @@ describe('App.WizardStep6Controller', function () {
         expect(controller.get('anyHostWarnings')).to.equal(test.result);
       })
     });   
+  });
+
+  describe('#enableCheckboxesForDependentComponents', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          serviceName: 's1',
+          isInstalled: false,
+          isSelected: true,
+          serviceComponents: [
+            Em.Object.create({
+              componentName: 'c1',
+              isSlave: true,
+              dependencies: [
+                {
+                  serviceName: 's2',
+                  componentName: 'c2'
+                }
+              ]
+            })
+          ]
+        }),
+        Em.Object.create({
+          serviceName: 's2',
+          isInstalled: true,
+          isSelected: false,
+          serviceComponents: [
+            Em.Object.create({
+              componentName: 'c2',
+              isSlave: true,
+              dependencies: []
+            })
+          ]
+        })
+      ]);
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+          Em.Object.create({
+            componentName: 'c2',
+            maxToInstall: 2
+          })
+      ]);
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('it should enable appropriate checkboxes', function() {
+      var hostObj = [
+        {
+          checkboxes: [
+            {
+              component: 'c1',
+              isInstalled: false,
+              isDisabled: false
+            },
+            {
+              component: 'c2',
+              isInstalled: false,
+              isDisabled: true
+            }
+          ]
+        },
+        {
+          checkboxes: [
+            {
+              component: 'c1',
+              isInstalled: false,
+              isDisabled: false
+            },
+            {
+              component: 'c2',
+              isInstalled: false,
+              isDisabled: true
+            }
+          ]
+        }
+      ];
+      expect(controller.enableCheckboxesForDependentComponents(hostObj)).to.be.true;
+      expect(hostObj[1].checkboxes[1].isDisabled).to.be.false;
+    })
   });
 
 });

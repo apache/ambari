@@ -17,7 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
@@ -48,7 +57,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
@@ -56,15 +65,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
 
 @StaticallyInject
 public class ConfigGroupResourceProvider extends
@@ -100,6 +101,12 @@ public class ConfigGroupResourceProvider extends
 
   @Inject
   private static HostDAO hostDAO;
+
+  /**
+   * Used for creating {@link Config} instances to return in the REST response.
+   */
+  @Inject
+  private static ConfigFactory configFactory;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -398,8 +405,8 @@ public class ConfigGroupResourceProvider extends
     for (String key : configs.keySet()) {
       if(!clusters.getCluster(clusterName).isConfigTypeExists(key)){
         throw new AmbariException("Trying to add not existent config type to config group:"+
-        " configType="+key+
-        " cluster="+clusterName);
+        " configType = "+ key +
+        " cluster = " + clusterName);
       }
     }
   }
@@ -446,10 +453,9 @@ public class ConfigGroupResourceProvider extends
           "exist", e);
     }
 
-    configLogger.info("Deleting Config group, "
-      + ", clusterName = " + cluster.getClusterName()
-      + ", id = " + request.getId()
-      + ", user = " + getManagementController().getAuthName());
+    configLogger.info("User {} is deleting configuration group {} for tag {} in cluster {}",
+      getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
+      cluster.getClusterName());
 
     ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
 
@@ -484,8 +490,7 @@ public class ConfigGroupResourceProvider extends
         request.getClusterName() + ", group name = " + request.getGroupName()
         + ", tag = " + request.getTag());
 
-      throw new IllegalArgumentException("Cluster name, " +
-        "group name and tag need to be provided.");
+      throw new IllegalArgumentException("Cluster name, group name and tag need to be provided.");
 
     }
   }
@@ -568,22 +573,19 @@ public class ConfigGroupResourceProvider extends
         }
       }
 
+      configLogger.info("User {} is creating new configuration group {} for tag {} in cluster {}",
+          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
+          cluster.getClusterName());
+
+      verifyConfigs(request.getConfigs(), cluster.getClusterName());
+
       ConfigGroup configGroup = configGroupFactory.createNew(cluster,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
-      verifyConfigs(configGroup.getConfigurations(), cluster.getClusterName());
       configGroup.setServiceName(serviceName);
 
-      // Persist before add, since id is auto-generated
-      configLogger.info("Persisting new Config group"
-        + ", clusterName = " + cluster.getClusterName()
-        + ", name = " + configGroup.getName()
-        + ", tag = " + configGroup.getTag()
-        + ", user = " + getManagementController().getAuthName());
-
-      configGroup.persist();
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
@@ -634,6 +636,11 @@ public class ConfigGroupResourceProvider extends
                                  + ", clusterName = " + request.getClusterName()
                                  + ", groupId = " + request.getId());
       }
+
+      configLogger.info("User {} is updating configuration group {} for tag {} in cluster {}",
+          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
+          cluster.getClusterName());
+
       String serviceName = configGroup.getServiceName();
       String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
       if (StringUtils.isEmpty(serviceName) && StringUtils.isEmpty(requestServiceName)) {
@@ -682,13 +689,6 @@ public class ConfigGroupResourceProvider extends
       configGroup.setDescription(request.getDescription());
       configGroup.setTag(request.getTag());
 
-      configLogger.info("Persisting updated Config group"
-        + ", clusterName = " + configGroup.getClusterName()
-        + ", id = " + configGroup.getId()
-        + ", tag = " + configGroup.getTag()
-        + ", user = " + getManagementController().getAuthName());
-
-      configGroup.persist();
       if (serviceName != null) {
         cluster.createServiceConfigVersion(serviceName, getManagementController().getAuthName(),
           request.getServiceConfigVersionNote(), configGroup);
@@ -781,11 +781,7 @@ public class ConfigGroupResourceProvider extends
             }
           }
 
-          Config config = new ConfigImpl(type);
-          config.setTag(tag);
-          config.setProperties(configProperties);
-          config.setPropertiesAttributes(configAttributes);
-
+          Config config = configFactory.createReadOnly(type, tag, configProperties, configAttributes);
           configurations.put(config.getType(), config);
         }
       } catch (Exception e) {

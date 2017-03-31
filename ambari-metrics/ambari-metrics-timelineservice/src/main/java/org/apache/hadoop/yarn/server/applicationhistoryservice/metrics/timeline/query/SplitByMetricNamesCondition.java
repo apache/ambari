@@ -25,6 +25,7 @@ import java.util.List;
 public class SplitByMetricNamesCondition implements Condition {
   private final Condition adaptee;
   private String currentMetric;
+  private boolean metricNamesNotCondition = false;
 
   public SplitByMetricNamesCondition(Condition condition){
     this.adaptee = condition;
@@ -179,5 +180,10 @@ public class SplitByMetricNamesCondition implements Condition {
 
   public void setCurrentMetric(String currentMetric) {
     this.currentMetric = currentMetric;
+  }
+
+ @Override
+  public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
+    this.metricNamesNotCondition = metricNamesNotCondition;
   }
 }

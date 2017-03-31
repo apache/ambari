@@ -173,7 +173,7 @@ class VersionBuilder:
         e = ET.SubElement(service_element, 'component')
         e.text = component
 
-  def add_repo(self, os_family, repo_id, repo_name, base_url):
+  def add_repo(self, os_family, repo_id, repo_name, base_url, unique):
     """
     Adds a repository
     """
@@ -203,6 +203,10 @@ class VersionBuilder:
 
     e = ET.SubElement(repo_element, 'reponame')
     e.text = repo_name
+
+    if unique is not None:
+      e = ET.SubElement(repo_element, 'unique')
+      e.text = unique
 
 
   def _check_xmllint(self):
@@ -318,7 +322,7 @@ def process_repo(vb, options):
   if not options.repo:
     return
 
-  vb.add_repo(options.repo_os, options.repo_id, options.repo_name, options.repo_url)
+  vb.add_repo(options.repo_os, options.repo_id, options.repo_name, options.repo_url, options.unique)
 
 def validate_manifest(parser, options):
   """
@@ -426,11 +430,13 @@ def main(argv):
     help="The package version to use for the OS")
 
   parser.add_option('--repo', action='store_true', dest='repo',
-    help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name")
+    help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name, --repo-unique")
   parser.add_option('--repo-os', dest='repo_os',
     help="The operating system type: i.e. redhat6, redhat7, debian7, ubuntu12, ubuntu14, ubuntu16, suse11, suse12")
   parser.add_option('--repo-url', dest='repo_url',
     help="The base url for the repository data")
+  parser.add_option('--repo-unique', dest='unique', type='choice', choices=['true', 'false'],
+                    help="Indicates base url should be unique")
   parser.add_option('--repo-id', dest='repo_id', help="The ID of the repo")
   parser.add_option('--repo-name', dest='repo_name', help="The name of the repo")
 

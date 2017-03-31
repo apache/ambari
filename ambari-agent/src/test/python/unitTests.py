@@ -47,6 +47,7 @@ import fnmatch
 from os.path import isdir
 import logging
 from only_for_platform import get_platform, PLATFORM_WINDOWS
+from resource_management.core.logger import Logger
 #TODO Add an option to randomize the tests' execution
 #from random import shuffle
 
@@ -182,4 +183,6 @@ if __name__ == '__main__':
   consoleLog = logging.StreamHandler(file)
   consoleLog.setFormatter(formatter)
   logger.addHandler(consoleLog)
+  Logger.initialize_logger(logging_level = logging.WARNING)
+
   main()

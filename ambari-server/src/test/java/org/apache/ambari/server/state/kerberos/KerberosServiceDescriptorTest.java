@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+@Category({ category.KerberosTest.class})
 public class KerberosServiceDescriptorTest {
   public static final String JSON_VALUE =
       "{" +

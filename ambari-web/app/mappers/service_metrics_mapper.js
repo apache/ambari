@@ -231,7 +231,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }, this);
       previousMasterComponentIds = hostComponents.mapProperty('id');
 
-      App.store.loadMany(this.get('model3'), hostComponents);
+      App.store.safeLoadMany(this.get('model3'), hostComponents);
 
       //parse service metrics from components
       services.forEach(function (item) {
@@ -253,7 +253,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       result = misc.sortByOrder(stackServices, result);
 
       //load services to model
-      App.store.loadMany(this.get('model'), result);
+      App.store.safeLoadMany(this.get('model'), result);
 
       // check for new components
       if (lastKnownStatusesLength > 0) {
@@ -290,33 +290,33 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
       finalJson = this.hdfsMapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.HDFSService, finalJson);
+      App.store.safeLoad(App.HDFSService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
       finalJson = this.hbaseMapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.HBaseService, finalJson);
+      App.store.safeLoad(App.HBaseService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
       finalJson = this.flumeMapper(item);
       finalJson.rand = Math.random();
-      App.store.loadMany(App.FlumeAgent, finalJson.agentJsons);
-      App.store.load(App.FlumeService, finalJson);
+      App.store.safeLoadMany(App.FlumeAgent, finalJson.agentJsons);
+      App.store.safeLoad(App.FlumeService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
       finalJson = this.yarnMapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.YARNService, finalJson);
+      App.store.safeLoad(App.YARNService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE2") {
       finalJson = this.mapreduce2Mapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.MapReduce2Service, finalJson);
+      App.store.safeLoad(App.MapReduce2Service, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "STORM") {
       finalJson = this.stormMapper(item);
       finalJson.rand = Math.random();
       this.mapQuickLinks(finalJson, item);
-      App.store.load(App.StormService, finalJson);
+      App.store.safeLoad(App.StormService, finalJson);
     } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "RANGER") {
       finalJson = this.rangerMapper(item);
       finalJson.rand = Math.random();
-      App.store.load(App.RangerService, finalJson);
+      App.store.safeLoad(App.RangerService, finalJson);
     } else {
       finalJson = this.parseIt(item, this.config);
       finalJson.rand = Math.random();

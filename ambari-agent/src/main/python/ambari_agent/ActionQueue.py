@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import Queue
+import multiprocessing
 
 import logging
 import traceback
@@ -35,6 +36,7 @@ from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.str_utils import split_on_chunks
+from resource_management.libraries.script import Script
 
 
 logger = logging.getLogger()
@@ -65,6 +67,7 @@ class ActionQueue(threading.Thread):
   ROLE_COMMAND_STOP = 'STOP'
   ROLE_COMMAND_CUSTOM_COMMAND = 'CUSTOM_COMMAND'
   CUSTOM_COMMAND_RESTART = 'RESTART'
+  CUSTOM_COMMAND_START = ROLE_COMMAND_START
 
   IN_PROGRESS_STATUS = 'IN_PROGRESS'
   COMPLETED_STATUS = 'COMPLETED'
@@ -73,7 +76,7 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = Queue.Queue()
+    self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
       self.status_update_callback)
@@ -86,6 +89,7 @@ class ActionQueue(threading.Thread):
     self.parallel_execution = config.get_parallel_exec_option()
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
+    self.lock = threading.Lock()
 
   def stop(self):
     self._stop.set()
@@ -94,16 +98,7 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put_status(self, commands):
-    #Was supposed that we got all set of statuses, we don't need to keep old ones
-    self.statusCommandQueue.queue.clear()
-
-    for command in commands:
-      logger.info("Adding " + command['commandType'] + " for component " + \
-                  command['componentName'] + " of service " + \
-                  command['serviceName'] + " of cluster " + \
-                  command['clusterName'] + " to the queue.")
-      self.statusCommandQueue.put(command)
-      logger.debug(pprint.pformat(command))
+    self.controller.statusCommandsExecutor.put_commands(commands)
 
   def put(self, commands):
     for command in commands:
@@ -124,7 +119,7 @@ class ActionQueue(threading.Thread):
   def cancel(self, commands):
     for command in commands:
 
-      logger.info("Canceling command {tid}".format(tid = str(command['target_task_id'])))
+      logger.info("Canceling command with taskId = {tid}".format(tid = str(command['target_task_id'])))
       logger.debug(pprint.pformat(command))
 
       task_id = command['target_task_id']
@@ -150,8 +145,8 @@ class ActionQueue(threading.Thread):
   def run(self):
     try:
       while not self.stopped():
-        self.processBackgroundQueueSafeEmpty();
-        self.processStatusCommandQueueSafeEmpty();
+        self.processBackgroundQueueSafeEmpty()
+        self.controller.get_status_commands_executor().process_results() # process status commands
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
@@ -195,15 +190,6 @@ class ActionQueue(threading.Thread):
       except Queue.Empty:
         pass
 
-  def processStatusCommandQueueSafeEmpty(self):
-    while not self.statusCommandQueue.empty():
-      try:
-        command = self.statusCommandQueue.get(False)
-        self.process_command(command)
-      except Queue.Empty:
-        pass
-
-
   def createCommandHandle(self, command):
     if command.has_key('__handle'):
       raise AgentException("Command already has __handle")
@@ -223,8 +209,6 @@ class ActionQueue(threading.Thread):
         finally:
           if self.controller.recovery_manager.enabled():
             self.controller.recovery_manager.stop_execution_command()
-      elif commandType == self.STATUS_COMMAND:
-        self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception:
@@ -293,6 +277,7 @@ class ActionQueue(threading.Thread):
 
     logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}, log_output = {log_command_output}".
                  format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration, log_command_output=log_command_output))
+    command_canceled = False
     while retryDuration >= 0:
       numAttempts += 1
       start = 0
@@ -320,7 +305,8 @@ class ActionQueue(threading.Thread):
         else:
           status = self.FAILED_STATUS
           if (commandresult['exitcode'] == -signal.SIGTERM) or (commandresult['exitcode'] == -signal.SIGKILL):
-            logger.info('Command {cid} was canceled!'.format(cid=taskId))
+            logger.info('Command with taskId = {cid} was canceled!'.format(cid=taskId))
+            command_canceled = True
             break
 
       if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
@@ -329,17 +315,28 @@ class ActionQueue(threading.Thread):
           delay = retryDuration
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
-        logger.info("Retrying command id {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        command['commandBeingRetried'] = "true"
         time.sleep(delay)
         continue
       else:
-        logger.info("Quit retrying for command id {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
+        logger.info("Quit retrying for command with taskId = {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
                     .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
 
+    # do not fail task which was rescheduled from server
+    if command_canceled:
+      with self.lock:
+        with self.commandQueue.mutex:
+          for com in self.commandQueue.queue:
+            if com['taskId'] == command['taskId']:
+              logger.info('Command with taskId = {cid} was rescheduled by server. '
+                          'Fail report on cancelled command won\'t be sent with heartbeat.'.format(cid=taskId))
+              return
+
     # final result to stdout
     commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'
-    logger.info('Command {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
+    logger.info('Command with taskId = {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command with taskId = {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
 
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
@@ -408,6 +405,19 @@ class ActionQueue(threading.Thread):
       # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
 
+      #update
+      if 'commandParams' in command:
+        command_params = command['commandParams']
+        if command_params and command_params.has_key('forceRefreshConfigTags') and len(command_params['forceRefreshConfigTags']) > 0  :
+          forceRefreshConfigTags = command_params['forceRefreshConfigTags'].split(',')
+          logger.info("Got refresh additional component tags command")
+
+          for configTag in forceRefreshConfigTags :
+            configHandler.update_component_tag(command['role'], configTag, command['configurationTags'][configTag])
+
+          roleResult['customCommand'] = self.CUSTOM_COMMAND_RESTART # force restart for component to evict stale_config on server side
+          command['configurationTags'] = configHandler.read_actual_component(command['role'])
+
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
@@ -417,7 +427,7 @@ class ActionQueue(threading.Thread):
              (command['roleCommand'] == self.ROLE_COMMAND_INSTALL and component in LiveStatus.CLIENT_COMPONENTS) or
                (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and
                   'custom_command' in command['hostLevelParams'] and
-                      command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
+                      command['hostLevelParams']['custom_command'] in (self.CUSTOM_COMMAND_RESTART, self.CUSTOM_COMMAND_START))):
         configHandler.write_actual_component(command['role'],
                                              command['configurationTags'])
         if 'clientsToUpdateConfigs' in command['hostLevelParams'] and command['hostLevelParams']['clientsToUpdateConfigs']:
@@ -486,11 +496,18 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(handle.command, roleResult)
 
-  def execute_status_command(self, command):
+  def execute_status_command_and_security_status(self, command):
+    component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+    component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
+
+    return command, component_status_result, component_security_status_result
+
+  def process_status_command_result(self, result):
     '''
     Executes commands of type STATUS_COMMAND
     '''
     try:
+      command, component_status_result, component_security_status_result = result
       cluster = command['clusterName']
       service = command['serviceName']
       component = command['componentName']
@@ -500,15 +517,14 @@ class ActionQueue(threading.Thread):
       else:
         globalConfig = {}
 
+      if not Script.config :
+        logger.debug('Setting Script.config to last status command configuration')
+        Script.config = command
+
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config, self.configTags)
 
       component_extra = None
-
-      # For custom services, responsibility to determine service status is
-      # delegated to python scripts
-      component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
-      component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
 
       if component_status_result['exitcode'] == 0:
         component_status = LiveStatus.LIVE_STATUS

@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
   </parent>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
@@ -71,6 +71,29 @@
             <goals>
               <goal>check</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>${project.packaging}</type>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${views.jars.dir.rel}</outputDirectory>
+            </configuration>
           </execution>
         </executions>
       </plugin>

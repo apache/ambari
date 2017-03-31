@@ -73,13 +73,10 @@ App.WidgetProperty = Ember.Object.extend({
 
   /**
    * Define whether property is valid
-   * Computed property
-   * Should be defined in child class
+   * Computed property should be defined in child class
    * @type {Boolean}
    */
-  isValid: function () {
-    return true;
-  }.property(),
+  isValid: true,
 
   /**
    * Define whether property is required by user
@@ -96,7 +93,7 @@ App.WidgetPropertyTypes = [
     displayType: 'textField',
     classNames: 'widget-property-unit',
     isValid: function () {
-      return this.get('isRequired') ? this.get('value') : true;
+      return this.get('isRequired') ? Boolean(this.get('value')) : true;
     }.property('value'),
     valueMap: {
      "value": "display_unit"
@@ -214,7 +211,7 @@ App.WidgetPropertyTypes = [
      */
     validate: function (value) {
       value = Number(('' + value).trim());
-      if (!value) {
+      if (!value && !isNaN(value)) {
         return true;
       }
       return validator.isValidFloat(value) && value > this.get('MIN_VALUE') && value <= this.get('MAX_VALUE');

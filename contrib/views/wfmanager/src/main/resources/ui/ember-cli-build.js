@@ -20,8 +20,15 @@
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 module.exports = function(defaults) {
+
+
     var app = new EmberApp(defaults, {
         // Add options here
+  codemirror: {
+     modes: ['xml'],
+     keyMaps: ['vim'],
+     themes: ['solarized']
+  }
     });
 
     // Use `app.import` to add additional libraries to the generated
@@ -107,6 +114,20 @@ module.exports = function(defaults) {
 
     //vkBeautify
     app.import('bower_components/vkBeautify/vkbeautify.js')
+	
+	//cytoscape
+	app.import('bower_components/cytoscape/dist/cytoscape.js');
+	
+	//cytoscape-dagre
+	app.import('bower_components/cytoscape-dagre/cytoscape-dagre.js');
+
+	//cytoscape-panzoom
+	app.import('bower_components/cytoscape-panzoom/cytoscape-panzoom.js');
+	app.import('bower_components/cytoscape-panzoom/cytoscape.js-panzoom.css');
+
+	// Fuse js
+	app.import('bower_components/fuse.js/src/fuse.min.js');
+  app.import('bower_components/jsog/lib/JSOG.js');
 
     return app.toTree();
 };

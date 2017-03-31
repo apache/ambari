@@ -37,7 +37,16 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 
 /**
@@ -73,12 +82,40 @@ public class SavedQueryService extends BaseService {
   @GET
   @Path("{queryId}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getOne(@PathParam("queryId") String queryId) {
+  public Response getOne(@PathParam("queryId") String queryId,
+		         @QueryParam("op") String operation) {
     try {
-      SavedQuery savedQuery = getResourceManager().read(queryId);
-      JSONObject object = new JSONObject();
-      object.put("savedQuery", savedQuery);
-      return Response.ok(object).build();
+      final SavedQuery savedQuery = getResourceManager().read(queryId);    
+      if(operation.equals("download")) {
+    	StreamingOutput stream = new StreamingOutput() {
+    	@Override
+    	public void write(OutputStream os) throws IOException, WebApplicationException {
+    	  Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+    	  try { 
+            BufferedReader br=new BufferedReader(new InputStreamReader(getSharedObjectsFactory().getHdfsApi().open(savedQuery.getQueryFile())));
+	    String line;
+    	    line=br.readLine();
+    	    while (line != null){
+    	      writer.write(line+"\n");  
+    	      line = br.readLine();
+            }
+            writer.flush();
+    	  } catch (InterruptedException e) {
+	    e.printStackTrace();
+	  } finally {
+	    writer.close();
+    	  }
+    	}
+    	};
+    	return Response.ok(stream).
+               type(MediaType.TEXT_PLAIN).
+    	       build();
+      }
+      else {
+    	 JSONObject object = new JSONObject();
+         object.put("savedQuery", savedQuery);
+         return Response.ok(object).build();
+      }
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (ItemNotFound itemNotFound) {

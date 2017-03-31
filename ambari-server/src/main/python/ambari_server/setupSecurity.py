@@ -29,6 +29,7 @@ import shutil
 import urllib2
 import time
 import sys
+import logging
 
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg, get_verbose
@@ -54,17 +55,23 @@ from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, quit_if_has_answer
 from ambari_server.serverClassPath import ServerClassPath
 
+logger = logging.getLogger(__name__)
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
+REGEX_SKIP_CONVERT = "^(skip|convert)?$"
 REGEX_REFERRAL = "^(follow|ignore)?$"
 REGEX_ANYTHING = ".*"
 
 CLIENT_SECURITY_KEY = "client.security"
 
+AUTO_GROUP_CREATION = "auto.group.creation"
+
 SERVER_API_LDAP_URL = 'ldap_sync_events'
+
+PAM_CONFIG_FILE = 'pam.configuration'
 
 
 def read_master_key(isReset=False, options = None):
@@ -262,17 +269,23 @@ class LdapSyncOptions:
 # Sync users and groups with configured LDAP
 #
 def sync_ldap(options):
+  logger.info("Sync users and groups with configured LDAP.")
   if not is_root():
     err = 'Ambari-server sync-ldap should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
+
+  properties = get_ambari_properties()
+
+  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'pam':
+    err = "PAM is configured. Can not sync LDAP."
+    raise FatalException(1, err)
 
   server_status, pid = is_server_runing()
   if not server_status:
     err = 'Ambari Server is not running.'
     raise FatalException(1, err)
 
-  properties = get_ambari_properties()
   if properties == -1:
     raise FatalException(1, "Failed to read properties file.")
 
@@ -597,17 +610,24 @@ def init_ldap_properties_list_reqd(properties, options):
     LdapPropTemplate(properties, options.ldap_dn, "authentication.ldap.dnAttribute", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
     LdapPropTemplate(properties, options.ldap_base_dn, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
     LdapPropTemplate(properties, options.ldap_referral, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
-    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
+    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ldap.sync.username.collision.behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync* {0}: ", REGEX_SKIP_CONVERT, False, "convert"),
   ]
   return ldap_properties
 
 def setup_ldap(options):
+  logger.info("Setup LDAP.")
   if not is_root():
     err = 'Ambari-server setup-ldap should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
+
+  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'pam':
+    err = "PAM is configured. Can not setup LDAP."
+    raise FatalException(1, err)
+
   isSecure = get_is_secure(properties)
 
   ldap_property_list_reqd = init_ldap_properties_list_reqd(properties, options)
@@ -806,3 +826,40 @@ def ensure_can_start_under_current_user(ambari_user):
           "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
     raise FatalException(1, err)
   return current_user
+
+class PamPropTemplate:
+  def __init__(self, properties, i_prop_name, i_prop_val_pattern, i_prompt_regex, i_allow_empty_prompt, i_prop_name_default=None):
+    self.prop_name = i_prop_name
+    self.pam_prop_name = get_value_from_properties(properties, i_prop_name, i_prop_name_default)
+    self.pam_prop_val_prompt = i_prop_val_pattern.format(get_prompt_default(self.pam_prop_name))
+    self.prompt_regex = i_prompt_regex
+    self.allow_empty_prompt = i_allow_empty_prompt
+
+def setup_pam():
+  if not is_root():
+    err = 'Ambari-server setup-pam should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
+
+  properties = get_ambari_properties()
+
+  if get_value_from_properties(properties,CLIENT_SECURITY_KEY,"") == 'ldap':
+    err = "LDAP is configured. Can not setup PAM."
+    raise FatalException(1, err)
+
+  pam_property_value_map = {}
+  pam_property_value_map[CLIENT_SECURITY_KEY] = 'pam'
+
+  pamConfig = get_validated_string_input("Enter PAM configuration file: ", PAM_CONFIG_FILE, REGEX_ANYTHING,
+                                         "Invalid characters in the input!", False, False)
+
+  pam_property_value_map[PAM_CONFIG_FILE] = pamConfig
+
+  if get_YN_input("Do you want to allow automatic group creation [y/n] (y)? ", True):
+    pam_property_value_map[AUTO_GROUP_CREATION] = 'true'
+  else:
+    pam_property_value_map[AUTO_GROUP_CREATION] = 'false'
+
+  update_properties_2(properties, pam_property_value_map)
+  print 'Saving...done'
+  return 0

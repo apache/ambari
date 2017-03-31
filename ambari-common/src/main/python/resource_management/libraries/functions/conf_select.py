@@ -407,7 +407,7 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
       stack_name = default("/hostLevelParams/stack_name", None)
       version = default("/commandParams/version", None)
 
-      if stack_name and version:
+      if not os.path.islink(hadoop_conf_dir) and stack_name and version:
         version = str(version)
         allow_setting_conf_select_symlink = True
   else:

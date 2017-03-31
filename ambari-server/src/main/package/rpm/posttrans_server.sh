@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-
-ROOT="${RPM_INSTALL_PREFIX}"
+ROOT=`echo "${RPM_INSTALL_PREFIX}" | sed 's|/$||g'`
 
 RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
 RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/ambari-server/lib/resource_management"

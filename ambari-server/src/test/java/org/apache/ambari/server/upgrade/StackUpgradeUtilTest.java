@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -34,7 +35,6 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * Tests the StackUpgradeHelper
@@ -51,7 +51,7 @@ public class StackUpgradeUtilTest {
 
   @After
   public void teardown() throws Exception {
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   private void reset(String stackName, String stackVersion) throws Exception {

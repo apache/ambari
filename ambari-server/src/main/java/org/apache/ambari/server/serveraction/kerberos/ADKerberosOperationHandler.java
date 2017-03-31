@@ -149,6 +149,9 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     if (this.ldapUrl == null) {
       throw new KerberosKDCConnectionException("ldapUrl not provided");
     }
+    if (!this.ldapUrl.startsWith("ldaps://")) {
+      throw new KerberosKDCConnectionException("ldapUrl is not valid ldaps URL");
+    }
 
     this.principalContainerDn = kerberosConfiguration.get(KERBEROS_ENV_PRINCIPAL_CONTAINER_DN);
     if (this.principalContainerDn == null) {

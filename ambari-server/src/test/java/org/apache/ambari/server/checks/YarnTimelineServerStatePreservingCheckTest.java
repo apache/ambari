@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -42,7 +43,9 @@ import com.google.inject.Provider;
 
 /**
  * Tests for {@link YarnTimelineServerStatePreservingCheckTest}
+ * @Deprecated
  */
+@Ignore
 public class YarnTimelineServerStatePreservingCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
 

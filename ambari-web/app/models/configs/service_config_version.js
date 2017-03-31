@@ -51,6 +51,13 @@ App.ServiceConfigVersion = DS.Model.extend({
   }.property('groupName','isDefault'),
 
   /**
+   * @type {Boolean}
+   */
+  isConfigGroupDeleted: function () {
+    return this.get('groupName') === App.ServiceConfigGroup.deletedGroupName;
+  }.property('groupName'),
+
+  /**
    * @type {string}
    */
   authorFormatted: Em.computed.truncate('author', 15, 15),

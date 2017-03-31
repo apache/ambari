@@ -25,7 +25,14 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -34,6 +41,8 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 /**
  * Service responsible for host_components resource requests.
@@ -100,7 +109,10 @@ public class HostComponentService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response getHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui, @QueryParam("format") String format) {
+    if (format != null && format.equals("client_config_tar")) {
+      return createClientConfigResource(body, headers, ui, null);
+    }
     return handleRequest(headers, body, ui, Request.Type.GET,
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
@@ -203,7 +215,7 @@ public class HostComponentService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
-  
+
   /**
    * Handles DELETE /clusters/{clusterID}/hosts/{hostID}/host_components
    * Deletes multiple host_component resources.
@@ -215,12 +227,12 @@ public class HostComponentService extends BaseService {
    */
   @DELETE
   @Produces("text/plain")
-  public Response deleteHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response deleteHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE,
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
-  
+
   @GET
   @Path("{hostComponentName}/processes")
   @Produces("text/plain")
@@ -235,7 +247,7 @@ public class HostComponentService extends BaseService {
 
     return handleRequest(headers, null, ui, Request.Type.GET, ri);
   }
-  
+
   /**
    * Create a host_component resource instance.
    *
@@ -270,10 +282,21 @@ public class HostComponentService extends BaseService {
       return response;
     }
 
+    String filePrefixName;
+
+    if (StringUtils.isEmpty(hostComponentName)) {
+      filePrefixName = m_hostName + "(" + Resource.InternalType.Host.toString().toUpperCase()+")";
+    } else {
+      filePrefixName = hostComponentName;
+    }
+
+    Validate.notNull(filePrefixName, "compressed config file name should not be null");
+    String fileName =  filePrefixName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION;
+
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
     Configuration configs = new Configuration();
-    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
-    File file = new File(tmpDir+File.separator+hostComponentName+"-configs.tar.gz");
+    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR.getKey());
+    File file = new File(tmpDir,fileName);
     InputStream resultInputStream = null;
     try {
       resultInputStream = new FileInputStream(file);
@@ -281,9 +304,8 @@ public class HostComponentService extends BaseService {
       e.printStackTrace();
     }
 
-    String contentType = "application/x-ustar";
-    String outputFileName = hostComponentName + "-configs.tar.gz";
-    rb.header("Content-Disposition",  "attachment; filename=\"" + outputFileName + "\"");
+    String contentType = Configuration.DEF_ARCHIVE_CONTENT_TYPE;
+    rb.header("Content-Disposition",  "attachment; filename=\"" + fileName + "\"");
     rb.entity(resultInputStream);
     return rb.type(contentType).build();
 

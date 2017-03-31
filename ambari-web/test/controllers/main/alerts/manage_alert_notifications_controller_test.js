@@ -514,7 +514,7 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'all'
         },
         method: {
-          value: 'SNMP'
+          value: 'Custom SNMP'
         },
         email: {
           value: 'c6401.ambari.apache.org, c6402.ambari.apache.org'
@@ -557,6 +557,157 @@ describe('App.ManageAlertNotificationsController', function () {
         ]
       }));
 
+    });
+
+    it("should map properties from selectedAlertNotification to inputFields (ambari.dispatch.recipients ignored) - AMBARI_SNMP", function () {
+
+      controller.set('selectedAlertNotification', Em.Object.create({
+        name: 'AMBARI_SNMP_name',
+        global: true,
+        description: 'test_description',
+        groups: ['test1', 'test2'],
+        type: 'AMBARI_SNMP',
+        alertStates: ['OK', 'UNKNOWN'],
+        properties: {
+          'ambari.dispatch.recipients': [
+            'c6401.ambari.apache.org',
+            'c6402.ambari.apache.org'
+          ],
+          'customName': 'customValue',
+          'ambari.dispatch.snmp.version': 'SNMPv1',
+          'ambari.dispatch.snmp.community': 'public',
+          'ambari.dispatch.snmp.port': 161
+
+        }
+      }));
+
+      controller.set('inputFields', Em.Object.create({
+        name: {
+          value: ''
+        },
+        groups: {
+          value: []
+        },
+        global: {
+          value: false
+        },
+        allGroups: {
+          value: false
+        },
+        method: {
+          value: ''
+        },
+        email: {
+          value: ''
+        },
+        severityFilter: {
+          value: []
+        },
+        description: {
+          value: ''
+        },
+        SMTPServer: {
+          value: ''
+        },
+        SMTPPort: {
+          value: ''
+        },
+        SMTPUseAuthentication: {
+          value: ''
+        },
+        SMTPUsername: {
+          value: ''
+        },
+        SMTPPassword: {
+          value: ''
+        },
+        retypeSMTPPassword: {
+          value: ''
+        },
+        SMTPSTARTTLS: {
+          value: ''
+        },
+        emailFrom: {
+          value: ''
+        },
+        version: {
+          value: ''
+        },
+        OIDs: {
+          value: ''
+        },
+        community: {
+          value: ''
+        },
+        host: {
+          value: ''
+        },
+        port: {
+          value: ''
+        },
+        customProperties: [
+          {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
+          {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
+        ]
+      }));
+
+      controller.fillEditCreateInputs();
+
+      expect(JSON.stringify(controller.get('inputFields'))).to.equal(JSON.stringify({
+        name: {
+          value: 'AMBARI_SNMP_name'
+        },
+        groups: {
+          value: ['test1', 'test2']
+        },
+        global: {
+          value: true,
+          disabled: true
+        },
+        allGroups: {
+          value: 'all'
+        },
+        method: {
+          value: 'SNMP'
+        },
+        email: {
+          value: 'c6401.ambari.apache.org, c6402.ambari.apache.org'
+        },
+        severityFilter: {
+          value: ['OK', 'UNKNOWN']
+        },
+        description: {
+          value: 'test_description'
+        },
+        SMTPServer: {},
+        SMTPPort: {},
+        SMTPUseAuthentication: {
+          value: true
+        },
+        SMTPUsername: {},
+        SMTPPassword: {},
+        retypeSMTPPassword: {},
+        SMTPSTARTTLS: {
+          value: true
+        },
+        emailFrom: {},
+        version: {
+          value:'SNMPv1'
+        },
+        OIDs: {},
+        community: {
+          value: 'public'
+        },
+        host: {
+          value: 'c6401.ambari.apache.org, c6402.ambari.apache.org'
+        },
+        port: {
+          value: 161
+        },
+        customProperties: [
+          {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
+        ]
+      }));
     })
   });
 

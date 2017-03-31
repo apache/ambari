@@ -71,6 +71,7 @@
     <name>ranger.spnego.kerberos.principal</name>
     <value>*</value>
     <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -89,6 +90,7 @@
     <name>ranger.admin.kerberos.principal</name>
     <value/>
     <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -107,6 +109,7 @@
     <name>ranger.lookup.kerberos.principal</name>
     <value/>
     <description/>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>

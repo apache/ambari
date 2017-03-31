@@ -58,7 +58,7 @@ define(['require',
 		 *************************/
 
 		cancelFindRequest : function(token, options){
-			var url = Globals.baseURL  + 'dashboard/cancelFindRequest';
+			var url = Globals.baseURL  + 'service/logs/request/cancel';
 			
 			options = _.extend({
 				data : $.param(token),
@@ -69,29 +69,28 @@ define(['require',
 			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
 		getServiceLogFields : function(token, options){
-			var url = Globals.baseURL  + 'dashboard/getServiceLogsFieldsName';
+			var url = Globals.baseURL  + 'service/logs/fields';
 			
 			options = _.extend({
 				data : $.param(token),
 				contentType : 'application/json',
 				dataType : 'json'
 			}, options);
-
 			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
-		getServiceLogSchemaFields : function(token, options){
-			var url = Globals.baseURL  + 'dashboard/getServiceLogsSchemaFieldsName';
-			
-			options = _.extend({
-				data : $.param(token),
-				contentType : 'application/json',
-				dataType : 'json'
-			}, options);
+    getServiceLogSchemaFields : function(token, options){
+      var url = Globals.baseURL  + 'service/logs/schema/fields';
 
-			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
+      options = _.extend({
+        data: $.param(token),
+        contentType: 'application/json',
+        dataType: 'json'
+      }, options);
+
+      return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
-		getTruncatedLogs : function(token, options){
-			var url = Globals.baseURL  + 'dashboard/getAfterBeforeLogs';
+    getTruncatedLogs : function(token, options){
+			var url = Globals.baseURL  + 'service/logs/truncated';
 			
 			options = _.extend({
 				data : $.param(token),
@@ -102,7 +101,7 @@ define(['require',
 			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
 		getServicesInfo : function(options){
-			var url = Globals.baseURL  + 'dashboard/getHadoopServiceConfigJSON';
+			var url = Globals.baseURL  + 'service/logs/serviceconfig';
 			
 			options = _.extend({
 				//data : $.param(token),

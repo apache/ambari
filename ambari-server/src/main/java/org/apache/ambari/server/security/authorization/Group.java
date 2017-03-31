@@ -26,11 +26,13 @@ public class Group {
   private final int groupId;
   private final String groupName;
   private final boolean ldapGroup;
+  private final GroupType groupType;
 
   Group(GroupEntity groupEntity) {
     this.groupId = groupEntity.getGroupId();
     this.groupName = groupEntity.getGroupName();
     this.ldapGroup = groupEntity.getLdapGroup();
+    this.groupType = groupEntity.getGroupType();
   }
 
   public int getGroupId() {
@@ -43,6 +45,10 @@ public class Group {
 
   public boolean isLdapGroup() {
     return ldapGroup;
+  }
+
+  public GroupType getGroupType() {
+    return groupType;
   }
 
   @Override

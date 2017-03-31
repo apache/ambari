@@ -30,8 +30,17 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
 
   savedRecoveryEnabled: false,
 
+  /**
+   * @type {boolean}
+   * @default false
+   */
+  isLoaded: false,
+
+  isDisabled: false,
+
   didInsertElement: function () {
     var self = this;
+    this.set('isDisabled', !App.isAuthorized('CLUSTER.MANAGE_AUTO_START'));
     this.get('controller').loadClusterConfig().done(function (data) {
       var tag = [
         {
@@ -44,11 +53,15 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
         self.set('controller.clusterConfigs', data[0].properties);
         self.set('switcherValue', data[0].properties.recovery_enabled === 'true');
         self.set('savedRecoveryEnabled', self.get('switcherValue'));
-        // plugin should be initiated after applying binding for switcherValue
-        Em.run.later('sync', function() {
-          self.initSwitcher();
-        }.bind(self), 10);
-        self.get('controller').loadComponentsConfigs();
+        self.get('controller').loadComponentsConfigs().then(function () {
+          Em.run.next(function() {
+            Em.run.next(function() {
+              // plugin should be initiated after applying binding for switcherValue
+              self.initSwitcher();
+            });
+          });
+          self.set('isLoaded', true);
+        });
       });
     });
   },
@@ -72,17 +85,33 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
   initSwitcher: function () {
     var self = this;
     if (this.$()) {
-      this.$("input:eq(0)").bootstrapSwitch({
+      this.set('switcher', this.$("input:eq(0)").bootstrapSwitch({
         onText: Em.I18n.t('common.enabled'),
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
         onColor: 'success',
+        disabled: this.get('isDisabled'),
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
           self.updateClusterConfigs(state);
         }
-      });
+      }));
     }
-  }
+  },
+
+  syncComponentRecoveryStatus: function () {
+    this.set('savedRecoveryEnabled', this.get('switcherValue'));
+  }.observes('controller.syncTrigger'),
+
+  revertComponentRecoveryStatus: function () {
+    this.set('switcherValue', this.get('savedRecoveryEnabled'));
+    if (this.get('controller.clusterConfigs')) {
+      this.set('controller.clusterConfigs.recovery_enabled', '' +  this.get('savedRecoveryEnabled'));
+    }
+    var switcher = this.get('switcher');
+    if (switcher) {
+      switcher.bootstrapSwitch('state', this.get('savedRecoveryEnabled'));
+    }
+  }.observes('controller.revertTrigger')
 });
 

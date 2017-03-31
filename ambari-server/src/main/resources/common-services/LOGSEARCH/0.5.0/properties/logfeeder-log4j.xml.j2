@@ -27,8 +27,8 @@ limitations under the License.
   <appender name="rolling_file" class="org.apache.log4j.RollingFileAppender">
     <param name="file" value="{{logfeeder_log_dir}}/logfeeder.log"/>
     <param name="append" value="true"/>
-    <param name="maxFileSize" value="10MB"/>
-    <param name="maxBackupIndex" value="10"/>
+    <param name="maxFileSize" value="{{logfeeder_log_maxfilesize}}MB"/>
+    <param name="maxBackupIndex" value="{{logfeeder_log_maxbackupindex}}"/>
     <layout class="org.apache.log4j.PatternLayout">
       <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/>
     </layout>
@@ -38,8 +38,8 @@ limitations under the License.
     class="org.apache.ambari.logsearch.appender.LogsearchRollingFileAppender">
     <param name="file" value="{{logfeeder_log_dir}}/logsearch-logfeeder.json" />
     <param name="append" value="true" />
-    <param name="maxFileSize" value="10MB" />
-    <param name="maxBackupIndex" value="10" />
+    <param name="maxFileSize" value="{{logfeeder_json_log_maxfilesize}}MB" />
+    <param name="maxBackupIndex" value="{{logfeeder_json_log_maxbackupindex}}" />
     <layout class="org.apache.ambari.logsearch.appender.LogsearchConversion" />
   </appender>
 

@@ -39,3 +39,5 @@ require('components/editLabelCapacity');
 require('components/editQueueCapacity');
 require('components/labelCapacityBar');
 require('components/displayNodeLabels');
+require('components/xmldiffViewer');
+require('components/sunburstChart');

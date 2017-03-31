@@ -81,10 +81,44 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>failover_strategy_blacklisted_interval</name>
+    <value>300</value>
+    <description>
+      Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.skip.disk.metrics.patterns</name>
+    <value>true</value>
+    <description>
+      Comma separated list of disk patterns to be ignored while collecting aggregate disk usage and counter metrics.
+      For example, volume groups managed by docker can be ignored by using the pattern "dm-[0-9]+"
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>failover_strategy_blacklisted_interval</name>
+    <value>600</value>
+    <description>
+      Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-env template</display-name>
     <value>
 # Set environment variables here.
+
+# AMS instance name
+export AMS_INSTANCE_NAME={{hostname}}
 
 # The java implementation to use. Java 1.6 required.
 export JAVA_HOME={{java64_home}}
@@ -107,12 +141,6 @@ export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 # AMS Collector heapsize
 export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
 
-# HBase normalizer enabled
-export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}
-
-# HBase compaction policy enabled
-export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}
-
 # HBase Tables Initialization check enabled
 export AMS_HBASE_INIT_CHECK_ENABLED={{ams_hbase_init_check_enabled}}
 
@@ -125,6 +153,9 @@ export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config
 # AMS Collector GC options
 export AMS_COLLECTOR_GC_OPTS="-XX:+UseConcMarkSweepGC -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`"
 export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS"
+
+# Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
+export AMS_FAILOVER_STRATEGY_BLACKLISTED_INTERVAL={{failover_strategy_blacklisted_interval}}
 
     </value>
     <value-attributes>

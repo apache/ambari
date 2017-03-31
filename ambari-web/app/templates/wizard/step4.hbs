@@ -37,7 +37,7 @@
       {{#unless isHiddenOnSelectServicePage}}
         <tr {{bindAttr class="isSelected:success isSelected:service-selected"}}>
           <td><label class="checkbox">{{view Ember.Checkbox classBinding="serviceName"
-          disabledBinding="isInstalled"
+          disabledBinding="isDisabled"
           checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
           </td>
           <td>{{serviceVersionDisplay}}</td>

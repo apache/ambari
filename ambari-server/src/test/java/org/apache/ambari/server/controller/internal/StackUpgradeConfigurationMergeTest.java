@@ -24,6 +24,8 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -31,6 +33,8 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -40,7 +44,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -52,6 +55,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -71,6 +75,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import junit.framework.Assert;
 
@@ -279,7 +284,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
       binder.bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-      binder.bind(RoleGraphFactory.class).toInstance(createNiceMock(RoleGraphFactoryImpl.class));
+      binder.install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
       binder.bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
       binder.bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
       binder.bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
@@ -291,6 +296,10 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(Users.class).toInstance(createNiceMock(Users.class));
       binder.bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
       binder.bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
+      binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+      binder.bind(HookService.class).toInstance(createMock(HookService.class));
+      binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+      binder.bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
     }

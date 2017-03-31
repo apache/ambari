@@ -16,13 +16,37 @@
 */
 
 import Ember from 'ember';
+import Constants from '../utils/constants';
+
 export default Ember.Component.extend({
+  clipboardHasContents : Ember.computed.oneWay('clipboard', function(){
+    return !Ember.isEmpty(this.get('clipboard'));
+  }),
+  initialize : function(){
+    this.set('customActionEnabled', Constants.customActionEnabled);
+  }.on('init'),
   actions : {
     addAction : function(type){
       this.$(".dr_action").css("background-color", "#fff");
       this.$("[data-type="+type+"]").css("background-color", "#538EC0");
       this.$(this.get('element')).popover('hide');
       this.sendAction("addNode", type);
+    },
+    pasteNode(){
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("pasteNode");
+    },
+    importActionNodeLocalFS(file) {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("importActionNodeLocalFS", file);
+    },
+    showImportActionNodeFileBrowser() {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("showImportActionNodeFileBrowser");
+    },
+    showAssetNodeList() {
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("showAssetNodeList", true);
     }
   }
 });

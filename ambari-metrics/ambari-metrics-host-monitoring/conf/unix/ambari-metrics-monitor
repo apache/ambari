@@ -131,7 +131,7 @@ case "$1" in
     echo "Checking for previously running Metric Monitor..."
     if [ -f ${PIDFILE} ]; then
       PID=`cat ${PIDFILE}`
-      if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
+      if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
         echo "${PIDFILE} found with no process. Removing ${PID}..."
         rm -f ${PIDFILE}
       else
@@ -151,8 +151,9 @@ case "$1" in
 
     sleep 2
 
-    echo "Verifying ${METRIC_MONITOR} process status..."
-    if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
+    echo "Verifying ${METRIC_MONITOR} process status with PID : ${PID}"
+    if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
+      echo "Output of PID check : `ps ax -o pid | grep -w ${PID}`"
       if [ -s ${OUTFILE} ]; then
         echo "ERROR: ${METRIC_MONITOR} start failed. For more details, see ${OUTFILE}:"
         echo "===================="
@@ -173,7 +174,7 @@ case "$1" in
     if [ -f ${PIDFILE} ]; then
       PID=`cat ${PIDFILE}`
       echo "Found ${METRIC_MONITOR} PID: $PID"
-      if [ -z "`ps ax | grep -w ${PID} | grep resource_monitoring`" ]; then
+      if [ -z "`ps ax -o pid | grep -w ${PID}`" ]; then
         echo "${METRIC_MONITOR} not running. Stale PID File at: $PIDFILE"
         retcode=2
       else

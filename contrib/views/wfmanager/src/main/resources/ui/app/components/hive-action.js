@@ -16,16 +16,25 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
-  hiveOptionObserver : Ember.observer('isScript',function(){
-    if(this.get('isScript')){
-      this.set("actionModel.query", undefined);
-    }else{
-      this.set("actionModel.script",  undefined);
-    }
+const Validations = buildValidations({
+  'actionModel.script': validator('presence', {
+    presence : true,
+    disabled(model, attribute) {
+      return !model.get('isScript');
+    },
+    dependentKeys : ['isScript']
   }),
+  'actionModel.query': validator('presence', {
+    presence : true,
+    disabled(model, attribute) {
+      return model.get('isScript');
+    },
+    dependentKeys : ['isScript']
+  })
+});
+export default Ember.Component.extend(Validations, {
   setUp : function(){
     if(this.get('actionModel.script')){
       this.set('isScript', true);
@@ -62,26 +71,20 @@ export default Ember.Component.extend(EmberValidations,{
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
+    this.send('setIsScript', this.get('isScript'));
   }.on('didInsertElement'),
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.script': {
-      presence: {
-        'if':'isScript',
-        'message' : 'You need to provide a value for Script'
-      }
-    },
-    'actionModel.query': {
-      presence: {
-        unless :'isScript',
-        'message' : 'You need to provide a value for Query'
-      }
+  onDestroy : function(){
+    if(this.get('isScript')){
+      this.set('actionModel.query', undefined);
+    }else{
+      this.set("actionModel.script", undefined);
     }
-  },
+  }.on('willDestroyElement'),
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -93,11 +96,14 @@ export default Ember.Component.extend(EmberValidations,{
     register (name, context){
       this.sendAction('register',name , context);
     },
-    onHiveOptionChange(value){
-      if(value === "script"){
-        this.set('isScript',true);
+    setIsScript(value){
+      this.set('isScript', value);
+      if(value){
+        this.$('#query-option').hide();
+        this.$('#script-option').show();
       }else{
-        this.set('isScript',false);
+        this.$('#script-option').hide();
+        this.$('#query-option').show();
       }
     }
   }

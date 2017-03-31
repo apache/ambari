@@ -18,23 +18,25 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import backtype.storm.generated.ClusterSummary;
-import backtype.storm.generated.SupervisorSummary;
-import backtype.storm.generated.TopologySummary;
-import backtype.storm.metric.IClusterReporter;
-import backtype.storm.utils.NimbusClient;
-import backtype.storm.utils.Utils;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.Validate;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import backtype.storm.generated.ClusterSummary;
+import backtype.storm.generated.SupervisorSummary;
+import backtype.storm.generated.TopologySummary;
+import backtype.storm.metric.IClusterReporter;
+import backtype.storm.utils.NimbusClient;
+import backtype.storm.utils.Utils;
 
 public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   implements IClusterReporter {
@@ -47,19 +49,48 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private NimbusClient nimbusClient;
   private String applicationId;
   private int timeoutSeconds;
+  private String port;
+  private Collection<String> collectorHosts;
+  private String zkQuorum;
+  private String protocol;
 
   public StormTimelineMetricsReporter() {
 
   }
 
   @Override
-  protected String getCollectorUri() {
+  protected String getCollectorUri(String host) {
     return this.collectorUri;
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  @Override
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return port;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   @Override
@@ -80,18 +111,29 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       Map cf = (Map) conf.get(METRICS_COLLECTOR_CATEGORY);
       Map stormConf = Utils.readStormConfig();
       this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
-      String collector = cf.get(COLLECTOR_PROPERTY).toString();
-      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
-        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
-        DEFAULT_POST_TIMEOUT_SECONDS;
-      applicationId = cf.get(APP_ID).toString();
-      collectorUri = collector + WS_V1_TIMELINE_METRICS;
+
+      collectorHosts = parseHostsStringIntoCollection(cf.get(COLLECTOR_HOSTS_PROPERTY).toString());
+      protocol = cf.get(COLLECTOR_PROTOCOL) != null ? cf.get(COLLECTOR_PROTOCOL).toString() : "http";
+      port = cf.get(COLLECTOR_PORT) != null ? cf.get(COLLECTOR_PORT).toString() : "6188";
+      Object zkQuorumObj = cf.get(COLLECTOR_ZOOKEEPER_QUORUM);
+      if (zkQuorumObj != null) {
+        zkQuorum = zkQuorumObj.toString();
+      } else {
+        zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
+      }
+
       if (collectorUri.toLowerCase().startsWith("https://")) {
         String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
         String trustStoreType = cf.get(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
         String trustStorePwd = cf.get(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
         loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
       }
+
+      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
+        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
+        DEFAULT_POST_TIMEOUT_SECONDS;
+      applicationId = cf.get(APP_ID).toString();
+
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify " +
         "protocol, host, port under $STORM_HOME/conf/config.yaml ", e);

@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 import com.google.inject.Singleton;
 
@@ -39,8 +40,13 @@ import com.google.inject.Singleton;
  * @see HostsHeartbeatCheck
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 7.0f, required = true)
+@UpgradeCheck(
+    group = UpgradeCheckGroup.MAINTENANCE_MODE,
+    order = 7.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class HostMaintenanceModeCheck extends AbstractCheckDescriptor {
+
+  public static final String KEY_CANNOT_START_HOST_ORDERED = "cannot_upgrade_mm_hosts";
 
   /**
    * Constructor.
@@ -69,8 +75,15 @@ public class HostMaintenanceModeCheck extends AbstractCheckDescriptor {
 
     // for any host in MM, produce a warning
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+      PrereqCheckStatus status = request.getUpgradeType() == UpgradeType.HOST_ORDERED ?
+          PrereqCheckStatus.FAIL : PrereqCheckStatus.WARNING;
+      prerequisiteCheck.setStatus(status);
+
+      String failReason = request.getUpgradeType() == UpgradeType.HOST_ORDERED ?
+          getFailReason(KEY_CANNOT_START_HOST_ORDERED, prerequisiteCheck, request) :
+          getFailReason(prerequisiteCheck, request);
+
+      prerequisiteCheck.setFailReason(failReason);
     }
   }
 }

@@ -27,6 +27,8 @@ import java.util.Set;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilder;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileEvaluationException;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
@@ -105,6 +107,17 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String REPO_VERSION_PROPERTY = "repository_version";
 
+  /**
+   * The global quick link filters property
+   */
+  public static final String QUICKLINKS_PROFILE_FILTERS_PROPERTY = "quicklinks_profile/filters";
+
+  /**
+   * The service and component level quick link filters property
+   */
+  public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
+
+
 
   /**
    * configuration factory
@@ -129,6 +142,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   private final ConfigRecommendationStrategy configRecommendationStrategy;
 
   private String repoVersion;
+
+  private final String quickLinksProfileJson;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -173,7 +188,22 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
 
     setProvisionAction(parseProvisionAction(properties));
+
+    try {
+      this.quickLinksProfileJson = processQuickLinksProfile(properties);
+    }
+    catch (QuickLinksProfileEvaluationException ex) {
+      throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
+    }
   }
+
+  private String processQuickLinksProfile(Map<String, Object> properties) throws QuickLinksProfileEvaluationException {
+    Object globalFilters = properties.get(QUICKLINKS_PROFILE_FILTERS_PROPERTY);
+    Object serviceFilters = properties.get(QUICKLINKS_PROFILE_SERVICES_PROPERTY);
+    return (null != globalFilters || null != serviceFilters) ?
+      new QuickLinksProfileBuilder().buildQuickLinksProfile(globalFilters, serviceFilters) : null;
+  }
+
 
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
     InvalidTopologyTemplateException {
@@ -439,4 +469,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     return repoVersion;
   }
 
+  /**
+   * @return the quick links profile in Json string format
+   */
+  public String getQuickLinksProfileJson() {
+    return quickLinksProfileJson;
+  }
 }

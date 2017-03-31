@@ -36,8 +36,7 @@ from resource_management.libraries.functions.security_commons import validate_se
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
 
-from hive import hive
-from hive import jdbc_connector
+from hive import create_metastore_schema, hive, jdbc_connector
 from hive_service import hive_service
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -57,6 +56,8 @@ class HiveMetastore(Script):
 
     # writing configurations on start required for securtity
     self.configure(env)
+    if params.init_metastore_schema:
+      create_metastore_schema()
 
     hive_service('metastore', action='start', upgrade_type=upgrade_type)
 

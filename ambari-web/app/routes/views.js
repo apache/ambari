@@ -36,6 +36,16 @@ module.exports = Em.Route.extend({
   viewDetails: Em.Route.extend({
 
     route: '/:viewName/:version/:instanceName',
+    
+    enter: function (router) {
+      Em.$('body').addClass('contribview');
+    },
+
+    exit:function (router) {
+      this._super();
+      Em.$('body').removeClass('contribview');
+    },
+    
     connectOutlets: function (router, params) {
       // find and set content for `mainViewsDetails` and associated controller
       var href = ['/views', params.viewName, params.version, params.instanceName + "/"].join('/');

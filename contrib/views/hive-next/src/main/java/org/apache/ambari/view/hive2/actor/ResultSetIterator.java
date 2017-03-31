@@ -116,14 +116,15 @@ public class ResultSetIterator extends HiveActor {
     }
     int index = 0;
     try {
-      while (resultSet.next() && index < batchSize) {
+      // check batchsize first becaue resultSet.next() fetches the new row as well before returning true/false.
+      while (index < batchSize && resultSet.next()) {
         index++;
         rows.add(getRowFromResultSet(resultSet));
       }
 
       if (index == 0) {
         // We have hit end of resultSet
-        sender().tell(new NoMoreItems(), self());
+        sender().tell(new NoMoreItems(columnDescriptions), self());
         if(!async) {
           cleanUpResources();
         }

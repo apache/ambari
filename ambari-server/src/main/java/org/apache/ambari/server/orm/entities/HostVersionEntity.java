@@ -31,10 +31,11 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.RepositoryVersionState;
 
-@Table(name = "host_version")
+@Table(name = "host_version", uniqueConstraints = @UniqueConstraint(name = "UQ_host_repo", columnNames = { "repo_version_id", "host_id" }))
 @Entity
 @TableGenerator(name = "host_version_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"

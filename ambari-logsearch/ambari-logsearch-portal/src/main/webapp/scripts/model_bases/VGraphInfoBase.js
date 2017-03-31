@@ -27,7 +27,7 @@ define(['require',
 	var VLogBase = BaseModel.extend(
 	/** @lends VLogBase.prototype */
 	{
-		urlRoot: Globals.baseURL + 'dashboard/aggregatedData',
+		urlRoot: Globals.baseURL + 'service/logs/aggregated',
 		
 		defaults: {},
 		

@@ -31,7 +31,7 @@
         <a href="#">Queues</a>
       {{/link-to}}
       {{#link-to "capsched.advanced" tagName="li"}}
-        <a href="#">Advanced</a>
+        <a href="#">User Queue Mappings</a>
       {{/link-to}}
     </ul>
     <div class="tab-content">
@@ -40,12 +40,16 @@
   </div>
 </div>
 <div class="col-lg-4 capsched-versions-wrapper">
+  {{#if selectedQueue}}
+    {{sunburst-chart queues=queues selectedQueue=selectedQueue allNodeLabels=allNodeLabels}}
+  {{/if}}
+
   {{partial "versionsPanel"}}
 </div>
 
 {{!-- ALERT --}}
 {{#if alertMessage}}
-  <div class="alert alert-danger">
+  <div class="alert alert-danger modal alert-message-dialog" tabindex="-1" role="dialog" aria-hidden="false">
     <button {{action 'clearAlert'}} type="button" class="close" aria-hidden="false">&times;</button>
     <strong> {{alertMessage.status}} </strong> {{alertMessage.simpleMessage}}
     <div>
@@ -55,3 +59,14 @@
     {{#link-to 'capsched.trace' class="alert-link"}}Trace{{/link-to}}
   </div>
 {{/if}}
+
+<div {{bind-attr class=":spinner-wrapper showSpinner::hide"}}>
+  <div class="save-spinner">
+    <i class="fa fa-spinner fa-spin fa-3x fa-fw"></i>
+    <div class="saving-text">
+      SAVING...
+    </div>
+  </div>
+</div>
+
+{{xmldiff-viewer diffConfig=diffXmlConfig viewConfig=viewXmlConfig}}

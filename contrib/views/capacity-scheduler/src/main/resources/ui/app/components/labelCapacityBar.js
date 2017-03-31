@@ -23,6 +23,8 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
   queueLabels: null,
   labels: null,
   queues: null,
+  warnInvalidTotalLabelCapacity: false,
+  precision: 2,
 
   extractLabels: function() {
     var qLabels = this.get('queueLabels'),
@@ -39,20 +41,27 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
     var labels = this.get('labels'),
     totalCapacity = 0;
     labels.forEach(function(label){
-      totalCapacity += label.get('capacity');
+      if (typeof label.get('capacity') === 'number') {
+        totalCapacity += label.get('capacity');
+      }
     });
-    return totalCapacity;
+    return parseFloat(totalCapacity.toFixed(this.get('precision')));
   }.property('labels.length', 'labels.@each.capacity'),
 
   widthPattern: 'width: %@%',
 
   warnInvalidLabelCapacity: function() {
     var totalCap = this.get('childrenQueueLabelsTotalCapacity');
-    var isInvalid = false;
-    if (totalCap > 100 || totalCap < 100) {
-      isInvalid = true;
-    }
+    var isInvalid = totalCap !== 100;
+    this.get('labels').forEach(function(label) {
+      if (isInvalid) {
+        label.set('overCapMessage', 'Invalid Total Capacity for label: '+label.get('name'));
+      } else {
+        label.set('overCapMessage', undefined);
+      }
+    });
     this.get('labels').setEach('overCapacity', isInvalid);
+    this.set('warnInvalidTotalLabelCapacity', isInvalid);
     return isInvalid;
   }.property('childrenQueueLabelsTotalCapacity'),
 

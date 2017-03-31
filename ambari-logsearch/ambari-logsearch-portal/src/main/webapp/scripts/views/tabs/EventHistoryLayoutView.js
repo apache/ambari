@@ -438,7 +438,6 @@ define(['require',
 
                 content.selectedCollectionObject.get("params")["time"] = timeType;
                 var postObject = {
-                    userName: "admin",
                     filtername: content.ui.filterName.val(),
                     rowType: "history",
                     values: JSON.stringify(content.selectedCollectionObject.get('params'))

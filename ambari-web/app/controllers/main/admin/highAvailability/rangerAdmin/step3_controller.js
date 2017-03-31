@@ -19,6 +19,58 @@
 var App = require('app');
 
 App.RAHighAvailabilityWizardStep3Controller = Em.Controller.extend({
-  name: "rAHighAvailabilityWizardStep3Controller"
+  name: 'rAHighAvailabilityWizardStep3Controller',
+
+  isLoaded: false,
+
+  versionLoaded: true,
+
+  hideDependenciesInfoBar: true,
+
+  stepConfigs: [
+    App.ServiceConfig.create({
+      serviceName: 'MISC',
+      showConfig: true
+    })
+  ],
+
+  loadStep: function () {
+    var self = this;
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+      var stepConfig = self.get('stepConfigs.firstObject'),
+        configs = [],
+        configCategories = [],
+        installedServices = App.Service.find().mapProperty('serviceName');
+      self.get('wizardController.configs').forEach(function (config) {
+        var service = App.config.get('serviceByConfigTypeMap')[config.siteName];
+        if (service) {
+          var serviceName = service.get('serviceName'),
+            serviceDisplayName = service.get('displayName');
+          if (installedServices.contains(serviceName)) {
+            var property = App.configsCollection.getConfigByName(config.propertyName, config.siteName) || {};
+            if (!configCategories.someProperty('name'), serviceName) {
+              configCategories.push(App.ServiceConfigCategory.create({
+                name: serviceName,
+                displayName: serviceDisplayName
+              }));
+            }
+            configs.push(App.ServiceConfigProperty.create(property, {
+              category: serviceName,
+              value: self.get('content.loadBalancerURL'),
+              isEditable: false
+            }));
+          }
+        }
+      });
+      stepConfig.setProperties({
+        configs: configs,
+        configCategories: configCategories
+      });
+      self.setProperties({
+        isLoaded: true,
+        selectedService: stepConfig
+      });
+    });
+  }
 });
 

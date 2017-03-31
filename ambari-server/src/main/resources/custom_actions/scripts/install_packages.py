@@ -460,7 +460,7 @@ class InstallPackages(Script):
     """
     filtered_package_list = []
     for package in package_list:
-      if Script.check_package_condition(package):
+      if self.check_package_condition(package):
         filtered_package_list.append(package)
     return filtered_package_list
 

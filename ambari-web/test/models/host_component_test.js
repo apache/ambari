@@ -21,7 +21,7 @@ require('models/host_component');
 
 describe('App.HostComponent', function() {
 
-  App.store.load(App.HostComponent, {
+  App.store.safeLoad(App.HostComponent, {
     id: 'COMP_host',
     component_name: 'COMP1'
   });

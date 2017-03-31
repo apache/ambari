@@ -41,6 +41,7 @@ public class StackAdvisorHelper {
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
+  private int recommendationsArtifactsRolloverMax;
   private String stackAdvisorScript;
   private final AmbariMetaInfo metaInfo;
 
@@ -53,6 +54,7 @@ public class StackAdvisorHelper {
                             AmbariMetaInfo metaInfo) throws IOException {
     this.recommendationsDir = conf.getRecommendationsDir();
     this.recommendationsArtifactsLifetime = conf.getRecommendationsArtifactsLifetime();
+    this.recommendationsArtifactsRolloverMax = conf.getRecommendationsArtifactsRolloverMax();
     this.stackAdvisorScript = conf.getStackAdvisorScript();
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
@@ -68,7 +70,7 @@ public class StackAdvisorHelper {
    */
   public synchronized ValidationResponse validate(StackAdvisorRequest request)
       throws StackAdvisorException {
-    requestId += 1;
+      requestId = generateRequestId();
 
     StackAdvisorCommand<ValidationResponse> command = createValidationCommand(request
         .getRequestType());
@@ -103,9 +105,9 @@ public class StackAdvisorHelper {
    */
   public synchronized RecommendationResponse recommend(StackAdvisorRequest request)
       throws StackAdvisorException {
-    requestId += 1;
+      requestId = generateRequestId();
 
-    StackAdvisorCommand<RecommendationResponse> command = createRecommendationCommand(request
+      StackAdvisorCommand<RecommendationResponse> command = createRecommendationCommand(request
         .getRequestType());
 
     return command.invoke(request);
@@ -129,6 +131,16 @@ public class StackAdvisorHelper {
     }
 
     return command;
+  }
+
+  /**
+   * Returns an incremented requestId. Rollsover back to 0 in case the requestId >= recommendationsArtifactsrollovermax
+   * @return {int requestId}
+   */
+  private int generateRequestId(){
+      requestId += 1;
+      return requestId % recommendationsArtifactsRolloverMax;
+
   }
 
 }

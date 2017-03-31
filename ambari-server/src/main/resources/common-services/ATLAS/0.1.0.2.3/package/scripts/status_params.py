@@ -28,6 +28,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature, get_stack_feature_version
 
 config = Script.get_config()
+stack_root = Script.get_stack_root()
 
 
 default_conf_file = "application.properties"
@@ -40,7 +41,7 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
 
 
 conf_file = default("/configurations/atlas-env/metadata_conf_file", default_conf_file)
-conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+conf_dir = format("{stack_root}/current/atlas-server/conf")
 pid_dir = default("/configurations/atlas-env/metadata_pid_dir", "/var/run/atlas")
 pid_file = format("{pid_dir}/atlas.pid")
 

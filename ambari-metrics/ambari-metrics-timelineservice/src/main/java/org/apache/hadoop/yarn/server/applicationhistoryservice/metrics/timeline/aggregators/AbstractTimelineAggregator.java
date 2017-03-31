@@ -17,10 +17,16 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.EmptyCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -31,9 +37,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
 /**
  * Base class for all runnable aggregators. Provides common functions like
@@ -52,11 +62,14 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   protected String tableName;
   protected String outputTableName;
   protected Long nativeTimeRangeDelay;
+  protected AggregationTaskRunner taskRunner;
+  protected List<String> downsampleMetricPatterns;
+  protected List<CustomDownSampler> configuredDownSamplers;
 
   // Explicitly name aggregators for logging needs
-  private final String aggregatorName;
+  private final AGGREGATOR_NAME aggregatorName;
 
-  AbstractTimelineAggregator(String aggregatorName,
+  AbstractTimelineAggregator(AGGREGATOR_NAME aggregatorName,
                              PhoenixHBaseAccessor hBaseAccessor,
                              Configuration metricsConf) {
     this.aggregatorName = aggregatorName;
@@ -64,10 +77,12 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     this.metricsConf = metricsConf;
     this.checkpointDelayMillis = SECONDS.toMillis(metricsConf.getInt(AGGREGATOR_CHECKPOINT_DELAY, 120));
     this.resultsetFetchSize = metricsConf.getInt(RESULTSET_FETCH_SIZE, 2000);
-    this.LOG = LoggerFactory.getLogger(aggregatorName);
+    this.LOG = LoggerFactory.getLogger(ACTUAL_AGGREGATOR_NAMES.get(aggregatorName));
+    this.configuredDownSamplers = DownSamplerUtils.getDownSamplers(metricsConf);
+    this.downsampleMetricPatterns = DownSamplerUtils.getDownsampleMetricPatterns(metricsConf);
   }
 
-  public AbstractTimelineAggregator(String aggregatorName,
+  public AbstractTimelineAggregator(AGGREGATOR_NAME aggregatorName,
                                     PhoenixHBaseAccessor hBaseAccessor,
                                     Configuration metricsConf,
                                     String checkpointLocation,
@@ -76,7 +91,8 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
                                     String aggregatorDisableParam,
                                     String tableName,
                                     String outputTableName,
-                                    Long nativeTimeRangeDelay) {
+                                    Long nativeTimeRangeDelay,
+                                    MetricCollectorHAController haController) {
     this(aggregatorName, hBaseAccessor, metricsConf);
     this.checkpointLocation = checkpointLocation;
     this.sleepIntervalMillis = sleepIntervalMillis;
@@ -84,7 +100,9 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     this.aggregatorDisableParam = aggregatorDisableParam;
     this.tableName = tableName;
     this.outputTableName = outputTableName;
-    this.nativeTimeRangeDelay =  nativeTimeRangeDelay;
+    this.nativeTimeRangeDelay = nativeTimeRangeDelay;
+    this.taskRunner = haController != null && haController.isInitialized() ?
+      haController.getAggregationTaskRunner() : null;
   }
 
   @Override
@@ -98,25 +116,39 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * Access relaxed for tests
    */
   public void runOnce(Long SLEEP_INTERVAL) {
+    boolean performAggregationFunction = true;
+    if (taskRunner != null) {
+      switch (getAggregatorType()) {
+        case HOST:
+          performAggregationFunction = taskRunner.performsHostAggregation();
+          break;
+        case CLUSTER:
+          performAggregationFunction = taskRunner.performsClusterAggregation();
+      }
+    }
 
-    long currentTime = System.currentTimeMillis();
-    long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
+    if (performAggregationFunction) {
+      long currentTime = System.currentTimeMillis();
+      long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
 
-    if (lastCheckPointTime != -1) {
-      LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
-        + ((currentTime - lastCheckPointTime) / 1000)
-        + " seconds.");
+      if (lastCheckPointTime != -1) {
+        LOG.info("Last check point time: " + lastCheckPointTime + ", lagBy: "
+          + ((currentTime - lastCheckPointTime) / 1000)
+          + " seconds.");
 
-      boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
+        boolean success = doWork(lastCheckPointTime, lastCheckPointTime + SLEEP_INTERVAL);
 
-      if (success) {
-        try {
-          saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
-        } catch (IOException io) {
-          LOG.warn("Error saving checkpoint, restarting aggregation at " +
-            "previous checkpoint.");
+        if (success) {
+          try {
+            saveCheckPoint(lastCheckPointTime + SLEEP_INTERVAL);
+          } catch (IOException io) {
+            LOG.warn("Error saving checkpoint, restarting aggregation at " +
+              "previous checkpoint.");
+          }
         }
       }
+    } else {
+      LOG.info("Skipping aggregation function not owned by this instance.");
     }
   }
 
@@ -174,6 +206,9 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   }
 
   protected long readCheckPoint() {
+    if (taskRunner != null) {
+      return taskRunner.getCheckpointManager().readCheckpoint(aggregatorName);
+    }
     try {
       File checkpoint = new File(getCheckpointLocation());
       if (checkpoint.exists()) {
@@ -189,15 +224,23 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   }
 
   protected void saveCheckPoint(long checkpointTime) throws IOException {
-    File checkpoint = new File(getCheckpointLocation());
-    if (!checkpoint.exists()) {
-      boolean done = checkpoint.createNewFile();
-      if (!done) {
-        throw new IOException("Could not create checkpoint at location, " +
-          getCheckpointLocation());
+    if (taskRunner != null) {
+      boolean success = taskRunner.getCheckpointManager().writeCheckpoint(aggregatorName, checkpointTime);
+      if (!success) {
+        LOG.error("Error saving checkpoint with AggregationTaskRunner, " +
+          "aggregator = " + aggregatorName + "value = " + checkpointTime);
       }
+    } else {
+      File checkpoint = new File(getCheckpointLocation());
+      if (!checkpoint.exists()) {
+        boolean done = checkpoint.createNewFile();
+        if (!done) {
+          throw new IOException("Could not create checkpoint at location, " +
+            getCheckpointLocation());
+        }
+      }
+      FileUtils.writeStringToFile(checkpoint, String.valueOf(checkpointTime));
     }
-    FileUtils.writeStringToFile(checkpoint, String.valueOf(checkpointTime));
   }
 
   /**
@@ -227,14 +270,15 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       if (condition.doUpdate()) {
         int rows = stmt.executeUpdate();
         conn.commit();
-        LOG.info(rows + " row(s) updated.");
+        LOG.info(rows + " row(s) updated in aggregation.");
+
+        downsample(conn, startTime, endTime);
       } else {
         rs = stmt.executeQuery();
       }
       LOG.debug("Query returned @: " + new Date());
 
       aggregate(rs, startTime, endTime);
-      LOG.info("End aggregation cycle @ " + new Date());
 
     } catch (SQLException | IOException e) {
       LOG.error("Exception during aggregating metrics.", e);
@@ -270,6 +314,42 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
   protected abstract Condition prepareMetricQueryCondition(long startTime, long endTime);
 
   protected abstract void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException;
+
+  protected void downsample(Connection conn, Long startTime, Long endTime) {
+
+    LOG.debug("Checking for downsampling requests.");
+    if (CollectionUtils.isEmpty(configuredDownSamplers)) {
+      LOG.debug("No downsamplers configured");
+      return;
+    }
+
+    // Generate UPSERT query prefix. UPSERT part of the query is needed on the Aggregator side.
+    // SELECT part of the query is provided by the downsampler.
+    String queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_CLUSTER_METRIC_SQL_UPSERT_PREFIX;
+    if (outputTableName.contains("RECORD")) {
+      queryPrefix = PhoenixTransactSQL.DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX;
+    }
+    queryPrefix = String.format(queryPrefix, getQueryHint(startTime), outputTableName);
+
+    for (Iterator<CustomDownSampler> iterator = configuredDownSamplers.iterator(); iterator.hasNext();){
+      CustomDownSampler downSampler = iterator.next();
+
+      if (downSampler.validateConfigs()) {
+        EmptyCondition downSamplingCondition = new EmptyCondition();
+        downSamplingCondition.setDoUpdate(true);
+        List<String> stmts = downSampler.prepareDownSamplingStatement(startTime, endTime, tableName);
+        for (String stmt : stmts) {
+          downSamplingCondition.setStatement(queryPrefix + stmt);
+          runDownSamplerQuery(conn, downSamplingCondition);
+        }
+      } else {
+        LOG.warn("The following downsampler failed config validation : " + downSampler.getClass().getName() + "." +
+          "Removing it from downsamplers list.");
+        iterator.remove();
+      }
+    }
+
+  }
 
   public Long getSleepIntervalMillis() {
     return sleepIntervalMillis;
@@ -317,4 +397,100 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     return currentTime - (currentTime % aggregatorPeriod);
   }
 
+  /**
+   * Get @AGGREGATOR_TYPE based on the output table.
+   * This is solely used by the HAController to determine which lock to acquire.
+   */
+  public AGGREGATOR_TYPE getAggregatorType() {
+    if (outputTableName.contains("RECORD")) {
+      return AGGREGATOR_TYPE.HOST;
+    } else if (outputTableName.contains("AGGREGATE")) {
+      return AGGREGATOR_TYPE.CLUSTER;
+    }
+    return null;
+  }
+
+  @Override
+  public AGGREGATOR_NAME getName() {
+    return aggregatorName;
+  }
+
+  /**
+   * Run 1 downsampler query.
+   * @param conn
+   * @param condition
+   */
+  private void runDownSamplerQuery(Connection conn, Condition condition) {
+
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    LOG.debug("Downsampling query : " + condition.getStatement());
+
+    try {
+      stmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
+
+      LOG.debug("Downsampler Query issued...");
+      if (condition.doUpdate()) {
+        int rows = stmt.executeUpdate();
+        conn.commit();
+        LOG.info(rows + " row(s) updated in downsampling.");
+      } else {
+        rs = stmt.executeQuery();
+      }
+      LOG.debug("Downsampler Query returned ...");
+      LOG.info("End Downsampling cycle.");
+
+    } catch (SQLException e) {
+      LOG.error("Exception during downsampling metrics.", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the METRIC_NAME NOT LIKE clause if certain metrics or metric patterns are to be skipped
+   * since they will be downsampled.
+   * @return
+   */
+  protected String getDownsampledMetricSkipClause() {
+    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
+      return StringUtils.EMPTY;
+    }
+
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
+      sb.append(" METRIC_NAME");
+      sb.append(" NOT");
+      sb.append(" LIKE ");
+      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
+
+      if (i < downsampleMetricPatterns.size() - 1) {
+        sb.append(" AND ");
+      }
+    }
+
+    sb.append(" AND ");
+    return sb.toString();
+  }
 }

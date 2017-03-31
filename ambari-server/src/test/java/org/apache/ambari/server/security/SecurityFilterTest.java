@@ -21,17 +21,21 @@ package org.apache.ambari.server.security;
 import java.io.IOException;
 
 
-
+import com.google.inject.Binder;
+import com.google.inject.Module;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
+import static org.easymock.EasyMock.createNiceMock;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -42,10 +46,10 @@ public class SecurityFilterTest {
 
   @Before
   public void setUp() throws IOException {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(new MockModule());
     SecurityFilter.init(injector.getInstance(Configuration.class));
   }
-  
+
   @Test
   public void mustFilterNonHttpsRequests() throws Exception {
     SecurityFilter filter = new SecurityFilter();
@@ -106,5 +110,12 @@ public class SecurityFilterTest {
     request.setServerName("www.andromeda-01.com");
     request.setScheme("https");
     return request;
+  }
+
+  private class MockModule implements Module {
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+    }
   }
 }

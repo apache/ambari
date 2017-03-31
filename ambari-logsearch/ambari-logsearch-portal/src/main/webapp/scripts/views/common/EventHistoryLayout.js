@@ -228,7 +228,6 @@ define(['require',
             }
             params["time"] = timeType;
             var postObject = {
-                userName: "admin",
                 filtername: content.ui.filterName.val().trim(),
                 rowType: "history",
                 values: JSON.stringify(params)

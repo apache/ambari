@@ -18,10 +18,11 @@
 import Ember from 'ember';
 import {WorkflowXmlMapper} from '../domain/workflow_xml_mapper';
 import {NodeVisitor} from '../domain/node-visitor';
-import Constants from '../utils/constants';
+import CustomMappingHandler from "../domain/custom-mapping-handler";
+
 var WorkflowGenerator= Ember.Object.extend({
   workflowMapper:null,
-  x2js : new X2JS({useDoubleQuotes:true}),
+  x2js : new X2JS({useDoubleQuotes:true,escapeMode:false}),
   workflow:null,
   workflowContext : {},
   nodeVisitor:null,
@@ -43,21 +44,32 @@ var WorkflowGenerator= Ember.Object.extend({
     }
     this.get("workflowMapper").handleCredentialsGeneration(this.workflow.credentials,workflowObj["workflow-app"]);
     this.get("workflowMapper").hanldeParametersGeneration(this.workflow.parameters,workflowObj["workflow-app"]);
-    if (!this.ignoreErrors && (!workflowObj["workflow-app"].action || workflowObj["workflow-app"].action.length<1)){
-      this.workflowContext.addError({message : "Miniumum of one action node must exist"});
-      return;
-    }
     var reordered={"workflow-app":{}};
     var srcWorkflowApp=workflowObj["workflow-app"];
     var targetWorkflowApp=reordered["workflow-app"];
     targetWorkflowApp["_name"]=this.workflow.get("name");
     this.copyProp(srcWorkflowApp,targetWorkflowApp,["parameters","global","credentials","start","decision","fork","join","action","kill","end","info"]);
-    targetWorkflowApp["_xmlns"]="uri:oozie:workflow:"+this.workflow.get("schemaVersions").getCurrentWorkflowVersion();
+    targetWorkflowApp["_xmlns"]="uri:oozie:workflow:"+this.workflow.schemaVersions.workflowVersion;
     if (this.slaInfoExists(targetWorkflowApp)){
       targetWorkflowApp["_xmlns:sla"]="uri:oozie:sla:0.2";
     }
     var xmlAsStr = this.get("x2js").json2xml_str(reordered);
     return xmlAsStr;
+  },
+
+  getActionNodeXml(actionNodeName, actionNodeType) {
+    var workflowObj={"workflow-app":{}};
+    this.visitNode(workflowObj, this.workflow.startNode);
+    var workflowActions = workflowObj["workflow-app"].action;
+    var actionNodes = workflowActions.filter(function (workflowActionNode) {
+        return workflowActionNode._name === actionNodeName;
+      });
+    if (actionNodes.length>0) {
+      var actionNode = {};
+      actionNode[actionNodeType] = actionNodes[0][actionNodeType];
+      return this.get("x2js").json2xml_str(actionNode);
+    }
+    return "";
   },
   slaInfoExists(workflowApp){
     if (workflowApp.info){
@@ -86,10 +98,10 @@ var WorkflowGenerator= Ember.Object.extend({
     if (!visitedNodes){
       visitedNodes=[];
     }
-    if (visitedNodes.contains(node.get("id"))){
+    if (visitedNodes.contains(node.get("name"))){
       return;
     }
-    visitedNodes.push(node.get("id"));
+    visitedNodes.push(node.get("name"));
     var self=this;
     var workflowApp=workflowObj["workflow-app"];
     if (node.isPlaceholder()){
@@ -106,6 +118,9 @@ var WorkflowGenerator= Ember.Object.extend({
         if (!self.ignoreErrors && !node.get("domain")){
             this.workflowContext.addError({node : node, message : "Action Properties are empty"});
         }else{
+          if(node.customMapping){
+            CustomMappingHandler.setMapping(node.name, node.customMapping);
+          }
           jobHandler.handle(node.get("domain"),nodeObj,node.get("name"));
           if (!self.ignoreErrors){
             var errors=jobHandler.validate(node.get("domain"));

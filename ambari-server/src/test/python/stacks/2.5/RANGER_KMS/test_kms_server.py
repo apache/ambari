@@ -93,12 +93,18 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644
     )
 
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(self.getConfig()['configurations']['ranger-kms-audit'])
+
+    if 'xasecure.audit.destination.db.password' in plugin_audit_properties_copy:
+      plugin_audit_properties_copy['xasecure.audit.destination.db.password'] = "crypted"
+
     self.assertResourceCalled('XmlConfig', 'ranger-kms-audit.xml',
       mode = 0744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['ranger-kms-audit'],
+      configurations = plugin_audit_properties_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-audit']
     )
 
@@ -111,12 +117,19 @@ class TestRangerKMS(RMFTestCase):
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-security']
     )
 
+    ranger_kms_policymgr_ssl_copy = {}
+    ranger_kms_policymgr_ssl_copy.update(self.getConfig()['configurations']['ranger-kms-policymgr-ssl'])
+
+    for prop in ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']:
+      if prop in ranger_kms_policymgr_ssl_copy:
+        ranger_kms_policymgr_ssl_copy[prop] = "crypted"
+
     self.assertResourceCalled('XmlConfig', 'ranger-policymgr-ssl.xml',
       mode = 0744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['ranger-kms-policymgr-ssl'],
+      configurations = ranger_kms_policymgr_ssl_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-policymgr-ssl']
     )
 
@@ -136,6 +149,10 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
+      action = ['delete'],
     )
 
     self.assertResourceCalled('Directory', '/tmp/jce_dir',
@@ -193,6 +210,16 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       create_parents = True
+    )
+
+    self.assertResourceCalled('Directory', '/etc/security/serverKeys',
+      create_parents = True,
+      cd_access = "a",
+    )
+
+    self.assertResourceCalled('Directory', '/etc/ranger/kms',
+      create_parents = True,
+      cd_access = "a",
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java-old.jar',
@@ -265,6 +292,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
+      content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
@@ -342,12 +376,18 @@ class TestRangerKMS(RMFTestCase):
       mode = 0640
     )
 
+    dbks_site_copy = {}
+    dbks_site_copy.update(self.getConfig()['configurations']['dbks-site'])
+    for prop in ['ranger.db.encrypt.key.password', 'ranger.ks.jpa.jdbc.password', 'ranger.ks.hsm.partition.password']:
+      if prop in dbks_site_copy:
+        dbks_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'dbks-site.xml',
       mode=0644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['dbks-site'],
+      configurations = dbks_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['dbks-site']
     )
 
@@ -373,7 +413,11 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644,
       owner = 'kms',
       group = 'kms',
-      content = self.getConfig()['configurations']['kms-log4j']['content']
+      content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/core-site.xml',
+      action = ['delete'],
     )
 
   @patch("os.path.isfile")
@@ -435,12 +479,18 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644
     )
 
+    plugin_audit_properties_copy = {}
+    plugin_audit_properties_copy.update(self.getConfig()['configurations']['ranger-kms-audit'])
+
+    if 'xasecure.audit.destination.db.password' in plugin_audit_properties_copy:
+      plugin_audit_properties_copy['xasecure.audit.destination.db.password'] = "crypted"
+
     self.assertResourceCalled('XmlConfig', 'ranger-kms-audit.xml',
       mode = 0744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['ranger-kms-audit'],
+      configurations = plugin_audit_properties_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-audit']
     )
 
@@ -453,12 +503,19 @@ class TestRangerKMS(RMFTestCase):
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-security']
     )
 
+    ranger_kms_policymgr_ssl_copy = {}
+    ranger_kms_policymgr_ssl_copy.update(self.getConfig()['configurations']['ranger-kms-policymgr-ssl'])
+
+    for prop in ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']:
+      if prop in ranger_kms_policymgr_ssl_copy:
+        ranger_kms_policymgr_ssl_copy[prop] = "crypted"
+
     self.assertResourceCalled('XmlConfig', 'ranger-policymgr-ssl.xml',
       mode = 0744,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['ranger-kms-policymgr-ssl'],
+      configurations = ranger_kms_policymgr_ssl_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['ranger-kms-policymgr-ssl']
     )
 
@@ -478,6 +535,10 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       mode = 0640
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
+      action = ['delete'],
     )
 
     self.assertResourceCalled('Directory', '/tmp/jce_dir',
@@ -518,6 +579,16 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       create_parents = True
+    )
+
+    self.assertResourceCalled('Directory', '/etc/security/serverKeys',
+      create_parents = True,
+      cd_access = "a",
+    )
+
+    self.assertResourceCalled('Directory', '/etc/ranger/kms',
+      create_parents = True,
+      cd_access = "a",
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/ews/webapp/lib/mysql-connector-java-old.jar',
@@ -590,6 +661,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
+      content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
@@ -667,12 +745,18 @@ class TestRangerKMS(RMFTestCase):
       mode = 0640
     )
 
+    dbks_site_copy = {}
+    dbks_site_copy.update(self.getConfig()['configurations']['dbks-site'])
+    for prop in ['ranger.db.encrypt.key.password', 'ranger.ks.jpa.jdbc.password', 'ranger.ks.hsm.partition.password']:
+      if prop in dbks_site_copy:
+        dbks_site_copy[prop] = "_"
+
     self.assertResourceCalled('XmlConfig', 'dbks-site.xml',
       mode=0644,
       owner = 'kms',
       group = 'kms',
       conf_dir = '/usr/hdp/current/ranger-kms/conf',
-      configurations = self.getConfig()['configurations']['dbks-site'],
+      configurations = dbks_site_copy,
       configuration_attributes = self.getConfig()['configuration_attributes']['dbks-site']
     )
 
@@ -698,7 +782,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0644,
       owner = 'kms',
       group = 'kms',
-      content = self.getConfig()['configurations']['kms-log4j']['content']
+      content = InlineTemplate(self.getConfig()['configurations']['kms-log4j']['content'])
     )
 
     self.assertResourceCalled('XmlConfig', 'core-site.xml',

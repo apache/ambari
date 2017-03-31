@@ -111,6 +111,21 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     return configs;
   },
 
+  dataLoading: function() {
+    var dfd = $.Deferred();
+    this.connectOutlet('loading');
+    if (App.router.get('clusterController.isLoaded') && App.router.get('clusterController.isComponentsStateLoaded')) {
+      dfd.resolve();
+    } else {
+      var interval = setInterval(function () {
+        if (App.router.get('clusterController.isLoaded') && App.router.get('clusterController.isComponentsStateLoaded')) {
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      }, 50);
+    }
+    return dfd.promise();
+  },
   /**
    * save status of the cluster.
    * @param clusterStatus object with status,requestId fields.

@@ -33,7 +33,11 @@ from resource_management.libraries.script.script import Script
 
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 
+from resource_management.core.utils import PasswordString
+from ambari_commons.credential_store_helper import get_password_from_credential_store
 from urlparse import urlparse
 
 import status_params
@@ -43,6 +47,8 @@ import os
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
+
+architecture = get_architecture()
 
 
 # Needed since this writes out the Atlas Hive Hook config file.
@@ -61,6 +67,7 @@ agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int
 stack_root = status_params.stack_root
 stack_version_unformatted =  status_params.stack_version_unformatted
 stack_version_formatted =  status_params.stack_version_formatted
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
@@ -133,6 +140,8 @@ oozie_pid_dir = status_params.oozie_pid_dir
 pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 java_share_dir = "/usr/share/java"
+java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 ext_js_file = "ext-2.2.zip"
 ext_js_path = format("/usr/share/{stack_name_uppercase}-oozie/{ext_js_file}")
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -152,9 +161,18 @@ oozie_site = config['configurations']['oozie-site']
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resourcemanager.address']
+zk_namespace = default('/configurations/oozie-site/oozie.zookeeper.namespace', 'oozie')
+zk_connection_string = default('/configurations/oozie-site/oozie.zookeeper.connection.string', None)
+jaas_file = os.path.join(conf_dir, 'zkmigrator_jaas.conf')
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+
+credential_store_enabled = False
+if 'credentialStoreEnabled' in config:
+  credential_store_enabled = config['credentialStoreEnabled']
 
 if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])
+  oozie_principal_with_host = oozie_principal.replace('_HOST', hostname)
 
   # If a user-supplied oozie.ha.authentication.kerberos.principal property exists in oozie-site,
   # use it to replace the existing oozie.authentication.kerberos.principal value. This is to ensure
@@ -171,10 +189,8 @@ if security_enabled:
 
   if stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
     #older versions of oozie have problems when using _HOST in principal
-    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
-      oozie_principal.replace('_HOST', hostname)
-    oozie_site['oozie.authentication.kerberos.principal'] = \
-      http_principal.replace('_HOST', hostname)
+    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = oozie_principal_with_host
+    oozie_site['oozie.authentication.kerberos.principal'] = http_principal.replace('_HOST', hostname)
 
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 oozie_keytab = default("/configurations/oozie-env/oozie_keytab", oozie_service_keytab)
@@ -183,7 +199,19 @@ oozie_env_sh_template = config['configurations']['oozie-env']['content']
 oracle_driver_jar_name = "ojdbc6.jar"
 
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
-oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
+
+if credential_store_enabled:
+  if 'hadoop.security.credential.provider.path' in config['configurations']['oozie-site']:
+    cs_lib_path = config['configurations']['oozie-site']['credentialStoreClassPath']
+    java_home = config['hostLevelParams']['java_home']
+    alias = 'oozie.service.JPAService.jdbc.password'
+    provider_path = config['configurations']['oozie-site']['hadoop.security.credential.provider.path']
+    oozie_metastore_user_passwd = PasswordString(get_password_from_credential_store(alias, provider_path, cs_lib_path, java_home, jdk_location))
+  else:
+    raise Exception("hadoop.security.credential.provider.path property should be set")
+else:
+  oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
+
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")
 oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
@@ -205,6 +233,8 @@ if https_port is None and 'oozie.https.port' in config['configurations']['oozie-
   https_port = config['configurations']['oozie-site']['oozie.https.port']
 
 oozie_base_url = config['configurations']['oozie-site']['oozie.base.url']
+
+service_check_job_name = default("/configurations/oozie-env/service_check_job_name", "no-op")
 
 # construct proper url for https
 if https_port is not None:
@@ -285,6 +315,7 @@ has_falcon_host = not len(falcon_host)  == 0
 oozie_server_hostnames = default("/clusterHostInfo/oozie_server", [])
 oozie_server_hostnames = sorted(oozie_server_hostnames)
 
+oozie_log_maxhistory = default('configurations/oozie-log4j/oozie_log_maxhistory',720)
 
 #oozie-log4j.properties
 if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):

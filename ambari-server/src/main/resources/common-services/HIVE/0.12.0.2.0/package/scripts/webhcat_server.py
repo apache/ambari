@@ -118,8 +118,6 @@ class WebHCatServerDefault(WebHCatServer):
       )
 
       security_params = {}
-      security_params.update(get_params_from_filesystem(status_params.hive_conf_dir,
-                                                        {'hive-site.xml': FILE_TYPE_XML}))
       security_params.update(get_params_from_filesystem(status_params.webhcat_conf_dir,
                                                         {'webhcat-site.xml': FILE_TYPE_XML}))
       result_issues = validate_security_config_properties(security_params, expectations)

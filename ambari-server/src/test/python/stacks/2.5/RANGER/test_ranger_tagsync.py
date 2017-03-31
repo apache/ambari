@@ -98,6 +98,13 @@ class TestRangerTagsync(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-tagsync/conf/ranger-tagsync-env-piddir.sh',
+      content = 'export TAGSYNC_PID_DIR_PATH=/var/run/ranger\nexport UNIX_TAGSYNC_USER=ranger',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/var/log/ranger/tagsync',
       owner = 'ranger',
       group = 'ranger',
@@ -133,7 +140,7 @@ class TestRangerTagsync(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-tagsync/conf/log4j.properties',
       owner = 'ranger',
       group = 'ranger',
-      content = self.getConfig()['configurations']['tagsync-log4j']['content'],
+      content = InlineTemplate(self.getConfig()['configurations']['tagsync-log4j']['content']),
       mode = 0644
     )
 

@@ -75,6 +75,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       'deleteSNameNode',
       'startAllServices',
       'reconfigureHBase',
+      'reconfigureAMS',
       'reconfigureAccumulo',
       'reconfigureHawq',
       'installPXF',

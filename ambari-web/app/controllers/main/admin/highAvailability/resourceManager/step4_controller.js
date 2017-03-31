@@ -32,10 +32,11 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   initializeTasks: function () {
     this._super();
-    var numSpliced = 0;
+    var tasksToRemove = [];
     if (!App.Service.find().someProperty('serviceName', 'HAWQ')) {
-      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHAWQ').get('id'), 1);
+      tasksToRemove.push('reconfigureHAWQ');
     }
+    this.removeTasks(tasksToRemove);
   },
 
   stopRequiredServices: function () {

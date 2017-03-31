@@ -24,7 +24,6 @@ from resource_management.libraries.script.script import Script
 from setup_logsearch import setup_logsearch
 from logsearch_common import kill_process
 
-
 class LogSearch(Script):
   def install(self, env):
     import params

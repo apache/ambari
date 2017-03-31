@@ -73,7 +73,7 @@ class TestConfigs(TestCase):
       self.assertEquals(config['properties'], {'config1': 'value1', 'config2': 'value2'})
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
     to_file_method.return_value = config_assertion
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'http', 'get', 'localhost', 'cluster1', 'hdfs-site', '1.conf']
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'http', '-a', 'get', '-l','localhost','-n', 'cluster1', '-c','hdfs-site']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
@@ -94,7 +94,7 @@ class TestConfigs(TestCase):
       }
     }
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'https', 'set', 'localhost', 'cluster1', 'hdfs-site', 'config1', 'value3']
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'set', '-l','localhost','-n', 'cluster1', '-c','hdfs-site', '-k', 'config1', '-v', 'value3']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
@@ -115,7 +115,7 @@ class TestConfigs(TestCase):
       }
     }
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'https', 'set', 'localhost', 'cluster1', 'hdfs-site', 'config1', 'value3']
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'set', '-l','localhost','-n', 'cluster1', '-c','hdfs-site', '-k', 'config1', '-v', 'value3']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
@@ -138,7 +138,7 @@ class TestConfigs(TestCase):
       }
     }
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'https', 'set', 'localhost', 'cluster2', 'hdfs-site', 'config1', 'value4']
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'set', '-l','localhost','-n', 'cluster2', '-c','hdfs-site', '-k', 'config1', '-v', 'value4']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
@@ -159,7 +159,8 @@ class TestConfigs(TestCase):
       }
     }
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'https', 'delete', 'localhost', 'cluster1', 'hdfs-site', 'config1']
+
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'delete', '-l','localhost','-n', 'cluster1', '-c','hdfs-site', '-k', 'config1']
     configs.main()
 
   @patch.object(configs, 'output_to_file')
@@ -182,5 +183,30 @@ class TestConfigs(TestCase):
       }
     }
     urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
-    sys.argv = ['configs.py', 'user', 'password', '8081', 'https', 'delete', 'localhost', 'cluster2', 'hdfs-site', 'config1']
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'delete', '-l','localhost','-n', 'cluster2', '-c','hdfs-site', '-k', 'config1']
+    configs.main()
+
+  @patch.object(configs, 'output_to_file')
+  @patch('urllib2.urlopen')
+  def test_set_properties_from_xml(self, urlopen_method, to_file_method):
+    response_mapping = {
+      'GET': {
+        'body': {
+          'https://localhost:8081/api/v1/clusters/cluster1?fields=Clusters/desired_configs' : '{"Clusters":{"desired_configs":{"hdfs-site":{"tag":"version1"}}}}',
+          'https://localhost:8081/api/v1/clusters/cluster1/configurations?type=hdfs-site&tag=version1': '{"items":[{"properties":{"config3": "value3", "config4": "value4"}}]}'
+        }
+      },
+      'PUT': {
+        'request_assertion': {
+          'https://localhost:8081/api/v1/clusters/cluster1':
+            lambda request_body: self.assertEquals(request_body['Clusters']['desired_configs']['properties'], {"config1": "value1", "config2": "value2"})
+        }
+      }
+    }
+    urlopen_method.side_effect = self.get_url_open_side_effect(response_mapping)
+
+    test_directory = os.path.dirname(os.path.abspath(__file__))
+    configs_path = os.path.join(test_directory, '../resources/TestConfigs-content.xml')
+
+    sys.argv = ['configs.py', '-u', 'user', '-p', 'password', '-t', '8081', '-s', 'https', '-a', 'set', '-l','localhost','-n', 'cluster1', '-c','hdfs-site', '-f', configs_path]
     configs.main()

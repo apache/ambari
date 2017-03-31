@@ -44,6 +44,8 @@
         <include>ams-env.sh</include>
         <include>ams-site.xml</include>
         <include>log4j.properties</include>
+        <include>metrics_whitelist</include>
+        <include>amshbase_metrics_whitelist</include>
       </includes>
     </fileSet>
     <fileSet>
@@ -58,6 +60,7 @@
 
   <dependencySets>
     <dependencySet>
+      <fileMode>755</fileMode>
       <unpack>false</unpack>
       <outputDirectory>hbase/lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -67,6 +70,7 @@
       </includes>
     </dependencySet>
     <dependencySet>
+      <fileMode>755</fileMode>
       <unpack>false</unpack>
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>

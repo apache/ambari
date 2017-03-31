@@ -1700,7 +1700,7 @@ thead.view-permission-header > tr > th {
 
 .register-version-form .repos-panel .remove-icon {
   color: red;
-  margin: 20px 0;
+  margin: 13px 0;
   padding: 0;
   text-align: center;
   cursor: pointer;
@@ -1717,12 +1717,12 @@ thead.view-permission-header > tr > th {
 }
 
 .register-version-form .repos-panel .repo-name-url {
-  padding: 8px 0px;
+  padding: 15px 0px;
   margin-bottom: 0px;
 }
 
 .register-version-form .repos-panel .os-type-label {
-  margin-top: 27px;
+  margin-top: 25px;
   padding-left: 10px;
 }
 

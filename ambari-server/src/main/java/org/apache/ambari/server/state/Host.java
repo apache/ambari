@@ -27,10 +27,13 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 public interface Host extends Comparable {
+
+  HostEntity getHostEntity();
 
   /**
    * @return the hostName
@@ -41,11 +44,6 @@ public interface Host extends Comparable {
    * @return host id
    */
   Long getHostId();
-
-  /**
-   * @param hostName the hostName to set
-   */
-  void setHostName(String hostName);
 
   /**
    * @return the currentPingPort
@@ -176,6 +174,8 @@ public interface Host extends Comparable {
    * @return the osFamily
    */
   String getOsFamily();
+
+  String getOSFamilyFromHostAttributes(Map<String, String> hostAttributes);
 
   /**
    * @param osType the osType to set
@@ -338,12 +338,6 @@ public interface Host extends Comparable {
 
   HostResponse convertToResponse();
 
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
-
   void importHostInfo(HostInfo hostInfo);
 
   /**
@@ -399,4 +393,18 @@ public interface Host extends Comparable {
    * @return
    */
   List<HostVersionEntity> getAllHostVersions();
+
+  /**
+   * Gets whether this host has components which advertise their version.
+   *
+   * @param stackId
+   *          the version of the stack to use when checking version
+   *          advertise-ability.
+   * @return {@code true} if at least 1 component on this host advertises its
+   *         version.
+   * @throws AmbariException
+   *           if there is a problem retrieving the component from the stack.
+   * @see ComponentInfo#isVersionAdvertised()
+   */
+  boolean hasComponentsAdvertisingVersions(StackId stackId) throws AmbariException;
 }

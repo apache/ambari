@@ -18,18 +18,21 @@
 
 package org.apache.ambari.view.filebrowser;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.FileNameMap;
-import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import com.google.gson.Gson;
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.commons.exceptions.MisconfigurationFormattedException;
+import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
+import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
+import org.apache.ambari.view.commons.hdfs.HdfsService;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.security.AccessControlException;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -46,22 +49,18 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlElement;
-
-import com.google.gson.Gson;
-import org.apache.ambari.view.commons.exceptions.MisconfigurationFormattedException;
-import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
-import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
-import org.apache.ambari.view.commons.hdfs.HdfsService;
-import org.apache.ambari.view.utils.hdfs.HdfsApi;
-import org.apache.ambari.view.utils.hdfs.HdfsApiException;
-import org.apache.ambari.view.utils.hdfs.HdfsUtil;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.ambari.view.ViewContext;
-import org.apache.hadoop.security.AccessControlException;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.FileNameMap;
+import java.net.URLConnection;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Service for download and aggregate files
@@ -72,6 +71,14 @@ public class DownloadService extends HdfsService {
 
   public DownloadService(ViewContext context) {
     super(context);
+  }
+
+  /**
+   * @param context
+   * @param customProperties : extra properties that need to be included into config
+   */
+  public DownloadService(ViewContext context, Map<String, String> customProperties) {
+    super(context, customProperties);
   }
 
   /**
@@ -92,7 +99,7 @@ public class DownloadService extends HdfsService {
                          @Context HttpHeaders headers, @Context UriInfo ui) {
     LOG.debug("browsing path : {} with download : {}", path, download);
     try {
-      HdfsApi api = getApi(context);
+      HdfsApi api = getApi();
       FileStatus status = api.getFileStatus(path);
       FSDataInputStream fs = api.open(path);
       if(checkperm) {
@@ -127,7 +134,7 @@ public class DownloadService extends HdfsService {
 
   private void zipFile(ZipOutputStream zip, String path) {
     try {
-      FSDataInputStream in = getApi(context).open(path);
+      FSDataInputStream in = getApi().open(path);
       zip.putNextEntry(new ZipEntry(path.substring(1)));
       byte[] chunk = new byte[1024];
 
@@ -185,7 +192,7 @@ public class DownloadService extends HdfsService {
             ServiceFormattedException {
           ZipOutputStream zip = new ZipOutputStream(output);
           try {
-            HdfsApi api = getApi(context);
+            HdfsApi api = getApi();
             Queue<String> files = new LinkedList<String>();
             for (String file : request.entries) {
               files.add(file);
@@ -249,7 +256,7 @@ public class DownloadService extends HdfsService {
           for (String path : request.entries) {
             try {
               try {
-                in = getApi(context).open(path);
+                in = getApi().open(path);
               } catch (AccessControlException ex) {
                 LOG.error("Error in opening file {}. Ignoring concat of this files.", path.substring(1), ex);
                 continue;
@@ -380,7 +387,7 @@ public class DownloadService extends HdfsService {
 
   private DownloadRequest getDownloadRequest(String requestId) throws HdfsApiException, IOException, InterruptedException {
     String fileName = getFileNameForRequestData(requestId);
-    String json = HdfsUtil.readFile(getApi(context), fileName);
+    String json = HdfsUtil.readFile(getApi(), fileName);
     DownloadRequest request = gson.fromJson(json, DownloadRequest.class);
 
     deleteFileFromHdfs(fileName);
@@ -399,7 +406,7 @@ public class DownloadService extends HdfsService {
   private void writeToHdfs(String uuid, String json) {
     String fileName = getFileNameForRequestData(uuid);
     try {
-      HdfsUtil.putStringToFile(getApi(context), fileName, json);
+      HdfsUtil.putStringToFile(getApi(), fileName, json);
     } catch (HdfsApiException e) {
       LOG.error("Failed to write request data to HDFS", e);
       throw new ServiceFormattedException("Failed to write request data to HDFS", e);
@@ -416,7 +423,7 @@ public class DownloadService extends HdfsService {
   }
 
   private void deleteFileFromHdfs(String fileName) throws IOException, InterruptedException {
-    getApi(context).delete(fileName, true);
+    getApi().delete(fileName, true);
   }
 
 

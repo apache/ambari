@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -28,13 +32,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.inject.Inject;
 
 /**
  * During stack upgrade, update lzo codec path in mapreduce.application.classpath and
@@ -78,7 +76,7 @@ public class FixLzoCodecPath extends AbstractServerAction {
         }
       }
       config.setProperties(properties);
-      config.persist(false);
+      config.save();
     }
     if (modifiedProperties.isEmpty()) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",

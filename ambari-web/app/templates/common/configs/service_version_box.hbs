@@ -39,7 +39,7 @@
       <div class="content">
         <span class="label label-info">{{view.serviceVersion.versionText}}</span> <span class="pull-right"><strong>{{view.serviceVersion.configGroupName}}</strong></span>
         <span class="stack">{{view.serviceVersion.stackVersion}}</span>
-        <div class="date"><strong>{{view.serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
+        <div class="date"><strong data-toggle="tooltip" {{bindAttr data-original-title="view.serviceVersion.author"}}>{{view.serviceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.serviceVersion.createdDate}}</strong></div>
         <div class="notes">{{view.serviceVersion.fullNotes}}</div>
       </div>
       <div class="version-operations-buttons">

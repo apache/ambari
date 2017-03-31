@@ -23,10 +23,10 @@
         <div class="input-group">
         {{input type="text" class="form-control" validations="required" name="script" value=actionModel.script placeholder="myscript.pig"}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
         </span>
       </div>
-      {{#field-error error=errors.actionModel.script}}{{/field-error}}
+        {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}

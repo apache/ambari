@@ -69,7 +69,7 @@ class TezServiceCheckLinux(TezServiceCheck):
     )
 
     if params.stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted):
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     params.HdfsResource(None, action = "execute")
 

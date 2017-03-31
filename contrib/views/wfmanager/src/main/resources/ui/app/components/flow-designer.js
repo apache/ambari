@@ -20,17 +20,44 @@ import {Workflow} from '../domain/workflow';
 import Constants from '../utils/constants';
 import {WorkflowGenerator} from '../domain/workflow-xml-generator';
 import {WorkflowImporter} from '../domain/workflow-importer';
+import {WorkflowJsonImporter} from '../domain/workflow-json-importer';
 import {WorkflowContext} from '../domain/workflow-context';
-import {DefaultLayoutManager as LayoutManager} from '../domain/default-layout-manager';
-import EmberValidations,{ validator } from 'ember-validations';
+import {JSPlumbRenderer} from '../domain/jsplumb-flow-renderer';
+import {CytoscapeRenderer} from '../domain/cytoscape-flow-renderer';
+import {FindNodeMixin} from '../domain/findnode-mixin';
+import { validator, buildValidations } from 'ember-cp-validations';
+import WorkflowPathUtil from '../domain/workflow-path-util';
+import {ActionTypeResolver} from '../domain/action-type-resolver';
+import CommonUtils from "../utils/common-utils";
 
+const Validations = buildValidations({
+  'dataNodes': { /* For Cytoscape */
+    validators: [
+      validator('duplicate-data-node-name', {
+        dependentKeys: ['dataNodes.@each.dataNodeName']
+      }),
+      validator('workflow-dag', {
+        dependentKeys: ['dataNodes.@each.source', 'dataNodes.@each.target']
+      })
+    ]
+  },
+  'workflow.killNodes': {
+    validators: [
+      validator('duplicate-kill-node-name', {
+        dependentKeys: ['workflow.killNodes.@each.name']
+      })
+    ]
+  }
+});
 
-export default Ember.Component.extend(EmberValidations,{
+export default Ember.Component.extend(FindNodeMixin, Validations, {
   workflowContext : WorkflowContext.create({}),
   workflowTitle:"",
   previewXml:"",
   supportedActionTypes:["java", "hive", "pig", "sqoop", "shell", "spark", "map-reduce", "hive2", "sub-workflow", "distcp", "ssh", "FS"],
   workflow:null,
+  flowRenderer:null,
+  hoveredWidget:null,
   showingConfirmationNewWorkflow:false,
   showingWorkflowConfigProps:false,
   workflowSubmitConfigs:{},
@@ -40,106 +67,150 @@ export default Ember.Component.extend(EmberValidations,{
   domain:{},
   showActionEditor : false,
   flattenedNodes: [],
-
+  dataNodes: [], /* For cytoscape */
+  counterMap : {},
+  hoveredAction: null,
   workflowImporter:WorkflowImporter.create({}),
-  designerPlumb:null,
+  actionTypeResolver: ActionTypeResolver.create({}),
   propertyExtractor : Ember.inject.service('property-extractor'),
+  clipboardService : Ember.inject.service('workflow-clipboard'),
+  workspaceManager : Ember.inject.service('workspace-manager'),
+  assetManager : Ember.inject.service('asset-manager'),
   showGlobalConfig : false,
   showParameterSettings : false,
+  showNotificationPanel : false,
   globalConfig : {},
+  assetConfig : {},
   parameters : {},
-  clonedDomain : {},
-  clonedErrorNode : {},
-  validationErrors : [],
-  layoutManager:null,
+  validationErrors : Ember.computed('validations.attrs.dataNodes.message', 'validations.attrs.workflow.killNodes.message', {
+    get(key){
+      var errors = [];
+      if(this.get('validations.attrs.dataNodes.message')){
+        errors.pushObject({message : this.get('validations.attrs.dataNodes.message')});
+      }
+      if(this.get('validations.attrs.workflow.killNodes.message')){
+        errors.pushObject(this.get('validations.attrs.dataNodes.message'));
+      }
+      return errors;
+    },
+    set(key, value){
+      if(!value){
+        this.set(key, Ember.A([]));
+      }
+    }
+  }),
   showingFileBrowser : false,
   killNode : {},
   isWorkflowImporting: false,
-  isImportingSuccess: true,
-  initialize :function(){
-    this.designerPlumb=jsPlumb.getInstance({});
-    this.layoutManager=LayoutManager.create({});
-    this.setConentWidth();
+  isAssetPublishing: false,
+  errorMsg: "",
+  data : {
+    "responseText": ""
+  },
+  shouldPersist : false,
+  useCytoscape: Constants.useCytoscape,
+  cyOverflow: {},
+  clipboard : Ember.computed.alias('clipboardService.clipboard'),
+  showingStreamImport:false,
+  fileInfo:Ember.Object.create(),
+  isDraft: false,
+  saveJobService : Ember.inject.service('save-job'),
+  initialize : function(){
+    var id = 'cy-' + Math.ceil(Math.random() * 1000);
+    this.set('cyId', id);
+    this.sendAction('register', this.get('tabInfo'), this);
+    this.set('flowRenderer',CytoscapeRenderer.create());
     this.set('workflow',Workflow.create({}));
+    CommonUtils.setTestContext(this);
+    this.set('dataNodes', Ember.A([]));
+    this.set('errors', Ember.A([]));
+    this.set('validationErrors', Ember.A([]));
+  }.on('init'),
+  elementsInserted :function(){
+    this.setConentWidth();
     if(this.get("xmlAppPath")){
-      var workflowXmlPath = this.get("xmlAppPath"), relXmlPath = "", tempArr;
-      if(workflowXmlPath.indexOf("://") === -1 && workflowXmlPath.indexOf(":") === -1){
-        relXmlPath = workflowXmlPath;
-      } else{
-        tempArr = workflowXmlPath.split("//")[1].split("/");
-        tempArr.splice(0, 1);
-        relXmlPath = "/" + tempArr.join("/");
-        if(!(relXmlPath.indexOf(".xml") === relXmlPath.length-4)) {
-          if(relXmlPath.charAt(relXmlPath.length-1) !== "/"){
-            relXmlPath = relXmlPath+ "/" +"workflow.xml";
-          } else{
-            relXmlPath = relXmlPath+"workflow.xml";
-          }
-        }
-      }
-      this.importWorkflow(relXmlPath);
+      this.showExistingWorkflow();
       return;
-    }else{
+    } else {
       this.workflow.initialize();
       this.initAndRenderWorkflow();
       this.$('#wf_title').focus();
-      this.restoreWorkinProgress();
+      if (Constants.autoRestoreWorkflowEnabled){
+        this.restoreWorkflow();
+      }
+    }
+    if(Ember.isBlank(this.get('workflow.name'))){
+      this.set('workflow.name', Ember.copy(this.get('tabInfo.name')));
     }
   }.on('didInsertElement'),
-  validations: {
-    'flattenedNodes': {
-      inline : validator(function() {
-        var nodeNames = new Map();
-        this.get("validationErrors").clear();
-        this.get('flattenedNodes').forEach((item)=>{
-          Ember.set(item, "errors", false);
-          if(nodeNames.get(item.name)){
-            Ember.set(item, "errors", true);
-            this.get("validationErrors").pushObject({node:item,message:"Node name should be unique"});
-          }else{
-            nodeNames.set(item.name, item);
-            Ember.set(item, "errors", false);
-          }
-          if(this.get("supportedActionTypes").indexOf(item.actionType) === -1 && item.type === "action"){
-            this.get('validationErrors').pushObject({node : item ,message : item.actionType+" is unsupported"});
-          }
-          var nodeErrors=item.validateCustom();
-          if (nodeErrors.length>0){
-            Ember.set(item, "errors", true);
-            nodeErrors.forEach(function(errMsg){
-              this.get("errors").pushObject({node:item,message:errMsg });
-            }.bind(this));
-          }
-        }.bind(this));
-
-        if(this.get('flattenedNodes').length !== nodeNames.size || this.get("errors").length>0){
-          return true;
+  restoreWorkflow(){
+    if (!this.get("isNew")){
+      this.getDraftWorkflow().promise.then(function(draftWorkflow){
+        if (draftWorkflow){
+          this.resetDesigner();
+          this.set("workflow",draftWorkflow);
+          this.rerender();
+          this.doValidation();
+          this.generateCounterMap();
         }
-      })
-    },
-    "workflow.killnodes": {
-      inline : validator(function() {
-        let killNodes = [], flag;
-        if(this.get("workflow") && this.get("workflow").killNodes){
-          killNodes = this.get("workflow").killNodes;
-          for(let i=0; i<killNodes.length; i++){
-            for(let j=0; j<killNodes.length; j++){
-              if(killNodes[i].name === killNodes[j].name && i !== j){
-                this.get('validationErrors').pushObject({node : killNodes[j] ,message : "Duplicate killnode"});
-                flag = true;
-                break;
-              }
-            }
-            if(flag){
-              break;
-            }
-          }
-        }
-        if (flag){
-          return true;
-        }
-      })
+      }.bind(this)).catch(function(data){
+      });
     }
+  },
+
+  importWorkflowFromProjManager(path){
+    this.importWorkflow(path);
+  },
+
+  observeXmlAppPath : Ember.observer('xmlAppPath', function(){
+    if(!this.get('xmlAppPath') || null === this.get('xmlAppPath')){
+      return;
+    }else{
+      this.showExistingWorkflow();
+    }
+  }),
+  observeFilePath : Ember.observer('workflowFilePath', function(){
+    if(!this.get('workflowFilePath') || null === this.get('workflowFilePath')){
+      return;
+    }else{
+      this.sendAction('changeFilePath', this.get('tabInfo'), this.get('workflowFilePath'));
+    }
+  }),
+  nameObserver : Ember.observer('workflow.name', function(){
+    if(!this.get('workflow')){
+      return;
+    }else if(this.get('workflow') && Ember.isBlank(this.get('workflow.name'))){
+      if(!this.get('clonedTabInfo')){
+        this.set('clonedTabInfo', Ember.copy(this.get('tabInfo')));
+      }
+      this.sendAction('changeTabName', this.get('tabInfo'), this.get('clonedTabInfo.name'));
+    }else{
+      this.sendAction('changeTabName', this.get('tabInfo'), this.get('workflow.name'));
+    }
+  }),
+  workflowFilePath : Ember.computed('tabInfo.filePath', function(){
+    return this.get('tabInfo.filePath');
+  }),
+  showParentWorkflow(type, path){
+    this.sendAction('openTab', type, path);
+  },
+  showExistingWorkflow(){
+    var workflowXmlPath = this.get("xmlAppPath"), relXmlPath = "", tempArr;
+    if(workflowXmlPath.indexOf("://") === -1 && workflowXmlPath.indexOf(":") === -1){
+      relXmlPath = workflowXmlPath;
+    } else{
+      tempArr = workflowXmlPath.split("//")[1].split("/");
+      tempArr.splice(0, 1);
+      relXmlPath = "/" + tempArr.join("/");
+      if(relXmlPath.indexOf(".xml") !== relXmlPath.length-4) {
+        if(relXmlPath.charAt(relXmlPath.length-1) !== "/"){
+          relXmlPath = relXmlPath+ "/" +"workflow.xml";
+        } else{
+          relXmlPath = relXmlPath+"workflow.xml";
+        }
+      }
+    }
+    this.importWorkflowFromProjManager(relXmlPath);
   },
   setConentWidth(){
     var offset = 120;
@@ -150,222 +221,192 @@ export default Ember.Component.extend(EmberValidations,{
       return;
     });
   },
-  nodeRendered: function(){
-    var self=this;
-    if(this.get('renderNodeTransitions')){
-      var connections=[];
-      var visitedNodes=[];
-      this.renderTransitions(this.get("workflow").startNode,connections,visitedNodes);
-      this.workflowConnections=connections;
-      this.layout();
-      this.designerPlumb.setSuspendDrawing(true);
-      this.designerPlumb.batch(function(){
-        connections.forEach(function(conn){
-          self.designerPlumb.connect(conn);
-        });
-      });
-      this.designerPlumb.setSuspendDrawing(false,true);
-      this.set('renderNodeTransitions',false);
+  workflowXmlDownload(workflowXml){
+    let link = document.createElement("a"), val = this.get('workflow.name');
+    if(Ember.isBlank(val)) {
+      link.download = "workflow.xml";
+    } else {
+      link.download = val.replace(/\s/g, '_');
     }
+    link.href = "data:text/xml,"+encodeURIComponent(vkbeautify.xml(workflowXml));
+    link.click();
+  },
+  nodeRendered: function(){
+    if (this.get("isNew")){
+      this.set("isNew",false);
+      return;
+    }
+    this.doValidation();
+    this.resize();
     this.persistWorkInProgress();
   }.on('didUpdate'),
-  cleanUpJsplumb:function(){
-    this.get('flattenedNodes').clear();
+  renderTransitions : function(){
+    this.flowRenderer.onDidUpdate(this,this.get("workflow").startNode,this.get("workflow"));
+    this.layout();
+  },
+  resize(){
+    this.flowRenderer.resize();
+  },
+  cleanupFlowRenderer:function(){
     this.set('renderNodeTransitions',false);
-    this.designerPlumb.detachEveryConnection();
+    this.flowRenderer.cleanup();
   }.on('willDestroyElement'),
   initAndRenderWorkflow(){
-    this.designerPlumb.ready(function() {
+    var panelOffset=this.$(".designer-panel").offset();
+    var canvasHeight=Ember.$(window).height()-panelOffset.top-25;
+    this.flowRenderer.initRenderer(function(){
       this.renderWorkflow();
-    }.bind(this));
+    }.bind(this),{context:this,id : this.get('cyId'),flattenedNodes:this.get("flattenedNodes"),dataNodes:this.get("dataNodes"), cyOverflow:this.get("cyOverflow"),canvasHeight:canvasHeight});
+    this.generateCounterMap();
+  },
+  generateCounterMap() {
+    let len = 0, id = 0, val = null, self = this;
+    this.get('dataNodes').forEach(function(item){
+      if(item.data.node) {
+        if(item.data.node.type === "action") {
+          let keyMap = self.get("counterMap"), type = item.data.node.actionType;
+          if(keyMap.hasOwnProperty(type)){
+            keyMap[type] = parseInt(keyMap[type])+1;
+          } else {
+            keyMap[type] = 1;
+          }
+        }
+      }
+    });
   },
   renderWorkflow(){
-    this.get('flattenedNodes').clear();
     this.set('renderNodeTransitions', true);
-    var visitedNodes=[];
-    this.renderNodes(this.get("workflow").startNode,visitedNodes);
+    this.flowRenderer.renderWorkflow(this.get("workflow"));
+    this.doValidation();
+    this.renderTransitions();
   },
-  rerender(){
-    this.designerPlumb.detachEveryConnection();
-    this.renderWorkflow(this.get("workflow"));
-  },
-  setCurrentTransition(transition){
-    this.set("currentTransition",transition);
-  },
-  renderNodes(node,visitedNodes){
-    if (!node || node.isKillNode()){
-      return;
-    }
-    if (visitedNodes.contains(node)){
-      return;
-    }
-    visitedNodes.push(node);
-    if(!this.get('flattenedNodes').contains(node)){
-      this.get('flattenedNodes').pushObject(node);
-    }
-    if (node.transitions.length > 0){
-      node.transitions.forEach(function(transition) {
-        var target = transition.targetNode;
-        this.renderNodes(target,visitedNodes);
-      }.bind(this));
-    }
-  },
-  createConnection(sourceNode,target,transition){
-    var connectionColor="#777";
-    var lineWidth=1;
-    if (transition.condition){
-      if(transition.condition==="default"){
-        lineWidth=2;
-      }else if (transition.condition==="error"|| transition.errorPath){
-        connectionColor=Constants.globalSetting.errorTransitionColor;
+  rerender(callback){
+    this.set('showStatus', true);
+    Ember.run.later(() => {
+      this.flowRenderer.cleanup();
+      this.renderWorkflow(this.get("workflow"));
+      this.set('showStatus', false);
+      if(callback){
+        callback();
       }
-    }
-    var connectionObj={
-      source:sourceNode.id,
-      target:target.id,
-      connector:["Straight"],
-      paintStyle:{lineWidth:lineWidth,strokeStyle:connectionColor},
-      endpointStyle:{fillStyle:'rgb(243,229,0)'},
-      endpoint: ["Dot", {
-        radius: 1
-      }],
-      alwaysRespectStubs:true,
-      anchors: [["Bottom"],["Top"]],
-      overlays:[]
-    };
-    return connectionObj;
-  },
-  deleteTransition(transition){
-    this.get("workflow").deleteTransition(transition);
-    this.rerender();
-  },
-  renderTransitions(sourceNode,connections,visitedNodes){
-    var self=this;
-    if(!sourceNode){
-      return;
-    }
-    if (visitedNodes.contains(sourceNode)){
-      return;
-    }
-    if (sourceNode.hasTransition() ){
-      var transitionCount=sourceNode.transitions.length;
-      sourceNode.transitions.forEach(function(transition) {
-        var target = transition.targetNode;
-        if (target.isKillNode() || !Constants.showErrorTransitions && transition.isOnError()){
-          return;
-        }
-        var connectionObj=self.createConnection(sourceNode,target,transition);
-
-        if (transition.condition){
-          var conditionHTML = "<div class='decision-condition' title='"+transition.condition+"'>"+ transition.condition+"</div>";
-          connectionObj.overlays.push([ "Label", {label:conditionHTML, location:0.75, id:"myLabel" } ]);
-        }
-        if (!target.isPlaceholder()){
-          connectionObj.overlays.push(["PlainArrow",{location:-0.1,width: 7,length: 7}]);
-        }
-        if (!(sourceNode.isPlaceholder() || target.isKillNode())){
-          var location=target.type==="placeholder"?1:0.5;
-          var addNodeoverlay=["Custom" , {
-            id: sourceNode.id+"_"+target.id+"_"+"connector",
-            location:location,
-            create:function(component) {
-              var container=Ember.$('<div />');
-              var plus= Ember.$('<div class="fa fa-plus connector_overlay_new"></div>');
-              if ((sourceNode.isDecisionNode() && transitionCount>1 ||sourceNode.isForkNode() && transitionCount>2 ) &&
-                target.isPlaceholder() &&
-                !transition.isDefaultCasePath()){
-                var trash=Ember.$('<div class="node_actions node_left"><i class="fa fa-trash-o"></i></div>');
-                trash.on("click",function(){
-                  self.deleteTransition(transition);
-                });
-                plus.append(trash);
-              }
-              container.append(plus);
-              return container;
-            },
-            events:{
-              click:function(labelOverlay, originalEvent) {
-                var element = originalEvent.target;
-                self.set('popOverElement', element);
-                self.setCurrentTransition(transition);
-                self.$('.popover').popover('destroy');
-                Ember.$(element).parents(".jsplumb-overlay").css("z-index", "4");
-                self.$(element).attr('data-toggle','popover');
-                self.$(element).popover({
-                  html : true,
-                  title : "Add Node <button type='button' class='close'>&times;</button>",
-                  placement: 'right',
-                  trigger : 'focus',
-                  content : function(){
-                    return self.$('#workflow-actions').html();
-                  }
-                });
-                self.$(element).popover("show");
-                self.$('.popover .close').on('click',function(){
-                  Ember.$(".jsplumb-overlay").css("z-index", "");
-                  self.$('.popover').popover('destroy');
-                });
-              }
-            }
-          }];
-          connectionObj.overlays.push(addNodeoverlay);
-        }
-        connections.push(connectionObj);
-        self.renderTransitions(target,connections,visitedNodes);
-      });
-    }
-  },
-  layout(){
-    var nodes = Ember.$(".nodecontainer");
-    //var edges = this.designerPlumb.getConnections();
-    var edges=this.workflowConnections;
-    this.layoutManager.doLayout(this,nodes,edges,this.get("workflow"));
-    this.designerPlumb.repaintEverything();
-    var endNodeTop=this.$("#node-end").offset().top;
-    var endNodeLeft=this.$("#node-end").offset().left;
-    this.$("#killnodes-container").offset({top:endNodeTop+50,left:endNodeLeft-50});
-    var top = this.$("#killnodes-container").offset().top + 40;
-    var left = this.$("#killnodes-container").offset().left - 28;
-    this.$('.kill').each(function(index,value){
-      this.$(value).offset({top:top,left:left});
-      top = this.$(value).offset().top+70 ;
     }.bind(this));
+  },
+  setCurrentTransition(transitionInfo){
+    this.set("currentTransition", {
+      transition : transitionInfo.transition,
+      source : transitionInfo.source,
+      target : transitionInfo.target,
+      originalSource : transitionInfo.originalSource
+    });
+  },
+  actionInfo(node){
+    this.send("showNotification", node);
+  },
+  deleteTransition(transition,sourceNode){
+    this.createSnapshot();
+    this.get("workflow").deleteTransition(transition);
+    this.rerender(function(){
+      this.showUndo('transition');
+    }.bind(this));
+  },
+  showWorkflowActionSelect(element){
+    var self=this;
+    this.$('.popover').popover('destroy');
+    Ember.$(element).parents(".jsplumb-overlay").css("z-index", "4");
+    this.$(element).attr('data-toggle','popover');
+    this.$(element).popover({
+      html : true,
+      title : "Add Node <button type='button' class='close'>&times;</button>",
+      placement: 'right',
+      trigger : 'focus',
+      content : function(){
+        return self.$('#workflow-actions').html();
+      }
+    });
+    this.$(element).popover("show");
+    this.$('.popover .close').on('click',function(){
+      Ember.$(".jsplumb-overlay").css("z-index", "");
+      this.$('.popover').popover('destroy');
+    }.bind(this));
+  },
+
+  layout(){
+    this.flowRenderer.refresh();
   },
   doValidation(){
-    this.set('validationErrors',[]);
-    this.validate().then(() => {
-      this.set('validationErrors',[]);
-    }).catch(() => {
-      this.get('flattenedNodes').filterBy('errors',true).forEach((node)=>{
-        this.get('validationErrors').pushObjects(node.errorMsgs);
-      }.bind(this));
-
-    }.bind(this));
+    this.validate();
   },
   importWorkflow(filePath){
     var self = this;
     this.set("isWorkflowImporting", true);
-    this.set("workflowFilePath", filePath);
-    this.resetDesigner();
-    this.set("isWorkflowImporting", true);
+
     var workflowXmlDefered=this.getWorkflowFromHdfs(filePath);
-    workflowXmlDefered.promise.then(function(data){
-      this.importWorkflowFromString(data);
+    workflowXmlDefered.promise.then(function(response){
+      if(response.type === 'xml'){
+        this.importWorkflowFromString(response.data);
+      }else {
+        this.importWorkflowFromJSON(response.data);
+      }
       this.set("isWorkflowImporting", false);
-    }.bind(this)).catch(function(e){
+      this.set("workflowFilePath", filePath);
+    }.bind(this)).catch(function(data){
+      console.error(data);
+      self.set("errorMsg", "There is some problem while importing.");
+      self.set("data", data);
       self.set("isWorkflowImporting", false);
-      self.set("isImportingSuccess", false);
     });
   },
   importWorkflowFromString(data){
-    var workflow=this.get("workflowImporter").importWorkflow(data);
+    var wfObject=this.get("workflowImporter").importWorkflow(data);
+    this.set("errors", wfObject.errors);
+    if (wfObject.workflow === null) {
+      this.rerender();
+      return;
+    }
     this.resetDesigner();
-    this.set("workflow",workflow);
+    if(this.get('workflow')){
+      this.resetDesigner();
+      this.set("workflow",wfObject.workflow);
+      this.initAndRenderWorkflow();
+      this.rerender();
+      this.doValidation();
+    }else{
+      this.workflow.initialize();
+      this.set("workflow",wfObject.workflow);
+      this.initAndRenderWorkflow();
+      this.$('#wf_title').focus();
+    }
+  },
+  importWorkflowFromJSON(data){
+    var workflowImporter=WorkflowJsonImporter.create({});
+    var workflow=workflowImporter.importWorkflow(data);
+    this.resetDesigner();
+    this.set("workflow", workflow);
+    this.initAndRenderWorkflow();
     this.rerender();
     this.doValidation();
   },
   getWorkflowFromHdfs(filePath){
-    var url = Ember.ENV.API_URL + "/readWorkflowXml?workflowXmlPath="+filePath;
+    var url = Ember.ENV.API_URL + "/readWorkflow?workflowPath="+filePath+'&jobType=WORKFLOW';
+    var deferred = Ember.RSVP.defer();
+    Ember.$.ajax({
+      url: url,
+      method: 'GET',
+      dataType: "text",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        xhr.setRequestHeader("X-Requested-By", "Ambari");
+      }
+    }).done(function(data, status, xhr){
+      var type = xhr.getResponseHeader("response-type") === "xml" ? 'xml' : 'json';
+      deferred.resolve({data : data, type : type});
+    }).fail(function(data){
+      deferred.reject(data);
+    });
+    return deferred;
+  },
+  getAssetFromHdfs(filePath){
+    var url = Ember.ENV.API_URL + "/readAsset?assetPath="+filePath;
     var deferred = Ember.RSVP.defer();
     Ember.$.ajax({
       url: url,
@@ -377,25 +418,93 @@ export default Ember.Component.extend(EmberValidations,{
       }
     }).done(function(data){
       deferred.resolve(data);
-    }).fail(function(){
-      deferred.reject();
+    }).fail(function(data){
+      deferred.reject(data);
     });
     return deferred;
   },
+
+  importActionSettingsFromString(actionSettings) {
+    var x2js = new X2JS();
+    var actionSettingsObj = x2js.xml_str2json(actionSettings);
+    var actionSettingsObjType = Object.keys(actionSettingsObj)[0];
+    var currentActionNode = this.flowRenderer.currentCyNode.data().node;
+    if (actionSettingsObjType === currentActionNode.actionType) {
+      var actionJobHandler = this.actionTypeResolver.getActionJobHandler(currentActionNode.actionType);
+      actionJobHandler.handleImport(currentActionNode, actionSettingsObj[currentActionNode.actionType]);
+      this.flowRenderer.hideOverlayNodeActions();
+    } else {
+      this.set("errorMsg", actionSettingsObjType + " action settings can't be imported to " + currentActionNode.actionType + " action");
+    }
+  },
+  importActionNodeFromString(actionNodeXmlString) {
+    var x2js = new X2JS();
+    var actionNodeXml = x2js.xml_str2json(actionNodeXmlString);
+    var actionNodeType = Object.keys(actionNodeXml)[0];
+    this.createSnapshot();
+    this.generateUniqueNodeId(actionNodeType);
+    var actionNode = this.get("workflow").addNode(this.getTransitionInfo(),actionNodeType, {}, "");
+    this.rerender();
+    this.doValidation();
+    this.scrollToNewPosition();
+    var actionJobHandler = this.actionTypeResolver.getActionJobHandler(actionNodeType);
+    actionJobHandler.handleImport(actionNode, actionNodeXml[actionNodeType]);
+  },
+  getRandomDataToDynamicProps(dynamicProperties) {
+    var wfDynamicProps = [];
+    var wfParams = this.get('workflow.parameters');
+    dynamicProperties.forEach(function(property) {
+      if (property!=="${nameNode}" && property!==Constants.rmDefaultValue) {
+        var propName = property.trim().substring(2, property.length-1);
+        var propValue;
+        if (wfParams && wfParams.configuration && wfParams.configuration.property) {
+          var param = wfParams.configuration.property.findBy('name', propName);
+          if (!(param && param.value)) {
+            propValue = param.value;
+          }
+        }
+        var prop = Ember.Object.create({
+          name: propName,
+          value: propValue ? propValue : Math.random().toString(36).slice(2)
+        });
+        wfDynamicProps.push(prop);
+      }
+    });
+    return wfDynamicProps;
+  },
+  exportActionNodeXml() {
+    var self = this;
+    self.set("isAssetPublishing", true);
+    self.set("errorMsg", "");
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var actionNodeXml = workflowGenerator.getActionNodeXml(this.flowRenderer.currentCyNode.data().name, this.flowRenderer.currentCyNode.data().node.actionType);
+    var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(actionNodeXml);
+
+    var exportActionNodeXmlDefered=this.get("assetManager").publishAsset(this.get('exportActionNodeFilePath'), actionNodeXml, this.getRandomDataToDynamicProps(dynamicProperties));
+    exportActionNodeXmlDefered.promise.then(function(data){
+      self.set("isAssetPublishing", false);
+    }.bind(this)).catch(function(data){
+      self.set("errorMsg", "There is some problem while publishing asset.");
+      self.set("data", data);
+      self.set("isAssetPublishing", false);
+    });
+  },
   resetDesigner(){
-    this.set("isImportingSuccess", true);
-    this.set("xmlAppPath", null)
-    this.set('errors',{});
-    this.set('validationErrors',{});
-    this.set('workflowFilePath',"");
+    this.set("xmlAppPath", null);
+    this.set('errors',[]);
+    this.set('errorMsg',"");
+    this.set('validationErrors',[]);
     this.get("workflow").resetWorfklow();
     this.set('globalConfig', {});
     this.set('parameters', {});
+    this.set('counterMap', {});
+    this.set("undoAvailable", false);
+    this.set("showingConfirmationNewWorkflow", false);
     if(this.get('workflow.parameters') !== null){
       this.set('workflow.parameters', {});
     }
     this.set('parameters', {});
-    this.designerPlumb.reset();
+    this.flowRenderer.reset();
   },
   resetZoomLevel(){
     this.set("zoomLevel", 1);
@@ -413,8 +522,8 @@ export default Ember.Component.extend(EmberValidations,{
       dataType: "text",
       cache:false,
       success: function(data) {
-        var workflow=this.get("workflowImporter").importWorkflow(data);
-        deferred.resolve(workflow);
+        var wfObject=this.get("workflowImporter").importWorkflow(data);
+        deferred.resolve(wfObject);
       }.bind(this),
       failure : function(data){
         deferred.reject(data);
@@ -422,124 +531,426 @@ export default Ember.Component.extend(EmberValidations,{
     });
     return deferred;
   },
-  persistWorkInProgress(){
-    //TODO later
+  saveAsDraft(){
+    var self = this, url = Ember.ENV.API_URL + "/saveWorkflowDraft?app.path=" + this.get("workflowFilePath") + "&overwrite=" + this.get("overwritePath");
+    Ember.$.ajax({
+      url: url,
+      method: "POST",
+      dataType: "text",
+      contentType: "text/plain;charset=utf-8",
+      beforeSend: function(request) {
+        request.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        request.setRequestHeader("X-Requested-By", "workflow-designer");
+      },
+      data: self.getWorkflowAsJson(),
+      success: function(response) {
+        //deferred.resolve(response);
+      }.bind(this),
+      error: function(response) {
+        //deferred.reject(response);
+      }.bind(this)
+    });
   },
-  restoreWorkinProgress(){
-    //TODO later
+  persistWorkInProgress(){
+   var json=this.getWorkflowAsJson();
+   this.get('workspaceManager').saveWorkInProgress(this.get('tabInfo.id'), json);
+  },
+  getWorkflowAsJson(){
+    return this.getWorkflowAsJsonJsoGImpl();
+  },
+  getWorkflowAsNativeJsonImpl(){
+    try{
+     var json=JSON.stringify(this.get("workflow")), self = this;
+     var actionVersions = JSON.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
+     var workflow = JSON.parse(json);
+     workflow.schemaVersions.actionVersions = actionVersions
+     return JSON.stringify(workflow);
+   }catch(err){
+    console.error(err);
+     this.isCyclic(this.get("workflow"));
+   }
+  },
+  getWorkflowAsJsonJsoGImpl(){
+   try{
+    var json=JSOG.stringify(this.get("workflow")), self = this;
+    var actionVersions = JSOG.stringify(CommonUtils.toArray(this.get("workflow").schemaVersions.actionVersions));
+    var workflow = JSOG.parse(json);
+    workflow.schemaVersions.actionVersions = actionVersions
+    return JSOG.stringify(workflow);
+  }catch(err){
+   console.error(err);
+    this.isCyclic(this.get("workflow"));
+  }
+},
+  isCyclic (obj) {
+    var seenObjects = [];
+    function detect (obj) {
+      if (typeof obj === 'object') {
+        if (seenObjects.indexOf(obj) !== -1) {
+          return true;
+        }
+        seenObjects.push(obj);
+        for (var key in obj) {
+          if (obj.hasOwnProperty(key) && detect(obj[key])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    return detect(obj);
+  },
+  getDraftWorkflowData(path){
+    var deferred = Ember.RSVP.defer();
+    //var path = encodeURIComponent("/user/ambari-qa/examples/demo/draft");
+    var self = this, url = Ember.ENV.API_URL + "/readWorkflowDraft?workflowXmlPath=" + path;
+    Ember.$.ajax({
+      url: url,
+      dataType: "text",
+      contentType: "text/plain;charset=utf-8",
+      beforeSend: function(request) {
+        request.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        request.setRequestHeader("X-Requested-By", "workflow-designer");
+      },
+      success: function(response) {
+        deferred.resolve(response);
+      }.bind(this),
+      error: function(response) {
+        deferred.reject(response);
+      }.bind(this)
+    });
+    return deferred;
+  },
+  getDraftWorkflow(){
+    var deferred = Ember.RSVP.defer();
+
+    this.get('workspaceManager').restoreWorkInProgress(this.get('tabInfo.id')).promise.then(function(drafWorkflowJson){
+          var workflowImporter=WorkflowJsonImporter.create({});
+          var workflow=workflowImporter.importWorkflow(drafWorkflowJson);
+          deferred.resolve(workflow);
+        }.bind(this)).catch(function(data){
+          deferred.resolve("");
+        });
+    return deferred;
+  },
+  createSnapshot() {
+    this.set('undoAvailable', false);
+    this.set('workflowSnapshot', this.getWorkflowAsJson());
+  },
+  showUndo (type){
+    this.set('undoAvailable', true);
+    this.set('undoType', type);
+  },
+  deleteWorkflowNode(node,transitionslist){
+    this.createSnapshot();
+    if(node.isKillNode()){
+      var result=this.get("workflow").deleteKillNode(node);
+      if (result && result.status===false){
+        this.get('validationErrors').pushObject({node : node ,message :result.message});
+      }
+    } else {
+      this.get("workflow").deleteNode(node,transitionslist);
+    }
+    this.rerender(function(){
+      this.doValidation();
+      this.showUndo('nodeDeleted');
+    }.bind(this));
+  },
+  addWorkflowBranch(node){
+    this.createSnapshot();
+    this.get("workflow").addBranch(node);
+    this.rerender();
+  },
+  openWorkflowEditor(node){
+    this.createSnapshot();
+    this.set('showActionEditor', true);
+    this.set('currentAction', node.actionType);
+    var domain = node.getNodeDetail();
+    this.set('flowGraph', this.flowRenderer.getGraph());
+    node.set("domain", domain);
+    this.set('currentNode', node);
+  },
+  openDecisionEditor(node) {
+    this.get("addBranchListener").trigger("showBranchOptions", node);
+  },
+
+  copyNode(node){
+    this.get('clipboardService').setContent(node, 'copy');
+  },
+  cutNode(node, transitionsList){
+    this.get('clipboardService').setContent(node, 'cut');
+    this.deleteWorkflowNode(node, transitionsList);
+  },
+  replaceNode(node){
+    var clipboardContent = this.get('clipboardService').getContent();
+    Ember.set(node, 'name', clipboardContent.name+'-copy');
+    Ember.set(node, 'domain', clipboardContent.domain);
+    Ember.set(node, 'actionType', clipboardContent.actionType);
+    this.rerender();
+    this.doValidation();
+  },
+  scrollToNewPosition(){
+    if (Constants.useCytoscape){
+      return;
+    }
+    var scroll = Ember.$(window).scrollTop();
+    Ember.$('html, body')
+    .animate({
+      scrollTop: scroll+200
+    }, 1000);
+  },
+  openSaveWorkflow() {
+    this.get('workflowContext').clearErrors();
+    if(Ember.isBlank(this.$('[name=wf_title]').val())) {
+      this.set('errors',[{"message":"Workflow name is mandatory"}]);
+      return;
+    }
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var workflowXml = workflowGenerator.process();
+    var workflowJson = this.getWorkflowAsJson();
+    this.set('errors', []);
+    var isDraft = this.get('workflowContext').hasErrors()? true: false;
+    this.set("configForSave", {json : workflowJson, xml : workflowXml,isDraft : isDraft});
+    this.set("showingSaveWorkflow",true);
+  },
+  openJobConfig () {
+    this.get('workflowContext').clearErrors();
+    var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
+    workflowContext:this.get('workflowContext')});
+    var workflowXml=workflowGenerator.process();
+    if(this.get('workflowContext').hasErrors()){
+      this.set('errors',this.get('workflowContext').getErrors());
+    }else{
+      var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
+      var configForSubmit={props:Array.from(dynamicProperties.values(), key => key),xml:workflowXml,params:this.get('workflow.parameters')};
+      this.set("workflowSubmitConfigs",configForSubmit);
+      this.set("showingWorkflowConfigProps",true);
+    }
+  },
+  isDraftExists(path){
+    var deferred = Ember.RSVP.defer(), url, self = this;
+    if(!path){
+      path = this.get("workflowFilePath");
+    }
+    url = Ember.ENV.API_URL + "/readWorkflowDetail?workflowXmlPath=" + path;
+    Ember.$.ajax({
+      url: url,
+      dataType: "text",
+      contentType: "text/plain;charset=utf-8",
+      beforeSend: function(request) {
+        request.setRequestHeader("X-XSRF-HEADER", Math.round(Math.random()*100000));
+        request.setRequestHeader("X-Requested-By", "workflow-designer");
+      },
+      success: function(response) {
+        deferred.resolve(response);
+      }.bind(this),
+      error: function(response) {
+        deferred.reject(response);
+      }.bind(this)
+    });
+    return deferred;
+
+  },
+  importWorkflowFromFile(dataStr){
+    this.resetDesigner();
+    this.importWorkflowFromString(dataStr);
+    this.send("hideStreamImport");
+  },
+  generateUniqueNodeId(type){
+    let keyMap = this.get("counterMap");
+    if(keyMap.hasOwnProperty(type)){
+      keyMap[type] = ++keyMap[type];
+      return keyMap[type];
+    } else {
+      keyMap[type] = 1;
+      return 1;
+    }
+  },
+  getTransitionInfo(){
+    var currentTransition=this.get("currentTransition.transition");
+    var transition = {};
+    if(this.get("currentTransition").source.type === 'placeholder'){
+      transition = this.get("currentTransition").originalSource.transitions.findBy('targetNode.id',this.get("currentTransition").source.id);
+      transition.source=this.get("currentTransition").originalSource;
+    }else{
+      transition = this.get("currentTransition").source.transitions.findBy('targetNode.id',currentTransition.targetNode.id);
+      transition.source=this.get("currentTransition").source;
+    }
+    return transition;
   },
   actions:{
+    importWorkflowStream(dataStr){
+      this.importWorkflowFromFile(dataStr);
+    },
+    saveFileinfo(path, overWritePath){
+      this.get("fileInfo").set("path", path);
+      this.get("fileInfo").set("overWritePath", overWritePath);
+    },
+    showStreamImport() {
+      this.set("showingStreamImport", true);
+    },
+    hideStreamImport() {
+      this.set("showingStreamImport", false);
+    },
+    fileLoaded(file){
+      var self = this;
+      function importWorkflowFromFile(dataStr){
+          self.importWorkflowFromFile(dataStr);
+      }
+      var reader = new FileReader();
+      reader.addEventListener("load", function (event) {
+          importWorkflowFromFile(event.target.result);
+      });
+      reader.readAsText(file);
+    },
+    importActionSettings(file){
+      var self = this;
+      var reader = new FileReader();
+      reader.addEventListener("load", function (event) {
+        var actionSettings = event.target.result;
+        var x2js = new X2JS();
+        var actionNode = self.flowRenderer.currentCyNode.data().node;
+        var actionJobHandler = self.actionTypeResolver.getActionJobHandler(actionNode.actionType);
+        actionJobHandler.handleImport(actionNode, x2js.xml_str2json(actionSettings)[actionNode.actionType]);
+        self.flowRenderer.hideOverlayNodeActions();
+      });
+      reader.readAsText(file);
+    },
+    importActionNodeLocalFS(file){
+      var self = this;
+      var reader = new FileReader();
+      reader.addEventListener("load", function (event) {
+        self.importActionNodeFromString(event.target.result);
+      });
+      reader.readAsText(file);
+    },
     showWorkflowSla (value) {
       this.set('showWorkflowSla', value);
     },
     showCreateKillNode (value){
-      this.set('showCreateKillNode', value);
+      this.set('showKillNodeManager', value);
+      this.set('addKillNodeMode', true);
+      this.set('editMode', false);
+    },
+    showKillNodeManager (value){
+      this.set('showKillNodeManager', value);
+      this.set('addKillNodeMode', false);
+    },
+    closeKillNodeManager(){
+      this.set("showKillNodeManager", false);
     },
     showVersionSettings(value){
       this.set('showVersionSettings', value);
     },
-    showParameterSettings(value){
+    showingParameterSettings(value){
       if(this.get('workflow.parameters') !== null){
         this.set('parameters', Ember.copy(this.get('workflow.parameters')));
       }else{
-        this.set('globalConfig', {});
+        this.set('parameters', {});
       }
       this.set('showParameterSettings', value);
     },
     showCredentials(value){
       this.set('showCredentials', value);
     },
-    createKillNode(){
+    createKillNode(killNode){
+      this.set("killNode", killNode);
       this.set("createKillnodeError",null);
-      var existingKillNode=this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name'));
+      var existingKillNode= this.get('workflow').get("killNodes").findBy("name",this.get('killNode.name')) || this.get('dataNodes').findBy("dataNodeName", this.get('killNode.name'));
       if (existingKillNode){
-        this.set("createKillnodeError","The kill node already exists");
+        this.set("createKillnodeError","Node with same name already exists");
         return;
       }
       if (Ember.isBlank(this.get('killNode.name'))){
         this.set("createKillnodeError","The kill node cannot be empty");
         return;
       }
-      this.get("workflow").createKillNode(this.get('killNode.name'),this.get('killNode.message'));
+      this.get("workflow").createKillNode(this.get('killNode.name'),this.get('killNode.killMessage'));
       this.set('killNode',{});
-      this.rerender();
-      this.layout();
-      this.doValidation();
       this.$("#kill-node-dialog").modal("hide");
       this.set('showCreateKillNode', false);
     },
-    addNode(type){
-      var currentTransition=this.get("currentTransition");
-      var newNode=this.get("workflow").addNode(currentTransition,type);
-      if(currentTransition.targetNode.isPlaceholder()){
-        this.designerPlumb.remove(currentTransition.targetNode.id);
-      }
-      this.rerender();
-      this.doValidation();
-      var scroll = $(window).scrollTop();
-      Ember.$('html, body')
-      .animate({
-        scrollTop: scroll+200
-      }, 1000);
+    addAction(type){
+      this.createSnapshot();
+      let temp = this.generateUniqueNodeId(type);
+      this.get("workflow").addNode(this.getTransitionInfo(), type, {}, temp);
+      this.rerender(function(){
+        this.doValidation();
+        this.scrollToNewPosition();
+        this.showUndo('nodeAdded');
+      }.bind(this));
     },
     nameChanged(){
       this.doValidation();
     },
-    deleteNode(node){
-      if(node.isKillNode()){
-        var result=this.get("workflow").deleteKillNode(node);
-        if (result && result.status===false){
-          this.get('validationErrors').pushObject({node : node ,message :result.message});
-        }
-      } else {
-        this.get("workflow").deleteNode(node);
+    copyNode(node){
+      this.copyNode(node);
+    },
+    pasteNode(){
+      var clipboardContent = this.get('clipboardService').getContent();
+      var node = this.get("workflow").addNode(this.getTransitionInfo(), clipboardContent.actionType);
+      if(clipboardContent.operation === 'cut'){
+        node.name = clipboardContent.name;
+      }else{
+        node.name = clipboardContent.name + '-copy';
       }
-      this.rerender();
-      this.doValidation();
+      node.domain = clipboardContent.domain;
+      node.actionType = clipboardContent.actionType;
+      this.rerender(function () {
+        this.doValidation();
+        this.scrollToNewPosition();
+      }.bind(this));
+    },
+    deleteNode(node){
+      this.deleteWorkflowNode(node);
     },
     openEditor(node){
-      this.set('showActionEditor', true);
-      this.set('currentAction', node.actionType);
-      var domain = node.getNodeDetail();
-      this.set('clonedDomain',Ember.copy(domain));
-      this.set('clonedErrorNode', node.errorNode);
-      this.set('clonedKillMessage',node.get('killMessage'));
-      node.set("domain", domain);
-      this.set('currentNode', node);
+      this.openWorkflowEditor(node);
+    },
+    showNotification(node){
+      this.set("showNotificationPanel", true);
+    },
+    hideNotification(){
+      this.set("showNotificationPanel", false);
     },
     addBranch(node){
-      this.get("workflow").addBranch(node);
-      this.rerender();
+      this.addWorkflowBranch(node);
     },
     addDecisionBranch(settings){
+      this.createSnapshot();
       this.get("workflow").addDecisionBranch(settings);
       this.rerender();
     },
-    addKillNode(errorNode){
+    setNodeTransitions(transition){
       var currentNode= this.get("currentNode");
-      if(errorNode && errorNode.isNew){
-        this.get("workflow").addKillNode(currentNode,errorNode);
-        this.get("workflow.killNodes").push(errorNode);
+      if(transition.errorNode && transition.errorNode.isNew){
+        this.get("workflow").addKillNode(currentNode,transition.errorNode);
+        this.get("workflow.killNodes").push(transition.errorNode);
       }else {
-        this.set('currentNode.errorNode', errorNode);
+        this.set('currentNode.errorNode', transition.errorNode);
       }
+      currentNode.transitions.forEach((trans)=>{
+        if(transition.okToNode && trans.condition !== 'error'){
+          if(trans.targetNode.id !== transition.okToNode.id){
+            trans.targetNode = transition.okToNode;
+          }
+        }
+      }, this);
     },
     submitWorkflow(){
-      this.get('workflowContext').clearErrors();
-      var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
-      workflowContext:this.get('workflowContext')});
-      var workflowXml=workflowGenerator.process();
-      if(this.get('workflowContext').hasErrors()){
-        this.set('errors',this.get('workflowContext').getErrors());
-      }else{
-        var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
-        var configForSubmit={props:dynamicProperties,xml:workflowXml,params:this.get('workflow.parameters')};
-        this.set("workflowSubmitConfigs",configForSubmit);
-        this.set("showingWorkflowConfigProps",true);
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
       }
-
+      this.set('dryrun', false);
+      this.openJobConfig();
+    },
+    saveWorkflow(action){
+      this.openSaveWorkflow();
     },
     previewWorkflow(){
+      if(this.get('validationErrors') && this.get('validationErrors').length > 0){
+        return;
+      }
       this.set("showingPreview",false);
       this.get('workflowContext').clearErrors();
       var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
@@ -552,33 +963,107 @@ export default Ember.Component.extend(EmberValidations,{
         this.set("showingPreview",true);
       }
     },
+    closePreview(){
+      this.set("showingPreview", false);
+    },
+    downloadWorkflowXml(){
+      this.get('workflowContext').clearErrors();
+      var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
+      workflowContext:this.get('workflowContext')});
+      var workflowXml=workflowGenerator.process();
+      if(this.get('workflowContext').hasErrors()){
+        this.set('errors',this.get('workflowContext').getErrors());
+      }else{
+        this.workflowXmlDownload(workflowXml);
+      }
+    },
     closeWorkflowSubmitConfigs(){
       this.set("showingWorkflowConfigProps",false);
+    },
+    closeSaveWorkflow(){
+      this.set("showingSaveWorkflow",false);
     },
     importWorkflowTest(){
       var deferred = this.importSampleWorkflow();
       deferred.promise.then(function(data){
+        this.get("errors").clear();
+        this.get("errors").pushObjects(data.errors);
+        if (data.workflow === null) {
+          return;
+        }
         this.resetDesigner();
-        this.set("workflow",data);
+        this.set("workflow",data.workflow);
         this.rerender();
         this.doValidation();
-      }.bind(this)).catch(function(e){
+      }.bind(this)).catch(function(data){
+        console.error(data);
+        this.set("errorMsg", "There is some problem while importing.");
+        this.set("data", data);
       });
     },
     closeFileBrowser(){
+      var self = this, path = this.get('workflowFilePath');
       this.set("showingFileBrowser",false);
-      if(this.get('workflowFilePath')){
-        this.importWorkflow(this.get('workflowFilePath'));
+      if(path){
+          self.importWorkflow(path);
       }
     },
     showFileBrowser(){
       this.set('showingFileBrowser', true);
     },
+    closeActionSettingsFileBrowser() {
+      var self = this;
+      this.set("showingActionSettingsFileBrowser", false);
+      if(this.get('actionSettingsFilePath')){
+        self.set("errorMsg", "");
+        var actionSettingsXmlDefered=this.getAssetFromHdfs(this.get('actionSettingsFilePath'));
+        actionSettingsXmlDefered.promise.then(function(data){
+          this.importActionSettingsFromString(data);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while importing asset.");
+          self.set("data", data);
+        });
+      }
+    },
+    showActionSettingsFileBrowser() {
+      this.set('showingActionSettingsFileBrowser', true);
+    },
+    closeImportActionNodeFileBrowser() {
+      var self = this;
+      this.set("showingImportActionNodeFileBrowser", false);
+      if(this.get('actionNodeFilePath')){
+        self.set("errorMsg", "");
+        var actionSettingsXmlDefered=this.getAssetFromHdfs(this.get('actionNodeFilePath'));
+        actionSettingsXmlDefered.promise.then(function(data){
+          this.importActionNodeFromString(data);
+        }.bind(this)).catch(function(data){
+          self.set("errorMsg", "There is some problem while importing asset.");
+          self.set("data", data);
+        });
+      }
+    },
+    showImportActionNodeFileBrowser() {
+      this.set('showingImportActionNodeFileBrowser', true);
+    },
+    closeExportActionNodeFileBrowser() {
+      var self = this;
+      this.set("showingExportActionNodeFileBrowser", false);
+      if(this.get('exportActionNodeFilePath')){
+        self.exportActionNodeXml();
+      }
+    },
+    showExportActionNodeFileBrowser() {
+      this.set('showingExportActionNodeFileBrowser', true);
+    },
     createNewWorkflow(){
-      this.resetDesigner();
-      this.rerender();
-      this.set("workflowFilePath", "");
-      this.$('#wf_title').focus();
+      if(Ember.isBlank(this.get('workflowFilePath'))){
+        this.resetDesigner();
+        this.rerender();
+        this.set("workflowFilePath", "");
+        this.$('#wf_title').focus();
+      }else{
+        this.importWorkflow(this.get('workflowFilePath'));
+      }
     },
     conirmCreatingNewWorkflow(){
       this.set('showingConfirmationNewWorkflow', true);
@@ -625,19 +1110,124 @@ export default Ember.Component.extend(EmberValidations,{
       this.resetZoomLevel();
       this.$("#flow-designer").css("transform", "scale(" + 1 + ")");
     },
+    resetLayout() {
+      this.flowRenderer.resetLayout();
+    },
+    validateWorkflow(promise){
+      this.currentNode.onSave();
+      this.rerender();
+      if(this.get('flowRenderer').isWorkflowValid()){
+        promise.resolve();
+      }else{
+        promise.reject();
+        this.send('undo');
+        this.rerender();
+      }
+    },
     closeActionEditor (isSaved){
+      this.send("hideNotification");
       if(isSaved){
         this.currentNode.onSave();
         this.doValidation();
+        this.rerender();
       }	else {
-        this.set('currentNode.domain',Ember.copy(this.get('clonedDomain')));
-        this.set('currentNode.errorNode', this.get('clonedErrorNode'));
-        if(this.currentNode.type === 'kill'){
-          this.set('currentNode.killMessage', this.get('clonedKillMessage'));
-        }
+        this.send('undo');
       }
       this.set('showActionEditor', false);
+      var newGraph = this.flowRenderer.getGraph();
+      if(!this.get('flowGraph').same(newGraph)){
+        this.showUndo('transition');
+      }
+    },
+    saveDraft(){
+      this.persistWorkInProgress();
+    },
+
+    undo () {
+      var workflowImporter = WorkflowJsonImporter.create({});
+      var workflow = workflowImporter.importWorkflow(this.get('workflowSnapshot'));
+      this.resetDesigner();
+      this.set("workflow", workflow);
       this.rerender();
+      this.doValidation();
+      this.set('undoAvailable', false);
+    },
+
+    registerAddBranchAction(component){
+      this.set("addBranchListener",component);
+    },
+    dryRunWorkflow(){
+      this.set('dryrun', true);
+      this.openJobConfig();
+    },
+    scheduleWorkflow(){
+      if(!this.get('workflowFilePath')){
+        console.error("Workflow doesnot exists");
+        return;
+      }
+      this.sendAction('openTab', 'coord', this.get('workflowFilePath'));
+    },
+    showAssetConfig(value) {
+      this.set('assetConfig', {});
+      this.set('showingAssetConfig', value);
+    },
+    saveAssetConfig() {
+      var self=this;
+      self.set("isAssetPublishing", true);
+      self.set("errorMsg", "");
+      var workflowGenerator = WorkflowGenerator.create({workflow:self.get("workflow"), workflowContext:self.get('workflowContext')});
+      var actionNodeXml = workflowGenerator.getActionNodeXml(self.flowRenderer.currentCyNode.data().name, self.flowRenderer.currentCyNode.data().node.actionType);
+      var dynamicProperties = self.get('propertyExtractor').getDynamicProperties(actionNodeXml);
+      self.set('assetConfig.type', self.flowRenderer.currentCyNode.data().node.actionType);
+      self.set('assetConfig.definition', actionNodeXml);
+      var saveAssetConfigDefered=self.get("assetManager").saveAsset(self.get('assetConfig'), self.getRandomDataToDynamicProps(dynamicProperties));
+      saveAssetConfigDefered.promise.then(function(data){
+        self.set("isAssetPublishing", false);
+      }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while saving asset.");
+        self.set("data", data);
+        self.set("isAssetPublishing", false);
+      });
+    },
+    showAssetList(value) {
+      var self=this;
+      self.set('showingAssetList', value);
+      self.set('assetListType', self.flowRenderer.currentCyNode.data().node.actionType);
+    },
+    importAsset(asset) {
+      var self=this;
+      self.set("isAssetImporting", true);
+      self.set("errorMsg", "");
+      var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
+      importAssetDefered.promise.then(function(response){
+        var importedAsset = JSON.parse(response).data;
+        self.importActionSettingsFromString(importedAsset.definition);
+        self.set("isAssetImporting", false);
+      }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while importing asset.");
+        self.set("data", data);
+        self.set("isAssetImporting", false);
+      });
+    },
+    showAssetNodeList(value) {
+      var self=this;
+      self.set('showingAssetNodeList', value);
+      self.set('assetListType', "");
+    },
+    importAssetNode(asset) {
+      var self=this;
+      self.set("isAssetImporting", true);
+      self.set("errorMsg", "");
+      var importAssetDefered=self.get("assetManager").importAssetDefinition(asset.id);
+      importAssetDefered.promise.then(function(response){
+        var importedAsset = JSON.parse(response).data;
+        self.importActionNodeFromString(importedAsset.definition);
+        self.set("isAssetImporting", false);
+      }.bind(this)).catch(function(data){
+        self.set("errorMsg", "There is some problem while importing asset.");
+        self.set("data", data);
+        self.set("isAssetImporting", false);
+      });
     }
   }
 });

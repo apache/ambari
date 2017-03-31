@@ -31,10 +31,14 @@
       <div class="modal-body">
         <div>
             <form class="form-horizontal" id="action_properties">
+              {{designer-errors errors=errors validationErrors=validationErrors}}
               {{#if (eq nodeType 'decision')}}
-                {{#decision-config actionModel=actionModel register="registerChild"}}{{/decision-config}}
+                {{#decision-config currentNode=currentNode actionModel=actionModel killNodes=killNodes register="registerChild"}}{{/decision-config}}
               {{/if}}
               {{#if (eq nodeType 'action')}}
+                {{#if containsUnsupportedProperties}}
+                  <span class="unsupported-elt-warning"> <p><a href {{action "showUnsupportedProperties"}}><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>Action contains elements that are not currently supported by the designer.</a></p></span>
+                {{/if}}
                 {{#if (eq actionType 'java')}}
                   {{#java-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/java-action}}
                 {{else if (eq actionType 'hive')}}
@@ -61,6 +65,34 @@
                   {{#fs-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/fs-action}}
                 {{else if (eq actionType 'sub-workflow')}}
                   {{#sub-workflow actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/sub-workflow}}
+                {{else}}
+                    <div class="panel panel-default">
+                      <div class="panel-heading">Action XML</div>
+                      <div class="panel-body handlerPanel">
+                        <div class="alert alert-info alert-dismissible" role="alert">
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                           Action extension should be configured in Oozie for the custom action to work.
+                        </div>
+                        {{designer-errors errors=errors}}
+                        {{textarea class="custom-action-xml" value=actionXml}}
+                      </div>
+                    </div>
+                    <div class="panel panel-default">
+                      <div class="panel-heading">Transition</div>
+                      <div class="panel-body handlerPanel">
+                        {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode}}{{/transition-config}}
+                      </div>
+                    </div>
+                    {{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
+                    {{#sla-info slaInfo=customSlaInfo slaEnabled=customSlaEnabled}}{{/sla-info}}
+              {{/if}}
+              {{#if containsUnsupportedProperties}}
+                <div id="unsupported-props" class=" panel panel-default">
+                  <div class="panel-heading">Unsupported Properties</div>
+                  <div class="panel-body handlerPanel">
+                    {{textarea class="unsupported-xml" value=unsupportedPropertiesXml}}
+                  </div>
+                </div>
               {{/if}}
               {{/if}}
               {{#if (eq nodeType 'kill')}}
@@ -75,7 +107,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" {{action 'closeEditor'}}>Cancel</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal" {{action 'closeEditor'}}>Cancel</button>
         <button type="button" class="btn btn-primary" {{action 'save'}}>Save</button>
       </div>
     </div>

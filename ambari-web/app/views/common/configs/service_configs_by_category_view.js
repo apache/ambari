@@ -64,28 +64,40 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   categoryConfigs: [],
 
+  /**
+   * Link to main configs view
+   * @type {Ember.View}
+   */
+  mainView: function () {
+    //todo: Get rid of this logic. Get data from controller instead.
+    return ['mainHostServiceConfigsController', 'mainServiceInfoConfigsController'].contains(this.get('controller.name')) ? this.get('parentView.parentView') : this.get('parentView');
+  }.property('controller.name'),
+
   didInsertElement: function () {
     var self = this;
     // If `this.categoryConfigsAll` is a computed property then don't set it.
     // some extended class like `App.NotificationsConfigsView` overrides `categoryConfigsAll` as computed property
-    if ($.isArray(this.categoryConfigsAll)) {
-      this.setCategoryConfigsAll();
-    }
-    this.setVisibleCategoryConfigs();
-    var isCollapsed = this.calcIsCollapsed();
-    this.set('category.isCollapsed', isCollapsed);
-    if (isCollapsed) {
-      this.$('.accordion-body').hide();
-    }
-    else {
-      this.$('.accordion-body').show();
-    }
-    $('#serviceConfig').tooltip({
-      selector: '[data-toggle=tooltip]',
-      placement: 'top'
-    });
-    this.filteredCategoryConfigs();
     Em.run.next(function () {
+      if (self.get('state') !== 'inDOM') {
+        return;
+      }
+      if ($.isArray(self.categoryConfigsAll)) {
+        self.setCategoryConfigsAll();
+      }
+      self.setVisibleCategoryConfigs();
+      var isCollapsed = self.calcIsCollapsed();
+      self.set('category.isCollapsed', isCollapsed);
+      if (isCollapsed) {
+        self.$('.accordion-body').hide();
+      }
+      else {
+        self.$('.accordion-body').show();
+      }
+      $('#serviceConfig').tooltip({
+        selector: '[data-toggle=tooltip]',
+        placement: 'in top'
+      });
+      self.filteredCategoryConfigs();
       self.updateReadOnlyFlags();
     });
   },
@@ -95,7 +107,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   setVisibleCategoryConfigsOnce: function () {
-    Em.run.once(this, 'addConfigToCategoryConfigs');
+    if (this.get('controller.isChangingConfigAttributes')) {
+      this.setVisibleCategoryConfigs();
+    } else {
+      Em.run.once(this, 'addConfigToCategoryConfigs');
+    }
   }.observes('categoryConfigsAll.@each.isVisible'),
 
   setCategoryConfigsAll: function () {
@@ -171,9 +187,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     var hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
         return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
       }, this).length > 0;
-    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected')) ||
+    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('mainView.columns').someProperty('selected')) ||
       hasFilteredAdvancedConfigs;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'parentView.columns.@each.selected'),
+  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'mainView.columns.@each.selected'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category
@@ -311,12 +327,13 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   filteredCategoryConfigs: function () {
     Em.run.once(this, 'collapseCategory');
-  }.observes('categoryConfigs.@each.isHiddenByFilter'),
+  }.observes('serviceConfigs.@each.isHiddenByFilter'),
 
   collapseCategory: function () {
     if (this.get('state') === 'destroyed') return;
     $('.popover').remove();
-    var filter = this.get('parentView.filter').toLowerCase();
+    var filter = this.get('mainView.filter');
+    filter = filter? filter.toLowerCase() : filter; // filter can be undefined in some wizard
     var filteredResult = this.get('categoryConfigs');
     var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
 
@@ -336,7 +353,15 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     } else if (isInitialRendering && !filteredResult.length) {
       this.set('category.isCollapsed', true);
     }
-    var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
+    var classNames = this.get('category.name').split(' ');
+    // Escape the dots in category names
+    classNames = classNames.map(function(className) {
+      if(className.indexOf(".")) {
+        className = className.split(".").join("\\.");
+      }
+      return className;
+    });
+    var categoryBlock = $('.' + classNames.join('.') + '>.accordion-body');
     this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
   },
 
@@ -403,6 +428,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     if (selectedConfigGroup.get('isDefault')) {
       config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
         value: propertyObj.value,
+        propertyType: propertyObj.propertyType,
         category: propertyObj.categoryName,
         isNotSaved: true
       });
@@ -411,6 +437,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         propertyName: propertyObj.name,
         filename: propertyObj.filename,
         value: propertyObj.value,
+        propertyType: propertyObj.propertyType,
         category: propertyObj.categoryName,
         isNotSaved: true
       }, selectedConfigGroup);
@@ -468,12 +495,14 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
       name: '',
       value: '',
+      propertyType: [],
+      content: ['PASSWORD', 'USER', 'GROUP', 'TEXT', 'ADDITIONAL_USER_PROPERTY', 'NOT_MANAGED_HDFS_PATH', 'VALUE_FROM_PROPERTY_FILE'],
       isKeyError: false,
       showFilterLink: false,
       errorMessage: '',
       observeAddPropertyValue: function () {
-        var name = this.get('name');
-        if (name.trim() != '') {
+        var name = this.get('name').trim();
+        if (name !== '') {
           if (validator.isValidConfigKey(name)) {
             if (!self.isDuplicatedConfigKey(name)) { //no duplication within the same confType
               var files = self.isDuplicatedConfigKeyinConfigs(name);
@@ -544,8 +573,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
            * For the first entrance use this if (serviceConfigObj.name.trim() != '')
            */
           if (!serviceConfigObj.isKeyError) {
-            propertyObj.name = serviceConfigObj.get('name');
+            propertyObj.name = serviceConfigObj.get('name').trim();
             propertyObj.value = serviceConfigObj.get('value');
+            propertyObj.propertyType = serviceConfigObj.get('propertyType');
             self.createProperty(propertyObj);
             this.hide();
           }
@@ -625,8 +655,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var controller = (App.router.get('currentState.name') == 'configs')
             ? App.router.get('mainServiceInfoConfigsController')
             : App.router.get('wizardStep7Controller');
+          controller.set('filter', this.get('serviceConfigObj.name'));
           this.get('parentView').onClose();
-          controller.set('filter', event.view.get('serviceConfigObj.name'));
         }
       })
     });
@@ -712,7 +742,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   doRestoreDefaultValue: function (event) {
     var serviceConfigProperty = event.contexts[0];
-    var value = serviceConfigProperty.get('value');
     var savedValue = serviceConfigProperty.get('savedValue');
     var supportsFinal = serviceConfigProperty.get('supportsFinal');
     var savedIsFinal = serviceConfigProperty.get('savedIsFinal');

@@ -22,13 +22,12 @@ from resource_management.core.resources.system import Execute, File, Directory
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import Direction
-from resource_management.libraries.functions.version import compare_versions, format_stack_version
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.default import default
 from kafka import ensure_base_directories
 
 import upgrade
@@ -69,8 +68,7 @@ class KafkaBroker(Script):
         src_version = format_stack_version(params.version)
         dst_version = format_stack_version(params.downgrade_from_version)
 
-      # TODO: How to handle the case of crossing stack version boundary in a stack agnostic way?
-      if compare_versions(src_version, '2.3.4.0') < 0 and compare_versions(dst_version, '2.3.4.0') >= 0:
+      if not check_stack_feature(StackFeature.KAFKA_ACL_MIGRATION_SUPPORT, src_version) and check_stack_feature(StackFeature.KAFKA_ACL_MIGRATION_SUPPORT, dst_version):
         # Calling the acl migration script requires the configs to be present.
         self.configure(env, upgrade_type=upgrade_type)
         upgrade.run_migration(env, upgrade_type)
@@ -111,6 +109,20 @@ class KafkaBroker(Script):
           action = "delete"
     )
 
+  def disable_security(self, env):
+    import params
+    if not params.zookeeper_connect:
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
+      return
+    if not params.secure_acls:
+      Logger.info("The zookeeper.set.acl is false. Skipping reverting ACL")
+      return
+    Execute(
+      "{0} --zookeeper.connect {1} --zookeeper.acl=unsecure".format(params.kafka_security_migrator, params.zookeeper_connect), \
+      user=params.kafka_user, \
+      environment={ 'JAVA_HOME': params.java64_home }, \
+      logoutput=True, \
+      tries=3)
 
   def status(self, env):
     import status_params

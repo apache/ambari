@@ -27,6 +27,26 @@ public class PigModel {
   private String Status;
   private String title;
   private String dir;
+  private String url;
+  private String fileName;
+  private String userName;
+
+
+  public String getUserName() {
+    return userName;
+  }
+
+  public void setUserName(String userName) {
+    this.userName = userName;
+  }
+
+  public String getFileName() { return fileName; }
+
+  public void setFileName(String fileName) { this.fileName = fileName; }
+
+  public String getUrl() { return url; }
+
+  public void setUrl(String url) { this.url = url; }
 
   public Date getDt() {
     return dt;

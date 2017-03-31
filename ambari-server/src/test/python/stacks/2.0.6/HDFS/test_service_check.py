@@ -52,14 +52,6 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_service_check(self):
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep OFF',
-        logoutput = True,
-        tries = 20,
-        conf_dir = '/etc/hadoop/conf',
-        try_sleep = 3,
-        bin_dir = '/usr/bin',
-        user = 'hdfs',
-    )
     self.assertResourceCalled('HdfsResource', '/tmp',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,

@@ -21,7 +21,7 @@
       "configuration": "cluster-env/smokeuser_principal_name",
       "type": "user",
       "local_username": "${cluster-env/smokeuser}",
-      "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}"
+      "value": "${cluster-env/smokeuser}${principal_suffix}@${realm}"
     },
     "name": "smokeuser",
     "keytab": {
@@ -318,7 +318,7 @@
         "configuration": "hadoop-env/hdfs_principal_name",
         "type": "user",
         "local_username": "${hadoop-env/hdfs_user}",
-        "value": "${hadoop-env/hdfs_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}"
       },
       "name": "hdfs",
       "keytab": {
@@ -370,7 +370,7 @@
         "configuration": "spark-defaults/spark.history.kerberos.principal",
         "type": "user",
         "local_username": "${spark-env/spark_user}",
-        "value": "${spark-env/spark_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${spark-env/spark_user}${principal_suffix}@${realm}"
       },
       "name": "sparkuser",
       "keytab": {
@@ -411,7 +411,7 @@
         "configuration": "accumulo-env/accumulo_principal_name",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "${accumulo-env/accumulo_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${accumulo-env/accumulo_user}${principal_suffix}@${realm}"
       },
       "name": "accumulo",
       "keytab": {
@@ -451,7 +451,7 @@
         "configuration": "accumulo-site/trace.user",
         "type": "user",
         "local_username": "${accumulo-env/accumulo_user}",
-        "value": "tracer-${cluster_name|toLower()}@${realm}"
+        "value": "tracer${principal_suffix}@${realm}"
       },
       "name": "accumulo_tracer",
       "keytab": {
@@ -591,7 +591,7 @@
         "configuration": "hbase-env/hbase_principal_name",
         "type": "user",
         "local_username": "${hbase-env/hbase_user}",
-        "value": "${hbase-env/hbase_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${hbase-env/hbase_user}${principal_suffix}@${realm}"
       },
       "name": "hbase",
       "keytab": {
@@ -796,24 +796,23 @@
     }, {
       "yarn-site": {
         "yarn.timeline-service.http-authentication.signer.secret.provider.object": "",
-        "yarn.resourcemanager.proxyusers.*.users": "",
+        "yarn.resourcemanager.proxyuser.*.users": "",
         "yarn.timeline-service.http-authentication.token.validity": "",
         "yarn.admin.acl": "${yarn-env/yarn_user},dr.who",
         "yarn.timeline-service.http-authentication.kerberos.name.rules": "",
         "yarn.timeline-service.http-authentication.cookie.path": "",
         "yarn.timeline-service.http-authentication.type": "kerberos",
-        "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "",
         "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
         "yarn.acl.enable": "true",
         "yarn.timeline-service.http-authentication.signer.secret.provider": "",
-        "yarn.timeline-service.http-authentication.proxyusers.*.groups": "",
-        "yarn.timeline-service.http-authentication.proxyusers.*.hosts": "",
+        "yarn.timeline-service.http-authentication.proxyuser.*.groups": "",
+        "yarn.timeline-service.http-authentication.proxyuser.*.hosts": "",
         "yarn.timeline-service.http-authentication.signature.secret": "",
         "yarn.timeline-service.http-authentication.signature.secret.file": "",
-        "yarn.resourcemanager.proxyusers.*.hosts": "",
-        "yarn.resourcemanager.proxyusers.*.groups": "",
+        "yarn.resourcemanager.proxyuser.*.hosts": "",
+        "yarn.resourcemanager.proxyuser.*.groups": "",
         "yarn.timeline-service.enabled": "true",
-        "yarn.timeline-service.http-authentication.proxyusers.*.users": "",
+        "yarn.timeline-service.http-authentication.proxyuser.*.users": "",
         "yarn.timeline-service.http-authentication.cookie.domain": ""
       }
     }, {
@@ -940,7 +939,7 @@
       "principal": {
         "configuration": "storm-env/storm_principal_name",
         "type": "user",
-        "value": "${storm-env/storm_user}-${cluster_name|toLower()}@${realm}"
+        "value": "${storm-env/storm_user}${principal_suffix}@${realm}"
       },
       "name": "storm_components",
       "keytab": {

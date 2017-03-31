@@ -23,11 +23,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -48,8 +48,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.quartz.CronTrigger;
 import org.quartz.JobDataMap;
@@ -71,7 +71,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -88,24 +87,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ExecutionScheduleManagerTest {
-  private Clusters clusters;
-  private Cluster cluster;
-  private String clusterName;
-  private Injector injector;
-  private AmbariMetaInfo metaInfo;
-  private ExecutionScheduleManager executionScheduleManager;
-  private RequestExecutionFactory requestExecutionFactory;
-  private ExecutionScheduler executionScheduler;
-  private Scheduler scheduler;
-  Properties properties;
+  private static Clusters clusters;
+  private static Cluster cluster;
+  private static String clusterName;
+  private static Injector injector;
+  private static AmbariMetaInfo metaInfo;
+  private static ExecutionScheduleManager executionScheduleManager;
+  private static RequestExecutionFactory requestExecutionFactory;
+  private static ExecutionScheduler executionScheduler;
+  private static Scheduler scheduler;
 
   private static final Logger LOG =
     LoggerFactory.getLogger(ExecutionScheduleManagerTest.class);
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void setup() throws Exception {
     InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
-    properties = defaultTestModule.getProperties();
     injector  = Guice.createInjector(Modules.override(defaultTestModule)
       .with(new ExecutionSchedulerTestModule()));
     injector.getInstance(GuiceJpaInitializer.class);
@@ -129,10 +126,10 @@ public class ExecutionScheduleManagerTest {
     executionScheduleManager.start();
   }
 
-  @After
-  public void teardown() throws Exception {
+  @AfterClass
+  public static void teardown() throws Exception {
     executionScheduleManager.stop();
-    injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   public static class TestExecutionScheduler extends ExecutionSchedulerImpl {
@@ -155,7 +152,7 @@ public class ExecutionScheduleManagerTest {
     }
   }
 
-  public class ExecutionSchedulerTestModule implements Module {
+  public static class ExecutionSchedulerTestModule implements Module {
     @Override
     public void configure(Binder binder) {
       binder.bind(ExecutionScheduler.class).to(TestExecutionScheduler.class);

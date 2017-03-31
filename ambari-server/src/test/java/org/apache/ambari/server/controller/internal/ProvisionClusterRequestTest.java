@@ -18,30 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
-import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.RequiredPasswordValidator;
-import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.TopologyValidator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -54,6 +30,33 @@ import static org.junit.Assert.assertTrue;
 import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfileBuilderTest;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.RequiredPasswordValidator;
+import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.topology.TopologyValidator;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for ProvisionClusterRequest.
@@ -426,6 +429,69 @@ public class ProvisionClusterRequestTest {
     ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_predicate", "Hosts/host_name=myTestHost");
     // should result in an exception due to both host name and host count being specified
     new ProvisionClusterRequest(properties, null);
+  }
+
+  @Test
+  public void testQuickLinksProfile_NoDataInRequest() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    assertNull("No quick links profile is expected", request.getQuickLinksProfileJson());
+  }
+
+  @Test
+  public void testQuickLinksProfile_OnlyGlobalFilterDataInRequest() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+
+    properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_FILTERS_PROPERTY,
+        Sets.newHashSet(QuickLinksProfileBuilderTest.filter(null, null, true)));
+
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    assertEquals("Quick links profile doesn't match expected",
+        "{\"filters\":[{\"visible\":true}],\"services\":[]}",
+        request.getQuickLinksProfileJson());
+  }
+
+  @Test
+  public void testQuickLinksProfile_OnlyServiceFilterDataInRequest() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+
+    Map<String, String> filter = QuickLinksProfileBuilderTest.filter(null, null, true);
+    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Sets.newHashSet(filter));
+    Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
+    properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
+
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    assertEquals("Quick links profile doesn't match expected",
+        "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
+        request.getQuickLinksProfileJson());
+  }
+
+  @Test
+  public void testQuickLinksProfile_BothGlobalAndServiceLevelFilters() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+
+    properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_FILTERS_PROPERTY,
+        Sets.newHashSet(QuickLinksProfileBuilderTest.filter(null, null, true)));
+
+    Map<String, String> filter = QuickLinksProfileBuilderTest.filter(null, null, true);
+    Map<String, Object> hdfs = QuickLinksProfileBuilderTest.service("HDFS", null, Sets.newHashSet(filter));
+    Set<Map<String, Object>> services = Sets.newHashSet(hdfs);
+    properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, services);
+
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+    System.out.println(request.getQuickLinksProfileJson());
+    assertEquals("Quick links profile doesn't match expected",
+        "{\"filters\":[{\"visible\":true}],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}",
+        request.getQuickLinksProfileJson());
+  }
+
+  @Test(expected = InvalidTopologyTemplateException.class)
+  public void testQuickLinksProfile_InvalidRequestData() throws Exception {
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+
+    properties.put(ProvisionClusterRequest.QUICKLINKS_PROFILE_SERVICES_PROPERTY, "Hello World!");
+
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
   }
 
   public static Map<String, Object> createBlueprintRequestProperties(String clusterName, String blueprintName) {

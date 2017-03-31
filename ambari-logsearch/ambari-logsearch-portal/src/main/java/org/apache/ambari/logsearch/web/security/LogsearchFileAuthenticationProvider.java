@@ -20,11 +20,11 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.Collection;
 
-import org.apache.ambari.logsearch.dao.UserDao;
-import org.apache.ambari.logsearch.util.StringUtil;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
+import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,34 +32,34 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.stereotype.Component;
 
-@Component
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named
 public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
-  private static Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
+  private static final Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
 
-  @Autowired
-  UserDao userDao;
+  @Inject
+  private AuthPropsConfig authPropsConfig;
 
-  @Autowired
-  StringUtil stringUtil;
-
-  @Autowired
+  @Inject
   private UserDetailsService userDetailsService;
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    if (!this.isEnable()) {
+    if (!authPropsConfig.isAuthFileEnabled()) {
       logger.debug("File auth is disabled.");
       return authentication;
     }
+    
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
-    if (stringUtil.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
-    if (stringUtil.isEmpty(password)) {
+    if (StringUtils.isBlank(password)) {
       throw new BadCredentialsException("Password can't be null or empty.");
     }
     // html unescape
@@ -71,23 +71,18 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
       logger.error("Username not found.");
       throw new BadCredentialsException("User not found.");
     }
-    if (password == null || password.isEmpty()) {
+    if (StringUtils.isEmpty(user.getPassword())) {
       logger.error("Password can't be null or empty.");
       throw new BadCredentialsException("Password can't be null or empty.");
     }
-
-    String encPassword = userDao.encryptPassword(username, password);
+    String encPassword = CommonUtil.encryptPassword(username, password);
     if (!encPassword.equals(user.getPassword())) {
       logger.error("Wrong password for user=" + username);
-      throw new BadCredentialsException("Wrong password");
+      throw new BadCredentialsException("Wrong password.");
     }
+    
     Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
     authentication = new UsernamePasswordAuthenticationToken(username, encPassword, authorities);
     return authentication;
-  }
-
-  @Override
-  public boolean isEnable() {
-    return isEnable(AUTH_METHOD.FILE);
   }
 }

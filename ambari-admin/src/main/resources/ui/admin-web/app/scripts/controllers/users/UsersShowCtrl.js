@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, $translate) {
+.controller('UsersShowCtrl', ['$scope', '$routeParams', 'Cluster', 'User', 'View', '$modal', '$location', 'ConfirmationModal', 'Alert', 'Auth', 'getDifference', 'Group', '$q', 'UserConstants', '$translate', function($scope, $routeParams, Cluster, User, View, $modal, $location, ConfirmationModal, Alert, Auth, getDifference, Group, $q, UserConstants, $translate) {
 
   var $t = $translate.instant;
 
@@ -80,6 +80,12 @@ angular.module('ambariAdminConsole')
       loadUserInfo();
     });
     $scope.isGroupEditing = false;
+  };
+
+  $scope.getUserMembership = function(userType) {
+    if(userType) {
+	return $t(UserConstants.TYPES[userType].LABEL_KEY) + " " + $t('users.groupMembership');
+    }
   };
 
   $scope.cancelUpdate = function() {

@@ -107,6 +107,7 @@ public class ConfigurationService {
   private static final String CONFIGURATION_URL_BY_TAG = "configurations?type=capacity-scheduler&tag=%s";
 
   private static final String RM_GET_NODE_LABEL_URL = "%s/ws/v1/cluster/get-node-labels";
+  private static final String RM_GET_SCHEDULER_CONFIG = "%s/ws/v1/cluster/scheduler";
 
   // ================================================================================
   // Privilege Reading
@@ -152,7 +153,7 @@ public class ConfigurationService {
     LOG.debug("Reading cluster info.");
     Response response = null;
     try {
-      JSONObject configurations = readFromCluster("");
+      JSONObject configurations = readFromCluster("?fields=Clusters/version");
       response = Response.ok(configurations).build();
     } catch (AmbariHttpException ex) {
       LOG.error("Error occurred : ", ex);
@@ -283,6 +284,30 @@ public class ConfigurationService {
     return response;
   }
 
+  /**
+   * Gets scheduler info from RM
+   *
+   * @return scheduler info
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/rmCurrentConfig")
+  public Response getRmSchedulerConfig() {
+    try {
+      String url = String.format(RM_GET_SCHEDULER_CONFIG, getRMUrl());
+
+      InputStream rmResponse = context.getURLStreamProvider().readFrom(
+          url, "GET", (String) null, new HashMap<String, String>());
+      String result = IOUtils.toString(rmResponse);
+      return Response.ok(result).build();
+    } catch (ConnectException ex) {
+      throw new ServiceFormattedException("Connection to Resource Manager refused", ex);
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
 
   /**
    * Checks if the user is an operator.

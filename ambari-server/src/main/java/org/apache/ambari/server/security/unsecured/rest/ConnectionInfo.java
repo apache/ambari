@@ -17,20 +17,19 @@
  */
 package org.apache.ambari.server.security.unsecured.rest;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.configuration.Configuration;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 @Path("/connection_info")
@@ -43,7 +42,7 @@ public class ConnectionInfo {
     @Inject
     public static void init(Configuration instance){
         conf = instance;
-        response.put(Configuration.SRVR_TWO_WAY_SSL_KEY,String.valueOf(conf.getTwoWaySsl()));
+        response.put(Configuration.SRVR_TWO_WAY_SSL.getKey(),String.valueOf(conf.isTwoWaySsl()));
     }
 
     @GET

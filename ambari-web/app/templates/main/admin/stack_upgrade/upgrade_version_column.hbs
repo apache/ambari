@@ -27,7 +27,7 @@
 <p class="version-column-show-details">
   <a {{action openVersionBoxPopup target="view"}}>{{t admin.stackVersions.version.column.showDetails}}</a>
 </p>
-<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
+<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state :repo-version-tooltip"}}>
   {{#if view.stateElement.isButton}}
     <button class="btn btn-primary"
       {{action runAction target="view"}}
@@ -61,9 +61,10 @@
   {{/if}}
   {{#if view.stateElement.isLink}}
     {{#if view.stateElement.iconClass}}
-        <i {{bindAttr class="view.stateElement.iconClass"}}></i>
+      <i {{bindAttr class="view.stateElement.iconClass" disabled="view.stateElement.isDisabled"}}></i>
     {{/if}}
-      <a href="#" {{action runAction target="view"}}>{{view.stateElement.text}}</a>
+    <a href="#" {{action runAction target="view"}}
+        {{bindAttr disabled="view.stateElement.isDisabled"}}>{{view.stateElement.text}}</a>
     {{#if view.stateElement.isInstalling}}
       {{view App.ProgressBarView
           progressBinding="view.installProgress"

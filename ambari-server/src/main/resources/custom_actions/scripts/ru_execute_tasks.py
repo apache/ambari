@@ -79,7 +79,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found at %s" % str(config_path))
   except Exception, err:
-    Logger.warn(err)
+    Logger.warning(err)
 
 
 class ExecuteUpgradeTasks(Script):

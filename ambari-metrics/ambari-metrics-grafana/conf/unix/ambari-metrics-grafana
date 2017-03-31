@@ -50,6 +50,7 @@ GRAFANA_HOME=${AMS_GRAFANA_HOME_DIR}
 WORK_DIR=$GRAFANA_HOME
 DATA_DIR=${AMS_GRAFANA_DATA_DIR}
 LOG_DIR=${AMS_GRAFANA_LOG_DIR}
+LOG_FILE=$LOG_DIR/grafana.log
 CONF_FILE=$CONF_DIR/ams-grafana.ini
 MAX_OPEN_FILES=10000
 PID_FILE=${AMS_GRAFANA_PID_DIR}/$NAME.pid
@@ -93,17 +94,17 @@ function isRunning() {
 
 case "$1" in
   start)
-    echo -n $"Starting $DESC: .... "
+    echo $"$(date) Starting $DESC: .... " >> $LOG_FILE
 
     isRunning
     if [ $? -eq 0 ]; then
-      echo "Already running."
+      echo "Already running." >> $LOG_FILE
       exit 0
     fi
 
     # Prepare environment
     # mkdir -p "$LOG_DIR" "$DATA_DIR" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$LOG_DIR" "$DATA_DIR"
-    # touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
+    touch "$PID_FILE" && chown "$GRAFANA_USER":"$GRAFANA_GROUP" "$PID_FILE"
 
     # if [ -n "$MAX_OPEN_FILES" ]; then
     #   ulimit -n $MAX_OPEN_FILES
@@ -115,10 +116,19 @@ case "$1" in
     return=$?
     if [ $return -eq 0 ]
     then
-      sleep 1
-      # check if pid file has been written two
+      for i in {1..10}
+      do
+        sleep 2
+        # check if pid file has been written to
+        if [ -s $PID_FILE ]; then
+          echo " $(date) pid_file has been written to" >> $LOG_FILE
+          break
+        else
+          echo " $(date) pid_file not yet written to" >> $LOG_FILE
+        fi
+      done
       if ! [[ -s $PID_FILE ]]; then
-        echo "FAILED"
+        echo " $(date) Start FAILED because daemon did not write pid in pid_file after 20 seconds" >> $LOG_FILE
         exit 1
       fi
       i=0
@@ -135,11 +145,11 @@ case "$1" in
       done
     fi
 
-    echo "OK"
+    echo "OK" >> $LOG_FILE
     exit $return
     ;;
   stop)
-    echo -n "Stopping $DESC ..."
+    echo -n "Stopping $DESC ..." >> $LOG_FILE
 
     if [ -f "$PID_FILE" ]; then
       pid=$(cat "$PID_FILE")
@@ -148,18 +158,18 @@ case "$1" in
       sleep "${STOP_TIMEOUT}"
 
       if kill -0 "${pid}" > /dev/null 2>&1; then
-        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9" >> $LOG_FILE
         kill -9 "${pid}" >/dev/null 2>&1
       fi
 
       if ps -p "${pid}" > /dev/null 2>&1; then
-        echo "ERROR: Unable to kill ${pid}"
+        echo "ERROR: Unable to kill ${pid}" >> $LOG_FILE
       else
-        rm -f "${pidfile}" >/dev/null 2>&1
+        rm -f "$PID_FILE" >/dev/null 2>&1
       fi
       echo "OK"
     else
-      echo -n "(not running)"
+      echo -n "(not running)" >> $LOG_FILE
     fi
     exit 0
     ;;

@@ -24,6 +24,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.core.signal_utils import TerminateStrategy
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
@@ -102,4 +103,11 @@ def service(componentName, action='start', serviceName='yarn'):
   elif action == 'refreshQueues':
     rm_kinit_cmd = params.rm_kinit_cmd
     refresh_cmd = format("{rm_kinit_cmd} export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {yarn_container_bin}/yarn rmadmin -refreshQueues")
-    Execute(refresh_cmd, user=usr)
+
+    Execute(refresh_cmd,
+            user = usr,
+            timeout = 20, # when Yarn is not started command hangs forever and should be killed
+            tries = 5,
+            try_sleep = 5,
+            timeout_kill_strategy = TerminateStrategy.KILL_PROCESS_GROUP, # the process cannot be simply killed by 'kill -15', so kill pg group instread.
+    )

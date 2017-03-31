@@ -866,19 +866,11 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         this.changeParseHostInfo(true);
       } else {
         this.set('progress', '34');
-        if (this.get('content.controllerName') === 'installerController') {
-          this.isAllComponentsInstalled().done(function () {
-            self.saveInstalledHosts(self);
-            self.changeParseHostInfo(true);
-          });
-          return;
-        } else {
-          this.launchStartServices(function () {
-            self.saveInstalledHosts(self);
-            self.changeParseHostInfo(true);
-          });
-          return;
-        }
+        this.isAllComponentsInstalled().done(function () {
+          self.saveInstalledHosts(self);
+          self.changeParseHostInfo(true);
+        });
+        return;
       }
     }
     this.changeParseHostInfo(false);
@@ -1115,21 +1107,17 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isAllComponentsInstalled: function () {
     var dfd = $.Deferred();
-    if (this.get('content.controllerName') !== 'installerController' && this.get('content.controllerName') !== 'addHostController') {
+    App.ajax.send({
+      name: 'wizard.step9.installer.get_host_status',
+      sender: this,
+      data: {
+        cluster: this.get('content.cluster.name')
+      },
+      success: 'isAllComponentsInstalledSuccessCallback',
+      error: 'isAllComponentsInstalledErrorCallback'
+    }).complete(function () {
       dfd.resolve();
-    } else {
-      App.ajax.send({
-        name: 'wizard.step9.installer.get_host_status',
-        sender: this,
-        data: {
-          cluster: this.get('content.cluster.name')
-        },
-        success: 'isAllComponentsInstalledSuccessCallback',
-        error: 'isAllComponentsInstalledErrorCallback'
-      }).complete(function(){
-          dfd.resolve();
-      });
-    }
+    });
     return dfd.promise();
   },
 
@@ -1144,7 +1132,13 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       isStartError: true,
       isCompleted: false
     };
+    var usedHostWithHeartbeatLost = false;
     var hostsWithHeartbeatLost = [];
+    var usedHosts = this.get('content.masterComponentHosts').filterProperty('isInstalled', false).mapProperty('hostName');
+    this.get('content.slaveComponentHosts').forEach(function(component) {
+      usedHosts = usedHosts.concat(component.hosts.filterProperty('isInstalled', false).mapProperty('hostName'));
+    });
+    usedHosts = usedHosts.uniq();
     jsonData.items.filterProperty('Hosts.host_state', 'HEARTBEAT_LOST').forEach(function (host) {
       var hostComponentObj = {hostName: host.Hosts.host_name};
       var componentArr = [];
@@ -1154,9 +1148,12 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       }, this);
       hostComponentObj.componentNames = stringUtils.getFormattedStringFromArray(componentArr);
       hostsWithHeartbeatLost.pushObject(hostComponentObj);
+      if (!usedHostWithHeartbeatLost && usedHosts.contains(host.Hosts.host_name)) {
+        usedHostWithHeartbeatLost = true;
+      }
     }, this);
     this.set('hostsWithHeartbeatLost', hostsWithHeartbeatLost);
-    if (hostsWithHeartbeatLost.length) {
+    if (usedHostWithHeartbeatLost) {
       this.get('hosts').forEach(function (host) {
         if (hostsWithHeartbeatLost.someProperty(('hostName'), host.get('name'))) {
           host.set('status', 'heartbeat_lost');

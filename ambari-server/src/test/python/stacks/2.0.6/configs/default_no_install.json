@@ -422,7 +422,7 @@
         },
         "hiveserver2-site": {
             "hive.metastore.metrics.enabled": "true",
-            "hive.service.metrics.reporter": "JSON_FILE, JMX, HADOOP2"
+            "hive.service.metrics.reporter": "HADOOP2"
         },
         "ranger-hive-plugin-properties": {
             "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
@@ -476,7 +476,7 @@
             "yarn.nodemanager.address": "0.0.0.0:45454", 
             "yarn.nodemanager.container-monitor.interval-ms": "3000", 
             "yarn.nodemanager.log-aggregation.compression-type": "gz", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.delete.debug-delay-sec": "0", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/hadoop/yarn/log1",
             "yarn.nodemanager.health-checker.interval-ms": "135000", 
@@ -542,7 +542,8 @@
             "hive_log_dir": "/var/log/hive", 
             "hive_user": "hive", 
             "hcat_log_dir": "/var/log/webhcat", 
-            "hive_database": "New MySQL Database"
+            "hive_database": "New MySQL Database",
+            "hive_security_authorization": "None"
         },
       "cluster-env": {
         "managed_hdfs_resource_property_names": "",

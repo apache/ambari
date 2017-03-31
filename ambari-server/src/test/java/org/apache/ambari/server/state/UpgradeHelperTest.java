@@ -24,6 +24,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -48,15 +51,21 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
+import org.apache.ambari.server.state.stack.upgrade.HostOrderItem;
+import org.apache.ambari.server.state.stack.upgrade.HostOrderItem.HostOrderActionType;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
+import org.apache.ambari.server.state.stack.upgrade.SecurityCondition;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -71,13 +80,14 @@ import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.util.Modules;
 
 /**
@@ -85,19 +95,21 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
-  private static final StackId HDP_21 = new StackId("HPD-2.1.1");
-  private static final StackId HDP_22 = new StackId("HPD-2.2.0");
+  private static final StackId HDP_21 = new StackId("HDP-2.1.1");
+  private static final StackId HDP_22 = new StackId("HDP-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+  private StackManagerMock stackManagerMock;
   private OrmTestHelper helper;
   private MasterHostResolver m_masterHostResolver;
   private UpgradeHelper m_upgradeHelper;
   private ConfigHelper m_configHelper;
   private AmbariManagementController m_managementController;
   private Gson m_gson = new Gson();
+  private UpgradeContextFactory m_upgradeContextFactory;
 
   /**
    * Because test cases need to share config mocks, put common ones in this function.
@@ -126,17 +138,22 @@ public class UpgradeHelperTest {
     };
 
     MockModule mockModule = new MockModule();
+
     // create an injector which will inject the mocks
     injector = Guice.createInjector(Modules.override(injectorModule).with(mockModule));
+    H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
+
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
     EventBusSynchronizer.synchronizeAlertEventPublisher(injector);
 
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
+    m_upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -144,8 +161,8 @@ public class UpgradeHelperTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
 
     // Clear the authenticated user
     SecurityContextHolder.getContext().setAuthentication(null);
@@ -185,10 +202,12 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -242,6 +261,10 @@ public class UpgradeHelperTest {
     assertEquals(6, groups.get(1).items.size());
     assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -260,10 +283,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_partial");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
     context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
     context.setScope(UpgradeScope.PARTIAL);
 
@@ -295,6 +319,10 @@ public class UpgradeHelperTest {
     assertEquals(3, groups.get(0).items.size());
     assertEquals(7, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -313,10 +341,12 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_partial");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+
+    context.setResolver(m_masterHostResolver);
     context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
     context.setScope(UpgradeScope.COMPLETE);
 
@@ -349,6 +379,10 @@ public class UpgradeHelperTest {
     assertEquals(3, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
     assertEquals(1, groups.get(2).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -364,10 +398,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_server_action_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -383,6 +418,9 @@ public class UpgradeHelperTest {
     assertEquals("Calculating Properties", stageWrappers.get(4).getText());
     assertEquals("Calculating HDFS Properties", stageWrappers.get(5).getText());
 
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   /**
@@ -415,8 +453,9 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     MasterHostResolver masterHostResolver = new MasterHostResolver(null, cluster, "");
 
-    UpgradeContext context = new UpgradeContext(masterHostResolver, HDP_21, HDP_21,
-        UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
     assertEquals(7, groups.size());
@@ -427,6 +466,10 @@ public class UpgradeHelperTest {
         assertFalse(hosts.contains(hostInMaintenanceMode.getHostName()));
       }
     }
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   /**
@@ -440,10 +483,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -452,7 +496,7 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder mastersGroup = groups.get(2);
     assertEquals("CORE_MASTER", mastersGroup.name);
 
-    List<String> orderedNameNodes = new LinkedList<String>();
+    List<String> orderedNameNodes = new LinkedList<>();
     for (StageWrapper sw : mastersGroup.items) {
       if (sw.getType().equals(StageWrapper.Type.RESTART) && sw.getText().toLowerCase().contains("NameNode".toLowerCase())) {
         for (TaskWrapper tw : sw.getTasks()) {
@@ -486,15 +530,14 @@ public class UpgradeHelperTest {
     Clusters clusters = injector.getInstance(Clusters.class);
     Host h4 = clusters.getHost("h4");
     h4.setState(HostState.HEARTBEAT_LOST);
-    h4.persist();
-
 
     List<ServiceComponentHost> schs = cluster.getServiceComponentHosts("h4");
     assertEquals(1, schs.size());
     assertEquals(HostState.HEARTBEAT_LOST, schs.get(0).getHostState());
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -528,10 +571,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, DOWNGRADE_VERSION, Direction.DOWNGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -568,10 +612,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_bucket_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -598,10 +643,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -628,8 +674,9 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-                                                HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -638,10 +685,10 @@ public class UpgradeHelperTest {
     // grab the configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
     assertEquals("HIVE", hiveGroup.name);
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(2).getTasks().get(0).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(0).getTasks().get(0);
 
     // now change the thrift port to http to have the 2nd condition invoked
-    Map<String, String> hiveConfigs = new HashMap<String, String>();
+    Map<String, String> hiveConfigs = new HashMap<>();
     hiveConfigs.put("hive.server2.transport.mode", "http");
     hiveConfigs.put("hive.server2.thrift.port", "10001");
     hiveConfigs.put("condition", "1");
@@ -699,8 +746,9 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -712,7 +760,8 @@ public class UpgradeHelperTest {
     assertEquals("HIVE", hiveGroup.name);
 
     //Condition is met
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(3).getTasks().get(0).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(2).getTasks().get(
+        0).getTasks().get(0);
     Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
 
     assertFalse(configProperties.isEmpty());
@@ -809,8 +858,9 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -821,7 +871,7 @@ public class UpgradeHelperTest {
     assertEquals("HIVE", hiveGroup.name);
 
     //Condition is not met, so no config operations should be present in the configureTask...
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(4).getTasks().get(0).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(3).getTasks().get(0).getTasks().get(0);
     Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
 
     assertFalse(configProperties.isEmpty());
@@ -833,7 +883,6 @@ public class UpgradeHelperTest {
 
     String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
     String transferJson = configProperties.get(ConfigureTask.PARAMETER_TRANSFERS);
-    System.out.println(" testConfigTaskConditionSkip >> transferJson"+transferJson);
 
     String replacementJson = configProperties.get(ConfigureTask.PARAMETER_REPLACEMENTS);
     assertNotNull(configurationJson);
@@ -856,6 +905,12 @@ public class UpgradeHelperTest {
     assertTrue(transfers.isEmpty());
   }
 
+  /**
+   * Tests that {@link ConfigurationKeyValue} pairs on a {@link ConfigureTask}
+   * are correctly returned based on the if-conditions.
+   *
+   * @throws Exception
+   */
   @Test
   public void testConfigureTask() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
@@ -866,38 +921,28 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
 
     assertEquals(7, groups.size());
 
-    // grab the configure task out of Hive
+    // grab the first configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
     assertEquals("HIVE", hiveGroup.name);
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(
-        0).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(0).getTasks().get(0);
 
     Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
     assertFalse(configProperties.isEmpty());
     assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
 
-    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
-    assertNotNull(configurationJson);
-
-    List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(configurationJson,
-        new TypeToken<List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue>>() {
-        }.getType());
-
-    assertEquals("hive.server2.thrift.port", keyValuePairs.get(0).key);
-    assertEquals("10010", keyValuePairs.get(0).value);
-
-    // now change the thrift port to http to have the 2nd condition invoked
-    Map<String, String> hiveConfigs = new HashMap<String, String>();
-    hiveConfigs.put("hive.server2.transport.mode", "http");
-    hiveConfigs.put("hive.server2.thrift.port", "10001");
+    // now set the property in the if-check in the set element so that we have a match
+    Map<String, String> hiveConfigs = new HashMap<>();
+    hiveConfigs.put("fooKey", "THIS-BETTER-CHANGE");
+    hiveConfigs.put("ifFooKey", "ifFooValue");
     ConfigurationRequest configurationRequest = new ConfigurationRequest();
     configurationRequest.setClusterName(cluster.getClusterName());
     configurationRequest.setType("hive-site");
@@ -915,20 +960,22 @@ public class UpgradeHelperTest {
       }
     }, null);
 
-    // the configure task should now return different properties
+    // the configure task should now return different properties to set based on
+    // the if-condition checks
     configProperties = configureTask.getConfigurationChanges(cluster, cup);
     assertFalse(configProperties.isEmpty());
     assertEquals( configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
 
-    configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
     assertNotNull(configurationJson);
 
-    keyValuePairs = m_gson.fromJson(configurationJson,
+    List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(
+        configurationJson,
         new TypeToken<List<ConfigUpgradeChangeDefinition.ConfigurationKeyValue>>() {
         }.getType());
 
-    assertEquals("hive.server2.http.port", keyValuePairs.get(0).key);
-    assertEquals("10011", keyValuePairs.get(0).value);
+    assertEquals("fooKey", keyValuePairs.get(0).key);
+    assertEquals("fooValue", keyValuePairs.get(0).value);
   }
 
   @Test
@@ -940,8 +987,9 @@ public class UpgradeHelperTest {
     assertNotNull(upgrade);
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21,
-        UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -950,7 +998,7 @@ public class UpgradeHelperTest {
     // grab the configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
     assertEquals("HIVE", hiveGroup.name);
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(2).getTasks().get(0).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(0).getTasks().get(0);
 
     Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
     assertFalse(configProperties.isEmpty());
@@ -1016,8 +1064,9 @@ public class UpgradeHelperTest {
       numServiceChecksExpected++;
     }
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_22, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1059,10 +1108,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_checks");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, DOWNGRADE_VERSION, Direction.DOWNGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1094,10 +1144,11 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_to_new_stack");
     assertNotNull(upgrade);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1156,6 +1207,10 @@ public class UpgradeHelperTest {
     assertEquals(5, groups.get(1).items.size());
     assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
 
@@ -1176,12 +1231,16 @@ public class UpgradeHelperTest {
 
     StackId stackId = new StackId("HDP-2.1.1");
     StackId stackId2 = new StackId("HDP-2.2.0");
+
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId,
         c.getDesiredStackVersion().getStackVersion());
+
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+
+    helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
 
     c.createClusterVersion(stackId,
         c.getDesiredStackVersion().getStackVersion(), "admin",
@@ -1192,13 +1251,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1247,7 +1305,7 @@ public class UpgradeHelperTest {
     sc.addServiceComponentHost("h3");
 
     // set some desired configs
-    Map<String, String> hiveConfigs = new HashMap<String, String>();
+    Map<String, String> hiveConfigs = new HashMap<>();
     hiveConfigs.put("hive.server2.transport.mode", "binary");
     hiveConfigs.put("hive.server2.thrift.port", "10001");
 
@@ -1337,10 +1395,11 @@ public class UpgradeHelperTest {
     }
     assertTrue(foundService);
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1409,13 +1468,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1439,8 +1497,9 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
     replay(m_masterHostResolver);
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21, DOWNGRADE_VERSION,
-        Direction.DOWNGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.ROLLING,
+        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
+    context.setResolver(m_masterHostResolver);
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_direction"));
@@ -1489,13 +1548,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1555,13 +1613,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1622,13 +1679,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1680,7 +1736,7 @@ public class UpgradeHelperTest {
     final Direction upgradeDirection = Direction.UPGRADE;
     final UpgradeType upgradeType = UpgradeType.ROLLING;
 
-    makeCluster();
+    Cluster cluster = makeCluster();
 
     // grab the right pack
     String preferredUpgradePackName = "upgrade_grouping_rolling";
@@ -1690,8 +1746,10 @@ public class UpgradeHelperTest {
     assertEquals(upgradeType, upgradePack.getType());
 
     // get an upgrade
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21,
-        UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+
+    context.setResolver(m_masterHostResolver);
 
     context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
     context.setScope(UpgradeScope.COMPLETE);
@@ -1741,13 +1799,12 @@ public class UpgradeHelperTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
 
-      Map<String, String> hostAttributes = new HashMap<String, String>();
+      Map<String, String> hostAttributes = new HashMap<>();
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "6");
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1791,7 +1848,11 @@ public class UpgradeHelperTest {
     };
 
     MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
-    UpgradeContext context = new UpgradeContext(resolver, stackId, stackId2, "2.2.0", Direction.UPGRADE, UpgradeType.NON_ROLLING);
+
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING,
+        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
+    context.setResolver(resolver);
+
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
@@ -1799,10 +1860,209 @@ public class UpgradeHelperTest {
     sch1.setVersion("2.1.1");
     sch2.setVersion("2.1.1");
     resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
-    context = new UpgradeContext(resolver, stackId2, stackId, "2.1.1", Direction.DOWNGRADE, UpgradeType.NON_ROLLING);
+
+    context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING, Direction.DOWNGRADE,
+        "2.1.1", new HashMap<String, Object>());
+    context.setResolver(resolver);
+
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertTrue(groups.isEmpty());
+  }
+
+  /**
+   * Tests {@link UpgradeType#HOST_ORDERED}, specifically that the orchestration
+   * can properly expand the single {@link HostOrderGrouping} and create the
+   * correct stages based on the dependencies of the components.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testHostGroupingOrchestration() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    StackId stackId2 = new StackId("HDP-2.2.0");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+
+    // create 2 hosts
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
+    // how the HOU breaks out dependencies into stages
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
+    c.addService(serviceFactory.createNew(c, "HBASE"));
+    Service zookeeper = c.getService("ZOOKEEPER");
+    Service hbase = c.getService("HBASE");
+    ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");
+    ServiceComponentHost zookeeperServer1 = zookeeperServer.addServiceComponentHost("h1");
+    ServiceComponentHost zookeeperServer2 = zookeeperServer.addServiceComponentHost("h2");
+    ServiceComponent hbaseMaster = hbase.addServiceComponent("HBASE_MASTER");
+    ServiceComponentHost hbaseMaster1 = hbaseMaster.addServiceComponentHost("h1");
+
+    // !!! make a custom grouping
+    HostOrderItem hostItem = new HostOrderItem(HostOrderActionType.HOST_UPGRADE,
+        Lists.newArrayList("h1", "h2"));
+
+    HostOrderItem checkItem = new HostOrderItem(HostOrderActionType.SERVICE_CHECK,
+        Lists.newArrayList("ZOOKEEPER", "HBASE"));
+
+    Grouping g = new HostOrderGrouping();
+    ((HostOrderGrouping) g).setHostOrderItems(Lists.newArrayList(hostItem, checkItem));
+    g.title = "Some Title";
+
+    UpgradePack upgradePack = new UpgradePack();
+
+    // !!! set the groups directly; allow the logic in getGroups(Direction) to happen
+    Field field = UpgradePack.class.getDeclaredField("groups");
+    field.setAccessible(true);
+    field.set(upgradePack, Lists.newArrayList(g));
+
+    field = UpgradePack.class.getDeclaredField("type" );
+    field.setAccessible(true);
+    field.set(upgradePack, UpgradeType.HOST_ORDERED);
+
+    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
+
+    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED,
+        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
+
+    context.setResolver(resolver);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertEquals(1, groups.size());
+
+    UpgradeGroupHolder holder = groups.get(0);
+    assertEquals(9, holder.items.size());
+
+    for (int i = 0; i < 7; i++) {
+      StageWrapper w = holder.items.get(i);
+      if (i == 0 || i == 4) {
+        assertEquals(StageWrapper.Type.STOP, w.getType());
+      } else if (i == 1 || i == 5) {
+        assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, w.getType());
+        assertEquals(1, w.getTasks().size());
+        assertEquals(1, w.getTasks().get(0).getTasks().size());
+        Task t = w.getTasks().get(0).getTasks().get(0);
+        assertEquals(ManualTask.class, t.getClass());
+        ManualTask mt = (ManualTask) t;
+        assertNotNull(mt.structuredOut);
+        assertTrue(mt.structuredOut.contains("type"));
+        assertTrue(mt.structuredOut.contains(HostOrderItem.HostOrderActionType.HOST_UPGRADE.toString()));
+        assertTrue(mt.structuredOut.contains("host"));
+        assertTrue(mt.structuredOut.contains(i == 1 ? "h1" : "h2"));
+      } else {
+        assertEquals(StageWrapper.Type.RESTART, w.getType());
+      }
+    }
+
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(7).getType());
+    assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(8).getType());
+
+    // !!! test downgrade when all host components have failed
+    zookeeperServer1.setVersion("2.1.1");
+    zookeeperServer2.setVersion("2.1.1");
+    hbaseMaster1.setVersion("2.1.1");
+    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+
+    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
+        "2.1.1", new HashMap<String, Object>());
+
+    context.setResolver(resolver);
+    groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertEquals(1, groups.size());
+    assertEquals(2, groups.get(0).items.size());
+
+    // !!! test downgrade when one of the hosts had failed
+    zookeeperServer1.setVersion("2.1.1");
+    zookeeperServer2.setVersion("2.2.0");
+    hbaseMaster1.setVersion("2.1.1");
+    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+
+    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
+        "2.1.1", new HashMap<String, Object>());
+
+    context.setResolver(resolver);
+    groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertEquals(1, groups.size());
+    assertEquals(5, groups.get(0).items.size());
+  }
+
+  /**
+   * Tests that the {@link SecurityCondition} element correctly restricts the groups in
+   * an upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradeConditions() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    assertTrue(upgrades.containsKey("upgrade_test_conditions"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_conditions");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
+        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
+
+    context.setResolver(m_masterHostResolver);
+
+    // initially, no conditions should be met
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(0, groups.size());
+
+    // set the configuration property and try again
+    Map<String, String> fooConfigs = new HashMap<>();
+    fooConfigs.put("foo-property", "foo-value");
+    ConfigurationRequest configurationRequest = new ConfigurationRequest();
+    configurationRequest.setClusterName(cluster.getClusterName());
+    configurationRequest.setType("foo-site");
+    configurationRequest.setVersionTag("version1");
+    configurationRequest.setProperties(fooConfigs);
+
+    final ClusterRequest clusterRequest = new ClusterRequest(cluster.getClusterId(),
+        cluster.getClusterName(), cluster.getDesiredStackVersion().getStackVersion(), null);
+
+    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    m_managementController.updateClusters(Sets.newHashSet(clusterRequest), null);
+
+    // the config condition should now be set
+    groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(1, groups.size());
+    assertEquals("ZOOKEEPER_CONFIG_CONDITION_TEST", groups.get(0).name);
+
+    // now change the cluster security so the other conditions come back too
+    cluster.setSecurityType(SecurityType.KERBEROS);
+
+    groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(3, groups.size());
   }
 
   /**
@@ -1847,6 +2107,7 @@ public class UpgradeHelperTest {
 
     @Override
     public void configure(Binder binder) {
+      binder.install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
       binder.bind(ConfigHelper.class).toInstance(m_configHelper);
     }
   }

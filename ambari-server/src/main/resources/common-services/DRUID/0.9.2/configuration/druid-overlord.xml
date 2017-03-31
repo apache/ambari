@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>druid.service</name>
+    <value>druid/overlord</value>
+    <description>The druid.service name of overlord node.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.port</name>
+    <value>8090</value>
+    <description>The port on which the overlord will accept connections.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.runner.type</name>
+    <value>remote</value>
+    <description>Choices "local" or "remote". Indicates whether tasks should be run locally or in a distributed
+      environment.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>druid.indexer.storage.type</name>
+    <value>metadata</value>
+    <description>Choices are "local" or "metadata". Indicates whether incoming tasks should be stored locally (in heap)
+      or in metadata storage. Storing incoming tasks in metadata storage allows for tasks to be resumed if the overlord
+      should fail.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

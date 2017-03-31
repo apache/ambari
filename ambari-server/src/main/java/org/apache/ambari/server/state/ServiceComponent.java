@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -60,6 +59,12 @@ public interface ServiceComponent {
 
   void setDesiredVersion(String version);
 
+  /**
+   * Refresh Component info due to current stack
+   * @throws AmbariException
+   */
+  void updateComponentInfo() throws AmbariException;
+
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 
   ServiceComponentHost getServiceComponentHost(String hostname)
@@ -72,12 +77,6 @@ public interface ServiceComponent {
       throws AmbariException ;
 
   ServiceComponentResponse convertToResponse();
-
-  void refresh();
-
-  boolean isPersisted();
-
-  void persist();
 
   void debugDump(StringBuilder sb);
 
@@ -98,10 +97,4 @@ public interface ServiceComponent {
       String hostName) throws AmbariException;
 
   void delete() throws AmbariException;
-
-  /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
 }

@@ -17,11 +17,23 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.dao.GroupDAO;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -29,6 +41,7 @@ import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
@@ -36,6 +49,7 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
@@ -47,7 +61,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -77,13 +90,21 @@ public class Users {
   @Inject
   protected ResourceDAO resourceDAO;
   @Inject
+  protected ResourceTypeDAO resourceTypeDAO;
+  @Inject
   protected PrincipalTypeDAO principalTypeDAO;
   @Inject
   protected PasswordEncoder passwordEncoder;
   @Inject
   protected Configuration configuration;
   @Inject
-  private  AmbariLdapAuthenticationProvider ldapAuthenticationProvider;
+  private AmbariLdapAuthenticationProvider ldapAuthenticationProvider;
+
+  @Inject
+  private Provider<HookService> hookServiceProvider;
+
+  @Inject
+  private HookContextFactory hookContextFactory;
 
   public List<User> getAllUsers() {
     List<UserEntity> userEntities = userDAO.findAll();
@@ -98,17 +119,12 @@ public class Users {
 
   /**
    * This method works incorrectly, userName is not unique if users have different types
-   * @return One user. Priority is LOCAL -> LDAP -> JWT
+   *
+   * @return One user. Priority is LOCAL -> LDAP -> JWT -> PAM
    */
   @Deprecated
   public User getAnyUser(String userName) {
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
-    if (userEntity == null) {
-      userEntity = userDAO.findUserByNameAndType(userName, UserType.LDAP);
-    }
-    if (userEntity == null) {
-      userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
-    }
+    UserEntity userEntity = userDAO.findSingleUserByName(userName);
     return (null == userEntity) ? null : new User(userEntity);
   }
 
@@ -125,9 +141,13 @@ public class Users {
   /**
    * Retrieves User then userName is unique in users DB. Will return null if there no user with provided userName or
    * there are some users with provided userName but with different types.
+   *
+   * <p>User names in the future will likely be unique hence the deprecation.</p>
+   *
    * @param userName
    * @return User if userName is unique in DB, null otherwise
    */
+  @Deprecated
   public User getUserIfUnique(String userName) {
     List<UserEntity> userEntities = new ArrayList<>();
     UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
@@ -147,6 +167,7 @@ public class Users {
 
   /**
    * Modifies password of local user
+   *
    * @throws AmbariException
    */
   public synchronized void modifyPassword(String userName, String currentUserPassword, String newPassword) throws AmbariException {
@@ -166,14 +187,14 @@ public class Users {
       try {
         ldapAuthenticationProvider.authenticate(
             new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
-      isLdapUser = true;
+        isLdapUser = true;
       } catch (InvalidUsernamePasswordCombinationException ex) {
         throw new AmbariException(ex.getMessage());
       }
     }
 
     boolean isCurrentUserAdmin = false;
-    for (PrivilegeEntity privilegeEntity: currentUserEntity.getPrincipal().getPrivileges()) {
+    for (PrivilegeEntity privilegeEntity : currentUserEntity.getPrincipal().getPrivileges()) {
       if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         isCurrentUserAdmin = true;
         break;
@@ -246,7 +267,7 @@ public class Users {
   public synchronized void setGroupLdap(String groupName) throws AmbariException {
     GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
     if (groupEntity != null) {
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
       groupDAO.merge(groupEntity);
     } else {
       throw new AmbariException("Group " + groupName + " doesn't exist");
@@ -270,8 +291,8 @@ public class Users {
    * @param userName user name
    * @param password password
    * @param userType user type
-   * @param active is user active
-   * @param admin is user admin
+   * @param active   is user active
+   * @param admin    is user admin
    * @throws AmbariException if user already exists
    */
   public synchronized void createUser(String userName, String password, UserType userType, Boolean active, Boolean
@@ -282,9 +303,10 @@ public class Users {
       throw new AmbariException("UserType not specified.");
     }
 
-    User existingUser = getUser(userName, userType);
+    User existingUser = getAnyUser(userName);
     if (existingUser != null) {
-      throw new AmbariException("User " + existingUser.getUserName() + " already exists");
+      throw new AmbariException("User " + existingUser.getUserName() + " already exists with type "
+          + existingUser.getUserType());
     }
 
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
@@ -319,14 +341,17 @@ public class Users {
     if (admin != null && admin) {
       grantAdminPrivilege(userEntity.getUserId());
     }
+
+    // execute user initialization hook if required ()
+    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(userName));
   }
 
   public synchronized void removeUser(User user) throws AmbariException {
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity != null) {
-      if (!isUserCanBeRemoved(userEntity)){
+      if (!isUserCanBeRemoved(userEntity)) {
         throw new AmbariException("Could not remove user " + userEntity.getUserName() +
-              ". System should have at least one administrator.");
+            ". System should have at least one administrator.");
       }
       userDAO.remove(userEntity);
     } else {
@@ -346,6 +371,18 @@ public class Users {
   }
 
   /**
+   * Gets group by given name & type.
+   *
+   * @param groupName group name
+   * @param groupType group type
+   * @return group
+   */
+  public Group getGroupByNameAndType(String groupName, GroupType groupType) {
+    final GroupEntity groupEntity = groupDAO.findGroupByNameAndType(groupName, groupType);
+    return (null == groupEntity) ? null : new Group(groupEntity);
+  }
+
+  /**
    * Gets group members.
    *
    * @param groupName group name
@@ -357,12 +394,12 @@ public class Users {
       return null;
     } else {
       final Set<User> users = new HashSet<User>();
-      for (MemberEntity memberEntity: groupEntity.getMemberEntities()) {
+      for (MemberEntity memberEntity : groupEntity.getMemberEntities()) {
         if (memberEntity.getUser() != null) {
           users.add(new User(memberEntity.getUser()));
         } else {
           LOG.error("Wrong state, not found user for member '{}' (group: '{}')",
-            memberEntity.getMemberId(), memberEntity.getGroup().getGroupName());
+              memberEntity.getMemberId(), memberEntity.getGroup().getGroupName());
         }
       }
       return users;
@@ -370,10 +407,10 @@ public class Users {
   }
 
   /**
-   * Creates new local group with provided name
+   * Creates new group with provided name & type
    */
   @Transactional
-  public synchronized void createGroup(String groupName) {
+  public synchronized void createGroup(String groupName, GroupType groupType) {
     // create an admin principal to represent this group
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
     if (principalTypeEntity == null) {
@@ -389,6 +426,7 @@ public class Users {
     final GroupEntity groupEntity = new GroupEntity();
     groupEntity.setGroupName(groupName);
     groupEntity.setPrincipal(principalEntity);
+    groupEntity.setGroupType(groupType);
 
     groupDAO.create(groupEntity);
   }
@@ -402,7 +440,7 @@ public class Users {
     final List<GroupEntity> groupEntities = groupDAO.findAll();
     final List<Group> groups = new ArrayList<Group>(groupEntities.size());
 
-    for (GroupEntity groupEntity: groupEntities) {
+    for (GroupEntity groupEntity : groupEntities) {
       groups.add(new Group(groupEntity));
     }
 
@@ -421,7 +459,7 @@ public class Users {
     if (groupEntity == null) {
       throw new AmbariException("Group " + groupName + " doesn't exist");
     }
-    for (MemberEntity member: groupEntity.getMemberEntities()) {
+    for (MemberEntity member : groupEntity.getMemberEntities()) {
       members.add(member.getUser().getUserName());
     }
     return members;
@@ -457,13 +495,39 @@ public class Users {
   }
 
   /**
+   * Grants privilege to provided group.
+   *
+   * @param groupId group id
+   * @param resourceId resource id
+   * @param resourceType resource type
+   * @param permissionName permission name
+   */
+  public synchronized void grantPrivilegeToGroup(Integer groupId, Long resourceId, ResourceType resourceType, String permissionName) {
+    final GroupEntity group = groupDAO.findByPK(groupId);
+    final PrivilegeEntity privilege = new PrivilegeEntity();
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(resourceType.getId());
+    resourceTypeEntity.setName(resourceType.name());
+    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName,resourceTypeEntity));
+    privilege.setPrincipal(group.getPrincipal());
+    privilege.setResource(resourceDAO.findById(resourceId));
+    if (!group.getPrincipal().getPrivileges().contains(privilege)) {
+      privilegeDAO.create(privilege);
+      group.getPrincipal().getPrivileges().add(privilege);
+      principalDAO.merge(group.getPrincipal()); //explicit merge for Derby support
+      groupDAO.merge(group);
+      privilegeDAO.merge(privilege);
+    }
+  }
+
+  /**
    * Revokes AMBARI.ADMINISTRATOR privilege from provided user.
    *
    * @param userId user id
    */
   public synchronized void revokeAdminPrivilege(Integer userId) {
     final UserEntity user = userDAO.findByPK(userId);
-    for (PrivilegeEntity privilege: user.getPrincipal().getPrivileges()) {
+    for (PrivilegeEntity privilege : user.getPrincipal().getPrivileges()) {
       if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         user.getPrincipal().getPrivileges().remove(privilege);
         principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
@@ -518,7 +582,7 @@ public class Users {
 
     if (isUserInGroup(userEntity, groupEntity)) {
       MemberEntity memberEntity = null;
-      for (MemberEntity entity: userEntity.getMemberEntities()) {
+      for (MemberEntity entity : userEntity.getMemberEntities()) {
         if (entity.getGroup().equals(groupEntity)) {
           memberEntity = entity;
           break;
@@ -541,7 +605,7 @@ public class Users {
    * @param userEntity user to be checked
    * @return true if user can be removed
    */
-  public synchronized boolean isUserCanBeRemoved(UserEntity userEntity){
+  public synchronized boolean isUserCanBeRemoved(UserEntity userEntity) {
     List<PrincipalEntity> adminPrincipals = principalDAO.findByPermissionId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findUsersByPrincipal(adminPrincipals));
     return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
@@ -550,12 +614,12 @@ public class Users {
   /**
    * Performs a check if given user belongs to given group.
    *
-   * @param userEntity user entity
+   * @param userEntity  user entity
    * @param groupEntity group entity
    * @return true if user presents in group
    */
   private boolean isUserInGroup(UserEntity userEntity, GroupEntity groupEntity) {
-    for (MemberEntity memberEntity: userEntity.getMemberEntities()) {
+    for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       if (memberEntity.getGroup().equals(groupEntity)) {
         return true;
       }
@@ -574,11 +638,11 @@ public class Users {
 
     // prefetch all user and group data to avoid heavy queries in membership creation
 
-    for (UserEntity userEntity: userDAO.findAll()) {
+    for (UserEntity userEntity : userDAO.findAll()) {
       allUsers.put(userEntity.getUserName(), userEntity);
     }
 
-    for (GroupEntity groupEntity: groupDAO.findAll()) {
+    for (GroupEntity groupEntity : groupDAO.findAll()) {
       allGroups.put(groupEntity.getGroupName(), groupEntity);
     }
 
@@ -589,7 +653,7 @@ public class Users {
 
     // remove users
     final Set<UserEntity> usersToRemove = new HashSet<UserEntity>();
-    for (String userName: batchInfo.getUsersToBeRemoved()) {
+    for (String userName : batchInfo.getUsersToBeRemoved()) {
       UserEntity userEntity = userDAO.findUserByName(userName);
       if (userEntity == null) {
         continue;
@@ -601,7 +665,7 @@ public class Users {
 
     // remove groups
     final Set<GroupEntity> groupsToRemove = new HashSet<GroupEntity>();
-    for (String groupName: batchInfo.getGroupsToBeRemoved()) {
+    for (String groupName : batchInfo.getGroupsToBeRemoved()) {
       final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
       allGroups.remove(groupEntity.getGroupName());
       groupsToRemove.add(groupEntity);
@@ -610,7 +674,7 @@ public class Users {
 
     // update users
     final Set<UserEntity> usersToBecomeLdap = new HashSet<UserEntity>();
-    for (String userName: batchInfo.getUsersToBecomeLdap()) {
+    for (String userName : batchInfo.getUsersToBecomeLdap()) {
       UserEntity userEntity = userDAO.findLocalUserByName(userName);
       if (userEntity == null) {
         userEntity = userDAO.findLdapUserByName(userName);
@@ -626,9 +690,9 @@ public class Users {
 
     // update groups
     final Set<GroupEntity> groupsToBecomeLdap = new HashSet<GroupEntity>();
-    for (String groupName: batchInfo.getGroupsToBecomeLdap()) {
+    for (String groupName : batchInfo.getGroupsToBecomeLdap()) {
       final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
       allGroups.put(groupEntity.getGroupName(), groupEntity);
       groupsToBecomeLdap.add(groupEntity);
     }
@@ -639,7 +703,7 @@ public class Users {
 
     // prepare create users
     final Set<UserEntity> usersToCreate = new HashSet<UserEntity>();
-    for (String userName: batchInfo.getUsersToBeCreated()) {
+    for (String userName : batchInfo.getUsersToBeCreated()) {
       final PrincipalEntity principalEntity = new PrincipalEntity();
       principalEntity.setPrincipalType(userPrincipalType);
       principalsToCreate.add(principalEntity);
@@ -656,7 +720,7 @@ public class Users {
 
     // prepare create groups
     final Set<GroupEntity> groupsToCreate = new HashSet<GroupEntity>();
-    for (String groupName: batchInfo.getGroupsToBeCreated()) {
+    for (String groupName : batchInfo.getGroupsToBeCreated()) {
       final PrincipalEntity principalEntity = new PrincipalEntity();
       principalEntity.setPrincipalType(groupPrincipalType);
       principalsToCreate.add(principalEntity);
@@ -664,7 +728,7 @@ public class Users {
       final GroupEntity groupEntity = new GroupEntity();
       groupEntity.setGroupName(groupName);
       groupEntity.setPrincipal(principalEntity);
-      groupEntity.setLdapGroup(true);
+      groupEntity.setGroupType(GroupType.LDAP);
 
       allGroups.put(groupEntity.getGroupName(), groupEntity);
       groupsToCreate.add(groupEntity);
@@ -678,7 +742,7 @@ public class Users {
     // create membership
     final Set<MemberEntity> membersToCreate = new HashSet<MemberEntity>();
     final Set<GroupEntity> groupsToUpdate = new HashSet<GroupEntity>();
-    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToAdd()) {
+    for (LdapUserGroupMemberDto member : batchInfo.getMembershipToAdd()) {
       final MemberEntity memberEntity = new MemberEntity();
       final GroupEntity groupEntity = allGroups.get(member.getGroupName());
       memberEntity.setGroup(groupEntity);
@@ -692,7 +756,7 @@ public class Users {
 
     // remove membership
     final Set<MemberEntity> membersToRemove = new HashSet<MemberEntity>();
-    for (LdapUserGroupMemberDto member: batchInfo.getMembershipToRemove()) {
+    for (LdapUserGroupMemberDto member : batchInfo.getMembershipToRemove()) {
       MemberEntity memberEntity = memberDAO.findByUserAndGroup(member.getUserName(), member.getGroupName());
       if (memberEntity != null) {
         membersToRemove.add(memberEntity);
@@ -702,6 +766,36 @@ public class Users {
 
     // clear cached entities
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
+
+    if (!usersToCreate.isEmpty()) {
+      // entry point in the hook logic
+      hookServiceProvider.get().execute(hookContextFactory.createBatchUserHookContext(getUsersToGroupMap(usersToCreate)));
+    }
+
+  }
+
+  /**
+   * Assembles a map where the keys are usernames and values are Lists with groups associated with users.
+   *
+   * @param usersToCreate a list with user entities
+   * @return the a populated map instance
+   */
+  private Map<String, Set<String>> getUsersToGroupMap(Set<UserEntity> usersToCreate) {
+    Map<String, Set<String>> usersToGroups = new HashMap<>();
+
+    for (UserEntity userEntity : usersToCreate) {
+
+      // make sure user entities are refreshed so that membership is updated
+      userEntity = userDAO.findByPK(userEntity.getUserId());
+
+      usersToGroups.put(userEntity.getUserName(), new HashSet<String>());
+
+      for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
+        usersToGroups.get(userEntity.getUserName()).add(memberEntity.getGroup().getGroupName());
+      }
+    }
+
+    return usersToGroups;
   }
 
   /**
@@ -740,10 +834,9 @@ public class Users {
     List<PrivilegeEntity> implicitPrivilegeEntities = getImplicitPrivileges(explicitPrivilegeEntities);
     List<PrivilegeEntity> privilegeEntities;
 
-    if(implicitPrivilegeEntities.isEmpty()) {
+    if (implicitPrivilegeEntities.isEmpty()) {
       privilegeEntities = explicitPrivilegeEntities;
-    }
-    else {
+    } else {
       privilegeEntities = new LinkedList<PrivilegeEntity>();
       privilegeEntities.addAll(explicitPrivilegeEntities);
       privilegeEntities.addAll(implicitPrivilegeEntities);
@@ -782,10 +875,9 @@ public class Users {
     List<PrivilegeEntity> implicitPrivilegeEntities = getImplicitPrivileges(explicitPrivilegeEntities);
     List<PrivilegeEntity> privilegeEntities;
 
-    if(implicitPrivilegeEntities.isEmpty()) {
+    if (implicitPrivilegeEntities.isEmpty()) {
       privilegeEntities = explicitPrivilegeEntities;
-    }
-    else {
+    } else {
       privilegeEntities = new LinkedList<PrivilegeEntity>();
       privilegeEntities.addAll(explicitPrivilegeEntities);
       privilegeEntities.addAll(implicitPrivilegeEntities);

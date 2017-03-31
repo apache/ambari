@@ -27,15 +27,20 @@ public class ServiceResponse {
   private String desiredStackVersion;
   private String desiredState;
   private String maintenanceState;
+  private boolean credentialStoreSupported;
+  private boolean credentialStoreEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName,
                          String serviceName,
-                         String desiredStackVersion, String desiredState) {
+                         String desiredStackVersion, String desiredState,
+                         boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.setDesiredStackVersion(desiredStackVersion);
     this.setDesiredState(desiredState);
+    this.credentialStoreSupported = credentialStoreSupported;
+    this.credentialStoreEnabled = credentialStoreEnabled;
   }
   
   
@@ -139,6 +144,46 @@ public class ServiceResponse {
   
   public String getMaintenanceState() {
     return maintenanceState;
+  }
+
+  /**
+   * Get a true or false value indicating if the service supports
+   * credential store use or not.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreSupported() {
+    return credentialStoreSupported;
+  }
+
+  /**
+   * Set a true or false value indicating whether the service
+   * supports credential store or not.
+   *
+   * @param credentialStoreSupported
+   */
+  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
+    this.credentialStoreSupported = credentialStoreSupported;
+  }
+
+  /**
+   * Get a true or false value indicating if the service is enabled
+   * for credential store use or not.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreEnabled() {
+    return credentialStoreEnabled;
+  }
+
+  /**
+   * Set a true or false value indicating whether the service is
+   * enabled for credential store use or not.
+   *
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    this.credentialStoreEnabled = credentialStoreEnabled;
   }
 
   @Override

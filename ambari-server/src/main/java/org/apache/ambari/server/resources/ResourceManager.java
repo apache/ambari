@@ -32,7 +32,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class ResourceManager {
   private static Log LOG = LogFactory.getLog(ResourceManager.class);
-	
+
   @Inject Configuration configs;
   /**
   * Returns resource file.
@@ -40,7 +40,7 @@ public class ResourceManager {
   * @return resource file
   */
   public File getResource(String resourcePath) {
-    String resDir = configs.getConfigsMap().get(Configuration.RESOURCES_DIR_KEY);
+    String resDir = configs.getConfigsMap().get(Configuration.RESOURCES_DIR.getKey());
     String resourcePathIndep = resourcePath.replace("/", File.separator);
     File resourceFile = new File(resDir + File.separator + resourcePathIndep);
     if (LOG.isDebugEnabled()) {

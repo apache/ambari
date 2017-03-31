@@ -36,6 +36,8 @@ App.MainHostDetailsView = Em.View.extend({
     });
   }.property('content.hostComponents.@each'),
 
+  hasManyClientsWithConfigs: Em.computed.gt('clientsWithConfigs.length', 1),
+
   isActive: Em.computed.equal('controller.content.passiveState', 'OFF'),
 
   maintenance: function () {

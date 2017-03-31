@@ -20,11 +20,12 @@ package org.apache.ambari.server.events.publishers;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Singleton;
-import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
+
+import org.apache.ambari.server.events.ClusterEvent;
 
 /**
  * The {@link VersionEventPublisher} is used to publish instances of
- * {@link HostComponentVersionAdvertisedEvent} to any {@link com.google.common.eventbus.Subscribe} interested.
+ * {@link ClusterEvent} to any {@link com.google.common.eventbus.Subscribe} interested.
  * It uses a single-threaded, serial {@link EventBus}.
  */
 @Singleton
@@ -44,11 +45,11 @@ public class VersionEventPublisher {
   /**
    * Publishes the specified event to all registered listeners that
    * {@link com.google.common.eventbus.Subscribe} to any of the
-   * {@link HostComponentVersionAdvertisedEvent} instances.
+   * {@link ClusterEvent} instances.
    *
    * @param event the event
    */
-  public void publish(HostComponentVersionAdvertisedEvent event) {
+  public void publish(ClusterEvent event) {
     m_eventBus.post(event);
   }
 

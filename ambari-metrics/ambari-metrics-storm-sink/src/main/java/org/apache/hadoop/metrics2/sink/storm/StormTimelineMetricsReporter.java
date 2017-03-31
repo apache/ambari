@@ -18,8 +18,15 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import org.apache.commons.lang3.Validate;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -27,14 +34,6 @@ import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 import org.apache.storm.metric.api.DataPoint;
 import org.apache.storm.metric.api.IClusterMetricsConsumer;
-import org.apache.storm.utils.Utils;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   implements IClusterMetricsConsumer {
@@ -43,23 +42,51 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "nimbus";
 
   private String hostname;
-  private String collectorUri;
   private String applicationId;
   private int timeoutSeconds;
+  private String port;
+  private Collection<String> collectorHosts;
+  private String zkQuorum;
+  private String protocol;
 
   public StormTimelineMetricsReporter() {
 
   }
 
   @Override
-  protected String getCollectorUri() {
-    return this.collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(protocol, host, port);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
   }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return port;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
+  }
+
 
   @Override
   public void prepare(Object registrationArgument) {
@@ -75,24 +102,34 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         LOG.error("Could not identify hostname.");
         throw new RuntimeException("Could not identify hostname.", e);
       }
-      Configuration configuration = new Configuration("/storm-metrics2.properties");
-      String collector = configuration.getProperty(COLLECTOR_PROPERTY).toString();
-      timeoutSeconds = configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS) != null ?
-        Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS).toString()) :
+      Configuration conf = new Configuration("/storm-metrics2.properties");
+
+      collectorHosts = parseHostsStringIntoCollection(conf.getProperty(COLLECTOR_HOSTS_PROPERTY).toString());
+      port = conf.getProperty(COLLECTOR_PORT) != null ? conf.getProperty(COLLECTOR_PORT) : "6188";
+      protocol = conf.getProperty(COLLECTOR_PROTOCOL, "http");
+
+      zkQuorum = StringUtils.isEmpty(conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM)) ?
+        conf.getProperty(ZOOKEEPER_QUORUM) : conf.getProperty(COLLECTOR_ZOOKEEPER_QUORUM);
+
+      timeoutSeconds = conf.getProperty(METRICS_POST_TIMEOUT_SECONDS) != null ?
+        Integer.parseInt(conf.getProperty(METRICS_POST_TIMEOUT_SECONDS).toString()) :
         DEFAULT_POST_TIMEOUT_SECONDS;
-      applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
-      collectorUri = collector + WS_V1_TIMELINE_METRICS;
-      if (collectorUri.toLowerCase().startsWith("https://")) {
-        String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
-        String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
-        String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
+      applicationId = conf.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
+
+      if (protocol.contains("https")) {
+        String trustStorePath = conf.getProperty(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
+        String trustStoreType = conf.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
+        String trustStorePwd = conf.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
         loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
       }
+
+
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify " +
         "protocol, host, port under $STORM_HOME/conf/config.yaml ", e);
     }
-
+    // Initialize the collector write strategy
+    super.init();
   }
 
   @Override

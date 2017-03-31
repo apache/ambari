@@ -18,21 +18,27 @@ limitations under the License.
 
 """
 import httplib
+
+from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_parallel, SUCCESS
+from service_check import post_metrics_to_collector
 from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
 from resource_management import Template
 from collections import namedtuple
 from urlparse import urlparse
 from base64 import b64encode
+import random
 import time
 import socket
 import ambari_simplejson as json
-import network
+import ambari_commons.network as network
+import os
 
-GRAFANA_CONNECT_TRIES = 5
-GRAFANA_CONNECT_TIMEOUT = 10
-GRAFANA_SEARCH_BULTIN_DASHBOARDS = "/api/search?tag=builtin"
+GRAFANA_CONNECT_TRIES = 15
+GRAFANA_CONNECT_TIMEOUT = 20
+GRAFANA_SEARCH_BUILTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
+GRAFANA_USER_URL = "/api/user"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
 METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
 
@@ -41,12 +47,16 @@ Server = namedtuple('Server', [ 'protocol', 'host', 'port', 'user', 'password' ]
 def perform_grafana_get_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
@@ -77,9 +87,14 @@ def perform_grafana_put_call(url, id, payload, server):
              'Authorization' : 'Basic %s' %  userAndPass }
   grafana_https_enabled = server.protocol.lower() == 'https'
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
-      conn = network.get_http_connection(server.host, int(server.port), grafana_https_enabled)
+      conn = network.get_http_connection(server.host, int(server.port), grafana_https_enabled, ca_certs)
       conn.request("PUT", url + "/" + str(id), payload, headers)
       response = conn.getresponse()
       data = response.read()
@@ -107,12 +122,17 @@ def perform_grafana_post_call(url, payload, server):
              'Authorization' : 'Basic %s' %  userAndPass}
   grafana_https_enabled = server.protocol.lower() == 'https'
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       Logger.info("Connecting (POST) to %s:%s%s" % (server.host, server.port, url))
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
       
       conn.request("POST", url, payload, headers)
 
@@ -144,11 +164,16 @@ def perform_grafana_delete_call(url, server):
   grafana_https_enabled = server.protocol.lower() == 'https'
   response = None
 
+  ca_certs = None
+  if grafana_https_enabled:
+    import params
+    ca_certs = params.ams_grafana_cert_file
+
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       conn = network.get_http_connection(server.host,
                                          int(server.port),
-                                         grafana_https_enabled)
+                                         grafana_https_enabled, ca_certs)
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
@@ -171,19 +196,73 @@ def perform_grafana_delete_call(url, server):
 
   return response
 
-def is_unchanged_datasource_url(datasource_url):
+def is_unchanged_datasource_url(grafana_datasource_url, new_datasource_host):
   import params
-  parsed_url = urlparse(datasource_url)
+  parsed_url = urlparse(grafana_datasource_url)
   Logger.debug("parsed url: scheme = %s, host = %s, port = %s" % (
     parsed_url.scheme, parsed_url.hostname, parsed_url.port))
   Logger.debug("collector: scheme = %s, host = %s, port = %s" %
-              (params.metric_collector_protocol, params.metric_collector_host,
+              (params.metric_collector_protocol, new_datasource_host,
                params.metric_collector_port))
 
   return parsed_url.scheme.strip() == params.metric_collector_protocol.strip() and \
-         parsed_url.hostname.strip() == params.metric_collector_host.strip() and \
+         parsed_url.hostname.strip() == new_datasource_host.strip() and \
          str(parsed_url.port) == params.metric_collector_port
 
+def do_ams_collector_post(metric_collector_host, params):
+    ams_metrics_post_url = "/ws/v1/timeline/metrics/"
+    random_value1 = random.random()
+    headers = {"Content-type": "application/json"}
+    ca_certs = os.path.join(params.ams_grafana_conf_dir,
+                            params.metric_truststore_ca_certs)
+
+    current_time = int(time.time()) * 1000
+    metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
+                           current_time=current_time).get_content()
+
+    post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, params.metric_collector_port, params.metric_collector_https_enabled,
+                                metric_json, headers, ca_certs)
+
+def create_grafana_admin_pwd():
+  import params
+
+  serverCall1 = Server(protocol = params.ams_grafana_protocol.strip(),
+                   host = params.ams_grafana_host.strip(),
+                   port = params.ams_grafana_port,
+                   user = params.ams_grafana_admin_user,
+                   password = params.ams_grafana_admin_pwd)
+
+  response = perform_grafana_get_call(GRAFANA_USER_URL, serverCall1)
+  if response and response.status != 200:
+
+    serverCall2 = Server(protocol = params.ams_grafana_protocol.strip(),
+                     host = params.ams_grafana_host.strip(),
+                     port = params.ams_grafana_port,
+                     user = params.ams_grafana_admin_user,
+                     password = 'admin')
+
+    Logger.debug("Setting grafana admin password")
+    pwd_data = {  "oldPassword": "admin",
+                     "newPassword": params.ams_grafana_admin_pwd,
+                     "confirmNew": params.ams_grafana_admin_pwd
+                     }
+    password_json = json.dumps(pwd_data)
+
+    (response, data) = perform_grafana_put_call(GRAFANA_USER_URL, 'password', password_json, serverCall2)
+
+    if response.status == 200:
+      Logger.info("Ambari Metrics Grafana password updated.")
+
+    elif response.status == 500:
+      Logger.info("Ambari Metrics Grafana password update failed. Not retrying.")
+      raise Fail("Ambari Metrics Grafana password update failed. PUT request status: %s %s \n%s" %
+                 (response.status, response.reason, data))
+    else:
+      raise Fail("Ambari Metrics Grafana password creation failed. "
+                 "PUT request status: %s %s \n%s" % (response.status, response.reason, data))
+  else:
+    Logger.info("Grafana password update not required.")
+  pass
 
 def create_ams_datasource():
   import params
@@ -196,11 +275,28 @@ def create_ams_datasource():
   """
   Create AMS datasource in Grafana, if exsists make sure the collector url is accurate
   """
+  Logger.info("Trying to find working metric collector")
+  results = execute_in_parallel(do_ams_collector_post, params.ams_collector_hosts.split(','), params)
+  new_datasource_host = ""
+
+  for host in params.ams_collector_hosts.split(','):
+    if host in results:
+      if results[host].status == SUCCESS:
+        new_datasource_host = host
+        Logger.info("Found working collector on host %s" % new_datasource_host)
+        break
+      else:
+        Logger.warning(results[host].result)
+
+  if new_datasource_host == "":
+    Logger.warning("All metric collectors are unavailable. Will use random collector as datasource host.")
+    new_datasource_host = params.random_metric_collector_host
+
+  Logger.info("New datasource host will be %s" % new_datasource_host)
+
   ams_datasource_json = Template('metrics_grafana_datasource.json.j2',
-                                 ams_datasource_name=METRICS_GRAFANA_DATASOURCE_NAME).get_content()
-
+                            ams_datasource_name=METRICS_GRAFANA_DATASOURCE_NAME, ams_datasource_host=new_datasource_host).get_content()
   Logger.info("Checking if AMS Grafana datasource already exists")
-
 
   response = perform_grafana_get_call(GRAFANA_DATASOURCE_URL, server)
   create_datasource = True
@@ -215,7 +311,7 @@ def create_ams_datasource():
         Logger.info("Ambari Metrics Grafana datasource already present. Checking Metrics Collector URL")
         datasource_url = datasources_json[i]["url"]
 
-        if is_unchanged_datasource_url(datasource_url):
+        if is_unchanged_datasource_url(datasource_url, new_datasource_host):
           Logger.info("Metrics Collector URL validation succeeded.")
           return
         else: # Metrics datasource present, but collector host is wrong.
@@ -279,14 +375,14 @@ def create_ams_dashboards():
   Dashboard = namedtuple('Dashboard', ['uri', 'id', 'title', 'tags'])
 
   existing_dashboards = []
-  response = perform_grafana_get_call(GRAFANA_SEARCH_BULTIN_DASHBOARDS, server)
+  response = perform_grafana_get_call(GRAFANA_SEARCH_BUILTIN_DASHBOARDS, server)
   if response and response.status == 200:
     data = response.read()
     try:
       dashboards = json.loads(data)
     except:
       Logger.error("Unable to parse JSON response from grafana request: %s" %
-                   GRAFANA_SEARCH_BULTIN_DASHBOARDS)
+                   GRAFANA_SEARCH_BUILTIN_DASHBOARDS)
       Logger.info(data)
       return
 
@@ -302,7 +398,7 @@ def create_ams_dashboards():
   else:
     Logger.error("Failed to execute search query on Grafana dashboards. "
                  "query = %s\n statuscode = %s\n reason = %s\n data = %s\n" %
-                 (GRAFANA_SEARCH_BULTIN_DASHBOARDS, response.status, response.reason, response.read()))
+                 (GRAFANA_SEARCH_BUILTIN_DASHBOARDS, response.status, response.reason, response.read()))
     return
 
   Logger.debug('Dashboard definitions found = %s' % str(dashboard_files))
@@ -357,6 +453,5 @@ def create_ams_dashboards():
           Logger.info('No update needed for dashboard = %s' % dashboard_def['title'])
       pass
     pass
-
 
 

@@ -26,9 +26,18 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
    * @type {object}
    */
   dbPropertyMap: {
-    'HIVE_SERVER': 'javax.jdo.option.ConnectionDriverName',
-    'HIVE_METASTORE': 'javax.jdo.option.ConnectionDriverName',
-    'OOZIE_SERVER': 'oozie.service.JPAService.jdbc.driver'
+    'HIVE_SERVER': {
+      type: 'hive-site',
+      name: 'javax.jdo.option.ConnectionDriverName'
+    },
+    'HIVE_METASTORE': {
+      type: 'hive-site',
+      name: 'javax.jdo.option.ConnectionDriverName'
+    },
+    'OOZIE_SERVER': {
+      type: 'oozie-site',
+      name: 'oozie.service.JPAService.jdbc.driver'
+    }
   },
 
   loadConfigsTags: function () {
@@ -79,55 +88,78 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
   },
 
   onLoadConfigs: function (data) {
-    var databaseProperty = null,
-        databaseType = null,
-        properties = {},
-        isRemoteDB = null;
+    var databaseProperty,
+      databaseType = null,
+      databaseTypeMatch,
+      properties = {},
+      configs = {},
+      dbPropertyMapItem = Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null),
+      serviceDbProp = this.get('content.reassign.service_id').toLowerCase() + '_database';
 
     data.items.forEach(function(item) {
-      $.extend(properties, item.properties);
+      configs[item.type] = item.properties;
     });
 
-    this.set('content.serviceProperties', properties);
+    this.get('content').setProperties({
+      serviceProperties: properties,
+      configs: configs
+    });
 
-    databaseProperty = properties[ Em.getWithDefault(this.get('dbPropertyMap'), this.get('content.reassign.component_name'), null) ];
-    databaseType = databaseProperty.match(/MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi)[0];
+    if (dbPropertyMapItem) {
+      databaseProperty = Em.getWithDefault(configs, dbPropertyMapItem.type, {})[dbPropertyMapItem.name];
+      databaseTypeMatch = databaseProperty && databaseProperty.match(/MySQL|PostgreS|Oracle|Derby|MSSQL|Anywhere/gi);
+      if (databaseTypeMatch) {
+        databaseType = databaseTypeMatch[0];
+      }
+    }
     this.set('databaseType', databaseType);
 
     if (this.get('content.reassign.component_name') == 'OOZIE_SERVER' && databaseType !== 'derby') {
       App.router.reassignMasterController.set('content.hasManualSteps', false);
     }
 
-    var serviceDbProp = this.get('content.reassign.service_id').toLowerCase() + "_database";
-    properties['is_remote_db'] = /Existing/ig.test( properties[serviceDbProp] );
+    properties['is_remote_db'] = /Existing/ig.test(properties[serviceDbProp]);
 
     properties['database_hostname'] = this.getDatabaseHost();
 
     this.saveDatabaseType(databaseType);
     this.saveServiceProperties(properties);
+    this.saveConfigs(configs);
   },
 
   saveDatabaseType: function(type) {
-    if(type) {
+    if (type) {
       App.router.get(this.get('content.controllerName')).saveDatabaseType(type);
     }
   },
 
   saveServiceProperties: function(properties) {
-    if(properties) {
+    if (properties) {
       App.router.get(this.get('content.controllerName')).saveServiceProperties(properties);
     }
   },
 
-  getDatabaseHost: function() {
-    var db_type = this.get('databaseType');
-    var connectionURLPRops = {
-      'HIVE': 'javax.jdo.option.ConnectionURL',
-      'OOZIE': 'oozie.service.JPAService.jdbc.url'
-    };
+  saveConfigs: function(configs) {
+    if (configs) {
+      App.router.get(this.get('content.controllerName')).saveConfigs(configs);
+    }
+  },
 
-    var service = this.get('content.reassign.service_id');
-    var connectionURL = this.get('content.serviceProperties')[connectionURLPRops[service]];
+  getDatabaseHost: function() {
+    var db_type = this.get('databaseType'),
+      connectionURLProps = {
+        'HIVE': {
+          type: 'hive-site',
+          name: 'javax.jdo.option.ConnectionURL'
+        },
+        'OOZIE': {
+          type: 'oozie-site',
+          name: 'oozie.service.JPAService.jdbc.url'
+        }
+      },
+      service = this.get('content.reassign.service_id'),
+      connectionURLPropsItem = connectionURLProps[service],
+      connectionURL = Em.getWithDefault(this.get('content.configs'), connectionURLPropsItem.type, {})[connectionURLPropsItem.name];
 
     connectionURL = connectionURL.replace("jdbc:" + db_type + "://", "");
     connectionURL = connectionURL.replace("/hive?createDatabaseIfNotExist=true", "");

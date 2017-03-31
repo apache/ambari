@@ -16,9 +16,21 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'actionModel.to': validator('presence', {
+    presence : true
+  }),
+  'actionModel.subject': validator('presence', {
+    presence : true
+  }),
+  'actionModel.body': validator('presence', {
+    presence : true
+  })  
+});
+
+export default Ember.Component.extend(Validations, {
   fileBrowser : Ember.inject.service('file-browser'),
   setUp : function(){
 
@@ -34,23 +46,6 @@ export default Ember.Component.extend(EmberValidations, {
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.to': {
-      presence: {
-        'message' : 'You need to provide a value for Email To',
-      }
-    },
-    'actionModel.subject': {
-      presence: {
-        'message' : 'You need to provide a value for subject',
-      }
-    },
-    'actionModel.body': {
-      presence: {
-        'message' : 'You need to provide a value for body',
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

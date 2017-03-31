@@ -22,11 +22,11 @@ export default Ember.Route.extend({
   queryParams: {
       jobType: { refreshModel: true },
       id: { refreshModel: true },
-      from : {refreshModel: true},
-      fromType :{refreshModel : true}
+      fromBundleId: {refreshModel: true},
+      fromCoordId: {refreshModel: true}
   },
-  from : null,
-  fromType : null,
+  fromBundleId: null,
+  fromCoordId: null,
   getJobInfo (url){
     var deferred = Ember.RSVP.defer();
     Ember.$.get(url).done(function(res){
@@ -48,18 +48,25 @@ export default Ember.Route.extend({
     });
   },
   afterModel : function (model, transition){
-    if(transition.queryParams.from){
-      this.set('from', transition.queryParams.from);
-      this.set('fromType',transition.queryParams.fromType);
+    if(transition.queryParams.fromBundleId){
+      this.set('fromBundleId', transition.queryParams.fromBundleId);
     }else{
-      this.set('from', null);
-      this.set('fromType', null);
+      this.set('fromBundleId', null);
+    }
+    if(transition.queryParams.fromCoordId){
+      this.set('fromCoordId', transition.queryParams.fromCoordId);
+    }else{
+      this.set('fromCoordId', null);
     }
   },
   actions : {
     didTransition (){
-      this.controller.set('from', this.get('from'));
-      this.controller.set('fromType',this.get('fromType'));
+      if (this.get('fromBundleId')) {
+        this.controller.set('fromBundleId', this.get('fromBundleId'));
+      }
+      if (this.get('fromCoordId')) {
+        this.controller.set('fromCoordId',this.get('fromCoordId'));
+      }
     },
     onTabChange : function(tab){
       this.set('currentTab', tab);

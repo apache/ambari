@@ -76,14 +76,20 @@
                 <label>{{view Em.Checkbox classNames="checkbox" checkedBinding="ignore"}} {{t admin.kerberos.wizard.step3.checkbox.ignoreAndProceed.label}}</label>
             </div>
         {{/if}}
+        {{#if view.isHostHeartbeatLost}}
+          <p class="alert alert-danger">{{view.resultMsg}}
+            <a href="javascript:void(null)"
+            data-toggle="modal" {{action showHostsWithLostHeartBeat target="view"}}>{{t common.showDetails}}</a>
+          </p>
+        {{/if}}
       {{else}}
           {{view App.SpinnerView}}
       {{/if}}
         <div class="btn-area">
           {{#if view.showBackButton}}
-              <button class="btn pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
+              {{view App.WizardBackButton action="back" target="controller"}}
           {{/if}}
-            <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
+          {{view App.WizardNextButton buttonId="submit-kerberos-step3" action="done" target="controller"}}
         </div>
     </div>
 </div>

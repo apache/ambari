@@ -16,55 +16,140 @@
 */
 import Ember from 'ember';
 export default Ember.Object.extend({
-  actionVersions: Ember.Map.create(),
-  currentActionVersion:Ember.Map.create(),
-  clone : {},
-  createCopy(){
-    this.clone.workflowVersion = this.workflowVersion;
-    this.clone.currentActionVersion = this.currentActionVersion.copy();
-  },
-  rollBack(){
-    this.workflowVersion = this.clone.workflowVersion;
-    this.currentActionVersion = this.clone.currentActionVersion.copy();
+
+  supportedVersions : new Map(),
+  defaultVersions : new Map(),
+  actionVersions: new Map(),
+  currentActionVersion:new Map(),
+  workflowVersions: ["0.5","0.4.5","0.4","0.3","0.2.5","0.2","0.1"],
+  bundleVersions: ["0.2","0.1"],
+  coordinatorVersions: ["0.5", "0.4","0.3", "0.2","0.1"],
+  actionSchemas:{
+    "hive":["0.6","0.5","0.4","0.3","0.2","0.1"],
+    "hive2":["0.2","0.1"],
+    "sqoop":["0.4","0.3","0.2","0.1"],
+    "shell":["0.3","0.2","0.1"],
+    "spark":["0.2","0.1"],
+    "distcp":["0.2","0.1"],
+    "email":["0.2","0.1"]
   },
   init(){
-    this.workflowVersion = "0.5";
-    this.workflowVersions = ["0.5","0.4.5","0.4","0.3","0.2.5","0.2","0.1"];
-    this.actionVersions.set("hive",["0.6","0.5","0.4","0.3","0.2","0.1"]);
-    this.actionVersions.set("hive2",["0.2","0.1"]);
-    this.actionVersions.set("pig",["0.3","0.2","0.1"]);
-    this.actionVersions.set("sqoop",["0.3","0.2","0.1"]);
-    this.actionVersions.set("shell",["0.3","0.2","0.1"]);
-    this.actionVersions.set("spark",["0.2","0.1"]);
-    this.actionVersions.set("distcp",["0.2","0.1"]);
-    this.actionVersions.set("email",["0.2","0.1"]);
+    if(this.supportedVersions.size === 0 && !this.useDefaultSettings){
+      this.parseWorkflowSchemaConfig();
+      this.parseCoordSchemaConfig();
+      this.parseBundleSchemaConfig();
+      this.initializeDefaultVersions();
+    }else if(this.supportedVersions.size === 0 && this.useDefaultSettings){
+      this.loadDefaultSettings()
+      this.initializeDefaultVersions();
+    }
+  },
+  loadDefaultSettings(){
+    this.supportedVersions.set('workflow', []);
+    this.supportedVersions.set('coordinator', []);
+    this.supportedVersions.set('bundle', []);
+    this.workflowVersions.forEach((value)=>{
+      this.supportedVersions.get('workflow').pushObject(value);
+    }, this);
+    this.coordinatorVersions.forEach((value)=>{
+      this.supportedVersions.get('coordinator').pushObject(value);
+    }, this);
+    this.bundleVersions.forEach((value)=>{
+      this.supportedVersions.get('bundle').pushObject(value);
+    }, this);
+    Object.keys(this.actionSchemas).forEach((key)=>{
+      this.supportedVersions.set(key , this.actionSchemas[key]);
+    }, this);
+  },
+  getSupportedVersions(type){
+    return this.supportedVersions.get(type);
+  },
 
-    this.currentActionVersion.set("hive","0.6");
-    this.currentActionVersion.set("hive2","0.2");
-    this.currentActionVersion.set("pig","0.3");
-    this.currentActionVersion.set("sqoop","0.3");
-    this.currentActionVersion.set("shell","0.3");
-    this.currentActionVersion.set("spark","0.2");
-    this.currentActionVersion.set("distcp","0.2");
-    this.currentActionVersion.set("email","0.2");
+  getDefaultVersion(type){
+    return this.defaultVersions.get(type);
   },
-  getActionVersions(type){
-    return this.actionVersions.get(type);
+
+  setDefaultVersion(type, version){
+    this.defaultVersions.set(type, version);
   },
-  getActionVersion(type){
-    return this.currentActionVersion.get(type);
+
+  restoreDefaultVersionSettings(){
+    this.initializeDefaultVersions();
   },
-  getCurrentWorkflowVersion(){
-    return this.workflowVersion;
+
+  initializeDefaultVersions(){
+    this.supportedVersions.forEach((value, key) =>{
+      var max = Math.max.apply(null,value);
+      if(isNaN(max)){
+        max = value.reduce((a, b) => a > b?a:b);
+      }
+      this.defaultVersions.set(key, String(max));
+    }, this);
   },
-  getWorkflowVersions(){
-    return this.workflowVersions;
+  parseWorkflowSchemaConfig() {
+    this.workflowVersions = [];
+    var wfSchemaVersions = this.adminConfig["oozie.service.SchemaService.wf.schemas"].trim().split(",");
+    wfSchemaVersions = wfSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
+    wfSchemaVersions.forEach(function(wfSchemaVersion) {
+      var wfSchema = wfSchemaVersion.split("-");
+      var wfSchemaName = wfSchema[0];
+      var wfSchemaType = wfSchema[1];
+      var wfSchemaVersionNumber = wfSchema[2].replace(".xsd", "");
+      if (wfSchemaType === "action") {
+        if(this.supportedVersions.get(wfSchemaName)){
+          this.supportedVersions.get(wfSchemaName).pushObject(wfSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set(wfSchemaName, [wfSchemaVersionNumber]);
+        }
+      } else if (wfSchemaType === "workflow") {
+        if(this.supportedVersions.get(wfSchemaType)){
+          this.supportedVersions.get(wfSchemaType).pushObject(wfSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set(wfSchemaType, [wfSchemaVersionNumber]);
+        }
+      }
+    }.bind(this));
   },
-  setActionVersion(type, version){
-    this.currentActionVersion.set(type, version);
+  parseCoordSchemaConfig() {
+    var coordSchemaVersions = this.adminConfig["oozie.service.SchemaService.coord.schemas"].trim().split(",");
+    coordSchemaVersions = coordSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
+    coordSchemaVersions.forEach(function(coordSchemaVersion) {
+      var coordSchema = coordSchemaVersion.split("-");
+      var coordSchemaType = coordSchema[1];
+      var coordSchemaVersionNumber = coordSchema[2].replace(".xsd", "");
+      if (coordSchemaType === "coordinator") {
+        if(this.supportedVersions.get('coordinator')){
+          this.supportedVersions.get('coordinator').pushObject(coordSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set('coordinator', [coordSchemaVersionNumber]);
+        }
+      }
+    }.bind(this));
   },
-  setCurrentWorkflowVersion(version){
-    return this.workflowVersion = version;
+  parseBundleSchemaConfig() {
+    this.bundleVersions = [];
+    var bundleSchemaVersions = this.adminConfig["oozie.service.SchemaService.bundle.schemas"].trim().split(",");
+    bundleSchemaVersions = bundleSchemaVersions.map(Function.prototype.call, String.prototype.trim).sort();
+    bundleSchemaVersions.forEach(function(bundleSchemaVersion) {
+      var bundleSchema = bundleSchemaVersion.split("-");
+      var bundleSchemaType = bundleSchema[1];
+      var bundleSchemaVersionNumber = bundleSchema[2].replace(".xsd", "");
+      if (bundleSchemaType === "bundle") {
+        if(this.supportedVersions.get('bundle')){
+          this.supportedVersions.get('bundle').pushObject(bundleSchemaVersionNumber);
+        }else{
+          this.supportedVersions.set('bundle', [bundleSchemaVersionNumber]);
+        }
+      }
+    }.bind(this));
+  },
+  setDefaultActionVersions(){
+    var self=this;
+    Object.keys(this.actionSchemaMap).forEach(function(key) {
+      if (!self.actionVersions.get(key)){
+        self.actionVersions.set(key,self.actionSchemaMap[key]);
+        self.currentActionVersion.set(key,self.actionSchemaMap[key][0]);
+      }
+    });
   }
-
 });

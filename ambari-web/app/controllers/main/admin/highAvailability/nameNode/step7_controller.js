@@ -22,7 +22,32 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep7Controller",
 
-  commands: ['startZooKeeperServers', 'startNameNode'],
+  commands: ['startZooKeeperServers', 'startAmbariInfra', 'startRanger', 'startNameNode'],
+
+  initializeTasks: function () {
+    this._super();
+    var tasksToRemove = [];
+
+    if (!App.Service.find().someProperty('serviceName', 'AMBARI_INFRA')) {
+      tasksToRemove.push('startAmbariInfra');
+    }
+
+    if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
+      tasksToRemove.push('startRanger');
+    }
+    this.removeTasks(tasksToRemove);
+  },
+
+  startAmbariInfra: function () {
+    this.startServices(false, ['AMBARI_INFRA'], true);
+  },
+
+  startRanger: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'RANGER_ADMIN').mapProperty('hostName');
+    if(hostNames.length) {
+      this.updateComponent('RANGER_ADMIN', hostNames, "RANGER", "Start");
+    }
+  },
 
   startZooKeeperServers: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');

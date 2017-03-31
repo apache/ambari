@@ -233,6 +233,7 @@
         <component>
           <name>HCAT</name>
           <displayName>HCat Client</displayName>
+          <cardinality>0+</cardinality>
           <category>CLIENT</category>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
@@ -271,7 +272,7 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
-              <condition>should_install_mysl_connector</condition>
+              <condition>should_install_mysql_connector</condition>
             </package>
           </packages>
         </osSpecific>

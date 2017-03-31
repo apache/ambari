@@ -22,7 +22,6 @@ limitations under the License.
 from unittest import TestCase
 import logging
 import unittest
-import subprocess
 import socket
 import platform
 from mock.mock import patch
@@ -38,6 +37,7 @@ from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from ambari_agent.HostInfo import HostInfo, HostInfoLinux
 from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
+from resource_management.core import shell
 from resource_management.core.system import System
 from resource_management.libraries.functions import packages_analyzer
 
@@ -105,9 +105,9 @@ class TestHostInfo(TestCase):
     packages_analyzer.allInstalledPackages(installedPackages)
     self.assertEqual(9, len(installedPackages))
     for package in installedPackages:
-      self.assertTrue(package[0] in ["AMBARI.dev.noarch", "PyXML.x86_64", "oracle-server-db.x86",
-                                 "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch",
-                                 "hcatalog.noarch", "hesiod.x86_64", "hive.noarch", "ambari-log4j.noarch", "libconfuse.x86_64"])
+      self.assertTrue(package[0] in ["AMBARI.dev", "PyXML", "oracle-server-db",
+                                 "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US",
+                                 "hcatalog", "hesiod", "hive", "ambari-log4j", "libconfuse"])
       self.assertTrue(package[1] in ["1.x-1.el6", "0.8.4-19.el6", "3-7.el6", "3.1.0-19.el6",
                                  "0.11.0.1.3.0.0-107.el6", "1.2.5.9-1", "1.3.17-2", "1.2.5.9-1", "2.7-4.el6"])
       self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-1.3.0",
@@ -116,8 +116,8 @@ class TestHostInfo(TestCase):
     packages = packages_analyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
                                                        installedPackages)
     self.assertEqual(4, len(packages))
-    expected = ["AMBARI.dev.noarch", "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch",
-                                "hesiod.x86_64", "hive.noarch"]
+    expected = ["AMBARI.dev", "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US",
+                                "hesiod", "hive"]
     for package in expected:
       self.assertTrue(package in packages)
 
@@ -360,47 +360,68 @@ class TestHostInfo(TestCase):
     self.assertEquals(list[0]['user'], 'user')
 
   @patch.object(OSCheck, "get_os_type")
-  @patch("subprocess.Popen")
-  def test_checkLiveServices(self, subproc_popen, get_os_type_method):
-    hostInfo = HostInfoLinux()
-    p = MagicMock()
-    p.returncode = 0
-    p.communicate.return_value = ('', 'err')
-    subproc_popen.return_value = p
-    result = []
+  @patch("resource_management.core.shell.call")
+  def test_checkLiveServices(self, shell_call, get_os_type_method):
     get_os_type_method.return_value = 'redhat'
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo = HostInfoLinux()
 
+    shell_call.return_value = (0, '', 'err')
+    result = []
+    hostInfo.checkLiveServices([('service1',)], result)
+
+    self.assertEquals(result[0]['desc'], '')
     self.assertEquals(result[0]['status'], 'Healthy')
     self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], '')
-    self.assertEquals(str(subproc_popen.call_args_list),
-                      "[call(['service', 'service1', 'status'], stderr=-1, stdout=-1)]")
 
-    p.returncode = 1
-    p.communicate.return_value = ('out', 'err')
+    shell_call.return_value = (1, 'out', 'err')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
     self.assertEquals(result[0]['desc'], 'out')
 
-    p.communicate.return_value = ('', 'err')
+    shell_call.return_value = (1, '', 'err')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
     self.assertEquals(result[0]['desc'], 'err')
 
-    p.communicate.return_value = ('', 'err', '')
+    shell_call.return_value = (1, '', 'err')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
+
+    shell_call.return_value = (0, '', 'err')
+    result = []
+    hostInfo.checkLiveServices([('service1', 'service2',)], result)
+
+    self.assertEquals(result[0]['status'], 'Healthy')
+    self.assertEquals(result[0]['name'], 'service1 or service2')
+    self.assertEquals(result[0]['desc'], '')
+
+    shell_call.return_value = (1, 'out', 'err')
+    result = []
+    hostInfo.checkLiveServices([('service1', 'service2',)], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1 or service2')
+    self.assertEquals(result[0]['desc'], 'out\nout')
+
+    msg = 'thrown by shell call'
+    shell_call.side_effect = Exception(msg)
+    result = []
+    hostInfo.checkLiveServices([('service1',)], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEquals(result[0]['desc'], msg)
+
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
   @patch("os.path.exists")
@@ -427,7 +448,7 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   def test_FirewallRunning(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
@@ -462,7 +483,7 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  @patch("ambari_commons.firewall.run_os_command")
+  @patch("resource_management.core.shell.call")
   def test_FirewallStopped(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY

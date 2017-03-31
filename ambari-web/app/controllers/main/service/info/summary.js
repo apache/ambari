@@ -369,7 +369,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.summary.alerts.popup.header').format(context.get('displayName')),
       autoHeight: false,
-      classNames: ['forty-percent-width-modal'],
+      classNames: ['sixty-percent-width-modal'],
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/service_alert_popup'),
         classNames: ['service-alerts'],
@@ -377,10 +377,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         didInsertElement: function () {
           Em.run.next(this, function () {
             App.tooltip(this.$(".timeago"));
+            App.tooltip(this.$(".definition-latest-text"), {placement: 'bottom'});
           });
         },
         willDestroyElement:function () {
           this.$(".timeago").tooltip('destroy');
+          this.$(".definition-latest-text").tooltip('destroy');
         },
         alerts: function () {
           var property = context.get('componentName') ? 'componentName' : 'serviceName';
@@ -405,11 +407,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           serviceDefinitions = criticalDefinitions.concat(warningDefinitions, okDefinitions, unknownDefinitions, serviceDefinitions);
           return serviceDefinitions;
         }.property('controller.content'),
-        gotoAlertDetails: function (event) {
-          if (event && event.context) {
+        gotoAlertDetails: function (e) {
+          if (e && e.context) {
             this.get('parentView').hide();
-            App.router.transitionTo('main.alerts.alertDetails', event.context);
+            App.router.transitionTo('main.alerts.alertDetails', e.context);
           }
+          return false;
         },
         closePopup: function () {
           this.get('parentView').hide();
@@ -849,6 +852,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         }
       })
     });
+  },
+
+  goToView: function(event) {
+    App.router.route(event.context.get('internalAmbariUrl'));
   }
 
 });

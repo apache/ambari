@@ -148,4 +148,27 @@ public class SecretReference {
       }
     }
   }
+
+  /**
+   * Replace real passwords with secret references
+   * @param configAttributes map with config attributes containing properties types as part of their content
+   * @param propertiesMap map with properties in which replacement will be performed
+   * @param configType configuration type
+   * @param configVersion configuration version
+   */
+  public static void replacePasswordsWithReferencesForCustomProperties(Map<String, Map<String, String>> configAttributes,
+                                                    Map<String, String> propertiesMap,
+                                                    String configType,
+                                                    Long configVersion){
+    if(configAttributes != null && configAttributes.containsKey("password")) {
+      for(String pwdPropertyName: configAttributes.get("password").keySet()) {
+        if(propertiesMap.containsKey(pwdPropertyName)){
+          if(!propertiesMap.get(pwdPropertyName).equals("")) {
+            String stub = SecretReference.generateStub(configType, configVersion, pwdPropertyName);
+            propertiesMap.put(pwdPropertyName, stub);
+          }
+        }
+      }
+    }
+  }
 }

@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('Group', ['$http', '$q', 'Settings', function($http, $q, Settings) {
+.factory('Group', ['$http', '$q', 'Settings', 'GroupConstants', '$translate', function($http, $q, Settings, GroupConstants, $translate) {
+  var $t = $translate.instant;
   function Group(item){
     if(typeof item === 'string'){
       this.group_name = item;
@@ -43,6 +44,21 @@ angular.module('ambariAdminConsole')
         deferred.resolve(self.ldap_group);
       });
     }
+
+    return deferred.promise;
+  }
+
+  Group.prototype.getGroupType = function() {
+    var deferred = $q.defer();
+    var self = this;
+    $http({
+      method: 'GET',
+      url: Settings.baseUrl + '/groups/'+this.group_name
+    }).
+    success(function(data) {
+      self.group_type = data.Groups.group_type;
+      deferred.resolve(self.group_type);
+    });
 
     return deferred.promise;
   }
@@ -155,7 +171,7 @@ angular.module('ambariAdminConsole')
       + '&fields=*'
       + '&from='+ (params.currentPage-1)*params.groupsPerPage
       + '&page_size=' + params.groupsPerPage
-      + (params.ldap_group === '*' ? '' : '&Groups/ldap_group='+params.ldap_group)
+      + (params.group_type === '*' ? '' : '&Groups/group_type=' + params.group_type)
     )
     .success(function(data) {
       var groups = [];
@@ -186,6 +202,19 @@ angular.module('ambariAdminConsole')
         'fields': '*'
       }
     });
+  };
+
+  /**
+     * Generate group info to display by response data from API.
+     * Generally this is a single point to manage all required and useful data
+     * needed to use as context for views/controllers.
+     *
+     * @param {Object} group - object from API response
+     * @returns {Object}
+     */
+   Group.makeGroup = function(group) {
+      group.groupTypeName = $t(GroupConstants.TYPES[group.group_type].LABEL_KEY);
+      return group;
   };
 
   return Group;

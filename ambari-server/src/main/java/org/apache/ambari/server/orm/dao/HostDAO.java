@@ -112,7 +112,7 @@ public class HostDAO {
 
   @Transactional
   public void remove(HostEntity hostEntity) {
-    entityManagerProvider.get().remove(merge(hostEntity));
+    entityManagerProvider.get().remove(hostEntity);
   }
 
   public List<String> getHostNamesByHostIds(List<Long> hostIds) {

@@ -16,9 +16,8 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+export default Ember.Component.extend({
   fileBrowser : Ember.inject.service('file-browser'),
   initialize : function(){
     this.on('fileSelected',function(fileName){

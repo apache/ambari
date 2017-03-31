@@ -164,6 +164,16 @@ public class StageDAO {
   }
 
   @RequiresSession
+  public List<StageEntity> findByRequestIdAndCommandStatuses(Long requestId, Collection<HostRoleStatus> statuses) {
+    TypedQuery<StageEntity> query = entityManagerProvider.get().createNamedQuery(
+        "StageEntity.findByRequestIdAndCommandStatuses", StageEntity.class);
+
+    query.setParameter("requestId", requestId);
+    query.setParameter("statuses", statuses);
+    return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
   public List<StageEntity> findByCommandStatuses(
       Collection<HostRoleStatus> statuses) {
     TypedQuery<StageEntity> query = entityManagerProvider.get().createNamedQuery(

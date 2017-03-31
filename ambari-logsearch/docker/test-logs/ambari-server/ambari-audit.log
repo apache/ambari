@@ -1,0 +1,390 @@
+2016-10-03T16:26:13.333Z, User(admin), RemoteIp(192.168.64.1), Operation(User login), Roles(
+    Ambari: Ambari Administrator
+), Status(Success)
+2016-10-03T16:26:54.834Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(redhat6), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6)
+2016-10-03T16:26:54.845Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(redhat7), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.5.0.0/)
+2016-10-03T16:26:54.847Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat6/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(redhat6), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0/)
+2016-10-03T16:26:54.857Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(debian7), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/debian7)
+2016-10-03T16:26:54.857Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(redhat7), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7)
+2016-10-03T16:26:54.860Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/debian7/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(debian7), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.5.0.0)
+2016-10-03T16:26:54.935Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/suse12/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(suse12), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/sles12)
+2016-10-03T16:26:54.943Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/suse11/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(suse11), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0)
+2016-10-03T16:26:54.945Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/ubuntu12/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(ubuntu12), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.5.0.0)
+2016-10-03T16:26:54.951Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/suse12/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(suse12), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/sles12/2.x/updates/2.5.0.0)
+2016-10-03T16:26:54.954Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(suse11), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3)
+2016-10-03T16:26:54.959Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(ubuntu12), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12)
+2016-10-03T16:26:54.997Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/ubuntu14/repositories/HDP-2.5), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(ubuntu14), Repo id(HDP-2.5), Base URL(http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.5.0.0)
+2016-10-03T16:26:55.003Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository update), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/operating_systems/ubuntu14/repositories/HDP-UTILS-1.1.0.21), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), OS(ubuntu14), Repo id(HDP-UTILS-1.1.0.21), Base URL(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu14)
+2016-10-03T16:26:58.669Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:27:20.063Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:27:24.185Z, User(admin), RemoteIp(192.168.64.1), Operation(Request from server), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/requests), ResultStatus(202 Accepted), Command(null), Cluster name(null)
+2016-10-03T16:27:24.206Z, User(admin), Operation(Check host), Status(IN_PROGRESS), RequestId(1)
+2016-10-03T16:27:24.207Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(1), TaskId(2), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:27:24.211Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(1), TaskId(3), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:27:24.213Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(1), TaskId(4), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:27:24.214Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(1), TaskId(5), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:27:25.836Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(1), TaskId(2), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:27:26.824Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(1), TaskId(3), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:27:27.830Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(1), TaskId(5), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:27:28.831Z, User(admin), Operation(Check host), Status(COMPLETED), RequestId(1)
+2016-10-03T16:27:28.833Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(1), TaskId(4), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:27:29.428Z, User(admin), RemoteIp(192.168.64.1), Operation(Request from server), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/requests), ResultStatus(202 Accepted), Command(null), Cluster name(null)
+2016-10-03T16:27:29.440Z, User(admin), Operation(Check host), Status(IN_PROGRESS), RequestId(2)
+2016-10-03T16:27:29.443Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(2), TaskId(6), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:27:29.443Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(2), TaskId(7), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:27:29.444Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(2), TaskId(8), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:27:29.444Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(QUEUED), RequestId(2), TaskId(9), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:27:38.816Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(2), TaskId(7), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:27:39.818Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(2), TaskId(9), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:27:40.822Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(2), TaskId(8), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:27:42.817Z, User(admin), Operation(Check host), Status(COMPLETED), RequestId(2)
+2016-10-03T16:27:42.818Z, User(admin), Operation(ACTIONEXECUTE check_host), Status(COMPLETED), RequestId(2), TaskId(6), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:28:19.410Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:28:49.829Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:28:56.413Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:29:02.762Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:29:20.084Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:29:30.390Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions), ResultStatus(201 Created)
+2016-10-03T16:29:30.430Z, User(admin), RemoteIp(192.168.64.1), Operation(Repository version change), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.5/repository_versions/1), ResultStatus(200 OK), Stack(HDP), Stack version(2.5), Display name(null), Repo version(null), Repositories(
+Operating system: debian7
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.5.0.0)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/debian7)
+Operating system: redhat6
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0/)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6)
+Operating system: redhat7
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.5.0.0/)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7)
+Operating system: suse11
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3)
+Operating system: suse12
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/sles12/2.x/updates/2.5.0.0)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/sles12)
+Operating system: ubuntu12
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.5.0.0)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12)
+Operating system: ubuntu14
+    Repository ID(HDP-2.5), Repository name(HDP), Base url(http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.5.0.0)
+    Repository ID(HDP-UTILS-1.1.0.21), Repository name(HDP-UTILS), Base url(http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu14)
+)
+2016-10-03T16:29:30.578Z, User(admin), RemoteIp(192.168.64.1), Operation(Configuration change), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster), ResultStatus(201 Created), VersionNumber(Vnull), VersionNote(null)
+2016-10-03T16:29:30.828Z, User(admin), RemoteIp(192.168.64.1), Operation(null), RequestId(null), Status(Successfully queued)
+2016-10-03T16:29:32.696Z, User(admin), RemoteIp(192.168.64.1), Operation(Configuration change), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster), ResultStatus(200 OK), VersionNumber(V1), VersionNote(Initial configurations for HDFS)
+2016-10-03T16:29:32.890Z, User(admin), RemoteIp(192.168.64.1), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/services?ServiceInfo/service_name=HDFS), ResultStatus(201 Created)
+2016-10-03T16:29:32.996Z, User(admin), RemoteIp(192.168.64.1), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/services?ServiceInfo/service_name=ZOOKEEPER), ResultStatus(201 Created)
+2016-10-03T16:29:33.044Z, User(admin), RemoteIp(192.168.64.1), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/services?ServiceInfo/service_name=AMBARI_INFRA), ResultStatus(201 Created)
+2016-10-03T16:29:33.099Z, User(admin), RemoteIp(192.168.64.1), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/services?ServiceInfo/service_name=AMBARI_METRICS), ResultStatus(201 Created)
+2016-10-03T16:29:33.239Z, User(admin), RemoteIp(192.168.64.1), Operation(Host addition), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:29:33.359Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(NAMENODE)
+2016-10-03T16:29:33.428Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(SECONDARY_NAMENODE)
+2016-10-03T16:29:33.516Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(ZOOKEEPER_SERVER)
+2016-10-03T16:29:33.562Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(INFRA_SOLR)
+2016-10-03T16:29:33.629Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(METRICS_GRAFANA)
+2016-10-03T16:29:33.672Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(METRICS_COLLECTOR)
+2016-10-03T16:29:33.780Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(DATANODE)
+2016-10-03T16:29:33.851Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(HDFS_CLIENT)
+2016-10-03T16:29:33.926Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(ZOOKEEPER_CLIENT)
+2016-10-03T16:29:33.988Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(INFRA_SOLR_CLIENT)
+2016-10-03T16:29:34.107Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(METRICS_MONITOR)
+2016-10-03T16:29:34.814Z, User(admin), RemoteIp(192.168.64.1), Operation(INSTALLED: all services (myCluster)), RequestId(3), Status(Successfully queued)
+2016-10-03T16:29:35.035Z, User(admin), Operation(Install Services), Status(IN_PROGRESS), RequestId(3)
+2016-10-03T16:29:35.035Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(3), TaskId(10), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.036Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(QUEUED), RequestId(3), TaskId(11), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.036Z, User(admin), Operation(INSTALL INFRA_SOLR), Status(QUEUED), RequestId(3), TaskId(12), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.036Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(QUEUED), RequestId(3), TaskId(13), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.037Z, User(admin), Operation(INSTALL METRICS_GRAFANA), Status(QUEUED), RequestId(3), TaskId(14), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.043Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(3), TaskId(15), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.043Z, User(admin), Operation(INSTALL NAMENODE), Status(QUEUED), RequestId(3), TaskId(16), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.043Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(QUEUED), RequestId(3), TaskId(17), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.045Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(QUEUED), RequestId(3), TaskId(18), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:29:35.046Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(3), TaskId(19), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:29:35.047Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(3), TaskId(20), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:29:35.047Z, User(admin), Operation(INSTALL SECONDARY_NAMENODE), Status(QUEUED), RequestId(3), TaskId(21), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:29:35.047Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(QUEUED), RequestId(3), TaskId(22), Hostname(c6402.ambari.apache.org)
+2016-10-03T16:29:35.048Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(3), TaskId(23), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:29:35.051Z, User(admin), Operation(INSTALL METRICS_COLLECTOR), Status(QUEUED), RequestId(3), TaskId(24), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:29:35.052Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(3), TaskId(25), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:29:35.052Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(QUEUED), RequestId(3), TaskId(26), Hostname(c6403.ambari.apache.org)
+2016-10-03T16:29:35.052Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(3), TaskId(27), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:29:35.053Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(QUEUED), RequestId(3), TaskId(28), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:29:35.053Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(QUEUED), RequestId(3), TaskId(29), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:29:35.057Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(3), TaskId(30), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:29:35.059Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(QUEUED), RequestId(3), TaskId(31), Hostname(c6404.ambari.apache.org)
+2016-10-03T16:29:35.629Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T16:53:55.860Z, User(admin), Operation(INSTALL DATANODE), Status(COMPLETED), RequestId(3), TaskId(10), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:53:56.837Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(COMPLETED), RequestId(3), TaskId(11), Hostname(c6401.ambari.apache.org)
+2016-10-03T16:58:35.834Z, User(admin), Operation(INSTALL DATANODE), Status(COMPLETED), RequestId(3), TaskId(19), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:00:08.822Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(COMPLETED), RequestId(3), TaskId(20), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:00:09.827Z, User(admin), Operation(INSTALL SECONDARY_NAMENODE), Status(COMPLETED), RequestId(3), TaskId(21), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:00:10.831Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(3), TaskId(22), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:00:15.818Z, User(admin), Operation(Install Services), Status(FAILED), RequestId(3)
+2016-10-03T17:00:15.818Z, User(admin), Operation(INSTALL DATANODE), Status(FAILED), RequestId(3), TaskId(23), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:00:16.820Z, User(admin), Operation(INSTALL DATANODE), Status(FAILED), RequestId(3), TaskId(27), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:00:23.828Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(COMPLETED), RequestId(3), TaskId(28), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:00:54.818Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(COMPLETED), RequestId(3), TaskId(29), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:01:39.826Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(COMPLETED), RequestId(3), TaskId(30), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:01:41.825Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(COMPLETED), RequestId(3), TaskId(31), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:31.822Z, User(admin), Operation(INSTALL INFRA_SOLR), Status(FAILED), RequestId(3), TaskId(12), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:31.839Z, User(admin), Operation(INSTALL METRICS_COLLECTOR), Status(FAILED), RequestId(3), TaskId(24), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:32.252Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(ABORTED), RequestId(3), TaskId(13), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.253Z, User(admin), Operation(INSTALL METRICS_GRAFANA), Status(ABORTED), RequestId(3), TaskId(14), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.253Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(ABORTED), RequestId(3), TaskId(15), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.253Z, User(admin), Operation(INSTALL NAMENODE), Status(ABORTED), RequestId(3), TaskId(16), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.253Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(ABORTED), RequestId(3), TaskId(17), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.257Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(ABORTED), RequestId(3), TaskId(18), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:32.257Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(ABORTED), RequestId(3), TaskId(25), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:32.257Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(ABORTED), RequestId(3), TaskId(26), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:48.818Z, User(admin), RemoteIp(192.168.64.1), Operation(INSTALLED: all services on all hosts (myCluster)), RequestId(4), Status(Successfully queued)
+2016-10-03T17:02:48.875Z, User(admin), Operation(Install Components), Status(IN_PROGRESS), RequestId(4)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(QUEUED), RequestId(4), TaskId(32), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL INFRA_SOLR), Status(QUEUED), RequestId(4), TaskId(33), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(QUEUED), RequestId(4), TaskId(34), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL METRICS_GRAFANA), Status(QUEUED), RequestId(4), TaskId(35), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(4), TaskId(36), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL NAMENODE), Status(QUEUED), RequestId(4), TaskId(37), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(QUEUED), RequestId(4), TaskId(38), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.875Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(QUEUED), RequestId(4), TaskId(39), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:48.876Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(4), TaskId(40), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:48.876Z, User(admin), Operation(INSTALL METRICS_COLLECTOR), Status(QUEUED), RequestId(4), TaskId(41), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:48.876Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(QUEUED), RequestId(4), TaskId(42), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:48.876Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(QUEUED), RequestId(4), TaskId(43), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:48.876Z, User(admin), Operation(INSTALL DATANODE), Status(QUEUED), RequestId(4), TaskId(44), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:48.878Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(QUEUED), RequestId(4), TaskId(45), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:48.878Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(QUEUED), RequestId(4), TaskId(46), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:48.878Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(QUEUED), RequestId(4), TaskId(47), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:50.836Z, User(admin), Operation(INSTALL DATANODE), Status(COMPLETED), RequestId(4), TaskId(44), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:51.825Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(COMPLETED), RequestId(4), TaskId(32), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:02:51.836Z, User(admin), Operation(INSTALL HDFS_CLIENT), Status(COMPLETED), RequestId(4), TaskId(45), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:52.821Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(COMPLETED), RequestId(4), TaskId(46), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:02:52.855Z, User(admin), Operation(INSTALL DATANODE), Status(COMPLETED), RequestId(4), TaskId(40), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:02:53.817Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(COMPLETED), RequestId(4), TaskId(47), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:03:38.840Z, User(admin), Operation(INSTALL INFRA_SOLR), Status(COMPLETED), RequestId(4), TaskId(33), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:03:39.821Z, User(admin), Operation(INSTALL INFRA_SOLR_CLIENT), Status(COMPLETED), RequestId(4), TaskId(34), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:04:32.819Z, User(admin), Operation(INSTALL METRICS_GRAFANA), Status(COMPLETED), RequestId(4), TaskId(35), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:04:34.827Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(COMPLETED), RequestId(4), TaskId(36), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:04:35.841Z, User(admin), Operation(INSTALL NAMENODE), Status(COMPLETED), RequestId(4), TaskId(37), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:04:37.835Z, User(admin), Operation(INSTALL ZOOKEEPER_CLIENT), Status(COMPLETED), RequestId(4), TaskId(38), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:04:37.836Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(4), TaskId(39), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:09.821Z, User(admin), Operation(INSTALL METRICS_COLLECTOR), Status(COMPLETED), RequestId(4), TaskId(41), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:09.844Z, User(admin), Operation(INSTALL METRICS_MONITOR), Status(COMPLETED), RequestId(4), TaskId(42), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:11.839Z, User(admin), Operation(Install Components), Status(COMPLETED), RequestId(4)
+2016-10-03T17:07:11.839Z, User(admin), Operation(INSTALL ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(4), TaskId(43), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:14.709Z, User(admin), RemoteIp(192.168.64.1), Operation(STARTED: all services (myCluster)), RequestId(5), Status(Successfully queued)
+2016-10-03T17:07:14.751Z, User(admin), Operation(Start Services), Status(IN_PROGRESS), RequestId(5)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START METRICS_MONITOR), Status(QUEUED), RequestId(5), TaskId(48), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(QUEUED), RequestId(5), TaskId(49), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START METRICS_MONITOR), Status(QUEUED), RequestId(5), TaskId(50), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(QUEUED), RequestId(5), TaskId(51), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START METRICS_MONITOR), Status(QUEUED), RequestId(5), TaskId(52), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(QUEUED), RequestId(5), TaskId(53), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:14.751Z, User(admin), Operation(START METRICS_MONITOR), Status(QUEUED), RequestId(5), TaskId(54), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:07:18.817Z, User(admin), Operation(START METRICS_MONITOR), Status(COMPLETED), RequestId(5), TaskId(52), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:18.823Z, User(admin), Operation(START METRICS_MONITOR), Status(COMPLETED), RequestId(5), TaskId(50), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:18.830Z, User(admin), Operation(START METRICS_MONITOR), Status(COMPLETED), RequestId(5), TaskId(54), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:07:19.900Z, User(admin), Operation(START METRICS_MONITOR), Status(COMPLETED), RequestId(5), TaskId(48), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:19.918Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(5), TaskId(53), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:19.935Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(5), TaskId(51), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:21.820Z, User(admin), Operation(START ZOOKEEPER_SERVER), Status(COMPLETED), RequestId(5), TaskId(49), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:22.836Z, User(admin), Operation(START INFRA_SOLR), Status(QUEUED), RequestId(5), TaskId(55), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:22.836Z, User(admin), Operation(SERVICE_CHECK ZOOKEEPER_QUORUM_SERVICE_CHECK), Details(SERVICE_CHECK ZOOKEEPER), Status(QUEUED), RequestId(5), TaskId(56), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:37.819Z, User(admin), Operation(START INFRA_SOLR), Status(COMPLETED), RequestId(5), TaskId(55), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:46.825Z, User(admin), Operation(SERVICE_CHECK ZOOKEEPER_QUORUM_SERVICE_CHECK), Details(SERVICE_CHECK ZOOKEEPER), Status(COMPLETED), RequestId(5), TaskId(56), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:47.041Z, User(admin), Operation(SERVICE_CHECK AMBARI_INFRA_SERVICE_CHECK), Details(SERVICE_CHECK AMBARI_INFRA), Status(QUEUED), RequestId(5), TaskId(57), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:47.041Z, User(admin), Operation(START DATANODE), Status(QUEUED), RequestId(5), TaskId(58), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:47.041Z, User(admin), Operation(START NAMENODE), Status(QUEUED), RequestId(5), TaskId(59), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:47.041Z, User(admin), Operation(START DATANODE), Status(QUEUED), RequestId(5), TaskId(60), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:47.041Z, User(admin), Operation(START DATANODE), Status(QUEUED), RequestId(5), TaskId(61), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:47.042Z, User(admin), Operation(START DATANODE), Status(QUEUED), RequestId(5), TaskId(62), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:07:48.823Z, User(admin), Operation(SERVICE_CHECK AMBARI_INFRA_SERVICE_CHECK), Details(SERVICE_CHECK AMBARI_INFRA), Status(COMPLETED), RequestId(5), TaskId(57), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:07:52.828Z, User(admin), Operation(START DATANODE), Status(COMPLETED), RequestId(5), TaskId(61), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:07:52.844Z, User(admin), Operation(START DATANODE), Status(COMPLETED), RequestId(5), TaskId(60), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:07:53.820Z, User(admin), Operation(START DATANODE), Status(COMPLETED), RequestId(5), TaskId(62), Hostname(c6404.ambari.apache.org)
+2016-10-03T17:07:53.833Z, User(admin), Operation(START DATANODE), Status(COMPLETED), RequestId(5), TaskId(58), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:08:13.818Z, User(admin), Operation(START NAMENODE), Status(COMPLETED), RequestId(5), TaskId(59), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:08:14.280Z, User(admin), Operation(START SECONDARY_NAMENODE), Status(QUEUED), RequestId(5), TaskId(63), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:08:20.821Z, User(admin), Operation(START SECONDARY_NAMENODE), Status(COMPLETED), RequestId(5), TaskId(63), Hostname(c6402.ambari.apache.org)
+2016-10-03T17:08:21.333Z, User(admin), Operation(SERVICE_CHECK HDFS_SERVICE_CHECK), Details(SERVICE_CHECK HDFS), Status(QUEUED), RequestId(5), TaskId(64), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:08:21.334Z, User(admin), Operation(START METRICS_COLLECTOR), Status(QUEUED), RequestId(5), TaskId(65), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:08:29.815Z, User(admin), Operation(SERVICE_CHECK HDFS_SERVICE_CHECK), Details(SERVICE_CHECK HDFS), Status(COMPLETED), RequestId(5), TaskId(64), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:09:17.819Z, User(admin), Operation(START METRICS_COLLECTOR), Status(COMPLETED), RequestId(5), TaskId(65), Hostname(c6403.ambari.apache.org)
+2016-10-03T17:09:18.621Z, User(admin), Operation(SERVICE_CHECK AMBARI_METRICS_SERVICE_CHECK), Details(SERVICE_CHECK AMBARI_METRICS), Status(QUEUED), RequestId(5), TaskId(66), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:09:18.621Z, User(admin), Operation(START METRICS_GRAFANA), Status(QUEUED), RequestId(5), TaskId(67), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:09:39.816Z, User(admin), Operation(SERVICE_CHECK AMBARI_METRICS_SERVICE_CHECK), Details(SERVICE_CHECK AMBARI_METRICS), Status(COMPLETED), RequestId(5), TaskId(66), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:09:43.823Z, User(admin), Operation(Start Services), Status(COMPLETED), RequestId(5)
+2016-10-03T17:09:43.824Z, User(admin), Operation(START METRICS_GRAFANA), Status(COMPLETED), RequestId(5), TaskId(67), Hostname(c6401.ambari.apache.org)
+2016-10-03T17:14:46.087Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/version_definitions?dry_run=true), ResultStatus(201 Created)
+2016-10-03T17:14:56.802Z, User(admin), RemoteIp(192.168.64.1), Operation(Configuration change), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster), ResultStatus(200 OK), VersionNumber(Vnull), VersionNote(null)
+2016-10-04T05:55:42.000Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.020Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.024Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.027Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.029Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.033Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.045Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.047Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.049Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.051Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.054Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.055Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.057Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.061Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.064Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.068Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.070Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.072Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.074Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.078Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.080Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.081Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.083Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.085Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.087Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.088Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.090Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.091Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.092Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.100Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.100Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.102Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.103Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.104Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.105Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.107Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.108Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.109Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.110Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:42.130Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T05:55:44.919Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:02:57.511Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:02:59.309Z, User(admin), RemoteIp(192.168.64.1), Operation(User login), Roles(
+    Ambari: Ambari Administrator
+), Status(Success)
+2016-10-04T08:05:40.063Z, User(admin), RemoteIp(192.168.64.1), RequestType(POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/widget_layouts), ResultStatus(201 Created)
+2016-10-04T08:05:40.085Z, User(admin), RemoteIp(192.168.64.1), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/users/admin/activeWidgetLayouts/), ResultStatus(200 OK)
+2016-10-04T08:11:45.150Z, User(admin), RemoteIp(192.168.64.1), Operation(STARTED: METRICS_COLLECTOR/AMBARI_METRICS on c6403.ambari.apache.org (myCluster)), Host name(c6403.ambari.apache.org), RequestId(6), Status(Successfully queued)
+2016-10-04T08:11:45.221Z, User(admin), Operation(Start Metrics Collector), Status(IN_PROGRESS), RequestId(6)
+2016-10-04T08:11:45.222Z, User(admin), Operation(START METRICS_COLLECTOR), Status(QUEUED), RequestId(6), TaskId(102), Hostname(c6403.ambari.apache.org)
+2016-10-04T08:15:30.413Z, User(admin), Operation(Start Metrics Collector), Status(COMPLETED), RequestId(6)
+2016-10-04T08:15:30.414Z, User(admin), Operation(START METRICS_COLLECTOR), Status(COMPLETED), RequestId(6), TaskId(102), Hostname(c6403.ambari.apache.org)
+2016-10-04T08:17:44.550Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.552Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.554Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.556Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.557Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.559Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.561Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.564Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:44.595Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:45.370Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-04T08:17:45.495Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T12:06:48.400Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T12:13:51.541Z, User(admin), RemoteIp(192.168.64.1), Operation(User login), Roles(
+    Ambari: Ambari Administrator
+), Status(Success)
+2016-10-05T12:14:27.945Z, User(admin), RemoteIp(192.168.64.1), Operation(null), RequestId(null), Status(Successfully queued)
+2016-10-05T12:14:28.414Z, User(admin), RemoteIp(192.168.64.1), Operation(Configuration change), RequestType(PUT), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster), ResultStatus(200 OK), VersionNumber(V1), VersionNote(Initial configurations for Log Search)
+2016-10-05T12:14:28.562Z, User(admin), RemoteIp(192.168.64.1), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/services?ServiceInfo/service_name=LOGSEARCH), ResultStatus(201 Created)
+2016-10-05T12:14:28.630Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(LOGSEARCH_SERVER)
+2016-10-05T12:14:28.744Z, User(admin), RemoteIp(192.168.64.1), Operation(Component addition to host), RequestType(QUERY_POST), url(http://c6401.ambari.apache.org:8080/api/v1/clusters/myCluster/hosts), ResultStatus(201 Created), Hostname(null), Component(LOGSEARCH_LOGFEEDER)
+2016-10-05T12:14:29.066Z, User(admin), RemoteIp(192.168.64.1), Operation(INSTALLED: all services (myCluster)), RequestId(7), Status(Successfully queued)
+2016-10-05T12:14:29.138Z, User(admin), Operation(Install Services), Status(IN_PROGRESS), RequestId(7)
+2016-10-05T12:14:29.146Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(7), TaskId(152), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:14:29.147Z, User(admin), Operation(INSTALL LOGSEARCH_SERVER), Status(QUEUED), RequestId(7), TaskId(153), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:14:29.147Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(7), TaskId(154), Hostname(c6402.ambari.apache.org)
+2016-10-05T12:14:29.148Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(7), TaskId(155), Hostname(c6403.ambari.apache.org)
+2016-10-05T12:14:29.151Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(7), TaskId(156), Hostname(c6404.ambari.apache.org)
+2016-10-05T12:14:32.964Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(7), TaskId(152), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:14:34.925Z, User(admin), Operation(INSTALL LOGSEARCH_SERVER), Status(COMPLETED), RequestId(7), TaskId(153), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:14:52.942Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(7), TaskId(155), Hostname(c6403.ambari.apache.org)
+2016-10-05T12:14:52.965Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(7), TaskId(156), Hostname(c6404.ambari.apache.org)
+2016-10-05T12:15:06.922Z, User(admin), Operation(Install Services), Status(COMPLETED), RequestId(7)
+2016-10-05T12:15:06.928Z, User(admin), Operation(INSTALL LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(7), TaskId(154), Hostname(c6402.ambari.apache.org)
+2016-10-05T12:15:11.172Z, User(admin), RemoteIp(192.168.64.1), Operation(STARTED: all services (myCluster)), RequestId(8), Status(Successfully queued)
+2016-10-05T12:15:11.180Z, User(admin), Operation(Start Added Services), Status(IN_PROGRESS), RequestId(8)
+2016-10-05T12:15:11.180Z, User(admin), Operation(START LOGSEARCH_SERVER), Status(QUEUED), RequestId(8), TaskId(157), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:15:20.953Z, User(admin), Operation(START LOGSEARCH_SERVER), Status(COMPLETED), RequestId(8), TaskId(157), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:15:21.328Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(8), TaskId(158), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:15:21.328Z, User(admin), Operation(SERVICE_CHECK LOGSEARCH_SERVICE_CHECK), Details(SERVICE_CHECK LOGSEARCH), Status(QUEUED), RequestId(8), TaskId(159), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:15:21.329Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(8), TaskId(160), Hostname(c6402.ambari.apache.org)
+2016-10-05T12:15:21.329Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(8), TaskId(161), Hostname(c6403.ambari.apache.org)
+2016-10-05T12:15:21.329Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(QUEUED), RequestId(8), TaskId(162), Hostname(c6404.ambari.apache.org)
+2016-10-05T12:15:22.968Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(8), TaskId(160), Hostname(c6402.ambari.apache.org)
+2016-10-05T12:15:23.025Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(8), TaskId(162), Hostname(c6404.ambari.apache.org)
+2016-10-05T12:15:26.941Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(8), TaskId(158), Hostname(c6401.ambari.apache.org)
+2016-10-05T12:15:48.950Z, User(admin), Operation(START LOGSEARCH_LOGFEEDER), Status(COMPLETED), RequestId(8), TaskId(161), Hostname(c6403.ambari.apache.org)
+2016-10-05T12:15:55.920Z, User(admin), Operation(Start Added Services), Status(COMPLETED), RequestId(8)
+2016-10-05T12:15:55.920Z, User(admin), Operation(SERVICE_CHECK LOGSEARCH_SERVICE_CHECK), Details(SERVICE_CHECK LOGSEARCH), Status(COMPLETED), RequestId(8), TaskId(159), Hostname(c6401.ambari.apache.org)
+2016-10-05T13:09:33.055Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T13:09:33.055Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T13:09:33.124Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T13:09:34.863Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-05T13:09:55.468Z, User(admin), RemoteIp(192.168.64.1), Operation(User login), Roles(
+    Ambari: Ambari Administrator
+), Status(Success)
+2016-10-06T07:44:56.131Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-06T07:44:56.219Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-06T07:44:56.326Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)
+2016-10-06T07:45:01.686Z, User(null), RemoteIp(192.168.64.1), Operation(User login), Roles(
+), Status(Failed), Reason(Authentication required)

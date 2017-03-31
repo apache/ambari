@@ -26,8 +26,9 @@ import signal
 import threading
 import traceback
 from ambari_commons.os_family_impl import OsFamilyImpl
-from RemoteDebugUtils import remote_debug
 import sys
+
+from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
 
 logger = logging.getLogger()
 
@@ -128,14 +129,8 @@ def bind_signal_handlers(agentPid):
     if os.getpid() == agentPid:
       signal.signal(signal.SIGINT, signal_handler)
       signal.signal(signal.SIGTERM, signal_handler)
-      signal.signal(signal.SIGUSR2, remote_debug) # Interrupt running process, and provide a python prompt for it
-      try:
-        import faulthandler  # This is not default module, has to be installed separately
-        faulthandler.enable(file=sys.stderr, all_threads=True)
-        faulthandler.register(signal.SIGUSR1, file=sys.stderr, all_threads=True, chain=False)
-        sys.stderr.write("Registered faulthandler\n")
-      except ImportError:
-        pass  # Module is not included into python distribution
+
+      bind_debug_signal_handlers()
 
     _handler = HeartbeatStopHandlersLinux()
   else:

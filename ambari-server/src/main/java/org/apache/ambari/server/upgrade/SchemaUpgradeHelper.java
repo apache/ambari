@@ -22,8 +22,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -43,6 +45,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.persist.PersistService;
+import org.springframework.jdbc.support.JdbcUtils;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -135,8 +138,8 @@ public class SchemaUpgradeHelper {
    */
   protected List<UpgradeCatalog> getUpgradePath(String sourceVersion,
                                                        String targetVersion) throws AmbariException {
-    List<UpgradeCatalog> upgradeCatalogs = new ArrayList<UpgradeCatalog>();
-    List<UpgradeCatalog> candidateCatalogs = new ArrayList<UpgradeCatalog>(allUpgradeCatalogs);
+    List<UpgradeCatalog> upgradeCatalogs = new ArrayList<>();
+    List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
 
     Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
 
@@ -175,11 +178,6 @@ public class SchemaUpgradeHelper {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog150.class);
-      catalogBinder.addBinding().to(UpgradeCatalog151.class);
-      catalogBinder.addBinding().to(UpgradeCatalog160.class);
-      catalogBinder.addBinding().to(UpgradeCatalog161.class);
-      catalogBinder.addBinding().to(UpgradeCatalog170.class);
       catalogBinder.addBinding().to(UpgradeCatalog200.class);
       catalogBinder.addBinding().to(UpgradeCatalog210.class);
       catalogBinder.addBinding().to(UpgradeCatalog211.class);
@@ -192,6 +190,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog240.class);
       catalogBinder.addBinding().to(UpgradeCatalog2402.class);
       catalogBinder.addBinding().to(UpgradeCatalog242.class);
+      catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
       EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
@@ -228,12 +227,13 @@ public class SchemaUpgradeHelper {
     }
   }
 
-  public void executeDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+  public void executeDMLUpdates(List<UpgradeCatalog> upgradeCatalogs, String ambariUpgradeConfigUpdatesFileName) throws AmbariException {
     LOG.info("Executing DML changes.");
 
     if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
+          upgradeCatalog.setConfigUpdatesFileName(ambariUpgradeConfigUpdatesFileName);
           upgradeCatalog.upgradeData();
         } catch (Exception e) {
           LOG.error("Upgrade failed. ", e);
@@ -312,6 +312,61 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  /**
+   * Returns minimal version of available {@link UpgradeCatalog}
+   *
+   * @return string representation of minimal version of {@link UpgradeCatalog}
+   */
+  private String getMinimalUpgradeCatalogVersion(){
+    List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
+    Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
+
+    if (candidateCatalogs.isEmpty()) {
+      return null;
+    }
+
+    return candidateCatalogs.iterator().next().getTargetVersion();
+  }
+
+  /**
+   * Checks if source version meets minimal requirements for upgrade
+   *
+   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogVersion()}
+   * @param sourceVersion current version of the Database, which need to be upgraded
+   *
+   * @return  true if upgrade is allowed or false if not
+   */
+  private boolean verifyUpgradePath(String minUpgradeVersion, String sourceVersion){
+    if (null == minUpgradeVersion){
+      return false;
+    }
+
+    return VersionUtils.compareVersions(sourceVersion, minUpgradeVersion) >= 0;
+  }
+
+  private List<String> getMyISAMTables() throws SQLException {
+    if (!configuration.getDatabaseType().equals(Configuration.DatabaseType.MYSQL)) {
+      return Collections.emptyList();
+    }
+    List<String> myISAMTables = new ArrayList<>();
+    String query = String.format("SELECT table_name FROM information_schema.tables WHERE table_schema = '%s' " +
+      "AND engine = 'MyISAM' AND table_type = 'BASE TABLE'", configuration.getServerDBName());
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      rs = statement.executeQuery(query);
+      if (rs != null) {
+        while (rs.next()) {
+          myISAMTables.add(rs.getString("table_name"));
+        }
+      }
+    } finally {
+      JdbcUtils.closeResultSet(rs);
+      JdbcUtils.closeStatement(statement);
+    }
+    return myISAMTables;
+  }
 
   /**
    * Upgrade Ambari DB schema to the target version passed in as the only
@@ -332,6 +387,15 @@ public class SchemaUpgradeHelper {
       Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule());
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
 
+      //Fail if MySQL database has tables with MyISAM engine
+      List<String> myISAMTables = schemaUpgradeHelper.getMyISAMTables();
+      if (!myISAMTables.isEmpty()) {
+        String errorMessage = String.format("Unsupported MyISAM table %s detected. " +
+            "For correct upgrade database should be migrated to InnoDB engine.", myISAMTables.get(0));
+        LOG.error(errorMessage);
+        throw new AmbariException(errorMessage);
+      }
+
       String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
       LOG.info("Upgrading schema to target version = " + targetVersion);
 
@@ -344,8 +408,18 @@ public class SchemaUpgradeHelper {
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();
       LOG.info("Upgrading schema from source version = " + sourceVersion);
 
+      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogVersion();
+
+      if (!schemaUpgradeHelper.verifyUpgradePath(minimalRequiredUpgradeVersion, sourceVersion)){
+        throw new AmbariException(String.format("Database version does not meet minimal upgrade requirements. Expected version should be not less than %s, current version is %s",
+          minimalRequiredUpgradeVersion, sourceVersion));
+      }
+
       List<UpgradeCatalog> upgradeCatalogs =
         schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
+
+      String date = new SimpleDateFormat("MM-dd-yyyy_HH:mm:ss").format(new Date());
+      String ambariUpgradeConfigUpdatesFileName = "ambari_upgrade_config_changes_" + date + ".json";
 
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
 
@@ -353,7 +427,7 @@ public class SchemaUpgradeHelper {
 
       schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
-      schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+      schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, ambariUpgradeConfigUpdatesFileName);
 
       schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 

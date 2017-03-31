@@ -34,8 +34,10 @@ export default Ember.Component.extend({
   }.on('willDestroyElement'),
   addProperty (){
     this.get('configuration.property').pushObject({name:this.get('propertyName'),value:this.get('propertyValue')});
-    this.set('propertyName', "");
-    this.set('propertyValue', "");
+    //if(this.get("doNotInitialize")){
+      this.set('propertyName', "");
+      this.set('propertyValue', "");
+    //}
   },
   actions : {
     addProperty () {

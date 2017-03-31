@@ -24,6 +24,7 @@ import tempfile
 from mock.mock import patch, MagicMock, call
 import StringIO
 import sys
+import multiprocessing
 from ambari_agent.RecoveryManager import RecoveryManager
 
 
@@ -76,7 +77,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
   @patch("subprocess.Popen")
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(ActionQueue, "result")
   @patch.object(HostInfoLinux, "register")
   def test_no_mapping(self, register_mock, result_mock, Popen_mock):
@@ -202,7 +203,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(hb, expected)
 
   @patch("subprocess.Popen")
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock, Popen_mock):
     config = AmbariConfig.AmbariConfig()
@@ -212,6 +213,7 @@ class TestHeartbeat(TestCase):
 
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.statusCommandQueue = multiprocessing.Queue()
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
@@ -231,7 +233,7 @@ class TestHeartbeat(TestCase):
 
 
   @patch("subprocess.Popen")
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock, Popen_mock):
     config = AmbariConfig.AmbariConfig()

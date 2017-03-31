@@ -28,11 +28,16 @@ public class LdapBatchDto {
   private final Set<String> groupsToBeCreated = new HashSet<String>();
   private final Set<String> groupsToBeRemoved = new HashSet<String>();
   private final Set<String> groupsProcessedInternal = new HashSet<>();
+  private final Set<String> usersSkipped = new HashSet<String>();
   private final Set<String> usersToBecomeLdap = new HashSet<String>();
   private final Set<String> usersToBeCreated = new HashSet<String>();
   private final Set<String> usersToBeRemoved = new HashSet<String>();
   private final Set<LdapUserGroupMemberDto> membershipToAdd = new HashSet<LdapUserGroupMemberDto>();
   private final Set<LdapUserGroupMemberDto> membershipToRemove = new HashSet<LdapUserGroupMemberDto>();
+
+  public Set<String> getUsersSkipped() {
+    return usersSkipped;
+  }
 
   public Set<String> getGroupsToBecomeLdap() {
     return groupsToBecomeLdap;

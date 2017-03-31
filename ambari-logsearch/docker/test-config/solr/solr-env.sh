@@ -83,7 +83,7 @@ SOLR_HOME=/root/logsearch_solr_index/data
 # Solr provides a default Log4J configuration properties file in server/resources
 # however, you may want to customize the log settings and file appender location
 # so you can point the script to use a different log4j.properties file
-LOG4J_PROPS=/root/test-config/solr/log4j.properties
+LOG4J_PROPS=/root/config/solr/log4j.properties
 
 # Location where Solr should write logs to; should agree with the file appender
 # settings in server/resources/log4j.properties

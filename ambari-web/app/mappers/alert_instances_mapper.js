@@ -71,7 +71,7 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
         model.find().clear();
       }
 
-      App.store.loadMany(model, alertInstances);
+      App.store.safeLoadMany(model, alertInstances);
       console.timeEnd('App.alertInstanceMapper execution time');
     }
   }

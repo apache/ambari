@@ -34,7 +34,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-
+from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 from resource_management.libraries.script.script import Script
 
 # a map of the Ambari role to the component name
@@ -42,7 +42,10 @@ from resource_management.libraries.script.script import Script
 SERVER_ROLE_DIRECTORY_MAP = {
   'SPARK2_JOBHISTORYSERVER' : 'spark2-historyserver',
   'SPARK2_CLIENT' : 'spark2-client',
-  'SPARK2_THRIFTSERVER' : 'spark2-thriftserver'
+  'SPARK2_THRIFTSERVER' : 'spark2-thriftserver',
+  'LIVY2_SERVER' : 'livy2-server',
+  'LIVY2_CLIENT' : 'livy2-client'
+
 }
 
 component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SPARK2_CLIENT")
@@ -54,7 +57,8 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -112,10 +116,13 @@ else:
 ui_ssl_enabled = default("configurations/spark2-defaults/spark.ssl.enabled", False)
 
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
-
+spark_history_scheme = "http"
 spark_history_ui_port = config['configurations']['spark2-defaults']['spark.history.ui.port']
+
 if ui_ssl_enabled:
   spark_history_ui_port = str(int(spark_history_ui_port) + 400)
+  spark_history_scheme = "https"
+
 
 spark_env_sh = config['configurations']['spark2-env']['content']
 spark_log4j_properties = config['configurations']['spark2-log4j-properties']['content']
@@ -128,6 +135,8 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 spark_kerberos_keytab =  config['configurations']['spark2-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark2-defaults']['spark.history.kerberos.principal']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 
 spark_thriftserver_hosts = default("/clusterHostInfo/spark2_thriftserver_hosts", [])
 has_spark_thriftserver = not len(spark_thriftserver_hosts) == 0
@@ -181,8 +190,64 @@ if has_spark_thriftserver and 'spark2-thrift-sparkconf' in config['configuration
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
+hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
+
+ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
+has_ats = len(ats_host) > 0
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+# livy related config
+
+# livy for spark2 is only supported from HDP 2.6
+has_livyserver = False
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
+  livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
+  livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
+  livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
+  livy2_pid_dir = status_params.livy2_pid_dir
+  livy2_home = format("{stack_root}/current/{livy2_component_directory}")
+  livy2_user = status_params.livy2_user
+  livy2_group = status_params.livy2_group
+  user_group = status_params.user_group
+  livy2_hdfs_user_dir = format("/user/{livy2_user}")
+  livy2_server_pid_file = status_params.livy2_server_pid_file
+  livy2_recovery_dir = default("/configurations/livy2-conf/livy.server.recovery.state-store.url", "/livy2-recovery")
+
+  livy2_server_start = format("{livy2_home}/bin/livy-server start")
+  livy2_server_stop = format("{livy2_home}/bin/livy-server stop")
+  livy2_logs_dir = format("{livy2_home}/logs")
+
+  livy2_env_sh = config['configurations']['livy2-env']['content']
+  livy2_log4j_properties = config['configurations']['livy2-log4j-properties']['content']
+  livy2_spark_blacklist_properties = config['configurations']['livy2-spark-blacklist']['content']
+
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy2-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy2-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy2-conf']:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
+
+  livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
+
+  # ats 1.5 properties
+  entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
+  entity_groupfs_active_dir_mode = 01777
+  entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
+  entity_groupfs_store_dir_mode = 0700
+  is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
+
+  if len(livy2_livyserver_hosts) > 0:
+    has_livyserver = True
+    if security_enabled:
+      livy2_principal = livy_kerberos_principal.replace('_HOST', config['hostname'].lower())
+
+  livy2_livyserver_port = default('configurations/livy2-conf/livy.server.port',8999)
+
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -190,7 +255,7 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
+  hdfs_resource_ignore_file = hdfs_resource_ignore_file,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
@@ -201,4 +266,5 @@ HdfsResource = functools.partial(
   default_fs = default_fs,
   immutable_paths = get_not_managed_resources(),
   dfs_type = dfs_type
- )
+)
+

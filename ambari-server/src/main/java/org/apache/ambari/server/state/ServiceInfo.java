@@ -30,6 +30,8 @@ import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -68,6 +70,7 @@ public class ServiceInfo implements Validable{
   private String version;
   private String comment;
   private String serviceType;
+  private Selection selection;
 
   @XmlTransient
   private List<PropertyInfo> properties;
@@ -117,6 +120,12 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private volatile Map<String, PropertyInfo> requiredProperties;
 
+  /**
+   * Credential store information
+   */
+  @XmlElements(@XmlElement(name = "credential-store"))
+  private CredentialStoreInfo credentialStoreInfo;
+
   public Boolean isRestartRequiredAfterChange() {
     return restartRequiredAfterChange;
   }
@@ -154,8 +163,6 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name = "properties")
   @XmlElement(name="property")
   private List<ServicePropertyInfo> servicePropertyList = Lists.newArrayList();
-
-
 
   @XmlTransient
   private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.<String, String>newHashMap()));
@@ -324,6 +331,26 @@ public String getVersion() {
     this.version = version;
   }
 
+  public Selection getSelection() {
+    if (selection == null) {
+      return Selection.DEFAULT;
+    }
+    return selection;
+  }
+
+  public void setSelection(Selection selection) {
+    this.selection = selection;
+  }
+
+  /**
+   * Check if selection was presented in xml. We need this for proper stack inheritance, because {@link ServiceInfo#getSelection}
+   * by default returns {@link Selection#DEFAULT}, even if no value found in metainfo.xml.
+   * @return true, if selection not defined in metainfo.xml
+   */
+  public boolean isSelectionEmpty() {
+    return selection == null;
+  }
+
   public String getComment() {
     return comment;
   }
@@ -359,10 +386,15 @@ public String getVersion() {
     return properties;
   }
 
+  public void setProperties(List properties) {
+    this.properties = properties;
+  }
+
   public List<ComponentInfo> getComponents() {
     if (components == null) components = new ArrayList<ComponentInfo>();
     return components;
   }
+
   /**
    * Finds ComponentInfo by component name
    * @param componentName  name of the component
@@ -416,6 +448,105 @@ public String getVersion() {
 
   public void setAdvisorName(String advisorName) {
     this.advisorName = advisorName;
+  }
+
+  /**
+   * Indicates if this service supports credential store.
+   * False, it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreSupported() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isSupported() != null) {
+        return credentialStoreInfo.isSupported();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service supports credential store.
+   * @param credentialStoreSupported
+   */
+  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setSupported(credentialStoreSupported);
+  }
+
+  /**
+   * Indicates if this service is requires credential store.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreRequired() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isRequired() != null) {
+        return credentialStoreInfo.isRequired();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service requires credential store.
+   * @param credentialStoreRequired
+   */
+  public void setCredentialStoreRequired(boolean credentialStoreRequired) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setRequired(credentialStoreRequired);
+  }
+
+  /**
+   * Indicates if this service is enabled for credential store use.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreEnabled() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isEnabled() != null) {
+        return credentialStoreInfo.isEnabled();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service is enabled for credential store use.
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setEnabled(credentialStoreEnabled);
+  }
+
+  /**
+   * Get the credential store information object.
+   *
+   * @return
+   */
+  public CredentialStoreInfo getCredentialStoreInfo() {
+    return credentialStoreInfo;
+  }
+
+  /**
+   * Set a new value for the credential store information.
+   *
+   * @param credentialStoreInfo
+   */
+  public void setCredentialStoreInfo(CredentialStoreInfo credentialStoreInfo) {
+    this.credentialStoreInfo = credentialStoreInfo;
   }
 
   @Override
@@ -975,6 +1106,35 @@ public String getVersion() {
         addError("More than one primary log exists for the component " + component.getName());
       }
     }
+
+    // validate credential store information
+    if (credentialStoreInfo != null) {
+      // if both are specified, supported must be true if enabled is false or true.
+      if (credentialStoreInfo.isSupported() != null && credentialStoreInfo.isEnabled() != null) {
+        if (!credentialStoreInfo.isSupported() && credentialStoreInfo.isEnabled()) {
+          setValid(false);
+          addError("Credential store cannot be enabled for service " + getName() + " as it does not support it.");
+        }
+      }
+
+      // Must be specified
+      if (credentialStoreInfo.isSupported() == null) {
+        setValid(false);
+        addError("Credential store supported is not specified for service " + getName());
+      }
+
+      // Must be specified
+      if (credentialStoreInfo.isEnabled() == null) {
+        setValid(false);
+        addError("Credential store enabled is not specified for service " + getName());
+      }
+    }
   }
 
+  public enum Selection {
+    DEFAULT,
+    TECH_PREVIEW,
+    MANDATORY,
+    DEPRECATED
+  }
 }

@@ -15,20 +15,34 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations, {
-  validator
-} from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'actionModel.fsOps': {
+    validators: [
+      validator('fs-action-validator', {
+        dependentKeys: ['actionModel.fsOps.@each.path','actionModel.fsOps.@each.source', 'actionModel.fsOps.@each.target', 'actionModel.fsOps.@each.group']
+      })
+    ]
+  }
+});
+
+export default Ember.Component.extend(Validations, {
   fileBrowser: Ember.inject.service('file-browser'),
   setUp: function() {
     if (this.get('actionModel.fsOps') === undefined) {
       this.set("actionModel.fsOps", Ember.A([]));
+      this.set("actionModel.fsOps", [{"type":"mkdir"}]);
     }
     if (this.get('actionModel.configuration') === undefined) {
       this.set("actionModel.configuration", {});
       this.set("actionModel.configuration.property", Ember.A([]));
     }
+    if(this.get('actionModel.jobXml') === undefined){
+      this.set("actionModel.jobXml", Ember.A([]));
+    }
+    var field = 'validations.attrs.actionModel.fsOps.isInvalid';
+    this.set(field, false);
     this.sendAction('register', 'fsAction', this);
   }.on('init'),
   initialize: function() {
@@ -41,52 +55,6 @@ export default Ember.Component.extend(EmberValidations, {
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations: {
-    'actionModel': {
-      inline: validator(function() {
-        var isValidated = true,
-        msg = "";
-        if (!this.get('actionModel.fsOps')) {
-          return;
-        }
-        this.get('actionModel.fsOps').forEach(function(item, index) {
-          switch (item.type) {
-            case "mkdir":
-            case "delete":
-            case "touchz":
-            if (!item.settings.path) {
-              isValidated = false;
-              msg = "path is mandatory";
-            }
-            break;
-            case "chmod":
-            if (!item.settings.path) {
-              isValidated = false;
-              msg = "path and permissions are mandatory";
-            }
-            break;
-            case "chgrp":
-            if (!item.settings.path || !item.settings.group) {
-              isValidated = false;
-              msg = "path and group are mandatory";
-            }
-            break;
-            case "move":
-            if (!item.settings.source || !item.settings.target) {
-              isValidated = false;
-              msg = "source and target are mandatory";
-            }
-            break;
-          }
-        });
-        if (!isValidated) {
-          return "   ";
-        }
-
-      })
-    }
-  },
-  
   actions: {
     openFileBrowser(model, context) {
       if (undefined === context) {

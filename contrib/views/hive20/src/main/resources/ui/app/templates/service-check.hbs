@@ -1,0 +1,52 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="col-md-offset-2 col-md-8">
+  <div class="progress">
+    <div class="progress-bar {{if hasError 'progress-bar-danger'}} {{if serviceCheck.checkCompleted 'progress-bar-success'}}" role="progressbar" style={{progressStyle}}>
+    </div>
+  </div>
+
+  {{#if serviceCheckPolicy.checkHdfs}}
+  {{service-check-entry label="HDFS Check"
+                        status=serviceCheck.hdfsCheckStatus
+                        error=hdfsError
+  }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkHomeDirectory}}
+  {{service-check-entry label="USER HOME Check"
+                        status=serviceCheck.userHomeCheckStatus
+                        error=userHomeError
+  }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkATS}}
+  {{service-check-entry label="ATS Check"
+                        status=serviceCheck.atsCheckStatus
+                        error=atsError
+  }}
+  {{/if}}
+
+  {{#if serviceCheckPolicy.checkHive}}
+  {{service-check-entry label="HIVE Check"
+                        status=serviceCheck.hiveCheckStatus
+                        error=hiveError
+  }}
+  {{/if}}
+</div>

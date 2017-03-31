@@ -32,7 +32,13 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -55,6 +61,10 @@ public class GsonJsonProvider implements MessageBodyReader<Object>,
 
   @Override
   public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+    // ignore objects of type InputStream. Used in case of file uploads
+    if(type.equals(InputStream.class))
+      return entityStream;
+
     Reader reader = new InputStreamReader(entityStream);
     try {
       return gson.fromJson(reader, genericType);

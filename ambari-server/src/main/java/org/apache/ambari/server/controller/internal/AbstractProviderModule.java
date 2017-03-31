@@ -33,20 +33,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.HostRequest;
-import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
-import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
+import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
@@ -70,9 +65,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +107,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private volatile Map<String, Map<String, Map<String, String>>> jmxDesiredRpcSuffixes = new HashMap<String, Map<String, Map<String,String>>>();
   private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new ConcurrentHashMap<>();
-  private volatile Set<String> metricServerHosts = new HashSet<String>();
   private volatile String clusterMetricServerPort = null;
   private volatile String clusterMetricServerVipPort = null;
   private volatile String clusterMetricserverVipHost = null;
@@ -183,11 +175,11 @@ public abstract class AbstractProviderModule implements ProviderModule,
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("HBASE_MASTER", new String[]{"hbase.http.policy"});
+    initPropMap.put("HBASE_MASTER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_MASTER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
-    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.http.policy"});
+    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.ssl.enabled"});
     jmxDesiredProperties.put("HBASE_REGIONSERVER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -232,6 +224,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
   @Inject
   TimelineMetricCacheProvider metricCacheProvider;
 
+  @Inject
+  MetricsCollectorHAManager metricsCollectorHAManager;
+
   /**
    * A factory used to retrieve Guice-injected instances of a metric
    * {@link PropertyProvider}.
@@ -257,11 +252,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * The host name of the Ganglia collector.
    */
   private Map<String, String> clusterGangliaCollectorMap;
-
-  /**
-   * The host name of Metrics collector.
-   */
-  private Map<String, String> clusterMetricCollectorMap;
 
   /**
    * JMX ports read from the configs
@@ -296,6 +286,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (null == eventPublisher && null != managementController) {
       eventPublisher = managementController.getAmbariEventPublisher();
       eventPublisher.register(this);
+    }
+
+    if (null == metricsCollectorHAManager && null != managementController) {
+      metricsCollectorHAManager = managementController.getMetricsCollectorHAManager();
     }
   }
 
@@ -347,7 +341,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
       LOG.error("Exception during checkInit.", e);
     }
 
-    if (!clusterMetricCollectorMap.isEmpty()) {
+    if (!metricsCollectorHAManager.isEmpty()) {
       return TIMELINE_METRICS;
     } else if (!clusterGangliaCollectorMap.isEmpty()) {
       return GANGLIA;
@@ -410,27 +404,13 @@ public abstract class AbstractProviderModule implements ProviderModule,
     //If vip config not present
     //  If current collector host is null or if the host or the host component not live
     //    Update clusterMetricCollectorMap with a live metric collector host.
+    String currentCollectorHost = null;
     if (!vipHostConfigPresent) {
-      String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
-      if(! (isHostLive(clusterName, currentCollectorHost) &&
-        isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name())) ) {
-        for (String hostname : metricServerHosts) {
-          if (isHostLive(clusterName, hostname)
-            && isHostComponentLive(clusterName, hostname, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name())) {
-            clusterMetricCollectorMap.put(clusterName, hostname);
-            LOG.info("New Metrics Collector Host : " + hostname);
-            break;
-          } else {
-            LOG.info("Metrics Collector Host or host component not live : " + hostname);
-          }
-        }
+      currentCollectorHost = metricsCollectorHAManager.getCollectorHost(clusterName);
       }
-    }
-
     LOG.debug("Cluster Metrics Vip Host : " + clusterMetricserverVipHost);
-    LOG.debug("Cluster Metrics Collector Host : " + clusterMetricCollectorMap.get(clusterName));
 
-    return (clusterMetricserverVipHost != null) ? clusterMetricserverVipHost : clusterMetricCollectorMap.get(clusterName);
+    return (clusterMetricserverVipHost != null) ? clusterMetricserverVipHost : currentCollectorHost;
   }
 
   @Override
@@ -468,12 +448,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
   @Override
   public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
-    for (String hostname: metricServerHosts) {
-      if (isHostLive(clusterName, hostname)) {
-        return true;
-      }
-    }
-    return false;
+    return metricsCollectorHAManager.isCollectorHostLive(clusterName);
   }
 
   @Override
@@ -501,65 +476,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
     final String collectorHostName = getCollectorHostName(clusterName, service);
 
     if (service.equals(GANGLIA)) {
-      return isHostComponentLive(clusterName, collectorHostName, "GANGLIA",
+      return HostStatusHelper.isHostComponentLive(managementController, clusterName, collectorHostName, "GANGLIA",
         Role.GANGLIA_SERVER.name());
     } else if (service.equals(TIMELINE_METRICS)) {
-      for (String hostname: metricServerHosts) {
-        if (isHostComponentLive(clusterName, hostname, "AMBARI_METRICS",
-          Role.METRICS_COLLECTOR.name())) {
-          return true;
-        }
-      }
+      return metricsCollectorHAManager.isCollectorComponentLive(clusterName);
     }
     return false;
-  }
-
-  private boolean isHostComponentLive(String clusterName, String hostName,
-                                      String serviceName, String componentName) {
-    if (clusterName == null) {
-      return false;
-    }
-
-    ServiceComponentHostResponse componentHostResponse;
-
-    try {
-      ServiceComponentHostRequest componentRequest =
-        new ServiceComponentHostRequest(clusterName, serviceName,
-          componentName, hostName, null);
-
-      Set<ServiceComponentHostResponse> hostComponents =
-        managementController.getHostComponents(Collections.singleton(componentRequest));
-
-      componentHostResponse = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
-    } catch (AmbariException e) {
-      LOG.debug("Error checking " + componentName + " server host component state: ", e);
-      return false;
-    }
-
-    //Cluster without SCH
-    return componentHostResponse != null &&
-      componentHostResponse.getLiveState().equals(State.STARTED.name());
-  }
-
-  protected boolean isHostLive(String clusterName, String hostName) {
-    if (clusterName == null) {
-      return false;
-    }
-    HostResponse hostResponse;
-
-    try {
-      HostRequest hostRequest = new HostRequest(hostName, clusterName,
-        Collections.<String, String>emptyMap());
-      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
-
-      hostResponse = hosts.size() == 1 ? hosts.iterator().next() : null;
-    } catch (AmbariException e) {
-      LOG.debug("Error checking of Ganglia server host live status: ", e);
-      return false;
-    }
-    //Cluster without host
-    return hostResponse != null &&
-      !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST.name());
   }
 
   // ----- JMXHostProvider ---------------------------------------------------
@@ -923,7 +845,6 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
       clusterHostComponentMap = new HashMap<String, Map<String, String>>();
       clusterGangliaCollectorMap = new HashMap<String, String>();
-      clusterMetricCollectorMap = new HashMap<String, String>();
 
       for (Resource cluster : clusters) {
 
@@ -959,16 +880,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           if (componentName.equals(METRIC_SERVER)) {
             //  If current collector host is null or if the host or the host component not live
             //    Update clusterMetricCollectorMap.
-            String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
-            LOG.info("Current Metrics collector Host : " + currentCollectorHost);
-            if ((currentCollectorHost == null) ||
-              !(isHostLive(clusterName, currentCollectorHost) &&
-                isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name()))
-              ) {
-              LOG.info("New Metrics collector Host : " + hostName);
-              clusterMetricCollectorMap.put(clusterName, hostName);
-            }
-            metricServerHosts.add(hostName);
+            metricsCollectorHAManager.addCollectorHost(clusterName, hostName);
           }
         }
       }
@@ -1218,7 +1130,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
               clusterName,
               newSiteConfigVersion, config,
               jmxDesiredProperties.get(componentName));
-          jmxProtocolString = getJMXProtocolString(protocolMap.get(componentName));
+          boolean isHttpsEnabled;
+          String propetyVal = protocolMap.get(componentName);
+          if (service.equals(Service.Type.HBASE)) {
+            isHttpsEnabled = Boolean.valueOf(propetyVal);
+          } else {
+            isHttpsEnabled = PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY.equals(propetyVal);
+          }
+          jmxProtocolString = getJMXProtocolStringFromBool(isHttpsEnabled);
         }
       } else {
         jmxProtocolString = "http";
@@ -1246,12 +1165,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
     return jmxProtocolString;
   }
 
-  private String getJMXProtocolString(String value) {
-    if (PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY.equals(value)) {
-      return "https";
-    } else {
-      return "http";
-    }
+  private String getJMXProtocolStringFromBool(boolean isHttpsEnabled) {
+    return isHttpsEnabled ? "https" : "http";
   }
 
   @Override

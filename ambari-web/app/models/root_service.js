@@ -31,7 +31,7 @@ App.RootService = DS.Model.extend({
 
 App.RootService.FIXTURES = [];
 
-App.RootServiceComponents =   DS.Model.extend({
+App.RootServiceComponents = DS.Model.extend({
   componentName: DS.attr('string'),
   displayName: Em.computed.formatRole('componentName', false),
   componentVersion: DS.attr('string'),

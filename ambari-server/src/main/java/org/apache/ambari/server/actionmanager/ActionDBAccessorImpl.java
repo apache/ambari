@@ -43,7 +43,7 @@ import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -202,7 +202,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * {@inheritDoc}
    */
   @Override
-  public void abortOperation(long requestId) {
+  public Collection<HostRoleCommandEntity> abortOperation(long requestId) {
     long now = System.currentTimeMillis();
 
     endRequest(requestId);
@@ -226,8 +226,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     // no need to merge if there's nothing to merge
     if (!commands.isEmpty()) {
-      hostRoleCommandDAO.mergeAll(commands);
+      return hostRoleCommandDAO.mergeAll(commands);
     }
+
+    return Collections.emptyList();
   }
 
   /* (non-Javadoc)
@@ -236,20 +238,21 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public void timeoutHostRole(String host, long requestId, long stageId,
                               String role) {
-    timeoutHostRole(host, requestId, stageId, role, false);
+    timeoutHostRole(host, requestId, stageId, role, false, false);
   }
 
   @Override
-  public void timeoutHostRole(String host, long requestId, long stageId,
-                              String role, boolean skipSupported) {
+  public void timeoutHostRole(String host, long requestId, long stageId, String role,
+                              boolean skipSupported, boolean hostUnknownState) {
     long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands =
-            hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
+      hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       if (skipSupported) {
         command.setStatus(HostRoleStatus.SKIPPED_FAILED);
       } else {
-        command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT : HostRoleStatus.TIMEDOUT);
+        command.setStatus(command.isRetryAllowed() ? HostRoleStatus.HOLDING_TIMEDOUT :
+          hostUnknownState ? HostRoleStatus.ABORTED : HostRoleStatus.TIMEDOUT);
       }
 
       command.setEndTime(now);
@@ -270,10 +273,24 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
+  public List<Stage> getStagesInProgressForRequest(Long requestId) {
+    List<StageEntity> stageEntities = stageDAO.findByRequestIdAndCommandStatuses(requestId, HostRoleStatus.IN_PROGRESS_STATUSES);
+    return getStagesForEntities(stageEntities);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public List<Stage> getStagesInProgress() {
     List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(
       HostRoleStatus.IN_PROGRESS_STATUSES);
+    return getStagesForEntities(stageEntities);
+  }
 
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
+  private List<Stage> getStagesForEntities(List<StageEntity> stageEntities) {
     // experimentally enable parallel stage processing
     @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
     boolean useConcurrentStageProcessing = configuration.isExperimentalConcurrentStageProcessingEnabled();
@@ -812,7 +829,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * @param event @HostRemovedEvent
    */
   @Subscribe
-  public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
+  public void invalidateCommandCacheOnHostRemove(HostsRemovedEvent event) {
     LOG.info("Invalidating HRC cache after receiveing {}", event);
     hostRoleCommandCache.invalidateAll();
   }

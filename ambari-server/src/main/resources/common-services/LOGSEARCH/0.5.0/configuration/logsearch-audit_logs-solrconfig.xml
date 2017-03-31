@@ -49,7 +49,7 @@
   <!-- solrconfig.xml -->
   <property>
     <name>content</name>
-    <display-name>solrconfig template</display-name>
+    <display-name>Solrconfig template</display-name>
     <description>This is the jinja template for solrconfig.xml file for audit logs</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>

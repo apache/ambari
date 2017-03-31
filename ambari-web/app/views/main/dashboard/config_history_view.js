@@ -192,8 +192,8 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
     // Define if show plain text label or link
     isServiceLinkDisabled: function () {
-      return this.get('content.serviceName') === 'KERBEROS' && !App.Service.find().someProperty('serviceName', 'KERBEROS');
-    }.property('content.serviceName')
+      return this.get('content.serviceName') === 'KERBEROS' && !App.Service.find().someProperty('serviceName', 'KERBEROS') || this.get('content.isConfigGroupDeleted');
+    }.property('content.serviceName', 'content.isConfigGroupDeleted')
   }),
 
   /**
@@ -230,6 +230,10 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     this.set('controller.resetStartIndex', false);
     App.loadTimer.finish('Config History Page');
   },
+
+  saveStartIndex: function() {
+    App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+  }.observes('startIndex'),
 
   /**
    * associations between host property and column index

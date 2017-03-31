@@ -1,4 +1,4 @@
-/** * Licensed to the Apache Software Foundation (ASF) under one
+/* * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -39,7 +39,6 @@ export default Ember.Controller.extend({
   selectedDatabase: Ember.computed.alias('databaseService.selectedDatabase'),
   isDatabaseExplorerVisible: true,
   canKillSession: Ember.computed.and('model.sessionTag', 'model.sessionActive'),
-
   queryProcessTabs: [
     Ember.Object.create({
       name: Ember.I18n.t('menus.logs'),
@@ -207,6 +206,7 @@ export default Ember.Controller.extend({
 
     return this.createJob(job, originalModel);
   },
+
 
   getVisualExplainJson: function (job, originalModel) {
     var self = this;
@@ -621,6 +621,45 @@ export default Ember.Controller.extend({
 
       query.set('fileContent', updatedContent);
     },
+
+    filesUploaded: (function(files) {
+      var idCounter = 0;
+      return function (files) {
+        var self=this;
+        var name = files[0].name;
+        var i = name.indexOf(".");
+        var title = name.substr(0, i);
+        idCounter++;
+        var defer = Ember.RSVP.defer()
+        var reader = new FileReader();
+
+        reader.onloadstart = function(e) {
+          Ember.$("#uploadProgressModal").modal("show");
+        }
+        reader.onloadend = function(e) {
+          defer.resolve(e.target.result);
+        }
+        reader.onerror = function(e) {
+          self.get('notifyService').error("Upload failed");
+          Ember.$("#uploadProgressModal").modal("hide");
+        }
+        reader.readAsText(files[0]);
+        defer.promise.then(function(data) {
+        var model = self.store.createRecord(constants.namingConventions.savedQuery, {
+          dataBase: self.get('selectedDatabase.name'),
+          title: title,
+          id: 'fixture_upload' + idCounter
+          });
+        return Ember.RSVP.resolve(self.transitionToRoute(constants.namingConventions.subroutes.savedQuery, model)).then(function() {
+          return data;
+        });
+        }). then(function(data) {
+          self.set('openQueries.currentQuery.fileContent',data);
+          Ember.$("#uploadProgressModal").modal("hide");
+        });
+        };
+    }()),
+
 
     addQuery: (function () {
       var idCounter = 0;

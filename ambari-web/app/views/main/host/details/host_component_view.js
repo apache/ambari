@@ -199,7 +199,11 @@ App.HostComponentView = Em.View.extend({
         return false;
       else
     	return true;
-    }    
+    }
+    if (this.get('hostComponent.componentName') == 'JOURNALNODE') {
+      var count_JN = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
+      return count_JN <= 3; // TODO get 3 from stack
+    }
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
   }.property('workStatus'),

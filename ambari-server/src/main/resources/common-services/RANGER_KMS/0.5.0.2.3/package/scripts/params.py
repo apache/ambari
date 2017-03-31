@@ -48,6 +48,7 @@ stack_support_kms_hsm = check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT,
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kms_ssl = check_stack_feature(StackFeature.RANGER_KMS_SSL, version_for_stack_feature_checks)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -60,6 +61,11 @@ kms_log_dir = default("/configurations/kms-env/kms_log_dir", "/var/log/ranger/km
 java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
+
+ranger_kms_audit_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_audit_log_maxfilesize',256)
+ranger_kms_audit_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_audit_log_maxbackupindex',20)
+ranger_kms_log_maxfilesize = default('/configurations/kms-log4j/ranger_kms_log_maxfilesize',256)
+ranger_kms_log_maxbackupindex = default('/configurations/kms-log4j/ranger_kms_log_maxbackupindex',20)
 
 jdk_location = config['hostLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
@@ -83,6 +89,9 @@ credential_provider_path = config['configurations']['dbks-site']['ranger.ks.jpa.
 jdbc_alias = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credential.alias']
 masterkey_alias = config['configurations']['dbks-site']['ranger.ks.masterkey.credential.alias']
 repo_name = str(config['clusterName']) + '_kms'
+repo_name_value = config['configurations']['ranger-kms-security']['ranger.plugin.kms.service.name']
+if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+  repo_name = repo_name_value
 cred_lib_path = os.path.join(kms_home,"cred","lib","*")
 cred_setup_prefix = (format('{kms_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
 credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
@@ -268,3 +277,15 @@ if security_enabled:
   spengo_keytab = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab']
   spnego_principal = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal']
   spnego_principal = spnego_principal.replace('_HOST', current_host.lower())
+
+plugin_audit_password_property = 'xasecure.audit.destination.db.password'
+kms_plugin_password_properties = ['xasecure.policymgr.clientssl.keystore.password', 'xasecure.policymgr.clientssl.truststore.password']
+dbks_site_password_properties = ['ranger.db.encrypt.key.password', 'ranger.ks.jpa.jdbc.password', 'ranger.ks.hsm.partition.password']
+ranger_kms_site_password_properties = ['ranger.service.https.attrib.keystore.pass']
+ranger_kms_cred_ssl_path = config['configurations']['ranger-kms-site']['ranger.credential.provider.path']
+ranger_kms_ssl_keystore_alias = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.keystore.credential.alias']
+ranger_kms_ssl_passwd = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.keystore.pass']
+ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.service.https.attrib.ssl.enabled']
+
+xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
+namenode_host = default("/clusterHostInfo/namenode_host", [])

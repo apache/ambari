@@ -33,6 +33,9 @@
    customGroupMappings: '',
    selectedLeafQueueNameForUsers: null,
    selectedLeafQueueNameForGroups: null,
+   isQueueMappingsDirty: false,
+   scheduler: null,
+   isOperator: false,
 
    actions: {
      showMappingOptions: function(){
@@ -50,6 +53,13 @@
      },
      toggleMappingOverride: function() {
        this.toggleProperty('mappingsOverrideEnable');
+     },
+     rollbackProp: function(prop, item) {
+       if (prop === "queue_mappings") {
+         var oldMappings = (item.changedAttributes()[prop][0])? item.changedAttributes()[prop][0].split(',') : [];
+         this.set('queueMappings', oldMappings);
+       }
+       this.sendAction("rollbackProp", prop, item);
      }
    },
 
@@ -102,9 +112,10 @@
 
    addCustomQueueMappings: function(csValues, selectedLeafQName){
      var that = this;
-     csValues = csValues.trim() || '',
-     userOrGroupNames = csValues.split(',') || [],
-     mappingPattern = this.get('selectedMapping');
+       csValues = csValues.trim() || '',
+       userOrGroupNames = csValues.split(',') || [],
+       mappingPattern = this.get('selectedMapping');
+
      userOrGroupNames.forEach(function(ugname){
        that.get('queueMappings').pushObject(mappingPattern.replace('%name', ugname).replace('%qname', selectedLeafQName));
      });
@@ -142,5 +153,13 @@
 
    destroyEventListeners: function() {
      this.$('#collapseQueueMappingsBtn').off('click');
-   }.on('willDestroyElement')
+   }.on('willDestroyElement'),
+
+   isMappingsDirty: function() {
+     return this.get('scheduler').changedAttributes().hasOwnProperty('queue_mappings');
+   }.property('scheduler.queue_mappings'),
+
+   isOverrideEnableDirty: function() {
+     return this.get('scheduler').changedAttributes().hasOwnProperty('queue_mappings_override_enable');
+   }.property('scheduler.queue_mappings_override_enable')
  });

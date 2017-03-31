@@ -435,6 +435,26 @@ public class HostRoleCommandDAO {
   }
 
   @RequiresSession
+  public Map<Long, Integer> getHostIdToCountOfCommandsWithStatus(Collection<HostRoleStatus> statuses) {
+    Map<Long, Integer> hostIdToCount = new HashMap<>();
+
+    String queryName = "SELECT command.hostId FROM HostRoleCommandEntity command WHERE command.status IN :statuses";
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryName, Long.class);
+    query.setParameter("statuses", statuses);
+    List<Long> results = query.getResultList();
+
+    for (Long hostId : results) {
+      if (hostIdToCount.containsKey(hostId)) {
+        hostIdToCount.put(hostId, hostIdToCount.get(hostId) + 1);
+      } else {
+        hostIdToCount.put(hostId, 1);
+      }
+    }
+
+    return hostIdToCount;
+  }
+
+  @RequiresSession
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, String role) {
 
     String queryName = (null == hostName) ? "HostRoleCommandEntity.findByHostRoleNullHost" :

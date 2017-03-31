@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 __all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_collector", "should_install_ams_grafana",
-           "should_install_mysql", "should_install_mysl_connector", "should_install_ranger_tagsync"]
+           "should_install_mysql", "should_install_mysql_connector", "should_install_ranger_tagsync"]
 
 import os
 from resource_management.libraries.script import Script
@@ -70,7 +70,7 @@ def should_install_infra_solr():
 
 def should_install_infra_solr_client():
   config = Script.get_config()
-  return _has_applicable_local_component(config, ['INFRA_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN'])
+  return _has_applicable_local_component(config, ['INFRA_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN', 'LOGSEARCH_SERVER'])
 
 def should_install_logsearch_portal():
   config = Script.get_config()
@@ -85,7 +85,7 @@ def should_install_mysql():
     return False
   return _has_applicable_local_component(config, "MYSQL_SERVER")
 
-def should_install_mysl_connector():
+def should_install_mysql_connector():
   mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
   return not os.path.exists(mysql_jdbc_driver_jar)
 

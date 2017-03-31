@@ -114,10 +114,6 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
       }
     });
-    if (!$.mocho) {
-      //for some reasons this causing error in unit test
-      App.store.commit();
-    }
     console.timeEnd('App.alertDefinitionSummaryMapper execution time');
 
   }

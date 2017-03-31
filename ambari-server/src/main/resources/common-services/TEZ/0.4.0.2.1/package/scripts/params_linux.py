@@ -29,10 +29,13 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.get_architecture import get_architecture
 
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 stack_root = Script.get_stack_root()
@@ -62,6 +65,13 @@ if stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONIN
   # broken symlink messes with the DirectoryProvider class
   config_path = os.path.join(stack_root, "current/tez-client/conf")
   config_dir = os.path.realpath(config_path)
+
+# Heap dump related
+heap_dump_enabled = default('/configurations/tez-env/enable_heap_dump', None)
+heap_dump_opts = "" # Empty if 'heap_dump_enabled' is False.
+if heap_dump_enabled:
+  heap_dump_path = default('/configurations/tez-env/heap_dump_location', "/tmp")
+  heap_dump_opts = " -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath="+heap_dump_path
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']

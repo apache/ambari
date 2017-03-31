@@ -470,6 +470,19 @@
       ],
       "dependencies": [
       ]
+    },
+   "System": {
+      "label": "System",
+      "components": [
+        {
+          "name": "system_message"
+        },
+        {
+          "name": "secure_log"
+        }
+      ],
+      "dependencies": [
+      ]
     }
   }
 }

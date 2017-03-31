@@ -41,6 +41,12 @@ App.RepositoryVersion = DS.Model.extend({
   defaultStatus: 'INIT',
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isCompatible: false,
+
+  /**
    * @type {string}
    */
   status: Em.computed.firstNotBlank('stackVersion.state', 'defaultStatus'),

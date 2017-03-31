@@ -63,6 +63,12 @@ class TestLogSearch(RMFTestCase):
                               cd_access = 'a',
                               mode = 0755
                               )
+    self.assertResourceCalled('Directory', '/etc/ambari-logsearch-portal/conf/keys',
+                              owner = 'logsearch',
+                              group = 'hadoop',
+                              cd_access = 'a',
+                              mode = 0755
+                              )
 
     self.assertResourceCalled('File', '/var/log/ambari-logsearch-portal/logsearch.out',
                               owner = 'logsearch',
@@ -70,10 +76,40 @@ class TestLogSearch(RMFTestCase):
                               mode = 0644,
                               content = ''
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
-                              owner = 'logsearch',
-                              group='hadoop',
-                              content = Template('logsearch.properties.j2')
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ks_pass.txt',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/keys/ts_pass.txt',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
+                              properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
+                                            'logsearch.audit.logs.split.interval.mins': '1',
+                                            'logsearch.auth.external_auth.enabled': 'false',
+                                            'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
+                                            'logsearch.auth.external_auth.login_url': '/api/v1/users/$USERNAME/privileges?fields=*',
+                                            'logsearch.auth.file.enabled': 'true',
+                                            'logsearch.auth.ldap.enabled': 'false',
+                                            'logsearch.auth.simple.enabled': 'false',
+                                            'logsearch.collection.audit.logs.numshards': '10',
+                                            'logsearch.collection.audit.logs.replication.factor': '1',
+                                            'logsearch.collection.history.replication.factor': '1',
+                                            'logsearch.collection.service.logs.numshards': '10',
+                                            'logsearch.collection.service.logs.replication.factor': '1',
+                                            'logsearch.login.credentials.file': 'logsearch-admin.json',
+                                            'logsearch.protocol': 'http',
+                                            'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR',
+                                            'logsearch.service.logs.split.interval.mins': '1',
+                                            'logsearch.solr.audit.logs.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
+                                            'logsearch.solr.collection.audit.logs': 'audit_logs',
+                                            'logsearch.solr.collection.history': 'history',
+                                            'logsearch.solr.collection.service.logs': 'hadoop_logs',
+                                            'logsearch.solr.history.config.name': 'history',
+                                            'logsearch.solr.metrics.collector.hosts': '',
+                                            'logsearch.solr.jmx.port': '1',
+                                            'logsearch.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
+                                            'logsearch.spnego.kerberos.host': 'localhost'
+                              }
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
                               owner = 'logsearch',
@@ -106,42 +142,12 @@ class TestLogSearch(RMFTestCase):
                               group='hadoop',
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
-
-    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 5 --interval 10')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_hadoop_logs_0.[0-9]*',
-                                    content=InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content']),
-                                    only_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5',
-                                    only_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/hadoop_logs/conf --config-set hadoop_logs --retry 30 --interval 5',
-                                    not_if='test -d /tmp/solr_config_hadoop_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_hadoop_logs_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
-
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_history_0.[0-9]* --config-set history --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/history/conf --config-set history --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_history_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
-
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --download-config --config-dir /tmp/solr_config_audit_logs_0.[0-9]* --config-set audit_logs --retry 30 --interval 5')
-    self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_audit_logs_0.[0-9]*',
-                                    content=InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content']),
-                                    only_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /tmp/solr_config_audit_logs_0.[0-9]* --config-set audit_logs --retry 30 --interval 5',
-                                    only_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --upload-config --config-dir /etc/ambari-logsearch-portal/conf/solr_configsets/audit_logs/conf --config-set audit_logs --retry 30 --interval 5',
-                                    not_if='test -d /tmp/solr_config_audit_logs_0.[0-9]*')
-    self.assertResourceCalledRegexp('^Directory$', '^/tmp/solr_config_audit_logs_0.[0-9]*',
-                                    action=['delete'],
-                                    create_parents=True)
     self.assertResourceCalled('Execute', ('chmod', '-R', 'ugo+r', '/etc/ambari-logsearch-portal/conf/solr_configsets'),
                               sudo = True
     )
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --check-znode --retry 30 --interval 5')
+
+
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch.py",
@@ -151,7 +157,6 @@ class TestLogSearch(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 

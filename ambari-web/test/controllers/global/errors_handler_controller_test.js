@@ -47,6 +47,7 @@ describe('App.ErrorsHandlerController', function () {
   describe("#saveErrorLogs()", function () {
 
     beforeEach(function() {
+      localStorage.removeItem('errors');
       sinon.stub(controller, 'postUserPref');
     });
 

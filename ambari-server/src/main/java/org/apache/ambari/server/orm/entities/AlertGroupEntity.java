@@ -19,11 +19,13 @@ package org.apache.ambari.server.orm.entities;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -42,17 +44,35 @@ import javax.persistence.UniqueConstraint;
  * {@link AlertTargetEntity} should be notified on.
  */
 @Entity
-@Table(name = "alert_group", uniqueConstraints = @UniqueConstraint(columnNames = {
-    "cluster_id", "group_name" }))
-@TableGenerator(name = "alert_group_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_group_id_seq", initialValue = 0)
+@Table(
+    name = "alert_group",
+    uniqueConstraints = @UniqueConstraint(columnNames = { "cluster_id", "group_name" }))
+@TableGenerator(
+    name = "alert_group_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
+    pkColumnValue = "alert_group_id_seq",
+    initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertGroupEntity.findAll", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
-    @NamedQuery(name = "AlertGroupEntity.findAllInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertGroupEntity.findByName", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName"),
-    @NamedQuery(name = "AlertGroupEntity.findByNameInCluster", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
-    @NamedQuery(name = "AlertGroupEntity.findByAssociatedDefinition", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE :alertDefinition MEMBER OF alertGroup.alertDefinitions"),
-    @NamedQuery(name = "AlertGroupEntity.findServiceDefaultGroup", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId AND alertGroup.serviceName = :serviceName AND alertGroup.isDefault = 1"),
-    @NamedQuery(name = "AlertGroupEntity.findByIds", query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupId IN :groupIds") })
+    @NamedQuery(
+        name = "AlertGroupEntity.findAll",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup"),
+    @NamedQuery(
+        name = "AlertGroupEntity.findAllInCluster",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId"),
+    @NamedQuery(
+        name = "AlertGroupEntity.findByNameInCluster",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupName = :groupName AND alertGroup.clusterId = :clusterId"),
+    @NamedQuery(
+        name = "AlertGroupEntity.findByAssociatedDefinition",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE :alertDefinition MEMBER OF alertGroup.alertDefinitions"),
+    @NamedQuery(
+        name = "AlertGroupEntity.findServiceDefaultGroup",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.clusterId = :clusterId AND alertGroup.serviceName = :serviceName AND alertGroup.isDefault = 1"),
+    @NamedQuery(
+        name = "AlertGroupEntity.findByIds",
+        query = "SELECT alertGroup FROM AlertGroupEntity alertGroup WHERE alertGroup.groupId IN :groupIds") })
 public class AlertGroupEntity {
 
   @Id
@@ -76,14 +96,20 @@ public class AlertGroupEntity {
    * Bi-directional many-to-many association to {@link AlertDefinitionEntity}
    */
   @ManyToMany(cascade = CascadeType.MERGE)
-  @JoinTable(name = "alert_grouping", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "definition_id", nullable = false) })
+  @JoinTable(
+      name = "alert_grouping",
+      joinColumns = { @JoinColumn(name = "group_id", nullable = false) },
+      inverseJoinColumns = { @JoinColumn(name = "definition_id", nullable = false) })
   private Set<AlertDefinitionEntity> alertDefinitions;
 
   /**
    * Unidirectional many-to-many association to {@link AlertTargetEntity}
    */
-  @ManyToMany(cascade = { CascadeType.MERGE, CascadeType.REFRESH })
-  @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
+  @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.REFRESH })
+  @JoinTable(
+      name = "alert_group_target",
+      joinColumns = { @JoinColumn(name = "group_id", nullable = false) },
+      inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
   private Set<AlertTargetEntity> alertTargets;
 
   /**
@@ -197,7 +223,7 @@ public class AlertGroupEntity {
    */
   public Set<AlertDefinitionEntity> getAlertDefinitions() {
     if (null == alertDefinitions) {
-      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+      alertDefinitions = new HashSet<>();
     }
 
     return Collections.unmodifiableSet(alertDefinitions);
@@ -234,7 +260,7 @@ public class AlertGroupEntity {
    */
   public void addAlertDefinition(AlertDefinitionEntity definition) {
     if (null == alertDefinitions) {
-      alertDefinitions = new HashSet<AlertDefinitionEntity>();
+      alertDefinitions = new HashSet<>();
     }
 
     alertDefinitions.add(definition);
@@ -279,7 +305,7 @@ public class AlertGroupEntity {
    */
   public void addAlertTarget(AlertTargetEntity alertTarget) {
     if (null == alertTargets) {
-      alertTargets = new HashSet<AlertTargetEntity>();
+      alertTargets = new HashSet<>();
     }
 
     alertTargets.add(alertTarget);
@@ -309,19 +335,24 @@ public class AlertGroupEntity {
    *          the targets, or {@code null} if there are none.
    */
   public void setAlertTargets(Set<AlertTargetEntity> alertTargets) {
+    // for any existing associations, remove "this" from those associations
     if (null != this.alertTargets) {
-      for (AlertTargetEntity target : this.alertTargets) {
+      // make a copy to prevent ConcurrentModificiationExceptions
+      Set<AlertTargetEntity> copyOfAssociatedTargets = new HashSet<>(this.alertTargets);
+      for (AlertTargetEntity target : copyOfAssociatedTargets) {
         target.removeAlertGroup(this);
       }
     }
 
-    this.alertTargets = alertTargets;
-
+    // update all new targets to reflect "this" as an associated group
     if (null != alertTargets) {
       for (AlertTargetEntity target : alertTargets) {
         target.addAlertGroup(this);
       }
     }
+
+    // update reference
+    this.alertTargets = alertTargets;
   }
 
   /**
@@ -339,11 +370,15 @@ public class AlertGroupEntity {
 
     AlertGroupEntity that = (AlertGroupEntity) object;
 
-    if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
-      return false;
+    // use the unique ID if it exists
+    if( null != groupId ){
+      return Objects.equals(groupId, that.groupId);
     }
 
-    return true;
+    return Objects.equals(groupId, that.groupId) &&
+        Objects.equals(clusterId, that.clusterId) &&
+        Objects.equals(groupName, that.groupName) &&
+        Objects.equals(serviceName, that.serviceName);
   }
 
   /**
@@ -351,8 +386,12 @@ public class AlertGroupEntity {
    */
   @Override
   public int hashCode() {
-    int result = null != groupId ? groupId.hashCode() : 0;
-    return result;
+    // use the unique ID if it exists
+    if( null != groupId ){
+      return groupId.hashCode();
+    }
+
+    return Objects.hash(groupId, clusterId, groupName, serviceName);
   }
 
   /**

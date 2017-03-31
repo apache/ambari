@@ -42,8 +42,8 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     }
 
     if (this.get('controller.content.reassign.component_name') === 'APP_TIMELINE_SERVER') {
-      user = this.get('controller.content.serviceProperties.yarn-env.yarn_user');
-      path = this.get('controller.content.serviceProperties.yarn-site')['yarn.timeline-service.leveldb-timeline-store.path'];
+      user = this.get('controller.content.configs.yarn-env.yarn_user');
+      path = this.get('controller.content.configs.yarn-site')['yarn.timeline-service.leveldb-timeline-store.path'];
     }
 
     return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).

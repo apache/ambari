@@ -19,7 +19,7 @@
         "service_package_folder": "common-services/KNOX/0.5.0.2.2/package", 
         "script": "scripts/knox_gateway.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "command_retry_max_attempt_count": "3", 
         "version": "2.3.0.0-2096", 
         "original_stack": "HDP-2.3", 

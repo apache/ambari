@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.controller.logging;
 
-import org.apache.log4j.Logger;
-
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
 
 /**
  * Utility class to hold static convenience methods for
@@ -57,6 +57,20 @@ public class Utils {
     if (atomicInteger.getAndIncrement() == 0) {
       // only log the message once every maxCount attempts
       logger.error(errorMessage);
+    } else {
+      // if we've hit maxCount attempts, reset the counter
+      atomicInteger.compareAndSet(maxCount, 0);
+    }
+  }
+
+  static void logDebugMessageWithCounter(Logger logger, AtomicInteger atomicInteger, String errorMessage) {
+    logDebugMessageWithCounter(logger, atomicInteger, errorMessage, WAIT_COUNT_MAX);
+  }
+
+  static void logDebugMessageWithCounter(Logger logger, AtomicInteger atomicInteger, String debugMessage, int maxCount) {
+    if (atomicInteger.getAndIncrement() == 0) {
+      // only log the message once every maxCount attempts
+      logger.debug(debugMessage);
     } else {
       // if we've hit maxCount attempts, reset the counter
       atomicInteger.compareAndSet(maxCount, 0);

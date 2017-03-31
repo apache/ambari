@@ -38,10 +38,11 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.upgrade.UpgradeCatalog170;
 import org.apache.ambari.server.utils.SecretReference;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,7 +178,7 @@ public class ConfigHelper {
       clusterDesired = new HashMap<>();
     }
 
-    Map<String, Map<String, String>> resolved = new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> resolved = new TreeMap<>();
 
     // Do not use host component config mappings.  Instead, the rules are:
     // 1) Use the cluster desired config
@@ -194,7 +195,7 @@ public class ConfigHelper {
           continue;
         }
 
-        Map<String, String> tags = new LinkedHashMap<String, String>();
+        Map<String, String> tags = new LinkedHashMap<>();
 
         tags.put(CLUSTER_DEFAULT_TAG, config.getTag());
 
@@ -229,17 +230,17 @@ public class ConfigHelper {
   public Map<String, Map<String, String>> getEffectiveConfigProperties(
       Cluster cluster, Map<String, Map<String, String>> desiredTags) {
 
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
 
     if (desiredTags != null) {
       for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
         String type = entry.getKey();
         Map<String, String> propertyMap = properties.get(type);
         if (propertyMap == null) {
-          propertyMap = new HashMap<String, String>();
+          propertyMap = new HashMap<>();
         }
 
-        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        Map<String, String> tags = new HashMap<>(entry.getValue());
         String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
 
         // Overrides is only supported if the config type exists at cluster
@@ -279,7 +280,7 @@ public class ConfigHelper {
   public Map<String, Map<String, Map<String, String>>> getEffectiveConfigAttributes(
       Cluster cluster, Map<String, Map<String, String>> desiredTags) {
 
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
 
     if (desiredTags != null) {
       for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
@@ -287,13 +288,13 @@ public class ConfigHelper {
         String type = entry.getKey();
         Map<String, Map<String, String>> attributesMap = null;
 
-        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        Map<String, String> tags = new HashMap<>(entry.getValue());
         String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
 
         if (clusterTag != null) {
           Config config = cluster.getConfig(type, clusterTag);
           if (config != null) {
-            attributesMap = new TreeMap<String, Map<String, String>>();
+            attributesMap = new TreeMap<>();
             cloneAttributesMap(config.getPropertiesAttributes(), attributesMap);
           }
           tags.remove(CLUSTER_DEFAULT_TAG);
@@ -323,7 +324,7 @@ public class ConfigHelper {
   public Map<String, String> getMergedConfig(Map<String,
       String> persistedClusterConfig, Map<String, String> override) {
 
-    Map<String, String> finalConfig = new HashMap<String, String>(persistedClusterConfig);
+    Map<String, String> finalConfig = new HashMap<>(persistedClusterConfig);
 
     if (override != null && override.size() > 0) {
       for (Entry<String, String> entry : override.entrySet()) {
@@ -435,10 +436,17 @@ public class ConfigHelper {
    */
   public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> requestDesiredConfigs)
       throws AmbariException {
-    boolean stale = calculateIsStaleConfigs(sch, requestDesiredConfigs);
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = sch.getDesiredStateEntity();
+    return isStaleConfigs(sch, requestDesiredConfigs, hostComponentDesiredStateEntity);
+  }
+
+  public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> requestDesiredConfigs,
+                                HostComponentDesiredStateEntity hostComponentDesiredStateEntity)
+          throws AmbariException {
+    boolean stale = calculateIsStaleConfigs(sch, requestDesiredConfigs, hostComponentDesiredStateEntity);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Cache configuration staleness for host {} and component {} as {}",
-          sch.getHostName(), sch.getServiceComponentName(), stale);
+              sch.getHostName(), sch.getServiceComponentName(), stale);
     }
     return stale;
   }
@@ -470,7 +478,7 @@ public class ConfigHelper {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
                                               stackId.getStackVersion());
 
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
 
     for (Service service : clusters.getCluster(clusterName).getServices().values()) {
       Set<PropertyInfo> stackProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
@@ -489,11 +497,153 @@ public class ConfigHelper {
     return result;
   }
 
-  public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType,
-      Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+  /**
+   * Gets a map of config types to password property names to password property value names,
+   * that are credential store enabled.
+   *
+   * @param stackId
+   * @param service
+   * @return
+   * @throws AmbariException
+     */
+  public Map<String, Map<String, String>> getCredentialStoreEnabledProperties(StackId stackId, Service service)
+          throws AmbariException {
+    PropertyType propertyType = PropertyType.PASSWORD;
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, Map<String, String>> result = new HashMap<>();
+    Map<String, String> passwordProperties;
+    Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+    for (PropertyInfo serviceProperty : serviceProperties) {
+      if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+        if (!serviceProperty.getPropertyValueAttributes().isKeyStore()) {
+          continue;
+        }
+        String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+        passwordProperties = result.get(stackPropertyConfigType);
+        if (passwordProperties == null) {
+          passwordProperties = new HashMap<>();
+          result.put(stackPropertyConfigType, passwordProperties);
+        }
+        // If the password property is used by another property, it means the password property
+        // is a password value name while the use is the password alias name. If the user property
+        // is from another config type, include that in the password alias name as name:type.
+        if (serviceProperty.getUsedByProperties().size() > 0) {
+          for (PropertyDependencyInfo usedByProperty : serviceProperty.getUsedByProperties()) {
+            String propertyName = usedByProperty.getName();
+            if (!StringUtils.isEmpty(usedByProperty.getType())) {
+              propertyName += ':' + usedByProperty.getType();
+            }
+            passwordProperties.put(propertyName, serviceProperty.getName());
+          }
+        }
+        else {
+          passwordProperties.put(serviceProperty.getName(), serviceProperty.getName());
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /***
+   * Fetch user to group mapping from the cluster configs. UserGroupEntries contain information regarding the group that the user is associated to.
+   * @param stackId
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
+  public Map<String, Set<String>> createUserGroupsMap(StackId stackId,
+                                                      Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+    return createUserGroupsMap(cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  /***
+   * Fetch user to group mapping from the cluster configs. UserGroupEntries contain information regarding the group that the user is associated to.
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   * @throws AmbariException
+   */
+  public Map<String, Set<String>> createUserGroupsMap(
+    Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
+    Map<String, ServiceInfo> servicesMap, Set<PropertyInfo> stackProperties) throws AmbariException {
+
+    Map<String, Set<String>> userGroupsMap = new HashMap<>();
+    Map<PropertyInfo, String> userProperties = getPropertiesWithPropertyType(
+      PropertyType.USER, cluster, desiredConfigs, servicesMap, stackProperties);
+    Map<PropertyInfo, String> groupProperties = getPropertiesWithPropertyType(
+      PropertyType.GROUP, cluster, desiredConfigs, servicesMap, stackProperties);
+
+    if(userProperties != null && groupProperties != null) {
+      for(Map.Entry<PropertyInfo, String> userProperty : userProperties.entrySet()) {
+        PropertyInfo userPropertyInfo = userProperty.getKey();
+        String userPropertyValue = userProperty.getValue();
+        if(userPropertyInfo.getPropertyValueAttributes() != null
+          && userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries() != null) {
+          Set<String> groupPropertyValues = new HashSet<>();
+          Collection<UserGroupInfo> userGroupEntries = userPropertyInfo.getPropertyValueAttributes().getUserGroupEntries();
+          for (UserGroupInfo userGroupInfo : userGroupEntries) {
+            boolean found = false;
+            for(Map.Entry<PropertyInfo, String> groupProperty : groupProperties.entrySet()) {
+              PropertyInfo groupPropertyInfo = groupProperty.getKey();
+              String groupPropertyValue = groupProperty.getValue();
+              if(StringUtils.equals(userGroupInfo.getType(),
+                ConfigHelper.fileNameToConfigType(groupPropertyInfo.getFilename()))
+                && StringUtils.equals(userGroupInfo.getName(), groupPropertyInfo.getName())) {
+                groupPropertyValues.add(groupPropertyValue);
+                found = true;
+              }
+            }
+            if(!found) {
+             //Log error if the user-group mapping is not found
+              LOG.error("User group mapping property {" + userGroupInfo.getType() + "/" + userGroupInfo.getName() + "} is missing for user property {" + ConfigHelper.fileNameToConfigType(userPropertyInfo.getFilename()) + "/" + userPropertyInfo.getName() + "} (username = " + userPropertyInfo.getValue() +")");
+            }
+          }
+          userGroupsMap.put(userPropertyValue, groupPropertyValues);
+        }
+      }
+    }
+    return userGroupsMap;
+  }
+
+  /***
+   * Fetch all the properties of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param stackId
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
+  public Map<PropertyInfo, String> getPropertiesWithPropertyType(StackId stackId, PropertyType propertyType,
+                                                                 Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+
+    return getPropertiesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  /***
+   * Fetch all the properties of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   */
+  public Map<PropertyInfo, String> getPropertiesWithPropertyType(PropertyType propertyType, Cluster cluster,
+                                                                 Map<String, DesiredConfig> desiredConfigs, Map<String, ServiceInfo> servicesMap,
+                                                                 Set<PropertyInfo> stackProperties) throws AmbariException {
     Map<String, Config> actualConfigs = new HashMap<>();
-    Set<String> result = new HashSet<String>();
+    Map<PropertyInfo, String> result = new HashMap<>();
 
     for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
       String configType = desiredConfigEntry.getKey();
@@ -502,7 +652,84 @@ public class ConfigHelper {
     }
 
     for (Service service : cluster.getServices().values()) {
-      Set<PropertyInfo> serviceProperties = ambariMetaInfo.getServiceProperties(stack.getName(), stack.getVersion(), service.getName());
+      Set<PropertyInfo> serviceProperties = new HashSet<PropertyInfo>(servicesMap.get(service.getName()).getProperties());
+      for (PropertyInfo serviceProperty : serviceProperties) {
+        if (serviceProperty.getPropertyTypes().contains(propertyType)) {
+          String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
+          try {
+            String property = actualConfigs.get(stackPropertyConfigType).getProperties().get(serviceProperty.getName());
+            if (null == property){
+              LOG.error(String.format("Unable to obtain property values for %s with property attribute %s. "
+                  + "The property does not exist in version %s of %s configuration.",
+                serviceProperty.getName(),
+                propertyType,
+                desiredConfigs.get(stackPropertyConfigType),
+                stackPropertyConfigType
+              ));
+            } else {
+              result.put(serviceProperty, property);
+            }
+          } catch (Exception ignored) {
+          }
+        }
+      }
+    }
+
+
+    for (PropertyInfo stackProperty : stackProperties) {
+      if (stackProperty.getPropertyTypes().contains(propertyType)) {
+        String stackPropertyConfigType = fileNameToConfigType(stackProperty.getFilename());
+        result.put(stackProperty, actualConfigs.get(stackPropertyConfigType).getProperties().get(stackProperty.getName()));
+      }
+    }
+
+    return result;
+  }
+
+  /***
+   * Fetch all the property values of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param stackId
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @return
+   * @throws AmbariException
+   */
+  public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType,
+                                                       Cluster cluster, Map<String,
+                                                       DesiredConfig> desiredConfigs) throws AmbariException {
+    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    Map<String, ServiceInfo> servicesMap = ambariMetaInfo.getServices(stack.getName(), stack.getVersion());
+    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
+
+    return getPropertyValuesWithPropertyType(propertyType, cluster, desiredConfigs, servicesMap, stackProperties);
+  }
+
+  /***
+   * Fetch all the property values of a given PropertyType. For eg: Fetch all cluster configs that are of type "user"
+   * @param propertyType
+   * @param cluster
+   * @param desiredConfigs
+   * @param servicesMap
+   * @param stackProperties
+   * @return
+   * @throws AmbariException
+   */
+  public Set<String> getPropertyValuesWithPropertyType(PropertyType propertyType,
+                                                       Cluster cluster, Map<String, DesiredConfig> desiredConfigs,
+                                                       Map<String, ServiceInfo> servicesMap,
+                                                       Set<PropertyInfo> stackProperties) throws AmbariException {
+    Map<String, Config> actualConfigs = new HashMap<>();
+    Set<String> result = new HashSet<>();
+
+    for (Map.Entry<String, DesiredConfig> desiredConfigEntry : desiredConfigs.entrySet()) {
+      String configType = desiredConfigEntry.getKey();
+      DesiredConfig desiredConfig = desiredConfigEntry.getValue();
+      actualConfigs.put(configType, cluster.getConfig(configType, desiredConfig.getTag()));
+    }
+
+    for (Service service : cluster.getServices().values()) {
+      Set<PropertyInfo> serviceProperties = new HashSet<>(servicesMap.get(service.getName()).getProperties());
       for (PropertyInfo serviceProperty : serviceProperties) {
         if (serviceProperty.getPropertyTypes().contains(propertyType)) {
           String stackPropertyConfigType = fileNameToConfigType(serviceProperty.getFilename());
@@ -514,7 +741,6 @@ public class ConfigHelper {
       }
     }
 
-    Set<PropertyInfo> stackProperties = ambariMetaInfo.getStackProperties(stack.getName(), stack.getVersion());
 
     for (PropertyInfo stackProperty : stackProperties) {
       if (stackProperty.getPropertyTypes().contains(propertyType)) {
@@ -526,6 +752,14 @@ public class ConfigHelper {
     return result;
   }
 
+  /***
+   * Fetch all the config values of a given PropertyType. For eg: Fetch all stack configs that are of type "user"
+   * @param cluster
+   * @param configType
+   * @param propertyName
+   * @return
+   * @throws AmbariException
+   */
   public String getPropertyValueFromStackDefinitions(Cluster cluster, String configType, String propertyName) throws AmbariException {
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
@@ -646,7 +880,7 @@ public class ConfigHelper {
   public Set<PropertyInfo> getServiceProperties(StackId stackId, String serviceName, boolean removeExcluded)
       throws AmbariException {
     ServiceInfo service = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    Set<PropertyInfo> properties = new HashSet<PropertyInfo>(service.getProperties());
+    Set<PropertyInfo> properties = new HashSet<>(service.getProperties());
 
     if (removeExcluded) {
       Set<String> excludedConfigTypes = service.getExcludedConfigTypes();
@@ -716,9 +950,9 @@ public class ConfigHelper {
 
     Config oldConfig = cluster.getDesiredConfigByType(configType);
     Map<String, String> oldConfigProperties;
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     Map<String, Map<String, String>> propertiesAttributes =
-      new HashMap<String, Map<String, String>>();
+      new HashMap<>();
 
     if (oldConfig == null) {
       oldConfigProperties = null;
@@ -812,7 +1046,7 @@ public class ConfigHelper {
       Map<String, Map<String, String>> batchProperties, String authenticatedUserName,
       String serviceVersionNote) throws AmbariException {
 
-    Map<String, Set<Config>> serviceMapped = new HashMap<String, Set<Config>>();
+    Map<String, Set<Config>> serviceMapped = new HashMap<>();
 
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
@@ -844,8 +1078,33 @@ public class ConfigHelper {
 
   }
 
-  Config createConfig(Cluster cluster, AmbariManagementController controller, String type, String tag,
-                      Map<String, String> properties, Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
+  /**
+   * Creates a new configuration using the specified tag as the first version
+   * tag. Otherwise, the configuration will be created with {@literal version}
+   * along with the current timestamp.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param controller
+   *          the controller which actually creates the configuration (not
+   *          {@code null}).
+   * @param type
+   *          the new configuration type (not {@code null}).
+   * @param tag
+   *          the initial tag; if this configuration already exists, it will use
+   *          the timestamp along with {@literal version}.
+   * @param properties
+   *          the properties to persist (not {@code null}).
+   * @param propertyAttributes
+   *          the attributes to persist, or {@code null} for none.
+   * @return
+   * @throws AmbariException
+   */
+  Config createConfig(Cluster cluster, AmbariManagementController controller, String type,
+      String tag, Map<String, String> properties,
+      Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
+
+    // if the configuration is not new, then create a timestamp tag
     if (cluster.getConfigsByType(type) != null) {
       tag = "version" + System.currentTimeMillis();
     }
@@ -868,73 +1127,6 @@ public class ConfigHelper {
     return controller.createConfig(cluster, type, properties, tag, propertyAttributes);
   }
 
-
-
-  /**
-   * Since global configs are deprecated since 1.7.0, but still supported.
-   * We should automatically map any globals used, to *-env dictionaries.
-   *
-   * @param configurations map of configurations keyed by type
-   */
-  public void moveDeprecatedGlobals(StackId stackId, Map<String, Map<String, String>> configurations, String clusterName) {
-    Map<String, String> globalConfigurations = new HashMap<String, String>();
-
-    if (configurations.get(Configuration.GLOBAL_CONFIG_TAG) == null ||
-        configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0) {
-      return;
-    }
-
-    globalConfigurations.putAll(configurations.get(Configuration.GLOBAL_CONFIG_TAG));
-
-    if (globalConfigurations != null && globalConfigurations.size() != 0) {
-      LOG.warn("Global configurations are deprecated, "
-          + "please use *-env");
-    }
-
-    for (Map.Entry<String, String> property : globalConfigurations.entrySet()) {
-      String propertyName = property.getKey();
-      String propertyValue = property.getValue();
-
-      Set<String> newConfigTypes = null;
-      try {
-        newConfigTypes = findConfigTypesByPropertyName(stackId, propertyName, clusterName);
-      } catch (AmbariException e) {
-        LOG.error("Exception while getting configurations from the stacks", e);
-        return;
-      }
-
-      newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
-
-      String newConfigType = null;
-      if (newConfigTypes.size() > 0) {
-        newConfigType = newConfigTypes.iterator().next();
-      } else {
-        newConfigType = UpgradeCatalog170.getAdditionalMappingGlobalToEnv().get(propertyName);
-      }
-
-      if (newConfigType == null) {
-        LOG.warn("Cannot find where to map " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
-            " (value=" + propertyValue + ")");
-        continue;
-      }
-
-      LOG.info("Mapping config " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
-          " to " + newConfigType +
-          " (value=" + propertyValue + ")");
-
-      configurations.get(Configuration.GLOBAL_CONFIG_TAG).remove(propertyName);
-
-      if (!configurations.containsKey(newConfigType)) {
-        configurations.put(newConfigType, new HashMap<String, String>());
-      }
-      configurations.get(newConfigType).put(propertyName, propertyValue);
-    }
-
-    if (configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0) {
-      configurations.remove(Configuration.GLOBAL_CONFIG_TAG);
-    }
-  }
-
   /**
    * Gets the default properties from the specified stack and services when a
    * cluster is first installed.
@@ -950,7 +1142,7 @@ public class ConfigHelper {
    */
   public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster)
       throws AmbariException {
-    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
 
     // populate the stack (non-service related) properties first
     Set<org.apache.ambari.server.state.PropertyInfo> stackConfigurationProperties = ambariMetaInfo.getStackProperties(
@@ -1006,7 +1198,14 @@ public class ConfigHelper {
   private boolean calculateIsStaleConfigs(ServiceComponentHost sch,
       Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
 
-    if (sch.isRestartRequired()) {
+    HostComponentDesiredStateEntity hostComponentDesiredStateEntity = sch.getDesiredStateEntity();
+    return calculateIsStaleConfigs(sch, desiredConfigs, hostComponentDesiredStateEntity);
+  }
+
+  private boolean calculateIsStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs,
+                                          HostComponentDesiredStateEntity hostComponentDesiredStateEntity) throws AmbariException {
+
+    if (sch.isRestartRequired(hostComponentDesiredStateEntity)) {
       return true;
     }
 
@@ -1018,16 +1217,16 @@ public class ConfigHelper {
     Cluster cluster = clusters.getClusterById(sch.getClusterId());
 
     Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster, sch.getHostName(),
-        desiredConfigs);
+            desiredConfigs);
 
     Boolean stale = null;
     int staleHash = 0;
     if (STALE_CONFIGS_CACHE_ENABLED){
       staleHash = Objects.hashCode(actual.hashCode(),
-          desired.hashCode(),
-          sch.getHostName(),
-          sch.getServiceComponentName(),
-          sch.getServiceName());
+              desired.hashCode(),
+              sch.getHostName(),
+              sch.getServiceComponentName(),
+              sch.getServiceName());
       stale = staleConfigsCache.getIfPresent(staleHash);
       if(stale != null) {
         return stale;
@@ -1039,7 +1238,7 @@ public class ConfigHelper {
     StackId stackId = cluster.getDesiredStackVersion();
 
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
-        stackId.getStackVersion(), sch.getServiceName());
+            stackId.getStackVersion(), sch.getServiceName());
 
     ComponentInfo componentInfo = serviceInfo.getComponentByName(sch.getServiceComponentName());
     // Configs are considered stale when:
@@ -1063,14 +1262,6 @@ public class ConfigHelper {
         // desired is set, but actual is not
         if (!serviceInfo.hasConfigDependency(type)) {
           stale = componentInfo != null && componentInfo.hasConfigType(type);
-        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
-          // find out if the keys are stale by first checking the target service,
-          // then all services
-          Collection<String> keys = mergeKeyNames(cluster, type, tags.values());
-
-          if (serviceInfo.hasDependencyAndPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
-            stale = true;
-          }
         } else {
           stale = true;
         }
@@ -1081,15 +1272,6 @@ public class ConfigHelper {
 
         if (!isTagChanged(tags, actualTags, hasGroupSpecificConfigsForType(cluster, sch.getHostName(), type))) {
           stale = false;
-        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
-          // tags are changed, need to find out what has changed,
-          // and if it applies
-          // to the service
-          Collection<String> changed = findChangedKeys(cluster, type,
-              tags.values(), actualTags.values());
-          if (serviceInfo.hasDependencyAndPropertyFor(type, changed)) {
-            stale = true;
-          }
         } else {
           stale = serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type);
         }
@@ -1151,8 +1333,8 @@ public class ConfigHelper {
   private Collection<String> findChangedKeys(Cluster cluster, String type,
                                              Collection<String> desiredTags, Collection<String> actualTags) {
 
-    Map<String, String> desiredValues = new HashMap<String, String>();
-    Map<String, String> actualValues = new HashMap<String, String>();
+    Map<String, String> desiredValues = new HashMap<>();
+    Map<String, String> actualValues = new HashMap<>();
 
     for (String tag : desiredTags) {
       Config config = cluster.getConfig(type, tag);
@@ -1168,7 +1350,7 @@ public class ConfigHelper {
       }
     }
 
-    List<String> keys = new ArrayList<String>();
+    List<String> keys = new ArrayList<>();
 
     for (Entry<String, String> entry : desiredValues.entrySet()) {
       String key = entry.getKey();
@@ -1188,7 +1370,7 @@ public class ConfigHelper {
    * @return the map of tags for a desired config
    */
   private Map<String, String> buildTags(HostConfig hc) {
-    Map<String, String> map = new LinkedHashMap<String, String>();
+    Map<String, String> map = new LinkedHashMap<>();
     map.put(CLUSTER_DEFAULT_TAG, hc.getDefaultVersionTag());
     if (hc.getConfigGroupOverrides() != null) {
       for (Entry<Long, String> entry : hc.getConfigGroupOverrides().entrySet()) {
@@ -1213,8 +1395,8 @@ public class ConfigHelper {
       desiredTags.remove(CLUSTER_DEFAULT_TAG);
     }
 
-    Set<String> desiredSet = new HashSet<String>(desiredTags.values());
-    Set<String> actualSet = new HashSet<String>(actualTags.values());
+    Set<String> desiredSet = new HashSet<>(desiredTags.values());
+    Set<String> actualSet = new HashSet<>(actualTags.values());
 
     // Both desired and actual should be exactly the same
     return !desiredSet.equals(actualSet);
@@ -1224,7 +1406,7 @@ public class ConfigHelper {
    * @return the list of combined config property names
    */
   private Collection<String> mergeKeyNames(Cluster cluster, String type, Collection<String> tags) {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
 
     for (String tag : tags) {
       Config config = cluster.getConfig(type, tag);

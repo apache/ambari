@@ -30,12 +30,16 @@ App.DisplayRootLabelComponent = Ember.Component.extend({
     enableRootLabel: function(label) {
       var store = this.get('label.store'),
       rootQ = store.getById('queue', 'root');
-      rootQ.addQueueNodeLabel(this.get('label'));
+      rootQ.recursiveAddChildQueueLabels(label);
+      var rootLabel = store.getById('label', ['root', label.get('name')].join('.'));
+      rootLabel.setCapacity(100);
     },
     disableRootLabel: function(label) {
       var store = this.get('label.store'),
       rootQ = store.getById('queue', 'root');
-      rootQ.recursiveRemoveChildQueueLabels(this.get('label'));
+      rootQ.recursiveRemoveChildQueueLabels(label);
+      var rootLabel = store.getById('label', ['root', label.get('name')].join('.'));
+      rootLabel.setCapacity(0);
     }
   },
 

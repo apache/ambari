@@ -34,6 +34,8 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
+from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
 
 import status_params
 
@@ -54,6 +56,8 @@ YARN_SERVER_ROLE_DIRECTORY_MAP = {
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+
+architecture = get_architecture()
 
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
@@ -168,6 +172,7 @@ rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.
 rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)
 
 yarn_heapsize = config['configurations']['yarn-env']['yarn_heapsize']
@@ -241,11 +246,21 @@ rm_kinit_cmd = ""
 yarn_timelineservice_kinit_cmd = ""
 nodemanager_kinit_cmd = ""
 
+rm_zk_address = config['configurations']['yarn-site']['yarn.resourcemanager.zk-address']
+rm_zk_znode = config['configurations']['yarn-site']['yarn.resourcemanager.zk-state-store.parent-path']
+rm_zk_store_class = config['configurations']['yarn-site']['yarn.resourcemanager.store.class']
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+rm_zk_failover_znode = default('/configurations/yarn-site/yarn.resourcemanager.ha.automatic-failover.zk-base-path', '/yarn-leader-election')
+hadoop_registry_zk_root = default('/configurations/yarn-site/hadoop.registry.zk.root', '/registry')
+
 if security_enabled:
   rm_principal_name = config['configurations']['yarn-site']['yarn.resourcemanager.principal']
   rm_principal_name = rm_principal_name.replace('_HOST',hostname.lower())
   rm_keytab = config['configurations']['yarn-site']['yarn.resourcemanager.keytab']
   rm_kinit_cmd = format("{kinit_path_local} -kt {rm_keytab} {rm_principal_name};")
+  yarn_jaas_file = os.path.join(config_dir, 'yarn_jaas.conf')
+  if stack_supports_zk_security:
+    rm_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={yarn_jaas_file} -Dzookeeper.sasl.clientconfig=Client')
 
   # YARN timeline security options
   if has_ats:
@@ -284,9 +299,6 @@ tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-
-
-
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
@@ -331,12 +343,6 @@ node_label_enable = config['configurations']['yarn-site']['yarn.node-labels.enab
 
 cgroups_dir = "/cgroups_test/cpu"
 
-# ***********************  RANGER PLUGIN CHANGES ***********************
-# ranger host
-ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-has_ranger_admin = not len(ranger_admin_hosts) == 0
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 # hostname of the active HDFS HA Namenode (only used when HA is enabled)
 dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
 if dfs_ha_namenode_active is not None: 
@@ -367,103 +373,119 @@ if rm_ha_enabled:
     rm_webapp_address = config['configurations']['yarn-site'][rm_webapp_address_property]
     rm_webapp_addresses_list.append(rm_webapp_address)
 
-#ranger yarn properties
-if has_ranger_admin:
-  is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
+# for curl command in ranger plugin to get db connector
+jdk_location = config['hostLevelParams']['jdk_location']
 
-  if is_supported_yarn_ranger:
-    enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
-    policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-    if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
-      policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-    xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-    xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
-    xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
-    xa_audit_db_password = ''
-    if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
-      xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
-    xa_db_host = config['configurations']['admin-properties']['db_host']
-    repo_name = str(config['clusterName']) + '_yarn'
+# ranger yarn plugin section start
 
-    ranger_env = config['configurations']['ranger-env']
-    ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
-    policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
-    yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']  
+# ranger host
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
 
-    ranger_plugin_config = {
-      'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
-      'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
-      'yarn.url' : format('{scheme}://{yarn_rest_url}'),
-      'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
-    }
+# ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
+xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
 
-    yarn_ranger_plugin_repo = {
-      'isEnabled': 'true',
-      'configs': ranger_plugin_config,
-      'description': 'yarn repo',
-      'name': repo_name,
-      'repositoryType': 'yarn',
-      'type': 'yarn',
-      'assetType': '1'
-    }
+# ambari-server hostname
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-    if stack_supports_ranger_kerberos:
-      ranger_plugin_config['ambari.service.check.user'] = policy_user
-      ranger_plugin_config['hadoop.security.authentication'] = 'kerberos' if security_enabled else 'simple'
+# ranger yarn plugin enabled property
+enable_ranger_yarn = default("/configurations/ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled", "No")
+enable_ranger_yarn = True if enable_ranger_yarn.lower() == 'yes' else False
 
-    if stack_supports_ranger_kerberos and security_enabled:
-      ranger_plugin_config['policy.download.auth.users'] = yarn_user
-      ranger_plugin_config['tag.download.auth.users'] = yarn_user
+# ranger yarn-plugin supported flag, instead of using is_supported_yarn_ranger/yarn-env, using stack feature
+is_supported_yarn_ranger = check_stack_feature(StackFeature.YARN_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
 
-    #For curl command in ranger plugin to get db connector
-    jdk_location = config['hostLevelParams']['jdk_location']
-    java_share_dir = '/usr/share/java'
-    previous_jdbc_jar_name = None
-    if stack_supports_ranger_audit_db:
-      if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
-        jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mysql_jdbc_name", None)
-        audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
-        jdbc_driver = "com.mysql.jdbc.Driver"
-      elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
-        jdbc_jar_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_oracle_jdbc_name", None)
-        colon_count = xa_db_host.count(':')
-        if colon_count == 2 or colon_count == 0:
-          audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
-        else:
-          audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
-        jdbc_driver = "oracle.jdbc.OracleDriver"
-      elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
-        jdbc_jar_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_postgres_jdbc_name", None)
-        audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
-        jdbc_driver = "org.postgresql.Driver"
-      elif xa_audit_db_flavor and xa_audit_db_flavor == 'mssql':
-        jdbc_jar_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_mssql_jdbc_name", None)
-        audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
-        jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-      elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqla':
-        jdbc_jar_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-        previous_jdbc_jar_name = default("/hostLevelParams/previous_custom_sqlanywhere_jdbc_name", None)
-        audit_jdbc_url = format('jdbc:sqlanywhere:database={xa_audit_db_name};host={xa_db_host}')
-        jdbc_driver = "sap.jdbc4.sqlanywhere.IDriver"
+# get ranger yarn properties if enable_ranger_yarn is True
+if enable_ranger_yarn and is_supported_yarn_ranger:
+  # get ranger policy url
+  policymgr_mgr_url = config['configurations']['ranger-yarn-security']['ranger.plugin.yarn.policy.rest.url']
+
+  if not is_empty(policymgr_mgr_url) and policymgr_mgr_url.endswith('/'):
+    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
+
+  # ranger audit db user
+  xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
+
+  xa_audit_db_password = ''
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db and has_ranger_admin:
+    xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+
+  # ranger yarn service/repository name
+  repo_name = str(config['clusterName']) + '_yarn'
+  repo_name_value = config['configurations']['ranger-yarn-security']['ranger.plugin.yarn.service.name']
+  if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+    repo_name = repo_name_value
+
+  # ranger-env config
+  ranger_env = config['configurations']['ranger-env']
+
+  # create ranger-env config having external ranger credential properties
+  if not has_ranger_admin and enable_ranger_yarn:
+    external_admin_username = default('/configurations/ranger-yarn-plugin-properties/external_admin_username', 'admin')
+    external_admin_password = default('/configurations/ranger-yarn-plugin-properties/external_admin_password', 'admin')
+    external_ranger_admin_username = default('/configurations/ranger-yarn-plugin-properties/external_ranger_admin_username', 'amb_ranger_admin')
+    external_ranger_admin_password = default('/configurations/ranger-yarn-plugin-properties/external_ranger_admin_password', 'amb_ranger_admin')
+    ranger_env = {}
+    ranger_env['admin_username'] = external_admin_username
+    ranger_env['admin_password'] = external_admin_password
+    ranger_env['ranger_admin_username'] = external_ranger_admin_username
+    ranger_env['ranger_admin_password'] = external_ranger_admin_password
+
+  ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
+  policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
+  yarn_rest_url = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address']
+
+  ranger_plugin_config = {
+    'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
+    'password' : unicode(config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']),
+    'yarn.url' : format('{scheme}://{yarn_rest_url}'),
+    'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
+  }
+
+  yarn_ranger_plugin_repo = {
+    'isEnabled': 'true',
+    'configs': ranger_plugin_config,
+    'description': 'yarn repo',
+    'name': repo_name,
+    'repositoryType': 'yarn',
+    'type': 'yarn',
+    'assetType': '1'
+  }
+
+  if stack_supports_ranger_kerberos:
+    ranger_plugin_config['ambari.service.check.user'] = policy_user
+    ranger_plugin_config['hadoop.security.authentication'] = 'kerberos' if security_enabled else 'simple'
+
+  if stack_supports_ranger_kerberos and security_enabled:
+    ranger_plugin_config['policy.download.auth.users'] = yarn_user
+    ranger_plugin_config['tag.download.auth.users'] = yarn_user
+
+  downloaded_custom_connector = None
+  previous_jdbc_jar_name = None
+  driver_curl_source = None
+  driver_curl_target = None
+  previous_jdbc_jar = None
+
+  if has_ranger_admin and stack_supports_ranger_audit_db:
+    xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+    jdbc_jar_name, previous_jdbc_jar_name, audit_jdbc_url, jdbc_driver = get_audit_configs(config)
 
     downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
     driver_curl_source = format("{jdk_location}/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
     driver_curl_target = format("{hadoop_yarn_home}/lib/{jdbc_jar_name}") if stack_supports_ranger_audit_db else None
     previous_jdbc_jar = format("{hadoop_yarn_home}/lib/{previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
 
-    xa_audit_db_is_enabled = False
-    ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
-    if xml_configurations_supported and stack_supports_ranger_audit_db:
-      xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.db']
-    xa_audit_hdfs_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
-    ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
-    ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
-    credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
+  xa_audit_db_is_enabled = False
+  if xml_configurations_supported and stack_supports_ranger_audit_db:
+    xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.db']
 
-    #For SQLA explicitly disable audit to DB for Ranger
-    if xa_audit_db_flavor == 'sqla':
-      xa_audit_db_is_enabled = False
+  xa_audit_hdfs_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else False
+  ssl_keystore_password = config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'] if xml_configurations_supported else None
+  ssl_truststore_password = config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'] if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
+
+  # for SQLA explicitly disable audit to DB for Ranger
+  if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor == 'sqla':
+    xa_audit_db_is_enabled = False
+
+# ranger yarn plugin end section

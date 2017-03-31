@@ -54,8 +54,8 @@ class TestCustomServiceOrchestrator(TestCase):
     # generate sample config
     tmpdir = tempfile.gettempdir()
     exec_tmp_dir = os.path.join(tmpdir, 'tmp')
-    self.config = ConfigParser.RawConfigParser()
-    self.config.get = AmbariConfig().get
+    self.config = AmbariConfig()
+    self.config.config = ConfigParser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
@@ -68,7 +68,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_add_reg_listener_to_controller(self, FileCache_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     CustomServiceOrchestrator(config, dummy_controller)
@@ -204,7 +204,7 @@ class TestCustomServiceOrchestrator(TestCase):
   def test_resolve_script_path(self, FileCache_mock, exists_mock):
     FileCache_mock.return_value = None
     dummy_controller = MagicMock()
-    config = AmbariConfig().getConfig()
+    config = AmbariConfig()
     orchestrator = CustomServiceOrchestrator(config, dummy_controller)
     # Testing existing path
     exists_mock.return_value = True
@@ -220,7 +220,7 @@ class TestCustomServiceOrchestrator(TestCase):
     except AgentException:
       pass # Expected
 
-
+  @patch.object(FileCache, "get_custom_resources_subdir")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(FileCache, "get_host_scripts_base_dir")
@@ -234,10 +234,12 @@ class TestCustomServiceOrchestrator(TestCase):
                       get_hook_base_dir_mock, get_service_base_dir_mock, 
                       get_host_scripts_base_dir_mock, 
                       resolve_hook_script_path_mock, 
-                      resolve_script_path_mock):
+                      resolve_script_path_mock,
+                      get_custom_resources_subdir_mock):
     
     FileCache_mock.return_value = None
     command = {
+      'commandType' : 'EXECUTION_COMMAND',
       'role' : 'REGION_SERVER',
       'hostLevelParams' : {
         'stack_name' : 'HDP',
@@ -374,8 +376,8 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = async_result.get()
 
     self.assertEqual(ret['exitcode'], 1)
-    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. reason')
-    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. reason')
+    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
+    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
 
     self.assertTrue(kill_process_with_children_mock.called)
     self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())

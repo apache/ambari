@@ -192,21 +192,17 @@
           {{view Em.Checkbox disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS" class="input-xlarge"}}
         </div>
       </div>
-    {{else}}
+    {{/if}}
+    {{! alert-notification email end }}
+
+    {{! alert-notification SNMP }}
+    {{#if view.isSNMPMethodSelected}}
       <div class="control-group">
         <label class="control-label">{{controller.inputFields.version.label}}</label>
 
         <div class="controls">
           {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" class="input-xlarge"}}
         </div>
-      </div>
-
-      <div class="control-group">
-          <label class="control-label">{{controller.inputFields.OIDs.label}}</label>
-
-          <div class="controls">
-            {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" class="input-xlarge"}}
-          </div>
       </div>
 
       <div class="control-group">
@@ -241,7 +237,59 @@
           </div>
       </div>
     {{/if}}
-    {{! alert-notification email end }}
+    {{! alert-notification SNMP end }}
+
+    {{! alert-notification Custom SNMP }}
+    {{#if view.isCustomSNMPMethodSelected}}
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.version.label}}</label>
+
+        <div class="controls">
+          {{view Em.Select selectionBinding="controller.inputFields.version.value" contentBinding="controller.SNMPVersions" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.OIDs.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.OIDs.value" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">{{controller.inputFields.community.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.community.value" class="input-xlarge"}}
+        </div>
+      </div>
+
+      <div {{bindAttr class=":control-group controller.inputFields.host.errorMsg:error"}}>
+        <label class="control-label">{{controller.inputFields.host.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.host.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.host.errorMsg}}
+        </div>
+      </div>
+
+      <div {{bindAttr class=":control-group controller.inputFields.port.errorMsg:error"}}>
+        <label class="control-label">{{controller.inputFields.port.label}}</label>
+
+        <div class="controls">
+          {{view Em.TextField valueBinding="controller.inputFields.port.value" class="input-xlarge"}}
+        </div>
+
+        <div class="controls error-msg">
+          {{controller.inputFields.port.errorMsg}}
+        </div>
+      </div>
+    {{/if}}
+    {{! alert-notification Custom SNMP end }}
 
     {{! alert-notification custom properties }}
     {{#each customProperty in controller.inputFields.customProperties}}

@@ -19,9 +19,14 @@ package org.apache.ambari.server.metadata;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.alert.AlertDefinition;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,6 +45,12 @@ public class AgentAlertDefinitionsTest {
   @Before
   public void before() {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
   }
 
   /**

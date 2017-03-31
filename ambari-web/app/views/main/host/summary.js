@@ -181,14 +181,12 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
           clients[clients.length - 1].set('isLast', false);
         }
         component.set('isLast', true);
-        if (['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus'))) {
-          component.set('isInstallFailed', true);
-        }
+        component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
         clients.push(component);
       }
     }, this);
     return clients;
-  }.property('content.hostComponents.length'),
+  }.property('content.hostComponents.length', 'content.hostComponents.@each.workStatus'),
 
   anyClientFailedToInstall: Em.computed.someBy('clients', 'isInstallFailed', true),
 
@@ -206,16 +204,18 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   areClientWithStaleConfigs: Em.computed.someBy('clients', 'staleConfigs', true),
 
   /**
+   * List of install failed clients
+   * @type {App.HostComponent[]}
+   */
+  installFailedClients: Em.computed.filterBy('clients', 'workStatus', 'INSTALL_FAILED'),
+
+  /**
    * Template for addable component
    * @type {Em.Object}
    */
   addableComponentObject: Em.Object.extend({
     componentName: '',
-    subComponentNames: null,
     displayName: function () {
-      if (this.get('componentName') === 'CLIENTS') {
-        return this.t('common.clients');
-      }
       return App.format.role(this.get('componentName'), false);
     }.property('componentName')
   }),
@@ -335,9 +335,16 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   }.property('controller'),
 
   /**
-   * Call installClients method from controller for not installed components
+   * Call installClients method from controller for not installed client components
    */
   installClients: function () {
     this.get('controller').installClients(this.get('notInstalledClientComponents'));
+  },
+
+  /**
+   * Call installClients method from controller for not install failed client components
+   */
+  reinstallClients: function () {
+    this.get('controller').installClients(this.get('installFailedClients'));
   }
 });

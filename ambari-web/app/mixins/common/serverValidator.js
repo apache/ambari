@@ -186,7 +186,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     Em.assert('Unknown config error type ' + type, error.isError || error.isWarn || error.isGeneral);
     if (property) {
-      error.serviceName = App.StackService.find(Em.get(property, 'serviceName')).get('displayName');
+      error.id = Em.get(property, 'id');
+      error.serviceName = Em.get(property, 'serviceDisplayName') || App.StackService.find(Em.get(property, 'serviceName')).get('displayName');
       error.propertyName = Em.get(property, 'name');
       error.filename = Em.get(property, 'filename');
       error.value = Em.get(property, 'value');
@@ -217,7 +218,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
             } else {
               configErrorsMap[configId] = {
                 type: item.level,
-                messages: [item.message]
+                messages: [item.message],
+                name: item['config-name'],
+                filename: item['config-type']
               }
             }
           } else {
@@ -262,6 +265,21 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     generalErrors.forEach(function(serverIssue) {
       configErrorList.push(this.createErrorMessage(errorTypes.GENERAL, null, serverIssue.messages));
+    }, this);
+
+    Em.keys(configErrorsMap).forEach(function (id) {
+      if (!configErrorList.someProperty('id', id)) {
+        var serverIssue = configErrorsMap[id],
+          filename = Em.get(serverIssue, 'filename'),
+          service = App.config.get('serviceByConfigTypeMap')[filename],
+          property = {
+            id: id,
+            name: Em.get(serverIssue, 'name'),
+            filename: App.config.getOriginalFileName(filename),
+            serviceDisplayName: service && Em.get(service, 'displayName')
+          };
+        configErrorList.push(this.createErrorMessage(serverIssue.type, property, serverIssue.messages));
+      }
     }, this);
 
     return configErrorList;

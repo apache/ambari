@@ -17,25 +17,22 @@
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
+import SchemaVersions from '../domain/schema-versions';
 
 export default Ember.Component.extend({
+  schemaVersions : SchemaVersions.create({}),
   initialize : function(){
-    this.set('currentWorkflowVersion', this.get('schemaVersions').getCurrentWorkflowVersion());
-    this.set('workflowSchemaVersions', this.get('schemaVersions').getWorkflowVersions());
-    this.get('schemaVersions').createCopy();
-    this.set('actionSchemaVersions', Constants.actions);
+    this.set('workflowSchemaVersions', this.get('schemaVersions').getSupportedVersions('workflow'));
+    this.set('selectedWorkflowVersion', this.get('workflow').schemaVersions.workflowVersion);
     var actionVersions = Ember.A([]);
-    Object.keys(this.get('actionSchemaVersions')).forEach((key)=>{
-      var action = this.get('actionSchemaVersions')[key];
+    Constants.actions.forEach((action)=>{
       if(action.supportsSchema){
-        actionVersions.push({name:action.name, supporedVersions :this.get('schemaVersions').getActionVersions(action.name),selectedVersion:this.get('schemaVersions').getActionVersion(action.name)});
+        actionVersions.push({name:action.name, supporedVersions :this.get('schemaVersions').getSupportedVersions(action.name),
+        selectedVersion: this.get('workflow').schemaVersions.actionVersions.get(action.name)});
       }
     });
     this.set('actionVersions',actionVersions);
   }.on('init'),
-  WorkflowVersionObserver : Ember.observer('currentWorkflowVersion',function(){
-    this.get('schemaVersions').setCurrentWorkflowVersion(this.get('currentWorkflowVersion'));
-  }),
   rendered : function(){
     this.$('#version-settings-dialog').modal({
       backdrop: 'static',
@@ -48,13 +45,19 @@ export default Ember.Component.extend({
   }.on('didInsertElement'),
   actions : {
     versionChanged : function(actionName, version){
-      this.get('schemaVersions').setActionVersion(actionName, version);
+      var action = this.get('actionVersions').findBy('name', actionName);
+      Ember.set(action, 'selectedVersion', version);
     },
     save (){
+      var actionVersions = new Map();
+      this.get('actionVersions').forEach(versionSetting =>{
+        actionVersions.set(versionSetting.name, versionSetting.selectedVersion);
+      });
+      this.get('workflow').schemaVersions.workflowVersion = this.get('selectedWorkflowVersion');
+      this.get('workflow').schemaVersions.actionVersions = actionVersions;
       this.$('#version-settings-dialog').modal('hide');
     },
     cancel (){
-      this.get('schemaVersions').rollBack();
       this.$('#version-settings-dialog').modal('hide');
     }
   }

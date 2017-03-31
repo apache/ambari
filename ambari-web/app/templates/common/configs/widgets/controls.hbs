@@ -22,11 +22,18 @@
 {{#if view.supportSwitchToTextBox}}
   {{#unless view.isPropertyUndefined}}
     <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
-      {{view App.PlainConfigTextField sectionBinding="view.section" subSectionBinding="view.subSection" configBinding="view.config" serviceConfigBinding="view.config" disabledBinding="view.canNotEdit"}}
+      {{view App.PlainConfigTextField
+        isVisibleBinding="view.config.showAsTextBox"
+        sectionBinding="view.section"
+        subSectionBinding="view.subSection"
+        configBinding="view.config"
+        serviceConfigBinding="view.config"
+        disabledBinding="view.canNotEdit"}}
     </div>
   {{/unless}}
 {{/if}}
 {{#if view.canEdit}}
+  {{#unless view.readOnly}}
   <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
     <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
       <a href="#"
@@ -41,8 +48,9 @@
         {{#if view.isWidgetViewAllowed}}
           <a href="#"
             data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
-            {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
+            {{bindAttr class=":widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
             {{action "toggleWidgetView" target="view"}}>
+            <i class="icon-pencil"></i>
           </a>
         {{else}}
           <i class="icon-pencil widget-action widget-action-switch-view text-error"
@@ -52,8 +60,9 @@
       {{#if view.config.recommendedValueExists}}
         {{#unless view.disabled}}
           <a href="#"
-            {{bindAttr class=":icon-repeat :widget-action-set-recommended view.isHover::hide :widget-action"}}
+            {{bindAttr class=":widget-action-set-recommended view.isHover::hide :widget-action"}}
             {{action "setRecommendedValue" target="view"}} data-toggle="tooltip" {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
+            <i class="icon-repeat"></i>
           </a>
         {{/unless}}
       {{/if}}
@@ -92,6 +101,7 @@
       {{/if}}
     </div>
   </div>
+  {{/unless}}
 {{/if}}
 
 {{#if controller.selectedConfigGroup.isDefault}}

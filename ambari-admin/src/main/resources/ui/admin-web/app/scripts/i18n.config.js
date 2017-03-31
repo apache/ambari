@@ -78,6 +78,7 @@ angular.module('ambariAdminConsole')
       'remoteClusterDelConfirmation':'Are you sure you want to delete {{instanceType}} {{instanceName}}? This operation cannot be undone.',
       'messageInstanceAffected':'The following View Instances are using this Remote Cluster for configuration, and will need to be reconfigured: {{viewInstance}}',
       'local': 'Local',
+      'pam': 'PAM',
       'ldap': 'LDAP',
       'jwt': 'JWT',
       'warning': 'Warning',
@@ -353,7 +354,7 @@ angular.module('ambariAdminConsole')
         'ambariAdmin': 'Ambari Administrator',
         'viewUser': 'View User',
         'none': 'None',
-        'oneRolePerUser': 'Only 1 role allowed per user',
+        'oneRolePerUserOrGroup': 'Only 1 role allowed per user or group',
         'permissionLevel': '{{level}}-level Permissions'
       },
 

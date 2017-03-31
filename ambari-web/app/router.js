@@ -256,16 +256,35 @@ App.Router = Em.Router.extend({
 
   displayLoginName: Em.computed.truncate('loginName', 10, 10),
 
+  /**
+   * @type {$.ajax|null}
+   */
+  clusterDataRequest: null,
+
+  /**
+   * If request was already sent on login then use saved clusterDataRequest and don't make second call
+   * @returns {$.ajax}
+   */
+  getClusterDataRequest: function() {
+    var clusterDataRequest = this.get('clusterDataRequest');
+    if (clusterDataRequest) {
+      this.set('clusterDataRequest', null);
+      return clusterDataRequest;
+    } else {
+      return App.ajax.send({
+        name: 'router.login.clusters',
+        sender: this,
+        success: 'onAuthenticationSuccess',
+        error: 'onAuthenticationError'
+      });
+    }
+  },
+
   getAuthenticated: function () {
     var dfd = $.Deferred();
     var self = this;
     var auth = App.db.getAuthenticated();
-    App.ajax.send({
-      name: 'router.login.clusters',
-      sender: this,
-      success: 'onAuthenticationSuccess',
-      error: 'onAuthenticationError'
-    }).complete(function (xhr) {
+    this.getClusterDataRequest().complete(function (xhr) {
       if (xhr.isResolved()) {
         // if server knows the user and user authenticated by UI
         if (auth) {
@@ -535,12 +554,12 @@ App.Router = Em.Router.extend({
       this.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
     }
     else {
-      App.ajax.send({
+      this.set('clusterDataRequest', App.ajax.send({
         name: 'router.login.clusters',
         sender: self,
         data: requestData,
         success: 'loginGetClustersSuccessCallback'
-      });
+      }));
     }
   },
 
@@ -584,6 +603,8 @@ App.Router = Em.Router.extend({
         router.transitionToAdminView();
       }
     }
+    // set cluster name and security type
+    App.router.get('clusterController').reloadSuccessCallback(clustersData);
     App.set('isPermissionDataLoaded', true);
     App.router.get('userSettingsController').dataLoading();
   },

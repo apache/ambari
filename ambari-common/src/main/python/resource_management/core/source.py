@@ -25,6 +25,7 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
+from resource_management.core import sudo
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
@@ -71,15 +72,16 @@ class StaticFile(Source):
       basedir = self.env.config.basedir
       path = os.path.join(basedir, "files", self.name)
       
-    if not os.path.isfile(path) and not os.path.islink(path):
+    if not sudo.path_isfile(path) and not sudo.path_lexists(path):
       raise Fail("{0} Source file {1} is not found".format(repr(self), path))
 
     return self.read_file(path)
 
+
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def read_file(self, path):
-    from resource_management.core import sudo
     return sudo.read_file(path)
+
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def read_file(self, path):
@@ -197,12 +199,9 @@ class DownloadSource(Source):
       content = web_file.read()
       
       if self.cache:
-        with open(filepath, 'w') as fp:
-          fp.write(content)
+        sudo.create_file(filepath, content)
     else:
       Logger.info("Not downloading the file from {0}, because {1} already exists".format(self.url, filepath))
-        
-      with open(filepath) as fp:
-        content = fp.read()
+      content = sudo.read_file(filepath)
 
     return content

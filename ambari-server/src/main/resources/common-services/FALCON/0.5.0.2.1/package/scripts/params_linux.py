@@ -114,6 +114,14 @@ falcon_client_properties = config['configurations']['falcon-client.properties']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 falcon_env_sh_template = config['configurations']['falcon-env']['content']
 
+#Log4j properties
+falcon_log_maxfilesize = default('/configurations/falcon-log4j/falcon_log_maxfilesize',256)
+falcon_log_maxbackupindex =  default('/configurations/falcon-log4j/falcon_log_maxbackupindex',20)
+falcon_security_log_maxfilesize = default('/configurations/falcon-log4j/falcon_security_log_maxfilesize',256)
+falcon_security_log_maxbackupindex = default('/configurations/falcon-log4j/falcon_security_log_maxbackupindex',20)
+
+falcon_log4j=config['configurations']['falcon-log4j']['content']
+
 falcon_apps_dir = config['configurations']['falcon-env']['falcon_apps_hdfs_dir']
 #for create_hdfs_directory
 security_enabled = config['configurations']['cluster-env']['security_enabled']
@@ -138,22 +146,23 @@ dfs_data_mirroring_dir = "/apps/data-mirroring"
 ########################################################
 #region Atlas Hooks
 falcon_atlas_application_properties = default('/configurations/falcon-atlas-application.properties', {})
+atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+enable_atlas_hook = default('/configurations/falcon-env/falcon.atlas.hook', False)
 
 # Calculate atlas_hook_cp to add to FALCON_EXTRA_CLASS_PATH
 falcon_atlas_support = False
 
 # Path to add to environment variable
 atlas_hook_cp = ""
-if has_atlas_in_cluster():
-  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+if enable_atlas_hook:
 
   # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from current_version_formatted
   falcon_atlas_support = current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted) \
       or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted)
 
   if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
-    atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else format('{stack_root}/current/atlas-server/conf')
-    atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
+    atlas_conf_dir = format('{stack_root}/current/atlas-server/conf')
+    atlas_home_dir = format('{stack_root}/current/atlas-server')
     atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
   elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
     atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep

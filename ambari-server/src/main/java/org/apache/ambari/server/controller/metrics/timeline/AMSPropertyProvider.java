@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.metrics.timeline;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -34,6 +35,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.MetricsCollectorHostDownEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -41,6 +44,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +78,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
   private static final Map<String, String> JVM_PROCESS_NAMES = new HashMap<>(2);
 
+  private AmbariEventPublisher ambariEventPublisher;
+
   static {
     JVM_PROCESS_NAMES.put("HBASE_MASTER", "Master.");
     JVM_PROCESS_NAMES.put("HBASE_REGIONSERVER", "RegionServer.");
@@ -93,6 +99,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       componentNamePropertyId);
 
     this.metricCache = cacheProvider.getTimelineMetricsCache();
+
+    if (AmbariServer.getController() != null) {
+      this.ambariEventPublisher = AmbariServer.getController().getAmbariEventPublisher();
+    }
   }
 
   protected String getOverridenComponentName(Resource resource) {
@@ -225,27 +235,36 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         for (String hostNamesBatch : hostNamesBatches) {
           // Allow for multiple requests since host metrics for a
           // hostcomponent need the HOST appId
-          if (!hostComponentHostMetrics.isEmpty()) {
-            String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
-            setQueryParams(hostComponentHostMetricParams, hostNamesBatch, true, componentName);
-            TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
-                    getTimelineAppMetricCacheKey(hostComponentHostMetrics,
-                            componentName, hostNamesBatch, uriBuilder.toString()), componentName);
+          try {
+            if (!hostComponentHostMetrics.isEmpty()) {
+              String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
+              setQueryParams(hostComponentHostMetricParams, hostNamesBatch, true, componentName);
+              TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
+                getTimelineAppMetricCacheKey(hostComponentHostMetrics,
+                  componentName, hostNamesBatch, uriBuilder.toString()), componentName);
 
-            if (metricsResponse != null) {
-              timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
+              if (metricsResponse != null) {
+                timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
+              }
             }
-          }
 
-          if (!nonHostComponentMetrics.isEmpty()) {
-            String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
-            setQueryParams(nonHostComponentHostMetricParams, hostNamesBatch, false, componentName);
-            TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
-                    getTimelineAppMetricCacheKey(nonHostComponentMetrics,
-                            componentName, hostNamesBatch, uriBuilder.toString()), componentName);
+            if (!nonHostComponentMetrics.isEmpty()) {
+              String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
+              setQueryParams(nonHostComponentHostMetricParams, hostNamesBatch, false, componentName);
+              TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
+                getTimelineAppMetricCacheKey(nonHostComponentMetrics,
+                  componentName, hostNamesBatch, uriBuilder.toString()), componentName);
 
-            if (metricsResponse != null) {
-              timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
+              if (metricsResponse != null) {
+                timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
+              }
+            }
+          } catch (IOException io) {
+            if (io instanceof SocketTimeoutException || io instanceof ConnectException) {
+              if (ambariEventPublisher != null) {
+                ambariEventPublisher.publish(new MetricsCollectorHostDownEvent(clusterName, uriBuilder.getHost()));
+              }
+              throw io;
             }
           }
 
@@ -562,7 +581,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     Map<String, Map<TemporalInfo, MetricsRequest>> requestMap =
       new HashMap<String, Map<TemporalInfo, MetricsRequest>>();
 
-    String collectorHostName = null;
     String collectorPort = null;
     Map<String, Boolean> clusterCollectorComponentLiveMap = new HashMap<>();
     Map<String, Boolean> clusterCollectorHostLiveMap = new HashMap<>();
@@ -623,9 +641,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         requestMap.put(clusterName, requests);
       }
 
-      if (collectorHostName == null) {
-        collectorHostName = hostProvider.getCollectorHostName(clusterName, TIMELINE_METRICS);
-      }
+      String collectorHost = hostProvider.getCollectorHostName(clusterName, TIMELINE_METRICS);
 
       if (collectorPort == null) {
         collectorPort = hostProvider.getCollectorPort(clusterName, TIMELINE_METRICS);
@@ -656,7 +672,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             MetricsRequest metricsRequest = requests.get(temporalInfo);
             if (metricsRequest == null) {
               metricsRequest = new MetricsRequest(temporalInfo,
-                getAMSUriBuilder(collectorHostName,
+                getAMSUriBuilder(collectorHost,
                   collectorPort != null ? Integer.parseInt(collectorPort) : COLLECTOR_DEFAULT_PORT,
                   configuration.isHttpsEnabled()),
                   (String) resource.getPropertyValue(clusterNamePropertyId));

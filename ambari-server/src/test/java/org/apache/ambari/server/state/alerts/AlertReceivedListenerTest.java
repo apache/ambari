@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.alerts;
 
 import static org.junit.Assert.assertEquals;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -56,15 +61,16 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
 /**
  * Tests the {@link AlertReceivedListener}.
  */
+@Category({ category.AlertTest.class})
 public class AlertReceivedListenerTest {
 
   private static final String ALERT_DEFINITION = "alert_definition_";
@@ -129,9 +135,9 @@ public class AlertReceivedListenerTest {
   }
 
   @After
-  public void teardown() {
+  public void teardown() throws AmbariException, SQLException {
     m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(PersistService.class).stop();
+    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
     m_injector = null;
   }
 
@@ -833,17 +839,13 @@ public class AlertReceivedListenerTest {
   @SuppressWarnings("serial")
   public void testAlertFirmnessUsingGlobalValueHigherThanOverride() throws Exception {
     ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
-    Config config = cf.createNew(m_cluster, ConfigHelper.CLUSTER_ENV,
+    Config config = cf.createNew(m_cluster, ConfigHelper.CLUSTER_ENV, "version2",
         new HashMap<String, String>() {
           {
             put(ConfigHelper.CLUSTER_ENV_ALERT_REPEAT_TOLERANCE, "3");
           }
         }, new HashMap<String, Map<String, String>>());
 
-    config.setTag("version2");
-    config.persist();
-
-    m_cluster.addConfig(config);
     m_cluster.addDesiredConfig("user", Collections.singleton(config));
 
     String definitionName = ALERT_DEFINITION + "1";

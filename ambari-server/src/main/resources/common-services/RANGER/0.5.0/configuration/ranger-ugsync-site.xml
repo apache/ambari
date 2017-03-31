@@ -225,7 +225,8 @@
     <name>ranger.usersync.ldap.searchBase</name>
     <value>dc=hadoop,dc=apache,dc=org</value>
     <description>"# search base for users and groups
-# sample value would be dc=hadoop,dc=apache,dc=org"</description>
+# sample value would be dc=hadoop,dc=apache,dc=org
+# From Ranger Release 0.6.0 multiple Ous can be configured with ; (semicolon) separated"</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -237,7 +238,8 @@
     <value/>
     <description>"# search base for users
 # sample value would be ou=users,dc=hadoop,dc=apache,dc=org
-# overrides value specified in ranger.usersync.ldap.searchBase"</description>
+# overrides value specified in ranger.usersync.ldap.searchBase
+# From Ranger Release 0.6.0 multiple Ous can be configured with ; (semicolon) separated eg: cn=users,dc=example,dc=com;ou=example1,ou=example2"</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -371,7 +373,9 @@
 # sample value would be ou=groups,dc=hadoop,dc=apache,dc=org
 # overrides value specified in ranger.usersync.ldap.searchBase,  ranger.usersync.ldap.user.searchbase
 # if a value is not specified, takes the value of  ranger.usersync.ldap.searchBase
-# if  ranger.usersync.ldap.searchBase is also not specified, takes the value of ranger.usersync.ldap.user.searchbase"</description>
+# if  ranger.usersync.ldap.searchBase is also not specified, takes the value of ranger.usersync.ldap.user.searchbase"
+# From Ranger Release 0.6.0 multiple Ous can be configured with ; (semicolon) separated eg: ou=groups,DC=example,DC=com;ou=group1,ou=group2"
+</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

@@ -13,13 +13,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>slider</artifactId>
-  <version>2.4.2.0.0</version>
+  <version>2.5.0.0.0</version>
   <name>Slider</name>
 
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>2.4.2.0.0</version>
+    <version>2.5.0.0.0</version>
   </parent>
 
   <dependencies>
@@ -27,6 +27,12 @@
       <groupId>org.apache.slider</groupId>
       <artifactId>slider-core</artifactId>
       <version>${slider.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.slider</groupId>
@@ -129,7 +135,7 @@
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
       <artifactId>ambari-views-utils</artifactId>
-      <version>2.4.2.0.0</version>
+      <version>2.5.0.0.0</version>
     </dependency>
   </dependencies>
 
@@ -301,6 +307,24 @@
               <includeScope>runtime</includeScope>
               <stripVersion>true</stripVersion>
               <includeArtifactIds>slider-agent</includeArtifactIds>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>${project.packaging}</type>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${views.jars.dir.rel}</outputDirectory>
             </configuration>
           </execution>
         </executions>

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,33 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.security;
+
+import junit.framework.Assert;
 
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.ldap.core.DirContextAdapter;
-import org.springframework.ldap.core.DistinguishedName;
-import org.springframework.security.ldap.LdapUtils;
+import org.springframework.ldap.support.LdapUtils;
 
-import javax.naming.Context;
+import javax.naming.Name;
 import javax.naming.NamingException;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LdapUtils.class)
 public class AmbariLdapUtilsTest {
 
-  private static final String USER_DN = "uid=myuser,ou=hdp,ou=Users,dc=apache,dc=org";
+  private static final String USER_BASE_DN = "ou=hdp,ou=Users,dc=apache,dc=org";
+  private static final String USER_RELATIVE_DN = "uid=myuser";
+  private static final String USER_DN = USER_RELATIVE_DN + "," + USER_BASE_DN;
 
   @Test
   public void testIsUserPrincipalNameFormat_True() throws Exception {
@@ -106,46 +105,101 @@ public class AmbariLdapUtilsTest {
   @Test
   public void testIsLdapObjectOutOfScopeFromBaseDn() throws NamingException {
     // GIVEN
-    DistinguishedName fullDn = new DistinguishedName(USER_DN);
-    Context context = createNiceMock(Context.class);
+    Name fullDn = LdapUtils.newLdapName(USER_DN);
+
     DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
-
-    PowerMock.mockStatic(LdapUtils.class);
-    expect(LdapUtils.getFullDn(anyObject(DistinguishedName.class), anyObject(Context.class)))
-      .andReturn(fullDn).anyTimes();
-
     expect(adapter.getDn()).andReturn(fullDn);
-    expect(context.getNameInNamespace()).andReturn(USER_DN);
+    expect(adapter.getNameInNamespace()).andReturn(USER_DN);
 
-    replay(adapter, context);
-    PowerMock.replayAll();
+    replay(adapter);
 
     // WHEN
     boolean isOutOfScopeFromBaseDN = AmbariLdapUtils.isLdapObjectOutOfScopeFromBaseDn(adapter, "dc=apache,dc=org");
     // THEN
     assertFalse(isOutOfScopeFromBaseDN);
+
+    verify(adapter);
   }
 
   @Test
   public void testIsLdapObjectOutOfScopeFromBaseDn_dnOutOfScope() throws NamingException {
     // GIVEN
-    DistinguishedName fullDn = new DistinguishedName(USER_DN);
-    Context context = createNiceMock(Context.class);
+    Name fullDn = LdapUtils.newLdapName(USER_DN);
     DirContextAdapter adapter = createNiceMock(DirContextAdapter.class);
 
-    PowerMock.mockStatic(LdapUtils.class);
-    expect(LdapUtils.getFullDn(anyObject(DistinguishedName.class), anyObject(Context.class)))
-      .andReturn(fullDn).anyTimes();
-
     expect(adapter.getDn()).andReturn(fullDn);
-    expect(context.getNameInNamespace()).andReturn(USER_DN);
+    expect(adapter.getNameInNamespace()).andReturn(USER_DN);
 
-    replay(adapter, context);
-    PowerMock.replayAll();
+    replay(adapter);
 
     // WHEN
     boolean isOutOfScopeFromBaseDN = AmbariLdapUtils.isLdapObjectOutOfScopeFromBaseDn(adapter, "dc=apache,dc=org,ou=custom");
     // THEN
     assertTrue(isOutOfScopeFromBaseDN);
+
+    verify(adapter);
+  }
+
+  @Test
+  public void testGetFullDn() throws Exception {
+
+    DirContextAdapter adapterFullDn = createStrictMock(DirContextAdapter.class);
+    expect(adapterFullDn.getNameInNamespace()).andReturn(USER_DN).anyTimes();
+
+    DirContextAdapter adapterBaseDn = createStrictMock(DirContextAdapter.class);
+    expect(adapterBaseDn.getNameInNamespace()).andReturn(USER_BASE_DN).anyTimes();
+
+    Name absoluteDn = LdapUtils.newLdapName(USER_DN);
+    Name relativeDn = LdapUtils.newLdapName(USER_RELATIVE_DN);
+
+    replay(adapterFullDn, adapterBaseDn);
+
+    Name fullDn;
+
+    // ****************************
+    // getFullDn(Name, Context)
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn, adapterFullDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn, adapterBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(relativeDn, adapterBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+    // ****************************
+
+
+    // ****************************
+    // getFullDn(String, Context)
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn.toString(), adapterFullDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn.toString(), adapterBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(relativeDn.toString(), adapterBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+    // ****************************
+
+    // ****************************
+    // getFullDn(Name, Name)
+    Name nameInNamespaceFullDn = LdapUtils.newLdapName(adapterFullDn.getNameInNamespace());
+    Name nameInNamespaceBaseDn = LdapUtils.newLdapName(adapterBaseDn.getNameInNamespace());
+
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn, nameInNamespaceFullDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(absoluteDn, nameInNamespaceBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    fullDn = AmbariLdapUtils.getFullDn(relativeDn, nameInNamespaceBaseDn);
+    Assert.assertEquals(absoluteDn, fullDn);
+
+    // Make sure nameInNamespace was not altered
+    Assert.assertEquals(adapterFullDn.getNameInNamespace(), nameInNamespaceFullDn.toString());
+    Assert.assertEquals(adapterBaseDn.getNameInNamespace(), nameInNamespaceBaseDn.toString());
+    // ****************************
+
+    verify(adapterFullDn, adapterBaseDn);
   }
 }

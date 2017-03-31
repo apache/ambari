@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
@@ -89,7 +88,7 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
       yarnSiteProperties.put(YARN_NODEMANAGER_AUX_SERVICES, newAuxServices);
       yarnSiteProperties.put(YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS, YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS_VALUE);
       yarnSiteConfig.setProperties(yarnSiteProperties);
-      yarnSiteConfig.persist(false);
+    yarnSiteConfig.save();
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("%s was set from %s to %s. %s was set to %s",

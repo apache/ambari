@@ -34,7 +34,8 @@ CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 
 HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.port}}'
 HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.http.port}}'
-HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
+HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-interactive-site/hive.server2.transport.mode}}'
+HIVE_SERVER_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY = '{{hive-interactive-site/hive.server2.authentication}}'
 HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
@@ -45,6 +46,8 @@ SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 HIVE_SSL = '{{hive-site/hive.server2.use.SSL}}'
 HIVE_SSL_KEYSTORE_PATH = '{{hive-interactive-site/hive.server2.keystore.path}}'
 HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-interactive-site/hive.server2.keystore.password}}'
+HIVE_LDAP_USERNAME = '{{hive-env/alert_ldap_username}}'
+HIVE_LDAP_PASSWORD = '{{hive-env/alert_ldap_password}}'
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
@@ -84,7 +87,8 @@ def get_tokens():
           HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY, HIVE_SERVER2_AUTHENTICATION_KEY,
           HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY, SMOKEUSER_KEYTAB_KEY, SMOKEUSER_PRINCIPAL_KEY,
           HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY, HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY,
-          KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL, HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD)
+          HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
+          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD, HIVE_LDAP_USERNAME, HIVE_LDAP_PASSWORD)
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -108,6 +112,8 @@ def execute(configurations={}, parameters={}, host_name=None):
   transport_mode = HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_DEFAULT
   if HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY in configurations:
     transport_mode = configurations[HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY]
+  elif HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
+    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
 
   port = THRIFT_PORT_DEFAULT
   if transport_mode.lower() == 'binary' and HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY in configurations:
@@ -164,6 +170,13 @@ def execute(configurations={}, parameters={}, host_name=None):
   if SMOKEUSER_KEY in configurations:
     smokeuser = configurations[SMOKEUSER_KEY]
 
+  ldap_username = ""
+  ldap_password = ""
+  if HIVE_LDAP_USERNAME in configurations:
+    ldap_username = configurations[HIVE_LDAP_USERNAME]
+  if HIVE_LDAP_PASSWORD in configurations:
+    ldap_password = configurations[HIVE_LDAP_PASSWORD]
+
   result_code = None
 
   if security_enabled:
@@ -196,7 +209,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication, hive_server_principal,
                                         kinitcmd, smokeuser, transport_mode=transport_mode, ssl=hive_ssl,
                                         ssl_keystore=hive_ssl_keystore_path, ssl_password=hive_ssl_keystore_password,
-                                        check_command_timeout=int(check_command_timeout))
+                                        check_command_timeout=int(check_command_timeout), ldap_username=ldap_username,
+                                        ldap_password=ldap_password)
       result_code = 'OK'
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)

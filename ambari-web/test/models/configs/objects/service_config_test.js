@@ -99,13 +99,16 @@ describe('App.ServiceConfig', function () {
 
   describe('#activeProperties', function() {
     it('returns collection of properties that should be shown', function() {
+      serviceConfig.setActivePropertiesOnce();
       expect(serviceConfig.get('activeProperties').mapProperty('name')).to.be.eql(['p1','p4','p5','p7']);
     });
   });
 
   describe('#configsWithErrors', function() {
     it('returns collection of properties with errors', function() {
-      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p7']);
+      serviceConfig.set('activeProperties', configs);
+      serviceConfig.setConfigsWithErrorsOnce();
+      expect(serviceConfig.get('configsWithErrors').mapProperty('name')).to.be.eql(['p4', 'p5', 'p6', 'p7']);
     });
   });
 

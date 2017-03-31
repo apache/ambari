@@ -42,8 +42,8 @@
                           href="#" {{bindAttr disabled="view.isDisabled"}}>
                     {{t common.service}}
                     <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
+                </button>
+                <ul class="dropdown-menu alert-definition-filter-list">
                     <!-- dropdown menu links -->
                     {{#each service in view.filterServices}}
                       <li>
@@ -67,8 +67,8 @@
                           href="#" {{bindAttr disabled="view.isDisabled"}}>
                     {{t common.component}}
                     <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
+                </button>
+                <ul class="dropdown-menu alert-definition-filter-list">
                     <!-- dropdown menu links -->
                     {{#each component in view.filterComponents}}
                       <li>

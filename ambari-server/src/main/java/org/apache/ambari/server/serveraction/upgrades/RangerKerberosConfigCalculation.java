@@ -87,7 +87,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != hadoopUser) {
         targetValues.put(RANGER_PLUGINS_HDFS_SERVICE_USER, hadoopUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_HDFS_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "hdfs_user", HADOOP_ENV_CONFIG_TYPE);
@@ -104,7 +104,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != hiveUser) {
         targetValues.put(RANGER_PLUGINS_HIVE_SERVICE_USER, hiveUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_HIVE_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "hive_user", HIVE_ENV_CONFIG_TYPE);
@@ -121,7 +121,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != yarnUser) {
         targetValues.put(RANGER_PLUGINS_YARN_SERVICE_USER, yarnUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_YARN_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "yarn_user", YARN_ENV_CONFIG_TYPE);
@@ -138,7 +138,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != hbaseUser) {
         targetValues.put(RANGER_PLUGINS_HBASE_SERVICE_USER, hbaseUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_HBASE_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "hbase_user", HBASE_ENV_CONFIG_TYPE);
@@ -155,7 +155,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != knoxUser) {
         targetValues.put(RANGER_PLUGINS_KNOX_SERVICE_USER, knoxUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_KNOX_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "knox_user", KNOX_ENV_CONFIG_TYPE);
@@ -190,7 +190,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
         }
         targetValues.put(RANGER_PLUGINS_STORM_SERVICE_USER, stormValue);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_STORM_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "storm_user", STORM_ENV_CONFIG_TYPE);
@@ -207,7 +207,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != kafkaUser) {
         targetValues.put(RANGER_PLUGINS_KAFKA_SERVICE_USER, kafkaUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_KAFKA_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "kafka_user", KAFKA_ENV_CONFIG_TYPE);
@@ -224,7 +224,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       if (null != rangerKmsUser) {
         targetValues.put(RANGER_PLUGINS_KMS_SERVICE_USER, rangerKmsUser);
         rangerAdminconfig.setProperties(targetValues);
-        rangerAdminconfig.persist(false);
+        rangerAdminconfig.save();
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_KMS_SERVICE_USER);
       } else {
         errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "kms_user", RANGER_KMS_ENV_CONFIG_TYPE);
@@ -243,10 +243,10 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
         if (null != spnegoKeytab) {
           targetValues.put(RANGER_SPNEGO_KEYTAB, spnegoKeytab);
           rangerAdminconfig.setProperties(targetValues);
-          rangerAdminconfig.persist(false);
+          rangerAdminconfig.save();
           sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_SPNEGO_KEYTAB);
         } else {
-          errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "dfs.web.authentication.kerberos.keytab", HDFS_SITE_CONFIG_TYPE);          
+          errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "dfs.web.authentication.kerberos.keytab", HDFS_SITE_CONFIG_TYPE);
         }
 
       } else {

@@ -28,12 +28,16 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.utils.StageUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 public class TestStage {
 
   private static final String CLUSTER_HOST_INFO = "cluster_host_info";
@@ -73,5 +77,10 @@ public class TestStage {
     Stage stage = stageFactory.createNew(1, "/logDir", "c1", 1L, "My Context", CLUSTER_HOST_INFO, "", "");
     assertEquals("My Context", stage.getRequestContext());
     assertEquals(CLUSTER_HOST_INFO, stage.getClusterHostInfo());
+  }
+
+  @After
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 }

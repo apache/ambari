@@ -45,6 +45,7 @@ define(['require',
 			DEBUG : "[data-id='DEBUG']",
 			FATAL : "[data-id='FATAL']",
 			TRACE : "[data-id='TRACE']",
+			UNKNOWN : "[data-id='UNKNOWN']",
 			togglePieViewButton:'#logToggle',
 			pieRegionId:'#r_logLevelPieChart',
 			logTable:'#logTable'

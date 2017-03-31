@@ -33,9 +33,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.logconfig.FetchConfigFromSolr;
+import org.apache.ambari.logfeeder.util.DateUtil;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -78,6 +78,16 @@ public class OutputSolr extends Output {
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
 
   @Override
+  protected String getStatMetricName() {
+    return "output.solr.write_logs";
+  }
+
+  @Override
+  protected String getWriteBytesMetricName() {
+    return "output.solr.write_bytes";
+  }
+
+  @Override
   public void init() throws Exception {
     super.init();
     initParams();
@@ -87,9 +97,6 @@ public class OutputSolr extends Output {
   }
 
   private void initParams() throws Exception {
-    statMetric.metricsName = "output.solr.write_logs";
-    writeBytesMetric.metricsName = "output.solr.write_bytes";
-
     splitMode = getStringValue("splits_interval_mins", "none");
     if (!splitMode.equalsIgnoreCase("none")) {
       splitInterval = getIntValue("split_interval_mins", DEFAULT_SPLIT_INTERVAL);
@@ -151,7 +158,6 @@ public class OutputSolr extends Output {
   SolrClient getSolrClient(String solrUrl, String zkConnectString, int count) throws Exception, MalformedURLException {
     SolrClient solrClient = createSolrClient(solrUrl, zkConnectString);
     pingSolr(solrUrl, zkConnectString, count, solrClient);
-    waitForConfig();
 
     return solrClient;
   }
@@ -204,34 +210,13 @@ public class OutputSolr extends Output {
         LOG.info("Ping to Solr server is successful for worker=" + count);
       } else {
         LOG.warn(
-            String.format(
-                "Ping to Solr server failed. It would check again. worker=%d, "
-                    + "solrUrl=%s, zkConnectString=%s, collection=%s, response=%s",
-                count, solrUrl, zkConnectString, collection, response));
+            String.format("Ping to Solr server failed. It would check again. worker=%d, solrUrl=%s, zkConnectString=%s, " +
+                "collection=%s, response=%s", count, solrUrl, zkConnectString, collection, response));
       }
     } catch (Throwable t) {
       LOG.warn(String.format(
           "Ping to Solr server failed. It would check again. worker=%d, " + "solrUrl=%s, zkConnectString=%s, collection=%s",
           count, solrUrl, zkConnectString, collection), t);
-    }
-  }
-
-  private void waitForConfig() throws SolrServerException, IOException {
-    if (!LogFeederUtil.getBooleanProperty("logfeeder.log.filter.enable", false)) {
-      return;
-    }
-    
-    while (true) {
-      LOG.info("Checking if config is available");
-      if (FetchConfigFromSolr.isFilterAvailable()) {
-        LOG.info("Config is available");
-        return;
-      }
-      try {
-        Thread.sleep(RETRY_INTERVAL * 1000);
-      } catch (InterruptedException e) {
-        LOG.error(e);
-      }
     }
   }
 
@@ -256,7 +241,10 @@ public class OutputSolr extends Output {
 
   private void useActualDateIfNeeded(Map<String, Object> jsonObj) {
     if (skipLogtime) {
-      jsonObj.put("logtime", LogFeederUtil.getActualDateStr());
+      jsonObj.put("logtime", DateUtil.getActualDateStr());
+      if (jsonObj.get("evtTime") != null) {
+        jsonObj.put("evtTime", DateUtil.getActualDateStr());
+      }
     }
   }
 
@@ -324,7 +312,7 @@ public class OutputSolr extends Output {
 
     private final SolrClient solrClient;
     private final Collection<SolrInputDocument> localBuffer = new ArrayList<>();
-    private final Map<String, InputMarker> latestInputMarkerList = new HashMap<>();
+    private final Map<String, InputMarker> latestInputMarkers = new HashMap<>();
 
     private long localBufferBytesSize = 0;
 
@@ -352,17 +340,16 @@ public class OutputSolr extends Output {
             }
           }
 
-          if (localBuffer.size() > 0 && ((outputData == null && isDrain())
-              || (nextDispatchDuration <= 0 || localBuffer.size() >= maxBufferSize))) {
+          if (localBuffer.size() > 0 && ((outputData == null && isDrain()) ||
+              (nextDispatchDuration <= 0 || localBuffer.size() >= maxBufferSize))) {
             boolean response = sendToSolr(outputData);
             if( isDrain() && !response) {
               //Since sending to Solr response failed and it is in draining mode, let's break;
-              LOG.warn("In drain mode and sending to Solr failed. So exiting. output=" 
-                  + getShortDescription());
+              LOG.warn("In drain mode and sending to Solr failed. So exiting. output=" + getShortDescription());
               break;
             }
           }
-          if( localBuffer.size() == 0 ) {
+          if (localBuffer.size() == 0) {
             //If localBuffer is empty, then reset the timer
             lastDispatchTime = currTimeMS;
           }
@@ -380,7 +367,7 @@ public class OutputSolr extends Output {
       resetLocalBuffer();
       LOG.info("Exiting Solr worker thread. output=" + getShortDescription());
     }
-
+    
     /**
      * This will loop till Solr is available and LogFeeder is
      * successfully able to write to the collection or shard. It will block till
@@ -403,8 +390,7 @@ public class OutputSolr extends Output {
         } catch (IOException | SolrException exception) {
           // Transient error, lets block till it is available
           try {
-            LOG.warn("Solr is not reachable. Going to retry after "
-                + RETRY_INTERVAL + " seconds. " + "output="
+            LOG.warn("Solr is not reachable. Going to retry after " + RETRY_INTERVAL + " seconds. " + "output="
                 + getShortDescription(), exception);
             Thread.sleep(RETRY_INTERVAL * 1000);
           } catch (Throwable t) {
@@ -414,8 +400,8 @@ public class OutputSolr extends Output {
           // Something unknown happened. Let's not block because of this error. 
           // Clear the buffer
           String logMessageKey = this.getClass().getSimpleName() + "_SOLR_UPDATE_EXCEPTION";
-          LogFeederUtil.logErrorMessageByInterval(logMessageKey,
-              "Error sending log message to server. Dropping logs", serverException, LOG, Level.ERROR);
+          LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error sending log message to server. Dropping logs",
+              serverException, LOG, Level.ERROR);
           resetLocalBuffer();
           break;
         }
@@ -447,7 +433,7 @@ public class OutputSolr extends Output {
               Level.ERROR);
         }
       }
-      latestInputMarkerList.put(outputData.inputMarker.base64FileKey, outputData.inputMarker);
+      latestInputMarkers.put(outputData.inputMarker.base64FileKey, outputData.inputMarker);
       localBuffer.add(document);
     }
 
@@ -479,9 +465,9 @@ public class OutputSolr extends Output {
         LogFeederUtil.logErrorMessageByInterval(logMessageKey,
             String.format("Error writing to Solr. response=%s, log=%s", response, outputData), null, LOG, Level.ERROR);
       }
-      statMetric.count += localBuffer.size();
-      writeBytesMetric.count += localBufferBytesSize;
-      for (InputMarker inputMarker : latestInputMarkerList.values()) {
+      statMetric.value += localBuffer.size();
+      writeBytesMetric.value += localBufferBytesSize;
+      for (InputMarker inputMarker : latestInputMarkers.values()) {
         inputMarker.input.checkIn(inputMarker);
       }
     }
@@ -499,7 +485,7 @@ public class OutputSolr extends Output {
     public void resetLocalBuffer() {
       localBuffer.clear();
       localBufferBytesSize = 0;
-      latestInputMarkerList.clear();
+      latestInputMarkers.clear();
     }
 
     public boolean isDone() {
@@ -512,9 +498,7 @@ public class OutputSolr extends Output {
   }
 
   @Override
-  public void copyFile(File inputFile, InputMarker inputMarker)
-      throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=solr");
+  public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("copyFile method is not yet supported for output=solr");
   }
 }

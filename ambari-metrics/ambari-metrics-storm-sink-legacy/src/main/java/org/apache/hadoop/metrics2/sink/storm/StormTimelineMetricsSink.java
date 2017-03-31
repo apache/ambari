@@ -53,17 +53,46 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private TimelineMetricsCache metricsCache;
   private String hostname;
   private int timeoutSeconds;
+  private Collection<String> collectorHosts;
+  private String zkQuorum;
+  private String protocol;
+  private String port;
   private String topologyName;
   private String applicationId;
 
   @Override
-  protected String getCollectorUri() {
-    return collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(protocol, host, port);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  @Override
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return port;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   @Override
@@ -88,8 +117,15 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
-    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
-    if (collectorUri.toLowerCase().startsWith("https://")) {
+    collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
+    zkQuorum = configuration.getProperty("zookeeper.quorum");
+    protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
+    port = configuration.getProperty(COLLECTOR_PORT, "6188");
+
+    // Initialize the collector write strategy
+    super.init();
+
+    if (protocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
@@ -203,7 +239,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
-      String attributeName, Double attributeValue) {
+                                              String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);

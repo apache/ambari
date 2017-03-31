@@ -140,6 +140,16 @@
   -->
   <files>
     <file>
+      <fileMode>644</fileMode>
+      <source>${basedir}/target/zkmigrator.jar</source>
+      <outputDirectory>/var/lib/ambari-agent/tools</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${basedir}/target/jcepolicyinfo.jar</source>
+      <outputDirectory>/var/lib/ambari-agent/tools</outputDirectory>
+    </file>
+    <file>
       <fileMode>755</fileMode>
       <source>conf/unix/ambari-sudo.sh</source>
       <outputDirectory>/var/lib/ambari-agent/</outputDirectory>
@@ -190,4 +200,24 @@
       <outputDirectory>/var/lib/${project.artifactId}/data</outputDirectory>
     </file>
   </files>
+  <dependencySets>
+    <dependencySet>
+      <fileMode>644</fileMode>
+      <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
+      <unpack>false</unpack>
+      <includes>
+        <include>commons-cli:commons-cli</include>
+        <include>commons-collections:commons-collections</include>
+        <include>commons-configuration:commons-configuration</include>
+        <include>commons-io:commons-io</include>
+        <include>commons-lang:commons-lang</include>
+        <include>commons-logging:commons-logging</include>
+        <include>com.google.guava:guava</include>
+        <include>org.slf4j:slf4j-api</include>
+        <include>org.apache.hadoop:hadoop-common</include>
+        <include>org.apache.hadoop:hadoop-auth</include>
+        <include>org.apache.htrace:htrace-core</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
 </assembly>

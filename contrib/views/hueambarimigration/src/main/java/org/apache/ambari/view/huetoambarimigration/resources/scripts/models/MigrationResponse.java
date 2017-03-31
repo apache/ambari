@@ -33,18 +33,19 @@ import java.util.Map;
 public class MigrationResponse implements Serializable,PersonalResource{
 
 
-
   private String id;
 
   private int numberOfQueryTransfered;
   private String intanceName="";
   private String userNameofhue="";
   private int totalNoQuery;
-  private int ProgressPercentage;
+  private int progressPercentage;
   private String owner = "";
   private String totalTimeTaken="";
   private String jobtype="";
   private String isNoQuerySelected="";
+  private int flag;
+  private String error;
 
   public String getTotalTimeTaken() {
     return totalTimeTaken;
@@ -126,11 +127,11 @@ public class MigrationResponse implements Serializable,PersonalResource{
 
 
   public int getProgressPercentage() {
-    return ProgressPercentage;
+    return progressPercentage;
   }
 
   public void setProgressPercentage(int progressPercentage) {
-    ProgressPercentage = progressPercentage;
+    this.progressPercentage = progressPercentage;
   }
 
   public String getOwner() {
@@ -140,4 +141,13 @@ public class MigrationResponse implements Serializable,PersonalResource{
   public void setOwner(String owner) {
     this.owner = owner;
   }
+
+  public int getFlag() { return flag; }
+
+  public void setFlag(int flag) { this.flag = flag; }
+
+  public String getError() { return error; }
+
+  public void setError(String error) { this.error = error; }
+
 }

@@ -69,7 +69,7 @@ checkConnection: function() {
   startTests: function() {
 
     var model = this.get('model');
-    var url = this.container.lookup('adapter:application').buildURL() + '/resources/hive/'
+    var url = this.container.lookup('adapter:application').buildURL() + '/resources/hive/';
     var self = this;
 
     var processResponse = function(name, data) {
@@ -102,12 +102,31 @@ checkConnection: function() {
 
       model.set(name + 'TestDone', true);
       var percent = model.get('percent');
-      model.set('percent', percent + 25);
+      model.set('percent', percent + (100/model.get("numberOfChecks")));
     };
 
 
+    let checks = [];
+    if(model.get("serviceCheckPolicy").checkHdfs){
+      checks.push("hdfs");
+    }else{
+      model.set("hdfs" + 'TestDone', true);
+      model.set("hdfs" + 'Test', true);
+    }
+    if(model.get("serviceCheckPolicy").checkATS){
+      checks.push("ats");
+    }else{
+      model.set("ats" + 'TestDone', true);
+      model.set("ats" + 'Test', true);
+    }
+    if(model.get("serviceCheckPolicy").checkHomeDirectory){
+      checks.push("userhome");
+    }else{
+      model.set("userhome" + 'TestDone', true);
+      model.set("userhome" + 'Test', true);
+    }
 
-    var promises = ['hdfs', 'ats', 'userhome'].map(function(name) {
+    var promises = checks.map(function(name) {
 
       var finalurl =  url + name + 'Status' ;
 

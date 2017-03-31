@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.apache.ambari.server.security.authorization.Group;
+import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -57,6 +58,7 @@ import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.ldap.filter.Filter;
+import org.springframework.ldap.support.LdapUtils;
 
 import javax.naming.directory.SearchControls;
 
@@ -961,6 +963,64 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   @Test
+  public void testSynchronizeAllLdapSkipLocal() throws Exception {
+
+    User user1 = createNiceMock(User.class);
+    User user2 = createNiceMock(User.class);
+    User user3 = createNiceMock(User.class);
+    expect(user1.getUserName()).andReturn("local1").anyTimes();
+    expect(user2.getUserName()).andReturn("local2").anyTimes();
+    expect(user3.getUserName()).andReturn("ldap1").anyTimes();
+    expect(user1.isLdapUser()).andReturn(false).anyTimes();
+    expect(user2.isLdapUser()).andReturn(false).anyTimes();
+    expect(user3.isLdapUser()).andReturn(true).anyTimes();
+
+    List<User> userList = Arrays.asList(user1, user2, user3);
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    expect(configuration.getLdapSyncCollisionHandlingBehavior()).andReturn(Configuration.LdapUsernameCollisionHandlingBehavior.SKIP).anyTimes();
+    Users users = createNiceMock(Users.class);
+    LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(users.getAllUsers()).andReturn(userList);
+
+    replay(ldapTemplate, ldapServerProperties, users, configuration);
+    replay(user1, user3, user2);
+
+    AmbariLdapDataPopulatorTestInstance populator = createMockBuilder(AmbariLdapDataPopulatorTestInstance.class)
+        .addMockedMethod("getExternalLdapUserInfo")
+        .withConstructor(configuration, users)
+        .createNiceMock();
+
+    LdapUserDto externalUser1 = createNiceMock(LdapUserDto.class);
+    LdapUserDto externalUser2 = createNiceMock(LdapUserDto.class);
+    LdapUserDto externalUser3 = createNiceMock(LdapUserDto.class);
+    expect(externalUser1.getUserName()).andReturn("local1").anyTimes();
+    expect(externalUser2.getUserName()).andReturn("local2").anyTimes();
+    expect(externalUser3.getUserName()).andReturn("ldap1").anyTimes();
+    replay(externalUser1, externalUser2, externalUser3);
+
+    expect(populator.getExternalLdapUserInfo()).andReturn(
+        createSet(externalUser1, externalUser2, externalUser3));
+    replay(populator);
+
+    populator.setLdapTemplate(ldapTemplate);
+    populator.setLdapServerProperties(ldapServerProperties);
+
+    LdapBatchDto result = populator.synchronizeAllLdapUsers(new LdapBatchDto());
+    assertEquals(2, result.getUsersSkipped().size());
+    assertTrue(result.getUsersSkipped().contains("local1"));
+    assertTrue(result.getUsersSkipped().contains("local2"));
+    assertTrue(result.getUsersToBeCreated().isEmpty());
+    assertTrue(result.getGroupsToBeRemoved().isEmpty());
+    assertTrue(result.getGroupsToBeCreated().isEmpty());
+    assertTrue(result.getGroupsToBecomeLdap().isEmpty());
+    assertTrue(result.getMembershipToAdd().isEmpty());
+    assertTrue(result.getMembershipToRemove().isEmpty());
+    verify(populator.loadLdapTemplate(), populator);
+  }
+
+  @Test
   public void testSynchronizeAllLdapUsers_add() throws Exception {
 
     User user1 = createNiceMock(User.class);
@@ -1518,7 +1578,7 @@ public class AmbariLdapDataPopulatorTest {
     final GroupEntity ldapGroup = new GroupEntity();
     ldapGroup.setGroupId(1);
     ldapGroup.setGroupName("ldapGroup");
-    ldapGroup.setLdapGroup(true);
+    ldapGroup.setGroupType(GroupType.LDAP);
     ldapGroup.setMemberEntities(new HashSet<MemberEntity>());
 
     final User ldapUserWithoutGroup = createLdapUserWithoutGroup();
@@ -1585,12 +1645,12 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.isPaginationEnabled()).andReturn(true).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
-    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com").anyTimes();
     expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(processor.getCookie()).andReturn(cookie).anyTimes();
     expect(cookie.getCookie()).andReturn(null).anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
+    expect(ldapTemplate.search(eq(LdapUtils.newLdapName("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com")), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 
@@ -1625,9 +1685,9 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
-    expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+    expect(ldapServerProperties.getBaseDN()).andReturn("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com").anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
+    expect(ldapTemplate.search(eq(LdapUtils.newLdapName("cn=testUser,ou=Ambari,dc=SME,dc=support,dc=com") ), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 

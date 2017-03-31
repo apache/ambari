@@ -1,0 +1,22 @@
+{
+  "configuration": {
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+        "widget": {
+          "type": "toggle"
+        }
+      }
+    ]
+  }
+}

@@ -22,6 +22,7 @@ import os
 import shutil
 import json
 import ast
+import logging
 
 from ambari_server.serverClassPath import ServerClassPath
 
@@ -31,9 +32,9 @@ from ambari_commons.logging_utils import print_info_msg, print_error_msg, print_
 from ambari_commons.os_utils import copy_file, run_os_command
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
   get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location, \
-  get_java_exe_path, read_ambari_user, parse_properties_file, JDBC_DATABASE_PROPERTY
+  get_java_exe_path, read_ambari_user, parse_properties_file, JDBC_DATABASE_PROPERTY, get_dashboard_location
 from ambari_server.setupSecurity import ensure_can_start_under_current_user, generate_env
-from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+from ambari_server.setupActions import INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
 from ambari_server.userInput import get_YN_input
 from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
@@ -45,9 +46,18 @@ from resource_management.libraries.functions.version import compare_versions
 MPACK_INSTALL_CHECKER_CMD = "{0} -cp {1} " + \
                             "org.apache.ambari.server.checks.MpackInstallChecker --mpack-stacks {2}"
 
+logger = logging.getLogger(__name__)
+
 MPACKS_REPLAY_LOG_FILENAME = "mpacks_replay.log"
 MPACKS_CACHE_DIRNAME = "cache"
+SERVICES_DIRNAME = "services"
+DASHBOARDS_DIRNAME = "dashboards"
+GRAFANA_DASHBOARDS_DIRNAME = "grafana-dashboards"
+SERVICE_METRICS_DIRNAME = "service-metrics"
+METRICS_EXTENSION = ".txt"
+
 STACK_DEFINITIONS_RESOURCE_NAME = "stack-definitions"
+EXTENSION_DEFINITIONS_RESOURCE_NAME = "extension-definitions"
 SERVICE_DEFINITIONS_RESOURCE_NAME = "service-definitions"
 MPACKS_RESOURCE_NAME = "mpacks"
 
@@ -67,6 +77,7 @@ STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME = "stack-addon-service-definitions
 RESOURCE_FRIENDLY_NAMES = {
   STACK_DEFINITIONS_RESOURCE_NAME : "stack definitions",
   SERVICE_DEFINITIONS_RESOURCE_NAME: "service definitions",
+  EXTENSION_DEFINITIONS_RESOURCE_NAME: "extension definitions",
   MPACKS_RESOURCE_NAME: "management packs"
 }
 
@@ -182,8 +193,9 @@ def get_mpack_properties():
   extension_location = get_extension_location(properties)
   service_definitions_location = get_common_services_location(properties)
   mpacks_staging_location = get_mpacks_staging_location(properties)
+  dashboard_location = get_dashboard_location(properties)
   ambari_version = get_ambari_version(properties)
-  return stack_location, extension_location, service_definitions_location, mpacks_staging_location
+  return stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location
 
 def _get_mpack_name_version(mpack_path):
   """
@@ -220,22 +232,35 @@ def create_symlink(src_dir, dest_dir, file_name, force=False):
   """
   src_path = os.path.join(src_dir, file_name)
   dest_link = os.path.join(dest_dir, file_name)
+  create_symlink_using_path(src_path, dest_link, force)
+
+def create_symlink_using_path(src_path, dest_link, force=False):
+  """
+  Helper function to create symbolic link (dest_link -> src_path)
+  :param src_path: Source path
+  :param dest_link: Destination link
+  :param force: Remove existing symlink
+  """
   if force and os.path.islink(dest_link):
     sudo.unlink(dest_link)
   sudo.symlink(src_path, dest_link)
   print_info_msg("Symlink: " + dest_link)
 
-def remove_symlinks(stack_location, service_definitions_location, staged_mpack_dir):
+def remove_symlinks(stack_location, extension_location, service_definitions_location, dashboard_location, staged_mpack_dir):
   """
   Helper function to remove all symbolic links pointed to a management pack
   :param stack_location: Path to stacks folder
                          (/var/lib/ambari-server/resources/stacks)
+  :param extension_location: Path to extensions folder
+                             (/var/lib/ambari-server/resources/extension)
   :param service_definitions_location: Path to service_definitions folder
                                       (/var/lib/ambari-server/resources/common-services)
+  :param dashboard_location: Path to the custom service dashboard folder
+                             (/var/lib/ambari-server/resources/dashboards)
   :param staged_mpack_dir: Path to management pack staging location
                            (/var/lib/ambari-server/resources/mpacks/mpack_name-mpack_version)
   """
-  for location in [stack_location, service_definitions_location]:
+  for location in [stack_location, extension_location, service_definitions_location, dashboard_location]:
     for root, dirs, files in os.walk(location):
       for name in files:
         file = os.path.join(root, name)
@@ -287,7 +312,7 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
   :param replay_mode: Flag to indicate if purging in replay mode
   """
   # Get ambari mpacks config properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
 
   if not purge_list:
     return
@@ -306,7 +331,7 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
       err = "The management pack you are attempting to install does not contain {0}. Since this management pack " \
             "does not contain a stack, the --purge option with --purge-list={1} would cause your existing Ambari " \
             "installation to be unusable. Due to that we cannot install this management pack.".format(
-          RESOURCE_FRIENDLY_NAMES[STACK_DEFINITIONS_ARTIFACT_NAME], purge_list)
+          RESOURCE_FRIENDLY_NAMES[STACK_DEFINITIONS_RESOURCE_NAME], purge_list)
       print_error_msg(err)
       raise FatalException(1, err)
     else:
@@ -333,7 +358,7 @@ def purge_stacks_and_mpacks(purge_list, replay_mode=False):
   :param replay_mode: Flag to indicate if purging in replay mode
   """
   # Get ambari mpacks config properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
 
   print_info_msg("Purging existing stack definitions and management packs")
 
@@ -348,6 +373,10 @@ def purge_stacks_and_mpacks(purge_list, replay_mode=False):
       path = os.path.join(stack_location, file)
       if(os.path.isdir(path)):
         sudo.rmtree(path)
+
+  if EXTENSION_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(extension_location):
+    print_info_msg("Purging extension location: " + extension_location)
+    sudo.rmtree(extension_location)
 
   if SERVICE_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(service_definitions_location):
     print_info_msg("Purging service definitions location: " + service_definitions_location)
@@ -367,7 +396,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   for file in sorted(os.listdir(artifact_source_dir)):
     if os.path.isfile(os.path.join(artifact_source_dir, file)):
       # Example: /var/lib/ambari-server/resources/stacks/stack_advisor.py
@@ -386,15 +415,52 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
           if not os.path.exists(dest_stack_version_dir):
             sudo.makedir(dest_stack_version_dir, 0755)
           for file in sorted(os.listdir(src_stack_version_dir)):
-            if file == "services":
+            if file == SERVICES_DIRNAME:
               src_stack_services_dir = os.path.join(src_stack_version_dir, file)
               dest_stack_services_dir = os.path.join(dest_stack_version_dir, file)
               if not os.path.exists(dest_stack_services_dir):
                 sudo.makedir(dest_stack_services_dir, 0755)
               for file in sorted(os.listdir(src_stack_services_dir)):
                 create_symlink(src_stack_services_dir, dest_stack_services_dir, file, options.force)
+                src_service_dir = os.path.join(src_stack_services_dir, file)
+                create_dashboard_symlinks(src_service_dir, file, dashboard_location, options)
             else:
               create_symlink(src_stack_version_dir, dest_stack_version_dir, file, options.force)
+
+def create_dashboard_symlinks(src_service_dir, service_name, dashboard_location, options):
+  """
+  If there is a dashboards directory under the src_service_dir,
+  create symlinks under the dashboard_location for the grafana_dashboards
+  and the service-metrics
+  :param src_service_dir: Location of the service directory in the management pack
+  :param service_name: Name of the service directory
+  :param dashboard_location: Location of the dashboards directory in ambari-server/resources
+  :param options: Command line options
+  """
+  src_dashboards_dir = os.path.join(src_service_dir, DASHBOARDS_DIRNAME)
+  if not os.path.exists(src_dashboards_dir):
+    return
+
+  src_grafana_dashboards_dir = os.path.join(src_dashboards_dir, GRAFANA_DASHBOARDS_DIRNAME)
+  src_metrics_dir = os.path.join(src_dashboards_dir, SERVICE_METRICS_DIRNAME)
+  if os.path.exists(src_grafana_dashboards_dir):
+    dest_grafana_dashboards_dir = os.path.join(dashboard_location, GRAFANA_DASHBOARDS_DIRNAME)
+    dest_service_dashboards_link = os.path.join(dest_grafana_dashboards_dir, service_name)
+    if os.path.exists(dest_service_dashboards_link):
+      message = "Grafana dashboards already exist for service {0}.".format(service_name)
+      print_warning_msg(message)
+    else:
+      create_symlink_using_path(src_grafana_dashboards_dir, dest_service_dashboards_link, options.force)
+
+  service_metrics_filename = service_name + METRICS_EXTENSION
+  src_metrics_file = os.path.join(src_metrics_dir, service_metrics_filename)
+  if os.path.exists(src_metrics_file):
+    dest_metrics_dir = os.path.join(dashboard_location, SERVICE_METRICS_DIRNAME)
+    if os.path.exists(os.path.join(dest_metrics_dir, service_metrics_filename)):
+      message = "Service metrics already exist for service {0}.".format(service_name)
+      print_warning_msg(message)
+    else:
+      create_symlink(src_metrics_dir, dest_metrics_dir, service_metrics_filename, options.force)
 
 def process_extension_definitions_artifact(artifact, artifact_source_dir, options):
   """
@@ -408,7 +474,7 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   if not os.path.exists(extension_location):
     sudo.makedir(extension_location, 0755)
   for file in sorted(os.listdir(artifact_source_dir)):
@@ -422,6 +488,12 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
         sudo.makedir(dest_extension_dir, 0755)
       for file in sorted(os.listdir(src_extension_dir)):
         create_symlink(src_extension_dir, dest_extension_dir, file, options.force)
+        src_extension_version_dir = os.path.join(src_extension_dir, file)
+        src_services_dir = os.path.join(src_extension_version_dir, SERVICES_DIRNAME)
+        if os.path.exists(src_services_dir):
+          for file in sorted(os.listdir(src_services_dir)):
+            src_service_dir = os.path.join(src_services_dir, file)
+            create_dashboard_symlinks(src_service_dir, file, dashboard_location, options)
 
 def process_service_definitions_artifact(artifact, artifact_source_dir, options):
   """
@@ -431,14 +503,17 @@ def process_service_definitions_artifact(artifact, artifact_source_dir, options)
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   for file in sorted(os.listdir(artifact_source_dir)):
+    service_name = file
     src_service_definitions_dir = os.path.join(artifact_source_dir, file)
     dest_service_definitions_dir = os.path.join(service_definitions_location, file)
     if not os.path.exists(dest_service_definitions_dir):
       sudo.makedir(dest_service_definitions_dir, 0755)
     for file in sorted(os.listdir(src_service_definitions_dir)):
       create_symlink(src_service_definitions_dir, dest_service_definitions_dir, file, options.force)
+      src_service_version_dir = os.path.join(src_service_definitions_dir, file)
+      create_dashboard_symlinks(src_service_version_dir, service_name, dashboard_location, options)
 
 def process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options):
   """
@@ -448,7 +523,7 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   service_versions_map = None
   if "service_versions_map" in artifact:
     service_versions_map = artifact.service_versions_map
@@ -468,7 +543,7 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
             stack_version = applicable_stack.stack_version
             dest_stack_path = os.path.join(stack_location, stack_name)
             dest_stack_version_path = os.path.join(dest_stack_path, stack_version)
-            dest_stack_services_path = os.path.join(dest_stack_version_path, "services")
+            dest_stack_services_path = os.path.join(dest_stack_version_path, SERVICES_DIRNAME)
             dest_link = os.path.join(dest_stack_services_path, service_name)
             if os.path.exists(dest_stack_path) and os.path.exists(dest_stack_version_path):
               if not os.path.exists(dest_stack_services_path):
@@ -476,6 +551,7 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
               if options.force and os.path.islink(dest_link):
                 sudo.unlink(dest_link)
               sudo.symlink(source_service_version_path, dest_link)
+              create_dashboard_symlinks(source_service_version_path, service_name, dashboard_location, options)
 
 def search_mpacks(mpack_name, max_mpack_version=None):
   """
@@ -486,7 +562,7 @@ def search_mpacks(mpack_name, max_mpack_version=None):
   :return: List of management pack
   """
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   results = []
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
     staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
@@ -506,7 +582,7 @@ def search_mpacks(mpack_name, max_mpack_version=None):
           results.append((staged_mpack_name, staged_mpack_version))
   return results
 
-def uninstall_mpacks(mpack_name, max_mpack_version=None):
+def _uninstall_mpacks(mpack_name, max_mpack_version=None):
   """
   Uninstall all "mpack_name" management packs.
   If "max_mpack_version" is specified uninstall only management packs < max_mpack_version
@@ -515,9 +591,9 @@ def uninstall_mpacks(mpack_name, max_mpack_version=None):
   """
   results = search_mpacks(mpack_name, max_mpack_version)
   for result in results:
-    uninstall_mpack(result[0], result[1])
+    _uninstall_mpack(result[0], result[1])
 
-def uninstall_mpack(mpack_name, mpack_version):
+def _uninstall_mpack(mpack_name, mpack_version):
   """
   Uninstall specific management pack
   :param mpack_name: Management pack name
@@ -525,7 +601,7 @@ def uninstall_mpack(mpack_name, mpack_version):
   """
   print_info_msg("Uninstalling management pack {0}-{1}".format(mpack_name, mpack_version))
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   found = False
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
     staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
@@ -544,7 +620,7 @@ def uninstall_mpack(mpack_name, mpack_version):
         if mpack_name == staged_mpack_name and compare_versions(staged_mpack_version, mpack_version, format=True) == 0:
           print_info_msg("Removing management pack staging location {0}".format(staged_mpack_dir))
           sudo.rmtree(staged_mpack_dir)
-          remove_symlinks(stack_location, service_definitions_location, staged_mpack_dir)
+          remove_symlinks(stack_location, extension_location, service_definitions_location, dashboard_location, staged_mpack_dir)
           found = True
           break
   if not found:
@@ -643,7 +719,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     purge_stacks_and_mpacks(purge_resources, replay_mode)
 
   # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   mpacks_cache_location = os.path.join(mpacks_staging_location, MPACKS_CACHE_DIRNAME)
   # Create directories
   if not os.path.exists(stack_location):
@@ -656,6 +732,10 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     sudo.makedir(mpacks_staging_location, 0755)
   if not os.path.exists(mpacks_cache_location):
     sudo.makedir(mpacks_cache_location, 0755)
+  if not os.path.exists(dashboard_location):
+    sudo.makedir(dashboard_location, 0755)
+    sudo.makedir(os.path.join(dashboard_location, GRAFANA_DASHBOARDS_DIRNAME), 0755)
+    sudo.makedir(os.path.join(dashboard_location, SERVICE_METRICS_DIRNAME), 0755)
 
   # Stage management pack (Stage at /var/lib/ambari-server/resources/mpacks/mpack_name-mpack_version)
   mpack_name = mpack_metadata.name
@@ -734,23 +814,39 @@ def get_replay_log_file():
   Helper function to get mpack replay log file path
   :return: mpack replay log file path
   """
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
   replay_log_file = os.path.join(mpacks_staging_location, MPACKS_REPLAY_LOG_FILENAME)
   return replay_log_file
 
-def add_replay_log(mpack_command, mpack_archive_path, purge, force, verbose):
+def add_replay_log(mpack_command, mpack_archive_path, purge, purge_list, force, verbose):
   """
   Helper function to add mpack replay log entry
   :param mpack_command: mpack command
   :param mpack_archive_path: mpack archive path (/var/lib/ambari-server/resources/mpacks/mpack.tar.gz)
   :param purge: purge command line option
+  :param purge: purge list command line option
   :param force: force command line option
   :param verbose: verbose command line option
   """
   replay_log_file = get_replay_log_file()
-  log = { 'mpack_command' : mpack_command, 'mpack_path' : mpack_archive_path, 'purge' : purge, 'force' : force, 'verbose' : verbose }
+  log = { 'mpack_command' : mpack_command, 'mpack_path' : mpack_archive_path, 'purge' : purge, 'purge_list': purge_list, 'force' : force, 'verbose' : verbose }
   with open(replay_log_file, "a") as replay_log:
     replay_log.write("{0}\n".format(log))
+
+def remove_replay_logs(mpack_name):
+  replay_log_file = get_replay_log_file()
+  logs = []
+  if os.path.exists(replay_log_file):
+    with open(replay_log_file, "r") as f:
+      for log in f:
+        log = log.strip()
+        options = _named_dict(ast.literal_eval(log))
+        (name, version) = _get_mpack_name_version(options.mpack_path)
+        if mpack_name != name:
+          logs.append(log)
+    with open(replay_log_file, "w") as replay_log:
+      for log in logs:
+        replay_log.write("{0}\n".format(log))
 
 def install_mpack(options, replay_mode=False):
   """
@@ -758,6 +854,7 @@ def install_mpack(options, replay_mode=False):
   :param options: Command line options
   :param replay_mode: Flag to indicate if executing command in replay mode
   """
+  logger.info("Install mpack.")
   # Force install when replaying logs
   if replay_mode:
     options.force = True
@@ -767,7 +864,31 @@ def install_mpack(options, replay_mode=False):
   _execute_hook(mpack_metadata, AFTER_INSTALL_HOOK_NAME, mpack_staging_dir)
 
   if not replay_mode:
-    add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
+    add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
+
+def uninstall_mpack(options, replay_mode=False):
+  """
+  Uninstall management pack
+  :param options: Command line options
+  :param replay_mode: Flag to indicate if executing command in replay mode
+  """
+  logger.info("Uninstall mpack.")
+  mpack_name = options.mpack_name
+
+  if not mpack_name:
+    print_error_msg("Management pack name not specified!")
+    raise FatalException(-1, 'Management pack name not specified!')
+
+  results = search_mpacks(mpack_name)
+  if not results:
+    print_error_msg("No management packs found that can be uninstalled!")
+    raise FatalException(-1, 'No management packs found that can be uninstalled!')
+
+  _uninstall_mpacks(mpack_name)
+
+  print_info_msg("Management pack {0} successfully uninstalled!".format(mpack_name))
+  if not replay_mode:
+    remove_replay_logs(mpack_name)
 
 def upgrade_mpack(options, replay_mode=False):
   """
@@ -775,6 +896,7 @@ def upgrade_mpack(options, replay_mode=False):
   :param options: command line options
   :param replay_mode: Flag to indicate if executing command in replay mode
   """
+  logger.info("Upgrade mpack.")
   mpack_path = options.mpack_path
   if options.purge:
     print_error_msg("Purge is not supported with upgrade_mpack action!")
@@ -797,14 +919,14 @@ def upgrade_mpack(options, replay_mode=False):
   (mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode, is_upgrade=True)
 
   # Uninstall old management packs
-  uninstall_mpacks(mpack_name, mpack_version)
+  _uninstall_mpacks(mpack_name, mpack_version)
 
   # Execute post upgrade hook
   _execute_hook(mpack_metadata, AFTER_UPGRADE_HOOK_NAME, mpack_staging_dir)
 
   print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
   if not replay_mode:
-    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
+    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
 
 def replay_mpack_logs():
   """

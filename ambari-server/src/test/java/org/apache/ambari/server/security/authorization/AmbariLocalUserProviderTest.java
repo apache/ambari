@@ -26,6 +26,7 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.ambari.server.H2DatabaseCleaner;
 public class AmbariLocalUserProviderTest {
   private static Injector injector;
 
@@ -62,6 +64,11 @@ public class AmbariLocalUserProviderTest {
   public void setUp() throws Exception {
     injector.injectMembers(this);
     SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
+  @AfterClass
+  public static void tearDown() throws Exception {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test

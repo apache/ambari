@@ -856,6 +856,7 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
         injector.getInstance(UserDAO.class),
         injector.getInstance(MemberDAO.class),
         injector.getInstance(PrivilegeDAO.class),
+        injector.getInstance(PermissionDAO.class),
         injector.getInstance(ResourceDAO.class),
         injector.getInstance(ResourceTypeDAO.class),
         injector.getInstance(SecurityHelper.class),

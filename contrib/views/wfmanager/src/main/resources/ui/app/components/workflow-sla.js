@@ -15,10 +15,9 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import {SlaInfo} from '../domain/sla-info'
-import EmberValidations from 'ember-validations';
+import {SlaInfo} from '../domain/sla-info';
 
-export default Ember.Component.extend(EmberValidations,{
+export default Ember.Component.extend({
   slaInfo : {},
   initialize : function(){
     this.set('slaInfo',Ember.copy(this.get('workflowSla')));
@@ -35,13 +34,13 @@ export default Ember.Component.extend(EmberValidations,{
   }.on('didInsertElement'),
   actions : {
     saveWorkflowSla () {
-      this.get('slaContext').validate().then(()=>{
+      if(this.get('slaContext').get('validations.isInvalid')){
+        this.get('slaContext').set('showErrorMessage', true);
+        return;
+      }else{
         this.set('workflowSla', this.get('slaInfo'));
         this.$('#workflow_sla_dialog').modal('hide');
-      }.bind(this)). catch(()=>{
-
-      });
-
+      }
     },
     register (name, context) {
       this.set('slaContext', context);

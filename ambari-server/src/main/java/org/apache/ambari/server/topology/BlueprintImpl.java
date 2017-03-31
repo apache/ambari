@@ -208,6 +208,55 @@ public class BlueprintImpl implements Blueprint {
     return null;
   }
 
+  /**
+   * Get whether the specified service is enabled for credential store use.
+   *
+   * <pre>
+   *     {@code
+   *       {
+   *         "service_settings" : [
+   *         { "name" : "RANGER",
+   *           "recovery_enabled" : "true",
+   *           "credential_store_enabled" : "true"
+   *         },
+   *         { "name" : "HIVE",
+   *           "recovery_enabled" : "true",
+   *           "credential_store_enabled" : "false"
+   *         },
+   *         { "name" : "TEZ",
+   *           "recovery_enabled" : "false"
+   *         }
+   *       ]
+   *     }
+   *   }
+   * </pre>
+   *
+   * @param serviceName - Service name.
+   *
+   * @return null if value is not specified; true or false if specified.
+   */
+  @Override
+  public String getCredentialStoreEnabled(String serviceName) {
+    if (setting == null)
+      return null;
+
+    /**
+     * Look up the service and return the credential_store_enabled value.
+     */
+    Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
+    for (Map<String, String> setting : settingValue) {
+      String name = setting.get(Setting.SETTING_NAME_NAME);
+      if (StringUtils.equals(name, serviceName)) {
+        if (!StringUtils.isEmpty(setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED))) {
+          return setting.get(Setting.SETTING_NAME_CREDENTIAL_STORE_ENABLED);
+        }
+        break;
+      }
+    }
+
+    return null;
+  }
+
   @Override
   public boolean shouldSkipFailure() {
     if (setting == null) {

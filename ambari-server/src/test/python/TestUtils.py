@@ -120,30 +120,6 @@ class TestUtils(TestCase):
     normpath_mock.return_value = "test value"
     self.assertEquals(utils.get_symlink_path("/"), "test value")
 
-  @patch('time.time')
-  @patch.object(utils, 'pid_exists')
-  @patch('time.sleep')
-  def test_wait_for_pid(self, sleep_mock, pid_exists_mock, time_mock):
-    pid_exists_mock.return_value = True
-    time_mock.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11]
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-    live_pids = utils.wait_for_pid([
-                                   {"pid": "111",
-                                    "exe": "",
-                                    "cmd": ""
-                                    },
-                                   {"pid": "222",
-                                    "exe": "",
-                                    "cmd": ""
-                                    },
-                                   ], 10)
-    self.assertEqual("..........", out.getvalue())
-    sys.stdout = sys.__stdout__
-
-    self.assertEquals(2, live_pids)
-
   @patch.object(utils, 'pid_exists')
   @patch('__builtin__.open')
   @patch('os.kill')
@@ -170,7 +146,7 @@ class TestUtils(TestCase):
                              "exe": "/exe2",
                              "cmd": ""
                              },
-                            ], "/pidfile", ["/exe1"], True)
+                            ], "/pidfile", ["/exe1"])
     self.assertEquals(open_mock.call_count, 1)
     self.assertEquals(pid_exists_mock.call_count, 4)
     self.assertEquals(kill_mock.call_count, 1)

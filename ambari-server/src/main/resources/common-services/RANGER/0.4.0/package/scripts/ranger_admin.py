@@ -45,18 +45,9 @@ class RangerAdmin(Script):
     self.install_packages(env)
     import params
     env.set_params(params)
-    if params.xml_configurations_supported:
-      from setup_ranger_xml import setup_ranger_db
-      setup_ranger_db()
-
-    self.configure(env)
-
-    if params.xml_configurations_supported:
-      from setup_ranger_xml import setup_java_patch
-      setup_java_patch()
-
-    if params.stack_supports_ranger_admin_password_change:
-      setup_ranger_admin_passwd_change()
+    # call config and setup db only in case of HDP version < 2.6
+    if not params.stack_supports_ranger_setup_db_on_start:
+      self.configure(env, setup_db=True)
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -93,7 +84,9 @@ class RangerAdmin(Script):
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env, upgrade_type=upgrade_type)
+
+    # setup db only if in case HDP version is > 2.6
+    self.configure(env, upgrade_type=upgrade_type, setup_db=params.stack_supports_ranger_setup_db_on_start)
 
     if params.stack_supports_infra_client and params.audit_solr_enabled and params.is_solrCloud_enabled:
       solr_cloud_util.setup_solr_client(params.config, custom_log4j = params.custom_log4j)
@@ -122,7 +115,7 @@ class RangerAdmin(Script):
         raise ComponentIsNotRunning()
     pass
 
-  def configure(self, env, upgrade_type=None):
+  def configure(self, env, upgrade_type=None, setup_db=False):
     import params
     env.set_params(params)
     if params.xml_configurations_supported:
@@ -130,7 +123,22 @@ class RangerAdmin(Script):
     else:
       from setup_ranger import ranger
 
+    # set up db if we are not upgrading and setup_db is true
+    if setup_db and upgrade_type is None:
+      if params.xml_configurations_supported:
+        from setup_ranger_xml import setup_ranger_db
+        setup_ranger_db()
+
     ranger('ranger_admin', upgrade_type=upgrade_type)
+
+    # set up java patches if we are not upgrading and setup_db is true
+    if setup_db and upgrade_type is None:
+      if params.xml_configurations_supported:
+        from setup_ranger_xml import setup_java_patch
+        setup_java_patch()
+
+      if params.stack_supports_ranger_admin_password_change:
+        setup_ranger_admin_passwd_change()
 
   def set_ru_rangeradmin_in_progress(self, upgrade_marker_file):
     config_dir = os.path.dirname(upgrade_marker_file)

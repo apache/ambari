@@ -21,7 +21,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var blueprintUtils = require('utils/blueprint');
 var stringUtils = require('utils/string_utils');
 
-App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, {
+App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.ConfigsSaverMixin, App.EnhancedConfigsMixin, App.GroupsMappingMixin, {
   name: 'mainServiceItemController',
 
   /**
@@ -86,6 +86,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
   deleteServiceProgressPopup: null,
 
+  isRecommendationInProgress: false,
+
   isClientsOnlyService: function() {
     return App.get('services.clientOnly').contains(this.get('content.serviceName'));
   }.property('content.serviceName'),
@@ -95,7 +97,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   }.property('App.services.noConfigTypes','content.serviceName'),
 
   clientComponents: function () {
-    var clientNames = [];
+    var clientNames = [{
+      action:  'downloadAllClientConfigs',
+      context: {
+        label: Em.I18n.t('common.all.clients')
+      }
+    }];
     var clients = App.StackServiceComponent.find().filterProperty('serviceName', this.get('content.serviceName')).filterProperty('isClient');
     clients.forEach(function (item) {
       clientNames.push({
@@ -137,8 +144,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {String[]}
    */
   dependentServiceNames: function() {
-    return App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames');
-  }.property('content.serviceName'),
+    return App.get('router.clusterController.isConfigsPropertiesLoaded') ?
+      App.StackService.find(this.get('content.serviceName')).get('dependentServiceNames') : [];
+  }.property('content.serviceName', 'App.router.clusterController.isConfigsPropertiesLoaded'),
 
   /**
    * List of service names that could be deleted
@@ -183,6 +191,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   loadConfigs: function(){
     this.set('isServiceConfigsLoaded', false);
+    this.set('stepConfigs', []);
     App.ajax.send({
       name: 'config.tags',
       sender: this,
@@ -197,32 +206,35 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   onLoadConfigsTags: function (data) {
     var self = this;
-    var sitesToLoad = this.get('sitesToLoad'), allConfigs = [];
-    var loadedSites = data.Clusters.desired_configs;
-    var siteTagsToLoad = [];
-    for (var site in loadedSites) {
-      if (sitesToLoad.contains(site)) {
-        siteTagsToLoad.push({
-          siteName: site,
-          tagName: loadedSites[site].tag
-        });
+    App.get('router.mainController.isLoading').call(App.get('router.clusterController'), 'isConfigsPropertiesLoaded').done(function () {
+      var sitesToLoad = self.get('sitesToLoad'),
+        allConfigs = [],
+        loadedSites = data.Clusters.desired_configs,
+        siteTagsToLoad = [];
+      for (var site in loadedSites) {
+        if (sitesToLoad.contains(site)) {
+          siteTagsToLoad.push({
+            siteName: site,
+            tagName: loadedSites[site].tag
+          });
+        }
       }
-    }
-    App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
-      configs.forEach(function (site) {
-        self.get('configs')[site.type] = site.properties;
-        allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
-      });
-
-      self.get('dependentServiceNames').forEach(function(serviceName) {
-        var configTypes = App.StackService.find(serviceName).get('configTypeList');
-        var configsByService = allConfigs.filter(function (c) {
-          return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+      App.router.get('configurationController').getConfigsByTags(siteTagsToLoad).done(function (configs) {
+        configs.forEach(function (site) {
+          self.get('configs')[site.type] = site.properties;
+          allConfigs = allConfigs.concat(App.config.getConfigsFromJSON(site, true));
         });
-        self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
-      });
 
-      self.set('isServiceConfigsLoaded', true);
+        self.get('dependentServiceNames').forEach(function(serviceName) {
+          var configTypes = App.StackService.find(serviceName).get('configTypeList');
+          var configsByService = allConfigs.filter(function (c) {
+            return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
+          });
+          self.get('stepConfigs').pushObject(App.config.createServiceConfig(serviceName, [], configsByService));
+        });
+
+        self.set('isServiceConfigsLoaded', true);
+      });
     });
   },
 
@@ -477,7 +489,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       'sender': this,
       'success': 'startStopPopupSuccessCallback',
       'error': 'startStopPopupErrorCallback',
-      'data': data
+      'data': data,
+      'showLoadingPopup': true
     });
   },
 
@@ -533,7 +546,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         forceRefreshConfigTags : "capacity-scheduler"
       },
       success : 'refreshYarnQueuesSuccessCallback',
-      error : 'refreshYarnQueuesErrorCallback'
+      error : 'refreshYarnQueuesErrorCallback',
+      showLoadingPopup: true
     });
     });
   },
@@ -578,7 +592,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           componentName: "KNOX_GATEWAY"
         },
         success: 'startStopLdapKnoxSuccessCallback',
-        error: 'startStopLdapKnoxErrorCallback'
+        error: 'startStopLdapKnoxErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -625,7 +640,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         componentName: "HIVE_SERVER_INTERACTIVE"
       },
       success: 'requestSuccessCallback',
-      error: 'requestErrorCallback'
+      error: 'requestErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -670,7 +686,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         batches: batches
       },
       success: 'requestSuccessCallback',
-      error: 'requestErrorCallback'
+      error: 'requestErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -722,7 +739,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
             threshold: this.get('inputValue')
           },
           success : 'rebalanceHdfsNodesSuccessCallback',
-          error : 'rebalanceHdfsNodesErrorCallback'
+          error : 'rebalanceHdfsNodesErrorCallback',
+          showLoadingPopup: true
         });
         this.hide();
       },
@@ -847,7 +865,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       'sender': this,
       'success':'runSmokeTestSuccessCallBack',
       'error':'runSmokeTestErrorCallBack',
-      'data': requestData
+      'data': requestData,
+      showLoadingPopup: true
     });
   },
 
@@ -930,63 +949,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param componentName
    */
   addComponent: function (componentName) {
-    var self = this;
     var component = App.StackServiceComponent.find().findProperty('componentName', componentName);
-    var componentDisplayName = component.get('displayName');
 
     App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-      return App.ModalPopup.show({
-        primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
-
-        header: Em.I18n.t('popup.confirmation.commonHeader'),
-
-        addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
-
-        selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
-
-        thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
-
-        hostsWithoutComponent: function () {
-          var hostsWithComponent = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
-          var result = App.get('allHostNames');
-
-          hostsWithComponent.forEach(function (host) {
-            result = result.without(host);
-          });
-
-          return result;
-        }.property(),
-
-        anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
-
-        selectedHost: null,
-
-        componentName: componentName,
-
-        componentDisplayName: componentDisplayName,
-
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/service/add_host_popup')
-        }),
-
-        onPrimary: function () {
-          var selectedHost = this.get('selectedHost');
-
-          // Install
-          if (['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost) {
-            App.router.get('mainHostDetailsController').addComponentWithCheck(
-                {
-                  context: component,
-                  selectedHost: selectedHost
-                }
-            );
-          } else {
-            self.installHostComponentCall(selectedHost, component);
-          }
-
-          this.hide();
+      App.router.get('mainHostDetailsController').addComponentWithCheck(
+        {
+          context: component,
+          selectedHost: null
         }
-      });
+      );
     });
   },
 
@@ -1051,6 +1022,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     highAvailabilityController.enableHighAvailability();
   },
 
+  manageJournalNode: function() {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.manageJournalNode();
+  },
+
   disableHighAvailability: function() {
     var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.disableHighAvailability();
@@ -1086,7 +1062,18 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     this.downloadClientConfigsCall({
       serviceName: this.get('content.serviceName'),
       componentName: (event && event.name) || component.get('componentName'),
-      displayName: (event && event.label) || component.get('displayName')
+      resourceType: this.resourceTypeEnum.SERVICE_COMPONENT
+    });
+  },
+
+  /**
+   * This method is called when user event to download configs for "All Clients"
+   * is made from service action menu
+   */
+  downloadAllClientConfigs: function() {
+    this.downloadClientConfigsCall({
+      serviceName: this.get('content.serviceName'),
+      resourceType: this.resourceTypeEnum.SERVICE
     });
   },
 
@@ -1108,7 +1095,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           componentName : context.component
         },
         success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
+        error : 'executeCustomCommandErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -1132,7 +1120,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           forceRefreshConfigTags : "capacity-scheduler"
         },
         success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
+        error : 'executeCustomCommandErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -1312,17 +1301,49 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   showLastWarning: function (serviceName, interDependentServices, dependentServicesToDeleteFmt) {
     var self = this,
       displayName = App.format.role(serviceName, true),
-      popupHeader = Em.I18n.t('services.service.delete.popup.header');
-
-    return App.showConfirmationPopup(
-      function() {self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt)},
-      Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
-      (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
-      null,
-      popupHeader,
-      Em.I18n.t('common.delete'),
-      true
-    );
+      popupHeader = Em.I18n.t('services.service.delete.popup.header'),
+      popupPrimary = Em.I18n.t('common.delete'),
+      warningMessage = Em.I18n.t('services.service.delete.popup.warning').format(displayName) +
+        (interDependentServices.length ? Em.I18n.t('services.service.delete.popup.warning.dependent').format(dependentServicesToDeleteFmt) : ''),
+      callback = this.loadConfigRecommendations.bind(this, null, function () {
+        var serviceNames = self.get('changedProperties').mapProperty('serviceName').uniq();
+        self.loadConfigGroups(serviceNames).done(function () {
+          self.set('isRecommendationInProgress', false);
+        })
+      });
+    this.clearRecommendations();
+    this.setProperties({
+      isRecommendationInProgress: true,
+      selectedConfigGroup: Em.Object.create({
+        isDefault: true
+      })
+    });
+    this.loadConfigs();
+    App.get('router.mainController.isLoading').call(this, 'isServiceConfigsLoaded').done(callback);
+    return App.ModalPopup.show({
+      controller: self,
+      header: popupHeader,
+      primary: popupPrimary,
+      primaryClass: 'btn-danger',
+      disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
+      classNameBindings: ['controller.changedProperties.length:sixty-percent-width-modal', 'controller.changedProperties.length:modal-full-width'],
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/service/info/delete_service_warning_popup'),
+        warningMessage: new Em.Handlebars.SafeString(warningMessage)
+      }),
+      onPrimary: function () {
+        self.confirmDeleteService(serviceName, interDependentServices, dependentServicesToDeleteFmt);
+        this._super();
+      },
+      onSecondary: function () {
+        self.clearRecommendations();
+        this._super();
+      },
+      onClose: function () {
+        self.clearRecommendations();
+        this._super();
+      }
+    });
   },
 
   /**
@@ -1504,8 +1525,12 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   saveConfigs: function() {
     var data = [],
-      progressPopup = this.get('deleteServiceProgressPopup');
-    this.get('stepConfigs').forEach(function(stepConfig) {
+        progressPopup = this.get('deleteServiceProgressPopup'),
+        stepConfigs = this.get('stepConfigs');
+
+    this.applyRecommendedValues(stepConfigs);
+
+    stepConfigs.forEach(function (stepConfig) {
       var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
 
       if (serviceConfig)  {
@@ -1522,6 +1547,20 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     } else {
       this.confirmServiceDeletion();
     }
+  },
+
+  applyRecommendedValues: function (stepConfigs) {
+    var changedProperties = this.get('changedProperties');
+    changedProperties.forEach(function (property) {
+      var serviceConfigs = stepConfigs.findProperty('serviceName', property.serviceName);
+      if (serviceConfigs) {
+        var prop = serviceConfigs.get('configs').findProperty('name', property.propertyName);
+        if (prop) {
+          prop.set('value', property.saveRecommended ? property.recommendedValue : property.initialValue);
+        }
+      }
+    });
+    return stepConfigs;
   },
 
   confirmServiceDeletion: function() {
@@ -1556,7 +1595,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         servicesToDeleteNext: servicesToDeleteNext
       },
       success : 'deleteServiceCallSuccessCallback',
-      error: 'deleteServiceCallErrorCallback'
+      error: 'deleteServiceCallErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -1564,7 +1604,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (params.servicesToDeleteNext) {
       this.deleteServiceCall(params.servicesToDeleteNext);
     } else {
-      this.loadConfigRecommendations(null, this.saveConfigs.bind(this));
+      this.saveConfigs();
     }
   },
 

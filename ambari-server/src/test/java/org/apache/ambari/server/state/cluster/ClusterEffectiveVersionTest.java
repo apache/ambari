@@ -32,6 +32,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -39,14 +43,15 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -54,6 +59,7 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -75,6 +81,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import junit.framework.Assert;
 
@@ -99,11 +106,10 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     expectClusterEntityMocks();
 
-    AmbariEventPublisher eventPublisher = createNiceMock(AmbariEventPublisher.class);
-
     replayAll();
 
-    m_cluster = new ClusterImpl(m_clusterEntity, m_injector, eventPublisher);
+    ClusterFactory clusterFactory = m_injector.getInstance(ClusterFactory.class);
+    m_cluster = clusterFactory.create(m_clusterEntity);
 
     verifyAll();
   }
@@ -227,6 +233,12 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
         new ArrayList<ClusterServiceEntity>()).anyTimes();
     EasyMock.expect(m_clusterEntity.getClusterConfigEntities()).andReturn(
         new ArrayList<ClusterConfigEntity>()).anyTimes();
+
+    EasyMock.expect(m_clusterEntity.getConfigGroupEntities()).andReturn(
+        new ArrayList<ConfigGroupEntity>()).anyTimes();
+
+    EasyMock.expect(m_clusterEntity.getRequestScheduleEntities()).andReturn(
+        new ArrayList<RequestScheduleEntity>()).anyTimes();
   }
 
   /**
@@ -238,6 +250,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     */
     @Override
     public void configure(Binder binder) {
+      binder.bind(UpgradeContextFactory.class).toInstance(EasyMock.createNiceMock(UpgradeContextFactory.class));
       binder.bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
       binder.bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
       binder.bind(DBAccessor.class).toInstance(EasyMock.createNiceMock(DBAccessor.class));
@@ -252,7 +265,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(ExecutionScheduler.class).toInstance(EasyMock.createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(EasyMock.createNiceMock(RequestFactory.class));
       binder.bind(StageFactory.class).toInstance(EasyMock.createNiceMock(StageFactory.class));
-      binder.bind(RoleGraphFactory.class).toInstance(EasyMock.createNiceMock(RoleGraphFactoryImpl.class));
+      binder.bind(RoleGraphFactory.class).toInstance(EasyMock.createNiceMock(RoleGraphFactory.class));
       binder.bind(AbstractRootServiceResponseFactory.class).toInstance(EasyMock.createNiceMock(AbstractRootServiceResponseFactory.class));
       binder.bind(ConfigFactory.class).toInstance(EasyMock.createNiceMock(ConfigFactory.class));
       binder.bind(ConfigGroupFactory.class).toInstance(EasyMock.createNiceMock(ConfigGroupFactory.class));
@@ -262,13 +275,19 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(PasswordEncoder.class).toInstance(EasyMock.createNiceMock(PasswordEncoder.class));
       binder.bind(KerberosHelper.class).toInstance(EasyMock.createNiceMock(KerberosHelper.class));
       binder.bind(Users.class).toInstance(EasyMock.createNiceMock(Users.class));
+      binder.bind(AmbariEventPublisher.class).toInstance(createNiceMock(AmbariEventPublisher.class));
+      binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+      binder.bind(HookService.class).toInstance(createMock(HookService.class));
+      binder.install(new FactoryModuleBuilder().implement(
+          Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
 
+      binder.bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
 
       try {
         AmbariMetaInfo ambariMetaInfo = EasyMock.createNiceMock(AmbariMetaInfo.class);
         EasyMock.expect(
             ambariMetaInfo.getServices(EasyMock.anyString(), EasyMock.anyString())).andReturn(
-                new HashMap<String, ServiceInfo>());
+                new HashMap<String, ServiceInfo>()).anyTimes();
 
         EasyMock.replay(ambariMetaInfo);
 

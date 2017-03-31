@@ -19,23 +19,24 @@
 	<parent>
 		<groupId>org.apache.ambari.contrib.views</groupId>
 		<artifactId>ambari-contrib-views</artifactId>
-		<version>2.4.2.0.0</version>
+		<version>2.5.0.0.0</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.ambari.contrib.views</groupId>
 			<artifactId>ambari-views-utils</artifactId>
-			<version>2.4.2.0.0</version>
+			<version>2.5.0.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ambari</groupId>
 			<artifactId>ambari-views</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ambari.contrib.views</groupId>
 			<artifactId>ambari-views-commons</artifactId>
-			<version>2.4.2.0.0</version>
+			<version>2.5.0.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
@@ -112,27 +113,6 @@
 	</properties>
 	<build>
 		<plugins>
-			<plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${ui.directory}</directory>
-              <followSymlinks>false</followSymlinks>
-              <includes>
-                <include>tmp/**</include>
-                <!--
-                <include>node_modules/**</include>
-                <include>bower_components/**</include>
-                -->
-                <include>node/**</include>
-              </includes>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
 	      <plugin>
 	        <groupId>org.apache.maven.plugins</groupId>
 	        <artifactId>maven-clean-plugin</artifactId>
@@ -157,10 +137,10 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.0</version>
+				<version>0.0.16</version>
 				<configuration>
-					<nodeVersion>v0.12.2</nodeVersion>
-					<npmVersion>1.4.8</npmVersion>
+					<nodeVersion>v4.5.0</nodeVersion>
+					<npmVersion>2.15.0</npmVersion>
 					<workingDirectory>src/main/resources/ui/</workingDirectory>
 				</configuration>
 				<executions>
@@ -213,12 +193,12 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-							<executable>node/node</executable>
+							<workingDirectory>${ui.directory}</workingDirectory>
+							<executable>${ui.directory}/node/${node.executable}</executable>
 							<arguments>
-								<argument>node_modules/.bin/ember</argument>
+								<argument>${ui.directory}/node_modules/.bin/${ember.executable}</argument>
 								<argument>build</argument>
-
+								<argument>-prod</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -246,6 +226,24 @@
 							<includeScope>runtime</includeScope>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-artifact</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>${project.artifactId}</artifactId>
+									<version>${project.version}</version>
+									<type>${project.packaging}</type>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${views.jars.dir.rel}</outputDirectory>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
@@ -256,6 +254,7 @@
 				<includes>
 					<include>META-INF/**/*</include>
 					<include>view.xml</include>
+					<include>view.log4j.properties</include>
 				</includes>
 			</resource>
 			<resource>
@@ -285,6 +284,7 @@
         </activation>
         <properties>
           <node.executable>node.exe</node.executable>
+          <ember.executable>ember.cmd</ember.executable>
           <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
         </properties>
       </profile>
@@ -297,6 +297,7 @@
         </activation>
         <properties>
           <node.executable>node</node.executable>
+          <ember.executable>ember</ember.executable>
           <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
         </properties>
       </profile>

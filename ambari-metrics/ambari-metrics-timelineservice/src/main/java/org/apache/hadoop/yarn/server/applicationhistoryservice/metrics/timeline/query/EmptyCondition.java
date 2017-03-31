@@ -27,6 +27,7 @@ import java.util.List;
 public class EmptyCondition implements Condition {
   String statement;
   boolean doUpdate = false;
+  boolean metricNamesNotCondition = false;
 
   @Override
   public boolean isEmpty() {
@@ -143,5 +144,10 @@ public class EmptyCondition implements Condition {
       " statement = " + this.getStatement() +
       " doUpdate = " + this.doUpdate() +
       " }";
+  }
+
+  @Override
+  public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
+    this.metricNamesNotCondition = metricNamesNotCondition;
   }
 }

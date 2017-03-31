@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>ROW_LIMIT</name>
+    <value>5000</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_WORKERS</name>
+    <value>4</value>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_WEBSERVER_PORT</name>
+    <value>9088</value>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_WEBSERVER_ADDRESS</name>
+    <value>0.0.0.0</value>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_TIMEOUT</name>
+    <value>60</value>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>SUPERSET_DATABASE_TYPE</name>
+    <display-name>Superset Database type</display-name>
+    <value>sqlite</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>mysql</value>
+          <label>MYSQL</label>
+        </entry>
+        <entry>
+          <value>sqlite</value>
+          <label>SQLITE</label>
+        </entry>
+        <entry>
+          <value>postgresql</value>
+          <label>POSTGRESQL</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <description>Type of the Database. Note that sqlite db will be installed on the node where superset is installed.
+      Use mysql or postgred when installing superset on multiple nodes.
+      mysql installed by ambari is only for development and not suitable for production use cases due to it being not HA.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_NAME</name>
+    <value>superset</value>
+    <display-name>Superset Database name</display-name>
+    <description>Superset Database name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_PASSWORD</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <display-name>Superset Database password</display-name>
+    <description>Password for the database.</description>
+    <value-attributes>
+      <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_USER</name>
+    <value>superset</value>
+    <display-name>Superset Database user</display-name>
+    <description>Superset Database user</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_PORT</name>
+    <value></value>
+    <display-name>Superset Database port</display-name>
+    <description>Superset Database port</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>superset</type>
+        <name>SUPERSET_DATABASE_TYPE</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_NAME</name>
+    <value>superset</value>
+    <display-name>Superset Database name</display-name>
+    <description>Superset Database name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SUPERSET_DATABASE_HOSTNAME</name>
+    <value>localhost</value>
+    <display-name>Database hostname</display-name>
+    <description>Database hostname</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>WTF_CSRF_ENABLED</name>
+    <value>True</value>
+    <description></description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ENABLE_PROXY_FIX</name>
+    <value>True</value>
+    <description>When using Superset beind a Proxy server set this to True.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>MAPBOX_API_KEY</name>
+    <value></value>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>API key to enable Mapbox visualizations</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SECRET_KEY</name>
+    <value></value>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <description>Secret Key used to encrypt user passwords. A Long Random String is recommended.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

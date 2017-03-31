@@ -25,12 +25,24 @@ public class ServiceRequest {
   private String serviceName; // GET/CREATE/UPDATE/DELETE
   private String desiredState; // CREATE/UPDATE
   private String maintenanceState; // UPDATE
+  private String credentialStoreEnabled; // CREATE/UPDATE/GET
+  private String credentialStoreSupported; //GET
 
   public ServiceRequest(String clusterName, String serviceName,
                         String desiredState) {
+    this(clusterName, serviceName, desiredState, null);
+  }
+
+  public ServiceRequest(String clusterName, String serviceName,
+                        String desiredState,
+                        String credentialStoreEnabled) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
+    this.credentialStoreEnabled = credentialStoreEnabled;
+    // Credential store supported cannot be changed after
+    // creation since it comes from the stack definition.
+    // We can update credential store enabled alone.
   }
 
   /**
@@ -74,14 +86,14 @@ public class ServiceRequest {
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
   }
-  
+
   /**
    * @param state the new maintenance state
    */
   public void setMaintenanceState(String state) {
     maintenanceState = state;
   }
-  
+
   /**
    * @return the maintenance state
    */
@@ -89,11 +101,42 @@ public class ServiceRequest {
     return maintenanceState;
   }
 
+  /**
+   * @return credential store enabled
+   */
+  public String getCredentialStoreEnabled() {
+    return credentialStoreEnabled;
+  }
+
+
+  /**
+   * @return credential store supported
+   */
+  public String getCredentialStoreSupported() {
+    return credentialStoreSupported;
+  }
+
+  /**
+   * @param credentialStoreEnabled the new credential store enabled
+   */
+  public void setCredentialStoreEnabled(String credentialStoreEnabled) {
+    this.credentialStoreEnabled = credentialStoreEnabled;
+  }
+
+  /**
+   * @param credentialStoreSupported the new credential store supported
+   */
+  public void setCredentialStoreSupported(String credentialStoreSupported) {
+    this.credentialStoreSupported = credentialStoreSupported;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=" + clusterName
         + ", serviceName=" + serviceName
-        + ", desiredState=" + desiredState);
+        + ", desiredState=" + desiredState
+        + ", credentialStoreEnabled=" + credentialStoreEnabled
+        + ", credentialStoreSupported=" + credentialStoreSupported);
     return sb.toString();
   }
 }

@@ -18,6 +18,17 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,10 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.*;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -58,16 +68,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -1260,6 +1265,7 @@ public class BlueprintConfigurationProcessorTest {
     yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
     yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.log.server.web-service.url", expectedHostName + ":" + expectedPortNum);
 
     Configuration clusterConfig = new Configuration(configProperties,
         Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -1301,6 +1307,8 @@ public class BlueprintConfigurationProcessorTest {
         createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
     assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly exported",
         createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+    assertEquals("Yarn ResourceManager timeline web service url was incorrectly exported",
+            createExportedAddress(expectedPortNum, expectedHostGroupName), yarnSiteProperties.get("yarn.log.server.web-service.url"));
   }
 
   @Test
@@ -1566,6 +1574,7 @@ public class BlueprintConfigurationProcessorTest {
 
     // setup properties that include host information
     hiveSiteProperties.put("hive.metastore.uris", "thrift://" + expectedHostName + ":" + expectedPortNum + "," + "thrift://" + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.server2.authentication.ldap.url", "ldap://myexternalhost.com:1389");
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
@@ -1619,6 +1628,8 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("hive property not properly exported",
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
 
+    assertFalse("hive.server2.authentication.ldap.url should not have been present in the exported configuration",
+        hiveSiteProperties.containsKey("hive.server2.authentication.ldap.url"));
     assertEquals("hive property not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.HTTP.hosts"));
 
@@ -1687,11 +1698,20 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
+    if (BlueprintConfigurationProcessor.singleHostTopologyUpdaters != null &&
+            BlueprintConfigurationProcessor.singleHostTopologyUpdaters.containsKey("oozie-site")) {
+      BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").remove("oozie.service.JPAService.jdbc.url");
+    }
+
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
     configProcessor.doUpdateForBlueprintExport();
+
+    // check that jdbc url and related properties are removed if oozie external db is on host which not included to cluster
+    assertFalse(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertTrue(configProcessor.getRemovePropertyUpdaters().get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
 
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.base.url"));
@@ -1714,6 +1734,84 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("oozie_permsize should have been included in exported configuration",
       "2048m", oozieEnvProperties.get("oozie_permsize"));
 
+  }
+
+  @Test
+  public void testOozieJDBCPropertiesNotRemoved() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNum = "80000";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedHostNameTwo + "/ooziedb");
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("OOZIE_SERVER");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
+
+    assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertNull(blueprintConfigurationProcessor.getRemovePropertyUpdaters().get("oozie-site"));
+  }
+
+  @Test
+  public void testOozieJDBCPropertyAddedToSingleHostMapDuringImport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNum = "80000";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + "%HOSTGROUP::group1%" + "/ooziedb");
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("OOZIE_SERVER");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
+
+    assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertNull(blueprintConfigurationProcessor.getRemovePropertyUpdaters().get("oozie-site"));
   }
 
   @Test
@@ -5827,6 +5925,10 @@ public class BlueprintConfigurationProcessorTest {
     hiveProperties.put("hive.exec.post.hooks", "");
     properties.put("hive-site", hiveProperties);
 
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    hiveEnv.put("hive.atlas.hook", "false");
+    properties.put("hive-env", hiveEnv);
+
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
     Configuration parentClusterConfig = new Configuration(parentProperties,
@@ -5904,6 +6006,9 @@ public class BlueprintConfigurationProcessorTest {
     hiveProperties.put("hive.exec.post.hooks", "");
     properties.put("hive-site", hiveProperties);
 
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    properties.put("hive-env", hiveEnv);
+
     return properties;
   }
 
@@ -5954,6 +6059,10 @@ public class BlueprintConfigurationProcessorTest {
     // default hook registered
     hiveProperties.put("hive.exec.post.hooks", "foo");
     properties.put("hive-site", hiveProperties);
+
+    Map<String, String> hiveEnv = new HashMap<String, String>();
+    hiveEnv.put("hive.atlas.hook", "false");
+    properties.put("hive-env", hiveEnv);
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -7749,7 +7858,7 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("host1:6188",
+    assertEquals("0.0.0.0:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
 
@@ -7779,7 +7888,7 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("host1:6188",
+    assertEquals("0.0.0.0:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
 
@@ -7789,7 +7898,7 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> amsSite = new HashMap<String, String>();
     //default
-    amsSite.put("timeline.metrics.service.webapp.address", "localhost:6188");
+    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
     properties.put("ams-site", amsSite);
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();

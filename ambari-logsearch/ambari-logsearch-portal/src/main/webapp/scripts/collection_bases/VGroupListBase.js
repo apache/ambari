@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,18 +17,18 @@
  * under the License.
  */
 
- 
+
 define(['require',
 	'collections/BaseCollection',
 	'utils/Globals',
 	'models/VGroup'
 ],function(require,BaseCollection,Globals,VGroup){
-	'use strict';	
+	'use strict';
 
 	var VGroupListBase = BaseCollection.extend(
 	/** @lends VGroupListBase.prototype */
 	{
-		url: Globals.baseURL + 'dashboard/hosts',
+		url: Globals.baseURL + 'service/logs/hosts',
 
 		model : VGroup,
 
@@ -44,7 +44,7 @@ define(['require',
             this._changes = { };
 			this.on('change', this._onChange);
 		},
-		
+
 		_onChange : function(m){
             this._changes[m.id] = m;
 		},
@@ -59,7 +59,7 @@ define(['require',
 
 		getUsersOfGroup : function(groupId, options){
 			var url = Globals.baseURL  + 'xusers/'  + groupId + '/users';
-			
+
 			options = _.extend({
 				//data : JSON.stringify(postData),
 				contentType : 'application/json',
@@ -80,5 +80,3 @@ define(['require',
 
     return VGroupListBase;
 });
-
-

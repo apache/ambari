@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.api.services;
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -45,7 +43,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -87,10 +88,12 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -103,6 +106,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class AmbariMetaInfoTest {
 
@@ -125,10 +130,10 @@ public class AmbariMetaInfoTest {
   private static final String NON_EXT_VALUE = "XXX";
 
   private static final int REPOS_CNT = 3;
-  private static final int PROPERTIES_CNT = 62;
+  private static final int PROPERTIES_CNT = 64;
   private static final int OS_CNT = 4;
 
-  private static AmbariMetaInfo metaInfo = null;
+  private static TestAmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
@@ -152,6 +157,11 @@ public class AmbariMetaInfoTest {
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
     metaInfo = createAmbariMetaInfo(stacks, version);
+  }
+
+  @AfterClass
+  public static void tearDown() throws Exception {
+    H2DatabaseCleaner.clearDatabase(metaInfo.injector.getProvider(EntityManager.class).get());
   }
 
   public class MockModule extends AbstractModule {
@@ -246,7 +256,7 @@ public class AmbariMetaInfoTest {
     // Scenario: user has no internet and does nothing to repos via api
     // use the default
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    setupTempAmbariMetaInfoDirs(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6).
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
@@ -259,7 +269,7 @@ public class AmbariMetaInfoTest {
       FileUtils.deleteQuietly(latestUrlFile);
       assertTrue(!latestUrlFile.exists());
     }
-    ambariMetaInfo.init();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
         STACK_NAME_HDP, "2.1.1", "redhat6");
@@ -581,9 +591,9 @@ public class AmbariMetaInfoTest {
       stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
+    File stackRootTmp = getStackRootTmp(buildDir);
+    stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
     //todo
     //ambariMetaInfo.injector = injector;
     File f1, f2, f3;
@@ -594,7 +604,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    ambariMetaInfo.init();
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
 
     // Tests the stack is loaded as expected
     getServices();
@@ -927,9 +937,9 @@ public class AmbariMetaInfoTest {
     }
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks.getPath());
-    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH, commonServicesRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, version.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks.getPath());
+    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
@@ -1837,6 +1847,8 @@ public class AmbariMetaInfoTest {
     Injector injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
+
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(EntityManager.class);
     long clusterId = injector.getInstance(OrmTestHelper.class).createCluster(
@@ -1982,21 +1994,42 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(descriptor.getService("HDFS"));
   }
 
+  private File getStackRootTmp(String buildDir) {
+    return new File(buildDir + "/ambari-metaInfo");
+  }
 
-  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
-    File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
-    File stackRoot = new File("src/test/resources/stacks");
+  private File getVersion() {
     File version = new File("src/test/resources/version");
 
     if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
+
+    return version;
+  }
+
+  private void setupTempAmbariMetaInfoDirs(String buildDir) throws Exception {
+    File stackRootTmp = getStackRootTmp(buildDir);
+    File stackRoot = new File("src/test/resources/stacks");
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
     }
 
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
+  }
 
+  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
+    setupTempAmbariMetaInfoDirs(buildDir);
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
+    return ambariMetaInfo;
+  }
+
+  private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
+    File version = getVersion();
+    File stackRootTmp = getStackRootTmp(buildDir);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
     return ambariMetaInfo;
   }
 
@@ -2004,8 +2037,8 @@ public class AmbariMetaInfoTest {
     File versionFile) throws Exception {
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stackRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
@@ -2055,11 +2088,12 @@ public class AmbariMetaInfoTest {
     AlertDefinitionDAO alertDefinitionDAO;
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
+    Injector injector;
 
     public TestAmbariMetaInfo(Configuration configuration) throws Exception {
       super(configuration);
 
-      Injector injector = Guice.createInjector(Modules.override(
+      injector = Guice.createInjector(Modules.override(
           new InMemoryDefaultTestModule()).with(new MockModule()));
 
       injector.getInstance(GuiceJpaInitializer.class);

@@ -24,6 +24,8 @@ import sys
 
 from mock.mock import MagicMock, patch
 
+# Needed to import checkWebUI.py
+sys.path.append("../../../../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files")
 import checkWebUI
 
 class TestMain(unittest.TestCase):

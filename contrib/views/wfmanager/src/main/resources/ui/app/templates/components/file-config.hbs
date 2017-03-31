@@ -18,16 +18,12 @@
 <div id="fileHolder">
   {{#each files as |file index|}}
   <div class="form-group">
-    {{#if (eq index 0)}}
-      <label class="control-label col-xs-2">{{title}}</label>
-    {{else}}
-      <label class="control-label col-xs-2"></label>
-    {{/if}}
+    <label class="control-label col-xs-2 {{if (not-eq index 0) 'visibility-hidden'}}">{{title}}</label>
     <div class="col-xs-7">
       <div class="input-group">
         {{input type="text" class="form-control" value=file.value placeholder=title}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser" index}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser" index}}>Browse</button>
         </span>
       </div>
     </div>
@@ -38,7 +34,7 @@
   {{/each}}
   <div class="form-group">
     {{#if files}}
-      <label class="control-label col-xs-2"></label>
+      <label class="control-label col-xs-2 visibility-hidden">{{title}}</label>
     {{else}}
       <label class="control-label col-xs-2">{{title}}</label>
     {{/if}}
@@ -46,12 +42,12 @@
       <div class="input-group">
         {{input type="text" class="form-control" value=file placeholder=title}}
         <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser"}}>Browse</button>
+          <button class="btn btn-secondary" type="button" {{action "openFileBrowser"}}>Browse</button>
         </span>
       </div>
     </div>
     <div class="col-xs-1">
-      <input class="form-control  btn btn-success" type="button" {{action "addFile"}} value="+">
+      <input class="form-control  btn btn-secondary" type="button" {{action "addFile"}} value="+">
     </div>
   </div>
 </div>

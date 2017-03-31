@@ -422,6 +422,11 @@ def yarn(name=None, config_dir=None):
          group = params.mapred_tt_group,
          content=Template("taskcontroller.cfg.j2")
     )
+    File(os.path.join(config_dir, 'yarn_jaas.conf'),
+         owner=params.yarn_user,
+         group=params.user_group,
+         content=Template("yarn_jaas.conf.j2")
+    )
   else:
     File(os.path.join(config_dir, 'taskcontroller.cfg'),
          owner=tc_owner,

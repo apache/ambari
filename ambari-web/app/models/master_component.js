@@ -20,7 +20,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 App.MasterComponent = App.ClientComponent.extend({
-  displayNamePluralized: function() {
+  displayNamePluralized: function () {
     return stringUtils.pluralize(this.get('startedCount'), this.get('displayName'));
   }.property('startedCount')
 });

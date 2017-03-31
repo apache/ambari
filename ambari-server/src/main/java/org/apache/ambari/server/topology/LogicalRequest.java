@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -121,7 +122,7 @@ public class LogicalRequest extends Request {
       //todo: prioritization of master host requests
       Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
       while (hostRequestIterator.hasNext()) {
-        LOG.info("LogicalRequest.offer: attempting to match a request to a request for a reserved host to hostname = {}", host.getHostName());
+        LOG.info("LogicalRequest.offer: attempting to match a request to a request for a non-reserved host to hostname = {}", host.getHostName());
         HostOfferResponse response = hostRequestIterator.next().offer(host);
         switch (response.getAnswer()) {
           case ACCEPTED:
@@ -132,23 +133,22 @@ public class LogicalRequest extends Request {
             //todo: should have been done on ACCEPT
             hostRequestIterator.remove();
             LOG.info("LogicalRequest.offer: host request returned DECLINED_DONE for hostname = {}, host request has been removed from list", host.getHostName());
+            break;
           case DECLINED_PREDICATE:
             LOG.info("LogicalRequest.offer: host request returned DECLINED_PREDICATE for hostname = {}", host.getHostName());
             predicateRejected = true;
+            break;
         }
       }
 
       LOG.info("LogicalRequest.offer: outstandingHost request list size = " + outstandingHostRequests.size());
     }
 
-
-
-
     // if at least one outstanding host request rejected for predicate or we have an outstanding request
     // with a reserved host decline due to predicate, otherwise decline due to all hosts being resolved
     return predicateRejected || ! requestsWithReservedHosts.isEmpty() ?
-        new HostOfferResponse(HostOfferResponse.Answer.DECLINED_PREDICATE) :
-        new HostOfferResponse(HostOfferResponse.Answer.DECLINED_DONE);
+            HostOfferResponse.DECLINED_DUE_TO_PREDICATE :
+            HostOfferResponse.DECLINED_DUE_TO_DONE;
   }
 
   @Override
@@ -344,7 +344,7 @@ public class LogicalRequest extends Request {
 
         Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
         while (hostRequestIterator.hasNext()) {
-          if (StringUtils.equals(hostRequestIterator.next().getHostName(), hostName)) {
+          if (Objects.equals(hostRequestIterator.next().getHostName(), hostName)) {
             hostRequestIterator.remove();
             break;
           }
@@ -353,7 +353,7 @@ public class LogicalRequest extends Request {
         //todo: synchronization
         Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
         while (allHostRequesIterator.hasNext()) {
-          if (StringUtils.equals(allHostRequesIterator.next().getHostName(), hostName)) {
+          if (Objects.equals(allHostRequesIterator.next().getHostName(), hostName)) {
             allHostRequesIterator.remove();
             break;
           }

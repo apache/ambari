@@ -98,8 +98,7 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
       if (App.router.get('currentState.name') === 'configHistory') {
         this.get('model').find().clear();
       }
-      App.store.commit();
-      App.store.loadMany(this.get('model'), result);
+      App.store.safeLoadMany(this.get('model'), result);
       console.timeEnd('App.serviceConfigVersionsMapper');
     }
   },

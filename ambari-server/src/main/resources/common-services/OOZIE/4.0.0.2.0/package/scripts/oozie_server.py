@@ -42,7 +42,7 @@ from oozie_service import oozie_service
 from oozie_server_upgrade import OozieUpgrade
 
 from check_oozie_server_status import check_oozie_server_status
-
+from resource_management.core.resources.zkmigrator import ZkMigrator
 
 class OozieServer(Script):
 
@@ -57,11 +57,7 @@ class OozieServer(Script):
 
     # The configure command doesn't actually receive the upgrade_type from Script.py, so get it from the config dictionary
     if upgrade_type is None:
-      restart_type = default("/commandParams/restart_type", "")
-      if restart_type.lower() == "rolling_upgrade":
-        upgrade_type = UPGRADE_TYPE_ROLLING
-      elif restart_type.lower() == "nonrolling_upgrade":
-        upgrade_type = UPGRADE_TYPE_NON_ROLLING
+      upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 
     if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
       Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
@@ -197,7 +193,18 @@ class OozieServerDefault(OozieServer):
       stack_select.select("oozie-server", params.version)
 
     OozieUpgrade.prepare_libext_directory()
-    
+
+  def disable_security(self, env):
+    import params
+    if not params.stack_supports_zk_security:
+      Logger.info("Stack doesn't support zookeeper security")
+      return
+    if not params.zk_connection_string:
+      Logger.info("No zookeeper connection string. Skipping reverting ACL")
+      return
+    zkmigrator = ZkMigrator(params.zk_connection_string, params.java_exec, params.java64_home, params.jaas_file, params.oozie_user)
+    zkmigrator.set_acls(params.zk_namespace if params.zk_namespace.startswith('/') else '/' + params.zk_namespace, 'world:anyone:crdwa')
+
   def get_log_folder(self):
     import params
     return params.oozie_log_dir

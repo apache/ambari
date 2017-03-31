@@ -62,4 +62,10 @@ limitations under the License.
     <description>Boolean flag indicating whether to enable debug messages for krb5 authentication</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>gateway.websocket.feature.enabled</name>
+    <value>{{websocket_support}}</value>
+    <description>Enable this if you want websocket support</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

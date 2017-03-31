@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -62,7 +64,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class JMXHostProviderTest {
   private Injector injector;
@@ -85,6 +86,7 @@ public class JMXHostProviderTest {
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
@@ -95,8 +97,8 @@ public class JMXHostProviderTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
 
     // Clear the authenticated user
     SecurityContextHolder.getContext().setAuthentication(null);
@@ -170,14 +172,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -228,10 +228,12 @@ public class JMXHostProviderTest {
     String serviceName = "HDFS";
     String serviceName2 = "YARN";
     String serviceName3 = "MAPREDUCE2";
+    String serviceName4 = "HBASE";
 
     createService(clusterName, serviceName, null);
     createService(clusterName, serviceName2, null);
     createService(clusterName, serviceName3, null);
+    createService(clusterName, serviceName4, null);
 
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
@@ -240,6 +242,8 @@ public class JMXHostProviderTest {
     String componentName5 = "JOURNALNODE";
     String componentName6 = "HISTORYSERVER";
     String componentName7 = "NODEMANAGER";
+    String componentName8 = "HBASE_MASTER";
+    String componentName9 = "HBASE_REGIONSERVER";
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -255,6 +259,10 @@ public class JMXHostProviderTest {
         State.INIT);
     createServiceComponent(clusterName, serviceName2, componentName7,
       State.INIT);
+    createServiceComponent(clusterName, serviceName4, componentName8,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName4, componentName9,
+      State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -262,14 +270,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -293,6 +299,10 @@ public class JMXHostProviderTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName2, componentName7,
       host2, null);
+    createServiceComponentHost(clusterName, serviceName4, componentName8,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName4, componentName9,
+      host2, null);
 
     // Create configs
     Map<String, String> configs = new HashMap<String, String>();
@@ -314,6 +324,9 @@ public class JMXHostProviderTest {
     mapreduceConfigs.put(MAPREDUCE_HTTPS_PORT, "19889");
     mapreduceConfigs.put(MAPREDUCE_HTTPS_POLICY, "HTTPS_ONLY");
 
+    Map<String, String> hbaseConfigs = new HashMap<String, String>();
+    hbaseConfigs.put("hbase.ssl.enabled", "true");
+
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
       "hdfs-site", "versionN", configs, null);
 
@@ -332,6 +345,11 @@ public class JMXHostProviderTest {
     ConfigurationRequest cr3 = new ConfigurationRequest(clusterName,
         "mapred-site", "versionN", mapreduceConfigs, null);
       crReq.setDesiredConfig(Collections.singletonList(cr3));
+      controller.updateClusters(Collections.singleton(crReq), null);
+
+    ConfigurationRequest cr4 = new ConfigurationRequest(clusterName,
+        "hbase-site", "versionN", hbaseConfigs, null);
+      crReq.setDesiredConfig(Collections.singletonList(cr4));
       controller.updateClusters(Collections.singleton(crReq), null);
 
     Assert.assertEquals("versionN", cluster.getDesiredConfigByType("yarn-site")
@@ -365,14 +383,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -567,6 +583,19 @@ public class JMXHostProviderTest {
     providerModule.registerResourceProvider(Resource.Type.Configuration);
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "DATANODE"));
     Assert.assertEquals("50475", providerModule.getPort("c1", "DATANODE", "localhost", true));
+  }
+
+  @Test
+  public void testJMXHbaseMasterHttps() throws
+          NoSuchParentResourceException,
+          ResourceAlreadyExistsException, UnsupportedPropertyException,
+          SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule(controller);
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "HBASE_MASTER"));
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "HBASE_REGIONSERVER"));
   }
 
   @Test

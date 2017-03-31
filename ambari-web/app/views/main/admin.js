@@ -51,7 +51,8 @@ App.MainAdminView = Em.View.extend({
         items.push({
           name: 'serviceAutoStart',
           url: 'adminServiceAutoStart',
-          label: Em.I18n.t('admin.serviceAutoStart.title')
+          label: Em.I18n.t('admin.serviceAutoStart.title'),
+          disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
         });
       }
     }

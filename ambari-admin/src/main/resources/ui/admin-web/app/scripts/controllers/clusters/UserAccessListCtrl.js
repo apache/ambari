@@ -148,10 +148,12 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         var privilegesOfTypeUser = [];
         var privilegesOfTypeGroup = [];
         for (var i = 0; i < arrayOfPrivileges.length; i++) {
-          if(arrayOfPrivileges[i].PrivilegeInfo.principal_type === "GROUP"){
-            privilegesOfTypeGroup.push(arrayOfPrivileges[i]);
-          } else {
-            privilegesOfTypeUser.push(arrayOfPrivileges[i].PrivilegeInfo);
+          if(arrayOfPrivileges[i].PrivilegeInfo.permission_name != "VIEW.USER") {
+            if(arrayOfPrivileges[i].PrivilegeInfo.principal_type === "GROUP"){
+              privilegesOfTypeGroup.push(arrayOfPrivileges[i]);
+            } else {
+              privilegesOfTypeUser.push(arrayOfPrivileges[i].PrivilegeInfo);
+            }
           }
         }
 
@@ -166,9 +168,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
         // Process when it's NONE privilege or higher than current effective group privilege
         if (userIndex <= groupIndex || user.permission_name == $scope.NONE_ROLE.permission_name) {
-          var privilege_ids = [];
-          privilegesOfTypeUser.forEach(function(privilegeOfTypeUser) {
-            privilege_ids.push(privilegeOfTypeUser.privilege_id);
+          var privilege_ids = privilegesOfTypeUser.filter(function(privilegeOfTypeUser) {
+            return privilegeOfTypeUser.principal_type !== 'ROLE';
+          }).map(function (privilegeOfTypeUser) {
+            return privilegeOfTypeUser.privilege_id;
           });
 
           // Purge existing user level privileges if there is any
@@ -203,8 +206,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         user.editable = (Cluster.ineditableRoles.indexOf(privilege.permission_name) === -1);
 
         arrayOfPrivileges.forEach(function(privilegeOfTypeGroup) {
-          if (privilegeOfTypeGroup.PrivilegeInfo.principal_type === "GROUP") {
-            privilegesOfTypeGroup.push(privilegeOfTypeGroup.PrivilegeInfo);
+          if(privilegeOfTypeGroup.PrivilegeInfo.permission_name != "VIEW.USER") {
+            if (privilegeOfTypeGroup.PrivilegeInfo.principal_type === "GROUP") {
+              privilegesOfTypeGroup.push(privilegeOfTypeGroup.PrivilegeInfo);
+            }
           }
         });
 

@@ -55,6 +55,11 @@ public class MaintenanceModeEvent extends AmbariEvent {
   private final ServiceComponentHost m_serviceComponentHost;
 
   /**
+   * The cluster to which the host, service or component belongs to.
+   */
+  private final long m_clusterId;
+
+  /**
    * Constructor.
    *
    * @param state
@@ -63,7 +68,7 @@ public class MaintenanceModeEvent extends AmbariEvent {
    *          the service that changed maintenance state (not {@code null})).
    */
   public MaintenanceModeEvent(MaintenanceState state, Service service) {
-    this(state, service, null, null);
+    this(state, service.getClusterId(), service, null, null);
   }
 
   /**
@@ -71,11 +76,13 @@ public class MaintenanceModeEvent extends AmbariEvent {
    *
    * @param state
    *          the new state (not {@code null}).
+   * @param clusterId
+   *          the cluster to which the host belongs to (not {@code -1}).
    * @param host
    *          the host that changed maintenance state (not {@code null})).
    */
-  public MaintenanceModeEvent(MaintenanceState state, Host host) {
-    this(state, null, host, null);
+  public MaintenanceModeEvent(MaintenanceState state, long clusterId, Host host) {
+    this(state, clusterId, null, host, null);
   }
 
   /**
@@ -88,7 +95,7 @@ public class MaintenanceModeEvent extends AmbariEvent {
    */
   public MaintenanceModeEvent(MaintenanceState state,
       ServiceComponentHost serviceComponentHost) {
-    this(state, null, null, serviceComponentHost);
+    this(state, serviceComponentHost.getClusterId(), null, null, serviceComponentHost);
   }
 
   /**
@@ -96,6 +103,8 @@ public class MaintenanceModeEvent extends AmbariEvent {
    *
    * @param state
    *          the new state (not {@code null}).
+   * @param clusterId
+   *          the cluster to which the host, service or component belongs to.
    * @param service
    *          the service that changed maintenance state, or {@code null}.
    * @param host
@@ -103,10 +112,11 @@ public class MaintenanceModeEvent extends AmbariEvent {
    * @param serviceComponentHost
    *          the component that changed maintenance state, or {@code null}.
    */
-  private MaintenanceModeEvent(MaintenanceState state, Service service,
+  private MaintenanceModeEvent(MaintenanceState state, long clusterId, Service service,
       Host host, ServiceComponentHost serviceComponentHost) {
     super(AmbariEventType.MAINTENANCE_MODE);
     m_state = state;
+    m_clusterId = clusterId;
     m_service = service;
     m_host = host;
     m_serviceComponentHost = serviceComponentHost;
@@ -149,6 +159,16 @@ public class MaintenanceModeEvent extends AmbariEvent {
    */
   public MaintenanceState getMaintenanceState() {
     return m_state;
+  }
+
+  /**
+   * Gets the cluster id for the host, service or component
+   * that had the direct maintenance mode event,.
+   *
+   * @return the cluster id
+   */
+  public long getClusterId() {
+    return m_clusterId;
   }
 
   /**

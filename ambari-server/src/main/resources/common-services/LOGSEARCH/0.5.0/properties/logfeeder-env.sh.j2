@@ -32,12 +32,10 @@ if [ "$LOGFEEDER_JAVA_MEM" = "" ]; then
   export LOGFEEDER_JAVA_MEM=-Xmx{{logfeeder_max_mem}}
 fi
 
-{% if infra_solr_ssl_enabled %}
+{% if logfeeder_use_ssl %}
 export LOGFEEDER_SSL="true"
 export LOGFEEDER_KEYSTORE_LOCATION={{logfeeder_keystore_location}}
-export LOGFEEDER_KEYSTORE_PASSWORD={{logfeeder_keystore_password}}
 export LOGFEEDER_KEYSTORE_TYPE={{logfeeder_keystore_type}}
 export LOGFEEDER_TRUSTSTORE_LOCATION={{logfeeder_truststore_location}}
-export LOGFEEDER_TRUSTSTORE_PASSWORD={{logfeeder_truststore_password}}
 export LOGFEEDER_TRUSTSTORE_TYPE={{logfeeder_truststore_type}}
 {% endif %}

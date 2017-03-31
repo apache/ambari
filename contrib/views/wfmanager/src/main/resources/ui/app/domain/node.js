@@ -39,6 +39,9 @@ var Node = Ember.Object.extend(FindNodeMixin,{
       var i=0;
       this.get("domain").forEach(function(tran){
         self.get("transitions")[i].condition=tran.condition;
+        if(self.get("transitions")[i].targetNode.id !== tran.node.id){
+          self.get("transitions")[i].targetNode = tran.node;
+        }
         i++;
       });
     }else if (this.isActionNode()){
@@ -66,7 +69,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     if (this.isDecisionNode()){
       var flows=[];
       this.get("transitions").forEach(function(tran){
-        flows.push({condition: tran.condition, targetName: tran.getTargetNode().getName()});
+        flows.push({condition: tran.condition, node: tran.getTargetNode(true)});
       });
       this.set("domain",flows);
       return this.get("domain");
@@ -100,7 +103,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     }
   },
   addTransitionTo(target,condition){
-    var transition = Transition.create({targetNode:target,sourceNode:this,condition:condition});
+    var transition = Transition.create({targetNode:target,sourceNodeId:this.id,condition:condition});
     this.addTransition(transition);
     return transition;
   },
@@ -120,7 +123,6 @@ var Node = Ember.Object.extend(FindNodeMixin,{
   },
 
   removeTransition(transition){
-    var transitions=this.get("transitions");
     if (transition && this.transitions.indexOf(transition) > -1) {
       this.transitions.splice(this.transitions.indexOf(transition), 1);
     }
@@ -152,9 +154,36 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     });
     return count;
   },
+  getDefaultConditionTarget(){
+    var target;
+    var transitions=this.get("transitions");
+    transitions.forEach(function(tran){
+      if (tran.condition==="default"){
+        target=tran.targetNode;
+      }
+    });
+    return target;
+  },
+  getNonKillNodeTarget(){
+    var nonKillNodeCount=0;
+    var nonKillNode;
+    var transitions=this.get("transitions");
+    transitions.forEach(function(tran){
+      if (!tran.targetNode.isKillNode()){
+        nonKillNodeCount++;
+        nonKillNode=tran.targetNode;
+      }
+    });
+    if (nonKillNodeCount>0){
+      return nonKillNode;
+    }else{
+      console.log("no non kill nodes transitions.");
+      return null;
+    }
+  },
   getDefaultTransitionTarget(){
     if (this.isForkNode()){
-      return this.findNodeById(this,"join_"+this.get("id"));
+      return this.findNodeByType(this,"join");
     }
     var transitions=this.get("transitions");
     if (transitions.length===0){
@@ -162,13 +191,18 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     }else if (transitions.length===1){
       return transitions[0].targetNode;
     }
-    var target=transitions[0].targetNode;
-    transitions.forEach(function(tran){
-      if (tran.condition==="default"){
-        target=tran.targetNode;
+    var target;
+    if (this.isDecisionNode()){
+      var defaultTarget=this.getDefaultConditionTarget();
+      if (defaultTarget.isKillNode()){
+        target=this.getNonKillNodeTarget();
+      }else{
+        target=defaultTarget;
       }
-    });
-    if (target.isPlaceholder()){
+    }else{
+      target=transitions[0].targetNode;
+    }
+    if (target && target.isPlaceholder()){
       return target.getDefaultTransitionTarget();
     }
     return target;
@@ -207,6 +241,9 @@ var Node = Ember.Object.extend(FindNodeMixin,{
   },
   isDefaultKillNode(){
     return this.isKillNode() && this.get("name")===Constants.defaultKillNodeName;
+  },
+  isEndNode(){
+    return this.get("type")==="end";
   }
 });
 export {Node};

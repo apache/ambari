@@ -22,12 +22,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -229,7 +229,7 @@ public interface Cluster {
   /**
    * Creates or updates host versions for all of the hosts within a cluster
    * based on state of cluster stack version. This is used to transition all
-   * hosts into the {@link RepositoryVersionState#INSTALLING} state.
+   * hosts into the specified state.
    * <p/>
    * The difference between this method compared to
    * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
@@ -242,9 +242,11 @@ public interface Cluster {
    *          cluster version to be queried for a stack name/version info and
    *          desired RepositoryVersionState. The only valid state of a cluster
    *          version is {@link RepositoryVersionState#INSTALLING}
+   * @param state
+   *          the state to transition the cluster's hosts to.
    * @throws AmbariException
    */
-  void transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion)
+  void transitionHosts(ClusterVersionEntity sourceClusterVersion, RepositoryVersionState state)
       throws AmbariException;
 
   /**
@@ -522,12 +524,6 @@ public interface Cluster {
   Service addService(String serviceName) throws AmbariException;
 
   /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
-
-  /**
    * Fetch desired configs for list of hosts in cluster
    * @param hostIds
    * @return
@@ -670,11 +666,6 @@ public interface Cluster {
   void removeConfigurations(StackId stackId);
 
   /**
-   * Clear cluster caches and re-read data from database
-   */
-  void invalidateData();
-
-  /**
    * Returns whether this cluster was provisioned by a Blueprint or not.
    * @return true if the cluster was deployed with a Blueprint otherwise false.
    */
@@ -748,4 +739,25 @@ public interface Cluster {
    * @return number of hosts that form the cluster
    */
   int  getClusterSize();
+
+  /**
+   * Gets a new instance of a {@link RoleCommandOrder} for this cluster.
+   *
+   * @return the role command order instance (not {@code null}).
+   */
+  RoleCommandOrder getRoleCommandOrder();
+
+  /**
+   * Adds upgrade specific command and role parameters to the command maps if
+   * there is a suspended upgrade. If there is not a suspended upgrade, then the
+   * maps are not modified.
+   * <p/>
+   *
+   * @param commandParams
+   *          the command parameter map to supplement (not {@code null}).
+   * @param roleParams
+   *          the role parameter map to supplement (not {@code null}).
+   */
+  void addSuspendedUpgradeParameters(Map<String, String> commandParams,
+      Map<String, String> roleParams);
 }

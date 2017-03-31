@@ -30,6 +30,7 @@ import org.junit.Test;
 public class RequestUtilsTest {
 
   public static final String REMOTE_ADDRESS = "12.13.14.15";
+  public static final String REMOTE_ADDRESS_MULTIPLE = "12.13.14.15,12.13.14.16";
 
   @Test
   public void testGetRemoteAddress() {
@@ -40,6 +41,23 @@ public class RequestUtilsTest {
     expect(mockedRequest.getHeader("WL-Proxy-Client-IP")).andReturn("");
     expect(mockedRequest.getHeader("HTTP_CLIENT_IP")).andReturn("unknown");
     expect(mockedRequest.getHeader("HTTP_X_FORWARDED_FOR")).andReturn(REMOTE_ADDRESS);
+    replay(mockedRequest);
+    // WHEN
+    String remoteAddress = RequestUtils.getRemoteAddress(mockedRequest);
+    // THEN
+    assertEquals(REMOTE_ADDRESS, remoteAddress);
+    verify(mockedRequest);
+  }
+
+  @Test
+  public void testGetMultipleRemoteAddress() {
+    // GIVEN
+    HttpServletRequest mockedRequest = createMock(HttpServletRequest.class);
+    expect(mockedRequest.getHeader("X-Forwarded-For")).andReturn(null);
+    expect(mockedRequest.getHeader("Proxy-Client-IP")).andReturn("unknown");
+    expect(mockedRequest.getHeader("WL-Proxy-Client-IP")).andReturn("");
+    expect(mockedRequest.getHeader("HTTP_CLIENT_IP")).andReturn("unknown");
+    expect(mockedRequest.getHeader("HTTP_X_FORWARDED_FOR")).andReturn(REMOTE_ADDRESS_MULTIPLE);
     replay(mockedRequest);
     // WHEN
     String remoteAddress = RequestUtils.getRemoteAddress(mockedRequest);

@@ -23,22 +23,23 @@ import httplib
 import socket
 import ssl
 
-class TLS1HTTPSConnection(httplib.HTTPSConnection):
+class ForcedProtocolHTTPSConnection(httplib.HTTPSConnection):
   """
   Some of python implementations does not work correctly with sslv3 but trying to use it, we need to change protocol to
   tls1.
   """
-  def __init__(self, host, port, **kwargs):
+  def __init__(self, host, port, force_protocol, **kwargs):
     httplib.HTTPSConnection.__init__(self, host, port, **kwargs)
+    self.force_protocol = force_protocol
 
   def connect(self):
     sock = socket.create_connection((self.host, self.port), self.timeout)
     if getattr(self, '_tunnel_host', None):
       self.sock = sock
       self._tunnel()
-    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
+    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol))
 
-def make_connection(host, port, https):
+def make_connection(host, port, https, force_protocol=None):
   try:
     conn = httplib.HTTPConnection(host, port) if not https else httplib.HTTPSConnection(host, port)
     conn.request("GET", "/")
@@ -46,7 +47,7 @@ def make_connection(host, port, https):
   except ssl.SSLError:
     # got ssl error, lets try to use TLS1 protocol, maybe it will work
     try:
-      tls1_conn = TLS1HTTPSConnection(host, port)
+      tls1_conn = ForcedProtocolHTTPSConnection(host, port, force_protocol)
       tls1_conn.request("GET", "/")
       return tls1_conn.getresponse().status
     except Exception as e:
@@ -65,15 +66,17 @@ def main():
   parser.add_option("-m", "--hosts", dest="hosts", help="Comma separated hosts list for WEB UI to check it availability")
   parser.add_option("-p", "--port", dest="port", help="Port of WEB UI to check it availability")
   parser.add_option("-s", "--https", dest="https", help="\"True\" if value of dfs.http.policy is \"HTTPS_ONLY\"")
+  parser.add_option("-o", "--protocol", dest="protocol", help="Protocol to use when executing https request")
 
   (options, args) = parser.parse_args()
   
   hosts = options.hosts.split(',')
   port = options.port
   https = options.https
+  protocol = options.protocol
 
   for host in hosts:
-    httpCode = make_connection(host, port, https.lower() == "true")
+    httpCode = make_connection(host, port, https.lower() == "true", protocol)
 
     if httpCode != 200:
       print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port

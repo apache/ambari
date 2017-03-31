@@ -72,15 +72,33 @@ def setup_infra_solr(name = None):
          group=params.user_group
          )
 
+    custom_security_json_location = format("{infra_solr_conf}/custom-security.json")
+    File(custom_security_json_location,
+         content=InlineTemplate(params.infra_solr_security_json_content),
+         owner=params.infra_solr_user,
+         group=params.user_group,
+         mode=0640
+         )
+
     jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
     url_scheme = 'https' if params.infra_solr_ssl_enabled else 'http'
 
     create_ambari_solr_znode()
 
+    security_json_file_location = custom_security_json_location \
+      if params.infra_solr_security_json_content and str(params.infra_solr_security_json_content).strip() \
+      else format("{infra_solr_conf}/security.json") # security.json file to upload
+
     if params.security_enabled:
       File(format("{infra_solr_jaas_file}"),
            content=Template("infra_solr_jaas.conf.j2"),
            owner=params.infra_solr_user)
+
+      File(format("{infra_solr_conf}/security.json"),
+           content=Template("infra-solr-security.json.j2"),
+           owner=params.infra_solr_user,
+           group=params.user_group,
+           mode=0640)
 
     solr_cloud_util.set_cluster_prop(
       zookeeper_quorum=params.zookeeper_quorum,
@@ -96,12 +114,22 @@ def setup_infra_solr(name = None):
       solr_znode=params.infra_solr_znode,
       jaas_file=jaas_file,
       java64_home=params.java64_home,
-      secure=params.security_enabled
+      secure=params.security_enabled,
+      security_json_location=security_json_file_location
     )
+
+    if params.security_enabled:
+      solr_cloud_util.secure_solr_znode(
+        zookeeper_quorum=params.zookeeper_quorum,
+        solr_znode=params.infra_solr_znode,
+        jaas_file=jaas_file,
+        java64_home=params.java64_home,
+        sasl_users_str=params.infra_solr_sasl_user
+      )
 
 
   elif name == 'client':
-    solr_cloud_util.setup_solr_client(params.config, custom_log4j=params.solr_client_custom_log4j)
+    solr_cloud_util.setup_solr_client(params.config)
 
   else :
     raise Fail('Nor client or server were selected to install.')
@@ -112,4 +140,5 @@ def create_ambari_solr_znode():
   solr_cloud_util.create_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.infra_solr_znode,
-    java64_home=params.java64_home)
+    java64_home=params.java64_home,
+    retry=30, interval=5)

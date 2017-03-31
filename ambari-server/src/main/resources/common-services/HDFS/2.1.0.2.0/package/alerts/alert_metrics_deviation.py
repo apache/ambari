@@ -24,6 +24,8 @@ import logging
 import urllib
 import time
 import urllib2
+import os
+import ambari_commons.network as network
 
 from resource_management import Environment
 from ambari_commons.aggregate_functions import sample_standard_deviation, mean
@@ -31,6 +33,7 @@ from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+from ambari_commons.ambari_metrics_helper import select_metric_collector_for_sink
 
 
 RESULT_STATE_OK = 'OK'
@@ -54,6 +57,7 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
+AMS_HTTP_POLICY = '{{ams-site/timeline.metrics.service.http.policy}}'
 METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY = '{{ams-site/timeline.metrics.service.webapp.address}}'
 METRICS_COLLECTOR_VIP_HOST_KEY = '{{cluster-env/metrics_collector_vip_host}}'
 METRICS_COLLECTOR_VIP_PORT_KEY = '{{cluster-env/metrics_collector_vip_port}}'
@@ -104,7 +108,7 @@ def get_tokens():
           EXECUTABLE_SEARCH_PATHS, NN_HTTPS_ADDRESS_KEY, SMOKEUSER_KEY,
           KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY,
           METRICS_COLLECTOR_VIP_HOST_KEY, METRICS_COLLECTOR_VIP_PORT_KEY,
-          METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY)
+          METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY, AMS_HTTP_POLICY)
 
 def execute(configurations={}, parameters={}, host_name=None):
   """
@@ -177,7 +181,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     else:
       collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
       if valid_collector_webapp_address(collector_webapp_address):
-        collector_host = collector_webapp_address[0]
+        collector_host = select_metric_collector_for_sink(app_id.lower())
         collector_port = int(collector_webapp_address[1])
       else:
         return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
@@ -309,9 +313,14 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
 
+  ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf"
+  metric_truststore_ca_certs='ca.pem'
+  ca_certs = os.path.join(ams_monitor_conf_dir,
+                          metric_truststore_ca_certs)
+  metric_collector_https_enabled = str(configurations[AMS_HTTP_POLICY]) == "HTTPS_ONLY"
+
   try:
-    conn = httplib.HTTPConnection(collector_host, int(collector_port),
-                                  timeout=connection_timeout)
+    conn = network.get_http_connection(collector_host, int(collector_port), metric_collector_https_enabled, ca_certs)
     conn.request("GET", AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     data = response.read()
@@ -404,7 +413,6 @@ def execute(configurations={}, parameters={}, host_name=None):
 def valid_collector_webapp_address(webapp_address):
   if len(webapp_address) == 2 \
     and webapp_address[0] != '127.0.0.1' \
-    and webapp_address[0] != '0.0.0.0' \
     and webapp_address[1].isdigit():
     return True
 

@@ -62,6 +62,7 @@ public class LoadRunner {
   public LoadRunner(String hostName,
                     int threadCount,
                     String metricsHostName,
+                    int minHostIndex,
                     int collectIntervalMillis,
                     int sendIntervalMillis,
                     boolean createMaster) {
@@ -70,24 +71,24 @@ public class LoadRunner {
     this.timer = Executors.newScheduledThreadPool(1);
     this.sendIntervalMillis = sendIntervalMillis;
 
-    workers = prepareWorkers(hostName, threadCount, metricsHostName, createMaster);
+    workers = prepareWorkers(hostName, threadCount, metricsHostName, createMaster, minHostIndex);
   }
 
   private Collection<Callable<String>> prepareWorkers(String hostName,
                                                       int threadCount,
                                                       String metricsHost,
-                                                      Boolean createMaster) {
+                                                      Boolean createMaster, int minHostIndex) {
     Collection<Callable<String>> senderWorkers =
       new ArrayList<Callable<String>>(threadCount);
 
-    int startIndex = 0;
+    int startIndex = minHostIndex;
     if (createMaster) {
-      String simHost = hostName + "0";
+      String simHost = hostName + startIndex;
       addMetricsWorkers(senderWorkers, simHost, metricsHost, MASTER_APPS);
       startIndex++;
     }
 
-    for (int i = startIndex; i < threadCount; i++) {
+    for (int i = startIndex; i < threadCount + minHostIndex; i++) {
       String simHost = hostName + i;
       addMetricsWorkers(senderWorkers, simHost, metricsHost, SLAVE_APPS);
     }
@@ -150,7 +151,7 @@ public class LoadRunner {
 
   public static void main(String[] args) {
     LoadRunner runner =
-      new LoadRunner("local", 2, "metrics", 10000, 20000, false);
+      new LoadRunner("local", 0, "metrics", 0, 10000, 20000, false);
 
     runner.start();
   }

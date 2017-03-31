@@ -24,18 +24,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.events.HostAddedEvent;
-import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.HostsAddedEvent;
+import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
+import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -61,7 +65,7 @@ import com.google.inject.persist.Transactional;
  * {@link org.apache.ambari.server.events.ServiceComponentInstalledEvent}
  * to update {@link org.apache.ambari.server.state.RepositoryVersionState}
  *
- * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(StackId, String)
+ * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(RepositoryVersionEntity)
  */
 @Singleton
 @EagerSingleton
@@ -83,9 +87,17 @@ public class HostVersionOutOfSyncListener {
   @Inject
   private Provider<AmbariMetaInfo> ami;
 
+  /**
+   * The publisher may be an asynchronous, multi-threaded one, so to avoid the (rare, but possible) case
+   * of both an Install and Uninstall event occurring at the same time, we use a Lock.
+   */
+  private final Lock m_lock;
+
   @Inject
-  public HostVersionOutOfSyncListener(AmbariEventPublisher ambariEventPublisher) {
+  public HostVersionOutOfSyncListener(AmbariEventPublisher ambariEventPublisher, LockFactory lockFactory) {
     ambariEventPublisher.register(this);
+
+    m_lock = lockFactory.newLock("hostVersionOutOfSyncListenerLock");
   }
 
   @Subscribe
@@ -95,6 +107,8 @@ public class HostVersionOutOfSyncListener {
       LOG.debug(event.toString());
     }
 
+    m_lock.lock();
+
     try {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
       List<HostVersionEntity> hostVersionEntities =
@@ -102,7 +116,7 @@ public class HostVersionOutOfSyncListener {
 
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         StackEntity hostStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
-        StackId hostStackId = new StackId(hostStackEntity.getStackName(), hostStackEntity.getStackVersion());
+        StackId hostStackId = new StackId(hostStackEntity);
 
         // If added components do not advertise version, it makes no sense to mark version OUT_OF_SYNC
         // We perform check per-stack version, because component may be not versionAdvertised in current
@@ -111,19 +125,94 @@ public class HostVersionOutOfSyncListener {
         String componentName = event.getComponentName();
         ComponentInfo component = ami.get().getComponent(hostStackId.getStackName(),
                 hostStackId.getStackVersion(), serviceName, componentName);
+
         if (!component.isVersionAdvertised()) {
+          RepositoryVersionState state = checkAllHostComponents(hostStackId, hostVersionEntity.getHostEntity());
+          if (null != state) {
+            hostVersionEntity.setState(state);
+            hostVersionDAO.get().merge(hostVersionEntity);
+          }
           continue;
         }
 
-        if (hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
-          hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
-          hostVersionDAO.get().merge(hostVersionEntity);
-          cluster.recalculateClusterVersionState(hostVersionEntity.getRepositoryVersion());
+        switch (hostVersionEntity.getState()) {
+          case INSTALLED:
+          case NOT_REQUIRED:
+            hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
+            hostVersionDAO.get().merge(hostVersionEntity);
+            cluster.recalculateClusterVersionState(hostVersionEntity.getRepositoryVersion());
+            break;
+          default:
+            break;
         }
       }
     } catch (AmbariException e) {
       LOG.error("Can not update hosts about out of sync", e);
+    } finally {
+      m_lock.unlock();
     }
+  }
+
+  @Subscribe
+  @Transactional
+  public void onServiceComponentHostEvent(ServiceComponentUninstalledEvent event) {
+
+    m_lock.lock();
+
+    try {
+      Cluster cluster = clusters.get().getClusterById(event.getClusterId());
+      List<HostVersionEntity> hostVersionEntities =
+          hostVersionDAO.get().findByClusterAndHost(cluster.getClusterName(), event.getHostName());
+
+      for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
+        HostEntity hostEntity = hostVersionEntity.getHostEntity();
+        RepositoryVersionEntity repoVersionEntity = hostVersionEntity.getRepositoryVersion();
+        StackId stackId = repoVersionEntity.getStackId();
+
+        if (null == stackId) {
+          LOG.info("Stack id could not be loaded for host version {}, repo {}", hostVersionEntity.getHostName(),
+              repoVersionEntity.getVersion());
+          continue;
+        }
+
+        RepositoryVersionState repoState = checkAllHostComponents(stackId, hostEntity);
+        if (null != repoState) {
+          hostVersionEntity.setState(repoState);
+          hostVersionDAO.get().merge(hostVersionEntity);
+        }
+      }
+
+    } catch (AmbariException e) {
+      LOG.error("Cannot update states after a component was uninstalled: {}", event, e);
+    } finally {
+      m_lock.unlock();
+    }
+  }
+
+  /**
+   * Checks if all the components advertise version.  If additional states need to be
+   * computed, add on to the logic of this method; make sure the usages are checked for
+   * correctness.
+   *
+   * @param stackId the stack id
+   * @param host    the host entity to find components
+   * @return {@code null} if there should be no state change.  non-{@code null} to change it
+   */
+  private RepositoryVersionState checkAllHostComponents(StackId stackId,
+      HostEntity host) throws AmbariException {
+
+    Collection<HostComponentDesiredStateEntity> hostComponents = host.getHostComponentDesiredStateEntities();
+
+    for (HostComponentDesiredStateEntity hostComponent : hostComponents) {
+      ComponentInfo ci = ami.get().getComponent(stackId.getStackName(), stackId.getStackVersion(),
+          hostComponent.getServiceName(), hostComponent.getComponentName());
+
+      if (ci.isVersionAdvertised()) {
+        return null;
+      }
+    }
+
+    return RepositoryVersionState.NOT_REQUIRED;
   }
 
   @Subscribe
@@ -187,7 +276,7 @@ public class HostVersionOutOfSyncListener {
 
   @Subscribe
   @Transactional
-  public void onHostEvent(HostAddedEvent event) {
+  public void onHostEvent(HostsAddedEvent event) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
@@ -198,12 +287,17 @@ public class HostVersionOutOfSyncListener {
       Collection<ClusterVersionEntity> allClusterVersions = cluster.getAllClusterVersions();
       for (ClusterVersionEntity clusterVersion : allClusterVersions) {
         if (clusterVersion.getState() != RepositoryVersionState.CURRENT) { // Current version is taken care of automatically
-          String hostName = event.getHostName();
-          HostEntity hostEntity = hostDAO.get().findByName(hostName);
           RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
-          HostVersionEntity missingHostVersion = new HostVersionEntity(hostEntity,
-                  repositoryVersion, RepositoryVersionState.OUT_OF_SYNC);
-          hostVersionDAO.get().create(missingHostVersion);
+          for (String hostName : event.getHostNames()) {
+            HostEntity hostEntity = hostDAO.get().findByName(hostName);
+            HostVersionEntity missingHostVersion = new HostVersionEntity(hostEntity,
+              repositoryVersion, RepositoryVersionState.OUT_OF_SYNC);
+
+            LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+              missingHostVersion.getHostName(), missingHostVersion.getState(),
+              missingHostVersion.getRepositoryVersion().getVersion(), missingHostVersion.getRepositoryVersion().getId());
+            hostVersionDAO.get().create(missingHostVersion);
+          }
           cluster.recalculateClusterVersionState(repositoryVersion);
         }
       }
@@ -224,7 +318,7 @@ public class HostVersionOutOfSyncListener {
    */
   @Subscribe
   @Transactional
-  public void onHostEvent(HostRemovedEvent event) {
+  public void onHostEvent(HostsRemovedEvent event) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }

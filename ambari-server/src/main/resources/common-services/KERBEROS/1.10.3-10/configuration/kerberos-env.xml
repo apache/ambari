@@ -82,11 +82,13 @@
     <display-name>LDAP url</display-name>
     <description>
       The URL to the Active Directory LDAP Interface
+      Example: ldaps://ad.example.com:636
     </description>
     <value/>
     <value-attributes>
       <visible>false</visible>
       <overridable>false</overridable>
+      <type>ldap_url</type>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -253,6 +255,7 @@
     <description>
       The principal name to use when executing the Kerberos service check
     </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <value>${cluster_name|toLower()}-${short_date}</value>
     <value-attributes>
       <overridable>false</overridable>

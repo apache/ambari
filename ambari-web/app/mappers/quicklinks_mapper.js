@@ -43,8 +43,7 @@ App.quicklinksMapper = App.QuickDataMapper.create({
       result.push(parseResult);
     }, this);
 
-    App.store.loadMany(this.get('model'), result);
-    App.store.commit();
+    App.store.safeLoadMany(this.get('model'), result);
     console.timeEnd('App.quicklinksMapper execution time');
   }
 });

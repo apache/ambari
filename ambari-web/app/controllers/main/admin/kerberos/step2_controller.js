@@ -60,16 +60,17 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
    * Should Back-button be disabled
    * @type {boolean}
    */
-  isBackBtnDisabled: Em.computed.alias('testConnectionInProgress'),
+  isBackBtnDisabled: Em.computed.or('testConnectionInProgress', 'App.router.nextBtnClickInProgress'),
 
   /**
    * Should Next-button be disabled
    * @type {boolean}
    */
   isSubmitDisabled: function () {
-    if (!this.get('stepConfigs.length') || this.get('testConnectionInProgress') || this.get('submitButtonClicked')) return true;
+    if (!this.get('stepConfigs.length') || this.get('testConnectionInProgress')
+      || this.get('submitButtonClicked') || App.get('router.nextBtnClickInProgress')) return true;
     return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
-  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'testConnectionInProgress'),
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'testConnectionInProgress', 'App.router.nextBtnClickInProgress'),
 
   hostNames: Em.computed.alias('App.allHostNames'),
 
@@ -170,8 +171,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
 
   submit: function () {
     var self = this;
-
     if (this.get('isSubmitDisabled')) return false;
+    App.set('router.nextBtnClickInProgress', true);
     this.get('wizardController').deleteKerberosService().always(function () {
       self.configureKerberos();
     });
@@ -183,6 +184,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var callback = function () {
       self.createConfigurations().done(function () {
         self.createKerberosAdminSession().done(function () {
+          App.set('router.nextBtnClickInProgress', false);
           App.router.send('next');
         });
       });

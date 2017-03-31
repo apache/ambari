@@ -21,6 +21,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="centos5">
@@ -28,6 +29,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat6">
@@ -35,6 +37,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat5">
@@ -42,6 +45,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="suse11">
@@ -49,6 +53,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="sles11">
@@ -56,6 +61,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
       <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
 </reposinfo>

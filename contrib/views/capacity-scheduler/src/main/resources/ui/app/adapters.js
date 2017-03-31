@@ -255,6 +255,12 @@ App.QueueAdapter = DS.Adapter.extend({
       _ajax(uri,'GET').then(function(data) {
         var parsedData = JSON.parse(data), labels;
 
+        if (parsedData !== null) {
+          store.set('isNodeLabelsConfiguredByRM', true);
+        } else {
+          store.set('isNodeLabelsConfiguredByRM', false);
+        }
+
         if (stackVersion >= 2.5) {
           if (parsedData && Em.isArray(parsedData.nodeLabelInfo)) {
             labels = parsedData.nodeLabelInfo;
@@ -314,6 +320,21 @@ App.QueueAdapter = DS.Adapter.extend({
         }
       });
     }.bind(this),'App: QueueAdapter#checkCluster');
+  },
+
+  getRmSchedulerConfigInfo: function() {
+    var uri = [_getCapacitySchedulerViewUri(this), 'rmCurrentConfig'].join('/');
+    if (App.testMode) {
+      uri = uri + ".json";
+    }
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      _ajax(uri, 'GET').then(function(data) {
+        Ember.run(null, resolve, data);
+      }, function(jqXHR) {
+        jqXHR.then = null;
+        Ember.run(null, reject, jqXHR);
+      });
+    }.bind(this),'App: QueueAdapter#getRmSchedulerConfigInfo');
   }
 });
 

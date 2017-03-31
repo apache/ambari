@@ -225,7 +225,8 @@ class TestCheckHost(TestCase):
        'message': 'All hosts resolved to an IP address.', 
        'failed_count': 0, 
        'success_count': 5, 
-       'exit_code': 0}})
+       'exit_code': 0,
+       'hosts_with_failures': []}})
     
     # try it now with errors
     mock_socket.side_effect = socket.error
@@ -239,7 +240,10 @@ class TestCheckHost(TestCase):
                     {'cause': (), 'host': u'foobar', 'type': 'FORWARD_LOOKUP'}, 
                     {'cause': (), 'host': u'!!!', 'type': 'FORWARD_LOOKUP'}], 
        'message': 'There were 5 host(s) that could not resolve to an IP address.', 
-       'failed_count': 5, 'success_count': 0, 'exit_code': 0}})
+       'failed_count': 5, 'success_count': 0, 'exit_code': 0, 'hosts_with_failures': [u'c6401.ambari.apache.org',
+                                                                                      u'c6402.ambari.apache.org',
+                                                                                      u'c6403.ambari.apache.org',
+                                                                                      u'foobar', u'!!!']}})
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))

@@ -23,12 +23,13 @@ App.SaveConfigDialogComponent = Ember.Component.extend({
  isDialogOpen: false,
  configNote: '',
  param: '',
+ forceRefresh: false,
 
  actions: {
    saveConfigs: function() {
      this.set('isDialogOpen', false);
      var mode = this.get('param');
-     this.sendAction('action', mode);
+     this.sendAction('action', mode, this.get('forceRefresh'));
    },
    closeDialog: function() {
      this.set('isDialogOpen', false);

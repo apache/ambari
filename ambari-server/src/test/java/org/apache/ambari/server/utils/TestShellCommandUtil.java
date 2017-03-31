@@ -126,16 +126,19 @@ public class TestShellCommandUtil {
 
       @Override
       public String getResponse(String query) {
-        if(query.contains("Arg1")) {
+        if (query.contains("Arg1")) {
           return "a1";
-        }
-        else if(query.contains("Arg2")) {
+        } else if (query.contains("Arg2")) {
           done = true; // this is the last expected prompt
           return "a2";
-        }
-        else {
+        } else {
           return null;
         }
+      }
+
+      @Override
+      public void start() {
+
       }
     };
 
@@ -210,4 +213,39 @@ public class TestShellCommandUtil {
     Assert.assertTrue(destFile.length() > 0);
     Assert.assertEquals(destFile.length(), srcFile.length());
   }
+
+  @Test
+  public void deleteExistingFile() throws Exception {
+    File file = temp.newFile();
+
+    ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), false, false);
+
+    Assert.assertTrue(result.getStderr(), result.isSuccessful());
+    Assert.assertFalse(file.exists());
+  }
+
+  @Test
+  public void deleteNonexistentFile() throws Exception {
+    File file = temp.newFile();
+
+    if (file.delete()) {
+      ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), false, false);
+
+      Assert.assertFalse(result.getStderr(), result.isSuccessful());
+      Assert.assertFalse(file.exists());
+    }
+  }
+
+  @Test
+  public void forceDeleteNonexistentFile() throws Exception {
+    File file = temp.newFile();
+
+    if (file.delete()) {
+      ShellCommandUtil.Result result = ShellCommandUtil.delete(file.getAbsolutePath(), true, false);
+
+      Assert.assertTrue(result.getStderr(), result.isSuccessful());
+      Assert.assertFalse(file.exists());
+    }
+  }
+
 }

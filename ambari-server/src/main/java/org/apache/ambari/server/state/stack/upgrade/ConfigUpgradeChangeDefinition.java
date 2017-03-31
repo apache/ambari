@@ -17,20 +17,28 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import com.google.gson.Gson;
-import org.apache.ambari.server.AmbariException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Objects;
 
 /**
  * The {@link ConfigUpgradeChangeDefinition} represents a configuration change. This change can be
@@ -103,10 +111,6 @@ public class ConfigUpgradeChangeDefinition {
 
   public static final Float DEFAULT_PRIORITY = 1.0f;
 
-  /**
-   * Gson
-   */
-  private Gson m_gson = new Gson();
 
   /**
    * An optional brief description of config changes.
@@ -123,14 +127,25 @@ public class ConfigUpgradeChangeDefinition {
   @XmlElement(name = "set")
   private List<ConfigurationKeyValue> keyValuePairs;
 
-  @XmlElement(name = "condition")
-  private List<Condition> conditions;
-
   @XmlElement(name = "transfer")
   private List<Transfer> transfers;
 
   @XmlElement(name="replace")
   private List<Replace> replacements;
+
+  @XmlElement(name="regex-replace")
+  private List<RegexReplace> regexReplacements;
+  /**
+   * Insert new content into an existing value by either prepending or
+   * appending. Each {@link Insert} will only run if:
+   * <ul>
+   * <li>The key specified by {@link Insert#key} exists.
+   * <li>The content specified by {@link Insert#value} is not found in the key's
+   * existing content.
+   * </ul>
+   */
+  @XmlElement(name = "insert")
+  private List<Insert> inserts;
 
   /**
    * @return the config type
@@ -144,13 +159,6 @@ public class ConfigUpgradeChangeDefinition {
    */
   public List<ConfigurationKeyValue> getKeyValuePairs() {
     return keyValuePairs;
-  }
-
-  /**
-   * @return the list of conditions
-   */
-  public List<Condition> getConditions() {
-    return conditions;
   }
 
   /**
@@ -207,6 +215,63 @@ public class ConfigUpgradeChangeDefinition {
   }
 
   /**
+   * @return the replacement tokens, never {@code null}
+   */
+  public List<Replace> getRegexReplacements(Cluster cluster) {
+
+    if (null == regexReplacements) {
+
+      return Collections.emptyList();
+    }
+
+    List<Replace> list = new ArrayList<>();
+    for (RegexReplace regexReplaceObj : regexReplacements) {
+      if (null == regexReplaceObj.key || null == regexReplaceObj.find || null == regexReplaceObj.replaceWith) {
+        LOG.warn(String.format("Replacement %s is invalid", regexReplaceObj));
+        continue;
+      }
+
+      try{
+        Config config = cluster.getDesiredConfigByType(configType);
+
+        Map<String, String> properties = config.getProperties();
+        String content = properties.get(regexReplaceObj.key);
+
+        Pattern REGEX = Pattern.compile(regexReplaceObj.find, Pattern.MULTILINE);
+
+        Matcher patternMatchObj = REGEX.matcher(content);
+        if (patternMatchObj.find() && patternMatchObj.groupCount()==1) {
+          regexReplaceObj.find = patternMatchObj.group();
+          Replace rep = regexReplaceObj.copyToReplaceObject();
+          list.add(rep);
+        }
+
+        }catch(Exception e){
+          String message = "";
+          message = "ConfigUpgradeChangeDefinition: getRegexReplacements : Error while fetching config properties ";
+          LOG.error(message, e);
+
+        }
+
+      }
+    return list;
+  }
+
+
+  /**
+   * Gets the insertion directives.
+   *
+   * @return the inserts, or an empty list (never {@code null}).
+   */
+  public List<Insert> getInsertions() {
+    if (null == inserts) {
+      return Collections.emptyList();
+    }
+
+    return inserts;
+  }
+
+  /**
    * Used for configuration updates that should mask their values from being
    * printed in plain text.
    */
@@ -255,64 +320,12 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return "Set{" +
-              ", key='" + key + '\'' +
-              ", value='" + value + '\'' +
-              ", ifKey='" + ifKey + '\'' +
-              ", ifType='" + ifType + '\'' +
-              ", ifValue='" + ifValue + '\'' +
-              ", ifKeyState='" + ifKeyState + '\'' +
-              '}';
-    }
-  }
-
-  /**
-   * A conditional element that will only perform the configuration if the
-   * condition is met.
-   */
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "condition")
-  public static class Condition {
-    @XmlAttribute(name = "type")
-    private String conditionConfigType;
-
-    @XmlAttribute(name = "key")
-    private String conditionKey;
-
-    @XmlAttribute(name = "value")
-    private String conditionValue;
-
-    @XmlElement(name = "type")
-    private String configType;
-
-    @XmlElement(name = "key")
-    private String key;
-
-    @XmlElement(name = "value")
-    private String value;
-
-    public String getConditionConfigType() {
-      return conditionConfigType;
-    }
-
-    public String getConditionKey() {
-      return conditionKey;
-    }
-
-    public String getConditionValue() {
-      return conditionValue;
-    }
-
-    public String getConfigType() {
-      return configType;
-    }
-
-    public String getKey() {
-      return key;
-    }
-
-    public String getValue() {
-      return value;
+      return Objects.toStringHelper("Set").add("key", key)
+          .add("value", value)
+          .add("ifKey", ifKey)
+          .add("ifType", ifType)
+          .add("ifValue",ifValue)
+          .add("ifKeyState", ifKeyState).omitNullValues().toString();
     }
   }
 
@@ -377,26 +390,24 @@ public class ConfigUpgradeChangeDefinition {
      * The keys to keep when the action is {@link TransferOperation#DELETE}.
      */
     @XmlElement(name = "keep-key")
-    public List<String> keepKeys = new ArrayList<String>();
+    public List<String> keepKeys = new ArrayList<>();
 
 
     @Override
     public String toString() {
-      return "Transfer{" +
-              "operation=" + operation +
-              ", fromType='" + fromType + '\'' +
-              ", fromKey='" + fromKey + '\'' +
-              ", toKey='" + toKey + '\'' +
-              ", deleteKey='" + deleteKey + '\'' +
-              ", preserveEdits=" + preserveEdits +
-              ", defaultValue='" + defaultValue + '\'' +
-              ", coerceTo=" + coerceTo +
-              ", ifKey='" + ifKey + '\'' +
-              ", ifType='" + ifType + '\'' +
-              ", ifValue='" + ifValue + '\'' +
-              ", ifKeyState='" + ifKeyState + '\'' +
-              ", keepKeys=" + keepKeys +
-              '}';
+      return Objects.toStringHelper(this).add("operation", operation)
+          .add("fromType", fromType)
+          .add("fromKey", fromKey)
+          .add("toKey", toKey)
+          .add("deleteKey", deleteKey)
+          .add("preserveEdits",preserveEdits)
+          .add("defaultValue", defaultValue)
+          .add("coerceTo", coerceTo)
+          .add("ifKey", ifKey)
+          .add("ifType", ifType)
+          .add("ifValue", ifValue)
+          .add("ifKeyState", ifKeyState)
+          .add("keepKeys", keepKeys).omitNullValues().toString();
     }
   }
 
@@ -427,15 +438,137 @@ public class ConfigUpgradeChangeDefinition {
 
     @Override
     public String toString() {
-      return "Replace{" +
-              "key='" + key + '\'' +
-              ", find='" + find + '\'' +
-              ", replaceWith='" + replaceWith + '\'' +
-              ", ifKey='" + ifKey + '\'' +
-              ", ifType='" + ifType + '\'' +
-              ", ifValue='" + ifValue + '\'' +
-              ", ifKeyState='" + ifKeyState + '\'' +
-              '}';
+      return Objects.toStringHelper(this).add("key", key)
+          .add("find", find)
+          .add("replaceWith", replaceWith)
+          .add("ifKey", ifKey)
+          .add("ifType", ifType)
+          .add("ifValue", ifValue)
+          .add("ifKeyState", ifKeyState).omitNullValues().toString();
     }
   }
+
+  /**
+   * Used to replace strings in a key with other strings.  More complex
+   * scenarios are possible with regex.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "regex-replace")
+  public static class RegexReplace extends Masked{
+    /**
+     * The key name
+     */
+    @XmlAttribute(name="key")
+    public String key;
+
+    /**
+     * The string to find
+     */
+    @XmlAttribute(name="find")
+    public String find;
+
+    /**
+     * The string to replace
+     */
+    @XmlAttribute(name="replace-with")
+    public String replaceWith;
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("key", key)
+          .add("find", find)
+          .add("replaceWith",replaceWith)
+          .add("ifKey", ifKey)
+          .add("ifType", ifType)
+          .add("ifValue", ifValue)
+          .add("ifKeyState", ifKeyState).omitNullValues().toString();
+    }
+
+    /***
+     * Copies a RegexReplace type object to Replace object.
+     * @return Replace object
+     */
+    public Replace copyToReplaceObject(){
+      Replace rep = new Replace();
+      rep.find = find;
+      rep.key = key;
+      rep.replaceWith = replaceWith;
+      rep.ifKey = ifKey;
+      rep.ifType = ifType;
+      rep.ifValue = ifValue;
+      rep.ifKeyState = ifKeyState;
+
+      return rep;
+    }
+  }
+
+  /**
+   * Used to replace strings in a key with other strings. More complex scenarios
+   * will be possible with regex (when needed). If the value specified in
+   * {@link Insert#value} already exists, then it is not inserted again.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "insert")
+  public static class Insert {
+    /**
+     * The key name
+     */
+    @XmlAttribute(name = "key", required = true)
+    public String key;
+
+    /**
+     * The value to insert.
+     */
+    @XmlAttribute(name = "value", required = true)
+    public String value;
+
+    /**
+     * The value to insert.
+     */
+    @XmlAttribute(name = "insert-type", required = true)
+    public InsertType insertType = InsertType.APPEND;
+
+    /**
+     * {@code true} to insert a new line before inserting the {@link #value}.
+     */
+    @XmlAttribute(name = "newline-before")
+    public boolean newlineBefore = false;
+
+    /**
+     * {@code true} to insert a new line after inserting the {@link #value}.
+     */
+    @XmlAttribute(name = "newline-after")
+    public boolean newlineAfter = false;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("insertType", insertType)
+          .add("key", key)
+          .add("value",value)
+          .add("newlineBefore", newlineBefore)
+          .add("newlineAfter", newlineAfter).omitNullValues().toString();
+    }
+  }
+
+  /**
+   * The {@link InsertType} defines how to use the {@link Insert} directive.
+   */
+  @XmlEnum
+  public enum InsertType {
+    /**
+     * Prepend the content.
+     */
+    @XmlEnumValue("prepend")
+    PREPEND,
+
+    /**
+     * Append the content.
+     */
+    @XmlEnumValue("append")
+    APPEND
+  }
+
 }

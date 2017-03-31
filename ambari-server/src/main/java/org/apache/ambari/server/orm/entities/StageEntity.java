@@ -26,6 +26,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -36,13 +38,18 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
+
 @Entity
 @Table(name = "stage")
 @IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
 @NamedQueries({
     @NamedQuery(
         name = "StageEntity.findByCommandStatuses",
-        query = "SELECT stage from StageEntity stage WHERE EXISTS (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER by stage.requestId, stage.stageId"),
+        query = "SELECT stage from StageEntity stage WHERE stage.stageId IN (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER BY stage.requestId, stage.stageId"),
+    @NamedQuery(
+        name = "StageEntity.findByRequestIdAndCommandStatuses",
+        query = "SELECT stage from StageEntity stage WHERE stage.stageId IN (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.requestId = :requestId AND roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER BY stage.stageId"),
     @NamedQuery(
         name = "StageEntity.findIdsByRequestId",
         query = "SELECT stage.stageId FROM StageEntity stage WHERE stage.requestId = :requestId ORDER BY stage.stageId ASC") })
@@ -73,6 +80,11 @@ public class StageEntity {
   @Column(name = "request_context")
   @Basic
   private String requestContext = "";
+
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "command_execution_type", nullable = false)
+  private CommandExecutionType commandExecutionType = CommandExecutionType.STAGE;
 
   /**
    * On large clusters, this value can be in the 10,000's of kilobytes. During
@@ -173,6 +185,14 @@ public class StageEntity {
     if (requestContext != null) {
       this.requestContext = requestContext;
     }
+  }
+
+  public CommandExecutionType getCommandExecutionType() {
+    return commandExecutionType;
+  }
+
+  public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
+    this.commandExecutionType = commandExecutionType;
   }
 
   @Override

@@ -241,6 +241,17 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         //hosts should be loaded after services in order to properly populate host-component relation in App.cache.services
         updater.updateHost(function () {
           self.set('isHostsLoaded', true);
+          console.time('Overall alerts loading time');
+          updater.updateAlertGroups(function () {
+            updater.updateAlertDefinitions(function () {
+              updater.updateAlertDefinitionSummary(function () {
+                updater.updateUnhealthyAlertInstances(function () {
+                  console.timeEnd('Overall alerts loading time');
+                  self.set('isAlertsLoaded', true);
+                });
+              });
+            });
+          });
         });
         App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
           App.config.loadClusterConfigsFromStack().complete(function () {
@@ -270,19 +281,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     //force clear filters  for hosts page to load all data
     App.db.setFilterConditions('mainHostController', null);
 
-    // alerts loading doesn't affect overall progress
-    console.time('Overall alerts loading time');
-    updater.updateAlertGroups(function () {
-      updater.updateAlertDefinitions(function () {
-        updater.updateAlertDefinitionSummary(function () {
-          updater.updateUnhealthyAlertInstances(function () {
-            console.timeEnd('Overall alerts loading time');
-            self.set('isAlertsLoaded', true);
-          });
-        });
-      });
-    });
-
     //load cluster-env, used by alert check tolerance // TODO services auto-start
     updater.updateClusterEnv();
 
@@ -308,20 +306,19 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
 
       //completed upgrade shouldn't be restored
-      if (lastUpgradeData && lastUpgradeData.Upgrade.request_status === "COMPLETED") {
-        return;
+      if (lastUpgradeData) {
+        if (lastUpgradeData.Upgrade.request_status !== "COMPLETED") {
+          upgradeController.restoreLastUpgrade(lastUpgradeData);
+        }
+      } else {
+        upgradeController.initDBProperties();
+        upgradeController.loadUpgradeData(true);
       }
 
       if (!Em.isNone(dbUpgradeState)) {
         App.set('upgradeState', dbUpgradeState);
       }
 
-      if (lastUpgradeData) {
-        upgradeController.restoreLastUpgrade(lastUpgradeData);
-      } else {
-        upgradeController.initDBProperties();
-        upgradeController.loadUpgradeData(true);
-      }
       upgradeController.loadStackVersionsToModel(true).done(function () {
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
@@ -470,14 +467,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   checkDetailedRepoVersionSuccessCallback: function (data) {
-    var items = data.items;
-    var version;
-    if (items && items.length) {
-      var repoVersions = items[0].repository_versions;
-      if (repoVersions && repoVersions.length) {
-        version = Em.get(repoVersions[0], 'RepositoryVersions.repository_version');
-      }
-    }
+    var rv = (Em.getWithDefault(data, 'items', []) || []).filter(function(i) {
+      return Em.getWithDefault(i || {}, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
+        Em.getWithDefault(i || {}, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
+    })[0];
+    var version = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.repository_version', false);
     App.set('isStormMetricsSupported', stringUtils.compareVersions(version, '2.2.2') > -1 || !version);
   },
   checkDetailedRepoVersionErrorCallback: function () {

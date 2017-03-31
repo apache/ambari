@@ -52,6 +52,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -67,7 +68,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
@@ -97,7 +97,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
 
 /**
  * {@link UpgradeCatalog200} unit tests.
@@ -125,8 +124,8 @@ public class UpgradeCatalog200Test {
   }
 
   @After
-  public void tearDown() {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test
@@ -643,12 +642,12 @@ public class UpgradeCatalog200Test {
 
     assertNotNull(serviceComponentDesiredStateEntity);
 
-    HostComponentDesiredStateEntityPK hcDesiredStateEntityPk = new HostComponentDesiredStateEntityPK();
-    hcDesiredStateEntityPk.setServiceName("NAGIOS");
-    hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
-    hcDesiredStateEntityPk.setComponentName("NAGIOS_SERVER");
-    hcDesiredStateEntityPk.setHostId(hostEntity.getHostId());
-    HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
+    HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByIndex(
+      clusterEntity.getClusterId(),
+      "NAGIOS",
+      "NAGIOS_SERVER",
+      hostEntity.getHostId()
+    );
     assertNotNull(hcDesiredStateEntity);
 
     HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByIndex(
@@ -805,7 +804,7 @@ public class UpgradeCatalog200Test {
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
-    Assert.assertEquals("1.7.0", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals(null, upgradeCatalog.getSourceVersion());
   }
 
   @Test

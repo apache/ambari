@@ -152,7 +152,6 @@ define(['require',
 			var retCols = _.map(cols, function(v, k, l){
 				var defaults = collection.constructor.tableCols[k];
 				if(! defaults){
-					//console.log("Error!! " + k + " not found in collection: " , collection);
 					defaults = {};
 				}
 				return _.extend({ 'name' : k }, defaults, v );

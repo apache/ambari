@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +28,8 @@ import java.util.concurrent.Semaphore;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -34,8 +37,8 @@ import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
@@ -46,7 +49,6 @@ import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
 import junit.framework.Assert;
@@ -78,8 +80,8 @@ public class TestActionSchedulerThreading {
    * Cleanup test methods.
    */
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void tearDown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   /**
@@ -103,15 +105,11 @@ public class TestActionSchedulerThreading {
     Map<String, String> properties = new HashMap<String, String>();
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String, String>>();
 
+    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
+
     // foo-type for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");
-    Config c1 = new ConfigImpl(cluster, "foo-type", properties, propertiesAttributes, injector);
-    c1.setTag("version-1");
-    c1.setStackId(stackId);
-    c1.setVersion(1L);
-
-    cluster.addConfig(c1);
-    c1.persist();
+    Config c1 = configFactory.createNew(cluster, "foo-type", "version-1", properties, propertiesAttributes);
 
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
@@ -122,12 +120,7 @@ public class TestActionSchedulerThreading {
     // save v2
     // foo-type for v2 on new stack
     properties.put("foo-property-2", "foo-value-2");
-    Config c2 = new ConfigImpl(cluster, "foo-type", properties, propertiesAttributes, injector);
-    c2.setTag("version-2");
-    c2.setStackId(newStackId);
-    c2.setVersion(2L);
-    cluster.addConfig(c2);
-    c2.persist();
+    Config c2 = configFactory.createNew(cluster, "foo-type", "version-2", properties, propertiesAttributes);
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");

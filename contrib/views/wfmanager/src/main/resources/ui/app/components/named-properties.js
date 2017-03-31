@@ -15,18 +15,25 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'property.value': validator('presence', {
+    presence : true,
+    disabled(model){
+      return !model.get('required');
+    },
+    message : 'Required'
+  })
+});
+
+export default Ember.Component.extend(Validations, {
   initialize : function () {
     this.sendAction('register', this, this);
   }.on('init'),
-  validations : {
-    'property.value': {
-      presence: {
-        'if' :'required',
-        'message' : 'Required'
-      }
+  onDestroy : function () {
+    if(this.get('unregisterRequired')){
+      this.sendAction('unregister', this, this);
     }
-  }
+  }.on('willDestroyElement')
 });

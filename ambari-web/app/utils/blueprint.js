@@ -319,7 +319,9 @@ module.exports = {
   buildConfigsJSON: function (stepConfigs) {
     var configurations = {};
     stepConfigs.forEach(function (stepConfig) {
-      stepConfig.get('configs').forEach(function (config) {
+      var configs = stepConfig.get('configs');
+      if (!configs) return false;
+      configs.forEach(function (config) {
         if (config.get('filename') === 'cluster-env.xml' || config.get('isRequiredByAgent')) {
           var type = App.config.getConfigTagFromFileName(config.get('filename'));
           if (!configurations[type]) {

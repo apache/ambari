@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.services;
 
+import static org.easymock.EasyMock.expect;
+
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -123,7 +125,10 @@ public class CachedAlertFlushServiceTest extends EasyMockSupport {
 
       // required for since the configuration is being mocked
       Configuration configuration = createNiceMock(Configuration.class);
-      EasyMock.expect(configuration.getAlertEventPublisherPoolSize()).andReturn(2).anyTimes();
+      expect(configuration.getAlertEventPublisherCorePoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_CORE_SIZE.getDefaultValue())).anyTimes();
+      expect(configuration.getAlertEventPublisherMaxPoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_MAX_SIZE.getDefaultValue())).anyTimes();
+      expect(configuration.getAlertEventPublisherWorkerQueueSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_WORKER_QUEUE_SIZE.getDefaultValue())).anyTimes();
+
 
       EasyMock.replay(configuration);
 

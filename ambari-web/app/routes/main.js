@@ -42,7 +42,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                         router.get('mainController').initialize();
                       });
                     } else {
-                      App.router.transitionTo('main.views.index');
+                      // Don't transit to Views when user already on View page
+                      if (App.router.currentState.name !== 'viewDetails') {
+                        App.router.transitionTo('main.views.index');
+                      }
                       App.router.get('clusterController').set('isLoaded', true); // hide loading bar
                     }
                   });
@@ -226,7 +229,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             	    controller.connectOutlet('mainHostSummary');
             	  });
             	} else
-            	  controller.connectOutlet('mainHostSummary');  
+		  controller.connectOutlet('mainHostSummary');
               });
             } else if(App.Service.find().mapProperty('serviceName').contains('HIVE')) {
               App.router.get('configurationController').getConfigsByTags(tags).always(function () {
@@ -245,6 +248,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           router.get('mainController').isLoading.call(router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
             router.get('mainHostDetailsController').connectOutlet('mainHostConfigs');
           });
+        },
+        exitRoute: function (router, context, callback) {
+          router.get('mainController').startPolling();
+          callback();
         }
       }),
 
@@ -431,21 +438,20 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                   self.proceedOnClose();
                   return;
                 }
-                // warn user if disable kerberos command in progress
-                var unkerberizeCommand = controller.get('tasks').findProperty('command', 'unkerberize');
-                if (unkerberizeCommand && !unkerberizeCommand.get('isCompleted')) {
-                  // user cannot exit wizard during removing kerberos
-                  if (unkerberizeCommand.get('status') == 'IN_PROGRESS') {
-                    App.showAlertPopup(Em.I18n.t('admin.kerberos.disable.unkerberize.header'), Em.I18n.t('admin.kerberos.disable.unkerberize.message'));
-                  } else {
-                    // otherwise show confirmation window
-                    App.showConfirmationPopup(function () {
-                      self.proceedOnClose();
-                    }, Em.I18n.t('admin.security.disable.onClose'));
-                  }
-                } else {
+                var unkerberizeCommand = controller.get('tasks').findProperty('command', 'unkerberize') || Em.Object.create();
+                var isUnkerberizeInProgress = unkerberizeCommand.get('status') === 'IN_PROGRESS';
+                if (controller.get('tasks').everyProperty('status', 'COMPLETED')) {
                   self.proceedOnClose();
+                  return;
                 }
+                // user cannot exit wizard during removing kerberos
+                if (isUnkerberizeInProgress) {
+                  App.showAlertPopup(Em.I18n.t('admin.kerberos.disable.unkerberize.header'), Em.I18n.t('admin.kerberos.disable.unkerberize.message'));
+                  return;
+                }
+                App.showConfirmationPopup(function () {
+                  self.proceedOnClose();
+                }, Em.I18n.t('admin.security.disable.onClose'));
               },
               proceedOnClose: function () {
                 var self = this;
@@ -519,6 +525,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         }
       }),
 
+      upgradeHistory: Em.Route.extend({
+        route: '/history',
+        connectOutlets: function (router, context) {
+          router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackUpgradeHistory');
+        },
+      }),
+
       stackNavigate: function (router, event) {
         var parent = event.view._parentView;
         parent.deactivateChildViews();
@@ -550,6 +563,11 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     adminServiceAutoStart: Em.Route.extend({
       route: '/serviceAutoStart',
+      enter: function(router, transition) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START')) {
+          router.transitionTo('main.dashboard.index');
+        }
+      },
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "serviceAutoStart");
         router.get('mainAdminController').connectOutlet('mainAdminServiceAutoStart');
@@ -702,6 +720,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             //if service is not existed then route to default service
             if (item.get('isLoaded')) {
               if (router.get('mainServiceItemController.isConfigurable')) {
+                router.get('mainController').stopPolling();
                 router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
               }
               else {
@@ -714,13 +733,19 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             }
           });
         },
-        exitRoute: function (router, context, callback) {
+        exitRoute: function (router, nextRoute, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
+          var exitCallback = function() {
+            if (!/\/main\/services\/\w+\/configs$/.test(nextRoute)) {
+              router.get('mainController').startPolling();
+            }
+            callback();
+          };
           // If another user is running some wizard, current user can't save configs
           if (controller.hasUnsavedChanges() && !router.get('wizardWatcherController.isWizardRunning')) {
-            controller.showSavePopup(callback);
+            controller.showSavePopup(exitCallback);
           } else {
-            callback();
+            exitCallback();
           }
         }
       }),
@@ -755,6 +780,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     reassign: Em.Router.transitionTo('reassign'),
 
     enableHighAvailability: require('routes/high_availability_routes'),
+
+    manageJournalNode: require('routes/manage_journalnode_routes'),
 
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 

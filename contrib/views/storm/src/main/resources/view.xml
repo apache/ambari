@@ -34,4 +34,11 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 	<placeholder>8744</placeholder>
 	<required>true</required>
   </parameter>
+  <parameter>
+	<name>storm.sslEnabled</name>
+	<description>Enter true if SSL is enabled for Storm else false.</description>
+	<label>SSL Enabled</label>
+	<default-value>false</default-value>
+	<required>true</required>
+  </parameter>
 </view>

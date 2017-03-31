@@ -16,16 +16,30 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
-
-export default Ember.Component.extend(EmberValidations,{
-  sqoopSendType : Ember.observer('isArg',function(){
-    if(this.get('isArg')){
-      this.set("actionModel.command", undefined);
-    }else{
-      this.set("actionModel.args",  Ember.A([]));
-    }
+import { validator, buildValidations } from 'ember-cp-validations';
+const Validations = buildValidations({
+  'actionModel.command': validator('presence', {
+    presence : true,
+    disabled(model, attribute) {
+      return model.get('isArg');
+    },
+    dependentKeys : ['isArg']
   }),
+  'actionModel.arg': {
+    validators: [
+      validator('arg-length', {
+        min : 1,
+        dependentKeys: ['isArg','actionModel.arg.@each.value'],
+        message : 'At least one arg should be non-empty',
+        disabled(model, attribute) {
+          return !model.get('isArg');
+        }
+      })
+    ]
+  }
+});
+
+export default Ember.Component.extend(Validations, {
   initialize : function(){
     this.sendAction('register','sqoopAction', this);
     this.on('fileSelected',function(fileName){
@@ -34,10 +48,10 @@ export default Ember.Component.extend(EmberValidations,{
     if(this.get('actionModel.jobXml') === undefined){
       this.set("actionModel.jobXml", Ember.A([]));
     }
-    if(this.get('actionModel.args') === undefined && !this.get('actionModel.command')){
-      this.set("actionModel.args", Ember.A([]));
+    if(this.get('actionModel.arg') === undefined && !this.get('actionModel.command')){
+      this.set("actionModel.arg", Ember.A([]));
       this.set('isArg', false);
-    }else if(this.get('actionModel.args') && this.get('actionModel.args').length > 0){
+    }else if(this.get('actionModel.arg') && this.get('actionModel.arg').length > 0){
       this.set('isArg', true);
     }else{
       this.set('isArg', false);
@@ -61,8 +75,19 @@ export default Ember.Component.extend(EmberValidations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-  },
+  elementsInserted : function(){
+    this.send('setIsArg', this.get('isArg'));
+  }.on('didInsertElement'),
+  onDestroy : function(){
+    if(this.get('isArg')){
+      this.set('actionModel.command', undefined);
+      if(Ember.isBlank(this.get('actionModel.arg').get('lastObject').value)){
+        this.get('actionModel.arg').removeAt(this.get('actionModel.arg').length - 1);
+      }
+    }else{
+      this.set("actionModel.arg", Ember.A([]));
+    }
+  }.on('willDestroyElement'),
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
@@ -74,12 +99,25 @@ export default Ember.Component.extend(EmberValidations,{
     register (name, context){
       this.sendAction('register',name , context);
     },
-    onSendTypeChange(value){
-      if(value === "arg"){
-        this.set('isArg',true);
+    setIsArg(value){
+      this.set('isArg', value);
+      if(value){
+        this.$('#command-option').hide();
+        this.$('#arg-option').show();
+        if(!this.get("actionModel.arg") || this.get('actionModel.arg').length === 0){
+          this.set("actionModel.arg", Ember.A([]));
+          this.get("actionModel.arg").pushObject({value : ""})
+        }
       }else{
-        this.set('isArg',false);
+        this.$('#arg-option').hide();
+        this.$('#command-option').show();
       }
+    },
+    addArg () {
+      this.get("actionModel.arg").pushObject({value : ""})
+    },
+    deleteArg (index) {
+      this.get('actionModel.arg').removeAt(index);
     }
   }
 });

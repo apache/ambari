@@ -20,9 +20,9 @@ var App = require('app');
 require('views/common/quick_view_link_view');
 var testHelpers = require('test/helpers');
 
-describe('App.QuickViewLinks', function () {
+describe('App.QuickLinksView', function () {
 
-  var quickViewLinks = App.QuickViewLinks.create({
+  var quickViewLinks = App.QuickLinksView.create({
     content: Em.Object.create()
   });
 

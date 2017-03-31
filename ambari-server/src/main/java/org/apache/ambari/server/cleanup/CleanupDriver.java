@@ -21,6 +21,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -79,7 +80,7 @@ public class CleanupDriver {
     CleanupContext cleanupContext = processArguments(args);
 
     // set up the guice context
-    Injector injector = Guice.createInjector(new ControllerModule(), new CleanupModule());
+    Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule(), new CleanupModule());
 
     // explicitly starting the persist service
     injector.getInstance(AmbariJpaPersistService.class).start();

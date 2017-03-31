@@ -19,6 +19,8 @@ limitations under the License.
 """
 import os
 import sys
+import tarfile
+from contextlib import closing
 from optparse import OptionParser
 os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
 sys.path.append("/usr/lib/python2.6/site-packages")
@@ -37,7 +39,7 @@ from resource_management.core import shell
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
@@ -146,6 +148,9 @@ with Environment() as env:
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
     fs_default = get_fs_root()
+    slider_home_dir = '/usr/hdp/' + stack_version + '/slider'
+    slider_lib_dir = slider_home_dir + '/lib'
+    slider_tarball = slider_lib_dir + "/slider.tar.gz"
     oozie_secure = ''
     oozie_home="/usr/hdp/" + stack_version + "/oozie"
     oozie_setup_sh=format("/usr/hdp/" + stack_version + "/oozie/bin/oozie-setup.sh")
@@ -243,6 +248,7 @@ with Environment() as env:
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   
   def createHdfsResources():
+    print "Creating hdfs directories..."
     params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
@@ -261,8 +267,23 @@ with Environment() as env:
     params.HdfsResource(format('{hdfs_path_prefix}/amshbase/staging'), owner='ams', type='directory', action=['create_on_execute'], mode=0711)
     params.HdfsResource(format('{hdfs_path_prefix}/user/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
     params.HdfsResource(format('{hdfs_path_prefix}/hdp'), owner='hdfs', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/spark'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/livy'), owner='livy', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
     params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark2-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/hbase'), owner='hbase', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/apps/hbase/staging'), owner='hbase', type='directory', action=['create_on_execute'], mode=0711)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hbase'), owner='hbase', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/apps/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin/test'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
 
+  def copy_zeppelin_dependencies_to_hdfs(file_pattern):
+    spark_deps_full_path = glob.glob(file_pattern)
+    if spark_deps_full_path and os.path.exists(spark_deps_full_path[0]):
+      copy_tarballs_to_hdfs(spark_deps_full_path[0], hdfs_path_prefix+'/apps/zeppelin/', 'hadoop-mapreduce-historyserver', params.hdfs_user, 'zeppelin', 'zeppelin')
+    else:
+      Logger.info('zeppelin-spark-dependencies not found at %s.' % file_pattern)
 
   def putCreatedHdfsResourcesToIgnore(env):
     if not 'hdfs_files' in env.config:
@@ -282,6 +303,15 @@ with Environment() as env:
   def putSQLDriverToOozieShared():
     params.HdfsResource(hdfs_path_prefix + '/user/oozie/share/lib/sqoop/{0}'.format(os.path.basename(SQL_DRIVER_PATH)),
                         owner='hdfs', type='file', action=['create_on_execute'], mode=0644, source=SQL_DRIVER_PATH)
+
+  def recreate_slider_tarball():
+    """
+    Re-create tarball to include extra jars, which were put into slider lib dir.
+    """
+    Logger.info(format("Re-creating {slider_tarball}"))
+    with closing(tarfile.open(params.slider_tarball, "w:gz")) as tar:
+      for filepath in glob.glob(format("{slider_lib_dir}/*.jar")):
+        tar.add(os.path.realpath(filepath), arcname=os.path.basename(filepath))
       
   env.set_params(params)
   hadoop_conf_dir = params.hadoop_conf_dir
@@ -320,6 +350,8 @@ with Environment() as env:
   oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
 
+  recreate_slider_tarball()
+
   if options.upgrade:
     Logger.info("Skipping uploading oozie shared lib during upgrade")
   else:
@@ -327,7 +359,55 @@ with Environment() as env:
       action="delete_on_execute",
       type = 'directory'
     )
-    
+
+    spark_client_dir = format("/usr/hdp/{stack_version}/spark")
+
+    if os.path.exists(spark_client_dir):
+      try:
+        # Rename /usr/hdp/{stack_version}/oozie/share/lib/spark to spark-orig
+        if not os.path.exists(format("{oozie_shared_lib}/lib/spark-orig")):
+          Execute(("mv",
+                   format("{oozie_shared_lib}/lib/spark"),
+                   format("{oozie_shared_lib}/lib/spark-orig")),
+                   sudo=True)
+
+        # Create /usr/hdp/{stack_version}/oozie/share/lib/spark
+        if not os.path.exists(format("{oozie_shared_lib}/lib/spark")):
+          Execute(('mkdir', format('{oozie_shared_lib}/lib/spark')),
+                sudo=True)
+
+        # Copy oozie-sharelib-spark from /usr/hdp/{stack_version}/oozie/share/lib/spark-orig to spark
+        Execute(format("cp -f {oozie_shared_lib}/lib/spark-orig/oozie-sharelib-spark*.jar {oozie_shared_lib}/lib/spark"))
+
+        # Copy /usr/hdp/{stack_version}/spark-client/*.jar except spark-examples*.jar
+        Execute(format("cp -P {spark_client_dir}/lib/*.jar {oozie_shared_lib}/lib/spark"))
+        Execute(format("find {oozie_shared_lib}/lib/spark/ -type l -delete"))
+        try:
+          Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"))
+        except:
+          print "No spark-examples jar files found in Spark client lib."
+
+        # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
+        Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"))
+
+        try:
+          Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"))
+        except:
+          print "No jar files found in Spark client python lib."
+
+        Execute(("chmod", "-R", "0755", format('{oozie_shared_lib}/lib/spark')),
+                sudo=True)
+
+        # Skipping this step since it might cause issues to automated scripts that rely on hdfs://user/oozie/share/lib
+        # Rename /usr/hdp/{stack_version}/oozie/share/lib to lib_ts
+        # millis = int(round(time.time() * 1000))
+        # Execute(("mv",
+        #          format("{oozie_shared_lib}/lib"),
+        #          format("{oozie_shared_lib}/lib_{millis}")),
+        #         sudo=True)
+      except Exception, e:
+        print 'Exception occurred while preparing oozie share lib: '+ repr(e)
+
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
       type = 'directory',
@@ -349,11 +429,13 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  print "Creating hdfs directories..."
+  copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/slider/lib/slider.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/slider/", 'hadoop-mapreduce-historyserver', params.hdfs_user, params.hdfs_user, params.user_group)
+  
   createHdfsResources()
+  copy_zeppelin_dependencies_to_hdfs(format("/usr/hdp/{stack_version}/zeppelin/interpreter/spark/dep/zeppelin-spark-dependencies*.jar"))
   putSQLDriverToOozieShared()
   putCreatedHdfsResourcesToIgnore(env)
-  
+
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
        mode=0644,
@@ -369,4 +451,13 @@ with Environment() as env:
   except:
     os.remove("/var/lib/ambari-agent/data/.hdfs_resource_ignore")
     raise
-  print "Completed tarball copy. Ambari preupload script completed."
+  print "Completed tarball copy."
+
+  if not options.upgrade:
+    print "Executing stack-selector-tool for stack {0} ...".format(stack_version)
+    Execute(
+      ('/usr/bin/hdp-select', 'set', 'all', stack_version),
+      sudo = True
+    )
+
+  print "Ambari preupload script completed."

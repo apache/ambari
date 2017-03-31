@@ -97,8 +97,6 @@ App.SerializerMixin = Em.Mixin.create({
           state:                         props[base_path + ".state"] || null,
           acl_administer_queue:          props[base_path + ".acl_administer_queue"] || null,
           acl_submit_applications:       props[base_path + ".acl_submit_applications"] || null,
-          capacity:                      (props[base_path + ".capacity"])?+props[base_path + ".capacity"]:null,
-          maximum_capacity:              (props[base_path + ".maximum-capacity"])?+props[base_path + ".maximum-capacity"]:null,
           user_limit_factor:             (props[base_path + ".user-limit-factor"])?+props[base_path + ".user-limit-factor"]:null,
           minimum_user_limit_percent:    (props[base_path + ".minimum-user-limit-percent"])?+props[base_path + ".minimum-user-limit-percent"]:null,
           maximum_applications:          (props[base_path + ".maximum-applications"])?+props[base_path + ".maximum-applications"]:null,
@@ -106,10 +104,17 @@ App.SerializerMixin = Em.Mixin.create({
           ordering_policy:               props[base_path + ".ordering-policy"] || null,
           enable_size_based_weight:      props[base_path + ".ordering-policy.fair.enable-size-based-weight"] || null,
           default_node_label_expression: props[base_path + ".default-node-label-expression"] || null,
-          labelsEnabled:                 props.hasOwnProperty(labelsPath)
+          priority:                      (props[base_path + ".priority"])? +props[base_path + ".priority"] : 0,
+          labelsEnabled:                 props.hasOwnProperty(labelsPath),
+          disable_preemption:            props[base_path + '.disable_preemption'] || '',
+          isPreemptionInherited:         (props[base_path + '.disable_preemption'] !== undefined)?false:true
         };
 
-    switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
+    //Converting capacity and max-capacity into two decimal point float numbers
+    q.capacity = (props[base_path + ".capacity"])? +parseFloat(props[base_path + ".capacity"]).toFixed(2) : null;
+    q.maximum_capacity = (props[base_path + ".maximum-capacity"])? +parseFloat(props[base_path + ".maximum-capacity"]).toFixed(2) : null;
+
+    switch ((props.hasOwnProperty(labelsPath))?props[labelsPath].trim():'') {
       case '*':
         q.labels = this.get('store.nodeLabels.content').map(function(item) {
           return [q.id,item.name].join('.');
@@ -229,6 +234,10 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
       json[this.PREFIX + "." + record.get('path') + ".ordering-policy.fair.enable-size-based-weight"] = record.get('enable_size_based_weight');
     }
 
+    if (this.get('store.isPriorityUtilizationSupported')) {
+      json[this.PREFIX + "." + record.get('path') + ".priority"] = record.get('priority') || 0;
+    }
+
     // do not set property if not set
     var ma = record.get('maximum_applications')||'';
     if (ma) {
@@ -249,6 +258,11 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
         this.serializeHasMany(record, json, relationship);
       }
     }, this);
+
+    var isPreemptionSupported = record.get('store.isPreemptionSupported');
+    if (isPreemptionSupported && !record.get('isPreemptionInherited')) {
+      json[this.PREFIX + "." + record.get('path') + ".disable_preemption"] = (record.get('disable_preemption')==='true')? true:false;
+    }
 
     return json;
   },

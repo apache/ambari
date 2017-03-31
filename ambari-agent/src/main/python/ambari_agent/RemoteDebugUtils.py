@@ -21,7 +21,26 @@ limitations under the License.
 try: import readline  # For readline input support
 except: pass
 
-import sys, os, traceback, codeop, cStringIO, cPickle, tempfile
+import sys, signal, os, traceback, codeop, cStringIO, cPickle, tempfile
+
+def bind_debug_signal_handlers():
+  signal.signal(signal.SIGUSR1, print_threads_stack_traces) # prints process threads current stack trace to the err stream. (can be found in ambari-agent.out)
+  signal.signal(signal.SIGUSR2, remote_debug) # provide a read-only python shell, which represent the process state at time of signal arrival.
+
+def print_threads_stack_traces(sig, frame):
+  print >> sys.stderr, "\n*** STACKTRACE - START ***\n"
+  code = []
+  for threadId, stack in sys._current_frames().items():
+    code.append("\n# ThreadID: %s" % threadId)
+    for filename, lineno, name, line in traceback.extract_stack(stack):
+      code.append('File: "%s", line %d, in %s' % (filename,
+                                                  lineno, name))
+      if line:
+        code.append("  %s" % (line.strip()))
+
+  for line in code:
+    print >> sys.stderr, line
+  print >> sys.stderr, "\n*** STACKTRACE - END ***\n"
 
 def pipename(pid):
   """Return name of pipe to use"""

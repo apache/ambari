@@ -418,6 +418,7 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               create_parents = True,
+                              mode = 0755,
     )
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
@@ -432,19 +433,21 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
-                              content='log4jproperties\nline2',
+                              content=InlineTemplate('log4jproperties\nline2'),
                               owner='hive',
                               group='hadoop',
                               mode=0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content='log4jproperties\nline2',
+                              content=InlineTemplate('log4jproperties\nline2'),
                               owner='hive',
                               group='hadoop',
                               mode=0644,
@@ -452,7 +455,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group='hadoop',
                               conf_dir='/etc/hive/conf.server',
-                              mode=0644,
+                              mode=0600,
                               configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                    u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                    u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -462,7 +465,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
       group = 'hadoop',
       conf_dir = '/etc/hive/conf.server',
-      mode = 0644,
+      mode = 0600,
       owner = 'hive',
       configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
@@ -471,6 +474,7 @@ class TestHiveServer(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner='hive',
                               group='hadoop',
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
@@ -505,7 +509,8 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2'),
+                              mode = 0600,
                               )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
@@ -620,6 +625,7 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               create_parents = True,
+                              mode = 0755,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
@@ -633,19 +639,21 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner='hive',
                               group='hadoop',
+                              mode = 0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-exec-log4j.properties',
-                              content='log4jproperties\nline2',
+                              content=InlineTemplate('log4jproperties\nline2'),
                               owner='hive',
                               group='hadoop',
                               mode=0644,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-log4j.properties',
-                              content='log4jproperties\nline2',
+                              content=InlineTemplate('log4jproperties\nline2'),
                               owner='hive',
                               group='hadoop',
                               mode=0644,
@@ -653,7 +661,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group='hadoop',
                               conf_dir='/etc/hive/conf.server',
-                              mode=0644,
+                              mode=0600,
                               configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
                                                                    u'javax.jdo.option.ConnectionDriverName': u'true',
                                                                    u'javax.jdo.option.ConnectionPassword': u'true'}},
@@ -663,7 +671,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
       group = 'hadoop',
       conf_dir = '/etc/hive/conf.server',
-      mode = 0644,
+      mode = 0600,
       owner = 'hive',
       configuration_attributes = self.getConfig()['configuration_attributes']['hiveserver2-site'],
       configurations = self.getConfig()['configurations']['hiveserver2-site'],
@@ -672,6 +680,7 @@ class TestHiveServer(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner='hive',
                               group='hadoop',
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
@@ -684,6 +693,11 @@ class TestHiveServer(RMFTestCase):
                               group='root',
                               mode=0644,
     )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/zkmigrator_jaas.conf',
+                              content = Template('zkmigrator_jaas.conf.j2'),
+                              owner = 'hive',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
@@ -706,7 +720,8 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hiveserver2.properties',
                               owner = 'hive',
                               group = 'hadoop',
-                              content = Template('hadoop-metrics2-hiveserver2.properties.j2')
+                              content = Template('hadoop-metrics2-hiveserver2.properties.j2'),
+                              mode = 0600,
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner='hive',
@@ -772,10 +787,19 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    # ensure deregister is called
     self.assertResourceCalledIgnoreEarlier('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
+
+    # ensure stop is called
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)")
+
+    # skip any other stop stuff since it's covered by other tests and verify hdp-select
+    self.assertResourceCalledIgnoreEarlier('Execute',
+      ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'),
+      sudo=True)
 
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
@@ -795,10 +819,16 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
      call_mocks = call_side_effects
     )
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    # ensure that deregister is called
     self.assertResourceCalledIgnoreEarlier( 'Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 1.2.1.2.3.0.0-2434',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
+
+    # ensure hdp-select is called
+    self.assertResourceCalledIgnoreEarlier('Execute',
+      ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'),
+      sudo = True, )
+
 
   def test_stop_during_upgrade_bad_hive_version(self):
     try:
@@ -811,7 +841,13 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     except:
       pass
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'), sudo=True,)
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)")
+
+    self.assertResourceCalledIgnoreEarlier('Execute',
+      ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', '2.2.1.0-2065'),
+      sudo=True)
+
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
@@ -945,8 +981,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)
 
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", skip=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", skip=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -988,8 +1024,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
 
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", skip=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", skip=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

@@ -91,7 +91,6 @@ public class ClusterUtils {
             hostAttributes.put("os_family", "redhat");
             hostAttributes.put("os_release_version", "6.3");
             host1.setHostAttributes(hostAttributes);
-            host1.persist();
         }
 
         /**

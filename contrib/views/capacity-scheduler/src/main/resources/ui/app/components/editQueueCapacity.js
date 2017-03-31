@@ -33,11 +33,15 @@ App.EditQueueCapacityComponent = Ember.Component.extend({
   },
 
   isQueueCapacityDirty: function() {
-    return this.get('queue').changedAttributes().hasOwnProperty('capacity');
+    var isDirty = this.get('queue').changedAttributes().hasOwnProperty('capacity');
+    this.set('queue.isDirtyCapacity', isDirty);
+    return isDirty;
   }.property('queue.capacity'),
 
   isQueueMaximumCapacityDirty: function() {
-    return this.get('queue').changedAttributes().hasOwnProperty('maximum_capacity');
+    var isDirty = this.get('queue').changedAttributes().hasOwnProperty('maximum_capacity');
+    this.set('queue.isDirtyMaxCapacity', isDirty);
+    return isDirty;
   }.property('queue.maximum_capacity'),
 
   isInvalidQueueMaximumCapacity: function() {

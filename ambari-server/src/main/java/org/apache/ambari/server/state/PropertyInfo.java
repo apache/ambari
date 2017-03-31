@@ -76,6 +76,17 @@ public class PropertyInfo {
   private Set<PropertyDependencyInfo> dependedByProperties =
     new HashSet<PropertyDependencyInfo>();
 
+  /**
+   * The list of properties that use this property.
+   * Password properties may be used by other properties in
+   * the same config type or different config type, typically
+   * when asking for user name and password pairs.
+   */
+  @XmlElementWrapper(name="used-by")
+  @XmlElement(name = "property")
+  private Set<PropertyDependencyInfo> usedByProperties =
+          new HashSet<>();
+
   //This method is called after all the properties (except IDREF) are unmarshalled for this object,
   //but before this object is set to the parent object.
   void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
@@ -94,6 +105,10 @@ public class PropertyInfo {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public Set<PropertyDependencyInfo> getUsedByProperties() {
+    return usedByProperties;
   }
 
   public String getValue() {
@@ -173,6 +188,10 @@ public class PropertyInfo {
 
   public Set<PropertyDependencyInfo> getDependsOnProperties() {
     return dependsOnProperties;
+  }
+
+  public void setPropertyValueAttributes(ValueAttributesInfo propertyValueAttributes) {
+    this.propertyValueAttributes = propertyValueAttributes;
   }
 
   public Set<PropertyDependencyInfo> getDependedByProperties() {
@@ -255,6 +274,7 @@ public class PropertyInfo {
     TEXT,
     ADDITIONAL_USER_PROPERTY,
     NOT_MANAGED_HDFS_PATH,
-    VALUE_FROM_PROPERTY_FILE
+    VALUE_FROM_PROPERTY_FILE,
+    KERBEROS_PRINCIPAL
   }
 }

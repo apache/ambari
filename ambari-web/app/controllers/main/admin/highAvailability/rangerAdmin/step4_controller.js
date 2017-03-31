@@ -51,11 +51,19 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   onLoadConfigsTags: function (data) {
+    var urlParams = [];
+    var siteNamesToFetch = this.get('wizardController.configs').mapProperty('siteName');
+    siteNamesToFetch.map(function(siteName) {
+      if(siteName in data.Clusters.desired_configs) {
+        urlParams.push('(type=' + siteName + '&tag=' + data.Clusters.desired_configs[siteName].tag + ')');
+      }
+    });
+
     App.ajax.send({
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=admin-properties&tag=' + data.Clusters.desired_configs['admin-properties'].tag + ')'
+        urlParams: urlParams.join('|')
       },
       success: 'onLoadConfigs',
       error: 'onTaskError'
@@ -63,14 +71,25 @@ App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   onLoadConfigs: function (data) {
-    data.items.findProperty('type', 'admin-properties').properties['policymgr_external_url'] = this.get('content.loadBalancerURL');
-    var configData = this.reconfigureSites(['admin-properties'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)));
+    var configs = [];
+
+    this.get('wizardController.configs').map(function(item) {
+      var config = data.items.findProperty('type', item.siteName);
+      if (config) {
+        config.properties[item.propertyName] = this.get('content.loadBalancerURL');
+        configs.push({
+          Clusters: {
+            desired_config: this.reconfigureSites([item.siteName], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN', false)))
+          }
+        });
+      }
+    }, this);
 
     App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'common.service.multiConfigurations',
       sender: this,
       data: {
-        desired_config: configData
+        configs: configs
       },
       success: 'onSaveConfigs',
       error: 'onTaskError'

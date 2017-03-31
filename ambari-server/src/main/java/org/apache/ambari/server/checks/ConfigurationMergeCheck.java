@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -39,7 +40,9 @@ import com.google.inject.Singleton;
  * Checks for configuration merge conflicts.
  */
 @Singleton
-@UpgradeCheck(order = 99.0f, required = true)
+@UpgradeCheck(
+    order = 99.0f,
+    required = { UpgradeType.ROLLING, UpgradeType.NON_ROLLING, UpgradeType.HOST_ORDERED })
 public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Inject

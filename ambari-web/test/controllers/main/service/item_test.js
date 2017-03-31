@@ -347,7 +347,7 @@ describe('App.MainServiceItemController', function () {
       });
       it(test.m, function () {
         if (!test.default) {
-          App.store.load(App.Service, test.content);
+          App.store.safeLoad(App.Service, test.content);
         }
         mainServiceItemController.runSmokeTest({}).onPrimary();
         expect(mainServiceItemController.runSmokeTestPrimary.calledOnce).to.equal(test.startSmoke);
@@ -1214,7 +1214,7 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
         serviceName: 'S1',
         componentName: 'C1',
-        displayName: 'd1'
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE_COMPONENT
       })).to.be.true;
     });
     it('should launch $.fileDownload method, event passed', function () {
@@ -1226,7 +1226,43 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
         serviceName: 'S1',
         componentName: 'name1',
-        displayName: 'label1'
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE_COMPONENT
+      })).to.be.true;
+    });
+  });
+
+  describe('#downloadAllClientConfigs()', function () {
+
+    var mainServiceItemController = App.MainServiceItemController.create({
+      content: {
+        clientComponents: [
+          Em.Object.create({
+            totalCount: 1,
+            componentName: 'C1',
+            displayName: 'd1'
+          }),
+          Em.Object.create({
+            totalCount: 1,
+            componentName: 'C2',
+            displayName: 'd2'
+          })
+        ],
+        serviceName: 'S1'
+      }
+    });
+
+    beforeEach(function () {
+      sinon.stub(mainServiceItemController, 'downloadClientConfigsCall', Em.K);
+    });
+    afterEach(function () {
+      mainServiceItemController.downloadClientConfigsCall.restore();
+    });
+
+    it('should call downloadClientConfigsCall method for all clients', function () {
+      mainServiceItemController.downloadAllClientConfigs();
+      expect(mainServiceItemController.downloadClientConfigsCall.calledWith({
+        serviceName: 'S1',
+        resourceType: mainServiceItemController.resourceTypeEnum.SERVICE
       })).to.be.true;
     });
   });
@@ -1380,6 +1416,7 @@ describe('App.MainServiceItemController', function () {
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
       sinon.stub(mainServiceItemController, 'kerberosDeleteWarning');
+      sinon.stub(mainServiceItemController, 'showLastWarning');
 
       mainServiceItemController.reopen({
         interDependentServices: []
@@ -1439,7 +1476,7 @@ describe('App.MainServiceItemController', function () {
       this.allowUninstallServices.returns(true);
       this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.stopped}), Em.Object.create({workStatus: App.Service.statesMap.stopped})]);
       mainServiceItemController.deleteService('S1');
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(mainServiceItemController.showLastWarning.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and install failed", function() {
@@ -1447,7 +1484,7 @@ describe('App.MainServiceItemController', function () {
       this.allowUninstallServices.returns(true);
       this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.install_failed}), Em.Object.create({workStatus: App.Service.statesMap.install_failed})]);
       mainServiceItemController.deleteService('S1');
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(mainServiceItemController.showLastWarning.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and not stopped", function() {
@@ -1671,27 +1708,27 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'loadConfigRecommendations', Em.K);
+      sinon.stub(mainServiceItemController, 'saveConfigs', Em.K);
       sinon.stub(mainServiceItemController, 'deleteServiceCall', Em.K);
       mainServiceItemController.reopen({
         interDependentServices: []
       })
     });
     afterEach(function() {
-      mainServiceItemController.loadConfigRecommendations.restore();
+      mainServiceItemController.saveConfigs.restore();
       mainServiceItemController.deleteServiceCall.restore();
     });
 
-    it("window.location.reload should be called", function() {
+    it("saveConfigs should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {});
       expect(mainServiceItemController.deleteServiceCall.called).to.be.false;
-      expect(mainServiceItemController.loadConfigRecommendations.calledOnce).to.be.true;
+      expect(mainServiceItemController.saveConfigs.calledOnce).to.be.true;
     });
 
     it("deleteServiceCall should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {servicesToDeleteNext: true});
       expect(mainServiceItemController.deleteServiceCall.calledOnce).to.be.true;
-      expect(mainServiceItemController.loadConfigRecommendations.called).to.be.false;
+      expect(mainServiceItemController.saveConfigs.called).to.be.false;
     });
   });
 
@@ -1793,4 +1830,119 @@ describe('App.MainServiceItemController', function () {
       expect(mainServiceItemController.isRangerPluginEnabled()).to.be.true;
     });
   });
+
+  describe('#dependentServiceNames', function () {
+
+    var controller,
+      serviceName = 's0',
+      dependentServiceNames = ['s1', 's2'],
+      testCases = [
+        {
+          isConfigsPropertiesLoaded: true,
+          dependentServiceNames: dependentServiceNames,
+          message: 'model is ready'
+        },
+        {
+          isConfigsPropertiesLoaded: false,
+          dependentServiceNames: [],
+          message: 'model is not ready'
+        }
+      ];
+
+    beforeEach(function () {
+      controller = App.MainServiceItemController.create({
+        content: {
+          serviceName: serviceName
+        }
+      });
+      sinon.stub(App.StackService, 'find').returns(Em.Object.create({
+        dependentServiceNames: dependentServiceNames
+      }));
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+    });
+
+    testCases.forEach(function (test) {
+
+      it(test.message, function () {
+        App.set('router.clusterController.isConfigsPropertiesLoaded', test.isConfigsPropertiesLoaded);
+        expect(controller.get('dependentServiceNames')).to.eql(test.dependentServiceNames);
+      });
+
+    });
+
+  });
+
+  describe('#applyRecommendedValues', function () {
+
+    var controller;
+
+    beforeEach(function () {
+      controller = App.MainServiceItemController.create({
+        stepConfigs: [
+          Em.Object.create({
+            serviceName: 's1',
+            configs: [
+              Em.Object.create({
+                name: 'p1',
+                value: 'v1'
+              }),
+              Em.Object.create({
+                name: 'p2',
+                value: 'v2'
+              })
+            ]
+          }),
+          Em.Object.create({
+            serviceName: 's2',
+            configs: [
+              Em.Object.create({
+                name: 'p3',
+                value: 'v3'
+              }),
+              Em.Object.create({
+                name: 'p4',
+                value: 'v4'
+              })
+            ]
+          })
+        ],
+        changedProperties: [
+          {
+            serviceName: 's1',
+            propertyName: 'p1',
+            recommendedValue: 'r1',
+            initialValue: 'i1',
+            saveRecommended: false
+          },
+          {
+            serviceName: 's1',
+            propertyName: 'p2',
+            recommendedValue: 'r2',
+            initialValue: 'i2',
+            saveRecommended: true
+          },
+          {
+            serviceName: 's2',
+            propertyName: 'p3',
+            recommendedValue: 'r3',
+            initialValue: 'i3',
+            saveRecommended: true
+          }
+        ]
+      });
+    });
+
+    it('should update properties with saveRecommended flag set to true', function () {
+      controller.applyRecommendedValues(controller.get('stepConfigs'));
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p1').get('value')).to.equal('i1');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's1').get('configs').findProperty('name', 'p2').get('value')).to.equal('r2');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p3').get('value')).to.equal('r3');
+      expect(controller.get('stepConfigs').findProperty('serviceName', 's2').get('configs').findProperty('name', 'p4').get('value')).to.equal('v4');
+    });
+
+  });
+
 });

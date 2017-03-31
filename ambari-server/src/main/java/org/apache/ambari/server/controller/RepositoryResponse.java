@@ -32,6 +32,7 @@ public class RepositoryResponse {
   private Long repositoryVersionId;
   private String versionDefinitionId;
   private Long clusterVersionId;
+  private boolean unique;
 
   public RepositoryResponse(String baseUrl, String osType, String repoId,
       String repoName, String mirrorsList, String defaultBaseUrl, String latestBaseUrl) {
@@ -158,4 +159,11 @@ public class RepositoryResponse {
     return clusterVersionId;
   }
 
+  public boolean isUnique() {
+    return unique;
+  }
+
+  public void setUnique(boolean unique) {
+    this.unique = unique;
+  }
 }

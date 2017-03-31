@@ -38,7 +38,9 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -284,13 +286,23 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Return the optionality flag of the Upgrade Check
-   * @return
+   * Gets whether this upgrade check is required for the specified
+   * {@link UpgradeType}. Checks which are marked as required do not need to be
+   * explicitely declared in the {@link UpgradePack} to be run.
+   *
+   * @return {@code true} if it is required, {@code false} otherwise.
    */
-  public Boolean isRequired(){
-      return getClass().getAnnotation(UpgradeCheck.class).required();
+  public boolean isRequired(UpgradeType upgradeType) {
+    UpgradeType[] upgradeTypes = getClass().getAnnotation(UpgradeCheck.class).required();
+    for (UpgradeType requiredType : upgradeTypes) {
+      if (upgradeType == requiredType) {
+        return true;
+      }
+    }
+
+    return false;
   }
-  
+
   /**
    * Return a boolean indicating whether or not configs allow bypassing errors during the RU/EU PreChecks.
    * @return

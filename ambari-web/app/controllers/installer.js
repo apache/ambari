@@ -21,7 +21,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
 
-App.InstallerController = App.WizardController.extend({
+App.InstallerController = App.WizardController.extend(App.UserPref, {
 
   name: 'installerController',
 
@@ -141,11 +141,13 @@ App.InstallerController = App.WizardController.extend({
     var dfd = $.Deferred();
     var self = this;
     var stackServices = App.StackService.find().mapProperty('serviceName');
-    if (!(stackServices && !!stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') == App.get('currentStackVersionNumber'))) {
+    if (!(stackServices.length && App.StackService.find().objectAt(0).get('stackVersion') === App.get('currentStackVersionNumber'))) {
       this.loadServiceComponents().complete(function () {
         self.set('content.services', App.StackService.find().forEach(function (item) {
           // user the service version from VersionDefinition
-          item.set('serviceVersionDisplay', App.Stack.find().findProperty('isSelected', true).get('stackServices').findProperty('name', item.get('serviceName')).get('latestVersion'));
+          var serviceInStack = App.Stack.find().findProperty('isSelected').get('stackServices').findProperty('name', item.get('serviceName'));
+          var serviceVersionDisplay = serviceInStack ? serviceInStack.get('latestVersion') : item.get('serviceVersion');
+          item.set('serviceVersionDisplay', serviceVersionDisplay);
         }));
         dfd.resolve();
       });
@@ -719,6 +721,17 @@ App.InstallerController = App.WizardController.extend({
         });
         existedOS.push(supportedOS);
       }
+      if(existedMap[supportedOS.OperatingSystems.os_type]) {
+        existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+          supportedOS.repositories.forEach(function (supportedRepo) {
+            if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+              repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+              repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+              repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+            }
+          });
+        });
+      }
     });
     App.stackMapper.map(data.versionDefinition);
 
@@ -740,6 +753,16 @@ App.InstallerController = App.WizardController.extend({
         } else {
           this.setSelected(data.stackInfo.isStacksExistInDb);
         }
+      }
+      // log diagnosis data for abnormal number of repos
+      var post_diagnosis = false;
+      data.versionDefinition.operating_systems.map(function(item) {
+        if (item.repositories.length > 2) {
+          post_diagnosis = true;
+        }
+      });
+      if (post_diagnosis) {
+        this.postUserPref('stack_response_diagnosis', data);
       }
     }
   },

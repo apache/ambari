@@ -17,6 +17,10 @@
 
 INSTALL_HELPER="${RPM_INSTALL_PREFIX}/var/lib/ambari-server/install-helper.sh"
 
+AMBARI_SERVER_KEYS_FOLDER="${ROOT}/var/lib/ambari-server/keys"
+AMBARI_SERVER_KEYS_DB_FOLDER="${ROOT}/var/lib/ambari-server/keys/db"
+AMBARI_SERVER_NEWCERTS_FOLDER="${ROOT}/var/lib/ambari-server/keys/db/newcerts"
+
 case "$1" in
   1) # Action install
     if [ -f "$INSTALL_HELPER" ]; then
@@ -29,5 +33,19 @@ case "$1" in
     fi
   ;;
 esac
+
+if [ -d "$AMBARI_SERVER_KEYS_FOLDER" ]
+then
+    chmod 700 "$AMBARI_SERVER_KEYS_FOLDER"
+    if [ -d "$AMBARI_SERVER_KEYS_DB_FOLDER" ]
+    then
+        chmod 700 "$AMBARI_SERVER_KEYS_DB_FOLDER"
+        if [ -d "$AMBARI_SERVER_NEWCERTS_FOLDER" ]
+        then
+            chmod 700 "$AMBARI_SERVER_NEWCERTS_FOLDER"
+
+        fi
+    fi
+fi
 
 exit 0

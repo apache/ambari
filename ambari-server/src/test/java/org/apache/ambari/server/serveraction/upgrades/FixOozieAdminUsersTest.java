@@ -17,7 +17,16 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
@@ -25,18 +34,11 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.inject.Injector;
 
 /**
  * Tests OozieConfigCalculation logic
@@ -53,52 +55,28 @@ public class FixOozieAdminUsersTest {
     clusters = EasyMock.createMock(Clusters.class);
     cluster = EasyMock.createMock(Cluster.class);
 
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("falcon_user", "falcon");
+    }};
 
-    Config falconEnvConfig = new ConfigImpl("falcon-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("falcon_user", "falcon");
-      }};
+    Config falconEnvConfig = EasyMock.createNiceMock(Config.class);
+    expect(falconEnvConfig.getType()).andReturn("falcon-env").anyTimes();
+    expect(falconEnvConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    mockProperties = new HashMap<String, String>() {{
+      put("oozie_admin_users", "oozie, oozie-admin");
+    }};
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
+    Config oozieEnvConfig = EasyMock.createNiceMock(Config.class);
+    expect(oozieEnvConfig.getType()).andReturn("oozie-env").anyTimes();
+    expect(oozieEnvConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
-    Config oozieEnvConfig = new ConfigImpl("oozie-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("oozie_admin_users", "oozie, oozie-admin");
-      }};
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
     expect(cluster.getDesiredConfigByType("falcon-env")).andReturn(falconEnvConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("oozie-env")).andReturn(oozieEnvConfig).atLeastOnce();
 
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(injector.getInstance(Clusters.class)).andReturn(clusters).atLeastOnce();
-    replay(injector, clusters);
+    replay(injector, clusters, falconEnvConfig, oozieEnvConfig);
 
     clustersField = FixOozieAdminUsers.class.getDeclaredField("clusters");
     clustersField.setAccessible(true);

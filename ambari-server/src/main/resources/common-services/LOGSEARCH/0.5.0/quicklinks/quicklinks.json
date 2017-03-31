@@ -19,6 +19,7 @@
         "component_name": "LOGSEARCH_SERVER",
         "url": "%@://%@:%@",
         "requires_user_name": "false",
+        "attributes": ["authenticated", "sso"],
         "port": {
           "http_property": "logsearch_ui_port",
           "http_default_port": "8888",

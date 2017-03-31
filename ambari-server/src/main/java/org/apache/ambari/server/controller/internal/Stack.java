@@ -381,6 +381,13 @@ public class Stack {
     return configMap;
   }
 
+  public boolean isKerberosPrincipalNameProperty(String service, String type, String propertyName) {
+    return (serviceConfigurations.containsKey(service) &&
+            serviceConfigurations.get(service).containsKey(type) &&
+            serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
+            serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
+                contains(PropertyInfo.PropertyType.KERBEROS_PRINCIPAL));
+  }
   /**
    * Get config attributes for the specified service and configuration type.
    *

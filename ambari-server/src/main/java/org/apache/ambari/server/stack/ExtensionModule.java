@@ -253,8 +253,10 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
     Collection<ServiceModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, serviceModules, parentExtension.serviceModules);
     for (ServiceModule module : mergedModules) {
-      serviceModules.put(module.getId(), module);
-      extensionInfo.getServices().add(module.getModuleInfo());
+      if(!module.isDeleted()){
+        serviceModules.put(module.getId(), module);
+        extensionInfo.getServices().add(module.getModuleInfo());
+      }
     }
   }
 

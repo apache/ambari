@@ -138,6 +138,42 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   hostsModifiedConfigGroups: {},
 
   /**
+   * Trim the tooltip text to show first 500 characters of properties list
+   * @type {string}
+   */
+  tooltipText: function() {
+    var selectedConfigGroup = this.get('selectedConfigGroup'),
+      propertiesList = selectedConfigGroup.get('propertiesList'),
+      trimLength = 500,
+      trimmedText = "",
+      noOfRemainingProperties = 0,
+      index = 0,
+      propertyText = "",
+      addDots = false;
+    if(propertiesList.length > trimLength) {
+      // Adjust trim length based on occurrence of <br/> around trim length
+      index = propertiesList.substring(trimLength-10, trimLength+10).indexOf("<br/>");
+      if(index > -1) {
+        trimLength = trimLength - 10 + index;
+      } else {
+        addDots = true;
+      }
+      trimmedText = propertiesList.substring(0, trimLength);
+      if(addDots) {
+        trimmedText += " ...";
+      }
+      noOfRemainingProperties = (propertiesList.substring(trimLength).match(new RegExp("<br/>", "g")) || []).length - 1;
+      if(noOfRemainingProperties > 0) {
+        propertyText = (noOfRemainingProperties > 1) ? "properties" : "property";
+        trimmedText += "<br/> and " + noOfRemainingProperties + " more " + propertyText;
+      }
+    } else {
+      trimmedText = propertiesList;
+    }
+    return trimmedText;
+  }.property('selectedConfigGroup.propertiesList'),
+
+  /**
    * Check when some config group was changed and updates <code>hostsModifiedConfigGroups</code> once
    * @method hostsModifiedConfigGroupsObs
    */
@@ -524,12 +560,15 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    */
   addHostsCallback: function (selectedHosts) {
     if (selectedHosts) {
+      var sortedHosts;
       var group = this.get('selectedConfigGroup');
       var parentGroupHosts = group.get('parentConfigGroup.hosts');
       var newHostsForParentGroup = parentGroupHosts.filter(function(hostName) {
         return !selectedHosts.contains(hostName);
       });
       group.get('hosts').pushObjects(selectedHosts);
+      sortedHosts = group.get('hosts').sort();
+      group.set('hosts', sortedHosts);
       group.set('parentConfigGroup.hosts', newHostsForParentGroup);
     }
   },
@@ -544,13 +583,15 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     }
     var hosts = this.get('selectedHosts').slice();
     var newHosts = [];
-    this.get('selectedConfigGroup.parentConfigGroup.hosts').pushObjects(hosts);
-    this.get('selectedConfigGroup.hosts').forEach(function(host) {
+    var selectedGroup = this.get('selectedConfigGroup');
+    var parentGroup = this.get('selectedConfigGroup.parentConfigGroup');
+    selectedGroup.get('hosts').forEach(function(host) {
       if (!hosts.contains(host)) {
         newHosts.pushObject(host);
       }
     });
-    this.set('selectedConfigGroup.hosts', newHosts);
+    selectedGroup.set('hosts', newHosts);
+    parentGroup.set('hosts', parentGroup.get('hosts').pushObjects(hosts).slice().sort());
     this.set('selectedHosts', []);
   },
 
@@ -641,7 +682,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           name: this.get('configGroupName'),
           description: this.get('configGroupDesc')
         });
-        App.store.commit();
+        App.store.fastCommit();
         this.hide();
       }
     });
@@ -707,7 +748,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           });
         }
 
-        App.store.load(App.ServiceConfigGroup, {
+        App.store.safeLoad(App.ServiceConfigGroup, {
           id: newGroupId,
           name: groupName,
           description: this.get('configGroupDesc'),
@@ -720,11 +761,11 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           properties: duplicated ? properties : [],
           is_temporary: true
         });
-        App.store.commit();
+        App.store.fastCommit();
         var childConfigGroups = defaultConfigGroup.get('childConfigGroups').mapProperty('id');
         childConfigGroups.push(newGroupId);
-        App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
-        App.store.commit();
+        App.store.safeLoad(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
+        App.store.fastCommit();
         self.get('configGroups').pushObject(App.ServiceConfigGroup.find(newGroupId));
         this.hide();
       }
@@ -814,9 +855,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       resetGroupChanges: function (originalGroups) {
         if (this.get('subViewController.isHostsModified')) {
           App.ServiceConfigGroup.find().clear();
-          App.store.commit();
-          App.store.loadMany(App.ServiceConfigGroup, originalGroups);
-          App.store.commit();
+          App.store.safeLoadMany(App.ServiceConfigGroup, originalGroups);
         }
       },
 

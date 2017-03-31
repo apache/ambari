@@ -16,6 +16,7 @@
 */
 
 import Ember from 'ember';
+import Constants from '../utils/constants';
 
 export default Ember.Service.extend({
   simpleProperty : /^[A-Za-z_][0-9A-Za-z_]+$/,
@@ -24,6 +25,10 @@ export default Ember.Service.extend({
   dynamicPropertyWithWfMethod : /^\${wf:[A-Za-z_][0-9A-Za-z_]*\((([A-Za-z_][0-9A-Za-z_]*)(,([A-Za-z_][0-9A-Za-z_]*))*)*\)}$/i,
   hadoopEL : /^\${hadoop:.*}$/,
   extractor : /\${.+?\}/g,
+  containsParameters(path) {
+    var matches = path.match(this.get('extractor'));
+    return matches !== null;
+  },
   extract : function(property) {
     var matches = property.match(this.get('extractor'));
     var dynamicProperties = [];
@@ -31,7 +36,7 @@ export default Ember.Service.extend({
       return dynamicProperties;
     }
     matches.forEach((match)=>{
-      if(this.get('dynamicProperty').test(match)){
+      if(this.get('dynamicProperty').test(match) && Constants.elConstants.indexOf(match) < 0){
         dynamicProperties.push(match);
       }
     }.bind(this));

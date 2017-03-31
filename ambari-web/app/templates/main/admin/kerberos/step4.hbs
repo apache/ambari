@@ -26,9 +26,8 @@
     {{view App.ServicesConfigView}}
 
     <div class="btn-area">
-      <button id="back-kerberos-step4" class="btn" {{action back}}>&larr; {{t common.back}}</button>
-      <button id="submit-kerberos-step4" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-        {{action submit target="controller"}}>{{t common.next}} &rarr;</button>
+      {{view App.WizardBackButton buttonId="back-kerberos-step4" action="back"}}
+      {{view App.WizardNextButton buttonId="submit-kerberos-step4" action="submit" target="controller"}}
     </div>
   </div>
 </div>

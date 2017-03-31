@@ -18,7 +18,20 @@
 
 package org.apache.ambari.server.topology;
 
-import junit.framework.Assert;
+
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+
+import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -28,17 +41,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import junit.framework.Assert;
 
 /**
  * Unit test for the ConfigureClusterTask class.
@@ -58,14 +61,12 @@ public class ConfigureClusterTaskTest {
   @Mock(type = MockType.STRICT)
   private ClusterTopology clusterTopology;
 
-  private TopologyManager.ConfigureClusterTask testSubject;
-
+  private ConfigureClusterTask testSubject;
 
   @Before
   public void before() {
     reset(clusterConfigurationRequest, clusterTopology);
-    testSubject = new TopologyManager.ConfigureClusterTask(clusterTopology, clusterConfigurationRequest);
-
+    testSubject = new ConfigureClusterTask(clusterTopology, clusterConfigurationRequest);
   }
 
   @Test

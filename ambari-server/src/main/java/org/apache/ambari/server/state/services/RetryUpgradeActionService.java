@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.state.services;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
@@ -34,14 +38,11 @@ import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
+import com.google.common.util.concurrent.AbstractScheduledService;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 /**
  * Monitors commands during Stack Upgrade that are in a HOLDING_* failed because they failed in order to retry them
@@ -90,10 +91,10 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
 
 
   public RetryUpgradeActionService() {
-    this.m_fullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    m_fullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     TimeZone tz = TimeZone.getTimeZone("UTC");
-    this.m_deltaDateFormat = new SimpleDateFormat("HH:mm:ss");
-    this.m_deltaDateFormat.setTimeZone(tz);
+    m_deltaDateFormat = new SimpleDateFormat("HH:mm:ss");
+    m_deltaDateFormat.setTimeZone(tz);
   }
 
   /**
@@ -113,26 +114,26 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
    */
   @Override
   protected void startUp() throws Exception {
-    this.MAX_TIMEOUT_MINS = m_configuration.getStackUpgradeAutoRetryTimeoutMins();
-    this.MAX_TIMEOUT_MS = MAX_TIMEOUT_MINS * 60000L;
+    MAX_TIMEOUT_MINS = m_configuration.getStackUpgradeAutoRetryTimeoutMins();
+    MAX_TIMEOUT_MS = MAX_TIMEOUT_MINS * 60000L;
 
-    if (this.MAX_TIMEOUT_MINS < 1) {
+    if (MAX_TIMEOUT_MINS < 1) {
       LOG.info("Will not start service {} used to auto-retry failed actions during " +
           "Stack Upgrade since since the property {} is either invalid/missing or set to {}",
-          this.getClass().getSimpleName(), Configuration.STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS_KEY, MAX_TIMEOUT_MINS);
+          this.getClass().getSimpleName(), Configuration.STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS.getKey(), MAX_TIMEOUT_MINS);
       stopAsync();
     }
 
     // During Stack Upgrade, some tasks don't make since to auto-retry since they are either
     // running on the server, should only be ran multiple times with human intervention,
     // or are not going to succeed on repeat attempts because they involve DB queries and not necessarily down hosts.
-    this.CUSTOM_COMMAND_NAMES_TO_IGNORE = m_configuration.getStackUpgradeAutoRetryCustomCommandNamesToIgnore();
-    this.COMMAND_DETAILS_TO_IGNORE = m_configuration.getStackUpgradeAutoRetryCommandDetailsToIgnore();
+    CUSTOM_COMMAND_NAMES_TO_IGNORE = m_configuration.getStackUpgradeAutoRetryCustomCommandNamesToIgnore();
+    COMMAND_DETAILS_TO_IGNORE = m_configuration.getStackUpgradeAutoRetryCommandDetailsToIgnore();
   }
 
   public void setMaxTimeout(int mins) {
-    this.MAX_TIMEOUT_MINS = mins;
-    this.MAX_TIMEOUT_MS = MAX_TIMEOUT_MINS * 60000L;
+    MAX_TIMEOUT_MINS = mins;
+    MAX_TIMEOUT_MS = MAX_TIMEOUT_MINS * 60000L;
   }
 
   /**
@@ -189,7 +190,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
    * @param requestId Request Id to search tasks for.
    */
   @Transactional
-  private void retryHoldingCommandsInRequest(Long requestId) {
+  void retryHoldingCommandsInRequest(Long requestId) {
     if (requestId == null) {
       return;
     }
@@ -198,7 +199,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     List<HostRoleCommandEntity> holdingCommands = m_hostRoleCommandDAO.findByRequestIdAndStatuses(requestId, HOLDING_STATUSES);
     if (holdingCommands.size() > 0) {
       for (HostRoleCommandEntity hrc : holdingCommands) {
-        LOG.debug("Comparing task id: {}, original start time: {}, now: {}",
+        LOG.debug("Comparing taskId: {}, original start time: {}, now: {}",
             hrc.getTaskId(), hrc.getOriginalStartTime(), now);
 
         /*
@@ -212,8 +213,8 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
           Long deltaMS = retryTimeWindow - now;
 
           if (deltaMS > 0) {
-            String originalStartTimeString = this.m_fullDateFormat.format(new Date(hrc.getOriginalStartTime()));
-            String deltaString = this.m_deltaDateFormat.format(new Date(deltaMS));
+            String originalStartTimeString = m_fullDateFormat.format(new Date(hrc.getOriginalStartTime()));
+            String deltaString = m_deltaDateFormat.format(new Date(deltaMS));
             LOG.info("Retrying task with id: {}, attempts: {}, original start time: {}, time til timeout: {}",
                 hrc.getTaskId(), hrc.getAttemptCount(), originalStartTimeString, deltaString);
             retryHostRoleCommand(hrc);
@@ -233,14 +234,14 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
       // Important not to retry some steps during RU/EU like "Finalize Upgrade Pre-Check", "Execute HDFS Finalize", and "Save Cluster State".
       // These elements are expected to be in lowercase already
       if (null != hrc.getCustomCommandName()) {
-        for (String s : this.CUSTOM_COMMAND_NAMES_TO_IGNORE) {
+        for (String s : CUSTOM_COMMAND_NAMES_TO_IGNORE) {
           if (hrc.getCustomCommandName().toLowerCase().contains(s)){
             return false;
           }
         }
       }
       if (null != hrc.getCommandDetail()) {
-        for (String s : this.COMMAND_DETAILS_TO_IGNORE) {
+        for (String s : COMMAND_DETAILS_TO_IGNORE) {
           if (hrc.getCommandDetail().toLowerCase().contains(s)) {
             return false;
           }

@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>2.4.2.0.0</version>
+  <version>2.5.0.0.0</version>
   <description>Ambari</description>
   <url>http://ambari.apache.org/</url>
   <scm>
@@ -158,6 +158,10 @@
           <artifactId>maven-clean-plugin</artifactId>
           <version>2.5</version>
         </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -266,6 +270,7 @@
             <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
             <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
+            <exclude>**/target/surefire-reports/</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
             <exclude>**/.classpath/</exclude>
@@ -316,10 +321,11 @@
             <exclude>contrib/views/commons/src/main/resources/ui/*/vendor/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/public/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/tests/**/vendor/**</exclude>
-            <exclude>contrib/views/hive/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
-            <exclude>contrib/views/hive/src/main/resources/ui/hive-web/.bowerrc</exclude>
             <exclude>contrib/views/hive-next/src/main/resources/ui/hive-web/vendor/codemirror/**</exclude>
             <exclude>contrib/views/hive-next/src/main/resources/ui/hive-web/.bowerrc</exclude>
+            <exclude>contrib/views/hive20/src/main/resources/ui/vendor/codemirror/**</exclude>
+            <exclude>contrib/views/hive20/src/main/resources/ui/.bowerrc</exclude>
+            <exclude>contrib/views/hive20/src/main/resources/ui/public/fonts/roboto/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/.bowerrc</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/bower_components/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/node/**</exclude>
@@ -390,6 +396,8 @@
             <exclude>ambari-metrics/*/target/**</exclude>
             <!-- ignore .settings and .project  -->
             <exclude>ambari-metrics/**/.*/**</exclude>
+            <!-- generated DDL-->
+            <exclude>**/createDDL.jdbc</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -515,7 +523,7 @@
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
-      </modules>
+        </modules>
     </profile>
     <profile>
       <id>ambari-metrics</id>
@@ -541,7 +549,7 @@
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-      </modules>
+        </modules>
     </profile>
     <profile>
       <id>clover</id>
@@ -661,5 +669,87 @@ instead of a SNAPSHOT. -->
         </plugins>
       </build>
     </profile>
+
+    <!-- Start of profiles for running unit tests.
+     The category names are Java interfaces in utility/src/main/java/category/
+     The testcase.groups property contains a csv list of these categories (including the Java package name).
+
+     To run a suite of all test cases annotated with a list of categories, run the command
+     mvn test -P $PROFILE_ID
+
+     E.g.,
+     mvn test -P FastTests
+     -->
+
+    <!-- Tests are are explicitly fast. -->
+    <profile>
+      <id>FastTests</id>
+      <properties>
+        <testcase.groups>category.FastTest</testcase.groups>
+      </properties>
+    </profile>
+
+    <!-- Tests are are explicitly slow. -->
+    <profile>
+      <id>SlowTests</id>
+      <properties>
+        <testcase.groups>category.SlowTest</testcase.groups>
+      </properties>
+    </profile>
+
+    <!-- Slow tests, or tests that are not annotated. -->
+    <profile>
+      <id>NonFastTests</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludedGroups>org.apache.ambari.server.FastTest</excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Unit test Profiles based on features. -->
+    <profile>
+      <id>AlertTests</id>
+      <properties>
+        <testcase.groups>category.AlertTest</testcase.groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>AmbariUpgradeTests</id>
+      <properties>
+        <testcase.groups>category.AmbariUpgradeTest</testcase.groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>BlueprintTests</id>
+      <properties>
+        <testcase.groups>category.BlueprintTest</testcase.groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>KerberosTests</id>
+      <properties>
+        <testcase.groups>category.KerberosTest</testcase.groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>MetricsTests</id>
+      <properties>
+        <testcase.groups>category.MetricsTest</testcase.groups>
+      </properties>
+    </profile>
+    <profile>
+      <id>StackUpgradeTests</id>
+      <properties>
+        <testcase.groups>category.StackUpgradeTest</testcase.groups>
+      </properties>
+    </profile>
   </profiles>
+  <!-- End of profiles for running unit tests. -->
 </project>

@@ -331,4 +331,29 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
+  describe('custom validation for `ranger_admin_password`', function () {
+
+    beforeEach(function () {
+      this.config = App.ServiceConfigProperty.create({
+        name: 'ranger_admin_password',
+        displayType: 'password'
+      });
+    });
+
+    it('value less than 9 symbols is invalid', function () {
+      this.config.set('value', 12345678);
+      this.config.set('retypedPassword', 12345678);
+      expect(this.config.get('isValid')).to.be.false;
+      expect(this.config.get('errorMessage')).to.be.equal(Em.I18n.t('errorMessage.config.password.length').format(9));
+    });
+
+    it('value with 9 symbols is valid', function () {
+      this.config.set('value', 123456789);
+      this.config.set('retypedPassword', 123456789);
+      expect(this.config.get('isValid')).to.be.true;
+      expect(this.config.get('errorMessage')).to.be.equal('');
+    });
+
+  });
+
 });

@@ -43,6 +43,8 @@ describe('App.ConfigWidgetView', function () {
 
   App.TestAliases.testAsComputedOr(getView(), 'doNotShowWidget', ['isPropertyUndefined', 'config.showAsTextBox']);
 
+  App.TestAliases.testAsComputedEqual(getView(), 'isPropertyUndefined', 'config.value', 'Undefined');
+
   describe('#undoAllowed', function () {
 
     Em.A([
@@ -315,6 +317,317 @@ describe('App.ConfigWidgetView', function () {
       view.set('config.savedValue', 2);
       view.setRecommendedValue();
       expect(view.restoreDependentConfigs.called).to.be.false;
+    });
+
+  });
+
+  describe('#showFinalConfig', function () {
+
+    [
+      {
+        config: {
+          isFinal: true,
+          isNotEditable: true,
+          isHover: true
+        },
+        e: true
+      },
+      {
+        config: {
+          isFinal: true,
+          isNotEditable: false,
+          isHover: true
+        },
+        e: true
+      },{
+        config: {
+          isFinal: true,
+          isNotEditable: true,
+          isHover: false
+        },
+        e: true
+      },{
+        config: {
+          isFinal: true,
+          isNotEditable: false,
+          isHover: false
+        },
+        e: true
+      },
+      {
+        config: {
+          isFinal: false,
+          isNotEditable: true,
+          isHover: true
+        },
+        e: false
+      },
+      {
+        config: {
+          isFinal: false,
+          isNotEditable: false,
+          isHover: true
+        },
+        e: false
+      },{
+      config: {
+        isFinal: false,
+        isNotEditable: true,
+        isHover: false
+      },
+      e: false
+    },{
+      config: {
+        isFinal: false,
+        isNotEditable: false,
+        isHover: false
+      },
+      e: false
+    }
+    ].forEach(function (test) {
+
+      it(JSON.stringify(test.config), function () {
+        view.set('config', Em.Object.create(test.config));
+        expect(view.get('showFinalConfig')).to.be.equal(test.e);
+      });
+
+    })
+
+  });
+
+  describe('#toggleFinalFlag', function () {
+
+    [
+      {isNotEditable: true, isFinal: false},
+      {isNotEditable: false, isFinal: true}
+    ].forEach(function (test) {
+      it('config.isNotEditable ' + test.isNotEditable, function () {
+        var config = Em.Object.create({isNotEditable: test.isNotEditable, isFinal: false});
+        view.toggleFinalFlag({context: config});
+        expect(config.get('isFinal')).to.be.equal(test.isFinal);
+      });
+    });
+
+  });
+
+  describe('#issueView', function () {
+
+    beforeEach(function () {
+      this.issueView = getView().get('issueView').create({config: Em.Object.create()});
+      sinon.stub(App, 'tooltip', Em.K);
+    });
+
+    afterEach(function () {
+      App.tooltip.restore();
+    });
+
+    describe('#didInsertElement', function () {
+
+      beforeEach(function () {
+        this.issueView.errorLevelObserver = Em.K;
+        sinon.spy(this.issueView, 'addObserver');
+      });
+
+      afterEach(function () {
+        this.issueView.addObserver.restore();
+      });
+
+      [
+        'issuedConfig.warnMessage',
+        'issuedConfig.errorMessage',
+        'parentView.isPropertyUndefined'
+      ].forEach(function (field) {
+        it('add observer for ' + field, function () {
+          this.issueView.didInsertElement();
+          expect(this.issueView.addObserver.calledWith(field, this.issueView, this.issueView.errorLevelObserver)).to.be.true;
+        });
+      });
+
+    });
+
+    describe('#willDestroyElement', function () {
+
+      beforeEach(function () {
+        this.issueView.errorLevelObserver = Em.K;
+        sinon.spy(this.issueView, 'removeObserver');
+      });
+
+      afterEach(function () {
+        this.issueView.removeObserver.restore();
+      });
+
+      [
+        'issuedConfig.warnMessage',
+        'issuedConfig.errorMessage',
+        'parentView.isPropertyUndefined'
+      ].forEach(function (field) {
+        it('remove observer for ' + field, function () {
+          this.issueView.willDestroyElement();
+          expect(this.issueView.removeObserver.calledWith(field, this.issueView, this.issueView.errorLevelObserver)).to.be.true;
+        });
+      });
+
+    });
+
+    describe('#errorLevelObserver', function () {
+
+      beforeEach(function () {
+
+        this.issueView.set('parentView', Em.Object.create());
+
+      });
+
+      [
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '123',
+            warnMessage: ''
+          }),
+          isPropertyUndefined: true,
+          e: {
+            configLabelClass: '',
+            issueIconClass: 'hide',
+            issueMessage: false
+          }
+        },
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '123',
+            warnMessage: ''
+          }),
+          isPropertyUndefined: false,
+          e: {
+            configLabelClass: 'text-error',
+            issueIconClass: '',
+            issueMessage: '123'
+          }
+        },
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '',
+            warnMessage: '321'
+          }),
+          isPropertyUndefined: true,
+          e: {
+            configLabelClass: '',
+            issueIconClass: 'hide',
+            issueMessage: false
+          }
+        },
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '',
+            warnMessage: '321'
+          }),
+          isPropertyUndefined: false,
+          e: {
+            configLabelClass: 'text-warning',
+            issueIconClass: 'warning',
+            issueMessage: '321'
+          }
+        },
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '',
+            warnMessage: ''
+          }),
+          isPropertyUndefined: true,
+          e: {
+            configLabelClass: '',
+            issueIconClass: 'hide',
+            issueMessage: false
+          }
+        },
+        {
+          issuedConfig: Em.Object.create({
+            errorMessage: '',
+            warnMessage: ''
+          }),
+          isPropertyUndefined: false,
+          e: {
+            configLabelClass: '',
+            issueIconClass: 'hide',
+            issueMessage: false
+          }
+        },
+      ].forEach(function (test, index) {
+        describe('case #' + (index + 1), function () {
+
+          beforeEach(function () {
+            this.issueView.reopen({issuedConfig: test.issuedConfig, parentView: Em.Object.create()});
+            this.issueView.set('parentView.isPropertyUndefined', test.isPropertyUndefined);
+            this.issueView.errorLevelObserver();
+          });
+
+          it('`parentView.configLabelClass`', function () {
+            expect(this.issueView.get('parentView.configLabelClass')).to.be.equal(test.e.configLabelClass);
+          });
+
+          it('`issueIconClass`', function () {
+            expect(this.issueView.get('issueIconClass')).to.be.equal(test.e.issueIconClass);
+          });
+
+          it('`issueMessage`', function () {
+            expect(this.issueView.get('issueMessage')).to.be.equal(test.e.issueMessage);
+          });
+
+          it('`parentView.issueMessage`', function () {
+            expect(this.issueView.get('parentView.issueMessage')).to.be.equal(test.e.issueMessage);
+          });
+
+        });
+      });
+
+    });
+
+  });
+
+  describe('#updateWarningsForCompatibilityWithWidget', function () {
+
+    [
+      {
+        message: '',
+        configLabelClass: ''
+      },
+      {
+        message: 'not empty message',
+        configLabelClass: 'text-warning'
+      }
+    ].forEach(function (test) {
+      describe('message - ' + JSON.stringify(test.message), function () {
+
+        beforeEach(function () {
+          view.set('config', Em.Object.create());
+          view.updateWarningsForCompatibilityWithWidget(test.message);
+        });
+
+        it('`warnMessage`', function () {
+          expect(view.get('warnMessage')).to.be.equal(test.message);
+        });
+
+        it('`config.warnMessage`', function () {
+          expect(view.get('config.warnMessage')).to.be.equal(test.message);
+        });
+
+        it('`issueMessage`', function () {
+          expect(view.get('issueMessage')).to.be.equal(test.message);
+        });
+
+        it('`configLabelClass`', function () {
+          expect(view.get('configLabelClass')).to.be.equal(test.configLabelClass);
+        });
+
+      });
+    })
+
+  });
+
+  describe('#widgetToTextBox', function () {
+
+    it('should set `config.showAsTextBox` true', function () {
+      Em.setFullPath(view, 'config.showAsTextBox', false);
+      view.widgetToTextBox();
+      expect(view.get('config.showAsTextBox')).to.be.true;
     });
 
   });

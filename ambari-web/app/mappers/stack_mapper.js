@@ -141,10 +141,9 @@ App.stackMapper = App.QuickDataMapper.create({
     stack.stack_services = servicesArray;
     stack.operating_systems = operatingSystemsArray;
 
-    App.store.commit();
-    App.store.loadMany(modelRepo, resultRepo);
-    App.store.loadMany(modelOS, resultOS);
-    App.store.loadMany(modelServices, resultServices);
-    App.store.load(modelStack, this.parseIt(stack, this.get('configStack')));
+    App.store.safeLoadMany(modelRepo, resultRepo);
+    App.store.safeLoadMany(modelOS, resultOS);
+    App.store.safeLoadMany(modelServices, resultServices);
+    App.store.safeLoad(modelStack, this.parseIt(stack, this.get('configStack')));
   }
 });

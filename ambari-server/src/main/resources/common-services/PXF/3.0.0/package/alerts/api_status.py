@@ -24,15 +24,17 @@ import socket
 import urllib2
 import urllib
 
+from resource_management.core import shell
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
+from resource_management.libraries.functions.get_kinit_path import get_kinit_path
 from resource_management.libraries.functions.namenode_ha_utils import get_active_namenode
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.environment import Environment
 
 CLUSTER_ENV_SECURITY = '{{cluster-env/security_enabled}}'
-HADOOP_ENV_HDFS_USER = '{{hadoop-env/hdfs_user}}'
-HADOOP_ENV_HDFS_USER_KEYTAB = '{{hadoop-env/hdfs_user_keytab}}'
-HADOOP_ENV_HDFS_PRINCIPAL_NAME = '{{hadoop-env/hdfs_principal_name}}'
+ACTING_USER = 'pxf'
+KEYTAB_FILE = '{{pxf-site/pxf.service.kerberos.keytab}}'
+PRINCIPAL_NAME = '{{pxf-site/pxf.service.kerberos.principal}}'
 HDFS_SITE = '{{hdfs-site}}'
 
 
@@ -58,9 +60,9 @@ commonPXFHeaders = {
 
 def get_tokens():
   return (CLUSTER_ENV_SECURITY,
-          HADOOP_ENV_HDFS_USER,
-          HADOOP_ENV_HDFS_USER_KEYTAB,
-          HADOOP_ENV_HDFS_PRINCIPAL_NAME,
+          ACTING_USER,
+          KEYTAB_FILE,
+          PRINCIPAL_NAME,
           HDFS_SITE)
 
 def _get_delegation_token(namenode_address, user, keytab, principal, kinit_path):
@@ -130,21 +132,33 @@ def _get_pxf_protocol_version(base_url):
 
   raise Exception("version could not be found in response " + response)
 
+
+def _ensure_kerberos_authentication(user, principal, keytab_file, kinit_path):
+  kinit_path_local = get_kinit_path(kinit_path)
+  shell.checked_call("{0} -kt {1} {2} > /dev/null".format(kinit_path_local, keytab_file, principal),
+                     user=user)
+
 def execute(configurations={}, parameters={}, host_name=None):
   BASE_URL = "http://{0}:{1}/pxf/".format(host_name, PXF_PORT)
   try:
     # Get delegation token if security is enabled
     if CLUSTER_ENV_SECURITY in configurations and configurations[CLUSTER_ENV_SECURITY].lower() == "true":
+      resolved_principal = configurations[PRINCIPAL_NAME]
+      if resolved_principal is not None:
+        resolved_principal = resolved_principal.replace('_HOST', host_name)
+
       if 'dfs.nameservices' in configurations[HDFS_SITE]:
-        namenode_address = get_active_namenode(ConfigDictionary(configurations[HDFS_SITE]), configurations[CLUSTER_ENV_SECURITY], configurations[HADOOP_ENV_HDFS_USER])[1]
+        if configurations[CLUSTER_ENV_SECURITY]:
+          _ensure_kerberos_authentication(configurations[ACTING_USER], resolved_principal, configurations[KEYTAB_FILE], None)
+        namenode_address = get_active_namenode(ConfigDictionary(configurations[HDFS_SITE]), configurations[CLUSTER_ENV_SECURITY], configurations[ACTING_USER])[1]
       else:
         namenode_address = configurations[HDFS_SITE]['dfs.namenode.http-address']
 
       token = _get_delegation_token(namenode_address,
-                                     configurations[HADOOP_ENV_HDFS_USER],
-                                     configurations[HADOOP_ENV_HDFS_USER_KEYTAB],
-                                     configurations[HADOOP_ENV_HDFS_PRINCIPAL_NAME],
-                                     None)
+                                    configurations[ACTING_USER],
+                                    configurations[KEYTAB_FILE],
+                                    resolved_principal,
+                                    None)
       commonPXFHeaders.update({"X-GP-TOKEN": token})
 
     if _get_pxf_protocol_version(BASE_URL).startswith("v"):

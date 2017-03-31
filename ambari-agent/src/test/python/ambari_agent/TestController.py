@@ -118,10 +118,8 @@ class TestController(unittest.TestCase):
     self.assertEqual({"responseId":1}, self.controller.registerWithServer())
 
     self.controller.sendRequest.return_value = {"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}
-    self.controller.addToStatusQueue = MagicMock(name="addToStatusQueue")
     self.controller.isRegistered = False
     self.assertEqual({'exitstatus': '0', 'responseId': 1, 'log': '', 'statusCommands': 'commands'}, self.controller.registerWithServer())
-    self.controller.addToStatusQueue.assert_called_with("commands")
 
     calls = []
 
@@ -147,13 +145,19 @@ class TestController(unittest.TestCase):
 
   @patch("pprint.pformat")
   def test_addToQueue(self, pformatMock):
-
     actionQueue = MagicMock()
+    updateComponents = Mock()
     self.controller.actionQueue = actionQueue
+    self.controller.updateComponents = updateComponents
+
     self.controller.addToQueue(None)
     self.assertFalse(actionQueue.put.called)
-    self.controller.addToQueue("cmd")
+    self.assertFalse(updateComponents.called)
+
+    commands = ambari_simplejson.loads('[{"clusterName":"dummy_cluster"}]')
+    self.controller.addToQueue(commands)
     self.assertTrue(actionQueue.put.called)
+    self.assertTrue(updateComponents.called)
 
 
   @patch("pprint.pformat")
@@ -168,25 +172,25 @@ class TestController(unittest.TestCase):
     process_status_commands = MagicMock(name="process_status_commands")
     self.controller.recovery_manager.process_status_commands = process_status_commands
 
-    updateComponents = Mock()
-    self.controller.updateComponents = updateComponents
+    sendRequest = MagicMock(return_value={'components':{}})
+    self.controller.sendRequest = sendRequest
     self.controller.addToStatusQueue(None)
     self.assertFalse(actionQueue.put_status.called)
-    self.assertFalse(updateComponents.called)
+    self.assertFalse(sendRequest.called)
     self.controller.addToStatusQueue(commands)
     self.assertTrue(actionQueue.put_status.called)
-    self.assertFalse(updateComponents.called)
+    self.assertFalse(sendRequest.called)
     LiveStatus_mock.SERVICES = []
     LiveStatus_mock.CLIENT_COMPONENTS = []
     LiveStatus_mock.COMPONENTS = []
     self.controller.addToStatusQueue(commands)
-    self.assertTrue(updateComponents.called)
+    self.assertTrue(sendRequest.called)
     self.assertTrue(actionQueue.put_status.called)
     self.assertTrue(process_status_commands.called)
 
 
   @patch("subprocess.Popen")
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("urllib2.build_opener")
@@ -228,7 +232,7 @@ class TestController(unittest.TestCase):
 
 
   @patch("subprocess.Popen")
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
+  @patch.object(Hardware, "_chk_writable_mount", new = MagicMock(return_value=True))
   @patch.object(FacterLinux, "facterInfo", new = MagicMock(return_value={}))
   @patch.object(FacterLinux, "__init__", new = MagicMock(return_value = None))
   @patch("urllib2.build_opener")

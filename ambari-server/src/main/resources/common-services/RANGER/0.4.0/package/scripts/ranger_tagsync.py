@@ -28,6 +28,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
 from setup_ranger_xml import ranger, ranger_credential_helper
+from resource_management.core.exceptions import Fail
 import upgrade
 
 class RangerTagsync(Script):
@@ -43,6 +44,12 @@ class RangerTagsync(Script):
        group = params.unix_group,
        mode = 0640
     )
+    if params.stack_supports_ranger_tagsync_ssl_xml_support:
+      Logger.info("Stack support Atlas user for Tagsync, creating keystore for same.")
+      self.create_atlas_user_keystore(env)
+    else:
+      Logger.info("Stack does not support Atlas user for Tagsync, skipping keystore creation for same.")
+
     self.configure(env)
 
   def configure(self, env, upgrade_type=None):
@@ -91,6 +98,38 @@ class RangerTagsync(Script):
   def get_user(self):
     import params
     return params.unix_user
+
+  def configure_atlas_user_for_tagsync(self, env):
+    Logger.info("Configuring Atlas user for Tagsync service.")
+    import params
+    env.set_params(params)
+
+    upgrade_stack = stack_select._get_upgrade_stack()
+    if upgrade_stack is None:
+      raise Fail('Unable to determine the stack and stack version')
+
+    stack_name = upgrade_stack[0]
+    stack_version = upgrade_stack[1]
+
+    stack_select.select("ranger-tagsync", stack_version)
+    conf_select.select(stack_name, "ranger-tagsync", stack_version)
+    if params.stack_supports_ranger_tagsync_ssl_xml_support:
+      Logger.info("Upgrading Tagsync, stack support Atlas user for Tagsync, creating keystore for same.")
+      self.create_atlas_user_keystore(env)
+    else:
+      Logger.info("Upgrading Tagsync, stack does not support Atlas user for Tagsync, skipping keystore creation for same.")
+
+    Logger.info("Configuring Atlas user for Tagsync service done.")
+
+  def create_atlas_user_keystore(self,env):
+    import params
+    env.set_params(params)
+    ranger_credential_helper(params.tagsync_cred_lib, 'atlas.user.password', 'admin', params.atlas_tagsync_jceks_path)
+    File(params.atlas_tagsync_jceks_path,
+         owner = params.unix_user,
+         group = params.unix_group,
+         mode = 0640
+    )
 
 if __name__ == "__main__":
   RangerTagsync().execute()

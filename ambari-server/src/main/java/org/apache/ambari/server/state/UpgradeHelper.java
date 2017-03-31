@@ -45,6 +45,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
@@ -64,6 +65,7 @@ import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeFunction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,7 +186,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<RepositoryVersionDAO> s_repoVersionDAO;
 
-
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type information
    * @param clusterName The name of the cluster
@@ -272,6 +273,13 @@ public class UpgradeHelper {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
+        continue;
+      }
+
+      // if there is a condition on the group, evaluate it and skip scheduling
+      // of this group if the condition has not been satisfied
+      if (null != group.condition && !group.condition.isSatisfied(context)) {
+        LOG.info("Skipping {} while building upgrade orchestration due to {}", group, group.condition );
         continue;
       }
 
@@ -457,7 +465,7 @@ public class UpgradeHelper {
 
       List<StageWrapper> proxies = builder.build(context);
 
-      if (!proxies.isEmpty()) {
+      if (CollectionUtils.isNotEmpty(proxies)) {
         groupHolder.items = proxies;
         postProcess(context, groupHolder);
         groups.add(groupHolder);
@@ -766,19 +774,50 @@ public class UpgradeHelper {
    *          desired version (like 2.2.1.0-1234) for upgrade
    * @param targetServices
    *          targets for upgrade
+   * @param targetStack
+   *          the target stack for the components.  Express and Rolling upgrades determine
+   *          the "correct" stack differently, so the component's desired stack id is not
+   *          a reliable indicator.
    */
   @Transactional
   public void putComponentsToUpgradingState(String version,
-                                            Map<Service, Set<ServiceComponent>> targetServices) throws AmbariException {
-    // TODO: generalize method?
+      Map<Service, Set<ServiceComponent>> targetServices, StackId targetStack) throws AmbariException {
+
     for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
       for (ServiceComponent serviceComponent: entry.getValue()) {
-        if (serviceComponent.isVersionAdvertised()) {
-          for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
-            serviceComponentHost.setUpgradeState(UpgradeState.IN_PROGRESS);
-          }
-          serviceComponent.setDesiredVersion(version);
+
+        boolean versionAdvertised = false;
+        try {
+          ComponentInfo ci = m_ambariMetaInfo.get().getComponent(targetStack.getStackName(),
+              targetStack.getStackVersion(), serviceComponent.getServiceName(),
+              serviceComponent.getName());
+
+          versionAdvertised = ci.isVersionAdvertised();
+        } catch (AmbariException e) {
+          LOG.warn("Component {}/{} doesn't exist for stack {}.  Setting version to {}",
+              serviceComponent.getServiceName(), serviceComponent.getName(), targetStack,
+              StackVersionListener.UNKNOWN_VERSION);
         }
+
+        UpgradeState upgradeState = UpgradeState.IN_PROGRESS;
+        String desiredVersion = version;
+
+        if (!versionAdvertised) {
+          upgradeState = UpgradeState.NONE;
+          desiredVersion = StackVersionListener.UNKNOWN_VERSION;
+        }
+
+        for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
+          serviceComponentHost.setUpgradeState(upgradeState);
+
+          // !!! if we aren't version advertised, but there IS a version, set it.
+          if (!versionAdvertised &&
+              !serviceComponentHost.getVersion().equals(StackVersionListener.UNKNOWN_VERSION)) {
+            serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
+          }
+        }
+        serviceComponent.setDesiredVersion(desiredVersion);
+
       }
     }
   }

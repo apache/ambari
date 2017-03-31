@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logfeeder.input.reader;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,15 +29,11 @@ import org.apache.log4j.Logger;
 
 class GZIPReader extends InputStreamReader {
 
-  private static Logger logger = Logger.getLogger(GZIPReader.class);
+  private static final Logger LOG = Logger.getLogger(GZIPReader.class);
 
   GZIPReader(String fileName) throws FileNotFoundException {
     super(getStream(fileName));
-    logger.info("Created GZIPReader for file : " + fileName);
-  }
-
-  GZIPReader(File file) throws FileNotFoundException {
-    super(getStream(file.getName()));
+    LOG.info("Created GZIPReader for file : " + fileName);
   }
 
   private static InputStream getStream(String fileName) {
@@ -48,7 +43,7 @@ class GZIPReader extends InputStreamReader {
       fileStream = new FileInputStream(fileName);
       gzipStream = new GZIPInputStream(fileStream);
     } catch (Exception e) {
-      logger.error(e, e.getCause());
+      LOG.error(e, e.getCause());
     }
     return gzipStream;
   }
@@ -58,21 +53,13 @@ class GZIPReader extends InputStreamReader {
    */
   static boolean isValidFile(String fileName) {
     // TODO make it generic and put in factory itself
-    InputStream is = null;
-    try {
-      is = new FileInputStream(fileName);
+    
+    try (InputStream is = new FileInputStream(fileName)) {
       byte[] signature = new byte[2];
       int nread = is.read(signature); // read the gzip signature
       return nread == 2 && signature[0] == (byte) 0x1f && signature[1] == (byte) 0x8b;
     } catch (IOException e) {
       return false;
-    } finally {
-      if (is != null) {
-        try {
-          is.close();
-        } catch (IOException e) {
-        }
-      }
     }
   }
 }

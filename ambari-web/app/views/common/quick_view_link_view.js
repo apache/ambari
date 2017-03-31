@@ -26,7 +26,7 @@ var App = require('app');
  * @property {?string} status
  */
 
-App.QuickViewLinks = Em.View.extend({
+App.QuickLinksView = Em.View.extend({
 
   /**
    * @type {boolean}
@@ -225,6 +225,10 @@ App.QuickViewLinks = Em.View.extend({
   getQuickLinksHosts: function () {
     var masterHosts = App.HostComponent.find().filterProperty('isMaster').mapProperty('hostName').uniq();
 
+    if (masterHosts.length === 0) {
+      return $.Deferred().reject().promise();
+    }
+
     return App.ajax.send({
       name: 'hosts.for_quick_links',
       sender: this,
@@ -308,8 +312,11 @@ App.QuickViewLinks = Em.View.extend({
   getQuickLinksConfiguration: function () {
     var serviceName = this.get('content.serviceName');
     var self = this;
+    var quicklinks, links = {};
     if (self.hasQuickLinksConfig(serviceName)) {
-      return App.QuickLinksConfig.find().findProperty('id', serviceName);
+      quicklinks = App.QuickLinksConfig.find().findProperty('id', serviceName);
+      Em.set(quicklinks, 'links', Em.get(quicklinks, 'links').filterProperty('visible', true));
+      return quicklinks;
     }
     return null;
   },

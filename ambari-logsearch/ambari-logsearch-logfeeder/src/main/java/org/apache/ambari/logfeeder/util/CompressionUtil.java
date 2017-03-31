@@ -37,25 +37,20 @@ public class CompressionUtil {
     FileInputStream ios = null;
     try {
       if (!inputFile.exists()) {
-        throw new IllegalArgumentException("Input File:"
-            + inputFile.getAbsolutePath() + " is not exist.");
+        throw new IllegalArgumentException("Input File:" + inputFile.getAbsolutePath() + " is not exist.");
       }
       if (inputFile.isDirectory()) {
-        throw new IllegalArgumentException("Input File:"
-            + inputFile.getAbsolutePath() + " is a directory.");
+        throw new IllegalArgumentException("Input File:" + inputFile.getAbsolutePath() + " is a directory.");
       }
       File parent = outputFile.getParentFile();
       if (parent != null && !parent.exists()) {
         boolean isParentCreated = parent.mkdirs();
         if (!isParentCreated) {
-          throw new IllegalAccessException(
-              "User does not have permission to create parent directory :"
-                  + parent.getAbsolutePath());
+          throw new IllegalAccessException( "User does not have permission to create parent directory :" + parent.getAbsolutePath());
         }
       }
-      final OutputStream out = new FileOutputStream(outputFile);
-      cos = new CompressorStreamFactory().createCompressorOutputStream(
-          algoName, out);
+      OutputStream out = new FileOutputStream(outputFile);
+      cos = new CompressorStreamFactory().createCompressorOutputStream(algoName, out);
       ios = new FileInputStream(inputFile);
       IOUtils.copy(ios, cos);
     } catch (Exception e) {

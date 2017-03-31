@@ -540,6 +540,12 @@ public class AmbariMetaInfo {
     return service;
   }
 
+  public boolean isServiceRemovedInStack(String stackName, String version, String serviceName) throws AmbariException{
+    StackInfo stack = getStack(stackName, version);
+    List<String> removedServices = stack.getRemovedServices();
+    return removedServices.contains(serviceName);
+  }
+
   public Collection<String> getMonitoringServiceNames(String stackName, String version)
     throws AmbariException{
 

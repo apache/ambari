@@ -163,11 +163,3 @@ describe('App.WizardStep0View', function () {
   });
 
 });
-
-describe('App.SshKeyFileUploader', function() {
-
-  beforeEach(function() {
-    view = App.SshKeyFileUploader.create();
-  });
-
-});

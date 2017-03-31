@@ -21,8 +21,8 @@ package org.apache.ambari.logsearch.web.security;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.ambari.logsearch.util.PropertiesUtil;
-import org.apache.ambari.logsearch.util.XMLPropertiesUtil;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
+import org.apache.ambari.logsearch.common.XMLPropertiesHelper;
 import org.apache.log4j.Logger;
 import org.springframework.core.io.ClassPathResource;
 
@@ -94,13 +94,13 @@ public class LdapUtil {
    */
   public static LdapProperties loadLdapProperties() {
     LdapProperties ldapServerProperties = null;
-    String ldapConfigFileName = PropertiesUtil.getProperty("logsearch.login.ldap.config", "logsearch-admin-site.xml");
+    String ldapConfigFileName = PropertiesHelper.getProperty("logsearch.login.ldap.config", "logsearch-admin-site.xml");
     Properties props = null;
     ClassPathResource resource = new ClassPathResource(ldapConfigFileName);
     if (resource != null) {
       try {
         props = new Properties();
-        new XMLPropertiesUtil().loadFromXml(props, resource.getInputStream());
+        new XMLPropertiesHelper().loadFromXml(props, resource.getInputStream());
         ldapServerProperties = getLdapServerProperties(props);
       } catch (IOException e) {
         logger.error("Ldap configudation file loading failed : " + e.getMessage());

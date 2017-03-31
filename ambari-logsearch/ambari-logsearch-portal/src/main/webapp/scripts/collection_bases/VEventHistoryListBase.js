@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,11 +24,11 @@ define(['require',
     'models/VEventHistory'
 ],function(require,BaseCollection,Globals,VEventHistory) {
     'use strict';
-    
+
     var VEventHistoryListBase = BaseCollection.extend(
         /** @lends VEventHistoryListBase.prototype */
         {
-            url: Globals.baseURL + 'userconfig/getUserConfig',
+            url: Globals.baseURL + 'userconfig',
 
             model: VEventHistory,
 
@@ -48,7 +48,7 @@ define(['require',
              *************************/
 
             saveEventHistory: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig/saveUserConfig';
+                var url = Globals.baseURL + 'userconfig';
 
                 options = _.extend({
                     data: JSON.stringify(postData),
@@ -59,7 +59,7 @@ define(['require',
                 return this.constructor.nonCrudOperation.call(this, url, 'POST', options);
             },
             saveDashboard: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig/saveUserConfig';
+                var url = Globals.baseURL + 'userconfig';
 
                 options = _.extend({
                     data: JSON.stringify(postData),
@@ -70,7 +70,7 @@ define(['require',
                 return this.constructor.nonCrudOperation.call(this, url, 'POST', options);
             },
             deleteEventHistory: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig/deleteUserConfig/' + postData.id;
+                var url = Globals.baseURL + 'userconfig/' + postData.id;
 
                 options = _.extend({
                     contentType: 'application/json',

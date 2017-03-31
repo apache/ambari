@@ -371,7 +371,10 @@ describe('validator', function () {
       {m:'"-abc-" - valid',i:'-abc-',e:true},
       {m:'"abc 123" - invalid',i:'abc 123',e:false},
       {m:'"a"b" - invalid',i:'a"b',e:false},
-      {m:'"a\'b" - invalid',i:'a\'b',e:false}
+      {m:'"a\'b" - invalid',i:'a\'b',e:false},
+      {m:'" a " - valid', i: ' a ', e: true},
+      {m:'" a" - valid', i: ' a', e: true},
+      {m:'"a " - valid', i: 'a ', e: true}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
@@ -480,4 +483,43 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isValidLdapsURL()', function() {
+    var tests = [
+      {m: '"" - invalid', i: '', e: false},
+      {m: '"http://example.com" - invalid', i: 'http://example.com', e: false},
+      {m: '"ldap://example.com" - invalid', i: 'ldap://example.com', e: false},
+      {m: '"ldaps://example.com" - valid', i: 'ldaps://example.com', e: true},
+      {m: '"ldaps://example.com:636" - valid', i: 'ldaps://example.com:636', e: true},
+      {m: '"ldaps://example.com:636/path" - valid', i: 'ldaps://example.com:636/path', e: true},
+      {m: '"ldaps://example.com:6eeee36/path" - valid', i: 'ldaps://example.com:6eee36/path', e: false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidLdapsURL(test.i)).to.equal(test.e);
+      })
+    });
+  });
+
+  describe('#isValidAlertName', function () {
+
+    [
+      {v: '', e: false},
+      {v: 'a', e: true},
+      {v: 'a b', e: true},
+      {v: '/', e: false},
+      {v: '/>1', e: false},
+      {v: 'a 1%', e: true},
+      {v: 'a (b)', e: true}
+    ].forEach(function (test) {
+
+      it(test.m || test.v, function () {
+        expect(validator.isValidAlertName(test.v)).to.be.equal(test.e);
+      })
+
+    });
+
+
+  });
+
 });

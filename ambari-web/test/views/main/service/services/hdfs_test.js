@@ -124,7 +124,7 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
   });
 
-  describe("#didInsertElement()", function() {
+  describe("#metricsNotAvailableObserver()", function() {
 
     beforeEach(function() {
       sinon.stub(App, 'tooltip');
@@ -134,7 +134,9 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
 
     it("App.tooltip should be called", function() {
-      view.didInsertElement();
+      view.set("service", Em.Object.create({
+        metricsNotAvailable: false
+      }));
       expect(App.tooltip.calledOnce).to.be.true;
     });
   });

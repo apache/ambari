@@ -45,6 +45,7 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -59,26 +60,33 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
   private final static Log LOG = LogFactory.getLog(KafkaTimelineMetricsReporter.class);
 
-  private static final String TIMELINE_METRICS_SEND_INTERVAL_PROPERTY = "kafka.timeline.metrics.sendInterval";
-  private static final String TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY = "kafka.timeline.metrics.maxRowCacheSize";
-  private static final String TIMELINE_HOST_PROPERTY = "kafka.timeline.metrics.host";
-  private static final String TIMELINE_PORT_PROPERTY = "kafka.timeline.metrics.port";
-  private static final String TIMELINE_PROTOCOL_PROPERTY = "kafka.timeline.metrics.protocol";
-  private static final String TIMELINE_REPORTER_ENABLED_PROPERTY = "kafka.timeline.metrics.reporter.enabled";
-  private static final String EXCLUDED_METRICS_PROPERTY = "external.kafka.metrics.exclude.prefix";
-  private static final String INCLUDED_METRICS_PROPERTY = "external.kafka.metrics.include.prefix";
+  private static final String TIMELINE_METRICS_KAFKA_PREFIX = "kafka.timeline.metrics.";
+  private static final String TIMELINE_METRICS_SEND_INTERVAL_PROPERTY = "sendInterval";
+  private static final String TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + "maxRowCacheSize";
+  private static final String TIMELINE_HOSTS_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + "hosts";
+  private static final String TIMELINE_PORT_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + "port";
+  private static final String TIMELINE_PROTOCOL_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + "protocol";
+  private static final String TIMELINE_REPORTER_ENABLED_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + "reporter.enabled";
+  private static final String TIMELINE_METRICS_SSL_KEYSTORE_PATH_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PATH_PROPERTY;
+  private static final String TIMELINE_METRICS_SSL_KEYSTORE_TYPE_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_TYPE_PROPERTY;
+  private static final String TIMELINE_METRICS_SSL_KEYSTORE_PASSWORD_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PASSWORD_PROPERTY;
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
   private static final String TIMELINE_DEFAULT_PORT = "6188";
   private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
+  private static final String EXCLUDED_METRICS_PROPERTY = "external.kafka.metrics.exclude.prefix";
+  private static final String INCLUDED_METRICS_PROPERTY = "external.kafka.metrics.include.prefix";
 
-  private boolean initialized = false;
+  private volatile boolean initialized = false;
   private boolean running = false;
   private final Object lock = new Object();
-  private String collectorUri;
   private String hostname;
+  private String metricCollectorPort;
+  private Collection<String> collectorHosts;
+  private String metricCollectorProtocol;
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
+  private String zookeeperQuorum = null;
 
   private String[] excludedMetricsPrefixes;
   private String[] includedMetricsPrefixes;
@@ -86,8 +94,18 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private Set<String> excludedMetrics = new HashSet<>();
 
   @Override
-  protected String getCollectorUri() {
-    return collectorUri;
+  protected String getCollectorUri(String host) {
+    return constructTimelineMetricUri(metricCollectorProtocol, host, metricCollectorPort);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return metricCollectorProtocol;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return metricCollectorPort;
   }
 
   @Override
@@ -95,10 +113,26 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
     return timeoutSeconds;
   }
 
+  @Override
+  protected String getZookeeperQuorum() {
+    return zookeeperQuorum;
+  }
+
+  @Override
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
+  }
+
   public void setMetricsCache(TimelineMetricsCache metricsCache) {
     this.metricsCache = metricsCache;
   }
 
+  @Override
   public void init(VerifiableProperties props) {
     synchronized (lock) {
       if (!initialized) {
@@ -113,25 +147,29 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
           LOG.error("Could not identify hostname.");
           throw new RuntimeException("Could not identify hostname.", e);
         }
+        // Initialize the collector write strategy
+        super.init();
+
         KafkaMetricsConfig metricsConfig = new KafkaMetricsConfig(props);
         timeoutSeconds = props.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
         int metricsSendInterval = props.getInt(TIMELINE_METRICS_SEND_INTERVAL_PROPERTY, MAX_EVICTION_TIME_MILLIS);
         int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
-        String metricCollectorHost = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
-        String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
-        String metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
+
+        zookeeperQuorum = props.containsKey(COLLECTOR_ZOOKEEPER_QUORUM) ?
+          props.getString(COLLECTOR_ZOOKEEPER_QUORUM) : props.getString("zookeeper.connect");
+
+        metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
+        collectorHosts = parseHostsStringIntoCollection(props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST));
+        metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
+
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
 
-        collectorUri = metricCollectorProtocol + "://" + metricCollectorHost +
-                       ":" + metricCollectorPort + WS_V1_TIMELINE_METRICS;
-
-        if (collectorUri.toLowerCase().startsWith("https://")) {
-          String trustStorePath = props.getString(SSL_KEYSTORE_PATH_PROPERTY).trim();
-          String trustStoreType = props.getString(SSL_KEYSTORE_TYPE_PROPERTY).trim();
-          String trustStorePwd = props.getString(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
+        if (metricCollectorProtocol.contains("https")) {
+          String trustStorePath = props.getString(TIMELINE_METRICS_SSL_KEYSTORE_PATH_PROPERTY).trim();
+          String trustStoreType = props.getString(TIMELINE_METRICS_SSL_KEYSTORE_TYPE_PROPERTY).trim();
+          String trustStorePwd = props.getString(TIMELINE_METRICS_SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
           loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
         }
-
 
         // Exclusion policy
         String excludedMetricsStr = props.getString(EXCLUDED_METRICS_PROPERTY, "");
@@ -149,7 +187,6 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
           startReporter(metricsConfig.pollingIntervalSecs());
         }
         if (LOG.isDebugEnabled()) {
-          LOG.debug("CollectorUri = " + collectorUri);
           LOG.debug("MetricsSendInterval = " + metricsSendInterval);
           LOG.debug("MaxRowCacheSize = " + maxRowCacheSize);
           LOG.debug("Excluded metrics prefixes = " + excludedMetricsStr);
@@ -341,9 +378,12 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       final long currentTimeMillis = System.currentTimeMillis();
       final String sanitizedName = sanitizeName(name);
 
-      cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
-
-      populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+      try {
+        cacheSanitizedTimelineMetric(currentTimeMillis, sanitizedName, "", Double.parseDouble(String.valueOf(gauge.value())));
+        populateMetricsList(context, MetricType.GAUGE, sanitizedName);
+      } catch (NumberFormatException ex) {
+        LOG.debug(ex.getMessage());
+      }
     }
 
     private String[] cacheKafkaMetered(long currentTimeMillis, String sanitizedName, Metered meter) {

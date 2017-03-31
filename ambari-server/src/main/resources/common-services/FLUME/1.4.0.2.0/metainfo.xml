@@ -64,7 +64,6 @@
       <configuration-dependencies>
         <config-type>flume-env</config-type>
         <config-type>flume-conf</config-type>
-        <config-type>ams-ssl-client</config-type>
       </configuration-dependencies>
 
     </service>

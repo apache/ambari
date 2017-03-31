@@ -117,6 +117,20 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
   },
 
   /**
+   * open Manage JournalNode Wizard if there are two started NameNodes with defined active/standby state
+   * @returns {boolean}
+   */
+  manageJournalNode: function() {
+    var nameNodes = App.HostComponent.find().filterProperty('componentName', 'NAMENODE');
+    if (nameNodes.someProperty('displayNameAdvanced', 'Active NameNode') && nameNodes.someProperty('displayNameAdvanced', 'Standby NameNode')) {
+      App.router.transitionTo('main.services.manageJournalNode');
+      return true;
+    }
+    this.showErrorPopup(Em.I18n.t('admin.manageJournalNode.warning'));
+    return false;
+  },
+
+  /**
    * join or wrap message depending on whether it is array or string
    * @param message
    * @return {*}

@@ -25,6 +25,9 @@
     "map_date": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperDate"
     },
+    "map_fieldcopy": {
+      "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldCopy"
+    },
     "map_fieldname": {
       "klass": "org.apache.ambari.logfeeder.mapper.MapperFieldName"
     },

@@ -58,6 +58,9 @@ public interface DbmsHelper {
   String getCreateIndexStatement(String indexName, String tableName,
                                  String... columnNames);
 
+  String getCreateIndexStatement(String indexName, String tableName, boolean isUnique,
+                                 String... columnNames);
+
   /**
    * Gets DROP INDEX statement
    *

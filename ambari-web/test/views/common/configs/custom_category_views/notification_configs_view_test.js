@@ -31,7 +31,7 @@ function getView() {
     serviceConfigs: [],
     categoryConfigs: [],
     categoryConfigsAll: [],
-    parentView: Em.View.create({
+    mainView: Em.View.create({
       filter: '',
       columns: []
     })

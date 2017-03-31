@@ -67,6 +67,9 @@ public class ServiceDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private SecurityState securityState = SecurityState.UNSECURED;
 
+  @Column(name = "credential_store_enabled", nullable = false, insertable = true, updatable = true)
+  private short credentialStoreEnabled = 0;
+
   @OneToOne
   @javax.persistence.JoinColumns(
       {
@@ -129,6 +132,24 @@ public class ServiceDesiredStateEntity {
 
   public void setSecurityState(SecurityState securityState) {
     this.securityState = securityState;
+  }
+
+  /**
+   * Gets a value indicating if credential store use is enabled or not.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreEnabled() {
+    return credentialStoreEnabled != 0;
+  }
+
+  /**
+   * Sets a value indicating if credential store use is enabled or not.
+   *
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    this.credentialStoreEnabled = (short)((credentialStoreEnabled == false) ? 0 : 1);
   }
 
   @Override

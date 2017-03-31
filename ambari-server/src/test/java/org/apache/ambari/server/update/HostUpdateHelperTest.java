@@ -18,12 +18,18 @@
 package org.apache.ambari.server.update;
 
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -43,6 +49,8 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
@@ -51,18 +59,14 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
+import junit.framework.Assert;
 
 public class HostUpdateHelperTest {
 
@@ -211,18 +215,12 @@ public class HostUpdateHelperTest {
     Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     Cluster mockCluster = easyMockSupport.createNiceMock(Cluster.class);
     ClusterEntity mockClusterEntity1 = easyMockSupport.createNiceMock(ClusterEntity.class);
-    ClusterEntity mockClusterEntity2 = easyMockSupport.createNiceMock(ClusterEntity.class);
     ClusterConfigEntity mockClusterConfigEntity1 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     ClusterConfigEntity mockClusterConfigEntity2 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
-    ClusterConfigEntity mockClusterConfigEntity3 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
-    ClusterConfigEntity mockClusterConfigEntity4 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     StackEntity mockStackEntity = easyMockSupport.createNiceMock(StackEntity.class);
-    ReadWriteLock mockReadWriteLock = easyMockSupport.createNiceMock(ReadWriteLock.class);
-    Lock mockLock = easyMockSupport.createNiceMock(Lock.class);
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     Map<String, String> hosts = new HashMap<>();
     List<ClusterConfigEntity> clusterConfigEntities1 = new ArrayList<>();
-    List<ClusterConfigEntity> clusterConfigEntities2 = new ArrayList<>();
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -232,6 +230,8 @@ public class HostUpdateHelperTest {
         bind(EntityManager.class).toInstance(entityManager);
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(ClusterDAO.class).toInstance(mockClusterDAO);
+
+        install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
       }
     });
 
@@ -243,52 +243,42 @@ public class HostUpdateHelperTest {
     clusterConfigEntities1.add(mockClusterConfigEntity1);
     clusterConfigEntities1.add(mockClusterConfigEntity2);
 
-    clusterConfigEntities2.add(mockClusterConfigEntity3);
-    clusterConfigEntities2.add(mockClusterConfigEntity4);
-
     clusterHostsToChange.put("cl1", hosts);
 
-    expect(mockClusterDAO.findByName("cl1")).andReturn(mockClusterEntity1).once();
-    expect(mockClusterDAO.findById(1L)).andReturn(mockClusterEntity2).atLeastOnce();
+    expect(mockClusterDAO.findByName("cl1")).andReturn(mockClusterEntity1).atLeastOnce();
 
     expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
 
     expect(mockClusters.getCluster("cl1")).andReturn(mockCluster).once();
-    expect(mockCluster.getClusterGlobalLock()).andReturn(mockReadWriteLock).atLeastOnce();
-    expect(mockCluster.getClusterId()).andReturn(1L).atLeastOnce();
-
-    expect(mockReadWriteLock.writeLock()).andReturn(mockLock).atLeastOnce();
+    expect(mockCluster.getClusterId()).andReturn(1L).anyTimes();
 
     expect(mockClusterEntity1.getClusterConfigEntities()).andReturn(clusterConfigEntities1).atLeastOnce();
-    expect(mockClusterEntity2.getClusterConfigEntities()).andReturn(clusterConfigEntities2).atLeastOnce();
 
-    expect(mockClusterConfigEntity1.getStack()).andReturn(mockStackEntity).once();
+    expect(mockClusterConfigEntity1.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(mockClusterConfigEntity1.getConfigId()).andReturn(1L).atLeastOnce();
+    expect(mockClusterConfigEntity1.getStack()).andReturn(mockStackEntity).atLeastOnce();
     expect(mockClusterConfigEntity1.getData()).andReturn("{\"testProperty1\" : \"testValue_host1\", " +
             "\"testProperty2\" : \"testValue_host5\", \"testProperty3\" : \"testValue_host11\", " +
             "\"testProperty4\" : \"testValue_host55\"}").atLeastOnce();
     expect(mockClusterConfigEntity1.getTag()).andReturn("testTag1").atLeastOnce();
     expect(mockClusterConfigEntity1.getType()).andReturn("testType1").atLeastOnce();
     expect(mockClusterConfigEntity1.getVersion()).andReturn(1L).atLeastOnce();
+    expect(mockClusterDAO.findConfig(1L)).andReturn(mockClusterConfigEntity1).atLeastOnce();
 
-    expect(mockClusterConfigEntity2.getStack()).andReturn(mockStackEntity).once();
+    expect(mockClusterConfigEntity2.getClusterId()).andReturn(1L).atLeastOnce();
+    expect(mockClusterConfigEntity2.getConfigId()).andReturn(2L).anyTimes();
+    expect(mockClusterConfigEntity2.getStack()).andReturn(mockStackEntity).atLeastOnce();
     expect(mockClusterConfigEntity2.getData()).andReturn("{\"testProperty5\" : \"test_host1_test_host5_test_host11_test_host55\"}").atLeastOnce();
     expect(mockClusterConfigEntity2.getTag()).andReturn("testTag2").atLeastOnce();
     expect(mockClusterConfigEntity2.getType()).andReturn("testType2").atLeastOnce();
     expect(mockClusterConfigEntity2.getVersion()).andReturn(2L).atLeastOnce();
-
-    expect(mockClusterConfigEntity3.getTag()).andReturn("testTag1").atLeastOnce();
-    expect(mockClusterConfigEntity3.getType()).andReturn("testType1").atLeastOnce();
-    expect(mockClusterConfigEntity3.getVersion()).andReturn(1L).atLeastOnce();
-
-    expect(mockClusterConfigEntity4.getTag()).andReturn("testTag2").atLeastOnce();
-    expect(mockClusterConfigEntity4.getType()).andReturn("testType2").atLeastOnce();
-    expect(mockClusterConfigEntity4.getVersion()).andReturn(2L).atLeastOnce();
+    expect(mockClusterDAO.findConfig(2L)).andReturn(mockClusterConfigEntity2).atLeastOnce();
 
     Capture<String> dataCapture = EasyMock.newCapture();
-    mockClusterConfigEntity3.setData(EasyMock.capture(dataCapture));
+    mockClusterConfigEntity1.setData(EasyMock.capture(dataCapture));
     expectLastCall();
 
-    mockClusterConfigEntity4.setData("{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}");
+    mockClusterConfigEntity2.setData("{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}");
     expectLastCall();
 
     HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, null, mockInjector);

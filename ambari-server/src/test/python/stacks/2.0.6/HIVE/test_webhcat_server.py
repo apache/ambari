@@ -22,6 +22,7 @@ from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.exceptions import Fail
 
+
 @patch("os.path.isfile", new = MagicMock(return_value=True))
 @patch("glob.glob", new = MagicMock(return_value=["one", "two"]))
 class TestWebHCatServer(RMFTestCase):
@@ -227,7 +228,7 @@ class TestWebHCatServer(RMFTestCase):
         create_parents = True
     )
     self.assertResourceCalled('File', '/etc/hive-webhcat/conf/webhcat-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
                               mode = 0644,
@@ -252,10 +253,6 @@ class TestWebHCatServer(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a'
                               )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs;',
-                              path = ['/bin'],
-                              user = 'hcat',
-                              )
     self.assertResourceCalled('XmlConfig', 'webhcat-site.xml',
                               owner = 'hcat',
                               group = 'hadoop',
@@ -273,7 +270,7 @@ class TestWebHCatServer(RMFTestCase):
         create_parents = True
     )
     self.assertResourceCalled('File', '/etc/hive-webhcat/conf/webhcat-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
                               mode = 0644,
@@ -531,7 +528,7 @@ class TestWebHCatServer(RMFTestCase):
       create_parents = True)
 
     self.assertResourceCalled('File', '/usr/hdp/current/hive-webhcat/etc/webhcat/webhcat-log4j.properties',
-                              content = 'log4jproperties\nline2',
+                              content = InlineTemplate('log4jproperties\nline2'),
                               owner = 'hcat',
                               group = 'hadoop',
                               mode = 0644)

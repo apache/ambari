@@ -111,8 +111,9 @@ def main(argv=None):
   from ambari_agent.Controller import Controller
 
   cfg = AmbariConfig()
-  if os.path.exists(AmbariConfig.getConfigFile()):
-    cfg.read(AmbariConfig.getConfigFile())
+  config_file_path = AmbariConfig.getConfigFile(home_dir="")
+  if os.path.exists(config_file_path):
+    cfg.read(config_file_path)
   else:
     raise Exception("No config found, use default")
 

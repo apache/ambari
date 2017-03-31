@@ -35,6 +35,8 @@ App.StackService = DS.Model.extend({
   serviceCheckSupported: DS.attr('boolean'),
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
+  selection: DS.attr('string'),
+  isMandatory: DS.attr('boolean', {defaultValue: false}),
   isSelected: DS.attr('boolean', {defaultValue: true}),
   isInstalled: DS.attr('boolean', {defaultValue: false}),
   isInstallable: DS.attr('boolean', {defaultValue: true}),
@@ -43,6 +45,10 @@ App.StackService = DS.Model.extend({
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
   requiredServices: DS.attr('array', {defaultValue: []}),
+
+  isDisabled: function () {
+    return this.get('isInstalled') || (this.get('isMandatory') && !App.get('router.clusterInstallCompleted'));
+  }.property('isMandatory', 'isInstalled', 'App.router.clusterInstallCompleted'),
 
   /**
    * @type {String[]}
@@ -212,12 +218,6 @@ App.StackService.displayOrder = [
   'SPARK2',
   'ZEPPELIN'
 ];
-
-App.StackService.unSelectByDefault = [
-  'SPARK2',
-  'LOGSEARCH'
-];
-
 
 App.StackService.componentsOrderForService = {
   'HAWQ': ['HAWQMASTER', 'HAWQSTANDBY']

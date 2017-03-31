@@ -28,6 +28,7 @@ from resource_management.libraries.functions.get_bare_principal import get_bare_
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
 
 import status_params
 
@@ -121,19 +122,14 @@ info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 # metrics2 properties
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
-  if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-    metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
-  else:
-    metric_collector_host = ams_collector_hosts[0]
   if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
-    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "localhost:6188")
+    metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
       metric_collector_port = metric_collector_web_address.split(':')[1]
     else:
@@ -170,8 +166,6 @@ if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {accumulo_user_keytab} {accumulo_principal_name};")
 else:
   kinit_cmd = ""
-
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 #for create_hdfs_directory
 hostname = status_params.hostname

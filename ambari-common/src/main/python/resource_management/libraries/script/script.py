@@ -31,7 +31,9 @@ import tarfile
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -53,6 +55,7 @@ from contextlib import closing
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -64,7 +67,7 @@ if OSCheck.is_windows_family():
 else:
   from resource_management.libraries.functions.tar_archive import archive_dir
 
-USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR>
+USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> [PROTOCOL]
 
 <COMMAND> command type (INSTALL/CONFIGURE/START/STOP/SERVICE_CHECK...)
 <JSON_CONFIG> path to command json file. Ex: /var/lib/ambari-agent/data/command-2.json
@@ -72,6 +75,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
+[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
@@ -91,7 +95,32 @@ def get_path_from_configuration(name, configuration):
 
   return configuration
 
+def get_config_lock_file():
+  return os.path.join(Script.get_tmp_dir(), "link_configs_lock_file")
+
+class LockedConfigureMeta(type):
+  '''
+  This metaclass ensures that Script.configure() is invoked with a fcntl-based process lock
+  if necessary (when Ambari Agent is configured to execute tasks concurrently) for all subclasses.
+  '''
+  def __new__(meta, classname, supers, classdict):
+    if 'configure' in classdict:
+      original_configure = classdict['configure']
+
+      def locking_configure(obj, *args, **kw):
+        # local import to avoid circular dependency (default imports Script)
+        from resource_management.libraries.functions.default import default
+        parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+        lock = FcntlBasedProcessLock(get_config_lock_file(), skip_fcntl_failures = True, enabled = parallel_execution_enabled)
+        with lock:
+          original_configure(obj, *args, **kw)
+
+      classdict['configure'] = locking_configure
+
+    return type.__new__(meta, classname, supers, classdict)
+
 class Script(object):
+  __metaclass__ = LockedConfigureMeta
 
   instance = None
 
@@ -118,7 +147,8 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
- 
+  force_https_protocol = "PROTOCOL_TLSv1"
+
   def load_structured_out(self):
     Script.structuredOut = {}
     if os.path.exists(self.stroutfile):
@@ -244,7 +274,10 @@ class Script(object):
     self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
-    
+    # optional script argument for forcing https protocol
+    if len(sys.argv) >= 8:
+      Script.force_https_protocol = sys.argv[7]
+
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
 
@@ -406,6 +439,10 @@ class Script(object):
     return Script.tmp_dir
 
   @staticmethod
+  def get_force_https_protocol():
+    return Script.force_https_protocol
+
+  @staticmethod
   def get_component_from_role(role_directory_map, default_role):
     """
     Gets the <stack-root>/current/<component> component given an Ambari role,
@@ -553,7 +590,7 @@ class Script(object):
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
-          if Script.check_package_condition(package):
+          if self.check_package_condition(package):
             name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
@@ -577,22 +614,25 @@ class Script(object):
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
       
-  @staticmethod
-  def check_package_condition(package):
-    from resource_management.libraries.functions import package_conditions
+  def check_package_condition(self, package):
     condition = package['condition']
-    name = package['name']
     
     if not condition:
       return True
     
+    return self.should_install_package(package)
+
+  def should_install_package(self, package):
+    from resource_management.libraries.functions import package_conditions
+    condition = package['condition']
     try:
       chooser_method = getattr(package_conditions, condition)
     except AttributeError:
+      name = package['name']
       raise Fail("Condition with name '{0}', when installing package {1}. Please check package_conditions.py.".format(condition, name))
 
     return chooser_method()
-      
+
   @staticmethod
   def matches_any_regexp(string, regexp_list):
     for regex in regexp_list:
@@ -631,6 +671,12 @@ class Script(object):
     """
     pass
 
+  def disable_security(self, env):
+    """
+    To be overridden by subclasses if a custom action is required upon dekerberization (e.g. removing zk ACLs)
+    """
+    pass
+
   def restart(self, env):
     """
     Default implementation of restart command is to call stop and start methods
@@ -644,25 +690,20 @@ class Script(object):
     except KeyError:
       pass
 
-    restart_type = ""
+    upgrade_type_command_param = ""
     direction = None
     if config is not None:
       command_params = config["commandParams"] if "commandParams" in config else None
       if command_params is not None:
-        restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
+        upgrade_type_command_param = command_params["upgrade_type"] if "upgrade_type" in command_params else ""
         direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
 
-    upgrade_type = None
-    if restart_type.lower() == "rolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_ROLLING
-    elif restart_type.lower() == "nonrolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_NON_ROLLING
-
+    upgrade_type = Script.get_upgrade_type(upgrade_type_command_param)
     is_stack_upgrade = upgrade_type is not None
 
     # need this before actually executing so that failures still report upgrade info
     if is_stack_upgrade:
-      upgrade_info = {"upgrade_type": restart_type}
+      upgrade_info = {"upgrade_type": upgrade_type_command_param}
       if direction is not None:
         upgrade_info["direction"] = direction.upper()
 
@@ -685,7 +726,7 @@ class Script(object):
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
-          self.stop(env, rolling_restart=(restart_type == "rolling_upgrade"))
+          self.stop(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.stop(env)
 
@@ -720,7 +761,7 @@ class Script(object):
         self.start(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
-          self.start(env, rolling_restart=(restart_type == "rolling_upgrade"))
+          self.start(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.start(env)
 
@@ -842,6 +883,19 @@ class Script(object):
     if Script.instance is None:
       Script.instance = Script()
     return Script.instance
+
+  @staticmethod
+  def get_upgrade_type(upgrade_type_command_param):
+    upgrade_type = None
+    if upgrade_type_command_param.lower() == "rolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_ROLLING
+    elif upgrade_type_command_param.lower() == "nonrolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_NON_ROLLING
+    elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
+      upgrade_type = UPGRADE_TYPE_HOST_ORDERED
+
+    return upgrade_type
+
 
   def __init__(self):
     if Script.instance is not None:

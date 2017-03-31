@@ -20,27 +20,30 @@ limitations under the License.
 import os
 import subprocess
 import sys
+import logging
+import time
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, \
-  set_debug_mode_from_options
+from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, set_debug_mode_from_options
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.os_utils import is_root, run_os_command
+from ambari_commons.os_utils import is_root
+from ambari_server.ambariPath import AmbariPath
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_properties, \
-  get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
-  get_is_active_instance, update_properties, \
-  PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
-  SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file, get_missing_properties
+  get_java_exe_path, read_ambari_user, \
+  get_is_active_instance, update_properties, get_ambari_server_ui_port, PID_NAME, \
+  check_database_name_property, parse_properties_file, get_missing_properties
+
+from ambari_server.serverConfiguration import get_web_server_startup_timeout
 from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
-from ambari_server.setupSecurity import generate_env, \
-  ensure_can_start_under_current_user
-from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, wait_for_pid, \
-  save_main_pid_ex, check_exitcode
+from ambari_server.setupSecurity import generate_env, ensure_can_start_under_current_user
+from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, \
+  save_main_pid_ex, check_exitcode, get_live_pids_count, wait_for_ui_start
 from ambari_server.serverClassPath import ServerClassPath
 
+logger = logging.getLogger(__name__)
 
 # debug settings
 SERVER_START_DEBUG = False
@@ -99,8 +102,8 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
     "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
 
-SERVER_INIT_TIMEOUT = 5
-SERVER_START_TIMEOUT = 10
+SERVER_START_TIMEOUT = 5  #seconds
+SERVER_START_RETRIES = 4
 
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
@@ -112,10 +115,16 @@ EXITCODE_NAME = "ambari-server.exitcode"
 CHECK_DATABASE_SKIPPED_PROPERTY = "check_database_skipped"
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
+AMBARI_SERVER_NOT_STARTED_MSG = "Ambari Server java process hasn't been started or can't be determined."
+AMBARI_SERVER_STOPPED = "Ambari Server java process has stopped. Please check the logs for more information."
+AMBARI_SERVER_UI_TIMEOUT = "Server not yet listening on http port {0} after {1} seconds. Exiting."
+AMBARI_SERVER_STARTED_SUCCESS_MSG = "Ambari Server has started successfully"
 
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
-ULIMIT_OPEN_FILES_DEFAULT = 10000
+ULIMIT_OPEN_FILES_DEFAULT = 65536
+
+AMBARI_ENV_FILE = AmbariPath.get("/var/lib/ambari-server/ambari-env.sh")
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def ensure_server_security_is_configured():
@@ -175,9 +184,10 @@ def generate_child_process_param_list(ambari_user, java_exe, class_path,
     # from subprocess, we have to skip --login option of su command. That's why
     # we change dir to / (otherwise subprocess can face with 'permission denied'
     # errors while trying to list current directory
-    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c '{command}'".format(ulimit_cmd=ulimit_cmd, 
+    cmd = "{ulimit_cmd} ; {su} {ambari_user} -s {sh_shell} -c 'source {ambari_env_file} ; {command}'".format(ulimit_cmd=ulimit_cmd,
                                                                                 su=locate_file('su', '/bin'), ambari_user=ambari_user,
-                                                                                sh_shell=locate_file('sh', '/bin'), command=command)
+                                                                                sh_shell=locate_file('sh', '/bin'), command=command,
+                                                                                ambari_env_file=AMBARI_ENV_FILE)
   else:
     cmd = "{ulimit_cmd} ; {command}".format(ulimit_cmd=ulimit_cmd, command=command)
     
@@ -195,26 +205,82 @@ def wait_for_server_start(pidFile, scmStatus):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def wait_for_server_start(pidFile, scmStatus):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err ="Error getting ambari properties"
+    raise FatalException(-1, err)
+
   #wait for server process for SERVER_START_TIMEOUT seconds
   sys.stdout.write('Waiting for server start...')
   sys.stdout.flush()
+  pids = []
+  pid = None
+  # looking_for_pid() might return partrial pid list on slow hardware
+  for i in range(1, SERVER_START_RETRIES):
+    pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
+    pid = save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
+                           locate_all_file_paths('bash', '/bin') +
+                           locate_all_file_paths('dash', '/bin'), IS_FOREGROUND)
+    if pid:
+      break
+    else:
+      sys.stdout.write("Unable to determine server PID. Retrying...\n")
+      sys.stdout.flush()
 
-  pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
-  found_pids = wait_for_pid(pids, SERVER_START_TIMEOUT)
-
-  sys.stdout.write('\n')
-  sys.stdout.flush()
-
-  if found_pids <= 0:
+  exception = None
+  if pid:
+    ambari_server_ui_port = get_ambari_server_ui_port(properties)
+    web_server_startup_timeout = get_web_server_startup_timeout(properties)
+    waitStart = time.time()
+    if not wait_for_ui_start(int(ambari_server_ui_port), pid, web_server_startup_timeout):
+      waitTime = int(time.time()-waitStart)
+      # Java process stopped, due to a DB check or other startup issue
+      if waitTime < web_server_startup_timeout:
+        exception = FatalException(-1, AMBARI_SERVER_STOPPED)
+      # UI didn't come up on time
+      else:
+        exception = FatalException(1, AMBARI_SERVER_UI_TIMEOUT.format(ambari_server_ui_port, web_server_startup_timeout))
+  elif get_live_pids_count(pids) <= 0:
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
-    raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
+    exception = FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
-    save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
-                                     locate_all_file_paths('bash', '/bin') +
-                                     locate_all_file_paths('dash', '/bin'), True, IS_FOREGROUND)
+    exception = FatalException(-1, AMBARI_SERVER_NOT_STARTED_MSG)
+
+  if os.path.isfile(configDefaults.SERVER_OUT_FILE):
+    if 'DB_CHECK_ERROR' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+        "You may try --auto-fix-database flag to attempt to fix issues automatically. " \
+        "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+        "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+        configDefaults.DB_CHECK_LOG + " for more details on the consistency issues."
+    elif 'DB_CHECK_WARNING' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check found warnings. See " + configDefaults.DB_CHECK_LOG + " for more details."
+    # Only presume that DB check was successful if it explicitly appears in the log. An unexpected error may prevent
+    # the consistency check from running at all, so missing error/warning message in the log cannot imply the check was
+    # successful
+    elif 'DB_CHECK_SUCCESS' in open(configDefaults.SERVER_OUT_FILE).read():
+      print "\nDB configs consistency check: no errors and warnings were found."
+  else:
+    sys.stdout.write(configDefaults.SERVER_OUT_FILE + " does not exist")
+
+  if exception:
+    raise exception
 
 
 def server_process_main(options, scmStatus=None):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err ="Error getting ambari properties"
+    raise FatalException(-1, err)
+
+  properties_for_print = []
+  logger.info("Ambari server properties config:")
+  for key, value in properties.getPropertyDict().items():
+     if "passwd" not in key and "password" not in key:
+       properties_for_print.append(key + "=" + value)
+
+  logger.info(properties_for_print)
+
   # debug mode, including stop Java process at startup
   try:
     set_debug_mode_from_options(options)
@@ -246,8 +312,6 @@ def server_process_main(options, scmStatus=None):
           "command to install a JDK automatically or install any " \
           "JDK manually to " + configDefaults.JDK_INSTALL_DIR
     raise FatalException(1, err)
-
-  properties = get_ambari_properties()
 
   if not options.skip_properties_validation:
     missing_properties = get_missing_properties(properties)
@@ -298,21 +362,9 @@ def server_process_main(options, scmStatus=None):
     properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "true")
   else:
     print "Ambari database consistency check started..."
+    if options.fix_database_consistency:
+      jvm_args += " -DfixDatabaseConsistency"
     properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "false")
-    command = CHECK_DATABASE_HELPER_CMD.format(java_exe, class_path)
-
-    (retcode, stdout, stderr) = run_os_command(command, env=environ)
-
-    if retcode > 0:
-      print str(stdout)
-      raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
-                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
-    else:
-      print str(stdout)
-      print "Ambari database consistency check finished"
-
-      if not stdout.startswith("No errors"):
-        sys.exit(1)
 
   update_properties(properties)
   param_list = generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode)
@@ -347,7 +399,7 @@ def server_process_main(options, scmStatus=None):
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
     pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
-    save_pid(pidJava, pidfile)
+
     print "Server PID at: "+pidfile
     print "Server out at: "+configDefaults.SERVER_OUT_FILE
     print "Server log at: "+configDefaults.SERVER_LOG_FILE

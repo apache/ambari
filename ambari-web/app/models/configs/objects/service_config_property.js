@@ -95,6 +95,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   rightSideLabel: false,
 
   /**
+   * type of property
+   * @type {String[]}
+   * @default empty array
+   */
+  propertyType: [],
+
+  /**
    * Text to be shown as placeholder
    * By default savedValue is shown as placeholder
    * @type {String}
@@ -152,6 +159,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   showLabel: true,
   isConfigIdentity: false,
   copy: '',
+
+  /**
+   * Determines if config exists in the non-default config group but is loaded for default config group
+   *
+   * @type {boolean}
+   */
+  isCustomGroupConfig: false,
 
   error: Em.computed.bool('errorMessage.length'),
   warn: Em.computed.bool('warnMessage.length'),
@@ -276,7 +290,8 @@ App.ServiceConfigProperty = Em.Object.extend({
   init: function () {
     this.setInitialValues();
     this.set('viewClass', App.config.getViewClass(this.get("displayType"), this.get('dependentConfigPattern'), this.get('unit')));
-    this.set('validator', App.config.getValidator(this.get("displayType")));
+    this.set('validateErrors', App.config.getErrorValidator(this.get("displayType")));
+    this.set('validateWarnings', App.config.getWarningValidator(this.get("displayType")));
     this.validate();
   },
 
@@ -350,21 +365,21 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else if ((typeof this.get('value') != 'object') && ((this.get('value') + '').length === 0)) {
       var widgetType = this.get('widgetType');
       this.set('errorMessage', (this.get('isRequired') && (!['test-db-connection','label'].contains(widgetType))) ? Em.I18n.t('errorMessage.config.required') : '');
-    } else if (this.get('name') === 'llap_queue_capacity') {
-      if (!isNaN(parseInt(this.get('value'), 10)) && parseInt(this.get('value'), 10) === 100) {
-        this.set('warnMessage', Em.I18n.t('config.warnMessage.llap_queue_capacity.max'));
-      } else {
-        this.set('warnMessage', '');
-        this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
-      }
     } else {
-      this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
+      this.set('errorMessage', this.validateErrors(this.get('value'), this.get('name'), this.get('retypedPassword')));
+    }
+    if (!this.get('widgetType') || ('text-field' === this.get('widgetType'))) {
+      //temp conditions, since other warnings are calculated directly in widget view
+      this.set('warnMessage', this.validateWarnings(this.get('value'), this.get('name'), this.get('filename'),
+        this.get('stackConfigProperty'), this.get('unit')));
     }
   }.observes('value', 'retypedPassword', 'isEditable'),
 
   viewClass: App.ServiceConfigTextField,
 
-  validator: function() { return '' },
+  validateErrors: function() { return '' },
+
+  validateWarnings: function() { return '' },
 
   /**
    * Get override for selected group

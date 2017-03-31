@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,7 +37,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-import java.util.Collection;
+
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 /**
  * Represents an admin permission.
@@ -119,7 +123,7 @@ public class PermissionEntity {
       joinColumns = {@JoinColumn(name = "permission_id")},
       inverseJoinColumns = {@JoinColumn(name = "authorization_id")}
   )
-  private Collection<RoleAuthorizationEntity> authorizations;
+  private Set<RoleAuthorizationEntity> authorizations = new LinkedHashSet<>();
 
   /**
    * The permission's explicit sort order
@@ -229,12 +233,26 @@ public class PermissionEntity {
   }
 
   /**
-   * Sets the collection of granular authorizations for this PermissionEntity
-   *
-   * @param authorizations a collection of granular authorizations
+   * Add roleAuthorization if it's not already added
    */
-  public void setAuthorizations(Collection<RoleAuthorizationEntity> authorizations) {
-    this.authorizations = authorizations;
+  public void addAuthorization(RoleAuthorizationEntity roleAuthorization) {
+    authorizations.add(roleAuthorization);
+  }
+
+  /**
+   * Add multiple role authorizations
+   */
+  public void addAuthorizations(Collection<RoleAuthorization> roleAuthorizations) {
+    for (RoleAuthorization roleAuthorization : roleAuthorizations) {
+      addAuthorization(createRoleAuthorizationEntity(roleAuthorization));
+    }
+  }
+
+  private static RoleAuthorizationEntity createRoleAuthorizationEntity(RoleAuthorization authorization) {
+    RoleAuthorizationEntity roleAuthorizationEntity = new RoleAuthorizationEntity();
+    roleAuthorizationEntity.setAuthorizationId(authorization.getId());
+    roleAuthorizationEntity.setAuthorizationName(authorization.name());
+    return roleAuthorizationEntity;
   }
 
   /**

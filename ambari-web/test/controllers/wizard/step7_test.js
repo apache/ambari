@@ -372,6 +372,15 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#clearStep', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, 'abortRequests');
+    });
+
+    afterEach(function () {
+      installerStep7Controller.abortRequests.restore();
+    });
+
     it('should clear stepConfigs', function () {
       installerStep7Controller.set('stepConfigs', [
         {},
@@ -393,6 +402,10 @@ describe('App.InstallerStep7Controller', function () {
       ]);
       installerStep7Controller.clearStep();
       expect(installerStep7Controller.get('filterColumns').everyProperty('selected', false)).to.equal(true);
+    });
+    it('should call abortRequests', function () {
+      installerStep7Controller.clearStep();
+      expect(installerStep7Controller.abortRequests.calledOnce).to.be.true;
     });
   });
 
@@ -2042,6 +2055,24 @@ describe('App.InstallerStep7Controller', function () {
     it('true if it is not installer or addService', function () {
       installerStep7Controller.set('wizardController', {name: 'some'});
       expect(installerStep7Controller.allowUpdateProperty([], '', '')).to.be.true;
+    });
+
+  });
+
+  describe('#setButtonClickFinish', function () {
+
+    beforeEach(function () {
+      installerStep7Controller.set('submitButtonClicked', true);
+      App.set('router.nextBtnClickInProgress', true);
+      installerStep7Controller.setButtonClickFinish();
+    });
+
+    it('submitButtonClicked should be false', function () {
+      expect(installerStep7Controller.get('submitButtonClicked')).to.be.false;
+    });
+
+    it('nextBtnClickInProgress should be false', function () {
+      expect(App.get('router.nextBtnClickInProgress')).to.be.false;
     });
 
   });

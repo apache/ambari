@@ -18,9 +18,4 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
-  queryParams: "appPath",
-  appPath : null,
-  model: function(params) {
-    return {};
-  }
 });

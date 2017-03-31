@@ -272,6 +272,26 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     }
   },
 
+  /**
+   * remove tasks by command name
+   */
+  removeTasks: function(commands) {
+    var tasks = this.get('tasks');
+
+    commands.forEach(function(command) {
+      var cmd = tasks.filterProperty('command', command);
+      var index = null;
+
+      if (cmd.length === 0) {
+        return false;
+      } else {
+        index = tasks.indexOf( cmd[0] );
+      }
+
+      tasks.splice( index, 1 );
+    });
+  },
+
   setTaskStatus: function (taskId, status) {
     this.get('tasks').findProperty('id', taskId).set('status', status);
   },
@@ -486,8 +506,13 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
       sender: this,
       data: data,
       success: 'startPolling',
-      error: 'onTaskError'
+      error: 'startServicesErrorCallback'
     });
+  },
+
+  startServicesErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.type, jqXHR.status);
+    this.onTaskError(jqXHR, ajaxOptions, error, opt);
   },
 
   /**
@@ -579,14 +604,14 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
    * Update component status on selected hosts.
    *
    * @param {string} componentName
-   * @param {(string|string[])} hostName
+   * @param {(string|string[]|null)} hostName - use null to update components on all hosts
    * @param {string} serviceName
    * @param {string} context
    * @param {number} taskNum
    * @returns {$.ajax}
    */
   updateComponent: function (componentName, hostName, serviceName, context, taskNum) {
-    if (!(hostName instanceof Array)) {
+    if (hostName && !(hostName instanceof Array)) {
       hostName = [hostName];
     }
     var state = context.toLowerCase() == "start" ? "STARTED" : "INSTALLED";
@@ -597,7 +622,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
         HostRoles: {
           state: state
         },
-        query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
+        query: 'HostRoles/component_name=' + componentName + (hostName ? '&HostRoles/host_name.in(' + hostName.join(',') + ')' : '') + '&HostRoles/maintenance_state=OFF',
         context: context + " " + App.format.role(componentName, false),
         hostName: hostName,
         taskNum: taskNum || 1,
@@ -711,6 +736,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
   done: function () {
     if (!this.get('isSubmitDisabled')) {
+      this.set('isSubmitDisabled', true);
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('next');
     }
@@ -718,6 +744,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
 
   back: function () {
     if (!this.get('isBackButtonDisabled')) {
+      this.set('isBackButtonDisabled', true);
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('back');
     }

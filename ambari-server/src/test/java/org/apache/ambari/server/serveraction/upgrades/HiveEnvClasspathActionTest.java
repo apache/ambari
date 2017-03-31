@@ -17,19 +17,11 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Injector;
-import junit.framework.Assert;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
-import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Test;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -37,11 +29,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.inject.Injector;
+
+import junit.framework.Assert;
 
 /**
  * Tests HiveEnvClasspathAction logic
@@ -57,79 +58,66 @@ public class HiveEnvClasspathActionTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
-    Config hiveEnv = new ConfigImpl("hive-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("content", "      export HADOOP_USER_CLASSPATH_FIRST=true  #this prevents old metrics libs from mapreduce lib from bringing in old jar deps overriding HIVE_LIB\n" +
-          "      if [ \"$SERVICE\" = \"cli\" ]; then\n" +
-          "      if [ -z \"$DEBUG\" ]; then\n" +
-          "      export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseNUMA -XX:+UseParallelGC -XX:-UseGCOverheadLimit\"\n" +
-          "      else\n" +
-          "      export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit\"\n" +
-          "      fi\n" +
-          "      fi\n" +
-          "\n" +
-          "      # The heap size of the jvm stared by hive shell script can be controlled via:\n" +
-          "\n" +
-          "      if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
-          "      export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
-          "      else\n" +
-          "      export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
-          "      fi\n" +
-          "\n" +
-          "      export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
-          "\n" +
-          "      # Larger heap size may be required when running queries over large number of files or partitions.\n" +
-          "      # By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be\n" +
-          "      # appropriate for hive server (hwi etc).\n" +
-          "\n" +
-          "\n" +
-          "      # Set HADOOP_HOME to point to a specific hadoop install directory\n" +
-          "      HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n" +
-          "\n" +
-          "      # Hive Configuration Directory can be controlled by:\n" +
-          "      export HIVE_CONF_DIR=test\n" +
-          "\n" +
-          "      # Folder containing extra libraries required for hive compilation/execution can be controlled by:\n" +
-          "      if [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n" +
-          "      if [ -f \"${HIVE_AUX_JARS_PATH}\" ]; then\n" +
-          "      export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}\n" +
-          "      elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
-          "      export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
-          "      fi\n" +
-          "      elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
-          "      export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
-          "      fi\n" +
-          "\n" +
-          "      export METASTORE_PORT={{hive_metastore_port}}\n" +
-          "\n" +
-          "      {% if sqla_db_used or lib_dir_available %}\n" +
-          "      export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:{{jdbc_libs_dir}}\"\n" +
-          "      export JAVA_LIBRARY_PATH=\"$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}\"\n" +
-          "      {% endif %}");
-      }};
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("content", "      export HADOOP_USER_CLASSPATH_FIRST=true  #this prevents old metrics libs from mapreduce lib from bringing in old jar deps overriding HIVE_LIB\n" +
+        "      if [ \"$SERVICE\" = \"cli\" ]; then\n" +
+        "      if [ -z \"$DEBUG\" ]; then\n" +
+        "      export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseNUMA -XX:+UseParallelGC -XX:-UseGCOverheadLimit\"\n" +
+        "      else\n" +
+        "      export HADOOP_OPTS=\"$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit\"\n" +
+        "      fi\n" +
+        "      fi\n" +
+        "\n" +
+        "      # The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+        "\n" +
+        "      if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+        "      export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
+        "      else\n" +
+        "      export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+        "      fi\n" +
+        "\n" +
+        "      export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+        "\n" +
+        "      # Larger heap size may be required when running queries over large number of files or partitions.\n" +
+        "      # By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be\n" +
+        "      # appropriate for hive server (hwi etc).\n" +
+        "\n" +
+        "\n" +
+        "      # Set HADOOP_HOME to point to a specific hadoop install directory\n" +
+        "      HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n" +
+        "\n" +
+        "      # Hive Configuration Directory can be controlled by:\n" +
+        "      export HIVE_CONF_DIR=test\n" +
+        "\n" +
+        "      # Folder containing extra libraries required for hive compilation/execution can be controlled by:\n" +
+        "      if [ \"${HIVE_AUX_JARS_PATH}\" != \"\" ]; then\n" +
+        "      if [ -f \"${HIVE_AUX_JARS_PATH}\" ]; then\n" +
+        "      export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}\n" +
+        "      elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "      export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "      fi\n" +
+        "      elif [ -d \"/usr/hdp/current/hive-webhcat/share/hcatalog\" ]; then\n" +
+        "      export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar\n" +
+        "      fi\n" +
+        "\n" +
+        "      export METASTORE_PORT={{hive_metastore_port}}\n" +
+        "\n" +
+        "      {% if sqla_db_used or lib_dir_available %}\n" +
+        "      export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:{{jdbc_libs_dir}}\"\n" +
+        "      export JAVA_LIBRARY_PATH=\"$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}\"\n" +
+        "      {% endif %}");
+    }};
 
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
-
+    Config hiveEnv = EasyMock.createNiceMock(Config.class);
+    expect(hiveEnv.getType()).andReturn("hive-env").anyTimes();
+    expect(hiveEnv.getProperties()).andReturn(mockProperties).anyTimes();
 
     expect(cluster.getDesiredConfigByType("hive-env")).andReturn(hiveEnv).atLeastOnce();
 
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
 
-    replay(m_injector, m_clusters, cluster);
+    replay(m_injector, m_clusters, cluster, hiveEnv);
 
     m_clusterField = HiveEnvClasspathAction.class.getDeclaredField("clusters");
     m_clusterField.setAccessible(true);

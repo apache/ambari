@@ -22,21 +22,29 @@ var _runState = 'RUNNING';
 var _stopState = 'STOPPED';
 
 App.CapschedQueuesconfController = Ember.Controller.extend({
-  needs: ['capsched', 'loading'],
+  needs: ['capsched'],
   queues: Ember.computed.alias('controllers.capsched.queues'),
   isOperator: Ember.computed.alias('controllers.capsched.isOperator'),
   allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
+  isRmOffline: Ember.computed.alias('store.isRmOffline'),
+  isNodeLabelsEnabledByRM: Ember.computed.alias('store.isNodeLabelsEnabledByRM'),
+  isNodeLabelsConfiguredByRM: Ember.computed.alias('store.isNodeLabelsConfiguredByRM'),
   allNodeLabelRecords: [],
+  queuesNeedRefresh: Ember.computed.alias('store.queuesNeedRefresh'),
+  isRefreshOrRestartNeeded: false,
+  deletedQueues: Ember.computed.alias('store.deletedQueues'),
 
   actions: {
     addNewQueue: function() {
       this.set('newQueueName', '');
       this.set('showQueueNameInput', true);
+      this.set('isCreatingNewQueue', true);
     },
     createNewQueue: function() {
       if (this.validateQueueName()) {
         return;
       }
+      this.set('isCreatingNewQueue', false);
       var store = this.get('store'),
       queueName = this.get('newQueueName'),
       parentPath = this.get('selectedQueue.path'),
@@ -56,6 +64,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
         freeLeafCapacity = (totalLeafCapacity < 100) ? 100 - totalLeafCapacity : 0;
       }
       var qCapacity = (newInLeaf) ? 100 : freeLeafCapacity;
+      var requireRestart = (this.get('selectedQueue.isLeafQ') && !this.get('selectedQueue.isNewQueue'))? true : false;
       newQueue = store.createRecord('queue', {
         id: queuePath.toLowerCase(),
         name: queueName,
@@ -64,18 +73,29 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
         depth: depth,
         isNewQueue: true,
         capacity: qCapacity,
-        maximum_capacity: qCapacity
+        maximum_capacity: 100,
+        requireRestart: requireRestart
       });
       this.set('newQueue', newQueue);
       store.saveAndUpdateQueue(newQueue).then(Em.run.bind(this, 'saveAndUpdateQueueSuccess', newQueue));
+
+      if (!this.get('queuesNeedRefresh').findBy('path', queuePath)) {
+        this.get('queuesNeedRefresh').addObject({
+          path: queuePath,
+          name: queueName
+        });
+      }
     },
     clearCreateQueue: function() {
       this.set('newQueueName', '');
       this.set('showQueueNameInput', false);
       this.set('isInvalidQueueName', false);
       this.set('invalidQueueNameMessage', '');
+      this.set('isCreatingNewQueue', false);
     },
     discardQueuesChanges: function() {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
+      var tempRestart = this.get('isQueuesMustNeedRestart');
       var allQueues = this.get('queues');
       allQueues.forEach(function(qq){
         var qAttrs = qq.changedAttributes();
@@ -93,12 +113,13 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
             }
           }
         });
-        //Setting root label capacities back to 100,
-        //if discard changes set root label capacity to 0.
+        //Setting root label capacities back to 100, if discard changes set root label capacity to 0.
         if (qq.get('id') === 'root') {
           qq.get('labels').setEach('capacity', 100);
         }
       });
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+      this.set('isQueuesMustNeedRestart', tempRestart);
     },
     stopQueue: function() {
       this.set('selectedQueue.state', _stopState);
@@ -127,12 +148,88 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     },
     showConfirmDialog: function() {
       this.set('isConfirmDialogOpen', true);
+    },
+    saveCapSchedConfigs: function() {
+      if (this.get('saveMode') === '') {
+        var holder = {
+          refresh: this.get('isRefreshOrRestartNeeded')
+        };
+        this.set('tempRefreshHolder', holder);
+      } else {
+        this.set('tempRefreshHolder', null);
+      }
+      return true;
     }
   },
 
+  initEvents: function() {
+    this.get('eventBus').subscribe('beforeSavingConfigs', function() {
+      this.set("tempRefreshNeed", this.get('isRefreshOrRestartNeeded') || false);
+      this.set("tempMustRestart", this.get('isQueuesMustNeedRestart') || false);
+    }.bind(this));
+
+    this.get('eventBus').subscribe('afterConfigsSaved', function(refresh) {
+      if (refresh !== undefined) {
+        this.set('isRefreshOrRestartNeeded', refresh);
+        this.set('isQueuesMustNeedRestart', refresh);
+      } else {
+        this.set('isRefreshOrRestartNeeded', this.get('tempRefreshNeed'));
+        this.set('isQueuesMustNeedRestart', this.get('tempMustRestart'));
+      }
+    }.bind(this));
+  }.on('init'),
+
+  teardownEvents: function() {
+    this.get('eventBus').unsubscribe('beforeSavingConfigs');
+    this.get('eventBus').unsubscribe('afterConfigsSaved');
+  }.on('willDestroy'),
+
   isAnyQueueDirty: function() {
-    return this.get('queues').isAny('isAnyDirty');
+    return this.get('queues').isAny('isAnyDirty', true);
   }.property('queues.@each.isAnyDirty'),
+
+  isQueuesNeedRefreshOrRestart: function() {
+    var isNeed = this.get('isAnyQueueDirty') || this.get('needRefresh')
+      || this.get('queuesRequireRestart') || this.get('isRefreshOrRestartNeeded');
+    return isNeed;
+  }.property('isAnyQueueDirty', 'needRefresh', 'queuesRequireRestart', 'isRefreshOrRestartNeeded', 'canNotSave'),
+
+  isQueuesMustNeedRestart: false,
+
+  forceRefreshOrRestartRequired: function() {
+    return !this.get('isAnyQueueDirty') && (this.get('isRefreshOrRestartNeeded') || this.get('isQueuesMustNeedRestart'));
+  }.property('isAnyQueueDirty', 'isRefreshOrRestartNeeded', 'isQueuesMustNeedRestart'),
+
+  refreshRestartWatcher: function() {
+    if (this.get('tempRefreshHolder')) {
+      var holder = this.get('tempRefreshHolder');
+      this.set('isRefreshOrRestartNeeded', holder.refresh||false);
+      this.set('tempRefreshHolder', null);
+    }
+  }.observes('isRefreshOrRestartNeeded'),
+
+  isDirtyQueuesNeedRefreshQsOp: function() {
+    if (this.get('isAnyQueueDirty') || this.get('needRefresh') || this.get('isRefreshOrRestartNeeded')) {
+      if (this.get('queuesRequireRestart')) {
+        return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }.property('isAnyQueueDirty', 'needRefresh', 'queuesRequireRestart', 'isRefreshOrRestartNeeded', 'canNotSave'),
+
+  isDirtyQueuesNeedRestartRmOp: function() {
+    if (this.get('queuesRequireRestart') || this.get('isQueuesMustNeedRestart')) {
+      return true;
+    } else {
+      return false;
+    }
+  }.property('isAnyQueueDirty', 'queuesRequireRestart', 'isQueuesMustNeedRestart', 'canNotSave'),
+
+  showNeedRefreshOrRestartWarning: function() {
+    return this.get('isQueuesNeedRefreshOrRestart') && !this.get('canNotSave');
+  }.property('isQueuesNeedRefreshOrRestart', 'canNotSave'),
 
   selectedQueue: null,
   newQueue: null,
@@ -141,18 +238,27 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   isInvalidQueueName: false,
   invalidQueueNameMessage: '',
 
+  isCreatingNewQueue: false,
+  isEditingQueueName: false,
+
+  isCreaingOrRenamingQueue: function() {
+    return this.get('isCreatingNewQueue')||this.get('isEditingQueueName');
+  }.property('isCreatingNewQueue', 'isEditingQueueName'),
+
   validateQueueName: function() {
     var parentPath = this.get('selectedQueue.path'),
     queueName = this.get('newQueueName'),
     queuePath = [parentPath, queueName].join('.'),
-    qAlreadyExists = this.store.hasRecordForId('queue', queuePath.toLowerCase());
-
+    qAlreadyExists = (this.get('queues').findBy('name', queueName))? true : false;
     if (Ember.isBlank(queueName)) {
       this.set('isInvalidQueueName', true);
       this.set('invalidQueueNameMessage', 'Enter queue name');
     } else if (qAlreadyExists) {
       this.set('isInvalidQueueName', true);
       this.set('invalidQueueNameMessage', 'Queue already exists');
+    } else if (queueName.indexOf(' ') > -1) {
+      this.set('isInvalidQueueName', true);
+      this.set('invalidQueueNameMessage', 'Queue name contains white spaces');
     } else {
       this.set('isInvalidQueueName', false);
       this.set('invalidQueueNameMessage', '');
@@ -165,6 +271,11 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   }.observes('newQueueName', 'newQueueName.length'),
 
   initNodeLabelRecords: function() {
+    if (!this.get('isNodeLabelsEnabledByRM') || !this.get('isNodeLabelsConfiguredByRM') || this.get('isRmOffline')) {
+      return;
+    }
+    this.setDefaultNodeLabelAccesses('root');
+    this.checkNodeLabelsInvalidCapacity('root');
     var allQs = this.get('queues'),
     allLabels = this.get('allNodeLabels'),
     store = this.get('store'),
@@ -175,16 +286,82 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       nonAccessible = [];
       allLabels.forEach(function(label) {
         var qLabel = store.getById('label', [queue.get('path'), label.name].join('.'));
-        if (!queue.get('labels').contains(qLabel)) {
-          nonAccessible.pushObject(qLabel);
+        if (qLabel) {
+          if (!queue.get('labels').contains(qLabel)) {
+            nonAccessible.pushObject(qLabel);
+          }
+          records.pushObject(qLabel);
         }
-        records.pushObject(qLabel);
       });
       queue.set('nonAccessibleLabels', nonAccessible);
     });
     this.set('allNodeLabelRecords', records);
-
   }.on('init'),
+
+  setDefaultNodeLabelAccesses: function(queuePath) {
+    var allLabels = this.get('allNodeLabels'),
+    store = this.get('store'),
+    ctrl = this,
+    queue = store.getById('queue', queuePath.toLowerCase()),
+    parentQ = store.getById('queue', queue.get('parentPath').toLowerCase()),
+    children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
+
+    if (Ember.isEmpty(queue.get('labels'))) {
+      if (parentQ && parentQ.get('labels.length') > 0) {
+        parentQ.get('labels').forEach(function(label) {
+          var qlabel = store.getById('label', [queue.get('path'), label.get('name')].join('.'));
+          if (qlabel) {
+            queue.addQueueNodeLabel(qlabel);
+          }
+        });
+      } else {
+        allLabels.forEach(function(label) {
+          var qlabel = store.getById('label', [queue.get('path'), label.name].join('.'));
+          if (qlabel) {
+            queue.addQueueNodeLabel(qlabel);
+          }
+        });
+      }
+    }
+
+    if (queue.get('name') === 'root') {
+      queue.get('labels').setEach('capacity', 100);
+    }
+
+    children.forEach(function(child) {
+      ctrl.setDefaultNodeLabelAccesses(child.get('path'));
+    });
+  },
+
+  checkNodeLabelsInvalidCapacity: function(queuePath) {
+    var allLabels = this.get('allNodeLabels'),
+    store = this.get('store'),
+    ctrl = this,
+    queue = store.getById('queue', queuePath.toLowerCase()),
+    children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
+
+    allLabels.forEach(function(lab) {
+      var total = 0;
+      children.forEach(function(child) {
+        var cLabel = child.get('labels').findBy('name', lab.name);
+        if (cLabel) {
+          total += cLabel.get('capacity');
+        }
+      });
+      if (total !== 100) {
+        children.forEach(function(child) {
+          var cLabel = child.get('labels').findBy('name', lab.name);
+          if (cLabel) {
+            cLabel.set('overCapacity', true);
+          }
+        });
+      }
+    });
+
+    children.forEach(function(child) {
+      ctrl.checkNodeLabelsInvalidCapacity(child.get('path'));
+    });
+  },
 
   /**
    * Marks each queue in leaf with 'overCapacity' if sum if their capacity values is greater than 100.
@@ -200,6 +377,34 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       leaf.setEach('overCapacity', total != 100);
     }.bind(this));
   }.observes('queues.length','queues.@each.capacity'),
+
+  newQueuesNeedRestart: function() {
+    return this.get('queues')
+      .filterBy('isNewQueue', true)
+      .filterBy('requireRestart', true);
+  }.property('queues.length', 'queues.@each.isNewQueue', 'queues.@each.requireRestart'),
+
+  hasNewQueuesNeedRestart: Ember.computed.notEmpty('newQueuesNeedRestart.[]'),
+
+  queuesRequireRestart: Ember.computed.or('needRestart', 'hasNewQueuesNeedRestart', 'isQueuesMustNeedRestart'),
+
+  disableRefreshBtn: function() {
+    var disable = this.get('canNotSave') || this.get('queuesRequireRestart');
+    return disable;
+  }.property('canNotSave', 'queuesRequireRestart', 'isAnyQueueDirty'),
+
+  restartWatcher: function() {
+    var restart = this.get('needRestart') || this.get('hasNewQueuesNeedRestart');
+    this.set('isQueuesMustNeedRestart', restart);
+  }.observes('needRestart', 'hasNewQueuesNeedRestart'),
+
+  dirtyQueueWatcher: function() {
+    if (this.get('isAnyQueueDirty')) {
+      this.set('isRefreshOrRestartNeeded', true);
+    } else {
+      this.set('isRefreshOrRestartNeeded', false);
+    }
+  }.observes('isAnyQueueDirty'),
 
   /**
    * True if newQueue is not empty.
@@ -259,7 +464,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
    * check if RM needs restart
    * @type {bool}
    */
-  needRestart: Em.computed.and('hasDeletedQueues', 'isOperator'),
+  needRestart: Ember.computed.and('hasDeletedQueues', 'isOperator'),
 
   /**
    * check there is some changes for save
@@ -361,24 +566,23 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     return this.get('selectedQueue.state') === _stopState;
   }.property('selectedQueue.state'),
 
-
   isSelectedQLeaf: function() {
     return this.get('selectedQueue.queues') === null;
   }.property('selectedQueue.queues'),
 
-  isSelectedQLeafAndRunning: function() {
-    return this.get('isSelectedQLeaf') && this.get('isSelectedQRunning');
-  }.property('isSelectedQRunning', 'isSelectedQLeaf'),
+  canAddChildrenQueues: function() {
+    return this.get('isRmOffline') || !this.get('isSelectedQLeaf') || this.get('isSelectedQueueRmStateNotRunning');
+  }.property('isRmOffline', 'isSelectedQLeaf', 'isSelectedQueueRmStateNotRunning'),
 
-  /**
-   * Returns true if queue is root.
-   * @type {Boolean}
-   */
    isRootQSelected: Ember.computed.match('selectedQueue.id', /^(root)$/),
 
-   isSelectedQDeletable: function() {
-     return !this.get('isRootQSelected') && !this.get('isSelectedQRunning');
-   }.property('isRootQSelected', 'isSelectedQRunning'),
+   isSelectedQueueRmStateNotRunning: function() {
+     return this.get('selectedQueue.isNewQueue') || this.get('selectedQueue.rmQueueState') === _stopState;
+   }.property('selectedQueue.rmQueueState', 'selectedQueue.isNewQueue'),
+
+   isSelectedQueueDeletable: function() {
+     return !this.get('isRootQSelected') && (this.get('isRmOffline') || this.get('isSelectedQueueRmStateNotRunning'));
+   }.property('isRootQSelected', 'isSelectedQueueRmStateNotRunning', 'isRmOffline'),
 
    configNote: Ember.computed.alias('store.configNote'),
    saveMode: '',

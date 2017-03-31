@@ -44,11 +44,11 @@ import org.junit.Test;
  * StackAdvisorHelper unit tests.
  */
 public class StackAdvisorHelperTest {
-
   @Test
   @SuppressWarnings("unchecked")
   public void testValidate_returnsCommandResult() throws StackAdvisorException, IOException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
@@ -61,6 +61,7 @@ public class StackAdvisorHelperTest {
 
     when(command.invoke(request)).thenReturn(expected);
     doReturn(command).when(helper).createValidationCommand(requestType);
+
     ValidationResponse response = helper.validate(request);
 
     assertEquals(expected, response);
@@ -71,6 +72,7 @@ public class StackAdvisorHelperTest {
   public void testValidate_commandThrowsException_throwsException() throws StackAdvisorException,
       IOException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
@@ -91,6 +93,7 @@ public class StackAdvisorHelperTest {
   @SuppressWarnings("unchecked")
   public void testRecommend_returnsCommandResult() throws StackAdvisorException, IOException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
@@ -113,6 +116,7 @@ public class StackAdvisorHelperTest {
   public void testRecommend_commandThrowsException_throwsException() throws StackAdvisorException,
       IOException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = spy(new StackAdvisorHelper(configuration, saRunner, metaInfo));
@@ -133,6 +137,7 @@ public class StackAdvisorHelperTest {
   public void testCreateRecommendationCommand_returnsComponentLayoutRecommendationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
@@ -148,6 +153,7 @@ public class StackAdvisorHelperTest {
   public void testCreateValidationCommand_returnsComponentLayoutValidationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
@@ -162,6 +168,7 @@ public class StackAdvisorHelperTest {
   public void testCreateValidationCommand_returnsConfigurationValidationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
@@ -176,6 +183,7 @@ public class StackAdvisorHelperTest {
   public void testCreateRecommendationDependencyCommand_returnsConfigurationDependencyRecommendationCommand()
     throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);

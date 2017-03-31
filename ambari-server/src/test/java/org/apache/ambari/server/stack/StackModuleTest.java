@@ -120,6 +120,17 @@ public class StackModuleTest {
         ImmutableMultiset.of("bar:2.0.1", "bar:2.0.1"), repoIds);
   }
 
+  @Test
+  public void removedServicesInitialValue () throws Exception {
+    StackModule sm = createStackModule("FooBar",
+        "2.4",
+        Optional.<List<RepositoryInfo>>absent(),
+        Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos6")),
+        Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos7")));
+    List<String> removedServices = sm.getModuleInfo().getRemovedServices();
+    assertEquals(removedServices.size(), 0);
+  }
+
   private StackModule createStackModule(String stackName, String stackVersion, Optional<? extends List<RepositoryInfo>> stackRepos,
                                         List<RepositoryInfo>... serviceRepoLists) throws AmbariException {
     StackDirectory sd = mock(StackDirectory.class);

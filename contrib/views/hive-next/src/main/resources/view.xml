@@ -217,6 +217,21 @@
     </parameter>
 
     <parameter>
+        <name>view.conf.keyvalues</name>
+        <description>The key values that will be copied to hdfs connection configuration verbatim.</description>
+        <label>View Configs</label>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>use.hive.interactive.mode</name>
+        <description>Connects to the hive interactive server if set true</description>
+        <label>Use Interactive Mode</label>
+        <default-value>false</default-value>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
         <name>yarn.ats.url</name>
         <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration.</description>
         <label>YARN Application Timeline Server URL</label>
@@ -328,5 +343,12 @@
         <services>
             <service>HIVE</service>
         </services>
+        <roles>
+            <role>CLUSTER.ADMINISTRATOR</role>
+            <role>CLUSTER.OPERATOR</role>
+            <role>SERVICE.ADMINISTRATOR</role>
+            <role>SERVICE.OPERATOR</role>
+            <role>CLUSTER.USER</role>
+        </roles>
     </auto-instance>
 </view>

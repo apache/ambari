@@ -37,6 +37,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
@@ -116,8 +117,8 @@ public class MetricsRequestHelper {
         LOG.debug(errorMsg, io);
       }
 
-      if (io instanceof SocketTimeoutException) {
-        errorMsg += " Cannot connect to collector: SocketTimeoutException.";
+      if (io instanceof SocketTimeoutException || io instanceof ConnectException) {
+        errorMsg = "Cannot connect to collector: SocketTimeoutException for " + uriBuilder.getHost();
         LOG.error(errorMsg);
         throw io;
       }

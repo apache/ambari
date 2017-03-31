@@ -50,13 +50,9 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AgeFileFilter;
-import org.apache.commons.io.filefilter.FalseFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.derby.iapi.util.StringUtil;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -97,6 +93,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
+  private static final String USER_CONTEXT_PROPERTY = "user-context";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
 
   private File recommendationsDir;
@@ -205,6 +202,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
     root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
+
+    JsonNode userContext = mapper.valueToTree(request.getUserContext());
+    root.put(USER_CONTEXT_PROPERTY, userContext);
   }
 
   private void populateConfigGroups(ObjectNode root,

@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -74,8 +76,6 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistService;
 
-import static org.junit.Assert.assertTrue;
-
 @RunWith(Parameterized.class)
 public class UpgradeTest {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeTest.class);
@@ -93,13 +93,13 @@ public class UpgradeTest {
 
   public UpgradeTest(String sourceVersion) {
     this.sourceVersion = sourceVersion;
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
-    properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
-    properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
-    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "remote");
+    properties.setProperty(Configuration.SERVER_JDBC_URL.getKey(), Configuration.JDBC_IN_MEMORY_URL);
+    properties.setProperty(Configuration.SERVER_JDBC_DRIVER.getKey(), Configuration.JDBC_IN_MEMORY_DRIVER);
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
   }
 
   @Test
@@ -125,7 +125,7 @@ public class UpgradeTest {
   }
 
   private void dropDatabase() throws ClassNotFoundException, SQLException {
-    Class.forName(Configuration.JDBC_IN_MEMROY_DRIVER);
+    Class.forName(Configuration.JDBC_IN_MEMORY_DRIVER);
     try {
       DriverManager.getConnection(DROP_DERBY_URL);
     } catch (SQLNonTransientConnectionException ignored) {
@@ -221,7 +221,7 @@ public class UpgradeTest {
 
     schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
-    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, "test");
 
     schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 

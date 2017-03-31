@@ -76,6 +76,10 @@ describe('App.ServerValidatorMixin', function () {
         'c4_f4': {
           type: 'ERROR',
           messages: ['error4']
+        },
+        'c5_f5': {
+          type: 'ERROR',
+          messages: ['error5']
         }
       },
       generalErrors: [{
@@ -116,10 +120,16 @@ describe('App.ServerValidatorMixin', function () {
       var error = result.find(function(r) { return r.propertyName === 'c4' && r.filename === 'f4'; });
       expect(error).to.be.undefined;
     });
+
+    it('should add issues for deleted properties', function () {
+      var error = result.find(function(r) { return r.id === 'c5_f5'; });
+      expect(error.messages).to.eql(['error5']);
+    });
   });
 
   describe('#createErrorMessage', function() {
     var property = {
+      id: 'p1_f1',
       name: 'p1',
       filename: 'f1',
       value: 'v1',
@@ -148,12 +158,13 @@ describe('App.ServerValidatorMixin', function () {
         filename: 'f1',
         value: 'v1',
         description: 'd1',
-        serviceName: 'sName'
+        serviceName: 'sName',
+        id: 'p1_f1'
       });
     });
 
     it('creates error object', function() {
-      expect(instanceObject.createErrorMessage('ERROR', property, ['msg2'])).to.eql({
+      expect(instanceObject.createErrorMessage('ERROR', $.extend({}, property, {serviceDisplayName: 'S Name'}), ['msg2'])).to.eql({
         type: 'ERROR',
         isError: true,
         isWarn: false,
@@ -163,7 +174,8 @@ describe('App.ServerValidatorMixin', function () {
         filename: 'f1',
         value: 'v1',
         description: 'd1',
-        serviceName: 'sName'
+        serviceName: 'S Name',
+        id: 'p1_f1'
       });
     });
 

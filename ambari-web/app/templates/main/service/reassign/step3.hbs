@@ -27,17 +27,37 @@
   </div>
 {{/if}}
 <div id="step8-content" class="well pre-scrollable">
-  <div id="printReview">
-    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
-  </div>
   <div id="step8-info">
-    <p><b>{{t services.reassign.step3.component}}</b> {{controller.content.reassign.display_name}}</p>
-
-    <p><b>{{t services.reassign.step3.sourceHost}}</b> {{view.sourceHost}}</p>
-
-    <p><b>{{t services.reassign.step3.targetHost}}</b> {{view.targetHost}}</p>
+    <table id="reassign-review-table">
+      <tr>
+        <td><b>{{t services.reassign.step3.component}}</b></td>
+        <td colspan="2">{{controller.content.reassign.display_name}}</td>
+      </tr>
+      <tr>
+        <td><b>{{t services.reassign.step3.sourceHost}}</b></td>
+        <td>{{view.sourceHost}}</td>
+        <td><span class="to-be-disabled-red"><i class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></td>
+      </tr>
+      <tr>
+        <td><b>{{t services.reassign.step3.targetHost}}</b></td>
+        <td>{{view.targetHost}}</td>
+        <td><span class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
+      </tr>
+    </table>
   </div>
 </div>
+{{#if wizardController.isComponentWithReconfiguration}}
+  {{#if isLoaded}}
+    {{#if stepConfigs.length}}
+      <div id="serviceConfig">
+        {{t services.reassign.step3.configs}}
+        {{view App.ServiceConfigView}}
+      </div>
+    {{/if}}
+  {{else}}
+    {{view App.SpinnerView}}
+  {{/if}}
+{{/if}}
 <div class="btn-area">
   <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
   <a class="btn btn-success pull-right"

@@ -20,16 +20,48 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   showBulkAction : false,
   history: Ember.inject.service(),
+  userInfo : Ember.inject.service('user-info'),
   currentPage : Ember.computed('jobs.start',function(){
     if(Ember.isBlank(this.get('jobs.start'))){
       return 1;
     }
-    var roundedStart = this.get('jobs.start') - this.get('jobs.start') % 10;
+    var roundedStart = this.get('jobs.start') - this.get('jobs.start') % this.get('jobs.pageSize');
     return (roundedStart / this.get('jobs.pageSize'))+1;
   }),
+  userName : Ember.computed.alias('userInfo.userName'),
   rendered : function(){
     this.sendAction('onSearch', this.get('history').getSearchParams());
   }.on('didInsertElement'),
+  isUpdated : function(){
+    if(this.get('showActionError')){
+      this.$('#error-alert').fadeOut(5000, ()=>{
+        this.set("showActionError", false);
+      });
+    }
+    if(this.get('showActionSuccess')){
+      this.$('#success-alert').fadeOut(5000, ()=>{
+        this.set("showActionSuccess", false);
+      });
+    }
+  }.on('didUpdate'),
+  handleBulkActionResponse(response){
+    if (typeof response === "string") {
+      response = JSON.parse(response);
+    }
+    if(response.workflows){
+      this.updateJobs(response.workflows, 'id');
+    }else if(response.coordinatorjobs){
+      this.updateJobs(response.coordinatorjobs, 'coordJobId');
+    }else if(response.bundlejobs){
+      this.updateJobs(response.bundlejobs, 'bundleJobId');
+    }
+  },
+  updateJobs(jobsToUpdate, queryField){
+    jobsToUpdate.forEach(job =>{
+      var existing = this.get('jobs.jobs').findBy('id', job[queryField]);
+      Ember.set(existing, 'status', job.status);
+    });
+  },
   actions: {
     selectAll() {
       this.$(".cbox").click();
@@ -42,25 +74,27 @@ export default Ember.Component.extend({
       this.sendAction("doRefresh");
     },
     doBulkAction(action){
+      this.set('showBulkActionLoader', true);
       var filter = '';
       var deferred = Ember.RSVP.defer();
       this.$('.cbox:checked').each(function(index, element){
-        filter = filter + "name=" + this.$(element).attr('name')+ ";";
+        filter = filter + "id=" + this.$(element).attr('id')+ ";";
       }.bind(this));
       var params = {};
-      this.$('#bulk-action-loader').removeClass('hidden');
       params.action = action;
       params.filter = filter;
       params.jobType = this.get('jobs.jobTypeValue');
       params.start = this.get('jobs.start');
       params.len = this.get('jobs.pageSize');
       this.sendAction('onBulkAction', params, deferred);
-      deferred.promise.then(function(){
-        this.sendAction("doRefresh");
-        this.$('#bulk-action-loader').addClass('hidden');
+      deferred.promise.then(function(response){
+        this.set('showBulkActionLoader', false);
+        this.handleBulkActionResponse(response);
         this.set('showBulkAction', false);
+        this.send('showMessage', {type:'success', message:`${action.toUpperCase()} action request complete`});
       }.bind(this), function(){
-        this.$('#bulk-action-loader').addClass('hidden');
+        this.set('showBulkActionLoader', false);
+        this.send('showMessage', {type:'error', message: `${action.toUpperCase()} action for could not be completed`});
       }.bind(this));
     },
     page: function (page) {
@@ -109,19 +143,35 @@ export default Ember.Component.extend({
         var isSame = status.every(function(value, idx, array){
           return idx === 0 || value === array[idx - 1];
         });
-        if(isSame && status[0] === 'SUSPENDED'){
+        if(isSame && status.get('firstObject') === 'SUSPENDED'){
           this.set('toggleResume', 'enabled');
+          this.set('toggleStart', 'disabled');
           this.set('toggleSuspend', 'disabled');
-        }else if(isSame && status[0] === 'RUNNING'){
+        }else if(isSame && status.get('firstObject') === 'PREP'){
+          this.set('toggleStart', 'enabled');
+          this.set('toggleSuspend', 'disabled');
+          this.set('toggleResume', 'disabled');
+        }else if(isSame && status.get('firstObject') === 'RUNNING'){
           this.set('toggleSuspend', 'enabled');
           this.set('toggleResume', 'disabled');
-        }else{
-          this.set('toggleKill', 'enabled');
+          this.set('toggleStart', 'disabled');
+        }else if(isSame && status.get('firstObject') === 'KILLED'){
+          this.set('toggleKill', 'disabled');
           this.set('toggleSuspend', 'disabled');
           this.set('toggleResume', 'disabled');
+          this.set('toggleStart', 'disabled');
         }
       }else{
         this.set('showBulkAction', false);
+      }
+    },
+    showMessage(messageInfo){
+      if(messageInfo.type === 'error'){
+        this.set('showActionError', true);
+        this.set('errorMessage', messageInfo.message);
+      }else{
+        this.set('showActionSuccess', true);
+        this.set('successMessage', messageInfo.message);
       }
     }
   }

@@ -82,26 +82,33 @@ module.exports = {
     return date;
   },
 
-  /**
-   * Convert starTimestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES', except for the case: year equals 1969
-   *
-   * @param {string} startTimestamp
-   * @return {string} startTimeSummary
-   * @method startTime
-   */
   startTime: function (startTimestamp) {
-    if (!validator.isValidInt(startTimestamp)) {
+    return this._time(startTimestamp, 'Not started');
+  },
+
+  endTime: function (endTimestamp) {
+    return this._time(endTimestamp, 'Not finished');
+  },
+
+  /**
+   * Convert timestamp to 'DAY_OF_THE_WEEK, MONTH DAY, YEAR HOURS:MINUTES', except for the case: year equals 1969
+   *
+   * @param {string} timestamp
+   * @param {string} msg
+   * @return {string} TimeSummary
+   */
+  _time: function (timestamp, msg) {
+    if (!validator.isValidInt(timestamp)) {
       return '';
     }
-    var startDate = new Date(startTimestamp);
+    var startDate = new Date(timestamp);
     var months = this.dateMonths;
     var days = this.dateDays;
-    // generate start time
-    if (startDate.getFullYear() == 1969 || startTimestamp < 1) {
-      return 'Not started';
+    if (startDate.getFullYear() === 1969 || timestamp < 1) {
+      return msg;
     }
     var startTimeSummary = '';
-    if (new Date(startTimestamp).setHours(0, 0, 0, 0) == new Date().setHours(0, 0, 0, 0)) { //today
+    if (new Date(timestamp).setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0)) { //today
       startTimeSummary = 'Today ' + this.dateFormatZeroFirst(startDate.getHours()) + ':' + this.dateFormatZeroFirst(startDate.getMinutes());
     } else {
       startTimeSummary = days[startDate.getDay()] + ' ' + months[startDate.getMonth()] + ' ' +

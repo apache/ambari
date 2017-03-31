@@ -32,7 +32,7 @@ import java.util.Set;
 
 public interface TimelineMetricStore {
   /**
-   * This method retrieves metrics stored byu the Timeline store.
+   * This method retrieves metrics stored by the Timeline store.
    *
    * @param metricNames Names of the metric, e.g.: cpu_user
    * @param hostnames Names of the host where the metric originated from
@@ -78,7 +78,7 @@ public interface TimelineMetricStore {
    * @throws SQLException
    * @throws IOException
    */
-  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata() throws SQLException, IOException;
+  Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException;
 
   /**
    * Returns all hosts that have written metrics with the apps on the host
@@ -87,4 +87,10 @@ public interface TimelineMetricStore {
    * @throws IOException
    */
   Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException;
+
+  /**
+   * Return a list of known live collector nodes
+   * @return [ hostname ]
+   */
+  List<String> getLiveInstances();
 }

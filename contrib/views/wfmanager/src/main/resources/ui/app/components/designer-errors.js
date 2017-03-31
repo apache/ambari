@@ -18,4 +18,56 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  showingStackTrace: false,
+  hasErrorMsg : Ember.computed('errorMsg', function() {
+    return !Ember.isBlank(this.get("errorMsg"));
+  }),
+  errorMsgDetails : Ember.computed('data.responseText', function() {
+    var jsonResponse = this.getparsedResponse();
+    if (jsonResponse.message) {
+      if (jsonResponse.message.indexOf('Permission denied') >= 0) {
+        return "Permission Denied";
+      }
+      return jsonResponse.message;
+    }
+    return "";
+  }),
+  stackTrace : Ember.computed('data.responseText', function() {
+      var jsonResponse = this.getparsedResponse();
+      var stackTraceMsg = jsonResponse.stackTrace;
+      if(!stackTraceMsg){
+        return "";
+      }
+      if (stackTraceMsg instanceof Array) {
+        return stackTraceMsg.join("").replace(/\tat /g, '&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;');
+      } else {
+        return stackTraceMsg.replace(/\tat /g, '<br/>&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;');
+      }
+  }),
+  isStackTraceAvailable : Ember.computed('stackTrace', function(){
+    return this.get('stackTrace') && this.get('stackTrace').length ? true : false;
+  }),
+  getparsedResponse() {
+    var response = this.get('data.responseText');
+    if (response) {
+      try {
+        return JSON.parse(response);
+      } catch(err){
+        return "";
+      }
+    }
+    return "";
+  },
+
+  actions: {
+    showStackTrace(){
+      this.set("showingStackTrace", !this.get("showingStackTrace"));
+    },
+    closeStackTrace(){
+      this.set("showingStackTrace", false);
+    },
+    dismissError(idx){
+      this.get("errors").removeAt(idx);
+    }
+  }
 });

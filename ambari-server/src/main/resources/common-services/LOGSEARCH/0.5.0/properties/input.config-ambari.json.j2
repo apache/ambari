@@ -1,0 +1,602 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "input":[
+    {
+      "type":"ambari_agent",
+      "rowtype":"service",
+      "path":"{{ambari_agent_log_dir}}/ambari-agent.log"
+    },
+    {
+      "type":"ambari_server",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-server.log"
+    },
+    {
+      "type":"ambari_alerts",
+      "rowtype":"service",
+      "add_fields":{
+        "level":"UNKNOWN"
+      },
+      "path":"{{ambari_server_log_dir}}/ambari-alerts.log"
+    },
+    {
+      "type":"ambari_config_changes",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-config-changes.log"
+    },
+    {
+      "type":"ambari_eclipselink",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-eclipselink.log"
+    },
+    {
+      "type":"ambari_server_check_database",
+      "rowtype":"service",
+      "path":"{{ambari_server_log_dir}}/ambari-server-check-database.log"
+    },
+    {
+      "type":"ambari_audit",
+      "rowtype":"audit",
+      "add_fields":{
+        "logType":"AmbariAudit",
+        "enforcer":"ambari-acl",
+        "repoType":"1",
+        "repo":"ambari",
+        "level":"INFO"
+      },
+      "path":"{{ambari_server_log_dir}}/ambari-audit.log"
+    }
+
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_agent"
+          ]
+
+        }
+
+      },
+      "log4j_format":"",
+      "multiline_pattern":"^(%{LOGLEVEL:level} %{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{LOGLEVEL:level} %{TIMESTAMP_ISO8601:logtime} %{JAVAFILE:file}:%{INT:line_number} - %{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        },
+        "level":{
+          "map_fieldvalue":{
+            "pre_value":"WARNING",
+            "post_value":"WARN"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_server"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{INT:line_number}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"dd MMM yyyy HH:mm:ss"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_alerts"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_config_changes"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_eclipselink"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(\\[EL%{SPACE}%{LOGLEVEL:level}\\])",
+      "message_pattern":"(?m)^\\[EL%{SPACE}%{LOGLEVEL:level}\\]:%{SPACE}%{TIMESTAMP_ISO8601:logtime}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss.SSS"
+          }
+
+        },
+        "level":{
+          "map_fieldvalue":{
+            "pre_value":"Warning",
+            "post_value":"Warn"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_server_check_database"
+          ]
+          
+        }
+        
+      },
+      "log4j_format":"%d{DATE} %5p [%t] %c{1}:%L - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_audit"
+          ]
+
+        }
+
+      },
+      "log4j_format":"%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:evtTime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:evtTime},%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "evtTime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd'T'HH:mm:ss.SSSXX"
+          }
+
+        }
+
+      }
+
+    },
+    {
+      "filter":"keyvalue",
+      "sort_order":1,
+      "conditions":{
+        "fields":{
+          "type":[
+            "ambari_audit"
+          ]
+
+        }
+
+      },
+      "source_field":"log_message",
+      "field_split":", ",
+      "value_borders":"()",
+      "post_map_values":{
+        "User":{
+          "map_fieldvalue":{
+            "pre_value":"null",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"reqUser"
+          }
+        },
+        "Hostname":{
+          "map_fieldname":{
+            "new_fieldname":"host"
+          }
+        },
+        "Host name":{
+          "map_fieldname":{
+            "new_fieldname":"host"
+          }
+        },
+        "RemoteIp":{
+          "map_fieldname":{
+            "new_fieldname":"cliIP"
+          }
+        },
+        "RequestType":{
+          "map_fieldname":{
+            "new_fieldname":"cliType"
+          }
+        },
+        "TaskId":{
+          "map_fieldname":{
+            "new_fieldname":"task_id"
+          }
+        },
+        "Operation":{
+          "map_fieldname":{
+            "new_fieldname":"action"
+          }
+        },
+        "url":{
+          "map_fieldname":{
+            "new_fieldname":"resource"
+          }
+        },
+        "ResourcePath":{
+          "map_fieldname":{
+            "new_fieldname":"resource"
+          }
+        },
+        "Cluster name":{
+          "map_fieldname":{
+            "new_fieldname":"cluster"
+          }
+        },
+        "Reason":{
+          "map_fieldname":{
+            "new_fieldname":"reason"
+          }
+        },
+        "Base URL":{
+          "map_fieldname":{
+            "new_fieldname":"ws_base_url"
+          }
+        },
+        "Command":{
+          "map_fieldvalue":{
+            "pre_value":"null",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_command"
+          }
+        },
+        "Component":{
+          "map_fieldname":{
+            "new_fieldname":"ws_component"
+          }
+        },
+        "Details":{
+          "map_fieldname":{
+            "new_fieldname":"ws_details"
+          }
+        },
+        "Display name":{
+          "map_fieldvalue":{
+            "pre_value":"null",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_display_name"
+          }
+        },
+        "OS":{
+          "map_fieldname":{
+            "new_fieldname":"ws_os"
+          }
+        },
+        "Repo id":{
+          "map_fieldname":{
+            "new_fieldname":"ws_repo_id"
+          }
+        },
+        "Repo version":{
+          "map_fieldvalue":{
+            "pre_value":"null",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_repo_version"
+          }
+        },
+        "Repositories":{
+          "map_fieldname":{
+            "new_fieldname":"ws_repositories"
+          }
+        },
+        "RequestId":{
+          "map_fieldname":{
+            "new_fieldname":"ws_request_id"
+          }
+        },
+        "Roles":{
+          "map_fieldname":{
+            "new_fieldname":"ws_roles"
+          }
+        },
+        "Stack":{
+          "map_fieldname":{
+            "new_fieldname":"ws_stack"
+          }
+        },
+        "Stack version":{
+          "map_fieldname":{
+            "new_fieldname":"ws_stack_version"
+          }
+        },
+        "VersionNote":{
+          "map_fieldvalue":{
+            "pre_value":"null",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_version_note"
+          }
+        },
+        "VersionNumber":{
+          "map_fieldvalue":{
+            "pre_value":"Vnull",
+            "post_value":"unknown"
+          },
+          "map_fieldname":{
+            "new_fieldname":"ws_version_number"
+          }
+        },
+        "Status":[
+          {
+            "map_fieldcopy":{
+              "copy_name": "ws_status"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Success",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Successfully queued",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"QUEUED",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"PENDING",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"COMPLETED",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"IN_PROGRESS",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Failed",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"Failed to queue",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"HOLDING",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"HOLDING_FAILED",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"HOLDING_TIMEDOUT",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"FAILED",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"TIMEDOUT",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"ABORTED",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"SKIPPED_FAILED",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldname":{
+              "new_fieldname":"result"
+            }
+          }
+        ],
+        "ResultStatus":[
+          {
+            "map_fieldcopy":{
+              "copy_name": "ws_result_status"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"200 OK",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"201 Created",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"202 Accepted",
+              "post_value":"1"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"400 Bad Request",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"401 Unauthorized",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"403 Forbidden",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"404 Not Found",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"409 Resource Conflict",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldvalue":{
+              "pre_value":"500 Internal Server Error",
+              "post_value":"0"
+            }
+          },
+          {
+            "map_fieldname":{
+              "new_fieldname":"result"
+            }
+          }
+        ]
+
+      }
+
+    }
+
+  ]
+
+}

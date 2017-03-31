@@ -17,9 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -57,15 +64,9 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for component resources.
@@ -123,7 +124,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES, RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
     setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
     setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
-    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
+    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);
   }
 
 
@@ -194,7 +195,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   @Override
-  public RequestStatus updateResources(final Request request, Predicate predicate)
+  public RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceComponentRequest> requests = new HashSet<>();
@@ -265,7 +266,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Create the components for the given requests.
-  public synchronized void createComponents(Set<ServiceComponentRequest> requests)
+  public void createComponents(Set<ServiceComponentRequest> requests)
       throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
@@ -379,7 +380,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
 
       s.addServiceComponent(sc);
-      sc.persist();
     }
   }
 
@@ -473,7 +473,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Update the components for the given requests.
-  protected synchronized RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
+  protected RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
                                                                 Map<String, String> requestProperties,
                                                                 boolean runSmokeTest)
       throws AmbariException, AuthorizationException {
@@ -552,7 +552,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (!StringUtils.isEmpty(request.getRecoveryEnabled())) {
         // Verify that the authenticated user has authorization to change auto-start states for services
         AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, getClusterResourceId(clusterName),
-            EnumSet.of(RoleAuthorization.SERVICE_START_STOP));
+            EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_AUTO_START, RoleAuthorization.SERVICE_MANAGE_AUTO_START));
 
         boolean newRecoveryEnabled = Boolean.parseBoolean(request.getRecoveryEnabled());
         boolean oldRecoveryEnabled = sc.isRecoveryEnabled();

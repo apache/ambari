@@ -58,13 +58,19 @@ export default Ember.Component.extend(OperationModal, {
   _checkIfFileIsNotDirectory: function(file) {
     return new Ember.RSVP.Promise((resolve, reject) => {
 
+      let isSuccess = false;
+
       if (!Ember.isNone(file.size) && file.size <= 4096) { // Directories generally have less equal to 4096 bytes as size
         var reader = new FileReader();
         reader.onerror = function() {
-          return reject();
+          if(isSuccess) {
+            return;
+          }
+          return reject(reader.error);
         };
 
         reader.onloadstart = function() {
+          isSuccess = true;
           reader.abort();
           return resolve();
         };
@@ -92,7 +98,6 @@ export default Ember.Component.extend(OperationModal, {
     },
 
     fileLoaded: function(file) {
-
       this._checkIfFileIsNotDirectory(file).then(() => {
         var url = this.get('fileOperationService').getUploadUrl();
         var uploader = FileUploader.create({
@@ -118,8 +123,14 @@ export default Ember.Component.extend(OperationModal, {
             return false;
           });
         }
-      }, () => {
-        console.error("Cannot add a directory.");
+      }, (error) => {
+        console.error("Cannot add a directory.", error);
+        this.send('close');
+        let message = "Cannot add a directory ";
+        if(file && file.name) {
+          message = message + file.name;
+        }
+        this.get('logger').danger(message);
       });
 
     },

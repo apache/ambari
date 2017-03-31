@@ -128,7 +128,8 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
     'hawq_dfs_url': '_initHawqDfsUrl',
     'instance.volumes': '_initInstanceVolumes',
     'instance.volumes.replacements': '_initInstanceVolumesReplacements',
-    'dfs.journalnode.edits.dir': '_initDfsJnEditsDir'
+    'dfs.journalnode.edits.dir': '_initDfsJnEditsDir',
+    'xasecure.audit.destination.hdfs.dir': '_initXasecureAuditDestinationHdfsDir'
   },
 
   initializerTypes: [
@@ -377,6 +378,33 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
       Em.setProperties(configProperty, {
         value: value,
         recommendedValue: value
+      });
+    }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>xasecure.audit.destination.hdfs.dir</code>
+   *
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
+   * @param {nnHaConfigDependencies} dependencies
+   * @param {object} initializer
+   * @method _initXasecureAuditDestinationHdfsDir
+   * @return {object}
+   * @private
+   */
+  _initXasecureAuditDestinationHdfsDir: function(configProperty, localDB, dependencies, initializer) {
+    if (localDB.installedServices.contains('RANGER')) {
+      var oldValue = dependencies.serverConfigs.findProperty('type', 'ranger-env').properties['xasecure.audit.destination.hdfs.dir'];
+      // Example of value - hdfs://c6401.ambari.apache.org:8020/ranger/audit
+      // Replace hostname and port with Namespace
+      var valueArray = oldValue.split("/");
+      valueArray[2] = dependencies.namespaceId;
+      var newValue = valueArray.join("/");
+      Em.setProperties(configProperty, {
+        value: newValue,
+        recommendedValue: newValue
       });
     }
     return configProperty;

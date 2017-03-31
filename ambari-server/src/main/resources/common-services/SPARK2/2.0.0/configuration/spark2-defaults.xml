@@ -79,6 +79,7 @@
     <description>
       Kerberos principal name for the Spark History Server.
     </description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

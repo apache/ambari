@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 def setup_ranger_hive(upgrade_type = None):
   import params
 
-  if params.has_ranger_admin:
+  if params.enable_ranger_hive:
 
     stack_version = None
 
@@ -34,7 +34,7 @@ def setup_ranger_hive(upgrade_type = None):
     else:
       Logger.info("Hive: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
-    if params.xml_configurations_supported and params.enable_ranger_hive and params.xa_audit_hdfs_is_enabled:
+    if params.xml_configurations_supported and params.xa_audit_hdfs_is_enabled:
       params.HdfsResource("/ranger/audit",
                          type="directory",
                          action="create_on_execute",
@@ -95,4 +95,4 @@ def setup_ranger_hive(upgrade_type = None):
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
   else:
-    Logger.info('Ranger admin not installed')
+    Logger.info('Ranger Hive plugin is not enabled')

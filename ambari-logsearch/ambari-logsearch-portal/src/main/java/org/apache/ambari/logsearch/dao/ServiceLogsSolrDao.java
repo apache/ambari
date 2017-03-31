@@ -20,47 +20,66 @@
 package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrServiceLogPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.configurer.SolrCollectionConfigurer;
 import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
+import org.springframework.data.solr.core.SolrTemplate;
 
-@Component
+@Named
 public class ServiceLogsSolrDao extends SolrDaoBase {
 
-  static private Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
-  
+  private static final Logger LOG = Logger.getLogger(ServiceLogsSolrDao.class);
+
+  @Inject
+  private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
+
+  @Inject
+  @Named("serviceSolrTemplate")
+  private volatile SolrTemplate serviceSolrTemplate;
+
+  @Inject
+  @Named("solrServiceLogsState")
+  private SolrCollectionState solrServiceLogsState;
+
   public ServiceLogsSolrDao() {
-    super(LOG_TYPE.SERVICE);
+    super(LogType.SERVICE);
+  }
+
+  @Override
+  public SolrTemplate getSolrTemplate() {
+    return serviceSolrTemplate;
+  }
+
+  @Override
+  public void setSolrTemplate(SolrTemplate solrTemplate) {
+    this.serviceSolrTemplate = solrTemplate;
   }
 
   @PostConstruct
   public void postConstructor() {
-    logger.info("postConstructor() called.");
-    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
-    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",
-      "hadoop_logs");
-    String splitInterval = PropertiesUtil.getProperty(
-      "logsearch.service.logs.split.interval.mins", "none");
-    String configName = PropertiesUtil.getProperty(
-      "logsearch.solr.service.logs.config.name", "hadoop_logs");
-    int numberOfShards = PropertiesUtil.getIntProperty(
-      "logsearch.collection.service.logs.numshards", 1);
-    int replicationFactor = PropertiesUtil.getIntProperty(
-      "logsearch.collection.service.logs.replication.factor", 1);
-
+    LOG.info("postConstructor() called.");
     try {
-      connectToSolr(solrUrl, zkConnectString, collection);
-      setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor,true);
+      new SolrCollectionConfigurer(this).start();
     } catch (Exception e) {
-      logger.error(
-        "error while connecting to Solr for service logs : solrUrl="
-          + solrUrl + ", zkConnectString=" + zkConnectString
-          + ", collection=" + collection, e);
+      LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
+        + ", zkConnectString=" + solrServiceLogPropsConfig.getZkConnectString()
+        + ", collection=" + solrServiceLogPropsConfig.getCollection(), e);
     }
   }
 
+  @Override
+  public SolrCollectionState getSolrCollectionState() {
+    return solrServiceLogsState;
+  }
+
+  @Override
+  public SolrPropsConfig getSolrPropsConfig() {
+    return solrServiceLogPropsConfig;
+  }
 }

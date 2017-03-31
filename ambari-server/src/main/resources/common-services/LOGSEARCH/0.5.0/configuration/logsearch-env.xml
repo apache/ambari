@@ -99,22 +99,23 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_audit_logs_zk_node</name>
-    <value>{infra_solr_znode}</value>
-    <display-name>Solr Audit Logs Znode</display-name>
-    <description>Only needed if using custom solr cloud. E.g. /audit_logs</description>
+    <name>logsearch_external_solr_kerberos_keytab</name>
+    <value></value>
+    <display-name>Log Search External Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of Log Search e.g. /etc/security/keytabs/logsearch.service.keytab</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_audit_logs_zk_quorum</name>
-    <value>{zookeeper_quorum}</value>
-    <display-name>Solr Audit Logs ZK Quorum</display-name>
-    <description>Only needed if using custom solr cloud. E.g. zk1:2181,zk2:2182</description>
+    <name>logsearch_external_solr_kerberos_principal</name>
+    <value></value>
+    <display-name>Log Search External Solr principal</display-name>
+    <description>The service principal for Log Search which will be used to access SolrClient  e.g. logsearch/_HOST@REALM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_truststore_location</name>
-    <value>/etc/security/serverKeys/logsearch.trustStore.jks</value>
+    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search trust store location</display-name>
     <description>Location of the trust store file.</description>
     <on-ambari-upgrade add="true"/>
@@ -134,12 +135,13 @@
     <description>Password to open the trust store file.</description>
     <value-attributes>
       <type>password</type>
+      <keystore>true</keystore>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>logsearch_keystore_location</name>
-    <value>/etc/security/serverKeys/logsearch.keyStore.jks</value>
+    <value>/etc/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
     <display-name>Log Search key store location</display-name>
     <description>Location of the key store file.</description>
     <on-ambari-upgrade add="true"/>
@@ -159,6 +161,7 @@
     <description>Password to open the key store file.</description>
     <value-attributes>
       <type>password</type>
+      <keystore>true</keystore>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -174,6 +177,7 @@
     <value>logsearch</value>
     <display-name>Log Search principal</display-name>
     <description>The service principal for Log Search which will be used to access SolrClient.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- logsearch-env.sh -->

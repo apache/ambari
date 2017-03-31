@@ -19,7 +19,7 @@
 var App = require('app');
 var misc = require('utils/misc');
 
-App.MainServiceController = Em.ArrayController.extend({
+App.MainServiceController = Em.ArrayController.extend(App.SupportClientConfigsDownload, {
 
   name: 'mainServiceController',
 
@@ -51,8 +51,12 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   isAllServicesInstalled: function () {
     if (!this.get('content')) return false;
-    var availableServices = App.StackService.find().mapProperty('serviceName');
-    return this.get('content').length == availableServices.length;
+    var notAvailableServices = App.ServiceSimple.find().filterProperty('doNotShowAndInstall').mapProperty('name');
+    var availableServices = App.ServiceSimple.find().filterProperty('doNotShowAndInstall', false);
+    var installedServices = this.get('content').filter(function (service) {
+      return !notAvailableServices.contains(service.get('serviceName'));
+    });
+    return installedServices.length == availableServices.length;
   }.property('content.@each', 'content.length'),
 
   /**
@@ -140,6 +144,13 @@ App.MainServiceController = Em.ArrayController.extend({
   },
 
   /**
+   * Download client configs for all services
+   */
+  downloadAllClientConfigs: function() {
+    this.downloadClientConfigsCall({resourceType: this.resourceTypeEnum.CLUSTER});
+  },
+
+  /**
    * Do request to server for "start|stop" all services
    * @param {string} state "STARTED|INSTALLED"
    * @param {object} query
@@ -160,7 +171,8 @@ App.MainServiceController = Em.ArrayController.extend({
         query: query
       },
       success: 'allServicesCallSuccessCallback',
-      error: 'allServicesCallErrorCallback'
+      error: 'allServicesCallErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -185,7 +197,8 @@ App.MainServiceController = Em.ArrayController.extend({
           state: 'INSTALLED'
         }
       },
-      success: 'silentStopSuccess'
+      success: 'silentStopSuccess',
+      showLoadingPopup: true
     });
   },
 
@@ -235,7 +248,8 @@ App.MainServiceController = Em.ArrayController.extend({
             state: 'STARTED'
           }
         },
-        success: 'silentCallSuccessCallback'
+        success: 'silentCallSuccessCallback',
+        showLoadingPopup: true
       });
     }
   }.observes('shouldStart', 'controllers.backgroundOperationsController.allOperationsCount'),
@@ -281,6 +295,7 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   allServicesCallErrorCallback: function (request, ajaxOptions, error, opt, params) {
     params.query.set('status', 'FAIL');
+    App.ajax.defaultErrorHandler(request, opt.url, opt.type, request.status);
   },
 
   /**
@@ -304,7 +319,7 @@ App.MainServiceController = Em.ArrayController.extend({
       return App.showConfirmationPopup(function () {
             self.restartHostComponents();
           }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(
-              App.HostComponent.find().filterProperty('staleConfigs').mapProperty('service.displayName').uniq().join(', ')),
+              App.Service.find().filterProperty('isRestartRequired').mapProperty('displayName').uniq().join(', ')),
           null,
           null,
           Em.I18n.t('services.service.restartAll.confirmButton')
@@ -319,68 +334,12 @@ App.MainServiceController = Em.ArrayController.extend({
    * @returns {$.ajax}
    */
   restartHostComponents: function () {
-    var batches, hiveInteractive = App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER_INTERACTIVE');
-    var isYARNQueueRefreshRequired = hiveInteractive && hiveInteractive.get('staleConfigs');
-    var ajaxData = {
-      "RequestInfo": {
-        "command": "RESTART",
-        "context": "Restart all required services",
-        "operation_level": "host_component"
-      },
-      "Requests/resource_filters": [
-        {
-          "hosts_predicate": "HostRoles/stale_configs=true"
-        }
-      ]
-    };
-    
-    if (isYARNQueueRefreshRequired) {
-      batches = [
-        {
-          "order_id": 1,
-          "type": "POST",
-          "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-          "RequestBodyInfo": {
-            "RequestInfo": {
-              "context": "Refresh YARN Capacity Scheduler",
-              "command": "REFRESHQUEUES",
-              "parameters/forceRefreshConfigTags": "capacity-scheduler"
-            },
-            "Requests/resource_filters": [{
-              "service_name": "YARN",
-              "component_name": "RESOURCEMANAGER",
-              "hosts": App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName')
-            }]
-          }
-        },
-        {
-          "order_id": 2,
-          "type": "POST",
-          "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-          "RequestBodyInfo": ajaxData
-        }
-      ];
-
-      App.ajax.send({
-        name: 'common.batch.request_schedules',
-        sender: this,
-        data: {
-          intervalTimeSeconds: 1,
-          tolerateSize: 0,
-          batches: batches
-        },
-        success: 'restartAllRequiredSuccessCallback'
-      });
-    } else {
-      App.ajax.send({
-        name: 'request.post',
-        sender: this,
-        data: {
-          data: ajaxData
-        },
-        success: 'restartAllRequiredSuccessCallback'
-      });
-    }
+    App.ajax.send({
+      name: 'restart.staleConfigs',
+      sender: this,
+      success: 'restartAllRequiredSuccessCallback',
+      showLoadingPopup: true
+    });
   },
 
   /**

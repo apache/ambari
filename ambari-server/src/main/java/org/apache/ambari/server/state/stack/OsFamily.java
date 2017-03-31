@@ -71,7 +71,7 @@ public class OsFamily {
    * @param properties list of properties
    */
     public OsFamily(Properties properties){
-      init(properties.getProperty(Configuration.SHARED_RESOURCES_DIR_KEY));
+      init(properties.getProperty(Configuration.SHARED_RESOURCES_DIR.getKey()));
     }
 
     private void init(String SharedResourcesPath){
@@ -127,7 +127,9 @@ public class OsFamily {
         JsonOsFamilyEntry fam = osMap.get(family);
         if (fam.getDistro().contains(pos.get(OS_DISTRO)) && fam.getVersions().contains(pos.get(OS_VERSION))){
           Set<String> data=new HashSet<String>();
-          for (String item: fam.getDistro()) data.add(item + pos.get(OS_VERSION));
+          for (String item: fam.getDistro()) {
+            data.add(item + pos.get(OS_VERSION));
+          }
             return Collections.unmodifiableSet(data);
         }
       }
@@ -176,7 +178,9 @@ public class OsFamily {
         JsonOsFamilyEntry fam = osMap.get(family);
         for (String version: fam.getVersions()){
           Set<String> data=new HashSet<String>();
-          for (String item: fam.getDistro()) data.add(item + version);
+          for (String item: fam.getDistro()) {
+            data.add(item + version);
+          }
           r.addAll(data);
         }
       }

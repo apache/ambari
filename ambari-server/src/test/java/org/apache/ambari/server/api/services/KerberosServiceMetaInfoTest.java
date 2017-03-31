@@ -32,8 +32,6 @@ import java.util.Properties;
 
 import javax.persistence.EntityManager;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -59,6 +57,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class KerberosServiceMetaInfoTest {
   private final static Logger LOG = LoggerFactory.getLogger(KerberosServiceMetaInfoTest.class);
@@ -198,9 +198,9 @@ public class KerberosServiceMetaInfoTest {
 
   private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, boolean replayMocks) throws Exception {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stackRoot.getPath());
-    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH, commonServicesRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
+    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);

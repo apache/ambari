@@ -28,16 +28,15 @@ import org.apache.log4j.Logger;
  */
 public class OutputDevNull extends Output {
 
-  private static Logger logger = Logger.getLogger(OutputDevNull.class);
+  private static final Logger LOG = Logger.getLogger(OutputDevNull.class);
 
   @Override
   public void write(String block, InputMarker inputMarker){
-    logger.trace("Ignore log block: " + block);
+    LOG.trace("Ignore log block: " + block);
   }
 
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=dev_null");
+    throw new UnsupportedOperationException("copyFile method is not yet supported for output=dev_null");
   }
 }

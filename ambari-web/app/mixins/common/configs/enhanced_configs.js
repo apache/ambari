@@ -62,6 +62,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   isControllerSupportsEnhancedConfigs: Em.computed.existsIn('name', ['wizardStep7Controller','mainServiceInfoConfigsController']),
 
+  /**
+   * Stores name and file name of changed config
+   * This used only for capacity-scheduler
+   *
+   * @property {object}
+   */
+  currentlyChangedConfig: null,
+
   dependenciesGroupMessage: Em.I18n.t('popup.dependent.configs.dependencies.for.groups'),
   /**
    * message fro alert box for dependent configs
@@ -150,6 +158,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     this.set('recommendationsConfigs', null);
   },
 
+  clearRecommendations: function () {
+    this.clearRecommendationsInfo();
+    this.clearAllRecommendations();
+  },
+
   /**
    * sends request to get values for dependent configs
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
@@ -172,13 +185,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       if (updateDependencies) {
         dataToSend.changed_configurations = changedConfigs;
       }
+      if (Em.isArray(changedConfigs) && changedConfigs.mapProperty('type').uniq()[0] === 'capacity-scheduler') {
+        this.set('currentlyChangedConfig', {
+          name: 'capacity-scheduler',
+          fileName: 'capacity-scheduler.xml'
+        });
+      } else {
+        this.set('currentlyChangedConfig', null);
+      }
 
       if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
         recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
       } else {
         delete recommendations.config_groups;
       }
-
+      this.setUserContext(dataToSend);
       if (stepConfigs.someProperty('serviceName', 'MISC')) {
         recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
         dataToSend.recommendations = recommendations;
@@ -225,6 +246,25 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     });
   },
 
+  setUserContext: function(dataToSend) {
+    var controllerName = this.get('content.controllerName');
+    var changes = dataToSend.changed_configurations;
+    if (changes) {
+      dataToSend['user_context'] = {"operation" : "EditConfig"};
+    } else {
+      if (!controllerName) {
+        dataToSend['user_context'] = {"operation" : "RecommendAttribute"};
+      } else if (controllerName == 'addServiceController') {
+        dataToSend['user_context'] = {
+          "operation" : "AddService",
+          "operation_details" : (this.get('content.services')|| []).filterProperty('isSelected').filterProperty('isInstalled', false).mapProperty('serviceName').join(',')
+        };
+      } else if (controllerName == 'installerController'){
+        dataToSend['user_context'] = {"operation" : "ClusterCreate"};
+      }
+    }
+  },
+
   /**
    * Defines if there is any changes made by user.
    * Check all properties except recommended properties from popup
@@ -235,9 +275,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     return this.get('selectedConfigGroup.isDefault') && !Em.isNone(this.get('recommendationsConfigs'))
       && !this.get('stepConfigs').filter(function(stepConfig) {
       return stepConfig.get('changedConfigProperties').filter(function(c) {
-        return !this.get('changedProperties').map(function(changed) {
+        var changedConfigIds = this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
-        }).contains(App.config.configId(c.get('name'), c.get('filename')));
+        });
+        return !changedConfigIds.contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
     }, this).length;
   },
@@ -349,9 +390,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   showChangedDependentConfigs: function(event, callback, secondary) {
     var self = this;
-    var recommendations = event ? this.get('changedProperties') : this.get('recommendations');
+    var recommendations = event ? this.get('changedProperties') : this.get('recommendations'),
+      recommendedChanges = recommendations.filterProperty('isEditable'),
+      requiredChanges = recommendations.filterProperty('isEditable', false);
     if (recommendations.length > 0) {
-      App.showDependentConfigsPopup(recommendations, function() {
+      App.showDependentConfigsPopup(recommendedChanges, requiredChanges, function() {
         self.onSaveRecommendedPopup(recommendations);
         if (callback) callback();
       }, secondary);
@@ -414,13 +457,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       }
     }, this);
   },
-  
+
   saveInitialRecommendations: function() {
     this.get('recommendations').forEach(function (r) {
       this.get('initialRecommendations').pushObject(r);
     }, this);
   },
-  
+
   /**
    * disable saving recommended value for current config
    * @param config

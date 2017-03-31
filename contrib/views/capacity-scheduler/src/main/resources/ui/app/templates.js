@@ -59,3 +59,6 @@ require('templates/components/saveConfigDialog');
 require('templates/components/labelCapacityBar');
 require('templates/components/displayRootLabel');
 require('templates/components/displayLeafLabel');
+require('templates/capsched/partials/preemption');
+require('templates/components/xmldiffViewer');
+require('templates/components/sunburstChart');

@@ -33,12 +33,13 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
 
 
-def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
+def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol):
   """
   Return a dictionary of additional configs to merge if Atlas HA is enabled.
   :param atlas_hosts: List of hostnames that contain Atlas
   :param metadata_port: Port number
   :param is_atlas_ha_enabled: None, True, or False
+  :param metadata_protocol: http or https
   :return: Dictionary with additional configs to merge to application-properties if HA is enabled.
   """
   additional_props = {}
@@ -59,6 +60,11 @@ def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
     prop_name = "atlas.server.address." + id
     prop_value = curr_hostname + ":" + metadata_port
     additional_props[prop_name] = prop_value
+    if "atlas.rest.address" in additional_props:
+      additional_props["atlas.rest.address"] += "," + metadata_protocol + "://" + prop_value
+    else:
+      additional_props["atlas.rest.address"] = metadata_protocol + "://" + prop_value
+
     i += 1
 
   # This may override the existing property
@@ -79,6 +85,10 @@ cluster_name = config['clusterName']
 
 java_version = expect("/hostLevelParams/java_version", int)
 
+zk_root = default('/configurations/application-properties/atlas.server.ha.zookeeper.zkroot', '/apache_atlas')
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
+atlas_kafka_group_id = default('/configurations/application-properties/atlas.kafka.hook.group.id', None)
+
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
@@ -92,7 +102,7 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
+metadata_home = format('{stack_root}/current/atlas-server')
 metadata_bin = format("{metadata_home}/bin")
 
 python_binary = os.environ['PYTHON_EXE'] if 'PYTHON_EXE' in os.environ else sys.executable
@@ -113,6 +123,7 @@ user_group = config['configurations']['cluster-env']['user_group']
 
 # metadata env
 java64_home = config['hostLevelParams']['java_home']
+java_exec = format("{java64_home}/bin/java")
 env_sh_template = config['configurations']['atlas-env']['content']
 
 # credential provider
@@ -138,6 +149,12 @@ metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST
 application_properties = dict(config['configurations']['application-properties'])
 application_properties["atlas.server.bind.address"] = metadata_host
 
+# trimming knox_key
+if 'atlas.sso.knox.publicKey' in application_properties:
+  knox_key = application_properties['atlas.sso.knox.publicKey']
+  knox_key_without_new_line = knox_key.replace("\n","")
+  application_properties['atlas.sso.knox.publicKey'] = knox_key_without_new_line
+
 if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
   metadata_server_url = application_properties["atlas.rest.address"]
 else:
@@ -151,7 +168,7 @@ else:
 # User should not have to modify this property, but still allow overriding it to False if multiple Atlas servers exist
 # This can be None, True, or False
 is_atlas_ha_enabled = default("/configurations/application-properties/atlas.server.ha.enabled", None)
-additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled)
+additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled, metadata_protocol)
 for k,v in additional_ha_props.iteritems():
   application_properties[k] = v
 
@@ -169,6 +186,8 @@ metadata_solrconfig_content = default("/configurations/atlas-solrconfig/content"
 
 atlas_log_level = config['configurations']['atlas-log4j']['atlas_log_level']
 audit_log_level = config['configurations']['atlas-log4j']['audit_log_level']
+atlas_log_max_backup_size = default("/configurations/atlas-log4j/atlas_log_max_backup_size", 256)
+atlas_log_number_of_backup_files = default("/configurations/atlas-log4j/atlas_log_number_of_backup_files", 20)
 
 # smoke test
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
@@ -178,10 +197,6 @@ smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
 
 security_check_status_file = format('{log_dir}/security_check.status')
-if security_enabled:
-    smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
-else:
-    smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 
 # hbase
 hbase_conf_dir = "/etc/hbase/conf"
@@ -195,6 +210,9 @@ infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
 infra_solr_replication_factor = 2 if len(infra_solr_hosts) > 1 else 1
 atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
 has_infra_solr = len(infra_solr_hosts) > 0
+infra_solr_role_atlas = default('configurations/infra-solr-security-json/infra_solr_role_atlas', 'atlas_user')
+infra_solr_role_dev = default('configurations/infra-solr-security-json/infra_solr_role_dev', 'dev')
+infra_solr_role_ranger_audit = default('configurations/infra-solr-security-json/infra_solr_role_ranger_audit', 'ranger_audit_user')
 
 # zookeeper
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
@@ -213,25 +231,13 @@ for host in zookeeper_hosts:
   if index < len(zookeeper_hosts):
     zookeeper_quorum += ","
 
-
-# Atlas Ranger plugin configurations
-stack_supports_atlas_ranger_plugin = check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
-retry_enabled = default("/commandParams/command_retry_enabled", False)
-
-ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
-has_ranger_admin = not len(ranger_admin_hosts) == 0
-xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
-enable_ranger_atlas = False
+stack_supports_atlas_hdfs_site_on_namenode_ha = check_stack_feature(StackFeature.ATLAS_HDFS_SITE_ON_NAMENODE_HA, version_for_stack_feature_checks)
 
 atlas_server_xmx = default("configurations/atlas-env/atlas_server_xmx", 2048)
 atlas_server_max_new_size = default("configurations/atlas-env/atlas_server_max_new_size", 614)
 
 hbase_master_hosts = default('/clusterHostInfo/hbase_master_hosts', [])
 has_hbase_master = not len(hbase_master_hosts) == 0
-
-ranger_admin_hosts = default('/clusterHostInfo/ranger_admin_hosts', [])
-has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 atlas_hbase_setup = format("{exec_tmp_dir}/atlas_hbase_setup.rb")
 atlas_kafka_setup = format("{exec_tmp_dir}/atlas_kafka_acl.sh")
@@ -240,7 +246,6 @@ atlas_audit_hbase_tablename = default('/configurations/application-properties/at
 
 hbase_user_keytab = default('/configurations/hbase-env/hbase_user_keytab', None)
 hbase_principal_name = default('/configurations/hbase-env/hbase_principal_name', None)
-enable_ranger_hbase = False
 
 # ToDo: Kafka port to Atlas
 # Used while upgrading the stack in a kerberized cluster and running kafka-acls.sh
@@ -279,10 +284,33 @@ if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_fea
     kafka_jaas_principal = None
     kafka_keytab_path = None
 
-if has_ranger_admin and stack_supports_atlas_ranger_plugin:
+namenode_host = set(default("/clusterHostInfo/namenode_host", []))
+has_namenode = not len(namenode_host) == 0
+
+# ranger altas plugin section start
+
+# ranger host
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
+
+retry_enabled = default("/commandParams/command_retry_enabled", False)
+
+stack_supports_atlas_ranger_plugin = check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+
+# ranger support xml_configuration flag, instead of depending on ranger xml_configurations_supported/ranger-env, using stack feature
+xml_configurations_supported = check_stack_feature(StackFeature.RANGER_XML_CONFIGURATION, version_for_stack_feature_checks)
+
+# ranger atlas plugin enabled property
+enable_ranger_atlas = default("/configurations/ranger-atlas-plugin-properties/ranger-atlas-plugin-enabled", "No")
+enable_ranger_atlas = True if enable_ranger_atlas.lower() == "yes" else False
+
+# ranger hbase plugin enabled property
+enable_ranger_hbase = default("/configurations/ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled", "No")
+enable_ranger_hbase = True if enable_ranger_hbase.lower() == 'yes' else False
+
+if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
   # for create_hdfs_directory
-  namenode_host = set(default("/clusterHostInfo/namenode_host", []))
-  has_namenode = not len(namenode_host) == 0
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
   hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']  if has_namenode else None
   hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
@@ -312,24 +340,42 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
     dfs_type = dfs_type
   )
 
+  # ranger atlas service/repository name
   repo_name = str(config['clusterName']) + '_atlas'
-  ssl_keystore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
-  ssl_truststore_password = unicode(config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+  repo_name_value = config['configurations']['ranger-atlas-security']['ranger.plugin.atlas.service.name']
+  if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+    repo_name = repo_name_value
+
+  ssl_keystore_password = config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']
+  ssl_truststore_password = config['configurations']['ranger-atlas-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
   xa_audit_hdfs_is_enabled = default('/configurations/ranger-atlas-audit/xasecure.audit.destination.hdfs', False)
-  enable_ranger_atlas = config['configurations']['ranger-atlas-plugin-properties']['ranger-atlas-plugin-enabled']
-  enable_ranger_atlas = not is_empty(enable_ranger_atlas) and enable_ranger_atlas.lower() == 'yes'
-  enable_ranger_hbase = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']
-  enable_ranger_hbase = not is_empty(enable_ranger_hbase) and enable_ranger_hbase.lower() == 'yes'
-  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+
+  # get ranger policy url
+  policymgr_mgr_url = config['configurations']['ranger-atlas-security']['ranger.plugin.atlas.policy.rest.url']
+
+  if not is_empty(policymgr_mgr_url) and policymgr_mgr_url.endswith('/'):
+    policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
 
   downloaded_custom_connector = None
   driver_curl_source = None
   driver_curl_target = None
 
   ranger_env = config['configurations']['ranger-env']
-  ranger_plugin_properties = config['configurations']['ranger-atlas-plugin-properties']
 
+  # create ranger-env config having external ranger credential properties
+  if not has_ranger_admin and enable_ranger_atlas:
+    external_admin_username = default('/configurations/ranger-atlas-plugin-properties/external_admin_username', 'admin')
+    external_admin_password = default('/configurations/ranger-atlas-plugin-properties/external_admin_password', 'admin')
+    external_ranger_admin_username = default('/configurations/ranger-atlas-plugin-properties/external_ranger_admin_username', 'amb_ranger_admin')
+    external_ranger_admin_password = default('/configurations/ranger-atlas-plugin-properties/external_ranger_admin_password', 'amb_ranger_admin')
+    ranger_env = {}
+    ranger_env['admin_username'] = external_admin_username
+    ranger_env['admin_password'] = external_admin_password
+    ranger_env['ranger_admin_username'] = external_ranger_admin_username
+    ranger_env['ranger_admin_password'] = external_ranger_admin_password
+
+  ranger_plugin_properties = config['configurations']['ranger-atlas-plugin-properties']
   ranger_atlas_audit = config['configurations']['ranger-atlas-audit']
   ranger_atlas_audit_attrs = config['configuration_attributes']['ranger-atlas-audit']
   ranger_atlas_security = config['configurations']['ranger-atlas-security']
@@ -346,6 +392,7 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
     'commonNameForCertificate' : config['configurations']['ranger-atlas-plugin-properties']['common.name.for.certificate'],
     'ambari.service.check.user' : policy_user
   }
+
   if security_enabled:
     atlas_repository_configuration['policy.download.auth.users'] = metadata_user
     atlas_repository_configuration['tag.download.auth.users'] = metadata_user
@@ -357,3 +404,4 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
     'name': repo_name,
     'type': 'atlas',
     }
+# ranger atlas plugin section end

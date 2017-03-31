@@ -30,8 +30,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public interface ServerAction {
 
-  public static final String ACTION_NAME      = "ACTION_NAME";
-  public static final String ACTION_USER_NAME = "ACTION_USER_NAME";
+  String ACTION_NAME = "ACTION_NAME";
+  String ACTION_USER_NAME = "ACTION_USER_NAME";
 
   /**
    * The default timeout (in seconds) to use for potentially long running tasks such as creating

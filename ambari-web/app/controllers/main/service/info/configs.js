@@ -43,8 +43,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
 
   selectedConfigGroup: null,
 
-  requestsInProgress: [],
-
   groupsStore: App.ServiceConfigGroup.find(),
 
   /**
@@ -232,31 +230,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   },
 
   /**
-   * register request to view to track his progress
-   * @param {$.ajax} request
-   * @method trackRequest
-   */
-  trackRequest: function (request) {
-    this.get('requestsInProgress').push(request);
-  },
-
-  /**
    * clear and set properties to default value
    * @method clearStep
    */
   clearStep: function () {
-    this.get('requestsInProgress').forEach(function(r) {
-      if (r && r.readyState !== 4) {
-        r.abort();
-      }
-    });
-    this.get('requestsInProgress').clear();
+    this.abortRequests();
     App.set('componentToBeAdded', {});
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
     this.clearSaveInfo();
-    this.clearRecommendationsInfo();
-    this.clearAllRecommendations();
+    this.clearRecommendations();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -295,22 +278,63 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   isInit: true,
 
   /**
+   * Returns dependencies at all levels for service including dependencies for its childs, children dependencies
+   * and so on.
+   *
+   * @param  {String} serviceName name of services to get dependencies
+   * @returns {String[]}
+   */
+  getServicesDependencies: function(serviceName) {
+    var dependencies = Em.getWithDefault(App.StackService.find(serviceName), 'dependentServiceNames', []);
+    var loop = function(dependentServices, allDependencies) {
+      return dependentServices.reduce(function(all, name) {
+        var service = App.StackService.find(name);
+        if (!service) {
+          return all;
+        }
+        var serviceDependencies = service.get('dependentServiceNames');
+        if (!serviceDependencies.length) {
+          return all.concat(name);
+        }
+        var missed = _.intersection(_.difference(serviceDependencies, all), serviceDependencies);
+        if (missed.length) {
+          return loop(missed, all.concat(missed));
+        }
+        return all;
+      }, allDependencies || dependentServices);
+    };
+
+    return loop(dependencies).uniq().without(serviceName).toArray();
+  },
+
+  /**
    * On load function
    * @method loadStep
    */
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
+    App.router.get('mainController').stopPolling();
     this.clearStep();
-    this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
-    this.loadConfigTheme(serviceName).always(function () {
+    this.set('dependentServiceNames', this.getServicesDependencies(serviceName));
+    this.trackRequestChain(this.loadConfigTheme(serviceName).always(function () {
       if (self.get('preSelectedConfigVersion')) {
         self.loadPreSelectedConfigVersion();
       } else {
         self.loadCurrentVersions();
       }
-      self.loadServiceConfigVersions();
-    });
+      self.trackRequest(self.loadServiceConfigVersions());
+    }));
   },
+
+  /**
+   * Turn on polling when all requests are finished
+   */
+  trackRequestsDidChange: function() {
+    var allCompleted = this.get('requestsInProgress').everyProperty('completed', true);
+    if (this.get('requestsInProgress').length && allCompleted) {
+      App.router.get('mainController').startPolling();
+    }
+  }.observes('requestsInProgress.@each.completed'),
 
   /**
    * Generate "finger-print" for current <code>stepConfigs[0]</code>
@@ -474,7 +498,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   addOverrides: function(data, allConfigs) {
     var self = this;
     data.items.forEach(function(group) {
-      if (group.group_name !== App.ServiceConfigGroup.defaultGroupName) {
+      if (![App.ServiceConfigGroup.defaultGroupName, App.ServiceConfigGroup.deletedGroupName].contains(group.group_name)) {
         var configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
         group.configurations.forEach(function(config) {
           for (var prop in config.properties) {
@@ -494,13 +518,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
               App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig({
+              var propValue = config.properties[prop];
+              var newConfig = App.ServiceConfigProperty.create(App.config.createDefaultConfig(prop, fileName, false, {
+                overrides: [],
+                displayType: 'label',
+                value: 'Undefined',
+                isPropertyOverridable: false,
+                overrideValues: [propValue],
+                overrideIsFinalValues: [false]
+              }));
+              newConfig.get('overrides').push(App.config.createCustomGroupConfig({
                 propertyName: prop,
                 filename: fileName,
-                value: config.properties[prop],
-                savedValue: config.properties[prop],
+                value: propValue,
+                savedValue: propValue,
                 isEditable: isEditable
               }, configGroup));
+              allConfigs.push(newConfig);
             }
           }
         });
@@ -528,14 +562,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+
+    var isRangerPresent =  App.Service.find().someProperty('serviceName', 'RANGER');
+    if (isRangerPresent) {
       App.router.get('mainServiceInfoSummaryController').updateRangerPluginsStatus();
       this.setVisibilityForRangerProperties(selectedService);
+      this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
+      App.loadTimer.finish('Service Configs Page');
     } else {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
+      var mainController = App.get('router.mainController');
+      var clusterController = App.get('router.clusterController');
+      var self = this;
+      mainController.isLoading.call(clusterController, 'clusterEnv').done(function () {
+        var isExternalRangerSetup = clusterController.get("clusterEnv")["properties"]["enable_external_ranger"];
+        if (isExternalRangerSetup) {
+          self.setVisibilityForRangerProperties(selectedService);
+        } else {
+          App.config.removeRangerConfigs(self.get('stepConfigs'));
+        }
+        self.loadConfigRecommendations(null, self._onLoadComplete.bind(self));
+        App.loadTimer.finish('Service Configs Page');
+      });
     }
-    this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
-    App.loadTimer.finish('Service Configs Page');
   },
 
   /**
@@ -620,21 +668,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
       }
     }, this);
-
-    App.ConfigAction.find().forEach(function(item){
-      var hostComponentConfig = item.get('hostComponentConfig');
-      var config = serviceConfig.get('configs').filterProperty('filename', hostComponentConfig.fileName).findProperty('name', hostComponentConfig.configName);
-      if (config){
-        var componentHostName = App.HostComponent.find().findProperty('componentName', item.get('componentName')) ;
-        if (componentHostName) {
-          var setConfigValue = !config.get('value');
-          if (setConfigValue) {
-            config.set('value', componentHostName.get('hostName'));
-            config.set('recommendedValue', componentHostName.get('hostName'));
-          }
-        }
-      }
-    }, this);
   },
 
   /**
@@ -655,8 +688,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
-    this.clearAllRecommendations();
-    this.clearRecommendationsInfo();
+    this.clearRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 

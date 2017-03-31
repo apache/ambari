@@ -85,6 +85,7 @@ App.ExportMetricsMixin = Em.Mixin.create({
       ticksNumber,
       metricsNumber,
       metricsArray;
+    this.checkGraphDataForValidity(data);
     titles = data.map(function (item) {
       return displayUnit ? item.name + ' (' + displayUnit + ')' : item.name;
     }, this);
@@ -95,10 +96,33 @@ App.ExportMetricsMixin = Em.Mixin.create({
     for (var i = 0; i < ticksNumber; i++) {
       metricsArray.push([data[0].data[i][1]]);
       for (var j = 0; j < metricsNumber; j++) {
-        metricsArray[i + 1].push(data[j].data[i][0]);
+         metricsArray[i + 1].push(data[j].data[i][0]);
       };
-    }
+    };
     return stringUtils.arrayToCSV(metricsArray);
+  },
+
+  checkGraphDataForValidity: function (data) {
+    data.sort(function (a, b) {
+      return b.data.length - a.data.length
+    });
+
+    var maxLength = data[0].data.length;
+
+    for (var i = 1; i < data.length; i ++) {
+      if (data[i].data.length !== maxLength) this.fillGraphDataArrayWithMockedData(data[i], maxLength);
+    }
+  },
+
+  fillGraphDataArrayWithMockedData: function (dataArray, neededLength) {
+    var startIndex = dataArray.data.length,
+      timestampInterval = dataArray.data[2][1] - dataArray.data[1][1];
+
+    for (var i = startIndex; i < neededLength; i++) {
+      var previousTimestamp = dataArray.data[i - 1][1];
+
+      dataArray.data.push([null, previousTimestamp + timestampInterval]);
+    }
   },
 
   jsonReplacer: function () {

@@ -17,6 +17,11 @@
 }}
 
 <div id="main">
+  {{#if App.enableDigitalClock}}
+    {{view App.ClockView}}
+  {{/if}}
+
+<div id="main">
   <div id="top-nav">
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">

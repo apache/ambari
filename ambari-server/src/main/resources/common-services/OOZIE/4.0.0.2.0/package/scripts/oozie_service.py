@@ -33,6 +33,8 @@ from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
+from resource_management.core import Logger
+
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def oozie_service(action='start', upgrade_type=None):
   import params
@@ -116,10 +118,20 @@ def oozie_service(action = 'start', upgrade_type=None):
         Execute(kinit_if_needed,
                 user = params.oozie_user,
         )
-      
-      
-      if params.host_sys_prepped:
-        print "Skipping creation of oozie sharelib as host is sys prepped"
+
+      if params.sysprep_skip_copy_oozie_share_lib_to_hdfs:
+        Logger.info("Skipping creation of oozie sharelib as host is sys prepped")
+        # Copy current hive-site to hdfs:/user/oozie/share/lib/spark/
+        params.HdfsResource(format("{hdfs_share_dir}/lib/spark/hive-site.xml"),
+                            action="create_on_execute",
+                            type = 'file',
+                            mode=0444,
+                            owner=params.oozie_user,
+                            group=params.user_group,
+                            source=format("{hive_conf_dir}/hive-site.xml"),
+                            )
+        params.HdfsResource(None, action="execute")
+
         hdfs_share_dir_exists = True # skip time-expensive hadoop fs -ls check
       elif WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
         # check with webhdfs is much faster than executing hadoop fs -ls. 

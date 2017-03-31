@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var blueprintUtils = require('utils/blueprint');
 require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, App.KDCCredentialsControllerMixin, {
@@ -28,6 +29,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
 
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
+    this.set('submitButtonClicked', false);
     this.set('selectedService', null);
     this.set('stepConfigs', []);
   },
@@ -47,7 +49,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       // when configurations were stored no need to apply recommendations again
       if (App.get('supports.kerberosStackAdvisor') && !stored.length) {
         self.bootstrapRecommendationPayload(kerberosDescriptor).then(function(recommendations) {
-          self.loadServerSideConfigsRecommendations(recommendations).done(function() {
+          self.loadServerSideConfigsRecommendations(recommendations).always(function() {
             self.applyServiceConfigs(stepConfigs);
           });
         });
@@ -209,7 +211,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var self = this;
     // stored configs from previous steps (Configure Kerberos or Customize Services for ASW)
     var storedServiceConfigs = this.get('wizardController.content.serviceConfigProperties');
-    var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
+    var installedServiceNames = ['Cluster', 'AMBARI'].concat(App.Service.find().mapProperty('serviceName'));
     var configProperties = configs.slice(0);
     var siteProperties = App.configsCollection.getAll();
     var realmValue;
@@ -311,6 +313,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   },
 
   submit: function() {
+    this.set('submitButtonClicked', true);
     this.saveConfigurations();
     App.router.send('next');
   },
@@ -362,13 +365,30 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         stackVersionUrl: App.get('stackVersionURL'),
         dataToSend: {
           recommend: 'configurations',
-          hosts: this.get('hostNames'),
+          hosts: App.get('allHostNames'),
           services: this.get('serviceNames'),
           recommendations: recommendations
         }
       },
       'success': 'loadRecommendationsSuccess',
       'error': 'loadRecommendationsError'
+    });
+  },
+
+  loadRecommendationsError: function(req, ajaxOpts, error, opt) {
+    var resp;
+    try {
+      resp = $.parseJSON(req.responseText);
+    } catch (e) { }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      bodyClass: App.AjaxDefaultErrorPopupBodyView.extend({
+        type: opt.type || 'GET',
+        url: opt.url,
+        status: req.status,
+        message: resp && resp.message || req.responseText
+      })
     });
   },
 
@@ -474,9 +494,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @returns {object} payload for recommendations request
    */
   getBlueprintPayloadObject: function(configurations, kerberosDescriptor) {
-    var recommendations = this.get('hostGroups');
+    var recommendations = blueprintUtils.generateHostGroups(App.get('allHostNames'));
     var mergedConfigurations = this.mergeDescriptorToConfigurations(configurations, this.createServicesStackDescriptorConfigs(kerberosDescriptor));
-
     recommendations.blueprint.configurations = mergedConfigurations.reduce(function(p, c) {
       p[c.type] = {};
       p[c.type].properties = c.properties;

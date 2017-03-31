@@ -51,8 +51,7 @@ App.widgetMapper = App.QuickDataMapper.create({
         result.push(this.parseIt(item.WidgetInfo, this.config));
       }, this);
 
-      App.store.commit();
-      App.store.loadMany(this.get('model'), result);
+      App.store.safeLoadMany(this.get('model'), result);
     }
   }
 });

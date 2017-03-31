@@ -50,7 +50,7 @@
         "cluster-env": {}
     }, 
     "commandParams": {
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/journalnode.py", 
         "upgrade_direction": "upgrade", 
@@ -316,7 +316,7 @@
             "timeline.metrics.cluster.aggregator.hourly.interval": "3600", 
             "timeline.metrics.host.aggregator.ttl": "86400", 
             "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2", 
-            "timeline.metrics.service.webapp.address": "localhost:6188",
+            "timeline.metrics.service.webapp.address": "0.0.0.0:6188",
             "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint", 
             "timeline.metrics.host.aggregator.minute.disabled": "false", 
             "timeline.metrics.cluster.aggregator.minute.ttl": "2592000", 
@@ -817,7 +817,7 @@
             "yarn.nodemanager.resource.percentage-physical-cpu-limit": "100", 
             "yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb": "1000", 
             "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.timeline-service.principal": "yarn/_HOST@EXAMPLE.COM", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
             "yarn.timeline-service.client.max-retries": "30", 

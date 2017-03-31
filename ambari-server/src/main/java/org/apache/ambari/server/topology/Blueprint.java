@@ -97,6 +97,15 @@ public interface Blueprint {
   public String getRecoveryEnabled(String serviceName, String componentName);
 
   /**
+   * Get whether a service is enabled for credential store use.
+   *
+   * @param serviceName - Service name.
+   *
+   * @return null if value is not specified; true or false if specified.
+   */
+  public String getCredentialStoreEnabled(String serviceName);
+
+  /**
    * Check if auto skip failure is enabled.
    * @return true if enabled, otherwise false.
    */

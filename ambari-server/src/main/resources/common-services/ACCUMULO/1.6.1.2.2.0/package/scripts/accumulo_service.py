@@ -33,11 +33,10 @@ def accumulo_service( name,
     pid_exists = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if action == 'start':
-      Directory(os.path.expanduser("~"), 
+      Directory(os.path.expanduser(format("~{accumulo_user}")),
                 owner = params.accumulo_user,
                 group = params.user_group,
-                recursive_ownership = True,
-                ignore_failures=True
+                recursive_ownership = True
       )
       
       if name != 'tserver':

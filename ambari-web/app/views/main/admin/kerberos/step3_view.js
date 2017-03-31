@@ -27,6 +27,29 @@ App.KerberosWizardStep3View = App.KerberosProgressPageView.extend({
 
   submitButtonText: Em.I18n.t('common.next') + '&rarr;',
 
-  showBackButton: true
+  showBackButton: true,
 
+  isHostHeartbeatLost: function() {
+    return !Em.isEmpty(this.get('controller.heartBeatLostHosts'));
+  }.property('controller.heartBeatLostHosts.length'),
+
+  resultMsg: function() {
+    if (this.get('isHostHeartbeatLost')) {
+      return Em.I18n.t('installer.step9.status.hosts.heartbeat_lost').format(this.get('controller.heartBeatLostHosts.length'));
+    }
+    return '';
+  }.property('isHostHeartbeatLost'),
+
+  showHostsWithLostHeartBeat: function() {
+    var self = this;
+    return App.ModalPopup.show({
+      header: Em.I18n.t('installer.step9.host.heartbeat_lost.header'),
+      autoHeight: false,
+      secondary: null,
+      bodyClass: Em.View.extend({
+        hosts: self.get('controller.heartBeatLostHosts'),
+        template: Em.Handlebars.compile('{{#each hostName in view.hosts}}<p>{{view.hostName}}</p>{{/each}}')
+      })
+    });
+  }
 });

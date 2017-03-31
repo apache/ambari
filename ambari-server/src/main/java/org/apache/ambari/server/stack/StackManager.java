@@ -51,10 +51,10 @@ import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 import org.xml.sax.SAXException;
+
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 
 /**
@@ -99,7 +99,10 @@ public class StackManager {
   /**
    * Map of stack id to stack info
    */
-  private Map<String, StackInfo> stackMap = new HashMap<String, StackInfo>();
+  protected Map<String, StackInfo> stackMap = new HashMap<String, StackInfo>();
+  protected Map<String, ServiceModule> commonServiceModules;
+  protected Map<String, StackModule> stackModules;
+  protected Map<String, ExtensionModule> extensionModules;
 
   /**
    * Map of extension id to extension info
@@ -131,7 +134,7 @@ public class StackManager {
    * @throws AmbariException
    *           if an exception occurs while processing the stacks
    */
-  @Inject
+  @AssistedInject
   public StackManager(@Assisted("stackRoot") File stackRoot,
       @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
@@ -152,11 +155,7 @@ public class StackManager {
     stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
     extensionMap = new HashMap<String, ExtensionInfo>();
 
-    Map<String, ServiceModule> commonServiceModules = parseCommonServicesDirectory(commonServicesRoot);
-    Map<String, StackModule> stackModules = parseStackDirectory(stackRoot);
-    LOG.info("About to parse extension directories");
-    Map<String, ExtensionModule> extensionModules = null;
-    extensionModules = parseExtensionDirectory(extensionRoot);
+    parseDirectories(stackRoot, commonServicesRoot, extensionRoot);
 
     //Read the extension links from the DB
     for (StackModule module : stackModules.values()) {
@@ -183,6 +182,12 @@ public class StackManager {
     populateDB(stackDao, extensionDao);
   }
 
+  protected void parseDirectories(File stackRoot, File commonServicesRoot, File extensionRoot) throws AmbariException {
+    commonServiceModules = parseCommonServicesDirectory(commonServicesRoot);
+    stackModules = parseStackDirectory(stackRoot);
+    LOG.info("About to parse extension directories");
+    extensionModules = parseExtensionDirectory(extensionRoot);
+  }
   private void populateDB(StackDAO stackDao, ExtensionDAO extensionDao) throws AmbariException {
     // for every stack read in, ensure that we have a database entry for it;
     // don't put try/catch logic around this since a failure here will

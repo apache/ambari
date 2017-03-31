@@ -747,7 +747,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = False
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 8) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 10) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -758,7 +758,7 @@ class TestBootstrap(TestCase):
     hasPassword_mock.return_value = True
     try_to_execute_mock.return_value = {"exitstatus": 0, "log":"log0", "errormsg":"errormsg0"}
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 11) # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 13) # <- Adjust if changed
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 

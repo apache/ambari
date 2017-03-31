@@ -32,7 +32,7 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getSqlinsertToPigJob(int id) {
-    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'','f','','',?,0,?,'',?,'','',?,?,'',?)";
+    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'',0,'','',?,0,?,'',?,'','',?,?,'',?)";
   }
   @Override
   protected String getRevSql(int id, String maxcount) {

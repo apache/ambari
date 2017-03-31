@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate) {
+.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', 'GroupConstants', '$translate', function($scope, Group, $modal, ConfirmationModal, $rootScope, GroupConstants, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
     groups: $t('common.groups').toLowerCase()
@@ -53,10 +53,10 @@ angular.module('ambariAdminConsole')
       currentPage: $scope.currentPage, 
       groupsPerPage: $scope.groupsPerPage, 
       searchString: $scope.currentNameFilter,
-      ldap_group: $scope.currentTypeFilter.value
+      group_type: $scope.currentTypeFilter.value
     }).then(function(groups) {
       $scope.totalGroups = groups.itemTotal;
-      $scope.groups = groups;
+      $scope.groups = groups.map(Group.makeGroup);
       $scope.tableInfo.total = groups.itemTotal;
       $scope.tableInfo.showed = groups.length;
     })
@@ -65,11 +65,13 @@ angular.module('ambariAdminConsole')
     });
   }
 
-  $scope.typeFilterOptions = [
-    {label: $t('common.all'), value:'*'},
-    {label: $t('common.local'), value: false},
-    {label: $t('common.ldap'), value:true}
-  ];
+  $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
+    .concat(Object.keys(GroupConstants.TYPES).map(function(key) {
+      return {
+        label: $t(GroupConstants.TYPES[key].LABEL_KEY),
+        value: GroupConstants.TYPES[key].VALUE
+      };
+  }));
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
 
   $scope.clearFilters = function () {

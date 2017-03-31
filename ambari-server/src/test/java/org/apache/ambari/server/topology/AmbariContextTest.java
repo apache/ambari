@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,6 +45,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
@@ -59,6 +62,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
@@ -66,13 +70,14 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableList;
 
 /**
  * AmbariContext unit tests
@@ -110,6 +115,8 @@ public class AmbariContextTest {
   private static final ConfigGroup configGroup2 = createMock(ConfigGroup.class);
   private static final Host host1 = createNiceMock(Host.class);
   private static final Host host2 = createNiceMock(Host.class);
+  private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
+  private static final Service mockService1 = createStrictMock(Service.class);
 
   private static final Collection<String> blueprintServices = new HashSet<String>();
   private static final Map<String, Service> clusterServices = new HashMap<String, Service>();
@@ -164,6 +171,9 @@ public class AmbariContextTest {
     type1Props.put("prop3", "val3");
     group1Configuration = new Configuration(group1Properties, null, bpConfiguration);
 
+    Map<String, String> group1ResolvedProperties = new HashMap<String, String>(bpType1Props);
+    group1ResolvedProperties.putAll(type1Props);
+
     // config type -> service mapping
     Map<String, String> configTypeServiceMapping = new HashMap<String, String>();
     configTypeServiceMapping.put("type1", "service1");
@@ -171,6 +181,28 @@ public class AmbariContextTest {
     // config groups
     configGroups.put(1L, configGroup1);
     configGroups.put(2L, configGroup2);
+
+    // config factory mock
+    Config type1Group1 = createNiceMock(Config.class);
+    expect(type1Group1.getType()).andReturn("type1").anyTimes();
+    expect(type1Group1.getTag()).andReturn("group1").anyTimes();
+    expect(type1Group1.getProperties()).andReturn(group1ResolvedProperties).anyTimes();
+    expect(configFactory.createReadOnly(EasyMock.eq("type1"), EasyMock.eq("group1"),
+        EasyMock.<Map<String, String>> anyObject(),
+        EasyMock.<Map<String, Map<String, String>>> anyObject())).andReturn(type1Group1).anyTimes();
+    replay(type1Group1);
+
+    Config type1Service1 = createNiceMock(Config.class);
+    expect(type1Service1.getType()).andReturn("type1").anyTimes();
+    expect(type1Service1.getTag()).andReturn("service1").anyTimes();
+    expect(type1Service1.getProperties()).andReturn(type1Props).anyTimes();
+    expect(configFactory.createReadOnly(EasyMock.eq("type1"), EasyMock.eq("service1"),
+        EasyMock.<Map<String, String>> anyObject(),
+        EasyMock.<Map<String, Map<String, String>>> anyObject())).andReturn(
+            type1Service1).anyTimes();
+    replay(type1Service1);
+
+    context.configFactory = configFactory;
 
     blueprintServices.add("service1");
     blueprintServices.add("service2");
@@ -185,6 +217,7 @@ public class AmbariContextTest {
     expect(blueprint.getComponents("service1")).andReturn(Arrays.asList("s1Component1", "s1Component2")).anyTimes();
     expect(blueprint.getComponents("service2")).andReturn(Collections.singleton("s2Component1")).anyTimes();
     expect(blueprint.getConfiguration()).andReturn(bpConfiguration).anyTimes();
+    expect(blueprint.getCredentialStoreEnabled("service1")).andReturn("true").anyTimes();
 
     expect(stack.getName()).andReturn(STACK_NAME).anyTimes();
     expect(stack.getVersion()).andReturn(STACK_VERSION).anyTimes();
@@ -221,17 +254,17 @@ public class AmbariContextTest {
   public void tearDown() throws Exception {
     verify(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
 
     reset(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
         hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2);
+        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   private void replayAll() {
     replay(controller, clusterController, hostResourceProvider, serviceResourceProvider, componentResourceProvider,
-        hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
-        cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2);
+      hostComponentResourceProvider, configGroupResourceProvider, topology, blueprint, stack, clusters,
+      cluster, group1Info, configHelper, configGroup1, configGroup2, host1, host2, configFactory);
   }
 
   @Test
@@ -323,13 +356,74 @@ public class AmbariContextTest {
   }
 
   @Test
+  public void testCreateAmbariHostResources() throws Exception {
+    // expectations
+    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+
+    hostResourceProvider.createHosts(anyObject(Request.class));
+    expectLastCall().once();
+    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
+    expect(cluster.getService("service2")).andReturn(mockService1).once();
+    Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
+
+    controller.createHostComponents(capture(requestsCapture));
+    expectLastCall().once();
+
+    replayAll();
+
+    // test
+    Map<String, Collection<String>> componentsMap = new HashMap<>();
+    Collection<String> components = new ArrayList<>();
+    components.add("component1");
+    components.add("component2");
+    componentsMap.put("service1", components);
+    components = new ArrayList<>();
+    components.add("component3");
+    componentsMap.put("service2", components);
+
+    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
+
+    assertEquals(requestsCapture.getValue().size(), 3);
+  }
+
+  @Test
+  public void testCreateAmbariHostResourcesWithMissingService() throws Exception {
+    // expectations
+    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+
+    hostResourceProvider.createHosts(anyObject(Request.class));
+    expectLastCall().once();
+    expect(cluster.getService("service1")).andReturn(mockService1).times(2);
+    Capture<Set<ServiceComponentHostRequest>> requestsCapture = EasyMock.newCapture();
+
+    controller.createHostComponents(capture(requestsCapture));
+    expectLastCall().once();
+
+    replayAll();
+
+    // test
+    Map<String, Collection<String>> componentsMap = new HashMap<>();
+    Collection<String> components = new ArrayList<>();
+    components.add("component1");
+    components.add("component2");
+    componentsMap.put("service1", components);
+    components = new ArrayList<>();
+    components.add("component3");
+    componentsMap.put("service2", components);
+
+    context.createAmbariHostResources(CLUSTER_ID, "host1", componentsMap);
+
+    assertEquals(requestsCapture.getValue().size(), 2);
+  }
+
+  @Test
   public void testRegisterHostWithConfigGroup_createNewConfigGroup() throws Exception {
     // test specific expectations
     expect(cluster.getConfigGroups()).andReturn(Collections.<Long, ConfigGroup>emptyMap()).once();
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
-    configHelper.moveDeprecatedGlobals(stackId, group1Configuration.getFullProperties(1), CLUSTER_NAME);
+
     // replay all mocks
     replayAll();
 
@@ -369,7 +463,6 @@ public class AmbariContextTest {
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
-    configHelper.moveDeprecatedGlobals(stackId, group1Configuration.getFullProperties(1), CLUSTER_NAME);
 
     reset(group1Info);
     expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
@@ -417,7 +510,6 @@ public class AmbariContextTest {
 
     expect(configGroup1.getHosts()).andReturn(Collections.singletonMap(2L, host2)).once();
     configGroup1.addHost(host1);
-    configGroup1.persistHostMapping();
 
     // replay all mocks
     replayAll();

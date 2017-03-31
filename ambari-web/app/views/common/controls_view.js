@@ -101,7 +101,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
       controller.removeCurrentFromDependentList(config, saveRecommended);
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0) 
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0)
          || (config.get('displayType') === 'user' && config.get('oldValue') !== config.get('value'))) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
@@ -155,24 +155,13 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
  */
 App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 
-  selected: false,
-
-  focusOut: function () {
-    this.set('selected', false);
-  },
-
-  focusIn: function () {
-    this.set('selected', true);
-  },
-
   onValueUpdate: function () {
-    if (this.get('selected')) {
-      var self = this, config = this.get('serviceConfig'),
-        controller = this.get('controller');
-      delay(function(){
-        self.sendRequestRorDependentConfigs(config, controller);
-      }, 500);
-    }
+    if (!this.get('isVisible')) return;
+    var self = this, config = this.get('serviceConfig'),
+    controller = this.get('controller');
+    delay(function(){
+      self.sendRequestRorDependentConfigs(config, controller);
+    }, 500);
   }.observes('serviceConfig.value')
 });
 
@@ -313,12 +302,19 @@ App.CapacitySceduler = App.ServiceConfigTextArea.extend({
     if (!config.get('isValid') && config.get('isNotDefaultValue')) return $.Deferred().resolve().promise();
     controller = controller || this.get('controller');
     if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
-      return controller.loadConfigRecommendations(config.get('value').split('\n').map(function (_property) {
+      var schedulerConfigs = config.get('value').split('\n').map(function (_property) {
         return {
           "type": 'capacity-scheduler',
           "name": _property.split('=')[0]
         }
-      }));
+      });
+      if (!schedulerConfigs.someProperty('name', 'capacity-scheduler')) {
+        schedulerConfigs.push({
+          "type": 'capacity-scheduler',
+          "name": 'capacity-scheduler'
+        });
+      }
+      return controller.loadConfigRecommendations(schedulerConfigs);
     }
 
     return $.Deferred().resolve().promise();
@@ -871,7 +867,13 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
   valueBinding: 'serviceConfig.value',
   unitBinding: 'serviceConfig.unit',
 
-  template: Ember.Handlebars.compile('<i>{{view.value}}&nbsp;{{view.unit}}</i>')
+  fullValue: function () {
+    var value = this.get('value');
+    var unit = this.get('unit');
+    return unit ? value + ' ' + unit : value;
+  }.property('value', 'unit'),
+
+  template: Ember.Handlebars.compile('<i>{{formatWordBreak view.fullValue}}</i>')
 });
 
 /**

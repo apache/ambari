@@ -70,14 +70,25 @@
                         &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                     {{/if}}
                   {{/if}}
-                  {{#if controller.canEdit}}
-                    {{view App.ControlsView serviceConfigPropertyBinding="this"}}
-                  {{/if}}
+                  {{view App.ControlsView serviceConfigPropertyBinding="this"}}
                   <span class="help-inline">{{errorMessage}}</span>
                   <span class="help-inline">{{warnMessage}}</span>
                 </div>
               {{/if}}
               {{#if this.isComparison}}
+                {{#unless this.isOriginalSCP}}
+                  {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                  {{#if controller.selectedConfigGroup.isDefault}}
+                    <span
+                      class="label label-info config-controls">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+                    {{#if controller.isCurrentSelected}}
+                      <span class="label label-success config-controls">{{t common.current}}</span>
+                    {{/if}}
+                  {{else}}
+                    <span class="label label-info config-controls">{{t common.default}}
+                      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
+                  {{/if}}
+                {{/unless}}
                 {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
               {{else}}
                 {{#if this.isOverridden}}

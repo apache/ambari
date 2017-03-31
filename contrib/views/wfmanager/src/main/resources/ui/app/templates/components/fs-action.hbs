@@ -18,8 +18,7 @@
 <div class="panel panel-default">
   <div class="panel-heading">General</div>
   <div class="panel-body">
-    {{#field-error error=errors.actionModel}}{{/field-error}}
-
+    {{field-error model=this field='actionModel.fsOps' showErrorMessage=showErrorMessage}}
     {{#prepare-config-fs fsOps=actionModel.fsOps openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config-fs}}
     {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
   </div>

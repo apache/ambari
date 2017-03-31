@@ -18,7 +18,7 @@ set -e
 
 export LOGFEEDER_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package
 
-export LOGFEEDER_CONF_DIR=/root/test-config/logfeeder
+export LOGFEEDER_CONF_DIR=/root/config/logfeeder
 
 #Logfile e.g. /var/log/logfeeder.log
 export LOGFILE=/var/log/ambari-logsearch-logfeeder/logfeeder.out
@@ -33,3 +33,12 @@ LOGFEEDER_JAVA_MEM=${LOGFEEDER_JAVA_MEM:-"-Xmx512m"}
 export LOGFEEDER_DEBUG=true
 
 export LOGFEEDER_DEBUG_PORT=5006
+
+export LOGFEEDER_SSL="true"
+export LOGFEEDER_KEYSTORE_LOCATION=/root/config/ssl/logsearch.keyStore.jks
+export LOGFEEDER_KEYSTORE_PASSWORD=bigdata
+export LOGFEEDER_KEYSTORE_TYPE=jks
+export LOGFEEDER_TRUSTSTORE_LOCATION=/root/config/ssl/logsearch.trustStore.jks
+export LOGFEEDER_TRUSTSTORE_PASSWORD=bigdata
+export LOGFEEDER_TRUSTSTORE_TYPE=jks
+

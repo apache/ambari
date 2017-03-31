@@ -83,7 +83,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Single host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
+  protected static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
       new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
@@ -116,7 +116,7 @@ public class BlueprintConfigurationProcessor {
    * removed from export, but do not require an update during
    * cluster creation
    */
-  private static Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
+  private Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
     new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
@@ -171,7 +171,7 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("domains", "krb5-conf"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
-      new StackPasswordPropertyFilter()
+      new StackPropertyTypeFilter()
     };
 
   /**
@@ -192,6 +192,10 @@ public class BlueprintConfigurationProcessor {
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
+      /** Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
+       * .class from hbase-site. */
+      new ConditionalPropertyFilter("hbase-site", "hbase.rpc.controllerfactory.class",
+        "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"),
       new HDFSNameNodeHAFilter(),
       new HawqHAFilter() };
 
@@ -200,6 +204,81 @@ public class BlueprintConfigurationProcessor {
 
   public BlueprintConfigurationProcessor(ClusterTopology clusterTopology) {
     this.clusterTopology = clusterTopology;
+    initRemovePropertyUpdaters();
+  }
+
+  public Map<String, Map<String, PropertyUpdater>> getRemovePropertyUpdaters() {
+    return removePropertyUpdaters;
+  }
+
+  public void initRemovePropertyUpdaters() {
+
+    if (containsHostFromHostGroups("oozie-site", "oozie.service.JPAService.jdbc.url")) {
+      Map<String, PropertyUpdater> oozieSiteUpdaters = singleHostTopologyUpdaters.get("oozie-site");
+      Map<String, PropertyUpdater> oozieEnvUpdaters = singleHostTopologyUpdaters.get("oozie-env");
+      if (oozieSiteUpdaters == null) {
+        oozieSiteUpdaters = new HashMap<>();
+      }
+      if (oozieEnvUpdaters == null) {
+        oozieEnvUpdaters = new HashMap<>();
+      }
+      oozieEnvUpdaters.put("oozie_existing_mysql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieSiteUpdaters.put("oozie.service.JPAService.jdbc.url",  new SingleHostTopologyUpdater("OOZIE_SERVER"));
+
+      singleHostTopologyUpdaters.put("oozie-env", oozieEnvUpdaters);
+      singleHostTopologyUpdaters.put("oozie-site", oozieSiteUpdaters);
+    } else {
+      Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+      Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
+      // register updaters for Oozie properties that may point to an external DB
+      oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
+      oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
+
+      removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
+      removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
+    }
+
+    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+    // register updaters for Hive properties that may point to an external DB
+    hiveEnvOriginalValueMap.put("hive_existing_oracle_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_2_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_postgresql_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mysql_host", new OriginalValuePropertyUpdater());
+
+    removePropertyUpdaters.put("hive-env", hiveEnvOriginalValueMap);
+
+  }
+
+  private boolean containsHostFromHostGroups(String configType, String propertyName) {
+    String propertyValue = clusterTopology.getConfiguration().getPropertyValue(configType, propertyName);
+    if (StringUtils.isEmpty(propertyValue)) {
+      return false;
+    }
+    // check fir bp import
+    Matcher m = HOSTGROUP_REGEX.matcher(propertyValue);
+    if (m.find()) {
+      return true;
+    }
+
+    // check for bp export
+    for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
+      Collection<String> hosts = groupInfo.getHostNames();
+      for (String host : hosts) {
+        if (propertyValue.contains(host)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public Collection<String> getRequiredHostGroups() {
@@ -2278,7 +2357,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hiveInteractiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<String, PropertyUpdater>();
@@ -2313,7 +2391,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("yarn-site", yarnSiteMap);
     singleHostTopologyUpdaters.put("hive-site", hiveSiteMap);
     singleHostTopologyUpdaters.put("hive-interactive-env", hiveInteractiveEnvMap);
-    singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
     singleHostTopologyUpdaters.put("accumulo-site", accumuloSiteMap);
     singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
@@ -2357,9 +2434,6 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
-
-    removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
-    removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
 
     nonTopologyUpdaters.put("hive-site", hiveSiteNonTopologyMap);
     nonTopologyUpdaters.put("kafka-broker", kafkaBrokerNonTopologyMap);
@@ -2415,8 +2489,10 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.timeline-service.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
     yarnSiteMap.put("yarn.timeline-service.webapp.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
     yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+    yarnSiteMap.put("yarn.log.server.web-service.url", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
 
     // HIVE_SERVER
+    hiveSiteMap.put("hive.server2.authentication.ldap.url", new SingleHostTopologyUpdater("HIVE_SERVER2"));
     multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true, true, true));
     dbHiveSiteMap.put("javax.jdo.option.ConnectionURL",
         new DBTopologyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
@@ -2452,9 +2528,10 @@ public class BlueprintConfigurationProcessor {
         }
 
         boolean isAtlasInCluster = topology.getBlueprint().getServices().contains("ATLAS");
+        boolean isAtlasHiveHookEnabled = Boolean.parseBoolean(properties.get("hive-env").get("hive.atlas.hook"));
 
         // Append atlas hook if not already present.
-        if (isAtlasInCluster) {
+        if (isAtlasInCluster || isAtlasHiveHookEnabled) {
           if (!hiveHooksClean.contains(atlasHookClass)) {
             hiveHooksClean.add(atlasHookClass);
           }
@@ -2538,14 +2615,17 @@ public class BlueprintConfigurationProcessor {
 
 
     // OOZIE_SERVER
-    oozieSiteMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.ha.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
+    Map<String, PropertyUpdater> oozieStringPropertyUpdaterMap = singleHostTopologyUpdaters.get("oozie-site");
+    if (oozieStringPropertyUpdaterMap == null) {
+      oozieStringPropertyUpdaterMap = new HashMap<>();
+    }
+    oozieStringPropertyUpdaterMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.ha.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    singleHostTopologyUpdaters.put("oozie-site", oozieStringPropertyUpdaterMap);
 
-    // register updaters for Oozie properties that may point to an external DB
-    oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+    multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
     oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
 
     // ZOOKEEPER_SERVER
@@ -2682,17 +2762,10 @@ public class BlueprintConfigurationProcessor {
     amsSiteMap.put("timeline.metrics.service.webapp.address", new SingleHostTopologyUpdater("METRICS_COLLECTOR") {
       @Override
       public String updateForClusterCreate(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
-        int metricsCollectorsCount = topology.getHostAssignmentsForComponent("METRICS_COLLECTOR").size();
-        if (metricsCollectorsCount == 1) {
-          String value = origValue;
-          //localhost will be replaced with real hostname in updateForClusterCreate()
-          if (isSpecialNetworkAddress(origValue)) {
-            value = origValue.replace(BIND_ALL_IP_ADDRESS, "localhost");
-          }
-          return super.updateForClusterCreate(propertyName, value, properties, topology);
+        if (!origValue.startsWith(BIND_ALL_IP_ADDRESS)) {
+          return origValue.replace(origValue.split(":")[0], BIND_ALL_IP_ADDRESS);
         } else {
-          //For multiple collectors
-          return origValue.replace("localhost", BIND_ALL_IP_ADDRESS);
+          return origValue;
         }
       }
     });
@@ -2917,16 +2990,16 @@ public class BlueprintConfigurationProcessor {
     }
   }
   /**
-   * A Filter that excludes properties if in stack a property is marked as password property
+   * A Filter that excludes properties if in stack a property is marked as password property or kerberos principal
    *
    */
-  private static class StackPasswordPropertyFilter implements PropertyFilter {
+  private static class StackPropertyTypeFilter implements PropertyFilter {
 
     /**
      * Query to determine if a given property should be included in a collection of
      * properties.
      *
-     * This implementation filters property if in stack configuration is the property type is password.
+     * This implementation filters property if in stack configuration is the property type is password or kerberos principal.
      *
      * @param propertyName property name
      * @param propertyValue property value
@@ -2940,7 +3013,8 @@ public class BlueprintConfigurationProcessor {
     public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
         Stack stack = topology.getBlueprint().getStack();
         final String serviceName = stack.getServiceForConfigType(configType);
-        return !stack.isPasswordProperty(serviceName, configType, propertyName);
+        return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
+                stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
     }
   }
 
@@ -3140,6 +3214,41 @@ public class BlueprintConfigurationProcessor {
         }
       }
 
+      return true;
+    }
+  }
+
+  /**
+   * Filter implementation filters out a property depending on property value.
+   */
+  private static class ConditionalPropertyFilter implements PropertyFilter {
+
+    private final String propertyName;
+    private final String propertyValue;
+    private final String configType;
+
+    public ConditionalPropertyFilter(String configType, String propertyName, String propertyValue) {
+      this.propertyName = propertyName;
+      this.propertyValue = propertyValue;
+      this.configType = configType;
+    }
+
+    /**
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      if (configType.equals(this.configType) && propertyName.equals(this.propertyName) && propertyValue.equals(this
+        .propertyValue)) {
+        return false;
+      }
       return true;
     }
   }

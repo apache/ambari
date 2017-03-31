@@ -34,7 +34,7 @@
   </property>
   <property>
     <name>timeline.metrics.service.webapp.address</name>
-    <value>localhost:6188</value>
+    <value>0.0.0.0:6188</value>
     <description>
       The address of the metrics service web application.
     </description>
@@ -589,14 +589,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
-    <value>true</value>
-    <description>
-      Enable Compaction policy for lower for Precision and Minute aggregate tables.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
     <value>false</value>
     <description>
@@ -645,6 +637,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>failover.strategy</name>
+    <value>round-robin</value>
+    <description>
+      Failover strategy for metric monitors
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>timeline.metrics.hbase.init.check.enabled</name>
     <value>true</value>
     <description>
@@ -658,6 +658,66 @@
     <description>
       Enable Linear interpolation for missing slices of data, while aggregating.
     </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.service.metadata.filters</name>
+    <value>ContainerResource</value>
+    <description>
+      Commas separated list of regular expressions that match metric names
+      which prevents certain metrics from ending up in metadata cache.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregation.sql.filters</name>
+    <value>sdisk\_%,boottime</value>
+    <description>
+      Commas separated list of Metric names or Phoenix 'LIKE' class expressions that match metric names
+      which prevents certain metrics from being aggregated across hosts.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.metric.patterns</name>
+    <value>dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%</value>
+    <description>
+      Commas separated list of metric name regular expressions that are candidates for Top N downsampling.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.value</name>
+    <value>10</value>
+    <description>
+      Top N value for to be used for top N downsampling. Default is 10.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.function</name>
+    <value>max</value>
+    <description>
+      Top N function for to be used for top N downsampling (avg/max/sum)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>cluster.zookeeper.quorum</name>
+    <value>{{cluster_zookeeper_quorum_hosts}}</value>
+    <description>Comma separated list of servers in the cluster ZooKeeper Quorum.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>cluster.zookeeper.property.clientPort</name>
+    <value>{{cluster_zookeeper_clientPort}}</value>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

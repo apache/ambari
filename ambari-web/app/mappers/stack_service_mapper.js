@@ -32,6 +32,8 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     service_version: 'service_version',
     stack_name: 'stack_name',
     stack_version: 'stack_version',
+    selection: 'selection',
+    is_mandatory: 'is_mandatory',
     is_selected: 'is_selected',
     is_installed: 'is_installed',
     is_installable: 'is_installable',
@@ -96,7 +98,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       var serviceComponents = [];
       item.components.forEach(function (serviceComponent) {
         var dependencies = serviceComponent.dependencies.map(function (dependecy) {
-          return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope'])) };
+          return { Dependencies: App.keysUnderscoreToCamelCase(App.permit(dependecy.Dependencies, ['component_name', 'scope', 'service_name'])) };
         });
         serviceComponent.StackServiceComponents.id = serviceComponent.StackServiceComponents.component_name;
         serviceComponent.StackServiceComponents.dependencies = dependencies;
@@ -115,13 +117,13 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         stackService.is_installable = false;
         stackService.is_selected = false;
       }
-      if (App.StackService.unSelectByDefault.contains(stackService.service_name)) {
-        stackService.is_selected = false;
+      if(stackService.selection === "MANDATORY") {
+        stackService.is_mandatory = true;
       }
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
-    App.store.loadMany(this.get('component_model'), stackServiceComponents);
-    App.store.loadMany(model, result);
+    App.store.safeLoadMany(this.get('component_model'), stackServiceComponents);
+    App.store.safeLoadMany(model, result);
   },
 
   /**
@@ -134,7 +136,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       records.forEach(function (rec) {
         Ember.run(this, function () {
           rec.deleteRecord();
-          App.store.commit();
+          App.store.fastCommit();
         });
       }, this);
     }, this);

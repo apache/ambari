@@ -34,7 +34,6 @@ public class LogsearchUsernamePasswordAuthenticationFilter extends UsernamePassw
 
   public void setRememberMeServices(RememberMeServices rememberMeServices) {
     super.setRememberMeServices(rememberMeServices);
-
   }
 
   @Override

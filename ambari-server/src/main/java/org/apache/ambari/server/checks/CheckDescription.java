@@ -66,7 +66,9 @@ public class CheckDescription {
     "Hosts in Maintenance Mode will be excluded from the upgrade.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "There are hosts in Maintenance Mode which excludes them from being upgraded.").build());
+          "There are hosts in Maintenance Mode which excludes them from being upgraded.")
+      .put(HostMaintenanceModeCheck.KEY_CANNOT_START_HOST_ORDERED,
+          "The following hosts cannot be in Maintenance Mode: {{fails}}.").build());
 
   public static CheckDescription HOSTS_MASTER_MAINTENANCE = new CheckDescription("HOSTS_MASTER_MAINTENANCE",
     PrereqCheckType.HOST,
@@ -93,12 +95,6 @@ public class CheckDescription {
     "The SNameNode component must be deleted from all hosts",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: %s.").build());
-
-  public static CheckDescription STORM_REST_API_MUST_BE_DELETED = new CheckDescription("STORM_REST_API_MUST_BE_DELETED",
-    PrereqCheckType.SERVICE,
-    "The STORM_REST_API component will no longer be available and must be deleted from the cluster before upgrading. The same functionality is now provided by STORM_UI_SERVER. First, stop the entire Storm service. Next, delete STORM_REST_API using the API, e.g., curl -u $user:$password -X DELETE -H 'X-Requested-By:admin' http://$server:8080/api/v1/clusters/$name/services/STORM/components/STORM_REST_API . Finally, start Storm service.",
-    new ImmutableMap.Builder<String, String>()
-      .put(AbstractCheckDescriptor.DEFAULT, "The following component must be deleted from the cluster: {{fails}}.").build());
 
   public static CheckDescription SERVICES_HIVE_MULTIPLE_METASTORES = new CheckDescription("SERVICES_HIVE_MULTIPLE_METASTORES",
     PrereqCheckType.SERVICE,
@@ -234,10 +230,10 @@ public class CheckDescription {
 
   public static CheckDescription HARDCODED_STACK_VERSION_PROPERTIES_CHECK = new CheckDescription("HARDCODED_STACK_VERSION_PROPERTIES_CHECK",
     PrereqCheckType.CLUSTER,
-    "Found hardcoded hdp stack version in property value.",
+    "Found hardcoded stack version in property value.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "Some properties seem to contain hardcoded hdp version string \"%s\"." +
+          "Some properties seem to contain hardcoded stack version string \"%s\"." +
           " That is a potential problem when doing stack update.").build());
 
   public static CheckDescription VERSION_MISMATCH = new CheckDescription("VERSION_MISMATCH",
@@ -275,6 +271,19 @@ public class CheckDescription {
           "This service does not support upgrades and must be removed before the upgrade can continue. " +
           "After upgrading, Atlas can be reinstalled").build());
 
+  public static CheckDescription SERVICE_PRESENCE_CHECK = new CheckDescription("SERVICE_PRESENCE_CHECK",
+      PrereqCheckType.SERVICE,
+      "Service Is Not Supported For Upgrades",
+      new ImmutableMap.Builder<String, String>()
+        .put(AbstractCheckDescriptor.DEFAULT,
+            "The %s service is currently installed on the cluster. " +
+            "This service does not support upgrades and must be removed before the upgrade can continue. " +
+            "After upgrading, %s can be reinstalled")
+        .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
+            "The %s service is currently installed on the cluster. " +
+            "This service is removed from the new release and must be removed before the upgrade can continue. " +
+            "After upgrading, %s can be installed").build());
+
   public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
     PrereqCheckType.SERVICE,
     "Remove the Ranger Audit to Database Capability",
@@ -290,13 +299,13 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.").build());
 
-  public static CheckDescription SERVICES_HIVE_ROLLING_PORT_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_PORT_WARNING",
+  public static CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
-    "Hive Server Port Change",
+    "HiveServer2 Downtime",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "In order to support rolling upgrades, the Hive server is required to change its port. Applications and users which use a URL that includes the port will no longer be able to connect after Hive has upgraded. If this behavior is not desired, then the port can be restored to its original value after the upgrade has been finalized.").build());
-  
+          "HiveServer2 does not currently support rolling upgrades. HiveServer2 will be upgraded, however existing queries which have not completed will fail and need to be resubmitted after HiveServer2 has been upgraded.").build());
+
   public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
     "Storm Downtime During Upgrade",
@@ -304,6 +313,21 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "Storm does not support rolling upgrades on this version of the stack. If you proceed, you will be required to stop all running topologies before Storm is restarted.").build());
 
+  public static CheckDescription AUTO_START_DISABLED = new CheckDescription("AUTO_START_DISABLED",
+    PrereqCheckType.CLUSTER,
+    "Auto-Start Disabled Check",
+    new ImmutableMap.Builder<String, String>()
+      .put(AbstractCheckDescriptor.DEFAULT,
+        "Auto Start must be disabled before performing an Upgrade. To disable Auto Start, navigate to " +
+          "Admin > Service Auto Start. Turn the toggle switch off to Disabled and hit Save.").build());
+
+  public static CheckDescription RANGER_SSL_CONFIG_CHECK = new CheckDescription("RANGER_SSL_CONFIG_CHECK",
+    PrereqCheckType.SERVICE,
+    "Change Ranger SSL configuration path for Keystore and Truststore.",
+    new ImmutableMap.Builder<String, String>()
+            .put(AbstractCheckDescriptor.DEFAULT,
+              "As Ranger is SSL enabled, Ranger SSL configurations will need to be changed from default value of /etc/ranger/*/conf folder to /etc/ranger/security. " +
+              "Since the certificates/keystores/truststores in this path may affect the upgrade/downgrade process, it is recommended to manually move the certificates/keystores/truststores out of the conf folders and change the appropriate config values before proceeding.").build());
 
   private String m_name;
   private PrereqCheckType m_type;

@@ -34,6 +34,7 @@ describe('App.ListConfigWidgetView', function () {
         filename: 'f1',
         isFinal: false,
         supportsFinal: true,
+        widgetType: 'list-widget',
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             entries: [

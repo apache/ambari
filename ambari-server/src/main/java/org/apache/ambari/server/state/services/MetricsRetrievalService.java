@@ -70,13 +70,32 @@ import com.google.inject.Inject;
  * in remote metric data. Otherwise, the cache will never be populated. On the
  * first usage of this service, the cache will always be empty. On every
  * subsequent request, the data from the prior invocation of
- * {@link #submit(JMXRunnable)} will be available.
+ * {@link #submitRequest(MetricSourceType, StreamProvider, String)} will be available.
  * <p/>
  * Metric data is cached temporarily and is controlled by
  * {@link Configuration#getMetricsServiceCacheTimeout()}.
+ * <p/>
+ * In order to control throttling requests to the same endpoint,
+ * {@link Configuration#isMetricsServiceRequestTTLCacheEnabled()} can be enabled
+ * to allow for a fixed interval of time to pass between requests.
  */
 @AmbariService
 public class MetricsRetrievalService extends AbstractService {
+
+  /**
+   * The type of web service hosting the metrics.
+   */
+  public enum MetricSourceType {
+    /**
+     * JMX
+     */
+    JMX,
+
+    /**
+     * REST
+     */
+    REST
+  }
 
   /**
    * Logger.
@@ -137,6 +156,18 @@ public class MetricsRetrievalService extends AbstractService {
    */
   private final Set<String> m_queuedUrls = Sets.newConcurrentHashSet();
 
+  /**
+   * An evicting cache which ensures that multiple requests for the same
+   * endpoint are not executed back-to-back. When enabled, a fixed period of
+   * time must pass before this service will make requests to a previously
+   * retrieved endpoint.
+   * <p/>
+   * If this cache is not enabled, then it will be {@code null}.
+   * <p/>
+   * For simplicity, this is a cache of URL to URL.
+   */
+  private Cache<String, String> m_ttlUrlCache;
+
 
   /**
    * The size of the worker queue (used for logged warnings about size).
@@ -166,6 +197,14 @@ public class MetricsRetrievalService extends AbstractService {
     m_restCache = CacheBuilder.newBuilder().expireAfterWrite(jmxCacheExpirationMinutes,
         TimeUnit.MINUTES).build();
 
+    // enable the TTL cache if configured; otherwise leave it as null
+    int ttlSeconds = m_configuration.getMetricsServiceRequestTTL();
+    boolean ttlCacheEnabled = m_configuration.isMetricsServiceRequestTTLCacheEnabled();
+    if (ttlCacheEnabled) {
+      m_ttlUrlCache = CacheBuilder.newBuilder().expireAfterWrite(ttlSeconds,
+          TimeUnit.SECONDS).build();
+    }
+
     // iniitalize the executor service
     int corePoolSize = m_configuration.getMetricsServiceThreadPoolCoreSize();
     int maxPoolSize = m_configuration.getMetricsServiceThreadPoolMaxSize();
@@ -187,6 +226,11 @@ public class MetricsRetrievalService extends AbstractService {
     LOG.info(
         "Initializing the Metrics Retrieval Service with core={}, max={}, workerQueue={}, threadPriority={}",
         corePoolSize, maxPoolSize, m_queueMaximumSize, threadPriority);
+
+    if (ttlCacheEnabled) {
+      LOG.info("Metrics Retrieval Service request TTL cache is enabled and set to {} seconds",
+          ttlSeconds);
+    }
   }
 
   /**
@@ -205,23 +249,34 @@ public class MetricsRetrievalService extends AbstractService {
   protected void doStop() {
     m_jmxCache.invalidateAll();
     m_restCache.invalidateAll();
+
+    if (null != m_ttlUrlCache) {
+      m_ttlUrlCache.invalidateAll();
+    }
+
     m_queuedUrls.clear();
     m_threadPoolExecutor.shutdownNow();
   }
 
   /**
-   * Submit a {@link JMXRunnable} for execution. This will run inside of an
-   * {@link ExecutorService} to retrieve JMX data from a URL endpoint and parse
-   * the result into a {@link JMXMetricHolder}.
+   * Submit a {@link Runnable} for execution which retrieves metric data from
+   * the supplied endpoint. This will run inside of an {@link ExecutorService}
+   * to retrieve metric data from a URL endpoint and parse the result into a
+   * cached value.
    * <p/>
-   * Once JMX data is retrieved it is cached. Data in the cache can be retrieved
-   * via {@link #getCachedJMXMetric(String)}.
+   * Once metric data is retrieved it is cached. Data in the cache can be
+   * retrieved via {@link #getCachedJMXMetric(String)} or
+   * {@link #getCachedRESTMetric(String)}, depending on the type of metric
+   * requested.
    * <p/>
    * Callers need not worry about invoking this mulitple times for the same URL
    * endpoint. A single endpoint will only be enqueued once regardless of how
    * many times this method is called until it has been fully retrieved and
-   * parsed.
+   * parsed. If the last endpoint request was too recent, then this method will
+   * opt to not make another call until the TTL period expires.
    *
+   * @param type
+   *          the type of service hosting the metric (not {@code null}).
    * @param streamProvider
    *          the {@link StreamProvider} to use to read from the remote
    *          endpoint.
@@ -230,62 +285,46 @@ public class MetricsRetrievalService extends AbstractService {
    *
    * @see #getCachedJMXMetric(String)
    */
-  public void submitJMXRequest(StreamProvider streamProvider, String jmxUrl) {
+  public void submitRequest(MetricSourceType type, StreamProvider streamProvider, String url) {
+    // check to ensure that the request isn't already queued
+    if (m_queuedUrls.contains(url)) {
+      return;
+    }
+
+    // check to ensure that the request wasn't made too recently
+    if (null != m_ttlUrlCache && null != m_ttlUrlCache.getIfPresent(url)) {
+      return;
+    }
+
     // log warnings if the queue size seems to be rather large
-    BlockingQueue<Runnable> queue =  m_threadPoolExecutor.getQueue();
+    BlockingQueue<Runnable> queue = m_threadPoolExecutor.getQueue();
     int queueSize = queue.size();
     if (queueSize > Math.floor(0.9f * m_queueMaximumSize)) {
       LOG.warn("The worker queue contains {} work items and is at {}% of capacity", queueSize,
           ((float) queueSize / m_queueMaximumSize) * 100);
     }
 
-    // don't enqueue another request for the same URL
-    if (m_queuedUrls.contains(jmxUrl)) {
-      return;
+    // enqueue this URL
+    m_queuedUrls.add(url);
+
+    Runnable runnable = null;
+    switch (type) {
+      case JMX:
+        runnable = new JMXRunnable(m_jmxCache, m_queuedUrls, m_ttlUrlCache, m_jmxObjectReader,
+            streamProvider, url);
+        break;
+      case REST:
+        runnable = new RESTRunnable(m_restCache, m_queuedUrls, m_ttlUrlCache, m_gson,
+            streamProvider, url);
+        break;
+      default:
+        LOG.warn("Unable to retrieve metrics for the unknown type {}", type);
+        break;
     }
 
-    // enqueue this URL
-    m_queuedUrls.add(jmxUrl);
-
-    JMXRunnable jmxRunnable = new JMXRunnable(m_jmxCache, m_queuedUrls, m_jmxObjectReader,
-        streamProvider, jmxUrl);
-
-    m_threadPoolExecutor.execute(jmxRunnable);
-  }
-
-  /**
-   * Submit a {@link RESTRunnable} for execution. This will run inside of an
-   * {@link ExecutorService} to retrieve JMX data from a URL endpoint and parse
-   * the result into a {@link Map} of {@link String}.
-   * <p/>
-   * Once REST data is retrieved it is cached. Data in the cache can be
-   * retrieved via {@link #getCachedRESTMetric(String)}.
-   * <p/>
-   * Callers need not worry about invoking this mulitple times for the same URL
-   * endpoint. A single endpoint will only be enqueued once regardless of how
-   * many times this method is called until it has been fully retrieved and
-   * parsed.
-   *
-   * @param streamProvider
-   *          the {@link StreamProvider} to use to read from the remote
-   *          endpoint.
-   * @param restUrl
-   *          the URL to read from
-   *
-   * @see #getCachedRESTMetric(String)
-   */
-  public void submitRESTRequest(StreamProvider streamProvider, String restUrl) {
-    if (m_queuedUrls.contains(restUrl)) {
-      return;
+    if (null != runnable) {
+      m_threadPoolExecutor.execute(runnable);
     }
-
-    // enqueue this URL
-    m_queuedUrls.add(restUrl);
-
-    RESTRunnable restRunnable = new RESTRunnable(m_restCache, m_queuedUrls, m_gson,
-        streamProvider, restUrl);
-
-    m_threadPoolExecutor.execute(restRunnable);
   }
 
   /**
@@ -293,11 +332,13 @@ public class MetricsRetrievalService extends AbstractService {
    * is no metric data cached for the given URL, then {@code null} is returned.
    * <p/>
    * The onky way this cache is populated is by requesting the data to be loaded
-   * asynchronously via {@link #submit(JMXRunnable)}.
+   * asynchronously via
+   * {@link #submitRequest(MetricSourceType, StreamProvider, String)} with the
+   * {@link MetricSourceType#JMX} type.
    *
    * @param jmxUrl
    *          the URL to retrieve cached data for (not {@code null}).
-   * @return
+   * @return the metric, or {@code null} if none.
    */
   public JMXMetricHolder getCachedJMXMetric(String jmxUrl) {
     return m_jmxCache.getIfPresent(jmxUrl);
@@ -308,11 +349,13 @@ public class MetricsRetrievalService extends AbstractService {
    * metric data cached for the given URL, then {@code null} is returned.
    * <p/>
    * The onky way this cache is populated is by requesting the data to be loaded
-   * asynchronously via {@link #submit(JMXRunnable)}.
+   * asynchronously via
+   * {@link #submitRequest(MetricSourceType, StreamProvider, String)} with the
+   * {@link MetricSourceType#REST} type.
    *
    * @param restUrl
    *          the URL to retrieve cached data for (not {@code null}).
-   * @return
+   * @return the metric, or {@code null} if none.
    */
   public Map<String, String> getCachedRESTMetric(String restUrl) {
     return m_restCache.getIfPresent(restUrl);
@@ -339,6 +382,12 @@ public class MetricsRetrievalService extends AbstractService {
     private final Set<String> m_queuedUrls;
 
     /**
+     * An evicting cache used to control whether a request for a metric can be
+     * made or if it is too soon after the last request.
+     */
+    private final Cache<String, String> m_ttlUrlCache;
+
+    /**
      * Constructor.
      *
      * @param streamProvider
@@ -349,11 +398,17 @@ public class MetricsRetrievalService extends AbstractService {
      *          the URLs which are currently waiting to be processed. This
      *          method will remove the specified URL from this {@link Set} when
      *          it completes (successful or not).
+     * @param m_ttlUrlCache
+     *          an evicting cache which is used to determine if a request for a
+     *          metric is too soon after the last request, or {@code null} if
+     *          requests can be made sequentially without any separation.
      */
-    private MetricRunnable(StreamProvider streamProvider, String url, Set<String> queuedUrls) {
+    private MetricRunnable(StreamProvider streamProvider, String url, Set<String> queuedUrls,
+        Cache<String, String> ttlUrlCache) {
       m_streamProvider = streamProvider;
       m_url = url;
       m_queuedUrls = queuedUrls;
+      m_ttlUrlCache = ttlUrlCache;
     }
 
     /**
@@ -382,14 +437,19 @@ public class MetricsRetrievalService extends AbstractService {
         inputStream = m_streamProvider.readFrom(m_url);
         processInputStreamAndCacheResult(inputStream);
 
+        // cache the URL, but only after successful parsing of the response
+        if (null != m_ttlUrlCache) {
+          m_ttlUrlCache.put(m_url, m_url);
+        }
+
       } catch (Exception exception) {
         logException(exception, m_url);
       } finally {
+        IOUtils.closeQuietly(inputStream);
+
         // remove this URL from the list of queued URLs to ensure it will be
         // requested again
         m_queuedUrls.remove(m_url);
-
-        IOUtils.closeQuietly(inputStream);
       }
     }
 
@@ -454,19 +514,20 @@ public class MetricsRetrievalService extends AbstractService {
     private final ObjectReader m_jmxObjectReader;
     private final Cache<String, JMXMetricHolder> m_cache;
 
-
     /**
      * Constructor.
      *
      * @param cache
      * @param queuedUrls
+     * @param ttlUrlCache
      * @param jmxObjectReader
      * @param streamProvider
      * @param jmxUrl
      */
     private JMXRunnable(Cache<String, JMXMetricHolder> cache, Set<String> queuedUrls,
-        ObjectReader jmxObjectReader, StreamProvider streamProvider, String jmxUrl) {
-      super(streamProvider, jmxUrl, queuedUrls);
+        Cache<String, String> ttlUrlCache, ObjectReader jmxObjectReader,
+        StreamProvider streamProvider, String jmxUrl) {
+      super(streamProvider, jmxUrl, queuedUrls, ttlUrlCache);
       m_cache = cache;
       m_jmxObjectReader = jmxObjectReader;
     }
@@ -497,13 +558,15 @@ public class MetricsRetrievalService extends AbstractService {
      *
      * @param cache
      * @param queuedUrls
+     * @param ttlUrlCache
      * @param gson
      * @param streamProvider
      * @param restUrl
      */
     private RESTRunnable(Cache<String, Map<String, String>> cache, Set<String> queuedUrls,
-        Gson gson, StreamProvider streamProvider, String restUrl) {
-      super(streamProvider, restUrl, queuedUrls);
+        Cache<String, String> ttlUrlCache, Gson gson, StreamProvider streamProvider,
+        String restUrl) {
+      super(streamProvider, restUrl, queuedUrls, ttlUrlCache);
       m_cache = cache;
       m_gson = gson;
     }

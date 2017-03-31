@@ -69,7 +69,7 @@ App.TableServerMixin = Em.Mixin.create({
       startIndex = (startIndex > 0) ? startIndex - 1 : startIndex;
       this.get('paginationProps').findProperty('name', 'startIndex').value = startIndex;
     }
-    return this.get('paginationProps');
+    return this.get('paginationProps').slice(0);
   },
 
   /**

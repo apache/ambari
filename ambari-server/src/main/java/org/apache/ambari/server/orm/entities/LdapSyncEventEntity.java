@@ -52,6 +52,7 @@ public class LdapSyncEventEntity {
   private Integer usersCreated;
   private Integer usersUpdated;
   private Integer usersRemoved;
+  private Integer usersSkipped;
   private Integer groupsCreated;
   private Integer groupsUpdated;
   private Integer groupsRemoved;
@@ -320,6 +321,14 @@ public class LdapSyncEventEntity {
    */
   public void setMembershipsRemoved(Integer membershipsRemoved) {
     this.membershipsRemoved = membershipsRemoved;
+  }
+
+  public Integer getUsersSkipped() {
+    return usersSkipped;
+  }
+
+  public void setUsersSkipped(Integer usersSkipped) {
+    this.usersSkipped = usersSkipped;
   }
 
 

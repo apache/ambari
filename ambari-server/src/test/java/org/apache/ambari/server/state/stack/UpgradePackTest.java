@@ -18,10 +18,12 @@
 package org.apache.ambari.server.state.stack;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -30,6 +32,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -40,6 +44,7 @@ import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ParallelScheduler;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
@@ -52,18 +57,24 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * Tests for the upgrade pack
  */
+@Category({ category.StackUpgradeTest.class})
 public class UpgradePackTest {
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradePackTest.class);
 
   @Before
   public void before() throws Exception {
@@ -74,8 +85,8 @@ public class UpgradePackTest {
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException, SQLException {
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
   }
 
   @Test
@@ -125,9 +136,12 @@ public class UpgradePackTest {
     assertNotNull(pc.preTasks);
     assertNotNull(pc.postTasks);
     assertNotNull(pc.tasks);
-    assertNull(pc.preDowngradeTasks);
-    assertNull(pc.postDowngradeTasks);
+    assertNotNull(pc.preDowngradeTasks);
+    assertNotNull(pc.postDowngradeTasks);
     assertEquals(1, pc.tasks.size());
+
+    assertEquals(3, pc.preDowngradeTasks.size());
+    assertEquals(1, pc.postDowngradeTasks.size());
 
     assertEquals(Task.Type.RESTART, pc.tasks.get(0).getType());
     assertEquals(RestartTask.class, pc.tasks.get(0).getClass());
@@ -489,7 +503,7 @@ public class UpgradePackTest {
     ServiceCheckGrouping scGroup = (ServiceCheckGrouping) group;
     Set<String> priorityServices = scGroup.getPriorities();
     assertEquals(4, priorityServices.size());
-    Iterator serviceIterator = priorityServices.iterator();
+    Iterator<String> serviceIterator = priorityServices.iterator();
     assertEquals("ZOOKEEPER", serviceIterator.next());
     assertEquals("HBASE", serviceIterator.next());
 
@@ -505,7 +519,142 @@ public class UpgradePackTest {
 
     Map<String, Map<String, ProcessingComponent>> tasks = upgradePack.getTasks();
     assertTrue(tasks.containsKey("HBASE"));
+
+    // !!! generalized upgrade pack shouldn't be in this
+    boolean found = false;
+    for (Grouping grouping : upgradePack.getAllGroups()) {
+      if (grouping.name.equals("GANGLIA_UPGRADE")) {
+        found = true;
+        break;
+      }
+    }
+    assertFalse(found);
+
+    // !!! test merge of a generalized upgrade pack
+    upgradePack = upgrades.get("upgrade_test_conditions");
+    assertNotNull(upgradePack);
+    for (Grouping grouping : upgradePack.getAllGroups()) {
+      if (grouping.name.equals("GANGLIA_UPGRADE")) {
+        found = true;
+        break;
+      }
+    }
+    assertTrue(found);
   }
+
+
+  @Test
+  public void testPackWithHostGroup() {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    UpgradePack upgradePack = upgrades.get("upgrade_test_host_ordered");
+
+    assertNotNull(upgradePack);
+    assertEquals(upgradePack.getType(), UpgradeType.HOST_ORDERED);
+    assertEquals(3, upgradePack.getAllGroups().size());
+
+    assertEquals(HostOrderGrouping.class, upgradePack.getAllGroups().get(0).getClass());
+    assertEquals(Grouping.class, upgradePack.getAllGroups().get(1).getClass());
+  }
+
+  @Test
+  public void testDowngradeComponentTasks() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    UpgradePack upgradePack = upgrades.get("upgrade_component_tasks_test");
+    assertNotNull(upgradePack);
+
+    Map<String, Map<String, ProcessingComponent>> components = upgradePack.getTasks();
+    assertTrue(components.containsKey("ZOOKEEPER"));
+    assertTrue(components.containsKey("HDFS"));
+
+    Map<String, ProcessingComponent> zkMap = components.get("ZOOKEEPER");
+    Map<String, ProcessingComponent> hdfsMap = components.get("HDFS");
+
+    assertTrue(zkMap.containsKey("ZOOKEEPER_SERVER"));
+    assertTrue(zkMap.containsKey("ZOOKEEPER_CLIENT"));
+    assertTrue(hdfsMap.containsKey("NAMENODE"));
+    assertTrue(hdfsMap.containsKey("DATANODE"));
+    assertTrue(hdfsMap.containsKey("HDFS_CLIENT"));
+    assertTrue(hdfsMap.containsKey("JOURNALNODE"));
+
+    ProcessingComponent zkServer = zkMap.get("ZOOKEEPER_SERVER");
+    ProcessingComponent zkClient = zkMap.get("ZOOKEEPER_CLIENT");
+    ProcessingComponent hdfsNN = hdfsMap.get("NAMENODE");
+    ProcessingComponent hdfsDN = hdfsMap.get("DATANODE");
+    ProcessingComponent hdfsClient = hdfsMap.get("HDFS_CLIENT");
+    ProcessingComponent hdfsJN = hdfsMap.get("JOURNALNODE");
+
+    // ZK server has only pretasks defined, with pre-downgrade being a copy of pre-upgrade
+    assertNotNull(zkServer.preTasks);
+    assertNotNull(zkServer.preDowngradeTasks);
+    assertNull(zkServer.postTasks);
+    assertNull(zkServer.postDowngradeTasks);
+    assertEquals(1, zkServer.preTasks.size());
+    assertEquals(1, zkServer.preDowngradeTasks.size());
+
+    // ZK client has only post-tasks defined, with post-downgrade being a copy of pre-upgrade
+    assertNull(zkClient.preTasks);
+    assertNull(zkClient.preDowngradeTasks);
+    assertNotNull(zkClient.postTasks);
+    assertNotNull(zkClient.postDowngradeTasks);
+    assertEquals(1, zkClient.postTasks.size());
+    assertEquals(1, zkClient.postDowngradeTasks.size());
+
+    // NN has only pre-tasks defined, with an empty pre-downgrade
+    assertNotNull(hdfsNN.preTasks);
+    assertNotNull(hdfsNN.preDowngradeTasks);
+    assertNull(hdfsNN.postTasks);
+    assertNull(hdfsNN.postDowngradeTasks);
+    assertEquals(1, hdfsNN.preTasks.size());
+    assertEquals(0, hdfsNN.preDowngradeTasks.size());
+
+    // DN has only post-tasks defined, with post-downgrade being empty
+    assertNull(hdfsDN.preTasks);
+    assertNull(hdfsDN.preDowngradeTasks);
+    assertNotNull(hdfsDN.postTasks);
+    assertNotNull(hdfsDN.postDowngradeTasks);
+    assertEquals(1, hdfsDN.postTasks.size());
+    assertEquals(0, hdfsDN.postDowngradeTasks.size());
+
+    // HDFS client has only post and post-downgrade tasks
+    assertNull(hdfsClient.preTasks);
+    assertNotNull(hdfsClient.preDowngradeTasks);
+    assertNull(hdfsClient.postTasks);
+    assertNotNull(hdfsClient.postDowngradeTasks);
+    assertEquals(1, hdfsClient.preDowngradeTasks.size());
+    assertEquals(1, hdfsClient.postDowngradeTasks.size());
+
+    // JN has differing tasks for pre and post downgrade
+    assertNotNull(hdfsJN.preTasks);
+    assertNotNull(hdfsJN.preDowngradeTasks);
+    assertNotNull(hdfsJN.postTasks);
+    assertNotNull(hdfsJN.postDowngradeTasks);
+    assertEquals(1, hdfsJN.preTasks.size());
+    assertEquals(2, hdfsJN.preDowngradeTasks.size());
+    assertEquals(1, hdfsJN.postTasks.size());
+    assertEquals(2, hdfsJN.postDowngradeTasks.size());
+
+    // make sure all ids are accounted for
+
+    Set<String> allIds = Sets.newHashSet("some_id", "some_id1", "some_id2", "some_id3", "some_id4", "some_id5");
+
+    @SuppressWarnings("unchecked")
+    Set<List<Task>> allTasks = Sets.newHashSet(hdfsJN.preTasks, hdfsJN.preDowngradeTasks,
+        hdfsJN.postTasks, hdfsJN.postDowngradeTasks);
+
+    for (List<Task> list : allTasks) {
+      for (Task t : list) {
+        assertEquals(ConfigureTask.class, t.getClass());
+
+        ConfigureTask ct = (ConfigureTask) t;
+        assertTrue(allIds.contains(ct.id));
+
+        allIds.remove(ct.id);
+      }
+    }
+
+    assertTrue(allIds.isEmpty());
+  }
+
 
   private int indexOf(Map<String, ?> map, String keyToFind) {
     int result = -1;

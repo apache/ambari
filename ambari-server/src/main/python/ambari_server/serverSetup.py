@@ -25,6 +25,7 @@ import shutil
 import sys
 import subprocess
 import getpass
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
@@ -36,11 +37,11 @@ from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, TAR_GZ_ARCHIVE_TYPE, default_connectors_map, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
-  get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, \
+  get_ambari_properties, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, get_missing_properties, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY, JDK_DOWNLOAD_SUPPORTED_PROPERTY, JCE_DOWNLOAD_SUPPORTED_PROPERTY
+  VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY, JDK_DOWNLOAD_SUPPORTED_PROPERTY, JCE_DOWNLOAD_SUPPORTED_PROPERTY, SETUP_DONE_PROPERTIES
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -49,6 +50,8 @@ from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.ambariPath import AmbariPath
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+
+logger = logging.getLogger(__name__)
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = locate_file('sestatus', '/usr/sbin')
@@ -460,6 +463,10 @@ class JDKSetup(object):
     if self.jdk_index == self.custom_jdk_number:
       print_warning_msg("JDK must be installed on all hosts and JAVA_HOME must be valid on all hosts.")
       print_warning_msg(jcePolicyWarn)
+      if get_silent():
+        print_error_msg("Path to JAVA_HOME should be specified via -j option.")
+        sys.exit(1)
+
       args.java_home = get_validated_string_input("Path to JAVA_HOME: ", None, None, None, False, False)
       if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, "bin", self.JAVA_BIN)):
         err = "Java home path or java binary file is unavailable. Please put correct path to java home."
@@ -585,6 +592,7 @@ class JDKSetup(object):
   def _populate_jdk_configs(self, properties, jdk_num):
     if properties.has_key(JDK_RELEASES):
       jdk_names = properties[JDK_RELEASES].split(',')
+      jdk_names = filter(None, jdk_names)
       jdks = []
       for jdk_name in jdk_names:
         jdkR = JDKRelease.from_properties(properties, jdk_name)
@@ -733,9 +741,9 @@ class JDKSetupLinux(JDKSetup):
     super(JDKSetupLinux, self).__init__()
     self.JDK_DEFAULT_CONFIGS = [
       JDKRelease("jdk1.8", "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
-                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u77-linux-x64.tar.gz", "jdk-8u77-linux-x64.tar.gz",
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u112-linux-x64.tar.gz", "jdk-8u112-linux-x64.tar.gz",
                  "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
-                 AmbariPath.get("/usr/jdk64/jdk1.8.0_77"),
+                 AmbariPath.get("/usr/jdk64/jdk1.8.0_112"),
                  "(jdk.*)/jre")
     ]
 
@@ -1073,12 +1081,13 @@ def check_setup_already_done():
     print_error_msg("Error getting ambari properties")
     return -1
 
-  return properties.get_property(JDK_NAME_PROPERTY) and properties.get_property(JDBC_DATABASE_PROPERTY)
+  return not bool(get_missing_properties(properties, property_set=SETUP_DONE_PROPERTIES))
 
 #
 # Setup the Ambari Server.
 #
 def setup(options):
+  logger.info("Setup ambari-server.")
   if options.only_silent:
     if check_setup_already_done():
       print "Nothing was done. Ambari Setup already performed and cannot re-run setup in silent mode. Use \"ambari-server setup\" command without -s option to change Ambari setup."
@@ -1136,11 +1145,12 @@ def setup(options):
 
   check_jdbc_drivers(options)
 
-  print 'Extracting system views...'
-  retcode = extract_views(options)
-  if not retcode == 0:
-    err = 'Error while extracting system views. Exiting'
-    raise FatalException(retcode, err)
+  if not options.skip_view_extraction:
+    print 'Extracting system views...'
+    retcode = extract_views(options)
+    if not retcode == 0:
+      err = 'Error while extracting system views. Exiting'
+      raise FatalException(retcode, err)
 
   # we've already done this, but new files were created so run it one time.
   adjust_directory_permissions(svc_user)
@@ -1151,6 +1161,7 @@ def setup(options):
 # Setup the JCE policy for Ambari Server.
 #
 def setup_jce_policy(args):
+  logger.info("Setup JCE policy for ambari-server.")
   if not os.path.exists(args[1]):
     err = "Can not run 'setup-jce'. Invalid path {0}.".format(args[1])
     raise FatalException(1, err)
@@ -1193,6 +1204,7 @@ def setup_jce_policy(args):
 # Resets the Ambari Server.
 #
 def reset(options):
+  logger.info("Reset ambari-server.")
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_RESET_NOT_ROOT
     raise FatalException(4, err)

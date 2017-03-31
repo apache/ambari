@@ -66,6 +66,13 @@ public class StackAdvisorBlueprintProcessor {
     stackAdvisorHelper = instance;
   }
 
+  private static final Map<String, String> userContext;
+  static
+  {
+    userContext = new HashMap<String, String>();
+    userContext.put("operation", "ClusterCreate");
+  }
+
   /**
    * Recommend configurations by the stack advisor, then store the results in cluster topology.
    * @param clusterTopology cluster topology instance
@@ -97,6 +104,7 @@ public class StackAdvisorBlueprintProcessor {
       .forHostComponents(gatherHostGroupComponents(clusterTopology))
       .withComponentHostsMap(componentHostsMap)
       .withConfigurations(calculateConfigs(clusterTopology))
+      .withUserContext(userContext)
       .ofType(requestType)
       .build();
   }

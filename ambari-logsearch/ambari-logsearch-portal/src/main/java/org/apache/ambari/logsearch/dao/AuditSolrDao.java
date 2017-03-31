@@ -19,66 +19,76 @@
 
 package org.apache.ambari.logsearch.dao;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.common.LogType;
+import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrPropsConfig;
+import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
+import org.apache.ambari.logsearch.configurer.SolrAuditAliasConfigurer;
+import org.apache.ambari.logsearch.configurer.SolrCollectionConfigurer;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
+import org.springframework.data.solr.core.SolrTemplate;
 
-@Component
+@Named
 public class AuditSolrDao extends SolrDaoBase {
 
-  static private Logger logger = Logger.getLogger(AuditSolrDao.class);
-  
+  private static final Logger LOG = Logger.getLogger(AuditSolrDao.class);
+
+  @Inject
+  private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
+
+  @Inject
+  @Named("auditSolrTemplate")
+  private SolrTemplate auditSolrTemplate;
+
+  @Inject
+  @Named("solrAuditLogsState")
+  private SolrCollectionState solrAuditLogsState;
+
   public AuditSolrDao() {
-    super(LOG_TYPE.AUDIT);
+    super(LogType.AUDIT);
+  }
+
+  @Override
+  public SolrTemplate getSolrTemplate() {
+    return auditSolrTemplate;
+  }
+
+  @Override
+  public void setSolrTemplate(SolrTemplate solrTemplate) {
+    this.auditSolrTemplate = solrTemplate;
   }
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.audit.logs.url");
-    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zk_connect_string");
-    String collection = PropertiesUtil.getProperty(
-      "logsearch.solr.collection.audit.logs", "audit_logs");
-    String aliasNameIn = PropertiesUtil.getProperty(
-        "logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
-    String rangerAuditCollection = PropertiesUtil.getProperty(
-        "logsearch.ranger.audit.logs.collection.name");
-    String splitInterval = PropertiesUtil.getProperty(
-      "logsearch.audit.logs.split.interval.mins", "none");
-    String configName = PropertiesUtil.getProperty(
-      "logsearch.solr.audit.logs.config.name", "audit_logs");
-    int numberOfShards = PropertiesUtil.getIntProperty(
-      "logsearch.collection.audit.logs.numshards", 1);
-    int replicationFactor = PropertiesUtil.getIntProperty(
-      "logsearch.collection.audit.logs.replication.factor", 1);
+    String aliasNameIn = solrAuditLogPropsConfig.getAliasNameIn();
+    String rangerAuditCollection = solrAuditLogPropsConfig.getRangerCollection();
 
     try {
-      connectToSolr(solrUrl, zkConnectString, collection);
-      boolean createAlias = false;
-      if (aliasNameIn != null && rangerAuditCollection != null
-          && rangerAuditCollection.trim().length() > 0) {
-        createAlias = true;
-      }
-      boolean needToPopulateSchemaField = !createAlias;
-      setupCollections(splitInterval, configName, numberOfShards,
-          replicationFactor, needToPopulateSchemaField);
-      if(createAlias) {
-        Collection<String> collectionsIn = new ArrayList<String>();
-        collectionsIn.add(collection);
-        collectionsIn.add(rangerAuditCollection.trim());
-        setupAlias(aliasNameIn, collectionsIn);
+      new SolrCollectionConfigurer(this).start();
+      boolean createAlias = (aliasNameIn != null && StringUtils.isNotBlank(rangerAuditCollection));
+      if (createAlias) {
+        new SolrAuditAliasConfigurer(this).start();
       }
     } catch (Exception e) {
-      logger.error(
-        "Error while connecting to Solr for audit logs : solrUrl="
-          + solrUrl + ", zkConnectString=" + zkConnectString
-          + ", collection=" + collection, e);
+      LOG.error("Error while connecting to Solr for audit logs : solrUrl=" + solrAuditLogPropsConfig.getSolrUrl() + ", zkConnectString=" +
+        solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
     }
   }
+
+  @Override
+  public SolrCollectionState getSolrCollectionState() {
+    return this.solrAuditLogsState;
+  }
+
+  @Override
+  public SolrPropsConfig getSolrPropsConfig() {
+    return this.solrAuditLogPropsConfig;
+  }
+
 
 }

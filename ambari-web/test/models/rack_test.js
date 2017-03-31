@@ -28,7 +28,7 @@ describe('App.Rack', function () {
     name: 'rack1'
   };
 
-  App.store.load(App.Rack, data);
+  App.store.safeLoad(App.Rack, data);
 
   describe('#liveHostsCount', function () {
 
@@ -38,7 +38,7 @@ describe('App.Rack', function () {
     });
 
     it('rack1 has three live hosts', function () {
-      App.store.load(App.Host, {
+      App.store.safeLoad(App.Host, {
         id: 'host3',
         host_name: 'host3',
         health_status: 'HEALTHY'

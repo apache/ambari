@@ -36,54 +36,32 @@ App.componentConfigMapper = App.QuickDataMapper.create({
   },
   map: function (json) {
     console.time('App.componentConfigMapper execution time');
-    var hostComponents = [];
-    var newHostComponentsMap = {};
-    var cacheServices = App.cache['services'];
-    var currentServiceComponentsMap = this.buildServiceComponentMap(cacheServices);
-    var mapConfig = this.get('config');
-    // We do not want to parse JSON if there is no need to
-    var hostComponentJsonMap = {};
-    var hostComponentJsonIds = [];
+    var staleConfigHostsMap = App.cache.staleConfigsComponentHosts;
+    var componentsNeedRestart = json.items.mapProperty('ServiceComponentInfo.component_name');
+    var components = App.MasterComponent.find().toArray()
+      .concat(App.ClientComponent.find().toArray())
+      .concat(App.SlaveComponent.find().toArray());
 
-    if (json.items.length > 0 || this.get('model').find().someProperty('staleConfigs', true)) {
-      json.items.forEach(function (item) {
-        item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + '_' + host_component.HostRoles.host_name;
-          hostComponentJsonIds.push(host_component.id);
-          hostComponentJsonMap[host_component.id] = host_component;
-        });
-      });
-      this.get('model').find().forEach(function (hostComponent) {
-        var id = hostComponent.get('id');
-        var hostComponentJson = hostComponentJsonMap[id];
-        var currentStaleConfigsState = Boolean(hostComponentJson);
-        var stateChanged = hostComponent.get('staleConfigs') !== currentStaleConfigsState;
-
-        if (stateChanged) {
-          hostComponent.set('staleConfigs', currentStaleConfigsState);
-        }
-        //delete loaded host-components, so only new ones left
-        delete hostComponentJsonMap[id];
-      });
-      hostComponentJsonIds.forEach(function (hcId) {
-        var newHostComponent = hostComponentJsonMap[hcId];
-        if (newHostComponent) {
-          var serviceName = newHostComponent.HostRoles.service_name;
-          hostComponents.push(this.parseIt(newHostComponent, mapConfig));
-          if (!newHostComponentsMap[serviceName]) {
-            newHostComponentsMap[serviceName] = [];
-          }
-          if (currentServiceComponentsMap[serviceName] && !currentServiceComponentsMap[serviceName][newHostComponent.id]) {
-            newHostComponentsMap[serviceName].push(newHostComponent.id);
-          }
-        }
-      }, this);
-      if (hostComponents.length > 0) {
-        App.store.commit();
-        App.store.loadMany(this.get('model'), hostComponents);
-        this.addNewHostComponents(newHostComponentsMap, cacheServices);
+    //clear stale config hosts of component after restart
+    components.forEach(function(component) {
+      if (!componentsNeedRestart.contains(component.get('componentName'))) {
+        staleConfigHostsMap[component.get('componentName')] = [];
+        component.set('staleConfigHosts', []);
       }
-    }
+    });
+
+    json.items.forEach(function(item) {
+      var componentName = item.ServiceComponentInfo.component_name;
+      var hosts = item.host_components.mapProperty('HostRoles.host_name') || [];
+      staleConfigHostsMap[componentName] = hosts;
+      if (App.HostComponent.isMaster(componentName)) {
+        App.MasterComponent.find(componentName).set('staleConfigHosts', hosts);
+      } else if (App.HostComponent.isSlave(componentName)) {
+        App.SlaveComponent.find(componentName).set('staleConfigHosts', hosts);
+      } else if (App.HostComponent.isClient(componentName)) {
+        App.ClientComponent.find(componentName).set('staleConfigHosts', hosts);
+      }
+    });
     console.timeEnd('App.componentConfigMapper execution time');
   },
 

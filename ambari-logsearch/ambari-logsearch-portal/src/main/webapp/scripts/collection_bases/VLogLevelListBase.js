@@ -28,7 +28,7 @@ define(['require',
 	var VLogLevelListBase = BaseCollection.extend(
 	/** @lends VLogLevelListBase.prototype */
 	{
-		url: Globals.baseURL + 'dashboard/levels_count',
+		url: Globals.baseURL + 'service/logs/levels/count',
 
 		model : VLogLevel,
 

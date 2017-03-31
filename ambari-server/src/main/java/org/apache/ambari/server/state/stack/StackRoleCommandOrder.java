@@ -39,6 +39,7 @@ public class StackRoleCommandOrder {
   private final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
   private final static String NAMENODE_HA_DEPS_KEY = "namenode_optional_ha";
   private final static String RESOURCEMANAGER_HA_DEPS_KEY = "resourcemanager_optional_ha";
+  private final static String HOST_ORDERED_UPGRADES_DEPS_KEY = "host_ordered_upgrade";
 
   private HashMap<String, Object> content;
 
@@ -97,8 +98,8 @@ public class StackRoleCommandOrder {
     HashMap<String, Object> mergedRoleCommandOrders = new HashMap<String, Object>();
     HashMap<String, Object> parentData = parent.getContent();
 
-    List<String> keys = Arrays.asList(GENERAL_DEPS_KEY, GLUSTERFS_DEPS_KEY,
-        NO_GLUSTERFS_DEPS_KEY, NAMENODE_HA_DEPS_KEY, RESOURCEMANAGER_HA_DEPS_KEY);
+    List<String> keys = Arrays.asList(GENERAL_DEPS_KEY, GLUSTERFS_DEPS_KEY, NO_GLUSTERFS_DEPS_KEY,
+        NAMENODE_HA_DEPS_KEY, RESOURCEMANAGER_HA_DEPS_KEY, HOST_ORDERED_UPGRADES_DEPS_KEY);
 
     for (String key : keys) {
       if (parentData.containsKey(key) && content.containsKey(key)) {
@@ -117,12 +118,13 @@ public class StackRoleCommandOrder {
           if (mergeProperties) {
             List<String> valueList = new ArrayList<String>();
             for (Object value : propertyValues) {
-              if (value instanceof List)
+              if (value instanceof List) {
                 valueList.addAll((List<String>) value);
-              else
-		valueList.add(value.toString());
+              } else {
+                valueList.add(value.toString());
+              }
             }
-		values = valueList;
+            values = valueList;
           }
 
           result.put((String) property, values);
@@ -134,7 +136,7 @@ public class StackRoleCommandOrder {
         mergedRoleCommandOrders.put(key, parentData.get(key));
       }
     }
-    this.content = mergedRoleCommandOrders;
+    content = mergedRoleCommandOrders;
   }
 
   public void printRoleCommandOrder(Logger LOG) {
@@ -152,8 +154,9 @@ public class StackRoleCommandOrder {
 		  if (depValue instanceof Collection) {
 			StringBuffer buffer = new StringBuffer();
 			for (Object o : ((Collection) depValue)) {
-				if (buffer.length() > 0)
-				  buffer.append(",");
+				if (buffer.length() > 0) {
+          buffer.append(",");
+        }
 				buffer.append(o);
 			}
 			depValue = buffer.toString();

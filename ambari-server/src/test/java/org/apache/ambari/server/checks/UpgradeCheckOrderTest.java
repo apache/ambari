@@ -50,9 +50,9 @@ public class UpgradeCheckOrderTest {
     String sourceResourceDirectory = "src" + File.separator + "test" + File.separator + "resources";
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sourceResourceDirectory);
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sourceResourceDirectory);
 
     Injector injector = Guice.createInjector(new ControllerModule(properties), new AuditLoggerModule());
     UpgradeCheckRegistry registry = injector.getInstance(UpgradeCheckRegistry.class);

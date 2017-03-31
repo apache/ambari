@@ -18,6 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -32,12 +38,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface KerberosHelper {
   /**
@@ -65,13 +65,24 @@ public interface KerberosHelper {
    * The alias to assign to the KDC administrator credential Keystore item
    */
   String KDC_ADMINISTRATOR_CREDENTIAL_ALIAS = "kdc.admin.credential";
-
+  /**
+   * The hostname used to hold the place of the actual hostname of the host that the Ambari server
+   * is on.
+   */
   String AMBARI_SERVER_HOST_NAME = "ambari_server";
-
-  String AMBARI_IDENTITY_NAME = "ambari-server";
-
+  /**
+   * The name of the Ambari server's Kerberos identities as defined in the Kerberos descriptor
+   */
+  String AMBARI_SERVER_KERBEROS_IDENTITY_NAME = "ambari-server";
+  /**
+   * The kerberos-env property name declaring whether Ambari should manage its own required
+   * identities or not
+   */
   String CREATE_AMBARI_PRINCIPAL = "create_ambari_principal";
-
+  /**
+   * The kerberos-env property name declaring whether Ambari should manage the cluster's required
+   * identities or not
+   */
   String MANAGE_IDENTITIES = "manage_identities";
 
   /**
@@ -282,8 +293,6 @@ public interface KerberosHelper {
    * @param existingConfigurations the cluster's existing configurations
    * @param kerberosConfigurations the configuration updates to make
    * @param propertiesToIgnore     the configuration properties that should be ignored when applying recommendations
-   * @param propertiesToInsert     the configuration properties that must be inserted to cluster config are inserted
-   *                               into this map in case if provided (not null) and kerberosEnabled = false
    * @param propertiesToRemove     the configuration properties that must be removed from cluster config are inserted
    *                               into this map in case if provided (not null) and kerberosEnabled
    * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
@@ -294,7 +303,6 @@ public interface KerberosHelper {
                                                             Map<String, Map<String, String>> existingConfigurations,
                                                             Map<String, Map<String, String>> kerberosConfigurations,
                                                             Map<String, Set<String>> propertiesToIgnore,
-                                                            Map<String, Map<String, String>> propertiesToInsert,
                                                             Map<String, Set<String>> propertiesToRemove,
                                                             boolean kerberosEnabled)
       throws AmbariException;
@@ -603,6 +611,23 @@ public interface KerberosHelper {
                                                                           String componentName,
                                                                           boolean replaceHostNames)
       throws AmbariException;
+
+  /**
+   * Gets the Ambari server Kerberos identities found in the Kerberos descriptor.
+   *
+   * @param kerberosDescriptor the kerberos descriptor
+   */
+  List<KerberosIdentityDescriptor> getAmbariServerIdentities(KerberosDescriptor kerberosDescriptor) throws AmbariException;
+
+  /**
+   * Determines if the Ambari identities should be created when enabling Kerberos.
+   * <p>
+   * If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
+   *
+   * @param kerberosEnvProperties the kerberos-env configuration properties
+   * @return true if the Ambari identities should be created; otherwise false
+   */
+  boolean createAmbariIdentities(Map<String, String> kerberosEnvProperties);
 
   /**
    * Gets the previously stored KDC administrator credentials.

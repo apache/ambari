@@ -17,15 +17,25 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -38,6 +48,7 @@ public class TimelineMetricConfiguration {
 
   public static final String HBASE_SITE_CONFIGURATION_FILE = "hbase-site.xml";
   public static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
+  public static final String METRICS_ENV_CONFIGURATION_FILE = "ams-env.xml";
 
   public static final String TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR =
     "timeline.metrics.aggregator.checkpoint.dir";
@@ -240,16 +251,51 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_WHITELIST_FILE =
     "timeline.metrics.whitelist.file";
 
+  public static final String TIMELINE_METRICS_APPS_BLACKLIST =
+    "timeline.metrics.apps.blacklist";
+
+  public static final String TIMELINE_METRICS_APPS_WHITELIST =
+    "timeline.metrics.apps.whitelist";
+
   public static final String HBASE_BLOCKING_STORE_FILES =
     "hbase.hstore.blockingStoreFiles";
 
   public static final String DEFAULT_TOPN_HOSTS_LIMIT =
     "timeline.metrics.default.topn.hosts.limit";
 
+  public static final String TIMELINE_METRIC_AGGREGATION_SQL_FILTERS =
+    "timeline.metrics.cluster.aggregation.sql.filters";
+
+  public static final String TIMELINE_METRIC_METADATA_FILTERS =
+    "timeline.metrics.service.metadata.filters";
+
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_AGGREGATE_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.aggregate.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_AGGREGATE_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.aggregate.table.hbase.hstore.blockingStoreFiles";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_KEY =
+    "timeline.metrics.hbase.precision.table.compaction.policy.key";
+
+  public static final String TIMELINE_METRICS_HBASE_PRECISION_TABLE_COMPACTION_POLICY_CLASS =
+    "timeline.metrics.hbase.precision.table.compaction.policy.class";
+
+  public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
+    "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
+
   public static final String HOST_APP_ID = "HOST";
+
+  public static final String DEFAULT_INSTANCE_PORT = "12001";
+
+  public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
 
   private Configuration hbaseConf;
   private Configuration metricsConf;
+  private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
   public void initialize() throws URISyntaxException, MalformedURLException {
@@ -276,6 +322,7 @@ public class TimelineMetricConfiguration {
     hbaseConf.addResource(hbaseResUrl.toURI().toURL());
     metricsConf = new Configuration(true);
     metricsConf.addResource(amsResUrl.toURI().toURL());
+
     isInitialized = true;
   }
 
@@ -291,6 +338,51 @@ public class TimelineMetricConfiguration {
       initialize();
     }
     return metricsConf;
+  }
+
+  public String getZKClientPort() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return hbaseConf.getTrimmed("hbase.zookeeper.property.clientPort", "2181");
+  }
+
+  public String getZKQuorum() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
+  }
+
+  public String getClusterZKClientPort() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsConf.getTrimmed("cluster.zookeeper.property.clientPort", "2181");
+  }
+
+  public String getClusterZKQuorum() throws MalformedURLException, URISyntaxException {
+    if (!isInitialized) {
+      initialize();
+    }
+    return metricsConf.getTrimmed("cluster.zookeeper.quorum");
+  }
+
+  public String getInstanceHostnameFromEnv() throws UnknownHostException {
+    String amsInstanceName = System.getProperty("AMS_INSTANCE_NAME");
+    if (amsInstanceName == null) {
+      amsInstanceName = InetAddress.getLocalHost().getHostName();
+    }
+    return amsInstanceName;
+  }
+
+  public String getInstancePort() throws MalformedURLException, URISyntaxException {
+    String amsInstancePort = System.getProperty("AMS_INSTANCE_PORT");
+    if (amsInstancePort == null) {
+      // Check config
+      return getMetricsConf().get("timeline.metrics.availability.instance.port", DEFAULT_INSTANCE_PORT);
+    }
+    return DEFAULT_INSTANCE_PORT;
   }
 
   public String getWebappAddress() {
@@ -349,5 +441,55 @@ public class TimelineMetricConfiguration {
       return metricsConf.get(TIMELINE_SERVICE_RPC_ADDRESS, defaultRpcAddress);
     }
     return defaultRpcAddress;
+  }
+
+  public boolean isDistributedCollectorModeDisabled() {
+    try {
+      if (metricsConf != null) {
+        return Boolean.parseBoolean(metricsConf.get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
+      }
+      return false;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  public boolean isSecurityEnabled() {
+    return hbaseConf.get("hbase.security.authentication", "").equals("kerberos");
+  }
+
+  public Set<String> getAmshbaseWhitelist() {
+
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    if (classLoader == null) {
+      classLoader = getClass().getClassLoader();
+    }
+
+    BufferedReader br = null;
+    String strLine;
+    Set<String> whitelist = new HashSet<>();
+
+    try(InputStream inputStream = classLoader.getResourceAsStream(AMSHBASE_METRICS_WHITESLIST_FILE)) {
+
+      if (inputStream == null) {
+        LOG.info("ams-hbase metrics whitelist file not present.");
+        return Collections.EMPTY_SET;
+      }
+
+      br = new BufferedReader(new InputStreamReader(inputStream));
+
+      while ((strLine = br.readLine()) != null)   {
+        strLine = strLine.trim();
+        if (StringUtils.isEmpty(strLine)) {
+          continue;
+        }
+        whitelist.add(strLine);
+      }
+    } catch (Exception ex) {
+      LOG.error("Unable to read ams-hbase metric whitelist file", ex);
+      return Collections.EMPTY_SET;
+    }
+
+    return whitelist;
   }
 }

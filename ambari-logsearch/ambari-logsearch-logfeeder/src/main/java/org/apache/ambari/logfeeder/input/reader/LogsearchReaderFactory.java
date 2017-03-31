@@ -27,17 +27,15 @@ import org.apache.log4j.Logger;
 
 public enum LogsearchReaderFactory {
   INSTANCE;
-  private static Logger logger = Logger
-    .getLogger(LogsearchReaderFactory.class);
+  private static final Logger LOG = Logger.getLogger(LogsearchReaderFactory.class);
 
   public Reader getReader(File file) throws FileNotFoundException {
-    logger.debug("Inside reader factory for file:" + file);
+    LOG.debug("Inside reader factory for file:" + file);
     if (GZIPReader.isValidFile(file.getAbsolutePath())) {
-      logger.info("Reading file " + file + " as gzip file");
+      LOG.info("Reading file " + file + " as gzip file");
       return new GZIPReader(file.getAbsolutePath());
     } else {
       return new FileReader(file);
     }
   }
-
 }

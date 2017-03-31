@@ -21,10 +21,10 @@ import {Node} from '../domain/node';
 import {idGen} from '../domain/id-gen';
 var NodeFactory= Ember.Object.extend({
   createStartNode(){
-    return this.createNode({id:'node-start', type:'start',name:"Start"});
+    return this.createNode({id:this.generateNodeId(), type:'start',name:"Start"});
   },
   createEndNode(name){
-    return this.createNode({id:'node-end', type:'end', name:name});
+    return this.createNode({id:this.generateNodeId(), type:'end', name:name});
   },
   createKillNode(name,message){
     return this.createNode({id:this.generateNodeId(), type:"kill", name:name,killMessage:message});
@@ -108,6 +108,9 @@ var NodeFactory= Ember.Object.extend({
   },
   createNode(settings){
     settings.factory=this;
+	if (!settings.id){
+      settings.id=this.generateNodeId();
+    }
     return Node.create(settings);
   },
   generateNodeId(){
@@ -115,6 +118,9 @@ var NodeFactory= Ember.Object.extend({
   },
   generateName(){
     return idGen.generateNodeName();
+  },
+  resetNodeIdTo(id){
+    return idGen.resetTo(id);
   }
 });
 export{NodeFactory};

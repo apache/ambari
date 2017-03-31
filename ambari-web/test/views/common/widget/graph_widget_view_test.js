@@ -25,7 +25,12 @@ describe('App.GraphWidgetView', function () {
   var view;
 
   beforeEach(function () {
-    view = App.GraphWidgetView.create();
+    view = App.GraphWidgetView.create({
+      content: Em.Object.create({
+        properties: {}
+      }),
+      parentView: Em.Object.create()
+    });
   });
 
   afterEach(function () {
@@ -272,4 +277,549 @@ describe('App.GraphWidgetView', function () {
     });
   });
 
+  describe("#timeRange()", function () {
+    var testCases = [
+      {
+        time_range: null,
+        currentTimeIndex: 1,
+        customTimeRange: null,
+        expected: 3600
+      },
+      {
+        time_range: null,
+        currentTimeIndex: 1,
+        customTimeRange: 2,
+        expected: 2
+      },
+      {
+        time_range: null,
+        currentTimeIndex: 8,
+        customTimeRange: 2,
+        expected: 0
+      },
+      {
+        time_range: 2,
+        currentTimeIndex: 1,
+        customTimeRange: null,
+        expected: 7200
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("time_range=" + test.time_range +
+         " currentTimeIndex=" + test.currentTimeIndex +
+         " customTimeRange=" + test.customTimeRange, function() {
+        view.set('content.properties.time_range', test.time_range);
+        view.set('customTimeRange', test.customTimeRange);
+        view.reopen({
+          exportTargetView: Em.Object.create({
+            currentTimeIndex: test.currentTimeIndex
+          })
+        });
+        view.propertyDidChange('timeRange');
+        expect(view.get('timeRange')).to.be.equal(test.expected);
+      });
+    });
+  });
+
+  describe("#drawWidget()", function () {
+
+    beforeEach(function() {
+      sinon.stub(view, 'calculateValues').returns({});
+      view.set('data', null);
+    });
+
+    afterEach(function() {
+      view.calculateValues.restore();
+    });
+
+    it("isLoaded = false", function() {
+      view.set('isLoaded', false);
+      view.drawWidget();
+      expect(view.get('data')).to.be.null;
+    });
+
+    it("isLoaded = true", function() {
+      view.set('isLoaded', true);
+      view.drawWidget();
+      expect(view.get('data')).to.be.eql({});
+    });
+  });
+
+  describe("#calculateValues()", function () {
+    beforeEach(function() {
+      this.mockExtract = sinon.stub(view, 'extractExpressions');
+      this.mockCompute = sinon.stub(view, 'computeExpression');
+    });
+
+    afterEach(function() {
+      this.mockExtract.restore();
+      this.mockCompute.restore();
+    });
+
+    var testCases = [
+      {
+        metrics: {},
+        values: [],
+        expression: [],
+        computed: {},
+        expected: []
+      },
+      {
+        metrics: {},
+        values: [{}],
+        expression: [],
+        computed: {},
+        expected: []
+      },
+      {
+        metrics: {},
+        values: [{
+          value: '${m1}'
+        }],
+        expression: ['${m1}'],
+        computed: {
+          '${m1}': []
+        },
+        expected: []
+      },
+      {
+        metrics: {},
+        values: [{
+          value: '${m1}',
+          name: 'v1'
+        }],
+        expression: ['${m1}'],
+        computed: {
+          '${m1}': [{
+            m1: {}
+          }]
+        },
+        expected: [
+          {
+            name: 'v1',
+            data: [{
+              m1: {}
+            }]
+          }
+        ]
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("metrics=" + JSON.stringify(test.metrics) +
+         " values=" + JSON.stringify(test.values) +
+         " expression=" + test.expression +
+         " computed=" + test.computed, function() {
+        view.set('metrics', test.metrics);
+        view.set('content.values', test.values);
+        this.mockCompute.returns(test.computed);
+        this.mockExtract.returns(test.expression);
+        expect(view.calculateValues()).to.be.eql(test.expected);
+      });
+    });
+  });
+
+  describe("#computeExpression()", function () {
+
+    beforeEach(function() {
+      sinon.stub(view, 'adjustData', function (dataLinks) {
+        dataLinks.m1[1] = [3, 1112];
+      });
+    });
+
+    afterEach(function() {
+      view.adjustData.restore();
+    });
+
+    var testCases = [
+      {
+        expression: '1',
+        metrics: [],
+        expected: {
+          '${1}': []
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1',
+        metrics: [],
+        expected: {
+          '${m1}': []
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1',
+        metrics: [{
+          name: 'm1',
+          data: []
+        }],
+        expected: {
+          '${m1}': []
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1',
+        metrics: [{
+          name: 'm1',
+          data: [
+            [null, 1111]
+          ]
+        }],
+        expected: {
+          '${m1}': [
+            [null, 1111]
+          ]
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1',
+        metrics: [{
+          name: 'm1',
+          data: [
+            [1, 1111]
+          ]
+        }],
+        expected: {
+          '${m1}': [
+            [1, 1111]
+          ]
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1+1',
+        metrics: [{
+          name: 'm1',
+          data: [
+            [1, 1111]
+          ]
+        }],
+        expected: {
+          '${m1+1}': [
+            [2, 1111]
+          ]
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1/m2',
+        metrics: [
+          {
+            name: 'm1',
+            data: [
+              [0, 1111]
+            ]
+          },
+          {
+            name: 'm2',
+            data: [
+              [0, 1111]
+            ]
+          }
+        ],
+        expected: {
+          '${m1/m2}': [
+            [0, 1111]
+          ]
+        },
+        adjustDataCalled: false
+      },
+      {
+        expression: 'm1+m2',
+        metrics: [
+          {
+            name: 'm1',
+            data: [
+              [1, 1111]
+            ]
+          },
+          {
+            name: 'm2',
+            data: [
+              [1, 1111],
+              [2, 1112]
+            ]
+          }],
+        expected: {
+          '${m1+m2}': [
+            [2, 1111],
+            [5, 1112]
+          ]
+        },
+        adjustDataCalled: true
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("expression=" + test.expression +
+         " metrics=" + JSON.stringify(test.metrics), function() {
+        expect(view.computeExpression(test.expression, test.metrics)).to.be.eql(test.expected);
+        expect(view.adjustData.calledOnce).to.be.equal(test.adjustDataCalled);
+      });
+    });
+  });
+
+  describe("#addTimeProperties()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App, 'dateTime').returns(10000);
+      view.set('timeStep', 15);
+    });
+
+    afterEach(function() {
+      App.dateTime.restore();
+    });
+
+    it("targetView is null", function() {
+      view.reopen({
+        exportTargetView: null
+      });
+      view.set('parentView', null);
+      expect(view.addTimeProperties([{}])).to.be.empty;
+    });
+
+    it("empty metricPaths", function() {
+      expect(view.addTimeProperties([])).to.be.empty;
+    });
+
+    it("timeRange=5", function() {
+      view.reopen({
+        timeRange: 5,
+        exportTargetView: Em.Object.create({
+          isPopup: true
+        })
+      });
+      expect(view.addTimeProperties(['m1'])).to.be.eql([
+        "m1[5,10,15]"
+      ]);
+    });
+
+    it("timeRange=0, customStartTime=null", function() {
+      view.reopen({
+        timeRange: 0,
+        exportTargetView: Em.Object.create({
+          isPopup: true,
+          customStartTime: null
+        })
+      });
+      expect(view.addTimeProperties(['m1'])).to.be.eql([
+        "m1[10,10,15]"
+      ]);
+    });
+
+    it("timeRange=0, customStartTime=1000, customEndTime=null", function() {
+      view.reopen({
+        timeRange: 0,
+        exportTargetView: Em.Object.create({
+          isPopup: true,
+          customStartTime: 1000,
+          customEndTime: null
+        })
+      });
+      expect(view.addTimeProperties(['m1'])).to.be.eql([
+        "m1[10,10,15]"
+      ]);
+    });
+
+    it("timeRange=0, customStartTime=1000, customEndTime=10000", function() {
+      view.reopen({
+        timeRange: 0,
+        exportTargetView: Em.Object.create({
+          isPopup: true,
+          customStartTime: 1000,
+          customEndTime: 10000
+        })
+      });
+      expect(view.addTimeProperties(['m1'])).to.be.eql([
+        "m1[1,10,15]"
+      ]);
+    });
+  });
+
+  describe("#graphView", function () {
+    var graphView;
+
+    beforeEach(function () {
+      graphView = view.get('graphView').create({
+        parentView: view,
+        _refreshGraph: Em.K,
+        $: function() {
+          return {
+            closest: function() {
+              return {on: Em.K}
+            }
+          }
+        }
+      });
+    });
+
+    describe("#setYAxisFormatter()", function () {
+
+      beforeEach(function () {
+        sinon.stub(App.ChartLinearTimeView, 'DisplayUnitFormatter');
+        graphView.set('yAxisFormatter', null);
+      });
+
+      afterEach(function () {
+        App.ChartLinearTimeView.DisplayUnitFormatter.restore();
+      });
+
+      it("yAxisFormatter should not be set", function () {
+        graphView.reopen({
+          displayUnit: null
+        });
+        graphView.setYAxisFormatter();
+        expect(graphView.get('yAxisFormatter')).to.be.null;
+      });
+
+      it("yAxisFormatter should be set", function () {
+        graphView.reopen({
+          displayUnit: 'u1'
+        });
+        graphView.setYAxisFormatter();
+        expect(graphView.get('yAxisFormatter')).to.be.function;
+      });
+    });
+
+    describe("#setTimeRange", function () {
+
+      beforeEach(function() {
+        sinon.stub(graphView.get('parentView'), 'propertyDidChange');
+      });
+
+      afterEach(function() {
+        graphView.get('parentView').propertyDidChange.restore();
+      });
+
+      it("isPopup=false", function() {
+        graphView.set('isPopup', false);
+        graphView.setTimeRange();
+        expect(graphView.get('parentView.customTimeRange')).to.be.null;
+      });
+
+      it("isPopup=true, currentTimeIndex=8", function() {
+        graphView.set('isPopup', true);
+        graphView.set('currentTimeIndex', 8);
+        graphView.setTimeRange();
+        expect(graphView.get('parentView').propertyDidChange.calledWith('customTimeRange')).to.be.true;
+      });
+
+      it("isPopup=true, currentTimeIndex=1", function() {
+        graphView.set('isPopup', true);
+        graphView.set('currentTimeIndex', 1);
+        graphView.set('timeUnitSeconds', 10);
+        expect(graphView.get('parentView.customTimeRange')).to.be.equal(10);
+      });
+    });
+
+    describe("#id", function () {
+
+      it("should return id", function() {
+        graphView.set('parentView.content.id', 'g1');
+        graphView.propertyDidChange('id');
+        expect(graphView.get('id')).to.be.equal('widget_g1_graph');
+      });
+    });
+
+    describe("#renderer", function () {
+
+      it("should return area", function() {
+        graphView.set('parentView.content.properties.graph_type', 'STACK');
+        graphView.propertyDidChange('renderer');
+        expect(graphView.get('renderer')).to.be.equal('area');
+      });
+
+      it("should return line", function() {
+        graphView.set('parentView.content.properties.graph_type', '');
+        graphView.propertyDidChange('renderer');
+        expect(graphView.get('renderer')).to.be.equal('line');
+      });
+    });
+
+    describe("#transformToSeries()", function () {
+
+      beforeEach(function() {
+        sinon.stub(graphView, 'transformData').returns({});
+      });
+
+      afterEach(function() {
+        graphView.transformData.restore();
+      });
+
+      it("empty data", function() {
+        expect(graphView.transformToSeries([])).to.be.empty;
+      });
+
+      it("should return series", function() {
+        expect(graphView.transformToSeries([{}])).to.be.eql([{}]);
+      });
+    });
+
+    describe("#loadData()", function () {
+
+      beforeEach(function() {
+        sinon.stub(Em.run, 'next', function(context, callback) {
+          callback.apply(context);
+        });
+        sinon.stub(graphView, '_refreshGraph');
+      });
+
+      afterEach(function() {
+        Em.run.next.restore();
+        graphView._refreshGraph.restore();
+      });
+
+      it("_refreshGraph should be called", function() {
+        graphView.loadData();
+        expect(graphView._refreshGraph.calledOnce).to.be.true;
+      });
+    });
+
+    describe("#didInsertElement()", function () {
+
+      beforeEach(function() {
+        sinon.stub(graphView, 'setYAxisFormatter');
+        sinon.stub(graphView, 'loadData');
+        sinon.stub(Em.run, 'next', Em.clb);
+        sinon.stub(App, 'tooltip');
+      });
+
+      afterEach(function() {
+        graphView.setYAxisFormatter.restore();
+        graphView.loadData.restore();
+        Em.run.next.restore();
+        App.tooltip.restore();
+      });
+
+      it("setYAxisFormatter should be called", function() {
+        graphView.didInsertElement();
+        expect(graphView.setYAxisFormatter.calledOnce).to.be.true;
+      });
+
+      it("loadData should be called", function() {
+        graphView.didInsertElement();
+        expect(graphView.loadData.calledOnce).to.be.true;
+      });
+
+      it("App.tooltip should be called, isPreview=false", function() {
+        graphView.didInsertElement();
+        expect(App.tooltip.getCall(0).args[1]).to.be.eql({
+          placement: 'left',
+          template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
+        });
+      });
+
+      it("App.tooltip should be called, isPreview=true", function() {
+        graphView.reopen({
+          isPreview: true
+        });
+        graphView.didInsertElement();
+        expect(App.tooltip.getCall(0).args[1]).to.be.equal('disable');
+      });
+    });
+  });
 });

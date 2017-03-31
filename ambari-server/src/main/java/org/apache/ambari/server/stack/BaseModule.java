@@ -72,8 +72,8 @@ public abstract class BaseModule<T, I> implements StackDefinitionModule<T, I> {
         if (parentModules.containsKey(id)) {
           module.resolve(parentModules.get(id), allStacks, commonServices, extensions);
         }
-        mergedModules.add(module);
       }
+      mergedModules.add(module);
     }
 
     // add non-overlapping parent modules

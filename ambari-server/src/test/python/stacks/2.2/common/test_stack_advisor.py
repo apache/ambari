@@ -86,10 +86,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
     clusterData = {
       "mapMemory": 3000,
-      "amMemory": 2000,
+      "amMemory": 2048,
       "reduceMemory": 2056,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -161,7 +162,7 @@ class TestHDP22StackAdvisor(TestCase):
     for host in hosts["items"]:
       if server_host == host["Hosts"]["host_name"]:
         server_host = host["Hosts"]["public_host_name"]
-    tez_ui_url =  "http://" + server_host + ":8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE"
+    tez_ui_url =  "http://" + server_host + ":8080/#/main/view/TEZ/tez_cluster_instance"
 
     services['ambari-server-properties'] = {'api.ssl': 'false'}
     expected['tez-site']['properties']['tez.tez-ui.history-url.base'] = tez_ui_url
@@ -183,6 +184,7 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 3100,
       "reduceMemory": 2056,
       "containers": 3,
+      "yarnMinContainerSize": 256,
       "ramPerContainer": 256
     }
     expected = {
@@ -265,10 +267,11 @@ class TestHDP22StackAdvisor(TestCase):
     }
     clusterData = {
       "mapMemory": 760,
-      "amMemory": 2000,
+      "amMemory": 2048,
       "reduceMemory": 760,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "tez-site": {
@@ -884,7 +887,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -923,7 +927,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers": 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "spark-defaults": {
@@ -955,7 +960,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -1146,7 +1152,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test host NodeManager CPU cores and 'yarn.nodemanager.resource.percentage-physical-cpu-limit'
     hosts["items"][2]["Hosts"]["cpu_count"] = 10
-    configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '50'
     services["changed-configurations"].append({
           "type": "yarn-site",
           "name": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
@@ -1155,24 +1161,98 @@ class TestHDP22StackAdvisor(TestCase):
     expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '5'
     expected["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-vcores"] = '1'
     expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '5'
-    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '50'
     expected["yarn-site"]["property_attributes"]["yarn.nodemanager.resource.cpu-vcores"]["maximum"] = '20'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '5'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # Test - with no 'changed-configurations', we should get updated 'maximum's.
     services.pop("changed-configurations", None)
+    services["changed-configurations"] = [{
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.memory-mb",
+        "old_value": "1280"
+    }]
     services.pop("configurations", None)
-    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321', "yarn.nodemanager.resource.cpu-vcores": '9'}}}
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
-    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321',
+                                                               "yarn.nodemanager.resource.percentage-physical-cpu-limit" : '50'}}}
+
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] = '4321'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-mb"]["maximum"] = '4321'
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+    services["changed-configurations"].append({
+        "type": "yarn-site",
+        "name": "yarn.nodemanager.resource.cpu-vcores",
+        "old_value": "7"
+    })
+    services.pop("configurations", None)
+    services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.cpu-vcores": '9', "yarn.nodemanager.resource.memory-mb": '4321'}}}
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '9'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+  def test_multipleDependsOn(self):
+    configurations = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "350",
+          "yarn.scheduler.maximum-allocation-mb": "1000",
+        },
+      },
+      "mapred-site": {
+        "properties": {
+          "mapreduce.map.memory.mb": "0",
+          "mapreduce.reduce.memory.mb": "111"
+        }
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+
+    services = {
+      "configurations": configurations,
+      "services": [],
+      "changed-configurations": [
+        {
+          "type": "yarn-site",
+          "name": "yarn.scheduler.maximum-allocation-mb",
+          "old_value": "512"
+        },
+      ]
+
+    }
+    hosts = {}
+
+    # immitate recommend-configuration-dependencies request with only "yarn.scheduler.maximum-allocation-mb" in "changed-configurations"
+    self.stackAdvisor.allRequestedProperties = {'yarn-site': ['yarn.scheduler.maximum-allocation-mb'], 'mapred-site': ['mapreduce.map.memory.mb']}
+
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
+
+    # changed-configurations contain only "yarn.scheduler.maximum-allocation-mb".
+    # Ensure that user provided value (350) for "yarn.scheduler.minimum-allocation-mb" is used.
+    # The recommended default for "yarn.scheduler.minimum-allocation-mb" is 256.
+    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.map.memory.mb'], '350') # should not be 256
+
+    # assert that not requested property was not changed
+    self.assertEquals(configurations['mapred-site']['properties']['mapreduce.reduce.memory.mb'], '111')
 
   def test_recommendHiveConfigurationAttributes(self):
     self.maxDiff = None
@@ -1191,7 +1271,8 @@ class TestHDP22StackAdvisor(TestCase):
       "amMemory": 2000,
       "reduceMemory": 2056,
       "containers": 3,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
 
     expected = {
@@ -1219,7 +1300,6 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
-          'hive.enforce.bucketing': 'false',
           'hive.exec.dynamic.partition.mode': 'strict',
           'hive.exec.failure.hooks': 'org.apache.hadoop.hive.ql.hooks.ATSHook',
           'hive.exec.orc.compression.strategy': 'SPEED',
@@ -1548,12 +1628,11 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
     expected["hive-site"]["properties"]["hive.security.authorization.enabled"]="true"
     expected["hive-site"]["properties"]["hive.server2.enable.doAs"]="false"
-    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
-      "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"]="true"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"]="org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
-    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -1646,7 +1725,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"] = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"] = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"] = "true"
-    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.security.metastore.authorization.manager,hive.security.metastore.authenticator.manager,hive.users.in.admin.role,hive.server2.xsrf.filter.enabled,hive.security.authorization.enabled"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hiveserver2-site'], expected["hiveserver2-site"])
 
@@ -1683,6 +1762,7 @@ class TestHDP22StackAdvisor(TestCase):
       "containers" : 7,
       "ramPerContainer": 256,
       "totalAvailableRam": 4096,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "cluster-env": {
@@ -1701,9 +1781,9 @@ class TestHDP22StackAdvisor(TestCase):
           'mapreduce.job.queuename': 'default',
           "mapreduce.map.memory.mb": "1536",
           "mapreduce.reduce.memory.mb": "1536",
-          "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx204m -Dhdp.version=${hdp.version}",
           "mapreduce.reduce.java.opts": "-Xmx1228m",
-          "yarn.app.mapreduce.am.resource.mb": "100",
+          "yarn.app.mapreduce.am.resource.mb": "256",
           "mapreduce.map.java.opts": "-Xmx1228m",
           "mapreduce.task.io.sort.mb": "859"
         },
@@ -1932,7 +2012,7 @@ class TestHDP22StackAdvisor(TestCase):
           "mapreduce.map.memory.mb": "1024",
           "mapreduce.reduce.memory.mb": "682",
           "yarn.app.mapreduce.am.command-opts": "-Xmx546m -Dhdp.version=${hdp.version}",
-          "mapreduce.reduce.java.opts": "-Xmx546m",
+          "mapreduce.reduce.java.opts": "-Xmx560m",
           "yarn.app.mapreduce.am.resource.mb": "682",
           "mapreduce.map.java.opts": "-Xmx546m",
           "mapreduce.task.io.sort.mb": "273"
@@ -1950,7 +2030,8 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "cpu": 4,
       "containers" : 5,
-      "ramPerContainer": 256
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
     }
     expected = {
       "yarn-env": {
@@ -1962,13 +2043,13 @@ class TestHDP22StackAdvisor(TestCase):
       "mapred-site": {
         "properties": {
           'mapreduce.job.queuename': 'default',
-          "mapreduce.map.memory.mb": "100",
-          "mapreduce.reduce.memory.mb": "200",
-          "yarn.app.mapreduce.am.command-opts": "-Xmx80m -Dhdp.version=${hdp.version}",
-          "mapreduce.reduce.java.opts": "-Xmx160m",
-          "yarn.app.mapreduce.am.resource.mb": "100",
-          "mapreduce.map.java.opts": "-Xmx80m",
-          "mapreduce.task.io.sort.mb": "56"
+          "mapreduce.map.memory.mb": "256",
+          "mapreduce.reduce.memory.mb": "512",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx204m -Dhdp.version=${hdp.version}",
+          "mapreduce.reduce.java.opts": "-Xmx409m",
+          "yarn.app.mapreduce.am.resource.mb": "256",
+          "mapreduce.map.java.opts": "-Xmx204m",
+          "mapreduce.task.io.sort.mb": "142"
         },
         "property_attributes": {
           'mapreduce.task.io.sort.mb': {'maximum': '2047'},
@@ -2178,9 +2259,9 @@ class TestHDP22StackAdvisor(TestCase):
             "properties": {
                 'mapreduce.job.queuename': 'default',
                 "mapreduce.map.memory.mb": "700",
-                "mapreduce.reduce.memory.mb": "1280",
+                "mapreduce.reduce.memory.mb": "700",
                 "yarn.app.mapreduce.am.command-opts": "-Xmx560m -Dhdp.version=${hdp.version}",
-                "mapreduce.reduce.java.opts": "-Xmx1024m",
+                "mapreduce.reduce.java.opts": "-Xmx560m",
                 "yarn.app.mapreduce.am.resource.mb": "700",
                 "mapreduce.map.java.opts": "-Xmx560m",
                 "mapreduce.task.io.sort.mb": "392"
@@ -2290,11 +2371,13 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "ams-site": {
         "properties": {
-          "timeline.metrics.cluster.aggregate.splitpoints": "master.FileSystem.MetaHlogSplitTime_75th_percentile",
-          "timeline.metrics.host.aggregate.splitpoints": "master.FileSystem.MetaHlogSplitTime_75th_percentile",
+          "timeline.metrics.cluster.aggregate.splitpoints": "mem_buffered",
+          "timeline.metrics.host.aggregate.splitpoints": "mem_buffered",
           "timeline.metrics.service.handler.thread.count": "20",
-          'timeline.metrics.service.webapp.address': 'host1:6188',
-          'timeline.metrics.service.watcher.disabled': 'false'
+          'timeline.metrics.service.webapp.address': '0.0.0.0:6188',
+          'timeline.metrics.service.watcher.disabled': 'false',
+          'timeline.metrics.cache.size': '100',
+          'timeline.metrics.cache.commit.interval': '10'
         }
       }
     }
@@ -2330,6 +2413,9 @@ class TestHDP22StackAdvisor(TestCase):
         ]
       }
     ]
+
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '320'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512'
@@ -2398,8 +2484,11 @@ class TestHDP22StackAdvisor(TestCase):
       }
 
     ]
-    expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
-    expected["ams-site"]['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
+    expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'mem_total'
+    expected["ams-site"]['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
+
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
@@ -2428,8 +2517,8 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-site']['properties']['hbase.regionserver.global.memstore.upperLimit'] = '0.4'
     services["configurations"]['ams-hbase-site']['properties']['hbase.hregion.memstore.flush.size'] = '134217728'
 
-    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
-    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'mem_total'
+    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
 
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2437,11 +2526,11 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Embedded mode, 4096m master heapsize, some splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
-    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'dfs.datanode.WriteBlockOpNumOps,' \
-                                                                                        'mapred.ShuffleMetrics.ShuffleOutputsFailed,' \
-                                                                                        'read_bps,' \
-                                                                                        'rpcdetailed.rpcdetailed.GetContainerStatusesAvgTime'
-    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'dfs.namenode.BlockReportAvgTime,' \
+                                                                                        'master.AssignmentManger.Assign_mean,' \
+                                                                                        'regionserver.Server.Append_median,' \
+                                                                                        'rpcdetailed.rpcdetailed.client.CheckAccessNumOps'
+    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -2464,15 +2553,15 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
     services["configurations"]["core-site"]["properties"]["fs.defaultFS"] = 'hdfs://host1:8020'
     expected['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
-    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1:8020/user/ams/hbase'
+    expected['ams-hbase-site']['properties']['hbase.rootdir'] = '/user/ams/hbase'
     expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
-    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
-    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
+    expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'mem_total'
+    expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'mem_total'
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '512'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '102'
     expected['ams-hbase-env']['properties']['regionserver_xmn_size'] = '384'
@@ -2486,6 +2575,40 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 13)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
+
+    # 2000-nodes cluster
+    for i in range(202, 2001):
+        hosts['items'].extend([{
+            "Hosts": {
+                "host_name": "host" + str(i)
+            }
+        }])
+
+    services['services'] = [
+        {
+            "StackServices": {
+                "service_name": "AMBARI_METRICS"
+            },
+            "components": [
+                {
+                    "StackServiceComponents": {
+                        "component_name": "METRICS_COLLECTOR",
+                        "hostnames": ["host1"]
+                    }
+                },
+                {
+                    "StackServiceComponents": {
+                        "component_name": "METRICS_MONITOR",
+                        "hostnames": ["host" + str(i) for i in range(1, 2001)]
+                    }
+                }
+            ]
+        }
+    ]
+
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.size'], '700')
+    self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.commit.interval'], '5')
 
   def test_recommendHbaseConfigurations(self):
     servicesList = ["HBASE"]
@@ -3026,7 +3149,9 @@ class TestHDP22StackAdvisor(TestCase):
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
           'dfs.namenode.handler.count': '25',
-          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
+          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4',
+          'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+          'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary'
         },
         'property_attributes': {
           'dfs.datanode.failed.volumes.tolerated': {'maximum': '4'},
@@ -3354,24 +3479,19 @@ class TestHDP22StackAdvisor(TestCase):
                            'tez.runtime.io.sort.mb' : '256',
                            'tez.runtime.unordered.output.buffer.size-mb' : '256',
                            'tez.am.resource.memory.mb' : '1024',
-                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                           'tez.tez-ui.history-url.base' : 'https://host:8443/#/main/view/TEZ/tez_cluster_instance'}
 
     properties = {'tez.task.resource.memory.mb': '2050',
                   'tez.runtime.io.sort.mb' : '256',
                   'tez.runtime.unordered.output.buffer.size-mb' : '256',
                   'tez.am.resource.memory.mb' : '2050',
-                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE'}
+                  'tez.tez-ui.history-url.base' : 'http://host:8080/#/main/view/TEZ/tez_cluster_instance'}
 
 
-    res_expected = [{'config-name': 'tez.queue.name',
-                     'config-type': 'tez-site',
-                     'level': 'ERROR',
-                     'message': 'Value should be set',
-                     'type': 'configuration'},
-                    {'config-name': 'tez.tez-ui.history-url.base',
+    res_expected = [{'config-name': 'tez.tez-ui.history-url.base',
                      'config-type': 'tez-site',
                      'level': 'WARN',
-                     'message': "It is recommended to set value https://host:8443/#/main/views/TEZ/0.7.0.2.3.0.0-2155/TEZ_CLUSTER_INSTANCE for property tez.tez-ui.history-url.base",
+                     'message': "It is recommended to set value https://host:8443/#/main/view/TEZ/tez_cluster_instance for property tez.tez-ui.history-url.base",
                      'type': 'configuration'},
                     {'config-name': 'tez.am.resource.memory.mb',
                      'config-type': 'tez-site',
@@ -3385,7 +3505,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration'}]
 
     res = self.stackAdvisor.validateTezConfigurations(properties, recommendedDefaults, configurations, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
 
 
   def test_validateHDFSConfigurationsEnv(self):
@@ -3497,11 +3617,6 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration',
                      'config-name': 'yarn.app.mapreduce.am.command-opts',
                      'level': 'WARN'},
-                    {'config-name': 'mapreduce.job.queuename',
-                     'config-type': 'mapred-site',
-                     'level': 'ERROR',
-                     'message': 'Value should be set',
-                     'type': 'configuration'},
                     {'config-type': 'mapred-site',
                      'message': 'yarn.app.mapreduce.am.command-opts Xmx should be less than yarn.app.mapreduce.am.resource.mb (410)',
                      'type': 'configuration',
@@ -3509,7 +3624,7 @@ class TestHDP22StackAdvisor(TestCase):
                      'level': 'WARN'}]
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
 
   def test_validateHiveConfigurationsEnv(self):
     properties = {"hive_security_authorization": "None"}
@@ -3531,7 +3646,18 @@ class TestHDP22StackAdvisor(TestCase):
       }
     ]
 
-    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
+    services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ]
+    }
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
     self.assertEquals(res, res_expected)
 
     # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
@@ -3549,6 +3675,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3639,12 +3773,9 @@ class TestHDP22StackAdvisor(TestCase):
             "cpu_count" : 6,
             "total_mem" : 50331648,
             "disk_info" : [
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"},
-              {"mountpoint" : "/"},
-              {"mountpoint" : "/dev/shm"},
-              {"mountpoint" : "/vagrant"}
+              {"mountpoint" : "/", "type": "ext3"},
+              {"mountpoint" : "/dev/shm", "type": "tmpfs"},
+              {"mountpoint" : "/vagrant", "type": "vboxsf"}
             ],
             "public_host_name" : "c6401.ambari.apache.org",
             "host_name" : "c6401.ambari.apache.org"
@@ -3690,19 +3821,22 @@ class TestHDP22StackAdvisor(TestCase):
       "yarn-site": {
         "properties": {
           "yarn.nodemanager.linux-container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
-          "yarn.nodemanager.container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.memory-mb": "43008",
+          "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false"
+          "yarn.scheduler.maximum-allocation-mb": "43008",
+          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
+          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
+          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
@@ -3715,18 +3849,19 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           }
         }
       }
     }
 
+    hosts = self.stackAdvisor.filterHostMounts(hosts, services)
     clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
@@ -3745,31 +3880,25 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {
-          "yarn.nodemanager.container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
           "yarn.nodemanager.linux-container-executor.group": "hadoop",
-          "yarn.nodemanager.container-executor.cgroups.mount": "true",
-          "yarn.nodemanager.resource.memory-mb": "39424",
-          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.memory-mb": "43008",
+          "yarn.scheduler.minimum-allocation-mb": "1024",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4",
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
-          "yarn.scheduler.maximum-allocation-mb": "39424",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false"
+          "yarn.scheduler.maximum-allocation-mb": "43008",
+          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
+          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
+          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": "true",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "/yarn",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
+          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
         },
         "property_attributes": {
-          "yarn.nodemanager.container-executor.cgroups.mount": {
-            "delete": "true"
-          },
-          "yarn.nodemanager.container-executor.cgroups.hierarchy": {
-            "delete": "true"
-          },
-          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": {
-            "delete": "true"
-          },
           "yarn.scheduler.minimum-allocation-vcores": {
             "maximum": "4"
           },
@@ -3780,15 +3909,24 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "49152"
           },
           "yarn.scheduler.minimum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
             "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
-            "maximum": "39424"
+            "maximum": "43008"
           },
-          "yarn.nodemanager.container-executor.resources-handler.class": {
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": {
             "delete": "true"
           }
         }
@@ -3815,6 +3953,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3851,6 +3997,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3887,6 +4041,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -3923,6 +4085,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],
       "configurations": configurations
     }
     res_expected = []
@@ -4138,7 +4308,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Test with ranger plugin enabled, validation fails
-    res_expected = [{'config-type': 'spark-defaults', 'message': 'Value should be set', 'type': 'configuration', 'config-name': 'spark.yarn.queue', 'level': 'ERROR'}]
+    res_expected = []
 
     res = self.stackAdvisor.validateSparkDefaults(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)
+    self.assertEquals(res_expected, res)
