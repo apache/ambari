@@ -22,19 +22,20 @@
   <div class="panel panel-default">
     <div class="panel-body">
       <div {{bindAttr class="view.onError:has-error :form-group"}}>
-        <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
+        <label class="control-label" for="cluster-name" {{QAAttr "cluster-name-inscription"}}>{{t installer.step0.clusterName}}
           <a href="javascript:void(null)"
            rel="popover"
+            {{QAAttr "cluster-name-tooltip"}}
             {{translateAttr title="installer.step0.clusterName.tooltip.title"
             data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
         </label>
 
         <div>
           <div class="col-sm-3 cluster-name-input">
-            {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="form-control"}}
+            {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="form-control" data-qa="cluster-name-input"}}
           </div>
           {{#if clusterNameError}}
-            <p class="help-block validation-block col-sm-9">{{clusterNameError}}</p>
+            <p class="help-block validation-block col-sm-9"  {{QAAttr "cluster-name-validation"}}>{{clusterNameError}}</p>
           {{/if}}
         </div>
       </div>
@@ -43,7 +44,7 @@
 </div>
 
 <div class="wizard-footer col-md-12 btn-area">
-  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>
+  <button type="button" class="btn btn-success pull-right" {{QAAttr "wizard-next"}} {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>
     {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}

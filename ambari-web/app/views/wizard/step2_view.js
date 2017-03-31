@@ -23,7 +23,7 @@ App.SshKeyFileUploader = Em.View.extend({
   //TODO: rewrite it using tagName and attribute binding
   //TODO: rewrite it as independent component and place it somewhere in utils
   // alternative is to move it to App.WizardStep2View
-  template: Em.Handlebars.compile('<input class="inputfileUgly" type="file" name="file" id="file" {{bindAttr disabled="view.disabled"}} />' +
+  template: Em.Handlebars.compile('<input class="inputfileUgly" type="file" name="file" id="file" {{bindAttr disabled="view.disabled"}} {{QAAttr "upload-ssh-input"}} />' +
       '<label class="btn btn-default" for="file" {{bindAttr disabled="view.disabled"}}>Choose file</label>' +
       '<span id="selectedFileName">No file selected</span>'),
 
@@ -85,7 +85,6 @@ App.WizardStep2View = Em.View.extend({
    */
   providingSSHKeyRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
-    checkboxClassNames: ['radio-btn-provide-ssh-key'],
     checked: Em.computed.alias('controller.content.installOptions.useSsh'),
 
     click: function () {
@@ -100,7 +99,6 @@ App.WizardStep2View = Em.View.extend({
    */
   manualRegistrationRadioButton: App.RadioButtonView.extend({
     classNames: ['radio'],
-    checkboxClassNames: ['radio-btn-manual-reg'],
     checked: Em.computed.alias('controller.content.installOptions.manualInstall'),
 
     click: function () {

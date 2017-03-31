@@ -36,7 +36,7 @@
       </div>
 
       {{! Modal Body }}
-      <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}}>
+      <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}} {{QAAttr "modal-body"}}>
         {{#if view.bodyClass}}
           {{view view.bodyClass}}
         {{else}}

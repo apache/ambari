@@ -386,10 +386,11 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
   showHostsPopup: function (hosts) {
     $('.tooltip').hide();
     return App.ModalPopup.show({
+      'data-qa': 'hosts-with-warnings-modal',
       header: Em.I18n.t('installer.step3.hostWarningsPopup.allHosts'),
       bodyClass: Em.View.extend({
         hosts: hosts.context,
-        template: Em.Handlebars.compile('<ul>{{#each host in view.hosts}}<li>{{host}}</li>{{/each}}</ul>')
+        template: Em.Handlebars.compile('<ul>{{#each host in view.hosts}}<li {{QAAttr "host-with-warning-name"}}>{{host}}</li>{{/each}}</ul>')
       }),
       secondary: null
     });

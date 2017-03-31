@@ -889,6 +889,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
 
       autoHeight: false,
 
+      'data-qa': 'host-checks-modal',
+
       onPrimary: function () {
         self.set('checksUpdateStatus', null);
         this.hide();
