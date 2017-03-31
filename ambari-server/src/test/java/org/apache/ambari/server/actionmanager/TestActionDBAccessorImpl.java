@@ -203,11 +203,11 @@ public class TestActionDBAccessorImpl {
   public void testGetStagesInProgressWithFailures() throws AmbariException {
     populateActionDB(db, hostName, requestId, stageId);
     populateActionDB(db, hostName, requestId + 1, stageId);
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(2, stages.size());
 
     db.abortOperation(requestId);
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(1, stages.size());
     assertEquals(requestId+1, stages.get(0).getRequestId());
   }
@@ -221,9 +221,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     int commandsInProgressCount = db.getCommandsInProgressCount();
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(18, commandsInProgressCount);
-    assertEquals(9, stages.size());
+    assertEquals(3, stages.size());
 
     long lastRequestId = Integer.MIN_VALUE;
     for (Stage stage : stages) {
@@ -236,9 +236,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(12, commandsInProgressCount);
-    assertEquals(6, stages.size());
+    assertEquals(2, stages.size());
 
     // find the first stage, and change one command to COMPLETED
     stages.get(0).setHostRoleStatus(hostName, Role.HBASE_MASTER.toString(),
@@ -248,9 +248,9 @@ public class TestActionDBAccessorImpl {
 
     // the first stage still has at least 1 command IN_PROGRESS
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(11, commandsInProgressCount);
-    assertEquals(6, stages.size());
+    assertEquals(2, stages.size());
 
     // find the first stage, and change the other command to COMPLETED
     stages.get(0).setHostRoleStatus(hostName,
@@ -261,9 +261,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(10, commandsInProgressCount);
-    assertEquals(5, stages.size());
+    assertEquals(2, stages.size());
   }
 
   @Test
@@ -275,15 +275,16 @@ public class TestActionDBAccessorImpl {
     }
 
     // create 1 request, 3 stages per host, each with 2 commands
-    for (int i = 0; i < 1000; i++) {
+    int requestCount = 1000;
+    for (int i = 0; i < requestCount; i++) {
       String hostName = "c64-" + i;
       populateActionDBMultipleStages(3, db, hostName, requestId + i, stageId);
     }
 
     int commandsInProgressCount = db.getCommandsInProgressCount();
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(6000, commandsInProgressCount);
-    assertEquals(3000, stages.size());
+    assertEquals(requestCount, stages.size());
   }
 
 

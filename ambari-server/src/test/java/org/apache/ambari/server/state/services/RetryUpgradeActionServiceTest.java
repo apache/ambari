@@ -17,8 +17,11 @@
  */
 package org.apache.ambari.server.state.services;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
@@ -38,6 +41,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -50,11 +54,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * Tests {@link org.apache.ambari.server.state.services.RetryUpgradeActionService}.
@@ -147,9 +148,11 @@ public class RetryUpgradeActionServiceTest {
     }
 
     // Case 4: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that does NOT meet conditions to be retried.
-    List<StageEntity> stages = stageDAO.findByStageIds(upgradeRequestId, new HashSet<Long>(){{ add(stageId); }});
-    Assert.assertTrue(!stages.isEmpty() && stages.size() == 1);
-    StageEntity stageEntity = stages.get(0);
+    StageEntityPK primaryKey = new StageEntityPK();
+    primaryKey.setRequestId(upgradeRequestId);
+    primaryKey.setStageId(stageId);
+
+    StageEntity stageEntity = stageDAO.findByPK(primaryKey);
 
     HostRoleCommandEntity hrc2 = new HostRoleCommandEntity();
     hrc2.setStage(stageEntity);
@@ -201,7 +204,7 @@ public class RetryUpgradeActionServiceTest {
 
     // Ensure that task 2 transitioned from HOLDING_TIMEDOUT to PENDING
     Assert.assertEquals(HostRoleStatus.PENDING, hostRoleCommandDAO.findByPK(hrc2.getTaskId()).getStatus());
-    
+
     // Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that was already retried and has now expired.
     now = System.currentTimeMillis();
     hrc2.setOriginalStartTime(now - (timeoutMins * 60000) - 1);

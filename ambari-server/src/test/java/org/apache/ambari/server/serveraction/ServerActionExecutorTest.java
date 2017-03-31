@@ -268,7 +268,7 @@ public class ServerActionExecutorTest {
   private ActionDBAccessor createMockActionDBAccessor(final Request request, final List<Stage> stages) {
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) throws Throwable {
