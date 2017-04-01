@@ -25,16 +25,19 @@ module.exports = Em.Application.create({
   errorLog: "",
 
   getNamespaceUrl: function() {
-    var parts = window.location.pathname.match(/\/[^\/]*/g);
-    var view = parts[1];
-    var version = '/versions' + parts[2];
-    var instance = parts[3];
-    if (parts.length == 4) { // version is not present
-      instance = parts[2];
+    var parts = window.location.pathname.split('/').filter(function (i) {
+      return i !== "";
+    });
+    var view = parts[parts.length - 3];
+    var version = '/versions/' + parts[parts.length - 2];
+    var instance = parts[parts.length - 1];
+
+    if (!/^(\d+\.){2,3}\d+$/.test(parts[parts.length - 2])) { // version is not present
+      instance = parts[parts.length - 2];
       version = '';
     }
-    var namespaceUrl = 'api/v1/views' + view + version + '/instances' + instance;
-    return namespaceUrl;
+    var namespaceUrl = 'api/v1/views/' + view + version + '/instances/' + instance;
+    return namespaceUrl.replace(/^\/|\/$/g, ''); //remove starting slash if proxied through knox
   },
 
   Resolver: Ember.DefaultResolver.extend({
