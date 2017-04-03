@@ -393,6 +393,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+          <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
+
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">

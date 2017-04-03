@@ -729,6 +729,12 @@
       </component>
 
       <component name="HIVE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name" />
+        </pre-upgrade>
+
+        <pre-downgrade />
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
