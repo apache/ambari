@@ -1,0 +1,13 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.jms</groupId>
+  <artifactId>jms</artifactId>
+  <version>1.1</version>
+  <name>Java Message Service</name>
+  <description>
+    The Java Message Service (JMS) API is a messaging standard that allows application components based on the Java 2 Platform, Enterprise Edition (J2EE) to create, send, receive, and read messages. It enables distributed communication that is loosely coupled, reliable, and asynchronous.
+  </description>
+  <url>http://java.sun.com/products/jms</url>
+  <distributionManagement>
+    <downloadUrl>http://java.sun.com/products/jms/docs.html</downloadUrl>
+  </distributionManagement>
