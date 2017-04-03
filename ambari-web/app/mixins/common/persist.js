@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var LZString = require('utils/lz-string');
 
 /**
  * Small mixin for processing user preferences
@@ -31,7 +32,7 @@ var App = require('app');
  * </ul>
  * @type {Em.Mixin}
  */
-App.UserPref = Em.Mixin.create({
+App.Persist = Em.Mixin.create({
 
   /**
    * Additional to request data
@@ -45,7 +46,7 @@ App.UserPref = Em.Mixin.create({
    */
   getUserPref: function(key) {
     return App.ajax.send({
-      name: 'settings.get.user_pref',
+      name: 'persist.get',
       sender: this,
       data: {
         key: key,
@@ -57,7 +58,30 @@ App.UserPref = Em.Mixin.create({
   },
 
   /**
-   * Should be redeclared in objects that use this mixin
+   *
+   * @param {string} key
+   * @returns {$.Deferred}
+   */
+  getDecompressedData: function(key) {
+    var dfd = $.Deferred();
+    App.ajax.send({
+      name: 'persist.get.text',
+      sender: this,
+      data: {
+        key: key
+      }
+    }).always(function(data, textStatus, error) {
+      if (data && typeof data === 'string') {
+        dfd.resolve(JSON.parse(LZString.decompressFromBase64(data)));
+      } else {
+        dfd.reject({error: error});
+      }
+    });
+    return dfd.promise();
+  },
+
+  /**
+   * Should be redefined in objects that use this mixin
    * @param {*} response
    * @param {Object} request
    * @param {Object} data
@@ -66,7 +90,7 @@ App.UserPref = Em.Mixin.create({
   getUserPrefSuccessCallback: function (response, request, data) {},
 
   /**
-   * Should be redeclared in objects that use this mixin
+   * Should be redefined in objects that use this mixin
    * @param {Object} request
    * @param {Object} ajaxOptions
    * @param {String} error
@@ -85,8 +109,24 @@ App.UserPref = Em.Mixin.create({
     }
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
+    return this.post(keyValuePair);
+  },
+
+  /**
+   *
+   * @param {string} key
+   * @param {Object} value
+   * @returns {$.ajax}
+   */
+  postCompressedData: function (key, value) {
+    var keyValuePair = {};
+    keyValuePair[key] = !Em.isEmpty(value) ? LZString.compressToBase64(JSON.stringify(value)) : '';
+    return this.post(keyValuePair);
+  },
+
+  post: function(keyValuePair) {
     return App.ajax.send({
-      'name': 'settings.post.user_pref',
+      'name': 'persist.post',
       'sender': this,
       'beforeSend': 'postUserPrefBeforeSend',
       'data': {
@@ -98,7 +138,7 @@ App.UserPref = Em.Mixin.create({
   },
 
   /**
-   * Should be redeclared in objects that use this mixin
+   * Should be redefined in objects that use this mixin
    * @param {*} response
    * @param {Object} request
    * @param {Object} data
@@ -107,7 +147,7 @@ App.UserPref = Em.Mixin.create({
   postUserPrefSuccessCallback: function (response, request, data) {},
 
   /**
-   * Should be redeclared in objects that use this mixin
+   * Should be redefined in objects that use this mixin
    * @param {Object} request
    * @param {Object} ajaxOptions
    * @param {String} error

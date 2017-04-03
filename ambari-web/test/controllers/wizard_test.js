@@ -1055,7 +1055,7 @@ describe('App.WizardController', function () {
       sinon.stub(c, 'setDBProperty', Em.K);
       sinon.stub(c, 'setDBProperties', Em.K);
       sinon.stub(c, 'getDBProperty').withArgs('fileNamesToUpdate').returns([]);
-      sinon.stub(c, 'setPersistentProperty', Em.K);
+      sinon.stub(c, 'postCompressedData', Em.K);
       sinon.stub(App.config, 'shouldSupportFinal').returns(true);
     });
 
@@ -1063,7 +1063,7 @@ describe('App.WizardController', function () {
       c.setDBProperty.restore();
       c.setDBProperties.restore();
       c.getDBProperty.restore();
-      c.setPersistentProperty.restore();
+      c.postCompressedData.restore();
       App.config.shouldSupportFinal.restore();
     });
 

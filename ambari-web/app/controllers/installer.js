@@ -21,7 +21,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
 
-App.InstallerController = App.WizardController.extend(App.UserPref, {
+App.InstallerController = App.WizardController.extend(App.Persist, {
 
   name: 'installerController',
 

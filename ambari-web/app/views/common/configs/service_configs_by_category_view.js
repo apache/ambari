@@ -21,7 +21,7 @@ var App = require('app');
 var validator = require('utils/validator');
 require('utils/configs/modification_handlers/modification_handler');
 
-App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverridable, {
+App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverridable, {
 
   templateName: require('templates/common/configs/service_config_category'),
 

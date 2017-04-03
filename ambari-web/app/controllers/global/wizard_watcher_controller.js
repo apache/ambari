@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.WizardWatcherController = Em.Controller.extend(App.UserPref, {
+App.WizardWatcherController = Em.Controller.extend(App.Persist, {
   name: 'wizardWatcherController',
 
   /**

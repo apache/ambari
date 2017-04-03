@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 var App = require('app');
-require('mixins/common/userPref');
 var LZString = require('utils/lz-string');
-App.clusterStatus = Em.Object.create(App.UserPref, {
+App.clusterStatus = Em.Object.create(App.Persist, {
 
   /**
    * Cluster name

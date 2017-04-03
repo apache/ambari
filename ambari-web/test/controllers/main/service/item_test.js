@@ -20,7 +20,7 @@ App = require('app');
 require('ember');
 require('models/host_component');
 require('views/common/modal_popup');
-require('mixins/common/userPref');
+require('mixins/common/persist');
 require('controllers/application');
 require('controllers/global/background_operations_controller');
 require('controllers/global/cluster_controller');

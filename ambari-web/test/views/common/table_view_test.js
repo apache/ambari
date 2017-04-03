@@ -21,7 +21,7 @@ require('utils/db');
 require('views/common/filter_view');
 require('views/common/sort_view');
 require('mixins');
-require('mixins/common/userPref');
+require('mixins/common/persist');
 require('views/common/table_view');
 
 function getView() {
@@ -60,7 +60,7 @@ describe('App.TableView', function () {
   describe('#updatePaging', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -88,7 +88,7 @@ describe('App.TableView', function () {
   describe('#endIndex', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -130,7 +130,7 @@ describe('App.TableView', function () {
   describe('#pageContent', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -175,7 +175,7 @@ describe('App.TableView', function () {
   describe('#filtersUsedCalc', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -209,7 +209,7 @@ describe('App.TableView', function () {
   describe('#nextPage', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 1,
@@ -249,7 +249,7 @@ describe('App.TableView', function () {
   describe('#previousPage', function() {
 
     beforeEach(function() {
-      view = App.TableView.create(App.UserPref, {
+      view = App.TableView.create(App.Persist, {
         controller: Em.Object.create({}),
         displayLength: 10,
         startIndex: 50,

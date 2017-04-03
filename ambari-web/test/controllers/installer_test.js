@@ -787,12 +787,12 @@ describe('App.InstallerController', function () {
 
   describe('#loadServiceConfigProperties', function() {
     beforeEach(function () {
-      sinon.stub(installerController, 'getPersistentProperty').returns($.Deferred().resolve({
+      sinon.stub(installerController, 'getDecompressedData').returns($.Deferred().resolve({
         value: 2
       }).promise());
     });
     afterEach(function () {
-      installerController.getPersistentProperty.restore();
+      installerController.getDecompressedData.restore();
     });
     it ('Should load service config property', function() {
       installerController.loadServiceConfigProperties();
