@@ -152,7 +152,7 @@ public class StackRoleCommandOrder {
 		for (String depKey : deps.keySet()) {
 		  Object depValue = deps.get(depKey);
 		  if (depValue instanceof Collection) {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			for (Object o : ((Collection) depValue)) {
 				if (buffer.length() > 0) {
           buffer.append(",");
