@@ -932,6 +932,16 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Delete HBase snapshots">
+        <direction>UPGRADE</direction>
+        <task xsi:type="manual">
+          <message>You can now remove any HBase snapshots which were created at the beginning of the upgrade. To see existing snapshots, use the following HBase shell command:</message>
+          <message>hbase> list_snapshots</message>
+          <message>Once you have found an existing snapshot which you would like to remove, you can use the following command:</message>
+          <message>hbase> delete_snapshot 'snapshotName'</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
