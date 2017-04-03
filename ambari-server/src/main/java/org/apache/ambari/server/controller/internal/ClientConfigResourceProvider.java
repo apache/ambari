@@ -213,6 +213,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     String TMP_PATH = configMap.get(Configuration.SERVER_TMP_DIR.getKey());
     String pythonCmd = configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey());
     List<String> pythonCompressFilesCmds = new ArrayList<>();
+    List<File> commandFiles = new ArrayList<>();
 
     for (ServiceComponentHostResponse response : componentMap.values()){
 
@@ -445,8 +446,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonConfigurations = gson.toJson(jsonContent);
 
-        File jsonFileName = new File(TMP_PATH + File.separator + componentName + "-configuration.json");
-        File tmpDirectory = new File(jsonFileName.getParent());
+        File tmpDirectory = new File(TMP_PATH);
         if (!tmpDirectory.exists()) {
           try {
             tmpDirectory.mkdirs();
@@ -456,21 +456,32 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
             throw new SystemException("Failed to get temporary directory to store configurations", se);
           }
         }
+        File jsonFile = File.createTempFile(componentName, "-configuration.json", tmpDirectory);
+        try {
+          jsonFile.setWritable(true, true);
+          jsonFile.setReadable(true, true);
+        } catch (SecurityException e) {
+          throw new SystemException("Failed to set permission", e);
+        }
+
         PrintWriter printWriter = null;
         try {
-          printWriter = new PrintWriter(jsonFileName.getAbsolutePath());
+          printWriter = new PrintWriter(jsonFile.getAbsolutePath());
           printWriter.print(jsonConfigurations);
           printWriter.close();
         } catch (FileNotFoundException e) {
           throw new SystemException("Failed to write configurations to json file ", e);
         }
 
-        String cmd = pythonCmd + " " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
+        String cmd = pythonCmd + " " + commandScriptAbsolute + " generate_configs " + jsonFile.getAbsolutePath() + " " +
           packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
+        commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
       } catch (AmbariException e) {
+        throw new SystemException("Controller error ", e);
+      } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }
     }
@@ -484,11 +495,17 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     ExecutorService processExecutor = Executors.newFixedThreadPool(threadPoolSize);
 
     // put all threads that starts process to compress each component config files in the executor
-    List<CommandLineThreadWrapper> pythonCmdThreads = executeCommands(processExecutor, pythonCompressFilesCmds);
+    try {
+      List<CommandLineThreadWrapper> pythonCmdThreads = executeCommands(processExecutor, pythonCompressFilesCmds);
 
-    // wait for all threads to finish
-    Integer timeout =  configs.getExternalScriptTimeout();
-    waitForAllThreadsToJoin(processExecutor, pythonCmdThreads, timeout);
+      // wait for all threads to finish
+      Integer timeout = configs.getExternalScriptTimeout();
+      waitForAllThreadsToJoin(processExecutor, pythonCmdThreads, timeout);
+    } finally {
+      for (File each : commandFiles) {
+        each.delete();
+      }
+    }
 
     if (StringUtils.isEmpty(requestComponentName)) {
       TarUtils tarUtils;
