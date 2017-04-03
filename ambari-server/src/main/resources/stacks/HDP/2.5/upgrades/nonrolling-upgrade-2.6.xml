@@ -552,6 +552,12 @@
           <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+          <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
       
       <!-- SPARK -->
       <execute-stage service="SPARK" component="LIVY_SERVER" title="Apply config changes for Livy Server">

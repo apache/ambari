@@ -861,6 +861,7 @@
           <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication"/>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db" />
           <task xsi:type="configure" id="hive_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name" />
 
           <!-- Remove Atlas configs that were incorrectly added to hive-site instead of Atlas' application.properties. -->
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_hive_atlas_configs" />

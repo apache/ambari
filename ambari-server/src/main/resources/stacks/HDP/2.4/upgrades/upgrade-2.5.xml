@@ -862,6 +862,7 @@
             <summary>Update hive-env content</summary>
           </task>
           <task xsi:type="configure" id="hive_log4j_parameterize" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name" />
         </pre-upgrade>
 
         <pre-downgrade/>
