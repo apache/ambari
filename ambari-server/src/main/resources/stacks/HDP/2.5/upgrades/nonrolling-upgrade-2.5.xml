@@ -292,6 +292,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+          <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
+
       <!-- STORM -->
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
