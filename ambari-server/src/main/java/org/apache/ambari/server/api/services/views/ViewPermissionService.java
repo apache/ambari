@@ -68,7 +68,7 @@ public class ViewPermissionService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all permissions for a view", notes = "Returns all permission details for the version of a view.", response = ViewPermissionResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all permissions for a view", nickname = "ViewPermissionService#getPermissions", notes = "Returns all permission details for the version of a view.", response = ViewPermissionResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter privileges", defaultValue = "PermissionInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
@@ -100,7 +100,7 @@ public class ViewPermissionService extends BaseService {
   @GET
   @Path("{permissionId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single view permission", notes = "Returns permission details for a single version of a view.", response = ViewPermissionResponse.class)
+  @ApiOperation(value = "Get single view permission", nickname = "ViewPermissionService#getPermission", notes = "Returns permission details for a single version of a view.", response = ViewPermissionResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view permission details", defaultValue = "PermissionInfo", dataType = "string", paramType = "query")
   })

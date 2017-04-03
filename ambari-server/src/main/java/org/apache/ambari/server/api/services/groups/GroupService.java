@@ -59,7 +59,7 @@ public class GroupService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all groups", notes = "Returns details of all groups.", response = GroupResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all groups", nickname = "GroupService#getGroups", notes = "Returns details of all groups.", response = GroupResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter group details", defaultValue = "Groups/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort groups (asc | desc)", defaultValue = "Groups/group_name.asc", dataType = "string", paramType = "query"),
@@ -86,7 +86,7 @@ public class GroupService extends BaseService {
   @GET
   @Path("{groupName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get group", notes = "Returns group details.", response = GroupResponse.class)
+  @ApiOperation(value = "Get group", nickname = "GroupService#getGroup", notes = "Returns group details.", response = GroupResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter group details", defaultValue = "Groups", dataType = "string", paramType = "query")
   })
@@ -108,7 +108,7 @@ public class GroupService extends BaseService {
    */
    @POST
    @Produces("text/plain")
-   @ApiOperation(value = "Create new group", notes = "Creates group resource.")
+   @ApiOperation(value = "Create new group", nickname = "GroupService#createGroup", notes = "Creates group resource.")
    @ApiImplicitParams({
      @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.GroupRequest", paramType = "body")
    })
@@ -152,7 +152,7 @@ public class GroupService extends BaseService {
   @DELETE
   @Path("{groupName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Delete group", notes = "Delete group resource.")
+  @ApiOperation(value = "Delete group", nickname = "GroupService#deleteGroup", notes = "Delete group resource.")
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),
     @ApiResponse(code = 500, message = "Server Error")}

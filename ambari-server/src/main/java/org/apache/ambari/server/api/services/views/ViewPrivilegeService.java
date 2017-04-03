@@ -67,7 +67,7 @@ public class ViewPrivilegeService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all view instance privileges", notes = "Returns all privileges for the resource.", response = ViewPrivilegeResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all view instance privileges", nickname = "ViewPrivilegeService#getPrivileges", notes = "Returns all privileges for the resource.", response = ViewPrivilegeResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter privileges", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort privileges (asc | desc)", defaultValue = "PrivilegeInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -98,7 +98,7 @@ public class ViewPrivilegeService extends BaseService {
   @GET
   @Path("/{privilegeId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single view instance privilege", notes = "Returns privilege details.", response = ViewPrivilegeResponse.class)
+  @ApiOperation(value = "Get single view instance privilege", nickname = "ViewPrivilegeService#getPrivilege", notes = "Returns privilege details.", response = ViewPrivilegeResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter privilege details", defaultValue = "PrivilegeInfo", dataType = "string", paramType = "query")
   })
@@ -129,7 +129,7 @@ public class ViewPrivilegeService extends BaseService {
    */
   @POST
   @Produces("text/plain")
-  @ApiOperation(value = "Create view instance privilege", notes = "Create privilege resource for view instance.")
+  @ApiOperation(value = "Create view instance privilege", nickname = "ViewPrivilegeService#createPrivilege", notes = "Create privilege resource for view instance.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewPrivilegeRequest", paramType = "body")
   })
@@ -240,7 +240,7 @@ public class ViewPrivilegeService extends BaseService {
   @DELETE
   @Path("{privilegeId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Delete view instance privilege", notes = "Delete view instance privilege resource.")
+  @ApiOperation(value = "Delete view instance privilege", nickname = "ViewPrivilegeService#deletePrivilege", notes = "Delete view instance privilege resource.")
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),
     @ApiResponse(code = 500, message = "Server Error")}

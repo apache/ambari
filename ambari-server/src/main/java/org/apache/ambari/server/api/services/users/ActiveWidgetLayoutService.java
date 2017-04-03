@@ -64,7 +64,7 @@ public class ActiveWidgetLayoutService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get user widget layouts", notes = "Returns all active widget layouts for user.", response = ActiveWidgetLayoutResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get user widget layouts", nickname = "ActiveWidgetLayoutService#getServices", notes = "Returns all active widget layouts for user.", response = ActiveWidgetLayoutResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user layout details", defaultValue = "WidgetLayoutInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort layouts (asc | desc)", defaultValue = "WidgetLayoutInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -88,7 +88,7 @@ public class ActiveWidgetLayoutService extends BaseService {
    */
   @PUT
   @Produces("text/plain")
-  @ApiOperation(value = "Update user widget layouts", notes = "Updates user widget layout.")
+  @ApiOperation(value = "Update user widget layouts", nickname = "ActiveWidgetLayoutService#updateServices", notes = "Updates user widget layout.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ActiveWidgetLayoutRequest", paramType = "body")
   })

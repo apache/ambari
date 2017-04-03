@@ -67,7 +67,7 @@ public class ViewVersionService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all versions for a view", notes = "Returns details of all versions for a view.", response = ViewVersionResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all versions for a view", nickname = "ViewVersionService#getVersions", notes = "Returns details of all versions for a view.", response = ViewVersionResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view version details", defaultValue = "ViewVersionInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewVersionInfo/version.desc", dataType = "string", paramType = "query"),
@@ -99,14 +99,14 @@ public class ViewVersionService extends BaseService {
   @GET
   @Path("{version}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single view version", notes = "Returns view details.", response = ViewVersionResponse.class)
+  @ApiOperation(value = "Get single view version", nickname = "ViewVersionService#getVersion", notes = "Returns view details.", response = ViewVersionResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view details", defaultValue = "ViewVersionInfo", dataType = "string", paramType = "query")
   })
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation", response = ViewVersionResponse.class)}
   )
-  public Response getVersions(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+  public Response getVersion(String body, @Context HttpHeaders headers, @Context UriInfo ui,
                               @ApiParam(value = "view name") @PathParam("viewName") String viewName,
                               @PathParam("version") String version) {
 

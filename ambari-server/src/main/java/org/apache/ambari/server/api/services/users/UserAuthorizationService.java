@@ -67,7 +67,7 @@ public class UserAuthorizationService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all authorizations", notes = "Returns all authorization for user.", response = UserAuthorizationResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all authorizations", nickname = "UserAuthorizationService#getAuthorizations", notes = "Returns all authorization for user.", response = UserAuthorizationResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user authorization details", defaultValue = "AuthorizationInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort user authorizations (asc | desc)", defaultValue = "AuthorizationInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -93,7 +93,7 @@ public class UserAuthorizationService extends BaseService {
   @GET
   @Path("{authorization_id}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get user authorization", notes = "Returns user authorization details.", response = UserAuthorizationResponse.class)
+  @ApiOperation(value = "Get user authorization", nickname = "UserAuthorizationService#getAuthorization", notes = "Returns user authorization details.", response = UserAuthorizationResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user authorization details", defaultValue = "AuthorizationInfo/*", dataType = "string", paramType = "query")
   })

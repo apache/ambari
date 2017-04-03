@@ -35,6 +35,8 @@
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
+    <swagger.spec.dir>docs/api/generated/</swagger.spec.dir>
+    <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
@@ -256,6 +258,42 @@
               </resources>
             </configuration>
           </execution>
+          <execution>
+            <id>copy-swagger-spec</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${ambari-web-dir}/api-docs</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${swagger.spec.dir}/</directory>
+                  <includes>
+                    <include>swagger.json</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-swagger-generated-html</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${swagger.spec.dir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${swagger.generated.resources.dir}/</directory>
+                  <includes>
+                    <include>index.html</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -309,7 +347,7 @@
             <exclude>src/main/resources/stacks/BIGTOP/0.8/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer.log</exclude>
             <exclude>src/main/resources/stacks/PHD/3.0.0.0/services/HDFS/package/scripts/balancer-emulator/balancer-err.log</exclude>
-            <exclude>docs/api/asciidoc/**</exclude>
+            <exclude>${swagger.spec.dir}/**</exclude>
             <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
@@ -373,7 +411,7 @@
                   <name>Apache License, Version 2.0</name>
                 </license>
               </info>
-              <swaggerDirectory>${ambari-web-dir}/api-docs</swaggerDirectory>
+              <swaggerDirectory>${swagger.spec.dir}</swaggerDirectory>
             </apiSource>
           </apiSources>
         </configuration>
@@ -387,21 +425,21 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>io.github.robwin</groupId>
-        <artifactId>swagger2markup-maven-plugin</artifactId>
-        <version>0.9.3</version>
-        <configuration>
-          <inputDirectory>${ambari-web-dir}/api-docs</inputDirectory>
-          <swaggerFile>swagger.json</swaggerFile>
-          <outputDirectory>docs/api/asciidoc</outputDirectory>
-          <markupLanguage>asciidoc</markupLanguage>
-        </configuration>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-codegen-maven-plugin</artifactId>
+        <version>2.2.2</version>
         <executions>
           <execution>
+            <id>generate-swagger-html2</id>
             <phase>process-classes</phase>
             <goals>
-              <goal>process-swagger</goal>
+              <goal>generate</goal>
             </goals>
+            <configuration>
+              <inputSpec>${swagger.spec.dir}/swagger.json</inputSpec>
+              <language>html2</language>
+              <output>${swagger.generated.resources.dir}</output>
+            </configuration>
           </execution>
         </executions>
       </plugin>

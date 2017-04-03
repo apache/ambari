@@ -63,7 +63,7 @@ public class UserPrivilegeService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all privileges", notes = "Returns all privileges for user.", response = UserPrivilegeResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all privileges", nickname = "UserPrivilegeService#getPrivileges", notes = "Returns all privileges for user.", response = UserPrivilegeResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user privileges", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort user privileges (asc | desc)", defaultValue = "PrivilegeInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -91,7 +91,7 @@ public class UserPrivilegeService extends BaseService {
   @GET
   @Path("{privilegeId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get user privilege", notes = "Returns user privilege details.", response = UserPrivilegeResponse.class)
+  @ApiOperation(value = "Get user privilege", nickname = "UserPrivilegeService#getPrivilege", notes = "Returns user privilege details.", response = UserPrivilegeResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user privilege details", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query")
   })

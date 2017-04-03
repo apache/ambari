@@ -58,7 +58,7 @@ public class UserService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all users", notes = "Returns details of all users.", response = UserResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all users", nickname = "UserService#getUsers", notes = "Returns details of all users.", response = UserResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user details", defaultValue = "Users/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "Users/user_name.desc", dataType = "string", paramType = "query"),
@@ -85,7 +85,7 @@ public class UserService extends BaseService {
   @GET
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single user", notes = "Returns user details.", response = UserResponse.class)
+  @ApiOperation(value = "Get single user", nickname = "UserService#getUser", notes = "Returns user details.", response = UserResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user details", defaultValue = "Users", dataType = "string", paramType = "query")
   })
@@ -123,7 +123,7 @@ public class UserService extends BaseService {
   @POST
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Create new user", notes = "Creates user resource.")
+  @ApiOperation(value = "Create new user", nickname = "UserService#createUser", notes = "Creates user resource.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.UserRequest", paramType = "body")
   })
@@ -148,7 +148,7 @@ public class UserService extends BaseService {
   @PUT
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Update user detail", notes = "Updates user resource.")
+  @ApiOperation(value = "Update user detail", nickname = "UserService#updateUser", notes = "Updates user resource.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.UserRequest", paramType = "body")
   })
@@ -169,7 +169,7 @@ public class UserService extends BaseService {
   @DELETE
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Delete single user", notes = "Delete user resource.")
+  @ApiOperation(value = "Delete single user", nickname = "UserService#deleteUser", notes = "Delete user resource.")
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),
     @ApiResponse(code = 500, message = "Server Error")}

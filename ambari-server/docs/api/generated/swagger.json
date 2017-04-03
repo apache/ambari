@@ -1,0 +1,2305 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "Ambari REST APIs has inherent support for querying, sorting and pagination",
+    "version" : "v1",
+    "title" : "Swagger spec for Ambari REST API",
+    "license" : {
+      "name" : "Apache License, Version 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "basePath" : "/api/v1",
+  "tags" : [ {
+    "name" : "Groups",
+    "description" : "Endpoint for group specific operations"
+  }, {
+    "name" : "Users",
+    "description" : "Endpoint for user specific operations"
+  }, {
+    "name" : "Views"
+  } ],
+  "schemes" : [ "http", "https" ],
+  "paths" : {
+    "/groups" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get all groups",
+        "description" : "Returns details of all groups.",
+        "operationId" : "GroupService#getGroups",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter group details",
+          "required" : false,
+          "type" : "string",
+          "default" : "Groups/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort groups (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Groups/group_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful retrieval of all group entries",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/GroupResponse"
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Create new group",
+        "description" : "Creates group resource.",
+        "operationId" : "GroupService#createGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/GroupRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/groups/{groupName}" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get group",
+        "description" : "Returns group details.",
+        "operationId" : "GroupService#getGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter group details",
+          "required" : false,
+          "type" : "string",
+          "default" : "Groups"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful retrieval of group resource",
+            "schema" : {
+              "$ref" : "#/definitions/GroupResponse"
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Delete group",
+        "description" : "Delete group resource.",
+        "operationId" : "GroupService#deleteGroup",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/groups/{groupName}/members" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get all group members",
+        "description" : "Returns details of all members.",
+        "operationId" : "MemberService#getMembers",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter member details",
+          "required" : false,
+          "type" : "string",
+          "default" : "MemberInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort members (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "MemberInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/MemberResponse"
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Update group members",
+        "description" : "Updates group member resources.",
+        "operationId" : "MemberService#updateMembers",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/MemberRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/groups/{groupName}/members/{userName}" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get group member",
+        "description" : "Returns member details.",
+        "operationId" : "MemberService#getMember",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter member details",
+          "required" : false,
+          "type" : "string",
+          "default" : "MemberInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/MemberResponse"
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Delete group member",
+        "description" : "Delete member resource.",
+        "operationId" : "MemberService#deleteMember",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/groups/{groupName}/privileges" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get all privileges",
+        "description" : "Returns all privileges for group.",
+        "operationId" : "GroupPrivilegeService#getPrivileges",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user privileges",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort user privileges (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/GroupPrivilegeResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{groupName}/privileges/{privilegeId}" : {
+      "get" : {
+        "tags" : [ "Groups" ],
+        "summary" : "Get group privilege",
+        "description" : "Returns group privilege details.",
+        "operationId" : "GroupPrivilegeService#getPrivilege",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "groupName",
+          "in" : "path",
+          "description" : "group name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "privilegeId",
+          "in" : "path",
+          "description" : "privilege id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter group privilege details",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/*"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/PrivilegeResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get all users",
+        "description" : "Returns details of all users.",
+        "operationId" : "UserService#getUsers",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user details",
+          "required" : false,
+          "type" : "string",
+          "default" : "Users/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort users (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "Users/user_name.desc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/UserResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userName}" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get single user",
+        "description" : "Returns user details.",
+        "operationId" : "UserService#getUser",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string",
+          "default" : "admin"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user details",
+          "required" : false,
+          "type" : "string",
+          "default" : "Users"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/UserResponse"
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Users" ],
+        "summary" : "Create new user",
+        "description" : "Creates user resource.",
+        "operationId" : "UserService#createUser",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/UserRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Users" ],
+        "summary" : "Update user detail",
+        "description" : "Updates user resource.",
+        "operationId" : "UserService#updateUser",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/UserRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Users" ],
+        "summary" : "Delete single user",
+        "description" : "Delete user resource.",
+        "operationId" : "UserService#deleteUser",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/users/{userName}/activeWidgetLayouts" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get user widget layouts",
+        "description" : "Returns all active widget layouts for user.",
+        "operationId" : "ActiveWidgetLayoutService#getServices",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user layout details",
+          "required" : false,
+          "type" : "string",
+          "default" : "WidgetLayoutInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort layouts (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "WidgetLayoutInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ActiveWidgetLayoutResponse"
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Users" ],
+        "summary" : "Update user widget layouts",
+        "description" : "Updates user widget layout.",
+        "operationId" : "ActiveWidgetLayoutService#updateServices",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/ActiveWidgetLayoutRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/users/{userName}/authorizations" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get all authorizations",
+        "description" : "Returns all authorization for user.",
+        "operationId" : "UserAuthorizationService#getAuthorizations",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user authorization details",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthorizationInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort user authorizations (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthorizationInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/UserAuthorizationResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userName}/authorizations/{authorization_id}" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get user authorization",
+        "description" : "Returns user authorization details.",
+        "operationId" : "UserAuthorizationService#getAuthorization",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "authorization_id",
+          "in" : "path",
+          "description" : "Authorization Id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user authorization details",
+          "required" : false,
+          "type" : "string",
+          "default" : "AuthorizationInfo/*"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/UserAuthorizationResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users/{userName}/privileges" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get all privileges",
+        "description" : "Returns all privileges for user.",
+        "operationId" : "UserPrivilegeService#getPrivileges",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string",
+          "default" : "admin"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user privileges",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort user privileges (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/UserPrivilegeResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{userName}/privileges/{privilegeId}" : {
+      "get" : {
+        "tags" : [ "Users" ],
+        "summary" : "Get user privilege",
+        "description" : "Returns user privilege details.",
+        "operationId" : "UserPrivilegeService#getPrivilege",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "userName",
+          "in" : "path",
+          "description" : "user name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "privilegeId",
+          "in" : "path",
+          "description" : "privilege id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter user privilege details",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/*"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/UserPrivilegeResponse"
+            }
+          }
+        }
+      }
+    },
+    "/views" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all views",
+        "description" : "Returns details of all views.",
+        "operationId" : "ViewService#getViews",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort users (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInfo/view_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view",
+        "description" : "Returns view details.",
+        "operationId" : "ViewService#getView",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewResponse"
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all versions for a view",
+        "description" : "Returns details of all versions for a view.",
+        "operationId" : "ViewVersionService#getVersions",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view version details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewVersionInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort users (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewVersionInfo/version.desc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewVersionResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view version",
+        "description" : "Returns view details.",
+        "operationId" : "ViewVersionService#getVersion",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewVersionInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewVersionResponse"
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/instances" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all view instances",
+        "description" : "Returns all instances for a view version.",
+        "operationId" : "ViewInstanceService#getServices",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view instance details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInstanceInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort users (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInstanceInfo/instance_name.desc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewInstanceResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/instances/{instanceName}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view instance",
+        "description" : "Returns view instance details.",
+        "operationId" : "ViewInstanceService#getService",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view instance details",
+          "required" : false,
+          "type" : "string",
+          "default" : "ViewInstanceInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewInstanceResponse"
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Views" ],
+        "summary" : "Create view instance",
+        "description" : "Creates view instance resource.",
+        "operationId" : "ViewInstanceService#createService",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/ViewInstanceRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Views" ],
+        "summary" : "Update view instance detail",
+        "description" : "Updates view instance resource.",
+        "operationId" : "ViewInstanceService#updateService",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/ViewInstanceRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Views" ],
+        "summary" : "Delete view instance",
+        "description" : "Delete view resource.",
+        "operationId" : "ViewInstanceService#deleteService",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/instances/{instanceName}/migrate/{originVersion}/{originInstanceName}" : {
+      "put" : {
+        "tags" : [ "Views" ],
+        "summary" : "Migrate view instance data",
+        "description" : "Migrates view instance persistence data from origin view instance specified in the path params.",
+        "operationId" : "ViewDataMigrationService#migrateData",
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "originVersion",
+          "in" : "path",
+          "description" : "origin version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "originInstanceName",
+          "in" : "path",
+          "description" : "origin instance name",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/instances/{instanceName}/privileges" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all view instance privileges",
+        "description" : "Returns all privileges for the resource.",
+        "operationId" : "ViewPrivilegeService#getPrivileges",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter privileges",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/*"
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "description" : "Sort privileges (asc | desc)",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo/user_name.asc"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewPrivilegeResponse"
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Views" ],
+        "summary" : "Create view instance privilege",
+        "description" : "Create privilege resource for view instance.",
+        "operationId" : "ViewPrivilegeService#createPrivilege",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "input parameters in json form",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/ViewPrivilegeRequest"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/instances/{instanceName}/privileges/{privilegeId}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view instance privilege",
+        "description" : "Returns privilege details.",
+        "operationId" : "ViewPrivilegeService#getPrivilege",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "privilegeId",
+          "in" : "path",
+          "description" : "privilege id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter privilege details",
+          "required" : false,
+          "type" : "string",
+          "default" : "PrivilegeInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewPrivilegeResponse"
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Views" ],
+        "summary" : "Delete view instance privilege",
+        "description" : "Delete view instance privilege resource.",
+        "operationId" : "ViewPrivilegeService#deletePrivilege",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "instanceName",
+          "in" : "path",
+          "description" : "instance name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "privilegeId",
+          "in" : "path",
+          "description" : "privilege id",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation"
+          },
+          "500" : {
+            "description" : "Server Error"
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/permissions" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get all permissions for a view",
+        "description" : "Returns all permission details for the version of a view.",
+        "operationId" : "ViewPermissionService#getPermissions",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter privileges",
+          "required" : false,
+          "type" : "string",
+          "default" : "PermissionInfo/*"
+        }, {
+          "name" : "page_size",
+          "in" : "query",
+          "description" : "The number of resources to be returned for the paged response.",
+          "required" : false,
+          "type" : "integer",
+          "default" : 10
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
+          "required" : false,
+          "type" : "string",
+          "default" : "0"
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/ViewPermissionResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/views/{viewName}/versions/{version}/permissions/{permissionId}" : {
+      "get" : {
+        "tags" : [ "Views" ],
+        "summary" : "Get single view permission",
+        "description" : "Returns permission details for a single version of a view.",
+        "operationId" : "ViewPermissionService#getPermission",
+        "produces" : [ "text/plain" ],
+        "parameters" : [ {
+          "name" : "viewName",
+          "in" : "path",
+          "description" : "view name",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "version",
+          "in" : "path",
+          "description" : "view version",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "permissionId",
+          "in" : "path",
+          "description" : "permission id",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "fields",
+          "in" : "query",
+          "description" : "Filter view permission details",
+          "required" : false,
+          "type" : "string",
+          "default" : "PermissionInfo"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/ViewPermissionResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "ActiveWidgetLayoutRequest" : {
+      "type" : "object",
+      "properties" : {
+        "WidgetLayouts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/WidgetLayoutIdWrapper"
+          }
+        }
+      }
+    },
+    "ActiveWidgetLayoutResponse" : {
+      "type" : "object",
+      "properties" : {
+        "WidgetLayoutInfo/cluster_name" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/display_name" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/layout_name" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/scope" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/section_name" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/user_name" : {
+          "type" : "string"
+        },
+        "WidgetLayoutInfo/widgets" : {
+          "type" : "array",
+          "items" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/definitions/WidgetResponse"
+            }
+          }
+        }
+      }
+    },
+    "GroupPrivilegeResponse" : {
+      "type" : "object",
+      "required" : [ "PrivilegeInfo/group_name" ],
+      "properties" : {
+        "PrivilegeInfo/permission_label" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/privilege_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "PrivilegeInfo/permission_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/principal_type" : {
+          "type" : "string",
+          "enum" : [ "USER", "GROUP", "ROLE" ]
+        },
+        "PrivilegeInfo/principal_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/type" : {
+          "type" : "string",
+          "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
+        },
+        "PrivilegeInfo/cluster_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/view_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/version" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/instance_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/group_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "GroupRequest" : {
+      "type" : "object",
+      "required" : [ "Groups/group_name" ],
+      "properties" : {
+        "Groups/group_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "GroupResponse" : {
+      "type" : "object",
+      "properties" : {
+        "Groups/group_name" : {
+          "type" : "string"
+        },
+        "Groups/ldap_group" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "Groups/group_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL", "LDAP", "JWT", "PAM" ]
+        }
+      }
+    },
+    "MemberRequest" : {
+      "type" : "object",
+      "required" : [ "MemberInfo/group_name", "MemberInfo/user_name" ],
+      "properties" : {
+        "MemberInfo/group_name" : {
+          "type" : "string"
+        },
+        "MemberInfo/user_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MemberResponse" : {
+      "type" : "object",
+      "properties" : {
+        "MemberInfo/group_name" : {
+          "type" : "string"
+        },
+        "MemberInfo/user_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ParameterConfig" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "placeholder" : {
+          "type" : "string"
+        },
+        "defaultValue" : {
+          "type" : "string",
+          "xml" : {
+            "name" : "default-value"
+          }
+        },
+        "clusterConfig" : {
+          "type" : "string",
+          "xml" : {
+            "name" : "cluster-config"
+          }
+        },
+        "required" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "masked" : {
+          "type" : "boolean",
+          "default" : false
+        }
+      }
+    },
+    "PrivilegeResponse" : {
+      "type" : "object",
+      "properties" : {
+        "PrivilegeInfo/permission_label" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/privilege_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "PrivilegeInfo/permission_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/principal_type" : {
+          "type" : "string",
+          "enum" : [ "USER", "GROUP", "ROLE" ]
+        },
+        "PrivilegeInfo/principal_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/type" : {
+          "type" : "string",
+          "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
+        },
+        "PrivilegeInfo/cluster_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/view_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/version" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/instance_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserAuthorizationResponse" : {
+      "type" : "object",
+      "required" : [ "AuthorizationInfo/user_name" ],
+      "properties" : {
+        "AuthorizationInfo/authorization_id" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/authorization_name" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/resource_type" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/user_name" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/cluster_name" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/view_name" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/view_version" : {
+          "type" : "string"
+        },
+        "AuthorizationInfo/view_instance_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserPrivilegeResponse" : {
+      "type" : "object",
+      "required" : [ "PrivilegeInfo/user_name" ],
+      "properties" : {
+        "PrivilegeInfo/permission_label" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/privilege_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "PrivilegeInfo/permission_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/principal_type" : {
+          "type" : "string",
+          "enum" : [ "USER", "GROUP", "ROLE" ]
+        },
+        "PrivilegeInfo/principal_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/type" : {
+          "type" : "string",
+          "enum" : [ "AMBARI", "CLUSTER", "VIEW" ]
+        },
+        "PrivilegeInfo/cluster_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/view_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/version" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/instance_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/user_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserRequest" : {
+      "type" : "object",
+      "properties" : {
+        "Users/password" : {
+          "type" : "string"
+        },
+        "Users/old_password" : {
+          "type" : "string"
+        },
+        "Users/active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "Users/admin" : {
+          "type" : "boolean",
+          "default" : false
+        }
+      }
+    },
+    "UserResponse" : {
+      "type" : "object",
+      "required" : [ "Users/user_name" ],
+      "properties" : {
+        "Users/user_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL", "LDAP", "JWT", "PAM" ]
+        },
+        "Users/groups" : {
+          "type" : "array",
+          "uniqueItems" : true,
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "Users/user_name" : {
+          "type" : "string"
+        },
+        "Users/active" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "Users/admin" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "Users/ldap_user" : {
+          "type" : "boolean",
+          "default" : false
+        }
+      }
+    },
+    "ValidationResult" : {
+      "type" : "object",
+      "properties" : {
+        "valid" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "detail" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewInfo" : {
+      "type" : "object",
+      "properties" : {
+        "view_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewInstanceRequest" : {
+      "type" : "object",
+      "properties" : {
+        "ViewInstanceInfo" : {
+          "$ref" : "#/definitions/ViewInstanceRequestInfo"
+        }
+      }
+    },
+    "ViewInstanceRequestInfo" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "visible" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "icon_path" : {
+          "type" : "string"
+        },
+        "icon64_path" : {
+          "type" : "string"
+        },
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "instance_data" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "cluster_handle" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "cluster_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL_AMBARI", "REMOTE_AMBARI", "NONE" ]
+        }
+      }
+    },
+    "ViewInstanceResponse" : {
+      "type" : "object",
+      "properties" : {
+        "ViewInstanceInfo" : {
+          "$ref" : "#/definitions/ViewInstanceResponseInfo"
+        }
+      }
+    },
+    "ViewInstanceResponseInfo" : {
+      "type" : "object",
+      "properties" : {
+        "view_name" : {
+          "type" : "string"
+        },
+        "version" : {
+          "type" : "string"
+        },
+        "instance_name" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "visible" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "icon_path" : {
+          "type" : "string"
+        },
+        "icon64_path" : {
+          "type" : "string"
+        },
+        "properties" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "instance_data" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "type" : "string"
+          }
+        },
+        "cluster_handle" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "cluster_type" : {
+          "type" : "string",
+          "enum" : [ "LOCAL_AMBARI", "REMOTE_AMBARI", "NONE" ]
+        },
+        "context_path" : {
+          "type" : "string"
+        },
+        "static" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "short_url" : {
+          "type" : "string"
+        },
+        "short_url_name" : {
+          "type" : "string"
+        },
+        "validation_result" : {
+          "$ref" : "#/definitions/ValidationResult"
+        },
+        "property_validation_results" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "$ref" : "#/definitions/ValidationResult"
+          }
+        }
+      }
+    },
+    "ViewPermissionInfo" : {
+      "type" : "object",
+      "properties" : {
+        "view_name" : {
+          "type" : "string"
+        },
+        "version" : {
+          "type" : "string"
+        },
+        "permission_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "permission_name" : {
+          "type" : "string"
+        },
+        "resource_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewPermissionResponse" : {
+      "type" : "object",
+      "properties" : {
+        "ViewPermissionInfo" : {
+          "$ref" : "#/definitions/ViewPermissionInfo"
+        }
+      }
+    },
+    "ViewPrivilegeRequest" : {
+      "type" : "object",
+      "properties" : {
+        "PrivilegeInfo/permission_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/principal_type" : {
+          "type" : "string",
+          "enum" : [ "USER", "GROUP", "ROLE" ]
+        },
+        "PrivilegeInfo/principal_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewPrivilegeResponse" : {
+      "type" : "object",
+      "properties" : {
+        "PrivilegeInfo/permission_label" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/privilege_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "PrivilegeInfo/permission_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/principal_type" : {
+          "type" : "string",
+          "enum" : [ "USER", "GROUP", "ROLE" ]
+        },
+        "PrivilegeInfo/principal_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/view_name" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/version" : {
+          "type" : "string"
+        },
+        "PrivilegeInfo/instance_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewResponse" : {
+      "type" : "object",
+      "properties" : {
+        "ViewInfo" : {
+          "$ref" : "#/definitions/ViewInfo"
+        }
+      }
+    },
+    "ViewVersionInfo" : {
+      "type" : "object",
+      "properties" : {
+        "archive" : {
+          "type" : "string"
+        },
+        "build_number" : {
+          "type" : "string"
+        },
+        "cluster_configurable" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "masker_class" : {
+          "type" : "string"
+        },
+        "max_ambari_version" : {
+          "type" : "string"
+        },
+        "min_ambari_version" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ParameterConfig"
+          }
+        },
+        "status" : {
+          "type" : "string",
+          "enum" : [ "PENDING", "DEPLOYING", "DEPLOYED", "ERROR" ]
+        },
+        "status_detail" : {
+          "type" : "string"
+        },
+        "system" : {
+          "type" : "boolean",
+          "default" : false
+        },
+        "version" : {
+          "type" : "string"
+        },
+        "view_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewVersionResponse" : {
+      "type" : "object",
+      "properties" : {
+        "ViewVersionInfo" : {
+          "$ref" : "#/definitions/ViewVersionInfo"
+        }
+      }
+    },
+    "WidgetLayoutIdWrapper" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        }
+      }
+    },
+    "WidgetResponse" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "widgetName" : {
+          "type" : "string"
+        },
+        "widgetType" : {
+          "type" : "string"
+        },
+        "metrics" : {
+          "type" : "string"
+        },
+        "timeCreated" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "author" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "displayName" : {
+          "type" : "string"
+        },
+        "scope" : {
+          "type" : "string"
+        },
+        "widgetValues" : {
+          "type" : "string"
+        },
+        "properties" : {
+          "type" : "string"
+        },
+        "clusterName" : {
+          "type" : "string"
+        }
+      }
+    }
+  }
+}

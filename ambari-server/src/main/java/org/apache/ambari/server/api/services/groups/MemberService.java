@@ -98,7 +98,7 @@ public class MemberService extends BaseService {
    @DELETE
    @Path("{userName}")
    @Produces("text/plain")
-   @ApiOperation(value = "Delete group member", notes = "Delete member resource.")
+   @ApiOperation(value = "Delete group member", nickname = "MemberService#deleteMember", notes = "Delete member resource.")
    @ApiResponses(value = {
      @ApiResponse(code = 200, message = "Successful operation"),
      @ApiResponse(code = 500, message = "Server Error")}
@@ -119,7 +119,7 @@ public class MemberService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all group members", notes = "Returns details of all members.", response = MemberResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all group members", nickname = "MemberService#getMembers", notes = "Returns details of all members.", response = MemberResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter member details", defaultValue = "MemberInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort members (asc | desc)", defaultValue = "MemberInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -147,7 +147,7 @@ public class MemberService extends BaseService {
   @GET
   @Path("{userName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get group member", notes = "Returns member details.", response = MemberResponse.class)
+  @ApiOperation(value = "Get group member", nickname = "MemberService#getMember", notes = "Returns member details.", response = MemberResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter member details", defaultValue = "MemberInfo", dataType = "string", paramType = "query")
   })
@@ -170,7 +170,7 @@ public class MemberService extends BaseService {
    */
   @PUT
   @Produces("text/plain")
-  @ApiOperation(value = "Update group members", notes = "Updates group member resources.", responseContainer = "List")
+  @ApiOperation(value = "Update group members", nickname = "MemberService#updateMembers", notes = "Updates group member resources.", responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.MemberRequest", paramType = "body")
   })

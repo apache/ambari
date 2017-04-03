@@ -70,13 +70,13 @@ public class ViewDataMigrationService extends BaseService {
    */
   @PUT
   @Path("{originVersion}/{originInstanceName}")
-  @ApiOperation(value = "Migrate view instance data", notes = "Migrates view instance persistence data from origin view instance specified in the path params.")
+  @ApiOperation(value = "Migrate view instance data", nickname = "ViewDataMigrationService#migrateData", notes = "Migrates view instance persistence data from origin view instance specified in the path params.")
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),
     @ApiResponse(code = 500, message = "Server Error")}
   )
   public Response migrateData( @ApiParam(value = "view name") @PathParam("viewName") String viewName,
-                               @ApiParam(value = "view version") @PathParam("viewVersion") String viewVersion,
+                               @ApiParam(value = "view version") @PathParam("version") String viewVersion,
                                @ApiParam(value = "instance name") @PathParam("instanceName") String instanceName,
                                @ApiParam(value = "origin version") @PathParam("originVersion") String originViewVersion,
                                @ApiParam(value = "origin instance name") @PathParam("originInstanceName") String originInstanceName)

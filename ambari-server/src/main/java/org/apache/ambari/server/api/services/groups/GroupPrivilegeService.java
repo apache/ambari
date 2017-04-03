@@ -62,7 +62,7 @@ public class GroupPrivilegeService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all privileges", notes = "Returns all privileges for group.", response = GroupPrivilegeResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all privileges", nickname = "GroupPrivilegeService#getPrivileges", notes = "Returns all privileges for group.", response = GroupPrivilegeResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user privileges", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort user privileges (asc | desc)", defaultValue = "PrivilegeInfo/user_name.asc", dataType = "string", paramType = "query"),
@@ -90,14 +90,14 @@ public class GroupPrivilegeService extends BaseService {
   @GET
   @Path("{privilegeId}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get group privilege", notes = "Returns group privilege details.", response = GroupPrivilegeResponse.class)
+  @ApiOperation(value = "Get group privilege", nickname = "GroupPrivilegeService#getPrivilege", notes = "Returns group privilege details.", response = GroupPrivilegeResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter group privilege details", defaultValue = "PrivilegeInfo/*", dataType = "string", paramType = "query")
   })
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation", response = PrivilegeResponse.class)}
   )
-  public Response getPrivilege(@Context HttpHeaders headers, @Context UriInfo ui, @ApiParam(value = "user name", required = true) @PathParam ("userName") String groupName,
+  public Response getPrivilege(@Context HttpHeaders headers, @Context UriInfo ui, @ApiParam(value = "group name", required = true) @PathParam ("groupName") String groupName,
                                @ApiParam(value = "privilege id", required = true) @PathParam("privilegeId") String privilegeId) {
     return handleRequest(headers, null, ui, Request.Type.GET, createPrivilegeResource(groupName, privilegeId));
   }

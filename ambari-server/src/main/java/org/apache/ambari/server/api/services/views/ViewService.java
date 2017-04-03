@@ -65,7 +65,7 @@ public class ViewService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all views", notes = "Returns details of all views.", response = ViewResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all views", nickname = "ViewService#getViews", notes = "Returns details of all views.", response = ViewResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view details", defaultValue = "ViewInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewInfo/view_name.asc", dataType = "string", paramType = "query"),
@@ -93,7 +93,7 @@ public class ViewService extends BaseService {
   @GET
   @Path("{viewName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single view", notes = "Returns view details.", response = ViewResponse.class)
+  @ApiOperation(value = "Get single view", nickname = "ViewService#getView", notes = "Returns view details.", response = ViewResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view details", defaultValue = "ViewInfo", dataType = "string", paramType = "query")
   })

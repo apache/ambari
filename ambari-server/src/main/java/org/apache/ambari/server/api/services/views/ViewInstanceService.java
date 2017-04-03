@@ -75,7 +75,7 @@ public class ViewInstanceService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  @ApiOperation(value = "Get all view instances", notes = "Returns all instances for a view version.", response = ViewInstanceResponse.class, responseContainer = "List")
+  @ApiOperation(value = "Get all view instances", nickname = "ViewInstanceService#getServices", notes = "Returns all instances for a view version.", response = ViewInstanceResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view instance details", defaultValue = "ViewInstanceInfo/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "ViewInstanceInfo/instance_name.desc", dataType = "string", paramType = "query"),
@@ -107,7 +107,7 @@ public class ViewInstanceService extends BaseService {
   @GET
   @Path("{instanceName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Get single view instance", notes = "Returns view instance details.", response = ViewInstanceResponse.class)
+  @ApiOperation(value = "Get single view instance", nickname = "ViewInstanceService#getService", notes = "Returns view instance details.", response = ViewInstanceResponse.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter view instance details", defaultValue = "ViewInstanceInfo", dataType = "string", paramType = "query")
   })
@@ -137,7 +137,7 @@ public class ViewInstanceService extends BaseService {
   @POST
   @Path("{instanceName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Create view instance", notes = "Creates view instance resource.")
+  @ApiOperation(value = "Create view instance", nickname = "ViewInstanceService#createService", notes = "Creates view instance resource.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
   })
@@ -186,7 +186,7 @@ public class ViewInstanceService extends BaseService {
   @PUT
   @Path("{instanceName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Update view instance detail", notes = "Updates view instance resource.")
+  @ApiOperation(value = "Update view instance detail", nickname = "ViewInstanceService#updateService", notes = "Updates view instance resource.")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
   })
@@ -234,7 +234,7 @@ public class ViewInstanceService extends BaseService {
   @DELETE
   @Path("{instanceName}")
   @Produces("text/plain")
-  @ApiOperation(value = "Delete view instance", notes = "Delete view resource.")
+  @ApiOperation(value = "Delete view instance", nickname = "ViewInstanceService#deleteService", notes = "Delete view resource.")
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),
     @ApiResponse(code = 500, message = "Server Error")}
