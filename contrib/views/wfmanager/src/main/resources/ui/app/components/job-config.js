@@ -68,6 +68,12 @@ export default Ember.Component.extend(Validations, {
     var configProperties = [];
     configProperties.pushObjects(this.extractJobParams());
     configProperties.pushObjects(this.extractJobProperties());
+    configProperties.forEach((configProperty)=>{
+      var oldConfigProp = this.jobConfigProperties.filterBy('name', configProperty.name);
+      if (oldConfigProp.length > 0) {
+          configProperty.value = oldConfigProp[0].value;
+      }
+    }, this);
     return configProperties;
   }),
   initialize :function(){
@@ -174,6 +180,7 @@ export default Ember.Component.extend(Validations, {
       return;
     };
     this.set('jobFilePath', Ember.copy(this.get('filePath')));
+    this.set("jobConfigProperties", Ember.copy(this.get("configMap")));
     var url = Ember.ENV.API_URL + "/submitJob?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
     url = url + "&jobType=" + this.get('displayName').toUpperCase();
     var submitConfigs = this.get("configMap");

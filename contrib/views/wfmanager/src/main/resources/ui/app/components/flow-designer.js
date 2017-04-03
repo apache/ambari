@@ -114,6 +114,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showingStreamImport:false,
   fileInfo:Ember.Object.create(),
   isDraft: false,
+  jobConfigProperties: Ember.A([]),
   saveJobService : Ember.inject.service('save-job'),
   initialize : function(){
     var id = 'cy-' + Math.ceil(Math.random() * 1000);
