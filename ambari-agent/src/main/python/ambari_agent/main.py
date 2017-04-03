@@ -332,8 +332,9 @@ def run_threads(server_hostname, heartbeat_stop_callback):
   while controller.is_alive():
     time.sleep(0.1)
 
-    if controller.get_status_commands_executor().need_relaunch:
-      controller.get_status_commands_executor().relaunch("COMMAND_TIMEOUT_OR_KILLED")
+    need_relaunch, reason = controller.get_status_commands_executor().need_relaunch
+    if need_relaunch:
+      controller.get_status_commands_executor().relaunch(reason)
 
   controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
 
