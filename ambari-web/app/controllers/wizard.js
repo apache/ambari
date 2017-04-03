@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var persistUtils = require('utils/persist');
 
 require('models/host');
 
@@ -915,7 +914,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadServiceConfigProperties: function () {
     var dfd = $.Deferred();
     var self = this;
-    this.getPersistentProperty('serviceConfigProperties').always(function(data) {
+    this.getDecompressedData('serviceConfigProperties').always(function(data) {
       if (data && !data.error) {
         self.set('content.serviceConfigProperties', data);
       }
@@ -971,7 +970,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }, this);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
-    return this.setPersistentProperty('serviceConfigProperties', serviceConfigProperties);
+    return this.postCompressedData('serviceConfigProperties', serviceConfigProperties);
   },
 
   isExcludedConfig: function (configProperty) {
@@ -1436,7 +1435,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   clearServiceConfigProperties: function() {
     this.get('content.serviceConfigProperties', null);
-    return this.removePersistentProperty('serviceConfigProperties');
+    return this.postCompressedData('serviceConfigProperties', '');
   },
 
   saveTasksStatuses: function (tasksStatuses) {

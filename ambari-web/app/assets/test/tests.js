@@ -186,6 +186,7 @@ var files = [
   'test/mixins/common/serverValidator_test',
   'test/mixins/common/table_server_view_mixin_test',
   'test/mixins/common/widget_mixin_test',
+  'test/mixins/common/persist_test',
   'test/mixins/main/host/details/host_components/decommissionable_test',
   'test/mixins/main/host/details/host_components/install_component_test',
   'test/mixins/main/service/configs/widget_popover_support_test',

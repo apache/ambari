@@ -26,7 +26,7 @@ var timezoneUtils = require('utils/date/timezone');
  *
  * @class UserSettingsController
  */
-App.UserSettingsController = Em.Controller.extend(App.UserPref, {
+App.UserSettingsController = Em.Controller.extend(App.Persist, {
 
   name: 'userSettingsController',
 

@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.ApplicationController = Em.Controller.extend(App.UserPref, {
+App.ApplicationController = Em.Controller.extend(App.Persist, {
 
   name: 'applicationController',
 
