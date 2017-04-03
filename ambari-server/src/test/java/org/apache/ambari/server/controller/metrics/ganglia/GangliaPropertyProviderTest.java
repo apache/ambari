@@ -474,9 +474,9 @@ public class GangliaPropertyProviderTest {
       resources.add(resource);
       
       if (hostsList.length() != 0)
-        hostsList.append("," + "host" + i );
+        hostsList.append(",host").append(i);
       else
-        hostsList.append("host" + i); 
+        hostsList.append("host").append(i);
     }
 
     // only ask for one property
@@ -945,7 +945,7 @@ public class GangliaPropertyProviderTest {
       for (String metricRegex: metricsRegexes)
       {
         if (entry.getKey().startsWith(metricRegex)) {
-          metricsBuilder.append(entry.getValue().getPropertyId() + ",");
+          metricsBuilder.append(entry.getValue().getPropertyId()).append(",");
         }
       }
     }

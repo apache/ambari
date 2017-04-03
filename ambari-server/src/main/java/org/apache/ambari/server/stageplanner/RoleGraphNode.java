@@ -72,7 +72,7 @@ public class RoleGraphNode {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("("+role+", "+command +", "+inDegree+")");
+    builder.append("(").append(role).append(", ").append(command).append(", ").append(inDegree).append(")");
     return builder.toString();
   }
 }

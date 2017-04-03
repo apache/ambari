@@ -132,11 +132,11 @@ public class ServiceRequest {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("clusterName=" + clusterName
-        + ", serviceName=" + serviceName
-        + ", desiredState=" + desiredState
-        + ", credentialStoreEnabled=" + credentialStoreEnabled
-        + ", credentialStoreSupported=" + credentialStoreSupported);
+    sb.append("clusterName=").append(clusterName)
+      .append(", serviceName=").append(serviceName)
+      .append(", desiredState=").append(desiredState)
+      .append(", credentialStoreEnabled=").append(credentialStoreEnabled)
+      .append(", credentialStoreSupported=").append(credentialStoreSupported);
     return sb.toString();
   }
 }

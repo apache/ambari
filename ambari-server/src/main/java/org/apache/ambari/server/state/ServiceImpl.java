@@ -423,10 +423,12 @@ public class ServiceImpl implements Service {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("Service={ serviceName=" + getName() + ", clusterName=" + cluster.getClusterName()
-        + ", clusterId=" + cluster.getClusterId() + ", desiredStackVersion="
-        + getDesiredStackVersion() + ", desiredState=" + getDesiredState().toString()
-        + ", components=[ ");
+    sb.append("Service={ serviceName=").append(getName())
+      .append(", clusterName=").append(cluster.getClusterName())
+      .append(", clusterId=").append(cluster.getClusterId())
+      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredState=").append(getDesiredState())
+      .append(", components=[ ");
     boolean first = true;
     for (ServiceComponent sc : components.values()) {
       if (!first) {

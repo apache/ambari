@@ -121,14 +121,15 @@ public class ActionRequest {
 
   @Override
   public String toString() {
-    return (new StringBuilder()).
-        append("actionName :" + actionName).
-        append(", actionType :" + actionType).
-        append(", inputs :" + inputs).
-        append(", targetService :" + targetService).
-        append(", targetComponent :" + targetComponent).
-        append(", description :" + description).
-        append(", targetType :" + targetType).
-        append(", defaultTimeout :" + defaultTimeout).toString();
+    return new StringBuilder()
+      .append("actionName :").append(actionName)
+      .append(", actionType :").append(actionType)
+      .append(", inputs :").append(inputs)
+      .append(", targetService :").append(targetService)
+      .append(", targetComponent :").append(targetComponent)
+      .append(", description :").append(description)
+      .append(", targetType :").append(targetType)
+      .append(", defaultTimeout :").append(defaultTimeout)
+      .toString();
   }
 }

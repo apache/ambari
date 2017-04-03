@@ -104,7 +104,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
             String propertyValue = propertyEntry.getValue();
             if (propertyValue != null) {
               if (SecretReference.isSecret(propertyValue)) {
-                errorMessage.append("  Config:" + configType + " Property:" + propertyName+"\n");
+                errorMessage.append("  Config:").append(configType).append(" Property:").append(propertyName).append("\n");
                 containsSecretReferences = true;
               }
             }

@@ -75,6 +75,6 @@ public class PostgresHelper extends GenericDbmsHelper {
 
   @Override
   public  StringBuilder writeDropPrimaryKeyStatement(StringBuilder builder, String constraintName, boolean cascade){
-      return builder.append("DROP CONSTRAINT ").append(constraintName + (cascade ? " CASCADE" : ""));
+      return builder.append("DROP CONSTRAINT ").append(constraintName).append(cascade ? " CASCADE" : "");
   }
 }
