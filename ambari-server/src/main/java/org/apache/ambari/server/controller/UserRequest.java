@@ -70,7 +70,7 @@ public class UserRequest {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("User, username=" + userName);
+    sb.append("User, username=").append(userName);
     return sb.toString();
   }
 

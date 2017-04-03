@@ -135,13 +135,12 @@ public class ClusterResponse {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("{"
-        + " clusterName=" + clusterName
-        + ", clusterId=" + clusterId
-        + ", provisioningState=" + provisioningState
-        + ", desiredStackVersion=" + desiredStackVersion
-        + ", totalHosts=" + totalHosts
-        + ", hosts=[");
+    sb.append("{ clusterName=").append(clusterName)
+      .append(", clusterId=").append(clusterId)
+      .append(", provisioningState=").append(provisioningState)
+      .append(", desiredStackVersion=").append(desiredStackVersion)
+      .append(", totalHosts=").append(totalHosts)
+      .append(", hosts=[");
 
     if (hostNames != null) {
       int i = 0;
@@ -153,9 +152,7 @@ public class ClusterResponse {
         sb.append(hostName);
       }
     }
-    sb.append("]"
-        + ", clusterHealthReport= " + clusterHealthReport
-        + "}");
+    sb.append("], clusterHealthReport= ").append(clusterHealthReport).append("}");
     return sb.toString();
   }
 

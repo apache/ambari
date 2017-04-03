@@ -107,13 +107,13 @@ public class ExecuteActionRequest {
 
   @Override
   public synchronized String toString() {
-    return (new StringBuilder()).
-        append("isCommand :" + isCommand().toString()).
-        append(", action :" + actionName).
-        append(", command :" + commandName).
-        append(", inputs :" + parameters.toString()).
-        append(", resourceFilters: " + resourceFilters).
-        append(", exclusive: " + exclusive).
-        append(", clusterName :" + clusterName).toString();
+    return new StringBuilder()
+      .append("isCommand :").append(isCommand())
+      .append(", action :").append(actionName)
+      .append(", command :").append(commandName)
+      .append(", inputs :").append(parameters)
+      .append(", resourceFilters: ").append(resourceFilters)
+      .append(", exclusive: ").append(exclusive)
+      .append(", clusterName :").append(clusterName).toString();
   }
 }

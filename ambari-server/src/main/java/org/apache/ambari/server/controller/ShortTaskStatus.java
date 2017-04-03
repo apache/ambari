@@ -144,16 +144,15 @@ public class ShortTaskStatus {
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("ShortTaskStatusDump "
-        + ", stageId=" + stageId
-        + ", taskId=" + taskId
-        + ", hostname=" + hostName
-        + ", role=" + role
-        + ", command=" + command
-        + ", status=" + status
-        + ", outputLog=" + outputLog
-        + ", errorLog=" + errorLog
-    );
+    sb.append("ShortTaskStatusDump ")
+      .append(", stageId=").append(stageId)
+      .append(", taskId=").append(taskId)
+      .append(", hostname=").append(hostName)
+      .append(", role=").append(role)
+      .append(", command=").append(command)
+      .append(", status=").append(status)
+      .append(", outputLog=").append(outputLog)
+      .append(", errorLog=").append(errorLog);
     return sb.toString();
   }
 

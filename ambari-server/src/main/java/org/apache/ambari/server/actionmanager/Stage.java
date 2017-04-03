@@ -930,19 +930,19 @@ public class Stage {
   public synchronized String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("STAGE DESCRIPTION BEGIN\n");
-    builder.append("requestId="+requestId+"\n");
-    builder.append("stageId="+stageId+"\n");
-    builder.append("clusterName="+clusterName+"\n");
-    builder.append("logDir=" + logDir+"\n");
-    builder.append("requestContext="+requestContext+"\n");
-    builder.append("clusterHostInfo="+clusterHostInfo+"\n");
-    builder.append("commandParamsStage="+commandParamsStage+"\n");
-    builder.append("hostParamsStage="+hostParamsStage+"\n");
-    builder.append("status="+status+"\n");
-    builder.append("displayStatus="+displayStatus+"\n");
+    builder.append("requestId=").append(requestId).append("\n");
+    builder.append("stageId=").append(stageId).append("\n");
+    builder.append("clusterName=").append(clusterName).append("\n");
+    builder.append("logDir=").append(logDir).append("\n");
+    builder.append("requestContext=").append(requestContext).append("\n");
+    builder.append("clusterHostInfo=").append(clusterHostInfo).append("\n");
+    builder.append("commandParamsStage=").append(commandParamsStage).append("\n");
+    builder.append("hostParamsStage=").append(hostParamsStage).append("\n");
+    builder.append("status=").append(status).append("\n");
+    builder.append("displayStatus=").append(displayStatus).append("\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
-      builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");
+      builder.append("  role: ").append(r).append(", factor: ").append(successFactors.get(r)).append("\n");
     }
     for (HostRoleCommand hostRoleCommand : getOrderedHostRoleCommands()) {
       builder.append("HOST: ").append(hostRoleCommand.getHostName()).append(" :\n");
