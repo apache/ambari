@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from coilmq.util import frames
 from coilmq.util.frames import Frame
 
@@ -24,12 +25,7 @@ from BaseStompServerTestCase import BaseStompServerTestCase
 
 class TestAgentStompResponses(BaseStompServerTestCase):
   def test_mock_server_can_start(self):
-    c1 = self._new_client()
-    c1.connect()
-    
-    c1.subscribe('/topics/test')
-    
-    f = Frame(frames.MESSAGE, headers={'destination': '/topics/test'}, body='test-body')
+    f = Frame(frames.MESSAGE, headers={'destination': '/clusters/c1/topologies'}, body=json.loads(self.get_json("topology_update.json")))
     self.server.topic_manager.send(f)
     
     

@@ -1,0 +1,24 @@
+{
+  "clusters":{
+    "cl1":{
+      "componentStatuses":[
+        {
+          "componentName":"HDFS_CLIENT",
+          "command":"SECURITY_STATUS",
+          "stdout":"",
+          "stderr":"Python script killed due to timeout",
+          "structuredOutput":"{}",
+          "exitCode":-15
+        },
+        {
+          "componentName":"ZOOKEEPER_SERVER",
+          "command":"STATUS",
+          "stdout":"",
+          "stderr":"",
+          "structuredOutput":"{}",
+          "exitcode":0
+        }
+      ]
+    }
+  }
+}

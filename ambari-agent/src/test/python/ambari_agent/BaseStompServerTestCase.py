@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os
 import sys
 import time
 import unittest
@@ -94,9 +95,7 @@ class BaseStompServerTestCase(unittest.TestCase):
     def tearDown(self):
         for c in self.clients:
             c.close()
-        import time; print time.time()
         self.server.shutdown() # server_close takes too much time
-        import time; print time.time()
         self.server_thread.join()
         self.ready_event.clear()
         del self.server_thread
@@ -116,6 +115,12 @@ class BaseStompServerTestCase(unittest.TestCase):
             res = client.received_frames.get(timeout=1)
             self.assertEqual(res.cmd, frames.CONNECTED)
         return client
+
+    def get_json(self, filename):
+      filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dummy_files", "stomp", filename)
+
+      with open(filepath) as f:
+        return f.read()
 
 
 class TestStompServer(ThreadedStompServer):
