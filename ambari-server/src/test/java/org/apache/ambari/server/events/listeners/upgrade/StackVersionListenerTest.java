@@ -248,7 +248,7 @@ public class StackVersionListenerTest extends EasyMockSupport {
   public void testSetUpgradeStateToCompleteWhenHostHasVersionMismatchAndNewVersionIsEqualToComponentDesiredVersionAndClusterUpgradeIsInProgress() {
     expect(sch.getVersion()).andReturn(VALID_PREVIOUS_VERSION);
     expect(sch.getUpgradeState()).andReturn(UpgradeState.VERSION_MISMATCH);
-    expect(cluster.getUpgradeEntity()).andReturn(DUMMY_UPGRADE_ENTITY);
+    expect(cluster.getUpgradeInProgress()).andReturn(DUMMY_UPGRADE_ENTITY);
     expect(serviceComponent.getDesiredVersion()).andStubReturn(VALID_NEW_VERSION);
     expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
     sch.setUpgradeState(UpgradeState.COMPLETE);

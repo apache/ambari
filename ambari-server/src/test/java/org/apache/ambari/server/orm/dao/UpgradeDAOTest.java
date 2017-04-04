@@ -33,7 +33,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -51,8 +50,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * Tests {@link AlertDefinitionDAO} for interacting with
- * {@link AlertDefinitionEntity}.
+ * Tests {@link UpgradeDAO} for interacting with {@link UpgradeEntity}.
  */
 public class UpgradeDAOTest {
 
@@ -78,10 +76,17 @@ public class UpgradeDAOTest {
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
 
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setRequestId(99L);
+    requestEntity.setClusterId(clusterId.longValue());
+    requestEntity.setStatus(HostRoleStatus.PENDING);
+    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestDAO.create(requestEntity);
+
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(clusterId.longValue());
-    entity.setRequestId(Long.valueOf(1));
+    entity.setRequestEntity(requestEntity);
     entity.setFromVersion("");
     entity.setToVersion("");
     entity.setUpgradeType(UpgradeType.ROLLING);
@@ -159,7 +164,7 @@ public class UpgradeDAOTest {
     entity1.setId(11L);
     entity1.setClusterId(clusterId.longValue());
     entity1.setDirection(Direction.UPGRADE);
-    entity1.setRequestId(1L);
+    entity1.setRequestEntity(requestEntity);
     entity1.setFromVersion("2.2.0.0-1234");
     entity1.setToVersion("2.3.0.0-4567");
     entity1.setUpgradeType(UpgradeType.ROLLING);
@@ -170,7 +175,7 @@ public class UpgradeDAOTest {
     entity2.setId(22L);
     entity2.setClusterId(clusterId.longValue());
     entity2.setDirection(Direction.DOWNGRADE);
-    entity2.setRequestId(1L);
+    entity2.setRequestEntity(requestEntity);
     entity2.setFromVersion("2.3.0.0-4567");
     entity2.setToVersion("2.2.0.0-1234");
     entity2.setUpgradeType(UpgradeType.ROLLING);
@@ -181,7 +186,7 @@ public class UpgradeDAOTest {
     entity3.setId(33L);
     entity3.setClusterId(clusterId.longValue());
     entity3.setDirection(Direction.UPGRADE);
-    entity3.setRequestId(1L);
+    entity3.setRequestEntity(requestEntity);
     entity3.setFromVersion("2.2.0.0-1234");
     entity3.setToVersion("2.3.1.1-4567");
     entity3.setUpgradeType(UpgradeType.ROLLING);
@@ -211,7 +216,7 @@ public class UpgradeDAOTest {
     upgradeEntity.setId(11L);
     upgradeEntity.setClusterId(clusterId.longValue());
     upgradeEntity.setDirection(Direction.UPGRADE);
-    upgradeEntity.setRequestId(1L);
+    upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setFromVersion("2.2.0.0-1234");
     upgradeEntity.setToVersion("2.3.0.0-4567");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);

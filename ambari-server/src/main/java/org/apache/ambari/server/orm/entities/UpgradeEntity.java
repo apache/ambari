@@ -24,12 +24,15 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -42,8 +45,11 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
  */
 @Entity
 @Table(name = "upgrade")
-@TableGenerator(name = "upgrade_id_generator",
-    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
+@TableGenerator(
+    name = "upgrade_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
     pkColumnValue = "upgrade_id_seq",
     initialValue = 0)
 @NamedQueries({
@@ -68,8 +74,18 @@ public class UpgradeEntity {
   @Column(name = "cluster_id", nullable = false, insertable = true, updatable = false)
   private Long clusterId;
 
-  @Column(name="request_id", nullable = false)
+  @Column(name = "request_id", nullable = false, insertable = false, updatable = false)
   private Long requestId;
+
+  /**
+   * The request entity associated with this upgrade. This relationship allows
+   * JPA to correctly order non-flushed commits during the transaction which
+   * creates the upgrade. Without it, JPA would not know the correct order and
+   * may try to create the upgrade before the request.
+   */
+  @OneToOne(optional = false, fetch = FetchType.LAZY)
+  @JoinColumn(name = "request_id", nullable = false, insertable = true, updatable = false)
+  private RequestEntity requestEntity = null;
 
   @Column(name="from_version", nullable = false)
   private String fromVersion = null;
@@ -161,8 +177,9 @@ public class UpgradeEntity {
   /**
    * @param id the request id
    */
-  public void setRequestId(Long id) {
-    requestId = id;
+  public void setRequestEntity(RequestEntity requestEntity) {
+    this.requestEntity = requestEntity;
+    requestId = requestEntity.getRequestId();
   }
 
   /**

@@ -105,11 +105,6 @@ public class UpgradeDAO {
   @Transactional
   public void create(UpgradeEntity entity) {
     EntityManager entityManager = entityManagerProvider.get();
-    // This is required because since none of the entities
-    // for the request are actually persisted yet,
-    // JPA ordering could allow foreign key entities
-    // to be created after this statement.
-    entityManager.flush();
     entityManager.persist(entity);
   }
 
