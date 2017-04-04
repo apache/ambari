@@ -787,8 +787,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
           hosts: hostsJDKContext,
           hostsLong: hostsJDKContext,
           hostsNames: hostsJDKNames,
-          category: 'jdk',
-          onSingleHost: false
+          category: 'jdk'
         });
       }
       this.set('jdkCategoryWarnings', jdkWarnings);

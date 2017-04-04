@@ -53,7 +53,6 @@ App.CheckHostMixin = Em.Mixin.create({
    *  hosts: string[],
    *  hostsLong: string[],
    *  hostsNames: string[],
-   *  onSingleHost: boolean
    * }} checkWarning
    */
 
@@ -309,8 +308,7 @@ App.CheckHostMixin = Em.Mixin.create({
         hosts: hostsContext,
         hostsLong: hostsContext,
         hostsNames: hostsRepoNames,
-        category: 'repositories',
-        onSingleHost: false
+        category: 'repositories'
       });
     }
     if (hostsDiskContext.length > 0) { // disk space warning exist
@@ -319,8 +317,7 @@ App.CheckHostMixin = Em.Mixin.create({
         hosts: hostsDiskContext,
         hostsLong: hostsDiskContext,
         hostsNames: hostsDiskNames,
-        category: 'disk',
-        onSingleHost: false
+        category: 'disk'
       });
     }
     if (thpContext.length > 0) { // THP warning existed
@@ -329,8 +326,7 @@ App.CheckHostMixin = Em.Mixin.create({
         hosts: thpContext,
         hostsLong: thpContext,
         hostsNames: thpHostsNames,
-        category: 'thp',
-        onSingleHost: false
+        category: 'thp'
       });
     }
 
@@ -373,8 +369,7 @@ App.CheckHostMixin = Em.Mixin.create({
               name: name,
               hosts: [contextMessage],
               hostsLong: [contextMessageLong],
-              hostsNames: [targetHostName],
-              onSingleHost: true
+              hostsNames: [targetHostName]
             };
             this.get("hostCheckWarnings").push(hostInfo);
           } else {
@@ -382,7 +377,6 @@ App.CheckHostMixin = Em.Mixin.create({
               hostInfo.hosts.push(contextMessage);
               hostInfo.hostsLong.push(contextMessageLong);
               hostInfo.hostsNames.push(targetHostName);
-              hostInfo.onSingleHost = false;
             }
           }
         }
@@ -549,14 +543,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(hostName);
           warning.hostsLong.push(hostName);
-          warning.onSingleHost = false;
         } else {
           warningCategories.fileFoldersWarnings[path.name] = warning = {
             name: path.name,
             hosts: [hostName],
             hostsLong: [hostName],
-            category: 'fileFolders',
-            onSingleHost: true
+            category: 'fileFolders'
           };
         }
         host.warnings.push(warning);
@@ -572,15 +564,13 @@ App.CheckHostMixin = Em.Mixin.create({
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
             warning.version = _package.version;
-            warning.onSingleHost = false;
           } else {
             warningCategories.packagesWarnings[_package.name] = warning = {
               name: _package.name,
               version: _package.version,
               hosts: [hostName],
               hostsLong: [hostName],
-              category: 'packages',
-              onSingleHost: true
+              category: 'packages'
             };
           }
           host.warnings.push(warning);
@@ -606,7 +596,6 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
-            warning.onSingleHost = false;
           } else {
             warningCategories.processesWarnings[process.pid] = warning = {
               name: (process.command.substr(0, 35) + '...'),
@@ -618,8 +607,7 @@ App.CheckHostMixin = Em.Mixin.create({
               command: '<table><tr><td style="word-break: break-all;">' +
               ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
               '<p style="text-align: center">................</p>' +
-              '...' + process.command.substr(-230)) + '</td></tr></table>',
-              onSingleHost: true
+              '...' + process.command.substr(-230)) + '</td></tr></table>'
             };
           }
           host.warnings.push(warning);
@@ -634,14 +622,12 @@ App.CheckHostMixin = Em.Mixin.create({
             if (warning) {
               warning.hosts.push(hostName);
               warning.hostsLong.push(hostName);
-              warning.onSingleHost = false;
             } else {
               warningCategories.servicesWarnings[service.name] = warning = {
                 name: service.name,
                 hosts: [hostName],
                 hostsLong: [hostName],
-                category: 'services',
-                onSingleHost: true
+                category: 'services'
               };
             }
             host.warnings.push(warning);
@@ -656,14 +642,12 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
-            warning.onSingleHost = false;
           } else {
             warningCategories.usersWarnings[user.name] = warning = {
               name: user.name,
               hosts: [hostName],
               hostsLong: [hostName],
-              category: 'users',
-              onSingleHost: true
+              category: 'users'
             };
           }
           host.warnings.push(warning);
@@ -677,14 +661,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(hostName);
           warning.hostsLong.push(hostName);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: umask,
             hosts: [hostName],
             hostsLong: [hostName],
-            category: 'misc',
-            onSingleHost: true
+            category: 'misc'
           };
           warnings.push(warning);
         }
@@ -698,14 +680,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(hostName);
           warning.hostsLong.push(hostName);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [hostName],
             hostsLong: [hostName],
-            category: 'firewall',
-            onSingleHost: true
+            category: 'firewall'
           };
           warnings.push(warning);
         }
@@ -718,15 +698,13 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(hostName);
             warning.hostsLong.push(hostName);
-            warning.onSingleHost = false;
           } else {
             warningCategories.alternativeWarnings[alternative.name] = warning = {
               name: alternative.name,
               target: alternative.target,
               hosts: [hostName],
               hostsLong: [hostName],
-              category: 'alternatives',
-              onSingleHost: true
+              category: 'alternatives'
             };
           }
           host.warnings.push(warning);
@@ -739,14 +717,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(hostName);
           warning.hostsLong.push(hostName);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [hostName],
             hostsLong: [hostName],
-            category: 'reverseLookup',
-            onSingleHost: true
+            category: 'reverseLookup'
           };
           warnings.push(warning);
         }
@@ -810,14 +786,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.hostsLong.push(_host.Hosts.host_name);
-          warning.onSingleHost = false;
         } else {
           warningCategories.fileFoldersWarnings[path.name] = warning = {
             name: path.name,
             hosts: [_host.Hosts.host_name],
             hostsLong: [_host.Hosts.host_name],
-            category: 'fileFolders',
-            onSingleHost: true
+            category: 'fileFolders'
           };
         }
         host.warnings.push(warning);
@@ -833,15 +807,13 @@ App.CheckHostMixin = Em.Mixin.create({
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
             warning.version = _package.version;
-            warning.onSingleHost = false;
           } else {
             warningCategories.packagesWarnings[_package.name] = warning = {
               name: _package.name,
               version: _package.version,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
-              category: 'packages',
-              onSingleHost: true
+              category: 'packages'
             };
           }
           host.warnings.push(warning);
@@ -858,7 +830,6 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
-            warning.onSingleHost = false;
           } else {
             warningCategories.processesWarnings[process.pid] = warning = {
               name: (process.command.substr(0, 35) + '...'),
@@ -870,8 +841,7 @@ App.CheckHostMixin = Em.Mixin.create({
               command: '<table><tr><td style="word-break: break-all;">' +
               ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
               '<p style="text-align: center">................</p>' +
-              '...' + process.command.substr(-230)) + '</td></tr></table>',
-              onSingleHost: true
+              '...' + process.command.substr(-230)) + '</td></tr></table>'
             };
           }
           host.warnings.push(warning);
@@ -888,14 +858,12 @@ App.CheckHostMixin = Em.Mixin.create({
             if (warning) {
               warning.hosts.push(_host.Hosts.host_name);
               warning.hostsLong.push(_host.Hosts.host_name);
-              warning.onSingleHost = false;
             } else {
               warningCategories.servicesWarnings[service.name] = warning = {
                 name: service.name,
                 hosts: [_host.Hosts.host_name],
                 hostsLong: [_host.Hosts.host_name],
-                category: 'services',
-                onSingleHost: true
+                category: 'services'
               };
             }
             host.warnings.push(warning);
@@ -911,14 +879,12 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
-            warning.onSingleHost = false;
           } else {
             warningCategories.usersWarnings[user.name] = warning = {
               name: user.name,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
-              category: 'users',
-              onSingleHost: true
+              category: 'users'
             };
           }
           host.warnings.push(warning);
@@ -932,14 +898,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.hostsLong.push(_host.Hosts.host_name);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: umask,
             hosts: [_host.Hosts.host_name],
             hostsLong: [_host.Hosts.host_name],
-            category: 'misc',
-            onSingleHost: true
+            category: 'misc'
           };
           warnings.push(warning);
         }
@@ -953,14 +917,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.hostsLong.push(_host.Hosts.host_name);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [_host.Hosts.host_name],
             hostsLong: [_host.Hosts.host_name],
-            category: 'firewall',
-            onSingleHost: true
+            category: 'firewall'
           };
           warnings.push(warning);
         }
@@ -973,15 +935,13 @@ App.CheckHostMixin = Em.Mixin.create({
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.hostsLong.push(_host.Hosts.host_name);
-            warning.onSingleHost = false;
           } else {
             warningCategories.alternativeWarnings[alternative.name] = warning = {
               name: alternative.name,
               target: alternative.target,
               hosts: [_host.Hosts.host_name],
               hostsLong: [_host.Hosts.host_name],
-              category: 'alternatives',
-              onSingleHost: true
+              category: 'alternatives'
             };
           }
           host.warnings.push(warning);
@@ -994,14 +954,12 @@ App.CheckHostMixin = Em.Mixin.create({
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.hostsLong.push(_host.Hosts.host_name);
-          warning.onSingleHost = false;
         } else {
           warning = {
             name: name,
             hosts: [_host.Hosts.host_name],
             hostsLong: [_host.Hosts.host_name],
-            category: 'reverseLookup',
-            onSingleHost: true
+            category: 'reverseLookup'
           };
           warnings.push(warning);
         }
