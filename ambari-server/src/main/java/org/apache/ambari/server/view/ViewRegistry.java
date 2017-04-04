@@ -85,6 +85,7 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.orm.entities.ViewURLEntity;
@@ -93,6 +94,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.Closeables;
@@ -988,7 +991,7 @@ public class ViewRegistry {
 
         try {
           if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
-            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoConfig, roles);
+            installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
@@ -1000,9 +1003,10 @@ public class ViewRegistry {
     }
   }
 
-  private void installAutoInstance(Long clusterId, String clusterName, ViewEntity viewEntity, String viewName, ViewConfig viewConfig, AutoInstanceConfig autoConfig, Collection<String> roles) throws SystemException, ValidationException {
+  private void installAutoInstance(Long clusterId, String clusterName, Service service, ViewEntity viewEntity, String viewName, ViewConfig viewConfig, AutoInstanceConfig autoConfig, Collection<String> roles) throws SystemException, ValidationException {
     LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
     ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
+    updateHiveLLAPSettingsIfRequired(viewInstanceEntity, service);
     viewInstanceEntity.setClusterHandle(clusterId);
     installViewInstance(viewInstanceEntity);
     setViewInstanceRoleAccess(viewInstanceEntity, roles);
@@ -1011,6 +1015,47 @@ public class ViewRegistry {
     } catch (Exception urlCreateException) {
       LOG.error("Error while creating an auto URL for the view instance {}, Url should be created in view instance settings", viewInstanceEntity.getViewName());
       LOG.error("View URL creation error ", urlCreateException);
+    }
+
+  }
+
+  /**
+   * Checks is service is 'HIVE' and INTERACTIVE_SERVICE(LLAP) is enabled. Then, it sets the view instance
+   * parameter 'use.hive.interactive.mode' for the 'AUTO_INSTANCE_VIEW' to be true.
+   * @param viewInstanceEntity
+   * @param service
+   */
+  private void updateHiveLLAPSettingsIfRequired(ViewInstanceEntity viewInstanceEntity, Service service) {
+    String INTERACTIVE_KEY = "use.hive.interactive.mode";
+    String LLAP_COMPONENT_NAME = "HIVE_SERVER_INTERACTIVE";
+    String viewVersion = viewInstanceEntity.getViewDefinition().getVersion();
+    String viewName = viewInstanceEntity.getViewDefinition().getViewName();
+    if(!viewName.equalsIgnoreCase("HIVE") || viewVersion.equalsIgnoreCase("1.0.0")) {
+      return;
+    }
+
+    try {
+      ServiceComponent component = service.getServiceComponent(LLAP_COMPONENT_NAME);
+      if (component.getServiceComponentHosts().size() == 0) {
+        // The LLAP server is not installed in any of the hosts. Hence, return;
+        return;
+      }
+
+      for (Map.Entry<String, String> property : viewInstanceEntity.getPropertyMap().entrySet()) {
+        if (INTERACTIVE_KEY.equals(property.getKey()) && (!"true".equalsIgnoreCase(property.getValue()))) {
+          ViewInstancePropertyEntity propertyEntity = new ViewInstancePropertyEntity();
+          propertyEntity.setViewInstanceName(viewInstanceEntity.getName());
+          propertyEntity.setViewName(viewInstanceEntity.getViewName());
+          propertyEntity.setName(INTERACTIVE_KEY);
+          propertyEntity.setValue("true");
+          propertyEntity.setViewInstanceEntity(viewInstanceEntity);
+          viewInstanceEntity.getProperties().add(propertyEntity);
+        }
+      }
+
+    } catch (AmbariException e) {
+      LOG.error("Failed to update '{}' parameter for viewName: {}, version: {}. Exception: {}",
+          INTERACTIVE_KEY, viewName, viewVersion, e);
     }
 
   }
@@ -1920,7 +1965,7 @@ public class ViewRegistry {
         try {
 
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
-            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
+            installAutoInstance(clusterId, clusterName, cluster.getService(service), viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
