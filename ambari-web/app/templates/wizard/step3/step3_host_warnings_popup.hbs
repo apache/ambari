@@ -90,11 +90,7 @@
                         <td>{{category.action}}
                           <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}} {{QAAttr "host-with-warning-link"}}>
                             {{warning.hosts.length}}
-                            {{#if warning.onSingleHost}}
-                              {{t installer.step3.hostWarningsPopup.host}}
-                            {{else}}
-                              {{t installer.step3.hostWarningsPopup.hosts}}
-                            {{/if}}
+                            {{pluralize warning.hosts.length singular="t:installer.step3.hostWarningsPopup.host" plular="t:installer.step3.hostWarningsPopup.hosts"}}
                           </a>
                         </td>
                       </tr>
