@@ -572,7 +572,7 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
     EasyMock.reset(clusters);
 
     EasyMock.expect(clusters.getClusterById(EasyMock.anyLong())).andReturn(cluster).atLeastOnce();
-    EasyMock.expect(cluster.getUpgradeInProgress()).andReturn(null).anyTimes();
+    EasyMock.expect(cluster.getUpgradeInProgress()).andReturn(EasyMock.createMock(UpgradeEntity.class)).anyTimes();
     EasyMock.expect(cluster.isUpgradeSuspended()).andReturn(true).anyTimes();
   }
 
