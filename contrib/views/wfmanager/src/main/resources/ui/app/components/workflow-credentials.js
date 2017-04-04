@@ -23,7 +23,7 @@ export default Ember.Component.extend(Ember.Evented, {
   initialize : function(){
     this.get('credentialsList').clear();
     this.get('childComponents').clear();
-    this.set('credentialsList', Ember.copy(this.get('workflowCredentials')));
+    this.set('credentialsList', this.get('workflowCredentials'));
   }.on('init'),
   rendered : function(){
     this.$('#workflow_credentials_dialog').modal({
