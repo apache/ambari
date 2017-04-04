@@ -66,6 +66,7 @@ public class HdfsApi {
       InterruptedException, HdfsApiException {
     this.authParams = configurationBuilder.buildAuthenticationConfig();
     conf = configurationBuilder.buildConfig();
+    UserGroupInformation.setConfiguration(conf);
     ugi = UserGroupInformation.createProxyUser(username, getProxyUser());
 
     fs = execute(new PrivilegedExceptionAction<FileSystem>() {
