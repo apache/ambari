@@ -46,7 +46,9 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
 
   private static final Logger LOG = LoggerFactory.getLogger(ServicePresenceCheck.class);
 
+  static final String KEY_SERVICE_REPLACED = "service_replaced";
   static final String KEY_SERVICE_REMOVED = "service_removed";
+
   /*
    * List of services that do not support upgrade
    * services must be removed before the stack upgrade
@@ -57,6 +59,11 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
    * List of services removed from the new release
    * */
   static final String REMOVED_SERVICES_PROPERTY_NAME = "removed-service-names";
+
+  /*
+   * List of services replaced by other services in the new release
+   * */
+  static final String REPLACED_SERVICES_PROPERTY_NAME = "replaced-service-names";
 
   /*
    * Such as Spark to Spark2
@@ -73,7 +80,9 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
     Set<String> installedServices = cluster.getServices().keySet();
 
     List<String> noUpgradeSupportServices = getNoUpgradeSupportServices(request);
-    Map<String, String> removedServices = getRemovedServices(request);
+    Map<String, String> replacedServices = getReplacedServices(request);
+    List<String> removedServices = getRemovedServices(request);
+
     List<String> failReasons = new ArrayList<>();
 
     String reason = getFailReason(prerequisiteCheck, request);
@@ -85,13 +94,22 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
       }
     }
 
-    reason = getFailReason(KEY_SERVICE_REMOVED, prerequisiteCheck, request);
-    for (Map.Entry<String, String> entry : removedServices.entrySet()) {
+    reason = getFailReason(KEY_SERVICE_REPLACED, prerequisiteCheck, request);
+    for (Map.Entry<String, String> entry : replacedServices.entrySet()) {
       String removedService = entry.getKey();
       if(installedServices.contains(removedService.toUpperCase())){
         prerequisiteCheck.getFailedOn().add(removedService);
         String newService = entry.getValue();
         String msg = String.format(reason, removedService, newService);
+        failReasons.add(msg);
+      }
+    }
+
+    reason = getFailReason(KEY_SERVICE_REMOVED, prerequisiteCheck, request);
+    for(String service: removedServices){
+      if (installedServices.contains(service.toUpperCase())){
+        prerequisiteCheck.getFailedOn().add(service);
+        String msg = String.format(reason, service);
         failReasons.add(msg);
       }
     }
@@ -138,28 +156,46 @@ public class ServicePresenceCheck extends AbstractCheckDescriptor{
   }
 
   /**
+  +   * @return service names
+  +   * */
+  private List<String> getRemovedServices(PrereqCheckRequest request){
+    List<String> result = new ArrayList<String>();
+    String value = getPropertyValue(request, REMOVED_SERVICES_PROPERTY_NAME);
+    if (null != value){
+      String[] services = value.split(",");
+      for(String service: services){
+        service = service.trim();
+        if (!service.isEmpty()){
+          result.add(service);
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
    * @return service names and new service names map
    * */
-  private Map<String, String> getRemovedServices(PrereqCheckRequest request) throws AmbariException{
+  private Map<String, String> getReplacedServices(PrereqCheckRequest request) throws AmbariException{
     Map<String, String> result = new LinkedHashMap<>();
-    String value = getPropertyValue(request, REMOVED_SERVICES_PROPERTY_NAME);
+    String value = getPropertyValue(request, REPLACED_SERVICES_PROPERTY_NAME);
     String newValue = getPropertyValue(request, NEW_SERVICES_PROPERTY_NAME);
     if(value == null && newValue == null){
       return result; //no need to check removed services as they are not specified in the upgrade xml file.
     } else {
       if (value == null || newValue == null){
-        throw new AmbariException(String.format("Both %s and %s list must be specified in the upgrade XML file.", REMOVED_SERVICES_PROPERTY_NAME, NEW_SERVICES_PROPERTY_NAME));
+        throw new AmbariException(String.format("Both %s and %s list must be specified in the upgrade XML file.", REPLACED_SERVICES_PROPERTY_NAME, NEW_SERVICES_PROPERTY_NAME));
       } else {
         List<String> oldServices = Arrays.asList(value.split(","));
         List<String> newServices = Arrays.asList(newValue.split(","));
         if (oldServices.size() != newServices.size()){
-          throw new AmbariException(String.format("%s must have the same number of services as the %s list.", NEW_SERVICES_PROPERTY_NAME, REMOVED_SERVICES_PROPERTY_NAME));
+          throw new AmbariException(String.format("%s must have the same number of services as the %s list.", NEW_SERVICES_PROPERTY_NAME, REPLACED_SERVICES_PROPERTY_NAME));
         } else {
           for (int i = 0; i < oldServices.size(); i++){
             String oldService = oldServices.get(i).trim();
             String newService = newServices.get(i).trim();
             if (oldService.isEmpty() || newService.isEmpty()) {
-              throw new AmbariException(String.format("Make sure both %s and %s list only contain comma separated list of services.", NEW_SERVICES_PROPERTY_NAME, REMOVED_SERVICES_PROPERTY_NAME));
+              throw new AmbariException(String.format("Make sure both %s and %s list only contain comma separated list of services.", NEW_SERVICES_PROPERTY_NAME, REPLACED_SERVICES_PROPERTY_NAME));
             } else {
               result.put(oldService, newService);
             }
