@@ -47,6 +47,8 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
+
 # default hadoop parameters
 hadoop_home = '/usr'
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
