@@ -619,7 +619,7 @@ public class UpgradeResourceProviderTest {
     upgradeEntity.setToVersion("2.2.2.2");
     upgradeEntity.setUpgradePackage("upgrade_test");
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
-    upgradeEntity.setRequestId(2L);
+    upgradeEntity.setRequestEntity(requestEntity);
 
     upgradeDao.create(upgradeEntity);
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
@@ -1609,7 +1609,7 @@ public class UpgradeResourceProviderTest {
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     upgradeResourceProvider.createResources(request);
 
-    List<StageEntity> stages = stageDao.findByRequestId(cluster.getUpgradeEntity().getRequestId());
+    List<StageEntity> stages = stageDao.findByRequestId(cluster.getUpgradeInProgress().getRequestId());
     Assert.assertEquals(3, stages.size());
 
     long expectedStageId = 1L;

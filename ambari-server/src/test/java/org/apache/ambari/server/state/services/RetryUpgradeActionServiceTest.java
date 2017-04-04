@@ -286,7 +286,7 @@ public class RetryUpgradeActionServiceTest {
 
     UpgradeEntity upgrade = new UpgradeEntity();
     upgrade.setId(1L);
-    upgrade.setRequestId(upgradeRequestId);
+    upgrade.setRequestEntity(requestEntity);
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);

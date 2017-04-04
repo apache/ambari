@@ -227,7 +227,7 @@ public class AlertStateChangedListener {
     Long clusterId = history.getClusterId();
     try {
       Cluster cluster = m_clusters.get().getClusterById(clusterId);
-      if (null != cluster.getUpgradeEntity() || cluster.isUpgradeSuspended()) {
+      if (null != cluster.getUpgradeInProgress()) {
         // only send AMBARI alerts if in an upgrade
         String serviceName = definition.getServiceName();
         if (!StringUtils.equals(serviceName, Services.AMBARI.name())) {

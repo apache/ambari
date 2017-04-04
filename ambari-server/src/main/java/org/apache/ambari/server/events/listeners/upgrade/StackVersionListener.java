@@ -223,7 +223,7 @@ public class StackVersionListener {
         sch.setUpgradeState(UpgradeState.VERSION_MISMATCH);
       }
     } else if (upgradeState == UpgradeState.VERSION_MISMATCH && desiredVersion.equals(newVersion)) {
-      if (cluster.getUpgradeEntity() != null) {
+      if (cluster.getUpgradeInProgress() != null) {
         sch.setUpgradeState(UpgradeState.COMPLETE);
       } else {
         sch.setUpgradeState(UpgradeState.NONE);

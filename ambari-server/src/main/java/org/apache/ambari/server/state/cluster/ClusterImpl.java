@@ -1021,39 +1021,6 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public UpgradeEntity getUpgradeInProgress() {
-    // first check for an upgrade that's actively running
-    UpgradeEntity upgradeInProgress = getUpgradeEntity();
-    if (null != upgradeInProgress) {
-      return upgradeInProgress;
-    }
-
-    // perform a search for any upgrade which should also return upgrades which
-    // are suspended
-    UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(getClusterId());
-    if (mostRecentUpgrade != null) {
-      if (mostRecentUpgrade.isSuspended()) {
-        return mostRecentUpgrade;
-      }
-
-      // look for any item from the prior upgrade which is still in progress
-      // (not failed, completed, or aborted)
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(
-          mostRecentUpgrade.getRequestId(), HostRoleStatus.IN_PROGRESS_STATUSES);
-
-      if (!commands.isEmpty()) {
-        return mostRecentUpgrade;
-      }
-    }
-
-    return null;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException {
     UpgradeEntity upgradeEntity = getUpgradeInProgress();
     if (upgradeEntity == null) {
@@ -3437,7 +3404,7 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public UpgradeEntity getUpgradeEntity() {
+  public UpgradeEntity getUpgradeInProgress() {
     ClusterEntity clusterEntity = getClusterEntity();
     return clusterEntity.getUpgradeEntity();
   }
@@ -3453,10 +3420,7 @@ public class ClusterImpl implements Cluster {
       clusterEntity.setUpgradeEntity(upgradeEntity);
       clusterDAO.merge(clusterEntity);
     } catch (RollbackException e) {
-      String msg = "Unable to set upgrade entiry " + upgradeEntity + " for cluster "
-        + getClusterName();
-      LOG.warn(msg);
-      throw new AmbariException(msg, e);
+      throw new AmbariException("Unable to update the associated upgrade with the cluster", e);
     }
   }
 
@@ -3465,11 +3429,9 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public boolean isUpgradeSuspended() {
-    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId,
-        Direction.UPGRADE);
-
-    if (null != lastUpgradeItemForCluster) {
-      return lastUpgradeItemForCluster.isSuspended();
+    UpgradeEntity upgrade = getUpgradeInProgress();
+    if (null != upgrade) {
+      return upgrade.isSuspended();
     }
 
     return false;

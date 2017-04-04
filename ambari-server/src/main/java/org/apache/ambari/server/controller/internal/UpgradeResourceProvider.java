@@ -335,7 +335,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final Cluster cluster;
 
     try {
-      cluster = getManagementController().getClusters().getCluster(clusterName);
+      cluster = clusters.get().getCluster(clusterName);
     } catch (AmbariException e) {
       throw new NoSuchParentResourceException(
           String.format("Cluster %s could not be loaded", clusterName));
@@ -421,7 +421,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       Cluster cluster;
       try {
-        cluster = getManagementController().getClusters().getCluster(clusterName);
+        cluster = clusters.get().getCluster(clusterName);
       } catch (AmbariException e) {
         throw new NoSuchResourceException(
             String.format("Cluster %s could not be loaded", clusterName));
@@ -484,7 +484,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     final Cluster cluster;
 
     try {
-      cluster = getManagementController().getClusters().getCluster(clusterName);
+      cluster = clusters.get().getCluster(clusterName);
     } catch (AmbariException e) {
       throw new NoSuchParentResourceException(
           String.format("Cluster %s could not be loaded", clusterName));
@@ -496,14 +496,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           "manage upgrade and downgrade");
     }
 
-
-
     String requestIdProperty = (String) propertyMap.get(UPGRADE_REQUEST_ID);
     if (null == requestIdProperty) {
       throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_ID));
     }
 
-    long clusterId = cluster.getClusterId();
     long requestId = Long.parseLong(requestIdProperty);
     UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
     if( null == upgradeEntity){
@@ -544,11 +541,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         suspended = Boolean.valueOf((String) propertyMap.get(UPGRADE_SUSPENDED));
       }
 
-      setUpgradeRequestStatus(clusterId, requestId, status, propertyMap);
-
-      // When the status of the upgrade's request is changing, we also update the suspended flag.
-      upgradeEntity.setSuspended(suspended);
-      s_upgradeDAO.merge(upgradeEntity);
+      try {
+        setUpgradeRequestStatus(cluster, requestId, status, suspended, propertyMap);
+      } catch (AmbariException ambariException) {
+        throw new SystemException(ambariException.getMessage(), ambariException);
+      }
     }
 
     // if either of the skip failure settings are in the request, then we need
@@ -932,11 +929,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       RequestStageContainer request,
       UpgradeEntity upgradeEntity) throws AmbariException {
 
-    upgradeEntity.setRequestId(request.getId());
-
     request.persist();
+    RequestEntity requestEntity = s_requestDAO.findByPK(request.getId());
 
+    upgradeEntity.setRequestEntity(requestEntity);
     s_upgradeDAO.create(upgradeEntity);
+
     cluster.setUpgradeEntity(upgradeEntity);
 
     return upgradeEntity;
@@ -1654,19 +1652,28 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * <li>{@link HostRoleStatus#ABORTED}</li>
    * <li>{@link HostRoleStatus#PENDING}</li>
    * </ul>
+   * This method will also adjust the cluster->upgrade association correctly
+   * based on the new status being supplied.
    *
-   * @param clusterId
-   *          the ID of the cluster
+   * @param cluster
+   *          the cluster
    * @param requestId
    *          the request to change the status for.
    * @param status
    *          the status to set on the associated request.
+   * @param suspended
+   *          if the value of the specified status is
+   *          {@link HostRoleStatus#ABORTED}, then this boolean will control
+   *          whether the upgrade is suspended (still associated with the
+   *          cluster) or aborted (no longer associated with the cluster).
    * @param propertyMap
    *          the map of request properties (needed for things like abort reason
    *          if present)
    */
-  private void setUpgradeRequestStatus(long clusterId, long requestId, HostRoleStatus status,
-      Map<String, Object> propertyMap) {
+  @Transactional
+  void setUpgradeRequestStatus(Cluster cluster, long requestId, HostRoleStatus status,
+      boolean suspended, Map<String, Object> propertyMap) throws AmbariException {
+    // these are the only two states we allow
     if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
       throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
           status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
@@ -1694,23 +1701,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ActionManager actionManager = getManagementController().getActionManager();
 
-    if (HostRoleStatus.ABORTED == status) {
-      if (!internalStatus.isCompletedState()) {
-        actionManager.cancelRequest(requestId, reason);
-        // Remove relevant upgrade entity
-        try {
-          Cluster cluster = clusters.get().getClusterById(clusterId);
-          UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
-          upgradeEntity.setSuspended(true);
-          s_upgradeDAO.merge(upgradeEntity);
+    if (HostRoleStatus.ABORTED == status && !internalStatus.isCompletedState()) {
+      // cancel the request
+      actionManager.cancelRequest(requestId, reason);
 
-          cluster.setUpgradeEntity(null);
-        } catch (AmbariException e) {
-          LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
-        }
+      // either suspend the upgrade or abort it outright
+      UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
+      if (suspended) {
+        // set the upgrade to suspended
+        upgradeEntity.setSuspended(suspended);
+        s_upgradeDAO.merge(upgradeEntity);
+      } else {
+        // otherwise remove the association with the cluster since it's being
+        // full aborted
+        cluster.setUpgradeEntity(null);
       }
-    } else {
-      // Status must be PENDING.
+
+    } else if (status == HostRoleStatus.PENDING) {
       List<Long> taskIds = new ArrayList<>();
       List<HostRoleCommandEntity> hrcEntities = s_hostRoleCommandDAO.findByRequestIdAndStatuses(
           requestId, Sets.newHashSet(HostRoleStatus.ABORTED, HostRoleStatus.TIMEDOUT));
@@ -1721,16 +1728,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       actionManager.resubmitTasks(taskIds);
 
-      try {
-        Cluster cluster = clusters.get().getClusterById(clusterId);
-        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
-        lastUpgradeItemForCluster.setSuspended(false);
-        s_upgradeDAO.merge(lastUpgradeItemForCluster);
-
-        cluster.setUpgradeEntity(lastUpgradeItemForCluster);
-      } catch (AmbariException e) {
-        LOG.warn("Could not clear upgrade entity for cluster with id {}", clusterId, e);
-      }
+      UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
+      lastUpgradeItemForCluster.setSuspended(false);
+      s_upgradeDAO.merge(lastUpgradeItemForCluster);
     }
   }
 

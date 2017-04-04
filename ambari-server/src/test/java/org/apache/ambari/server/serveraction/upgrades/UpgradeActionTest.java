@@ -980,7 +980,7 @@ public class UpgradeActionTest {
     UpgradeEntity upgradeEntity = new UpgradeEntity();
     upgradeEntity.setId(1L);
     upgradeEntity.setClusterId(cluster.getClusterId());
-    upgradeEntity.setRequestId(requestEntity.getRequestId());
+    upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
     upgradeEntity.setFromVersion(sourceRepo);
     upgradeEntity.setToVersion(targetRepo);
