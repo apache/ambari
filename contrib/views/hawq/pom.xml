@@ -133,10 +133,12 @@
                 <!-- Building frontend -->
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.3</version>
                 <configuration>
                     <nodeVersion>v4.5.0</nodeVersion>
                     <npmVersion>2.15.0</npmVersion>
                     <workingDirectory>${ui.dir}</workingDirectory>
+                    <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                 </configuration>
                 <executions>
                     <execution>
