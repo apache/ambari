@@ -408,6 +408,9 @@ if enable_ranger_hbase:
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
 
+# need this to capture cluster name from where ranger hbase plugin is enabled
+cluster_name = config['clusterName']
+
 # ranger hbase plugin section end
 
 create_hbase_home_directory = check_stack_feature(StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted)
