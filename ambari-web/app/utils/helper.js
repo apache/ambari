@@ -374,27 +374,51 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
  * <div {{QAAttr "someText-and-{someProperty::another-text}"}}></div>
  *
  */
-Em.Handlebars.registerHelper('QAAttr', function(text, data) {
-  var self = this;
-  var textToReplace = text.match(/\{(.*?)\}/g);
+Em.Handlebars.registerHelper('QAAttr', function (text, options) {
+  const textToReplace = text.match(/\{(.*?)\}/g);
+  let attributes;
   if (textToReplace) {
-    textToReplace.forEach(function (t) {
-      var value,
-        expression = t.slice(1, t.length - 1),
-        conditionals = Em.View._parsePropertyPath(expression);
-      if (conditionals.classNames) {
-        var sourceValue = Em.Handlebars.getPath(self, conditionals.path, data);
-        value = sourceValue ? conditionals.className : conditionals.falsyClassName;
-      } else {
-        value = Em.Handlebars.getPath(self, expression, data);
-      }
-      if (Em.isNone(value)) {
-        value = '';
-      }
-      text = text.replace(t, value);
+    const id = ++Em.$.uuid,
+      expressions = textToReplace.map((str) => {
+        const parsed = Em.View._parsePropertyPath(str.slice(1, str.length - 1)),
+          normalized = Ember.Handlebars.normalizePath(this, parsed.path, options.data),
+          {classNames, className, falsyClassName} = parsed,
+          {root, path} = normalized;
+        return {src: str, classNames, className, falsyClassName, root, path};
+      }),
+      observer = () => {
+        let dataQA = text;
+        for (let i = expressions.length; i--;) {
+          const el = Em.tryInvoke(options.data.view, '$', [`[${attributes}]`]);
+          let e = expressions[i];
+          if (!el || el.length === 0) {
+            Em.removeObserver(e.root, e.path, invoker);
+            break;
+          }
+          let value,
+            sourceValue = Em.Handlebars.getPath(e.root, e.path, options.data);
+          if (e.classNames) {
+            value = sourceValue ? e.className : e.falsyClassName;
+          } else {
+            value = sourceValue;
+          }
+          if (Em.isNone(value)) {
+            value = '';
+          }
+          dataQA = dataQA.replace(e.src, value);
+          el.attr('data-qa', dataQA);
+        }
+      },
+      invoker = () => Em.run.once(observer);
+    attributes = `data-qa-bind-id="${id}"`;
+    expressions.forEach((e) => {
+      Em.addObserver(e.root, e.path, invoker);
     });
+    Em.run.next(observer);
+  } else {
+    attributes = `data-qa="${text}"`;
   }
-  return new Em.Handlebars.SafeString('data-qa="' + text + '"');
+  return new Em.Handlebars.SafeString(attributes);
 });
 
 /**
