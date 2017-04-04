@@ -121,15 +121,17 @@ export default Ember.Component.extend(Validations, {
       if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
         var propName = value.trim().substring(2, value.length-1);
         var isRequired = true;
+        var val = null;
         if(jobParams && jobParams.configuration && jobParams.configuration.property){
           var param = jobParams.configuration.property.findBy('name', propName);
           if(param && param.value){
             isRequired = false;
+            val = param.value;
           }else {
             isRequired = true;
           }
         }
-        let val = null, tabData = self.get("tabInfo");
+        let tabData = self.get("tabInfo");
         if(tabData && tabData.isImportedFromDesigner && tabData.configuration && tabData.configuration.settings && tabData.configuration.settings.configuration && tabData.configuration.settings.configuration.property) {
           let propVal = tabData.configuration.settings.configuration.property.findBy('name', propName);
           if(propVal) {
