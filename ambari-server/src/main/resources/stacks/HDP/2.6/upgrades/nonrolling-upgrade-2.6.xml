@@ -284,13 +284,58 @@
       </execute-stage>
     </group>
 
-    <!-- ToDo: on config updates, this section need to be uncommented and extended with the changes
+    
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
-      <direction>UPGRADE</direction>
-      <skippable>true</skippable>
+      <direction>UPGRADE</direction> <!--  prevent config changes on downgrade -->
+      <skippable>true</skippable> <!-- May fix configuration problems manually -->
+
+      <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Ranger Hdfs plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- HIVE -->
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- HBASE -->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for Ranger Hbase plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- KNOX -->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Ranger Knox plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_knox_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- STORM -->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Ranger Storm plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- YARN -->
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for Ranger Yarn plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- KAFKA -->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Ranger Kafka plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- ATLAS -->
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Apply config changes for Ranger Atlas plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name"/>
+      </execute-stage>
+
+      <!-- KMS -->
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger Kms plugin">
+        <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
+      </execute-stage>
 
     </group>
-    -->
+    
 
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
