@@ -106,6 +106,7 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
