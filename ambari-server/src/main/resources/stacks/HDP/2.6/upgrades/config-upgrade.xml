@@ -30,5 +30,113 @@
       </component>
     </service>
 
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name">
+            <type>ranger-hdfs-audit</type>
+            <set key="ranger.plugin.hdfs.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hdfs-plugin-properties" if-key="ranger-hdfs-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HIVE">
+      <component name="HIVE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name">
+            <type>ranger-hive-audit</type>
+            <set key="ranger.plugin.hive.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hive-audit" if-key="xasecure.audit.destination.solr" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name">
+            <type>ranger-hbase-audit</type>
+            <set key="ranger.plugin.hbase.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-hbase-plugin-properties" if-key="ranger-hbase-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_knox_plugin_cluster_name">
+            <type>ranger-knox-audit</type>
+            <set key="ranger.plugin.knox.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-knox-plugin-properties" if-key="ranger-knox-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="STORM">
+      <component name="NIMBUS">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name">
+            <type>ranger-storm-audit</type>
+            <set key="ranger.plugin.storm.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-storm-plugin-properties" if-key="ranger-storm-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name">
+            <type>ranger-yarn-audit</type>
+            <set key="ranger.plugin.yarn.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-yarn-plugin-properties" if-key="ranger-yarn-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name">
+            <type>ranger-kafka-audit</type>
+            <set key="ranger.plugin.kafka.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-kafka-plugin-properties" if-key="ranger-kafka-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name">
+            <type>ranger-atlas-audit</type>
+            <set key="ranger.plugin.atlas.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-atlas-plugin-properties" if-key="ranger-atlas-plugin-enabled" if-key-state="present"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name">
+            <type>ranger-kms-audit</type>
+            <set key="ranger.plugin.kms.ambari.cluster.name" value="{{cluster_name}}"
+              if-type="ranger-kms-audit" if-key="ranger.plugin.kms.ambari.cluster.name" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
 </upgrade-config-changes>

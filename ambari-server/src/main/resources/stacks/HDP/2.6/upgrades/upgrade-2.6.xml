@@ -553,6 +553,7 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_kms_plugin_cluster_name"/>
           <task xsi:type="execute" hosts="any" sequential="true">
             <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
@@ -576,6 +577,10 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -584,6 +589,10 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -658,6 +667,10 @@
       </component>
 
       <component name="RESOURCEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -678,6 +691,10 @@
 
     <service name="HBASE">
       <component name="HBASE_MASTER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_hbase_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -750,6 +767,10 @@
       </component>
 
       <component name="HIVE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -898,6 +919,10 @@
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_knox_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -906,6 +931,10 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_storm_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -970,6 +999,10 @@
 
     <service name="ATLAS">
       <component name="ATLAS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

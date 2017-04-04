@@ -548,4 +548,7 @@ if enable_ranger_hdfs:
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
 
+# need this to capture cluster name from where ranger hdfs plugin is enabled
+cluster_name = config['clusterName']
+
 # ranger hdfs plugin section end

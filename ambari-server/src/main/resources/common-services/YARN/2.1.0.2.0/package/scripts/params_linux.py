@@ -493,4 +493,7 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
 
+# need this to capture cluster name from where ranger yarn plugin is enabled
+cluster_name = config['clusterName']
+
 # ranger yarn plugin end section

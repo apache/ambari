@@ -294,3 +294,6 @@ ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.ser
 
 xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
 namenode_host = default("/clusterHostInfo/namenode_host", [])
+
+# need this to capture cluster name from where ranger kms plugin is enabled
+cluster_name = config['clusterName']
