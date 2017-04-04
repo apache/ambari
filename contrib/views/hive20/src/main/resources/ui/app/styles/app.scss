@@ -681,7 +681,7 @@ pre {
 }
 
 .flash-messages-wrap {
-  position: absolute;
+  position: fixed;
   width: 40%;
   min-width: 575px;
   left: 50%;
@@ -693,18 +693,28 @@ pre {
   border-radius: $border-radius-large;
   .alert-icon {
     float: left;
+    position: relative;
+    bottom: 1px;
+    left: 10px;
     margin-right: 15px;
+    max-height: 15px;
   }
 
   .alert-message-wrap {
     display: table;
-    min-height: 56px;
+    min-height: 25px;
     .alert-message {
       display: table-cell;
       vertical-align: middle;
     }
   }
 
+}
+
+.wrap-message {
+  span {
+    line-height: 1.9em;
+  }
 }
 
 .jobs-status {
