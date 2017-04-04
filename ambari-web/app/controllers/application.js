@@ -83,24 +83,24 @@ App.ApplicationController = Em.Controller.extend(App.Persist, {
     var upgradeSuspended = App.get('upgradeSuspended');
     var isDowngrade = App.router.get('mainAdminStackAndUpgradeController.isDowngrade');
     var typeSuffix = isDowngrade ? 'downgrade' : 'upgrade';
-
+    var hasUpgradePrivilege = App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK');
     if (upgradeInProgress) {
       return {
-        cls: 'upgrade-in-progress',
+        cls: hasUpgradePrivilege? 'upgrade-in-progress' : 'upgrade-in-progress not-allowed-cursor',
         icon: 'glyphicon-cog',
         msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.running')
       }
     }
     if (upgradeHolding) {
       return {
-        cls: 'upgrade-holding',
+        cls: hasUpgradePrivilege? 'upgrade-holding' : 'upgrade-holding not-allowed-cursor',
         icon: 'glyphicon-pause',
         msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.pause')
       }
     }
     if (upgradeSuspended) {
       return {
-        cls: 'upgrade-aborted',
+        cls: hasUpgradePrivilege? 'upgrade-aborted' : 'upgrade-aborted not-allowed-cursor',
         icon: 'glyphicon-pause',
         msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.suspended')
       }
