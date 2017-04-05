@@ -71,7 +71,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
   @Override
   protected String getCollectorUri(String host) {
-    return collectorUri;
+    return constructTimelineMetricUri(protocol, host, port);
   }
 
   @Override
@@ -137,7 +137,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     // Initialize the collector write strategy
     super.init();
 
-    if (protocol.toLowerCase().startsWith("https://")) {
+    if (protocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
@@ -328,7 +328,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
-      String attributeName, Double attributeValue) {
+                                              String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);
