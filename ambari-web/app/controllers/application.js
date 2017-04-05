@@ -61,6 +61,47 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     this._super();
   },
 
+  /**
+   * Determines if upgrade label should be shown
+   *
+   * @type {boolean}
+   */
+  showUpgradeLabel: Em.computed.or('App.upgradeInProgress', 'App.upgradeHolding', 'App.upgradeSuspended'),
+
+  /**
+   * @return {{msg: string, cls: string, icon: string}}
+   */
+  upgradeMap: function () {
+    var upgradeInProgress = App.get('upgradeInProgress');
+    var upgradeHolding = App.get('upgradeHolding');
+    var upgradeSuspended = App.get('upgradeSuspended');
+    var isDowngrade = App.router.get('mainAdminStackAndUpgradeController.isDowngrade');
+    var typeSuffix = isDowngrade ? 'downgrade' : 'upgrade';
+    var hasUpgradePrivilege = App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK');
+    if (upgradeInProgress) {
+      return {
+        cls: hasUpgradePrivilege? 'upgrade-in-progress' : 'upgrade-in-progress not-allowed-cursor',
+        icon: 'icon-cog',
+        msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.running')
+      }
+    }
+    if (upgradeHolding) {
+      return {
+        cls: hasUpgradePrivilege? 'upgrade-holding' : 'upgrade-holding not-allowed-cursor',
+        icon: 'icon-pause',
+        msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.pause')
+      }
+    }
+    if (upgradeSuspended) {
+      return {
+        cls: hasUpgradePrivilege? 'upgrade-aborted' : 'upgrade-aborted not-allowed-cursor',
+        icon: 'icon-pause',
+        msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.suspended')
+      }
+    }
+    return {};
+  }.property('App.upgradeInProgress', 'App.upgradeHolding', 'App.upgradeSuspended', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
+
   startKeepAlivePoller: function() {
     if (!this.get('isPollerRunning')) {
      this.set('isPollerRunning',true);
