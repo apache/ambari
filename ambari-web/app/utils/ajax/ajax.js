@@ -2326,6 +2326,10 @@ var urls = {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
     'mock': ''
   },
+  'request_schedule.get.pending': {
+    'real': '/clusters/{clusterName}/request_schedules?fields=*&(RequestSchedule/status.in(SCHEDULED,IN_PROGRESS))',
+    'mock': ''
+  },
   'restart.hostComponents': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',
