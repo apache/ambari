@@ -42,7 +42,7 @@ import org.apache.ambari.server.actionmanager.CommandExecutionType;
 
 @Entity
 @Table(name = "stage")
-@IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
+@IdClass(StageEntityPK.class)
 @NamedQueries({
     @NamedQuery(
         name = "StageEntity.findFirstStageByStatus",
@@ -52,30 +52,32 @@ import org.apache.ambari.server.actionmanager.CommandExecutionType;
         query = "SELECT stage from StageEntity stage WHERE stage.stageId IN (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.requestId = :requestId AND roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER BY stage.stageId") })
 public class StageEntity {
 
-  @Column(name = "cluster_id", updatable = false, nullable = false)
   @Basic
+  @Column(name = "cluster_id", updatable = false, nullable = false)
   private Long clusterId = Long.valueOf(-1L);
 
-  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   @Id
+  @Column(name = "request_id", insertable = false, updatable = false, nullable = false)
   private Long requestId;
 
-  @Column(name = "stage_id", nullable = false)
   @Id
+  @Column(name = "stage_id", insertable = true, updatable = false, nullable = false)
   private Long stageId = 0L;
 
+  @Basic
   @Column(name = "skippable", nullable = false)
   private Integer skippable = Integer.valueOf(0);
 
+  @Basic
   @Column(name = "supports_auto_skip_failure", nullable = false)
   private Integer supportsAutoSkipOnFailure = Integer.valueOf(0);
 
-  @Column(name = "log_info")
   @Basic
+  @Column(name = "log_info")
   private String logInfo = "";
 
-  @Column(name = "request_context")
   @Basic
+  @Column(name = "request_context")
   private String requestContext = "";
 
   @Basic
@@ -103,8 +105,8 @@ public class StageEntity {
   @Basic(fetch = FetchType.LAZY)
   private byte[] commandParamsStage;
 
-  @Column(name = "host_params")
   @Basic
+  @Column(name = "host_params")
   private byte[] hostParamsStage;
 
   @ManyToOne
