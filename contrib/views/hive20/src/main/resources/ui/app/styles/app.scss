@@ -38,7 +38,10 @@
 .main-wrapper {
   padding: 5px 0;
   background-color: #fff;
-  min-height: 100vh;
+}
+
+.top-application-header{
+  background-color: #e1e1e0;
 }
 
 .fa-1-5{
@@ -49,7 +52,7 @@
   font-size: 2em;
 }
 
-$database-search-background: lighten($body-bg, 10%);
+$database-search-background: lighten($base-bg, 10%);
 $database-search-text-color: $gray;
 .database-search, .multiple-database-search {
   color:  $database-search-text-color;
@@ -128,7 +131,7 @@ $database-search-text-color: $gray;
   }
 }
 
-$list-filter-header-background: lighten($body-bg, 10%);
+$list-filter-header-background: lighten($base-bg, 10%);
 $list-filter-text-color: $gray;
 
 .list-filter {
@@ -152,7 +155,7 @@ $list-filter-text-color: $gray;
 
 .table-list {
   .list-group-item {
-    background-color: lighten($body-bg, 10%);
+    background-color: lighten($base-bg, 10%);
   }
 }
 
@@ -174,10 +177,10 @@ $list-filter-text-color: $gray;
   }
 }
 
-$table-info-background: lighten($body-bg, 10%);
+$table-info-background: lighten($base-bg, 10%);
 .table-info {
 
-  background-color: $body-bg;
+  background-color: $base-bg;
   .table-header {
     border: 1px solid darken($table-info-background, 15%);
     p {
@@ -218,7 +221,7 @@ pre {
 }
 
 .scroll-fix {
-  background-color: lighten($body-bg, 5%);
+  background-color: lighten($base-bg, 5%);
   height: calc(100vh - 180px);
   overflow-y: scroll;
 }
@@ -718,8 +721,8 @@ pre {
 }
 
 .jobs-status {
-  border-top: 1px solid darken($body-bg, 10%);
-  border-bottom: 1px solid darken($body-bg, 10%);
+  border-top: 1px solid darken($base-bg, 10%);
+  border-bottom: 1px solid darken($base-bg, 10%);
   .strip {
     margin-top: 20px;
   }
