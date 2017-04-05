@@ -47,11 +47,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
-    <deb.publisher>Hortonworks</deb.publisher>
+    <deb.publisher>Arenadata</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>HDP</stack.distribution>
+    <stack.distribution>ADH</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
