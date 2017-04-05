@@ -21,7 +21,7 @@ var App = require('app');
 
 require('models/host');
 
-App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, App.Persist, {
+App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, {
 
   isStepDisabled: null,
 
@@ -908,26 +908,45 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * Load serviceConfigProperties from persist
-   * @return {$.Deferred}
+   * Load serviceConfigProperties from localStorage
    */
   loadServiceConfigProperties: function () {
-    var dfd = $.Deferred();
-    var self = this;
-    this.getDecompressedData('serviceConfigProperties').always(function(data) {
-      if (data && !data.error) {
-        self.set('content.serviceConfigProperties', data);
-      }
-      dfd.resolve();
-    });
-    return dfd.promise();
+    var stackConfigs = App.configsCollection.getAll();
+    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
+    this.set('content.serviceConfigProperties', this.applyStoredConfigs(stackConfigs, serviceConfigProperties));
   },
+
+  /**
+   *
+   * @param {array} configs
+   * @param {?array} storedConfigs
+   * @returns {?array}
+   */
+  applyStoredConfigs: function(configs, storedConfigs) {
+    if (storedConfigs && storedConfigs.length) {
+      let result = [];
+      let configsMap = configs.toMapByProperty('id');
+      storedConfigs.forEach(function(stored) {
+        var config = configsMap[stored.id];
+        if (config) {
+          result.push(Object.assign({}, config, stored, {savedValue: null}));
+        } else if (stored.isUserProperty) {
+          result.push(Object.assign({}, stored));
+        }
+      });
+      return result;
+    }
+    return storedConfigs;
+  },
+
   /**
    * Save config properties
    * @param stepController Step7WizardController
    */
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
+    // properties in db should contain only mutable info to avoid localStorage overflow
+    var dbConfigProperties = [];
     var fileNamesToUpdate = this.getDBProperty('fileNamesToUpdate') || [];
     var installedServiceNames = stepController.get('installedServiceNames') || [];
     var installedServiceNamesMap = installedServiceNames.toWickMap();
@@ -948,9 +967,19 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         );
         configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, [], ['name', 'filename', 'isUserProperty', 'value']);
 
+        var dbConfigProperty = {
+          id: _configProperties.get('id'),
+          value: _configProperties.get('value'),
+          isFinal: _configProperties.get('isFinal')
+        };
+        if (_configProperties.get('isUserProperty') || _configProperties.get('filename') === 'capacity-scheduler.xml') {
+          dbConfigProperty = configProperty;
+        }
         if (this.isExcludedConfig(configProperty)) {
           configProperty.value = '';
+          dbConfigProperty.value = '';
         }
+        dbConfigProperties.push(dbConfigProperty);
         serviceConfigProperties.push(configProperty);
       }, this);
       // check for configs that need to update for installed services
@@ -969,8 +998,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       }
     }, this);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
-    return this.postCompressedData('serviceConfigProperties', serviceConfigProperties);
+    this.setDBProperties({
+      fileNamesToUpdate: fileNamesToUpdate,
+      serviceConfigProperties: dbConfigProperties
+    });
   },
 
   isExcludedConfig: function (configProperty) {
@@ -1435,7 +1466,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   clearServiceConfigProperties: function() {
     this.get('content.serviceConfigProperties', null);
-    return this.postCompressedData('serviceConfigProperties', '');
+    return this.setDBProperty('serviceConfigProperties', null);
   },
 
   saveTasksStatuses: function (tasksStatuses) {
