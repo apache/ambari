@@ -785,23 +785,6 @@ describe('App.InstallerController', function () {
     });
   });
 
-  describe('#loadServiceConfigProperties', function() {
-    beforeEach(function () {
-      sinon.stub(installerController, 'getDecompressedData').returns($.Deferred().resolve({
-        value: 2
-      }).promise());
-    });
-    afterEach(function () {
-      installerController.getDecompressedData.restore();
-    });
-    it ('Should load service config property', function() {
-      installerController.loadServiceConfigProperties();
-      expect(installerController.get('content.serviceConfigProperties')).to.eql({
-        "value": 2
-      });
-    });
-  });
-
   describe('#saveServices', function() {
     it ('Should return correct names', function() {
       var stepController = Em.A([

@@ -1022,14 +1022,13 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         callback: function () {
           var dfd = $.Deferred();
           var self = this;
-          this.loadServiceConfigProperties().always(function() {
-            self.loadServiceConfigGroups();
-            self.loadCurrentHostGroups();
-            self.loadRecommendationsConfigs();
-            self.loadComponentsFromConfigs();
-            self.loadConfigThemes().then(function() {
-              dfd.resolve();
-            });
+          this.loadServiceConfigGroups();
+          this.loadCurrentHostGroups();
+          this.loadRecommendationsConfigs();
+          this.loadComponentsFromConfigs();
+          this.loadConfigThemes().then(function() {
+            self.loadServiceConfigProperties();
+            dfd.resolve();
           });
           return dfd.promise();
         }

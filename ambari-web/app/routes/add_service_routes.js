@@ -231,12 +231,11 @@ module.exports = App.WizardRoute.extend({
           router.get('wizardStep7Controller').clearAllRecommendations();
           addServiceController.setDBProperty('serviceConfigGroups', undefined);
           App.ServiceConfigGroup.find().clear();
-          addServiceController.clearServiceConfigProperties().always(function() {
-            if (App.get('isKerberosEnabled')) {
-              addServiceController.setDBProperty('kerberosDescriptorConfigs', null);
-            }
-            router.transitionTo('step4');
-          });
+          addServiceController.clearServiceConfigProperties();
+          if (App.get('isKerberosEnabled')) {
+            addServiceController.setDBProperty('kerberosDescriptorConfigs', null);
+          }
+          router.transitionTo('step4');
         });
       });
     }
@@ -290,9 +289,8 @@ module.exports = App.WizardRoute.extend({
           }
         }
         addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
-        addServiceController.saveServiceConfigProperties(wizardStep7Controller).always(function() {
-          router.transitionTo('step5');
-        });
+        addServiceController.saveServiceConfigProperties(wizardStep7Controller);
+        router.transitionTo('step5');
       });
     }
   }),
