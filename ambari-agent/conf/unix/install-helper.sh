@@ -23,6 +23,7 @@ RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
 JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
 SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
 STOMP_DIR="/usr/lib/python2.6/site-packages/ambari_stomp"
+WS4PY_DIR="/usr/lib/python2.6/site-packages/ambari_ws4py"
 OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/common_functions"
 INSTALL_HELPER_SERVER="/var/lib/ambari-server/install-helper.sh"
 COMMON_DIR_AGENT="/usr/lib/ambari-agent/lib/ambari_commons"
@@ -30,6 +31,7 @@ RESOURCE_MANAGEMENT_DIR_AGENT="/usr/lib/ambari-agent/lib/resource_management"
 JINJA_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_jinja2"
 SIMPLEJSON_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_simplejson"
 STOMP_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_stomp"
+WS4PY_AGENT_DIR="/usr/lib/ambari-agent/lib/ambari_ws4py"
 AMBARI_AGENT="/usr/lib/python2.6/site-packages/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
 AMBARI_AGENT_VAR="/var/lib/ambari-agent"
@@ -69,6 +71,11 @@ do_install(){
   # setting stomp shared resource
   if [ ! -d "$STOMP_DIR" ]; then
     ln -s "$STOMP_AGENT_DIR" "$STOMP_DIR"
+  fi
+
+  # setting ws4py shared resource
+  if [ ! -d "$WS4PY_DIR" ]; then
+    ln -s "$WS4PY_AGENT_DIR" "$WS4PY_DIR"
   fi
   
   # on nano Ubuntu, when umask=027 those folders are created without 'x' bit for 'others'.
@@ -157,6 +164,10 @@ do_remove(){
 
   if [ -d "$STOMP_DIR" ]; then
     rm -f $STOMP_DIR
+  fi
+
+  if [ -d "$WS4PY_DIR" ]; then
+    rm -f $WS4PY_DIR
   fi
 
   if [ -d "$OLD_COMMON_DIR" ]; then

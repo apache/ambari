@@ -306,6 +306,8 @@
             <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
             <!--Stomp library (Apache license)-->
             <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
+            <!--ws4py library (BSD 3-Clause)-->
+            <exclude>ambari-common/src/main/python/ambari_ws4py/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 

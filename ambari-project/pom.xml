@@ -30,7 +30,7 @@
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>1.6.3</powermock.version>
-    <jetty.version>8.1.19.v20160209</jetty.version>
+    <jetty.version>9.4.2.v20170220</jetty.version>
     <checkstyle.version>6.19</checkstyle.version> <!-- last version that does not require Java 8 -->
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
@@ -123,17 +123,17 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-core</artifactId>
-        <version>3.1.2.RELEASE</version>
+        <version>4.2.2.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-config</artifactId>
-        <version>3.1.2.RELEASE</version>
+        <version>4.2.2.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-web</artifactId>
-        <version>3.1.2.RELEASE</version>
+        <version>4.2.2.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.security.kerberos</groupId>
@@ -293,6 +293,11 @@
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-util-ajax</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.mortbay.jetty</groupId>
         <artifactId>jsp-api-2.1-glassfish</artifactId>
         <version>2.1.v20100127</version>
@@ -301,6 +306,16 @@
         <groupId>org.mortbay.jetty</groupId>
         <artifactId>jsp-2.1-glassfish</artifactId>
         <version>2.1.v20100127</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-server</artifactId>
+        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
@@ -413,6 +428,83 @@
         <groupId>com.sun.jersey.contribs</groupId>
         <artifactId>jersey-guice</artifactId>
         <version>1.19</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aop</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-websocket</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-messaging</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>4.3.7.RELEASE</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.jersey.contribs</groupId>
+        <artifactId>jersey-spring</artifactId>
+        <version>1.19</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>log4j</groupId>

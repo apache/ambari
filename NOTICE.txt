@@ -29,3 +29,8 @@ This product includes Simplejson, library fast encoding and decoding of json. (h
 
 Copyright (c) 2006 Bob Ippolito.
 All rights reserved.
+
+Ws4py, python library for websocket connectivity
+
+Copyright (c) 2011-2016, Sylvain Hellegouarch
+All rights reserved.

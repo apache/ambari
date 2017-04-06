@@ -77,6 +77,11 @@
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_ws4py</directory>
+      <outputDirectory>${ws4py.install.dir}</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directoryMode>755</directoryMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>
