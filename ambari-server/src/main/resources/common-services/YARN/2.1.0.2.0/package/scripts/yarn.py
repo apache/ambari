@@ -82,17 +82,24 @@ def create_log_dir(dir_name):
             group=params.user_group,
             ignore_failures=True,
   )
-  
+
+
 def create_local_dir(dir_name):
   import params
+
+  directory_args = {}
+
+  if params.toggle_nm_security:
+    directory_args["recursive_mode_flags"] = {'f': 'a+rw', 'd': 'a+rwx'}
+
   Directory(dir_name,
-            create_parents = True,
+            create_parents=True,
             cd_access="a",
             mode=0755,
             owner=params.yarn_user,
             group=params.user_group,
             ignore_failures=True,
-            recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
+            **directory_args
   )
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
