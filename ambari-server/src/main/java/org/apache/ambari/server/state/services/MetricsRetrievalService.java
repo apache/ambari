@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.services;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -441,7 +442,12 @@ public class MetricsRetrievalService extends AbstractService {
         if (null != m_ttlUrlCache) {
           m_ttlUrlCache.put(m_url, m_url);
         }
-
+      } catch (IOException exception)
+      {
+        LOG.debug("Removing cached values for url {}", m_url);
+        // need to ensure old values are removed because they could be not valid if the state have changed.
+        removeCachedMetricsForCurrentURL();
+        logException(exception, m_url);
       } catch (Exception exception) {
         logException(exception, m_url);
       } finally {
@@ -452,6 +458,11 @@ public class MetricsRetrievalService extends AbstractService {
         m_queuedUrls.remove(m_url);
       }
     }
+
+    /**
+     * Removes metric values for current URL from cache.
+     */
+    protected abstract void removeCachedMetricsForCurrentURL();
 
     /**
      * Reads data from the specified {@link InputStream} and processes that into
@@ -536,6 +547,14 @@ public class MetricsRetrievalService extends AbstractService {
      * {@inheritDoc}
      */
     @Override
+    protected void removeCachedMetricsForCurrentURL() {
+      m_cache.invalidate(m_url);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void processInputStreamAndCacheResult(InputStream inputStream) throws Exception {
       JMXMetricHolder jmxMetricHolder = m_jmxObjectReader.readValue(inputStream);
       m_cache.put(m_url, jmxMetricHolder);
@@ -569,6 +588,14 @@ public class MetricsRetrievalService extends AbstractService {
       super(streamProvider, restUrl, queuedUrls, ttlUrlCache);
       m_cache = cache;
       m_gson = gson;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected void removeCachedMetricsForCurrentURL() {
+      m_cache.invalidate(m_url);
     }
 
     /**
