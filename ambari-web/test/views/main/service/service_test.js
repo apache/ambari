@@ -18,8 +18,6 @@
 
 var App = require('app');
 require('views/main/service/service');
-var testHelpers = require('test/helpers');
-
 
 describe('App.MainDashboardServiceHealthView', function () {
   var view;
