@@ -521,6 +521,15 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
       String type = configEntry.getKey();
+      try {
+          clusterTopology.getBlueprint().getStack().getServiceForConfigType(type);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            LOG.error(new StringBuilder(String.format("Error encountered while trying to obtain the service name for config type [%s]. ", type))
+            .append("Further processing on this config type will be skipped. ")
+            .append("This usually means that a service's definitions have been manually removed from the Ambari stack definitions. ")
+            .append("If the stack definitions have not been changed manually, this may indicate a stack definition error in Ambari. ").toString(), illegalArgumentException);
+            continue;
+        }
       Map<String, String> typeProperties = configEntry.getValue();
 
       for (Map.Entry<String, String> propertyEntry : typeProperties.entrySet()) {
