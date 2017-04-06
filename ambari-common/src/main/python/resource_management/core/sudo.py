@@ -30,6 +30,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 import subprocess
 
+from resource_management.core.utils import attr_to_bitmask
 
 if os.geteuid() == 0:
   def chown(path, owner, group):
@@ -54,16 +55,45 @@ if os.geteuid() == 0:
             
   
   def chmod(path, mode):
+    """
+    Wrapper around python function
+    
+    :type path str
+    :type mode int
+    """
     return os.chmod(path, mode)
   
-  mode_to_stat = {"a+x": stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH, "a+rx": stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH | stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH, "u+x": stat.S_IXUSR, "g+x": stat.S_IXGRP,  "o+x": stat.S_IXOTH}
+
   def chmod_extended(path, mode):
-    if mode in mode_to_stat:
-      st = os.stat(path)
-      os.chmod(path, st.st_mode | mode_to_stat[mode])
-    else:
-      shell.checked_call(["chmod", mode, path])
-      
+    """
+    :type path str
+    :type mode str
+    """
+    st = os.stat(path)
+    os.chmod(path, attr_to_bitmask(mode, initial_bitmask=st.st_mode))
+
+  def chmod_recursive(path, recursive_mode_flags, recursion_follow_links=False):
+    """
+    Change recursively permissions on directories or files
+    
+    :type path str
+    :type recursive_mode_flags
+    :type recursion_follow_links bool
+    """
+    dir_attrib = recursive_mode_flags["d"] if "d" in recursive_mode_flags else None
+    files_attrib = recursive_mode_flags["f"] if "d" in recursive_mode_flags else None
+
+    for root, dirs, files in os.walk(path, followlinks=recursion_follow_links):
+      if dir_attrib is not None:
+        for dir_name in dirs:
+          full_dir_path = os.path.join(root, dir_name)
+          chmod(full_dir_path, attr_to_bitmask(dir_attrib, initial_bitmask=os.stat(full_dir_path).st_mode))
+
+      if files_attrib is not None:
+        for file_name in files:
+          full_file_path = os.path.join(root, file_name)
+          chmod(full_file_path, attr_to_bitmask(files_attrib, initial_bitmask=os.stat(full_file_path).st_mode))
+
   def copy(src, dst):
     shutil.copy(src, dst)
     
@@ -278,10 +308,10 @@ else:
     return files
 
 
-def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
-  find_flags = []
-  if recursion_follow_links:
-    find_flags.append('-L')
-    
-  for key, flags in recursive_mode_flags.iteritems():
-    shell.checked_call(["find"] + find_flags + [path, "-type", key, "-exec" , "chmod", flags ,"{}" ,";"])
+  def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
+    find_flags = []
+    if recursion_follow_links:
+      find_flags.append('-L')
+
+    for key, flags in recursive_mode_flags.iteritems():
+      shell.checked_call(["find"] + find_flags + [path, "-type", key, "-exec" , "chmod", flags ,"{}" ,";"])
