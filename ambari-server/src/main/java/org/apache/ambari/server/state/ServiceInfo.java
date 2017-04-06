@@ -82,6 +82,11 @@ public class ServiceInfo implements Validable{
   @XmlElement(name="deleted")
   private boolean isDeleted = false;
 
+  @XmlElement(name="supportDeleteViaUI")
+  private Boolean supportDeleteViaUIField;
+
+  private boolean supportDeleteViaUIInternal = true;
+
   @JsonIgnore
   @XmlTransient
   private volatile Map<String, Set<String>> configLayout = null;
@@ -289,6 +294,27 @@ public class ServiceInfo implements Validable{
 
   public void setDeleted(boolean deleted) {
     isDeleted = deleted;
+  }
+
+  public Boolean getSupportDeleteViaUIField(){
+    return supportDeleteViaUIField;
+  }
+
+  public void setSupportDeleteViaUIField(Boolean supportDeleteViaUIField) {
+    this.supportDeleteViaUIField = supportDeleteViaUIField;
+  }
+
+  public boolean isSupportDeleteViaUI() {
+    if (null != supportDeleteViaUIField) {
+      return supportDeleteViaUIField.booleanValue();
+    }
+    // If set to null and has a parent, then the value would have already been resolved and set.
+    // Otherwise, return the default value (true).
+    return this.supportDeleteViaUIInternal;
+  }
+
+  public void setSupportDeleteViaUI(boolean supportDeleteViaUI){
+    this.supportDeleteViaUIInternal = supportDeleteViaUI;
   }
 
   public String getName() {

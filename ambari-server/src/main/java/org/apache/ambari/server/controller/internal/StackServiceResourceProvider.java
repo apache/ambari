@@ -98,6 +98,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String CREDENTIAL_STORE_ENABLED = PropertyHelper.getPropertyId(
       "StackServices", "credential_store_enabled");
 
+  private static final String SUPPORT_DELETE_VIA_UI = PropertyHelper.getPropertyId(
+      "StackServices", "support_delete_via_ui");
+
   private static Set<String> pkPropertyIds = new HashSet<>(
     Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
       STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID}));
@@ -205,6 +208,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, CREDENTIAL_STORE_ENABLED,
         response.isCredentialStoreEnabled(), requestedIds);
+
+    setResourceProperty(resource, SUPPORT_DELETE_VIA_UI,
+        response.isSupportDeleteViaUI(), requestedIds);
 
     return resource;
   }

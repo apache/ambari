@@ -36,6 +36,7 @@ describe('App.stackServiceMapper', function () {
                 "ZOOKEEPER"
               ],
               "service_check_supported" : true,
+              "support_delete_via_ui" : false,
               "service_name" : "KAFKA",
               "service_version" : "0.8.1.2.2",
               "stack_name" : "HDP",
@@ -102,7 +103,8 @@ describe('App.stackServiceMapper', function () {
           },
           {
             "StackServices" : {
-              "service_name" : "ZOOKEEPER"
+              "service_name" : "ZOOKEEPER",
+              "support_delete_via_ui" : true
             },
             "components" : [ ],
             "artifacts" : [ ]
@@ -202,6 +204,7 @@ describe('App.stackServiceMapper', function () {
         isInstallable: true,
         isServiceWithWidgets: false,
         serviceCheckSupported: true,
+        supportDeleteViaUi : false,
         requiredServices: ["ZOOKEEPER"]
       },
       componentResult = {
@@ -253,6 +256,8 @@ describe('App.stackServiceMapper', function () {
       expect(components.findProperty('componentName', 'DATANODE').get('bulkCommandsMasterComponentName')).to.eql("NAMENODE");
       expect(components.findProperty('componentName', 'DATANODE').get('decommissionAllowed')).to.be.true;
       expect(components.findProperty('componentName', 'DATANODE').get('reassignAllowed')).to.be.true;
+
+      expect(services.findProperty('serviceName', 'ZOOKEEPER').get('supportDeleteViaUi')).to.be.true;
     });
 
   });
