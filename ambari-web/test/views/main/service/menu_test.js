@@ -19,10 +19,6 @@
 var App = require('app');
 require('views/main/service/menu');
 
-function getView() {
-  return App.MainServiceMenuView.create();
-}
-
 function getItemViewClass() {
   return App.MainServiceMenuView.create().get('itemViewClass').create({
     content: Em.Object.create(),
@@ -112,7 +108,7 @@ describe('App.MainServiceMenuView', function () {
         itemView.set('parentView.activeServiceId', 'S1');
         expect(itemView.get('active')).to.be.equal('active');
       });
-      it('should return "active" ', function() {
+      it('should not return "active" ', function() {
         itemView.set('content.id', 'S1');
         itemView.set('parentView.activeServiceId', 'S2');
         expect(itemView.get('active')).to.be.empty;
@@ -168,13 +164,13 @@ describe('App.MainServiceMenuView', function () {
         App.router.transitionTo.restore();
       });
 
-      it('App.router.set should be called', function() {
+      it('App.router.set should be called (routeToConfigs true)', function() {
         expect(App.router.set.calledWith('mainServiceItemController.routeToConfigs', true)).to.be.true;
       });
       it('App.router.transitionTo should be called', function() {
         expect(App.router.transitionTo.calledWith('services.service.configs', Em.Object.create())).to.be.true;
       });
-      it('App.router.set should be called', function() {
+      it('App.router.set should be called (routeToConfigs false)', function() {
         expect(App.router.set.calledWith('mainServiceItemController.routeToConfigs', false)).to.be.true;
       });
     });
