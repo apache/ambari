@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.junit.After;
 import org.junit.Assert;
@@ -124,7 +125,25 @@ public class RequestDAOTest {
     group.add(4L);
 
     // !!! accepted
-    List<StageEntity> stages = stageDAO.findByStageIds(requestEntity.getRequestId(), group);
+    List<StageEntity> stages = new ArrayList<>();
+    StageEntityPK primaryKey = new StageEntityPK();
+    primaryKey.setRequestId(requestEntity.getRequestId());
+    primaryKey.setStageId(2L);
+
+    StageEntity stage = stageDAO.findByPK(primaryKey);
+    Assert.assertNotNull(stage);
+    stages.add(stage);
+
+    primaryKey.setStageId(3L);
+    stage = stageDAO.findByPK(primaryKey);
+    Assert.assertNotNull(stage);
+    stages.add(stage);
+
+    primaryKey.setStageId(4L);
+    stage = stageDAO.findByPK(primaryKey);
+    Assert.assertNotNull(stage);
+    stages.add(stage);
+
     CalculatedStatus calc3 = CalculatedStatus.statusFromStageEntities(stages);
 
     // !!! aggregated

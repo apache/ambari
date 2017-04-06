@@ -305,6 +305,7 @@ export default Ember.Component.extend({
       if(tab.type === 'wf' && tab.context){
         CommonUtils.setTestContext(tab.context);
         tab.context.resize();
+        tab.context.centerGraph();
       }else if(tab.type === 'dashboard'){
         this.sendAction('showDashboard');
       }

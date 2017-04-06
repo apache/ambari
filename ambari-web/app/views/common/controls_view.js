@@ -199,15 +199,14 @@ App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
  * id not used in order to avoid collision with ember ids
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
-  idClass: Ember.computed(function () {
+  'data-qa': Ember.computed(function () {
     var config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
     var label = Em.get(config, 'name') ? Em.get(config, 'name').toLowerCase().replace(/\./g, '-') : '',
         fileName = Em.get(config, 'filename') ? Em.get(config, 'filename').toLowerCase().replace(/\./g, '-') : '',
         group = Em.get(config, 'group.name') || 'default',
         isOrigin = Em.getWithDefault(config, 'compareConfigs.length', 0) > 0 ? '-origin' : '';
     return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
-  }),
-  classNameBindings: 'idClass'
+  })
 });
 
 /**

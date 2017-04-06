@@ -117,7 +117,7 @@ public class RangerWebAlertConfigActionTest {
 
       try {
         while (scanner.hasNextLine()) {
-          rangerAlertsConfigFile.append(scanner.nextLine() + lineSeparator);
+          rangerAlertsConfigFile.append(scanner.nextLine()).append(lineSeparator);
         }
         Mockito.when(alertDefinitionEntity.getSource()).thenReturn(rangerAlertsConfigFile.toString());
       } finally {

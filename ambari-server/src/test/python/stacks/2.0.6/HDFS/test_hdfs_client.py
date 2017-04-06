@@ -32,6 +32,7 @@ from resource_management.libraries.script.script import Script
 @patch.object(tempfile,"mkdtemp", new = MagicMock(return_value='/tmp/123'))
 @patch.object(contextlib,"closing", new = MagicMock())
 @patch("os.path.exists", new = MagicMock(return_value=True))
+@patch("os.chmod", new = MagicMock(return_value=True))
 class Test(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -49,25 +50,25 @@ class Test(RMFTestCase):
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               conf_dir = '/tmp/123',
-                              mode=0644,
+                              mode=0600,
                               configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'],
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('File', '/tmp/123/hadoop-env.sh',
-                              mode=0644,
+                              mode=0600,
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
                               )
     self.assertResourceCalled('File', '/tmp/123/log4j.properties',
-                              mode=0644,
+                              mode=0600,
                               content = InlineTemplate(self.getConfig()['configurations']['hdfs-log4j']['content']+
                                                        self.getConfig()['configurations']['yarn-log4j']['content']),
                               )
     self.assertResourceCalled('PropertiesFile', '/tmp/123/runtime.properties',
-                              mode=0644,
+                              mode=0600,
                               properties = UnknownConfigurationMock(),
     )
     self.assertResourceCalled('PropertiesFile', '/tmp/123/startup.properties',
-                              mode=0644,
+                              mode=0600,
                               properties = UnknownConfigurationMock(),
     )
     self.assertResourceCalled('Directory', '/tmp/123',

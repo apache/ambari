@@ -280,19 +280,15 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     ],
     '2': [
       {
-        type: 'async',
+        type: 'sync',
         callback: function () {
           var self = this;
-          var dfd = $.Deferred();
-          this.loadServiceConfigProperties().always(function() {
-            if (!self.get('stackConfigsLoaded')) {
-              App.config.loadConfigsFromStack(['KERBEROS']).complete(function() {
-                self.set('stackConfigsLoaded', true);
-              }, self);
-            }
-            dfd.resolve();
-          });
-          return dfd.promise();
+          this.loadServiceConfigProperties();
+          if (!self.get('stackConfigsLoaded')) {
+            App.config.loadConfigsFromStack(['KERBEROS']).complete(function() {
+              self.set('stackConfigsLoaded', true);
+            }, self);
+          }
         }
       }
     ],

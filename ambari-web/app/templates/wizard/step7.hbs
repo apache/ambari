@@ -16,8 +16,8 @@
 * limitations under the License.
 }}
 
-<div id="serviceConfig" class="wizard-content col-md-9">
-  <h4 class="step-title">{{t installer.step7.header}}{{controller.finnalyLoaded}}</h4>
+<div id="serviceConfig" class="wizard-content col-md-9" {{QAAttr "service-configs"}}>
+  <h4 class="step-title" {{QAAttr "step-title"}}>{{t installer.step7.header}}{{controller.finnalyLoaded}}</h4>
   <p class="step-description">{{t installer.step7.body}}</p>
 
   <div class="panel panel-default">

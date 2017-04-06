@@ -23,7 +23,6 @@ import os
 import traceback
 
 
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
@@ -42,6 +41,8 @@ class SliderServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(SliderServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
+
+    self.initialize_logger("SliderServiceAdvisor")
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -113,7 +114,7 @@ class SliderServiceAdvisor(service_advisor.ServiceAdvisor):
     Entry point.
     Must be overriden in child class.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     # Nothing to do
@@ -125,7 +126,7 @@ class SliderServiceAdvisor(service_advisor.ServiceAdvisor):
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     # Nothing to do

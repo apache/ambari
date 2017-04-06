@@ -216,7 +216,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     List<StageEntity> entities = dao.findAll(request, predicate);
     for (StageEntity entity : entities) {
-      results.add(toResource(cache, entity, propertyIds));
+      results.add(StageResourceProvider.toResource(cache, entity, propertyIds));
     }
 
     cache.clear();
@@ -273,7 +273,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
    *
    * @return the new resource
    */
-  private Resource toResource(
+  static Resource toResource(
       Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache,
       StageEntity entity,
       Set<String> requestedIds) {

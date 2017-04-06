@@ -19,7 +19,7 @@
 
 var App = require('app');
 require('messages');
-require('mixins/common/userPref');
+require('mixins/common/persist');
 require('mixins/common/localStorage');
 require('views/main/dashboard/widgets');
 

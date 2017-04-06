@@ -20,20 +20,20 @@
 <div class="well login col-md-4 col-md-offset-4 col-sm-offset-4">
   <h2>{{t login.header}}</h2>
   {{#if errorMessage}}
-  <div class="alert alert-danger">
+  <div class="alert alert-danger" {{QAAttr "login-error"}}>
     {{errorMessage}}
   </div>
   {{/if}}
   <form>
     <div class="form-group">
-      <label>{{t login.username}}</label>
-      {{view view.loginTextField valueBinding="loginName" class="form-control" disabledBinding="isSubmitDisabled"}}
+      <label {{QAAttr "username-label"}}>{{t login.username}}</label>
+      {{view view.loginTextField valueBinding="loginName" class="form-control" disabledBinding="isSubmitDisabled" data-qa="username-input"}}
     </div>
     <div class="form-group">
-      <label>{{t common.password}}</label>
-      {{view view.passTextField type="password" valueBinding="password" class="form-control" disabledBinding="isSubmitDisabled"}}
+      <label {{QAAttr "password-label"}}>{{t common.password}}</label>
+      {{view view.passTextField type="password" valueBinding="password" class="form-control" disabledBinding="isSubmitDisabled" data-qa="password-input"}}
     </div>
-    <button class="btn btn-success login-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
+    <button class="btn btn-success" {{QAAttr "login-button"}} {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
   </form>
 </div>
 {{/unless}}

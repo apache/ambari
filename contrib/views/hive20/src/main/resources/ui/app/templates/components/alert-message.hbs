@@ -19,9 +19,9 @@
 <div class={{alert-message-context-class flash.type "clearfix alert alert-dismissible alert-"}}>
   <button type="button" class="close" {{action "closeAlert"}}>&times;</button>
   <div class="alert-icon wrap-message">
-    {{#fa-stack size=2}}
-      {{fa-icon "circle-thin" stack=2}}
-      {{fa-icon (alert-message-icon-class flash.type) stack=1}}
+    {{#fa-stack size=1}}
+      {{fa-icon "circle-thin" stack=2 size=1}}
+      {{fa-icon (alert-message-icon-class flash.type) stack=1  size=1}}
     {{/fa-stack}}
   </div>
   <div class="alert-message-wrap wrap-message">

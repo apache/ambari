@@ -28,6 +28,7 @@ from resource_management.libraries.functions.stack_features import get_stack_fea
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.setup_ranger_plugin_xml import generate_ranger_service_config
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -260,6 +261,10 @@ if stack_supports_ranger_kerberos:
       rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())
   kms_plugin_config['policy.download.auth.users'] = format('keyadmin,{rangerkms_bare_principal}')
 
+custom_ranger_service_config = generate_ranger_service_config(config['configurations']['kms-properties'])
+if len(custom_ranger_service_config) > 0:
+  kms_plugin_config.update(custom_ranger_service_config)
+
 kms_ranger_plugin_repo = {
   'isEnabled' : 'true',
   'configs' : kms_plugin_config,
@@ -289,3 +294,6 @@ ranger_kms_ssl_enabled = config['configurations']['ranger-kms-site']['ranger.ser
 
 xa_audit_hdfs_is_enabled = default("/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False)
 namenode_host = default("/clusterHostInfo/namenode_host", [])
+
+# need this to capture cluster name from where ranger kms plugin is enabled
+cluster_name = config['clusterName']

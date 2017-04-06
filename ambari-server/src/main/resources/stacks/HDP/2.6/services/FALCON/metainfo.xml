@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>FALCON</name>
-      <version>0.10.0.2.6</version>
+      <version>0.10.0</version>
     </service>
   </services>
 </metainfo>

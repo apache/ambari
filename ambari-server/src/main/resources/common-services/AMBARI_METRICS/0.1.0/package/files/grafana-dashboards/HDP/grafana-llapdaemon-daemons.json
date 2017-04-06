@@ -1189,159 +1189,6 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 29,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "alias": "95th Percentile",
-              "app": "llapdaemon",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "io.IOMetrics.PercentileDecodingTime_30s95thPercentileLatency",
-              "precision": "default",
-              "refId": "B",
-              "templatedHost": "",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "95th Percentile Column Decoding Time (30s interval)",
-          "tooltip": {
-            "shared": false,
-            "value_type": "cumulative"
-          },
-          "transparent": true,
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "ms",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 30,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "alias": "Max",
-              "app": "llapdaemon",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "io.IOMetrics.MaxDecodingTime",
-              "precision": "default",
-              "refId": "A",
-              "templatedHost": "",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Max Column Decoding Time",
-          "tooltip": {
-            "shared": false,
-            "value_type": "cumulative"
-          },
-          "transparent": true,
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "ms",
-            "short"
-          ]
-        }
-      ],
-      "showTitle": true,
-      "title": "IO Elevator Metrics"
-    },
-    {
-      "collapse": true,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
           "id": 14,
           "isNew": true,
           "legend": {
@@ -1635,150 +1482,6 @@
             "threshold2": null,
             "threshold2Color": "rgba(234, 112, 112, 0.22)"
           },
-          "id": 20,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "alias": "ThreadsRunnable",
-              "app": "llapdaemon",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.JvmMetrics.ThreadsRunnable",
-              "precision": "default",
-              "refId": "B",
-              "templatedHost": "",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Max JVM Threads Runnable",
-          "tooltip": {
-            "shared": false,
-            "value_type": "cumulative"
-          },
-          "transparent": true,
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "short",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 42,
-          "isNew": true,
-          "legend": {
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": false,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 1,
-          "links": [],
-          "nullPointMode": "connected",
-          "percentage": false,
-          "pointradius": 5,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 6,
-          "stack": false,
-          "steppedLine": false,
-          "targets": [
-            {
-              "aggregator": "max",
-              "alias": "ThreadsBlocked",
-              "app": "llapdaemon",
-              "downsampleAggregator": "avg",
-              "errors": {},
-              "metric": "jvm.JvmMetrics.ThreadsBlocked",
-              "precision": "default",
-              "refId": "B",
-              "templatedHost": "",
-              "transform": "none"
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Max JVM Threads Blocked",
-          "tooltip": {
-            "shared": false,
-            "value_type": "cumulative"
-          },
-          "transparent": true,
-          "type": "graph",
-          "x-axis": true,
-          "y-axis": true,
-          "y_formats": [
-            "short",
-            "short"
-          ]
-        },
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": null,
-          "editable": true,
-          "error": false,
-          "fill": 1,
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "leftMin": 0,
-            "rightLogBase": 1,
-            "rightMax": null,
-            "rightMin": null,
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
           "id": 43,
           "isNew": true,
           "legend": {
@@ -1903,10 +1606,455 @@
             "short",
             "short"
           ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 20,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "ThreadsRunnable",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.JvmMetrics.ThreadsRunnable",
+              "precision": "default",
+              "refId": "B",
+              "templatedHost": "",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Max JVM Threads Runnable",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 42,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "max",
+              "alias": "ThreadsBlocked",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.JvmMetrics.ThreadsBlocked",
+              "precision": "default",
+              "refId": "B",
+              "templatedHost": "",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Max JVM Threads Blocked",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
         }
       ],
       "showTitle": true,
       "title": "JVM Metrics"
+    },
+    {
+      "title": "OFFHEAP METRICS",
+      "height": "250px",
+      "editable": true,
+      "collapse": true,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 47,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "alias": "DirectBufferMemoryUsed",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.LlapDaemonJVMMetrics.LlapDaemonDirectBufferMemoryUsed",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": "",
+              "transform": "none",
+              "seriesAggregator": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Direct Buffer Memory Used",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 46,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "alias": "DirectBufferTotalCapacity",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.LlapDaemonJVMMetrics.LlapDaemonDirectBufferTotalCapacity",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": "",
+              "transform": "none",
+              "seriesAggregator": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Direct Buffer Total Capacity",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 48,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "alias": "MappedBufferMemoryUsed",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.LlapDaemonJVMMetrics.LlapDaemonMappedBufferMemoryUsed",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": "",
+              "transform": "none",
+              "seriesAggregator": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Mapped Buffer Memory Used",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 49,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": false,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "none",
+              "alias": "MappedBufferTotalCapacity",
+              "app": "llapdaemon",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.LlapDaemonJVMMetrics.LlapDaemonMappedBufferTotalCapacity",
+              "precision": "default",
+              "refId": "C",
+              "templatedHost": "",
+              "transform": "none",
+              "seriesAggregator": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Mapped Buffer Total Capacity",
+          "tooltip": {
+            "shared": false,
+            "value_type": "cumulative"
+          },
+          "transparent": true,
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true
     }
   ],
   "time": {
@@ -1968,7 +2116,8 @@
         "allFormat": "glob",
         "current": {
           "text": "All",
-          "value": ""
+          "value": "",
+          "tags": []
         },
         "datasource": null,
         "includeAll": true,

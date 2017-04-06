@@ -93,7 +93,7 @@ public class CredentialProvider {
   }
 
   private String generatePassword(int length) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     Random r = new Random();
     for (int i = 0; i < length; i++) {
       sb.append(chars[r.nextInt(chars.length)]);

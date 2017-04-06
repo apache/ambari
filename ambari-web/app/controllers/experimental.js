@@ -17,7 +17,7 @@
 
 var App = require('app');
 
-App.ExperimentalController = Em.Controller.extend(App.UserPref, {
+App.ExperimentalController = Em.Controller.extend(App.Persist, {
   name: 'experimentalController',
   supports: function () {
     return Em.keys(App.get('supports')).map(function (sup) {

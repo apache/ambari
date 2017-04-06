@@ -24,13 +24,14 @@ import os
 from math import ceil
 
 # Local Imports
-from resource_management.core.logger import Logger
 from stack_advisor import DefaultStackAdvisor
 
 class HDPWIN21StackAdvisor(DefaultStackAdvisor):
 
   def __init__(self):
     super(HDPWIN21StackAdvisor, self).__init__()
+
+    self.initialize_logger("HDPWIN21StackAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()
@@ -409,9 +410,9 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
             siteProperties = getSiteProperties(configurations, siteName)
             if siteProperties is not None:
               siteRecommendations = recommendedDefaults[siteName]["properties"]
-              print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
-              print("Site properties: %s\n" % str(siteProperties))
-              print("Recommendations: %s\n********\n" % str(siteRecommendations))
+              self.logger.info("SiteName: %s, method: %s\n" % (siteName, method.__name__))
+              self.logger.info("Site properties: %s\n" % str(siteProperties))
+              self.logger.info("Recommendations: %s\n********\n" % str(siteRecommendations))
               resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
               items.extend(resultItems)
     clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)

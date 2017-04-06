@@ -280,9 +280,12 @@ public class CheckDescription {
             "This service does not support upgrades and must be removed before the upgrade can continue. " +
             "After upgrading, %s can be reinstalled")
         .put(ServicePresenceCheck.KEY_SERVICE_REMOVED,
+             "The %s service is currently installed on the cluster. " +
+             "This service is removed from the new release and must be removed before the upgrade can continue.")
+        .put(ServicePresenceCheck.KEY_SERVICE_REPLACED,
             "The %s service is currently installed on the cluster. " +
             "This service is removed from the new release and must be removed before the upgrade can continue. " +
-            "After upgrading, %s can be installed").build());
+            "After upgrading, %s can be installed as the replacement.").build());
 
   public static CheckDescription RANGER_SERVICE_AUDIT_DB_CHECK = new CheckDescription("RANGER_SERVICE_AUDIT_DB_CHECK",
     PrereqCheckType.SERVICE,

@@ -79,7 +79,7 @@ public class ActionDefinitionManager {
     try {
       return Enum.valueOf(enumm, s);
     } catch (IllegalArgumentException iaex) {
-      reason.append("Invalid value provided for " + enumm.getName());
+      reason.append("Invalid value provided for ").append(enumm.getName());
       return null;
     }
   }
@@ -147,7 +147,7 @@ public class ActionDefinitionManager {
       }
 
       if (actionType == null || actionType == ActionType.SYSTEM_DISABLED) {
-        reason.append("Action type cannot be " + actionType);
+        reason.append("Action type cannot be ").append(actionType);
         return false;
       }
 

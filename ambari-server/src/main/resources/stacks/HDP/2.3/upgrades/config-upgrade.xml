@@ -204,6 +204,12 @@
             <type>hive-site</type>
             <set key="hive.enforce.bucketing" value="true"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="atlas.cluster.name"/>
+          </definition>
+
         </changes>
       </component>
 

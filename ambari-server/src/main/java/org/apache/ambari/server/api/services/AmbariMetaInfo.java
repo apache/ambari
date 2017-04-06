@@ -555,6 +555,12 @@ public class AmbariMetaInfo {
     return removedServices.contains(serviceName);
   }
 
+  public boolean isServiceWithNoConfigs(String stackName, String version, String serviceName) throws AmbariException{
+    StackInfo stack = getStack(stackName, version);
+    List<String> servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    return servicesWithNoConfigs.contains(serviceName);
+  }
+
   public Collection<String> getMonitoringServiceNames(String stackName, String version)
     throws AmbariException{
 

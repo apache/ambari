@@ -173,7 +173,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     }
 
     // May be null, and either upgrade or downgrade
-    UpgradeEntity currentUpgrade = cluster.getUpgradeEntity();
+    UpgradeEntity currentUpgrade = cluster.getUpgradeInProgress();
     if (currentUpgrade == null) {
       LOG.debug("There is no active stack upgrade in progress. Skip retrying failed tasks.");
       return null;

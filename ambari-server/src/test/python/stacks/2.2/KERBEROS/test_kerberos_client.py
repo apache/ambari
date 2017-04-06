@@ -32,7 +32,7 @@ class TestKerberosClient(RMFTestCase):
   STACK_VERSION = "2.2"
 
   def test_configure_managed_kdc(self):
-    json_data = use_cases.get_manged_kdc_use_case()
+    json_data = use_cases.get_managed_kdc_use_case()
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/kerberos_client.py",
                        classname="KerberosClient",
@@ -52,7 +52,7 @@ class TestKerberosClient(RMFTestCase):
                  "/" +
                  use_cases.get_krb5_conf_file(json_data))
     self.assertResourceCalled('File', file_path,
-                              content=Template('krb5_conf.j2'),
+                              content=InlineTemplate(use_cases.get_krb5_conf_template(json_data)),
                               owner='root',
                               group='root',
                               mode=0644)

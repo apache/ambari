@@ -1350,20 +1350,6 @@ var urls = {
       };
     }
   },
-  'settings.get.user_pref': {
-    'real': '/persist/{key}',
-    'mock': '/data/user_settings/{key}.json'
-  },
-  'settings.post.user_pref': {
-    'real': '/persist',
-    'mock': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify(data.keyValuePair)
-      }
-    }
-  },
   'cluster.load_cluster_name': {
     'real': '/clusters?fields=Clusters/security_type',
     'mock': '/data/clusters/info.json'
@@ -2200,7 +2186,7 @@ var urls = {
     'mock': '/data/requests/host_check/1.json'
   },
 
-  'persist.get': {
+  'persist.get.text': {
     'real': '/persist/{key}',
     'mock': '',
     'type': 'GET',
@@ -2210,7 +2196,13 @@ var urls = {
       }
     }
   },
-  'persist.put': {
+
+  'persist.get': {
+    'real': '/persist/{key}',
+    'mock': '',
+    'type': 'GET'
+  },
+  'persist.post': {
     'real': '/persist',
     'mock': '',
     'type': 'POST',

@@ -24,7 +24,7 @@
   {{#unless isClusterDataLoaded}}
     <h2>{{t app.loadingPlaceholder}}</h2>
     <div class="progress">
-      <div class="progress-bar progress-bar-striped active" {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
+      <div class="progress-bar progress-bar-striped active" {{QAAttr "main-progress-bar"}} {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
     </div>
   {{/unless}}
   {{#if isClusterDataLoaded}}

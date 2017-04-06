@@ -672,15 +672,21 @@ public interface Cluster {
   boolean isBluePrintDeployed();
 
   /**
-   * @return upgrade that is in progress for a cluster. If no upgrade is going
-   * on, a null is returned.
+   * Gets an {@link UpgradeEntity} if there is an upgrade in progress or an
+   * upgrade that has been suspended. This will return the associated
+   * {@link UpgradeEntity} if it exists.
+   * 
+   * @return an upgrade which will either be in progress or suspended, or
+   *         {@code null} if none.
+   * 
    */
-  UpgradeEntity getUpgradeEntity();
+  UpgradeEntity getUpgradeInProgress();
 
   /**
-   * The value is explicitly set on the ClusterEntity when Creating,
-   * Aborting (switching to downgrade), Resuming, or Finalizing an upgrade.
-   * @param upgradeEntity the upgrade entity to set for cluster
+   * Sets or clears the associated upgrade with the cluster.
+   *
+   * @param upgradeEntity
+   *          the upgrade entity to set for cluster, or {@code null} for none.
    * @throws AmbariException
    */
   void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException;
@@ -693,18 +699,6 @@ public interface Cluster {
    *         {@link UpgradeState#SUSPENDED}.
    */
   boolean isUpgradeSuspended();
-
-  /**
-   * Gets an {@link UpgradeEntity} if there is an upgrade in progress or an
-   * upgrade that has been suspended. This will first check
-   * {@link #getUpgradeEntity()} and return that if it is not {@code null}.
-   * Otherwise, this will perform a search for the most recent upgrade/downgrade
-   * which has not been completed.
-   *
-   * @return an upgrade which will either be in progress or suspended, or
-   *         {@code null} if none.
-   */
-  UpgradeEntity getUpgradeInProgress();
 
   /**
    * Returns the name of the service that the passed config type belongs to.

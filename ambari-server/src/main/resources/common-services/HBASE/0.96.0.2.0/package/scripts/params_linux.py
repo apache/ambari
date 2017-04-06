@@ -41,7 +41,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 # server configurations
 config = Script.get_config()
@@ -366,6 +366,10 @@ if enable_ranger_hbase:
     'assetType': '2'
   }
 
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    hbase_ranger_plugin_config.update(custom_ranger_service_config)
+
   if stack_supports_ranger_kerberos and security_enabled:
     hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
@@ -403,6 +407,9 @@ if enable_ranger_hbase:
   # for SQLA explicitly disable audit to DB for Ranger
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
+
+# need this to capture cluster name from where ranger hbase plugin is enabled
+cluster_name = config['clusterName']
 
 # ranger hbase plugin section end
 

@@ -35,7 +35,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 import status_params
 
@@ -90,6 +90,7 @@ hostname = config['hostname']
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
@@ -459,6 +460,10 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
     'assetType': '1'
   }
 
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    ranger_plugin_config.update(custom_ranger_service_config)
+
   if stack_supports_ranger_kerberos:
     ranger_plugin_config['ambari.service.check.user'] = policy_user
     ranger_plugin_config['hadoop.security.authentication'] = 'kerberos' if security_enabled else 'simple'
@@ -494,5 +499,8 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
   # for SQLA explicitly disable audit to DB for Ranger
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+# need this to capture cluster name from where ranger yarn plugin is enabled
+cluster_name = config['clusterName']
 
 # ranger yarn plugin end section

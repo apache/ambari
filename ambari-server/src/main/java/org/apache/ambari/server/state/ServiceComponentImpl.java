@@ -458,11 +458,14 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceComponent={ serviceComponentName=" + getName() + ", recoveryEnabled="
-        + isRecoveryEnabled() + ", clusterName=" + service.getCluster().getClusterName()
-        + ", clusterId=" + service.getCluster().getClusterId() + ", serviceName="
-        + service.getName() + ", desiredStackVersion=" + getDesiredStackVersion()
-        + ", desiredState=" + getDesiredState().toString() + ", hostcomponents=[ ");
+    sb.append("ServiceComponent={ serviceComponentName=").append(getName())
+      .append(", recoveryEnabled=").append(isRecoveryEnabled())
+      .append(", clusterName=").append(service.getCluster().getClusterName())
+      .append(", clusterId=").append(service.getCluster().getClusterId())
+      .append(", serviceName=").append(service.getName())
+      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredState=").append(getDesiredState())
+      .append(", hostcomponents=[ ");
     boolean first = true;
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!first) {

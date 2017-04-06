@@ -238,6 +238,15 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     for (ServiceModule module : serviceModules.values()) {
       mergeRoleCommandOrder(module);
     }
+
+    // Generate list of services that have no config types
+    List<String> servicesWithNoConfigs = new ArrayList<String>();
+    for(ServiceModule serviceModule: serviceModules.values()){
+      if (!serviceModule.hasConfigs()){
+        servicesWithNoConfigs.add(serviceModule.getId());
+      }
+    }
+    stackInfo.setServicesWithNoConfigs(servicesWithNoConfigs);
   }
 
   /**
