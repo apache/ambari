@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.services;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -112,6 +113,68 @@ public class MetricsRetrievalServiceTest extends EasyMockSupport {
     m_service.submitRequest(MetricSourceType.REST, streamProvider, REST_URL);
     restMetrics = m_service.getCachedRESTMetric(REST_URL);
     Assert.assertNotNull(restMetrics);
+
+    verifyAll();
+  }
+
+  /**
+   * Test removing cached values if request failed with IOException.
+   */
+  @Test
+  public void testRemovingValuesFromCacheOnFail() throws Exception {
+
+    Configuration configuration = m_injector.getInstance(Configuration.class);
+    configuration.setProperty(
+            Configuration.METRIC_RETRIEVAL_SERVICE_REQUEST_TTL.getKey(), "1");
+
+    InputStream jmxInputStream = IOUtils.toInputStream("{ \"beans\": [] }");
+    InputStream restInputStream = IOUtils.toInputStream("{}");
+
+    StreamProvider streamProvider = createNiceMock(StreamProvider.class);
+
+    EasyMock.expect(streamProvider.readFrom(JMX_URL)).andReturn(jmxInputStream).once();
+    EasyMock.expect(streamProvider.readFrom(REST_URL)).andReturn(restInputStream).once();
+
+    EasyMock.expect(streamProvider.readFrom(JMX_URL)).andThrow(new IOException()).once();
+    EasyMock.expect(streamProvider.readFrom(REST_URL)).andThrow(new IOException()).once();
+
+    replayAll();
+
+    m_service.doStart();
+
+    // make the service synchronous
+    m_service.setThreadPoolExecutor(new SynchronousThreadPoolExecutor());
+
+    JMXMetricHolder jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNull(jmxMetricHolder);
+
+    Map<String, String> restMetrics = m_service.getCachedRESTMetric(REST_URL);
+    Assert.assertNull(restMetrics);
+
+    m_service.submitRequest(MetricSourceType.JMX, streamProvider, JMX_URL);
+    jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNotNull(jmxMetricHolder);
+
+    m_service.submitRequest(MetricSourceType.REST, streamProvider, REST_URL);
+    restMetrics = m_service.getCachedRESTMetric(REST_URL);
+    Assert.assertNotNull(restMetrics);
+
+
+    jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNotNull(jmxMetricHolder);
+
+    restMetrics = m_service.getCachedRESTMetric(REST_URL);
+    Assert.assertNotNull(restMetrics);
+
+    Thread.sleep(1000);
+
+    m_service.submitRequest(MetricSourceType.JMX, streamProvider, JMX_URL);
+    jmxMetricHolder = m_service.getCachedJMXMetric(JMX_URL);
+    Assert.assertNull(jmxMetricHolder);
+
+    m_service.submitRequest(MetricSourceType.REST, streamProvider, REST_URL);
+    restMetrics = m_service.getCachedRESTMetric(REST_URL);
+    Assert.assertNull(restMetrics);
 
     verifyAll();
   }
