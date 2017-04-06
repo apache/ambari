@@ -248,6 +248,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   resize(){
     this.flowRenderer.resize();
   },
+  centerGraph(){
+    this.flowRenderer.setGraphCenter();
+  },
   cleanupFlowRenderer:function(){
     this.set('renderNodeTransitions',false);
     this.flowRenderer.cleanup();
