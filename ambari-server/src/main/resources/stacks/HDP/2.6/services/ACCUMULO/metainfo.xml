@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>ACCUMULO</name>
-      <version>1.7.0.2.6</version>
+      <version>1.7.0</version>
     </service>
   </services>
 </metainfo>
