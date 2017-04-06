@@ -347,7 +347,6 @@ def setup_nodemanager():
     elif not params.security_enabled:
       File(params.nm_security_marker, action="delete")
 
-
   if not params.security_enabled or params.toggle_nm_security:
     # handle_mounted_dirs ensures that we don't create dirs which are temporary unavailable (unmounted), and intended to reside on a different mount.
     nm_log_dir_to_mount_file_content = handle_mounted_dirs(create_log_dir, params.nm_log_dirs, params.nm_log_dir_to_mount_file, params)
@@ -459,16 +458,23 @@ def create_log_dir(dir_name):
             ignore_failures=True,
   )
 
+
 def create_local_dir(dir_name):
   import params
+
+  directory_args = {}
+
+  if params.toggle_nm_security:
+    directory_args["recursive_mode_flags"] = {'f': 'a+rw', 'd': 'a+rwx'}
+
   Directory(dir_name,
-            create_parents = True,
+            create_parents=True,
             cd_access="a",
             mode=0755,
             owner=params.yarn_user,
             group=params.user_group,
             ignore_failures=True,
-            recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
+            **directory_args
   )
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
