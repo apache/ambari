@@ -35,6 +35,7 @@ const Validations = buildValidations({
 
 
 export default Ember.Component.extend(Validations, {
+  workflowManagerConfigs : Ember.inject.service('workflow-manager-configs'),
   systemConfigs : Ember.A([]),
   showingFileBrowser : false,
   overwritePath : false,
@@ -118,10 +119,10 @@ export default Ember.Component.extend(Validations, {
     var jobProperties = [];
     var jobParams = this.get("jobConfigs").params, self = this;
     this.get("jobProps").forEach(function(value) {
-      if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
-        var propName = value.trim().substring(2, value.length-1);
-        var isRequired = true;
-        var val = null;
+      var propName = value.trim().substring(2, value.length-1);
+      var isRequired = true;
+      var val = null;
+      if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue) {
         if(jobParams && jobParams.configuration && jobParams.configuration.property){
           var param = jobParams.configuration.property.findBy('name', propName);
           if(param && param.value){
@@ -138,13 +139,15 @@ export default Ember.Component.extend(Validations, {
             val = propVal.value
           }
         }
-        var prop= Ember.Object.create({
-          name: propName,
-          value: val,
-          isRequired : isRequired
-        });
-        jobProperties.push(prop);
+      } else {
+        val = self.get("workflowManagerConfigs").getWfmConfigs()[propName];
       }
+      var prop= Ember.Object.create({
+        name: propName,
+        value: val,
+        isRequired : isRequired
+      });
+      jobProperties.push(prop);
     });
     return jobProperties;
   },

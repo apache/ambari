@@ -18,10 +18,13 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+    workflowManagerConfigs : Ember.inject.service('workflow-manager-configs'),
     afterModel(){
       let workflowManagerConfigsPromise = this.getWorkflowManagerConfigs();
       workflowManagerConfigsPromise.then(function(data){
-        this.invokeServiceChecksPromises(JSON.parse(data));
+        var jsonData = JSON.parse(data);
+        this.get('workflowManagerConfigs').setWfmConfigs(jsonData);
+        this.invokeServiceChecksPromises(jsonData);
       }.bind(this)).catch(function(errors){
         this.controllerFor('index').set('errors', errors);
       }.bind(this));
