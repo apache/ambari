@@ -183,6 +183,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
         <configuration>
           <filesets>
             <fileset>
@@ -278,6 +279,7 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
+        <version>0.11</version>
         <configuration>
           <excludes>
             <exclude>pass.txt</exclude>
