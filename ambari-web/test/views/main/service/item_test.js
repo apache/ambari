@@ -144,6 +144,7 @@ describe('App.MainServiceItemView', function () {
         {
           serviceName: "HDFS",
           displayName: "HDFS",
+          supportDeleteViaUi: true,
           isSingleNode: true,
           serviceTypes: ["HA_MODE"],
           slaveComponents: [
@@ -448,6 +449,8 @@ describe('App.MainServiceItemView', function () {
           case 'components.reassignable':
             return ["NAMENODE", "SECONDARY_NAMENODE", "APP_TIMELINE_SERVER", "RESOURCEMANAGER", "WEBHCAT_SERVER", "OOZIE_SERVER"];
           case 'services.supportsServiceCheck':
+            return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
+          case 'services.supportsDeleteViaUI':
             return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
           case 'components.addableToHost':
             return ["DATANODE", "HDFS_CLIENT", "MAPREDUCE2_CLIENT", "NODEMANAGER", "YARN_CLIENT", "TEZ_CLIENT", "GANGLIA_MONITOR", "HCAT", "HIVE_CLIENT", "HIVE_METASTORE", "HIVE_SERVER", "WEBHCAT_SERVER", "HBASE_CLIENT", "HBASE_MASTER", "HBASE_REGIONSERVER", "PIG", "SQOOP", "OOZIE_CLIENT", "OOZIE_SERVER", "ZOOKEEPER_CLIENT", "ZOOKEEPER_SERVER", "FALCON_CLIENT", "SUPERVISOR", "FLUME_HANDLER", "METRICS_MONITOR", "KAFKA_BROKER", "KERBEROS_CLIENT", "KNOX_GATEWAY", "SLIDER", "SPARK_CLIENT"];
