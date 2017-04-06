@@ -67,11 +67,18 @@ var CytoscapeRenderer= Ember.Object.extend({
   _setCyOverflow() {
     Ember.set(this.get("cyOverflow"), "overflown", this.cy.elements().renderedBoundingBox().y2 > this.cy.height());
   },
-  _setGraphCenter() {
+  setGraphCenter() {
+    if (this.cy && !this.centered){
+      Ember.run.later(this, function() {
+        this._setGraphCenterOnStartNode();
+      },50);
+    }
+  },
+  _setGraphCenterOnStartNode() {
     var startDataNode = this.get("dataNodes").filterBy("data.type", "start");
     if (startDataNode[0] && startDataNode[0].data.id) {
       var startNode = this.cy.$("#" + startDataNode[0].data.id);
-      this.cy.center();
+      this.cy.center(startNode);
       this.cy.pan({y:50});
     }
   },
@@ -400,7 +407,7 @@ var CytoscapeRenderer= Ember.Object.extend({
     this.cy.endBatch();
     this.cy.layout(this.get("layoutConfigs"));
     this._setCyOverflow();
-    this._setGraphCenter();
+    this._setGraphCenterOnStartNode();
   },
 
   initRenderer(callback, settings){
