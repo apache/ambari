@@ -99,6 +99,17 @@ App.CheckHostMixin = Em.Mixin.create({
    */
   isAddHostWizard: false,
 
+  /**
+   * True if user triggered host checks rerun
+   * @type {boolean}
+   */
+  isRerun: false,
+
+  /**
+   * Timeout for "warning"-requests
+   * @type {number}
+   */
+  warningsTimeInterval: 60000,
 
   /**
    * disables host check on Add host wizard as per the experimental flag
@@ -334,7 +345,7 @@ App.CheckHostMixin = Em.Mixin.create({
     this.set('diskCategoryWarnings', diskWarnings);
     this.set('thpCategoryWarnings', thpWarnings);
     this.stopRegistration();
-    this.get('name') === 'mainHostDetailsController' && this.set('checkHostFinished', true);
+    this.get('name') === 'mainHostDetailsController' && !this.get('isRerun') && this.set('checkHostFinished', true);
   },
 
   /**
@@ -415,7 +426,10 @@ App.CheckHostMixin = Em.Mixin.create({
     var self = this;
     var currentProgress = 0;
     this.get('name') === 'wizardStep3Controller' ? this.getHostNameResolution() : this.getHostNameResolution(this.getDataForHostCheck());
-    this.set('stopChecking', false);
+    this.setProperties({
+      stopChecking: false,
+      isRerun: true
+    });
     this.get('name') === 'wizardStep3Controller' ? this.getGeneralHostCheck() : this.getGeneralHostCheck(this.getDataForHostCheck());
     this.get('name') === 'wizardStep3Controller' && this.checkHostJDK();
     var interval = setInterval(function () {
@@ -428,7 +442,11 @@ App.CheckHostMixin = Em.Mixin.create({
           name: 'wizard.step3.rerun_checks',
           sender: self,
           success: 'rerunChecksSuccessCallback',
-          error: 'rerunChecksErrorCallback'
+          error: 'rerunChecksErrorCallback',
+          callback: function () {
+            self.set('isRerun', false);
+            self.get('name') === 'mainHostDetailsController' && self.set('checkHostFinished', true);
+          }
         });
       }
     }, 1000);
