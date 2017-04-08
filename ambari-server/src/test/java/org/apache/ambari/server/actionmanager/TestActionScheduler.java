@@ -1106,41 +1106,45 @@ public class TestActionScheduler {
     hosts.put(hostname4, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    List<Stage> stages = new ArrayList<>();
-    stages.add(
+    List<Stage> firstStageInProgressPerRequest = new ArrayList<>();
+
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.DATANODE,
                     RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
-    stages.add( // Stage with the same hostname, should not be scheduled
+
+    // Stage with the same hostname, should not be scheduled
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.GANGLIA_MONITOR,
                     RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
 
-    stages.add(
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname2, "cluster1", Role.DATANODE,
                     RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
 
-    stages.add(
+    firstStageInProgressPerRequest.add(
         getStageWithSingleTask(
             hostname3, "cluster1", Role.DATANODE,
             RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
-
-    stages.add( // Stage with the same request id, should not be scheduled
-        getStageWithSingleTask(
-            hostname4, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
 
+    List<String> blockingHostsRequest1 = new ArrayList<>();
+    when(hostRoleCommandDAOMock.getBlockingHostsForRequest(1, 1)).thenReturn(blockingHostsRequest1);
+
+    List<String> blockingHostsRequest2 = Lists.newArrayList(hostname1);
+    when(hostRoleCommandDAOMock.getBlockingHostsForRequest(1, 2)).thenReturn(blockingHostsRequest2);
+
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
-    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
+    when(db.getCommandsInProgressCount()).thenReturn(firstStageInProgressPerRequest.size());
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgressPerRequest);
 
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
@@ -1152,11 +1156,10 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(0).getHostRoleStatus(hostname1, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, firstStageInProgressPerRequest.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(3).getHostRoleStatus(hostname3, "DATANODE"));
   }
 
 
@@ -2065,6 +2068,8 @@ public class TestActionScheduler {
     hosts.put(hostname1, sch1);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
+    HostRoleCommandDAO hostRoleCommandDAO = mock(HostRoleCommandDAO.class);
+
     HostEntity hostEntity = new HostEntity();
     hostEntity.setHostName(hostname1);
     hostDAO.create(hostEntity);
@@ -2100,7 +2105,7 @@ public class TestActionScheduler {
 
     ActionScheduler scheduler = new ActionScheduler(100, 50000, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock,
-        (HostRoleCommandDAO)null, (HostRoleCommandFactory)null);
+        hostRoleCommandDAO, (HostRoleCommandFactory) null);
 
     final CountDownLatch abortCalls = new CountDownLatch(2);
 
