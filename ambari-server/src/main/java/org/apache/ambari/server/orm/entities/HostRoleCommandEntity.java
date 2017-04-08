@@ -70,7 +70,14 @@ import org.apache.commons.lang.ArrayUtils;
     @NamedQuery(name = "HostRoleCommandEntity.findByHostRoleNullHost", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.hostEntity IS NULL AND command.requestId=:requestId AND command.stageId=:stageId AND command.role=:role"),
     @NamedQuery(name = "HostRoleCommandEntity.findByStatusBetweenStages", query = "SELECT command FROM HostRoleCommandEntity command WHERE command.requestId = :requestId AND command.stageId >= :minStageId AND command.stageId <= :maxStageId AND command.status = :status"),
     @NamedQuery(name = "HostRoleCommandEntity.updateAutoSkipExcludeRoleCommand", query = "UPDATE HostRoleCommandEntity command SET command.autoSkipOnFailure = :autoSkipOnFailure WHERE command.requestId = :requestId AND command.roleCommand <> :roleCommand"),
-    @NamedQuery(name = "HostRoleCommandEntity.updateAutoSkipForRoleCommand", query = "UPDATE HostRoleCommandEntity command SET command.autoSkipOnFailure = :autoSkipOnFailure WHERE command.requestId = :requestId AND command.roleCommand = :roleCommand")
+    @NamedQuery(name = "HostRoleCommandEntity.updateAutoSkipForRoleCommand", query = "UPDATE HostRoleCommandEntity command SET command.autoSkipOnFailure = :autoSkipOnFailure WHERE command.requestId = :requestId AND command.roleCommand = :roleCommand"),
+    @NamedQuery(
+        name = "HostRoleCommandEntity.findHostsByCommandStatus",
+        query = "SELECT DISTINCT(host.hostName) FROM HostRoleCommandEntity command, HostEntity host WHERE (command.requestId >= :iLowestRequestIdInProgress AND command.requestId <= :iHighestRequestIdInProgress) AND command.status IN :statuses AND command.hostId = host.hostId AND host.hostName IS NOT NULL"),
+    @NamedQuery(
+        name = "HostRoleCommandEntity.getBlockingHostsForRequest",
+        query = "SELECT DISTINCT(host.hostName) FROM HostRoleCommandEntity command, HostEntity host WHERE command.requestId >= :lowerRequestIdInclusive AND command.requestId < :upperRequestIdExclusive AND command.status IN :statuses AND command.isBackgroundCommand=0 AND command.hostId = host.hostId AND host.hostName IS NOT NULL")
+
 })
 public class HostRoleCommandEntity {
 
@@ -194,6 +201,10 @@ public class HostRoleCommandEntity {
 
   @OneToOne(mappedBy = "hostRoleCommandEntity", cascade = CascadeType.REMOVE)
   private TopologyLogicalTaskEntity topologyLogicalTaskEntity;
+
+  @Basic
+  @Column(name = "is_background_command", nullable = false)
+  private short isBackgroundCommand = 0;
 
   public Long getTaskId() {
     return taskId;
@@ -405,6 +416,26 @@ public class HostRoleCommandEntity {
    */
   public void setAutoSkipOnFailure(boolean skipFailures) {
     autoSkipOnFailure = skipFailures ? 1 : 0;
+  }
+
+  /**
+   * Sets whether this is a command is a background command and will not block
+   * other commands.
+   *
+   * @param runInBackground
+   *          {@code true} if this is a background command, {@code false}
+   *          otherwise.
+   */
+  public void setBackgroundCommand(boolean runInBackground) {
+    isBackgroundCommand = (short) (runInBackground ? 1 : 0);
+  }
+
+  /**
+   * Gets whether this command runs in the background and will not block other
+   * commands.
+   */
+  public boolean isBackgroundCommand() {
+    return isBackgroundCommand == 0 ? false : true;
   }
 
   @Override

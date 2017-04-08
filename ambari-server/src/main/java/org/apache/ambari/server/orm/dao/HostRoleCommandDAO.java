@@ -41,6 +41,7 @@ import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.configuration.Configuration;
@@ -850,6 +851,54 @@ public class HostRoleCommandDAO {
     }
 
     return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Gets a lists of hosts with commands in progress given a range of requests.
+   * The range of requests should include all requests with at least 1 stage in
+   * progress.
+   *
+   * @return the list of hosts with commands in progress.
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  @RequiresSession
+  public List<String> getHostsWithPendingTasks(long iLowestRequestIdInProgress,
+      long iHighestRequestIdInProgress) {
+    TypedQuery<String> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findHostsByCommandStatus", String.class);
+
+    query.setParameter("iLowestRequestIdInProgress", iLowestRequestIdInProgress);
+    query.setParameter("iHighestRequestIdInProgress", iHighestRequestIdInProgress);
+    query.setParameter("statuses", HostRoleStatus.IN_PROGRESS_STATUSES);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets a lists of hosts with commands in progress which occurr before the
+   * specified request ID. This will only return commands which are not
+   * {@link AgentCommandType#BACKGROUND_EXECUTION_COMMAND} as thsee commands do
+   * not block future requests.
+   *
+   * @param lowerRequestIdInclusive
+   *          the lowest request ID to consider (inclusive) when getting any
+   *          blocking hosts.
+   * @param requestId
+   *          the request ID to calculate any blocking hosts for (essentially,
+   *          the upper limit exclusive)
+   * @return the list of hosts from older running requests which will block
+   *         those same hosts in the specified request ID.
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  @RequiresSession
+  public List<String> getBlockingHostsForRequest(long lowerRequestIdInclusive,
+      long requestId) {
+    TypedQuery<String> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.getBlockingHostsForRequest", String.class);
+
+    query.setParameter("lowerRequestIdInclusive", lowerRequestIdInclusive);
+    query.setParameter("upperRequestIdExclusive", requestId);
+    query.setParameter("statuses", HostRoleStatus.IN_PROGRESS_STATUSES);
+    return daoUtils.selectList(query);
   }
 
   /**

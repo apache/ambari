@@ -376,6 +376,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       //set type background
       if(customCommandDefinition != null && customCommandDefinition.isBackground()){
+        cmd.setBackgroundCommand(true);
         execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
       }
 
