@@ -59,7 +59,7 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlets.GzipFilter;
@@ -101,12 +101,12 @@ public class AmbariServerTest {
     AmbariServer ambariServer = new AmbariServer();
 
     Configuration configuration = createNiceMock(Configuration.class);
-    SessionManager sessionManager = createNiceMock(SessionManager.class);
+    SessionHandler sessionHandler = createNiceMock(SessionHandler.class);
     SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
 
     ambariServer.configs = configuration;
 
-    expect(sessionManager.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
+    expect(sessionHandler.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
 
     expect(configuration.getApiSSLAuthentication()).andReturn(false);
     sessionCookieConfig.setHttpOnly(true);
@@ -115,15 +115,15 @@ public class AmbariServerTest {
     sessionCookieConfig.setHttpOnly(true);
     sessionCookieConfig.setSecure(true);
 
-    replay(configuration, sessionManager, sessionCookieConfig);
+    replay(configuration, sessionHandler, sessionCookieConfig);
 
     // getApiSSLAuthentication == false
-    ambariServer.configureSessionManager(sessionManager);
+    ambariServer.configureSessionHandler(sessionHandler);
 
     // getApiSSLAuthentication == true
-    ambariServer.configureSessionManager(sessionManager);
+    ambariServer.configureSessionHandler(sessionHandler);
 
-    verify(configuration, sessionManager, sessionCookieConfig);
+    verify(configuration, sessionHandler, sessionCookieConfig);
   }
 
   @Test
@@ -216,15 +216,15 @@ public class AmbariServerTest {
     AmbariServer ambariServer = new AmbariServer();
 
     // 12 acceptors (48 core machine) with a configured pool size of 25
-    ambariServer.configureJettyThreadPool(server, 12, "mock-pool", 25);
+    server = ambariServer.configureJettyThreadPool(12, "mock-pool", 25);
     Assert.assertEquals(44, ((QueuedThreadPool) server.getThreadPool()).getMaxThreads());
 
     // 2 acceptors (8 core machine) with a configured pool size of 25
-    ambariServer.configureJettyThreadPool(server, 2, "mock-pool", 25);
+    server = ambariServer.configureJettyThreadPool(2, "mock-pool", 25);
     Assert.assertEquals(25, ((QueuedThreadPool) server.getThreadPool()).getMaxThreads());
 
     // 16 acceptors (64 core machine) with a configured pool size of 35
-    ambariServer.configureJettyThreadPool(server, 16, "mock-pool", 35);
+    server = ambariServer.configureJettyThreadPool(16, "mock-pool", 35);
     Assert.assertEquals(52, ((QueuedThreadPool) server.getThreadPool()).getMaxThreads());
 
   }

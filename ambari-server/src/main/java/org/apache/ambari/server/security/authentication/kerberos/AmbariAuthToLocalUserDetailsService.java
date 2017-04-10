@@ -36,12 +36,14 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 
 /**
  * AmbariAuthToLocalUserDetailsService is a {@link UserDetailsService} that translates
  * a Kerberos principal name into a local username that may be used when looking up
  * and Ambari user account.
  */
+@Component
 public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariAuthToLocalUserDetailsService.class);
 

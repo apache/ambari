@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class AmbariErrorHandlerTest {
 
     server.start();
 
-    int localPort = server.getConnectors()[0].getLocalPort();
+    int localPort = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
 
     Client client = new Client();
     WebResource resource = client.resource("http://localhost:" + localPort + "/");

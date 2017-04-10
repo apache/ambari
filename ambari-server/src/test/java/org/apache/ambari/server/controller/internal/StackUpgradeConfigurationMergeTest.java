@@ -65,7 +65,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -279,7 +279,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
       binder.bind(ClusterController.class).toInstance(createNiceMock(ClusterController.class));
       binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-      binder.bind(SessionManager.class).toInstance(createNiceMock(SessionManager.class));
+      binder.bind(SessionHandler.class).toInstance(createNiceMock(SessionHandler.class));
       binder.bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
       binder.bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));

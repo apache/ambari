@@ -79,7 +79,7 @@ import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.easymock.EasyMock;
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -106,7 +106,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
   protected Client client;
   HeartBeatHandler handler;
   ActionManager actionManager;
-  SessionManager sessionManager;
+  SessionHandler sessionHandler;
   Injector injector;
   AmbariMetaInfo ambariMetaInfo;
   OsFamily os_family;
@@ -308,11 +308,11 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       actionManager = mock(ActionManager.class);
       ambariMetaInfo = mock(AmbariMetaInfo.class);
       actionDBAccessor = mock(ActionDBAccessor.class);
-      sessionManager = mock(SessionManager.class);
+      sessionHandler = mock(SessionHandler.class);
       bind(OsFamily.class).toInstance(os_family);
       bind(ActionDBAccessor.class).toInstance(actionDBAccessor);
       bind(ActionManager.class).toInstance(actionManager);
-      bind(SessionManager.class).toInstance(sessionManager);
+      bind(SessionHandler.class).toInstance(sessionHandler);
       bind(AgentCommand.class).to(ExecutionCommand.class);
       bind(HeartBeatHandler.class).toInstance(handler);
       bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);

@@ -40,6 +40,7 @@ import org.apache.ambari.server.utils.RequestUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
 
 /**
  * AmbariBasicAuthenticationFilter extends a {@link org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter}
@@ -49,6 +50,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  *
  * @see AmbariDelegatingAuthenticationFilter
  */
+@Component
 public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter implements AmbariAuthenticationFilter {
 
   /**

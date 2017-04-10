@@ -42,6 +42,7 @@ import org.springframework.security.kerberos.web.authentication.SpnegoAuthentica
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * AmbariKerberosAuthenticationFilter extends the {@link SpnegoAuthenticationProcessingFilter} class
@@ -49,6 +50,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
  * <p>
  * If configured, auditing is performed using {@link AuditLogger}.
  */
+@Component
 public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProcessingFilter implements AmbariAuthenticationFilter {
 
   /**

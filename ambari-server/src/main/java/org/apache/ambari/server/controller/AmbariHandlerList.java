@@ -43,7 +43,6 @@ import org.apache.ambari.view.SystemException;
 import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -63,7 +62,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    * The target pattern for a view resource request.
    */
   private static final Pattern VIEW_RESOURCE_TARGET_PATTERN =
-      Pattern.compile("/api/(\\S+)/views/(\\S+)/versions/(\\S+)/instances/(\\S+)/resources/(\\S+)");
+    Pattern.compile("/api/(\\S+)/views/(\\S+)/versions/(\\S+)/instances/(\\S+)/resources/(\\S+)");
 
   /**
    * The view registry.
@@ -75,7 +74,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    * Session manager.
    */
   @Inject
-  SessionManager sessionManager;
+  SessionHandler sessionHandler;
 
   /**
    * The web app context provider.
@@ -132,7 +131,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   @Override
   public void handle(String target, Request baseRequest,
                      HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
 
     ViewEntity viewEntity = getTargetView(target);
 
@@ -193,7 +192,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   // call the handlers until the request is handled
   private void processHandlers(String target, Request baseRequest,
                                HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
 
     final Handler[] handlers = getHandlers();
 
@@ -206,8 +205,8 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
 
   // call the given handlers until the request is handled; return true if the request is handled
   private boolean processHandlers(Collection<Handler> handlers, String target, Request baseRequest,
-                               HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+                                  HttpServletRequest request, HttpServletResponse response)
+    throws IOException, ServletException {
 
     for (Handler handler : handlers) {
       handler.handle(target, baseRequest, request, response);
@@ -228,7 +227,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    * @throws org.apache.ambari.view.SystemException if an handler can not be obtained for the given view instance
    */
   private Handler getHandler(ViewInstanceEntity viewInstanceDefinition)
-      throws SystemException {
+    throws SystemException {
 
     ViewEntity    viewDefinition = viewInstanceDefinition.getViewEntity();
     WebAppContext webAppContext  = webAppContextProvider.get();
@@ -237,7 +236,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.setContextPath(viewInstanceDefinition.getContextPath());
     webAppContext.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
     webAppContext.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
-    webAppContext.setSessionHandler(new SharedSessionHandler(sessionManager));
+    webAppContext.setSessionHandler(new SharedSessionHandler(sessionHandler));
     webAppContext.addFilter(new FilterHolder(ambariViewsSecurityHeaderFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(persistFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
@@ -267,16 +266,17 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    * This handler DOES NOT attempt stop the shared session manager.
    */
   private static class SharedSessionHandler extends SessionHandler {
+    final SessionHandler sessionHandler;
 
     // ----- Constructors ----------------------------------------------------
 
     /**
      * Construct a SharedSessionHandler.
      *
-     * @param manager  the shared session manager.
+     * @param sessionHandler  the shared session manager.
      */
-    public SharedSessionHandler(SessionManager manager) {
-      super(manager);
+    public SharedSessionHandler(SessionHandler sessionHandler) {
+      this.sessionHandler = sessionHandler;
     }
 
 
@@ -286,5 +286,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     protected void doStop() throws Exception {
       // do nothing...
     }
+
+    //TODO delagate all other?
   }
 }

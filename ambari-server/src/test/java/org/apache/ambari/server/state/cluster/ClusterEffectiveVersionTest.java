@@ -68,7 +68,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -261,7 +261,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(AmbariManagementController.class).toInstance(EasyMock.createNiceMock(AmbariManagementController.class));
       binder.bind(ClusterController.class).toInstance(EasyMock.createNiceMock(ClusterController.class));
       binder.bind(StackManagerFactory.class).toInstance(EasyMock.createNiceMock(StackManagerFactory.class));
-      binder.bind(SessionManager.class).toInstance(EasyMock.createNiceMock(SessionManager.class));
+      binder.bind(SessionHandler.class).toInstance(EasyMock.createNiceMock(SessionHandler.class));
       binder.bind(RequestExecutionFactory.class).toInstance(EasyMock.createNiceMock(RequestExecutionFactory.class));
       binder.bind(ExecutionScheduler.class).toInstance(EasyMock.createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(EasyMock.createNiceMock(RequestFactory.class));
