@@ -68,6 +68,7 @@
     "aliases": {
       "amazon2015": "amazon6",
       "amazon2016": "amazon6",
+      "amazon2017": "amazon6",
       "suse11sp3": "suse11"
     }
 }
