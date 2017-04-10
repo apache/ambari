@@ -311,14 +311,13 @@ public class AmbariServer {
     final SessionIdManager sessionIdManager = new DefaultSessionIdManager(server);
     sessionHandler.setSessionIdManager(sessionIdManager);
     server.setSessionIdManager(sessionIdManager);
-    
+
     // Agent Jetty thread pool - widen the thread pool if needed !
     Integer agentAcceptors = configs.getAgentApiAcceptors() != null ?
       configs.getAgentApiAcceptors() : DEFAULT_ACCEPTORS_COUNT;
 
     Server serverForAgent = configureJettyThreadPool(agentAcceptors * 2,
       AGENT_THREAD_POOL_NAME, configs.getAgentThreadPoolSize());
-
 
     setSystemProperties(configs);
 
