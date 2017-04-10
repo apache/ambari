@@ -30,31 +30,31 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     App.db.updateStorage();
     var self = this;
     var location = router.location.location.hash;
+    var clusterController = App.router.get('clusterController');
+
     router.getAuthenticated().done(function (loggedIn) {
       if (loggedIn) {
         var applicationController = App.router.get('applicationController');
         App.router.get('experimentalController').loadSupports().complete(function () {
           applicationController.startKeepAlivePoller();
-          App.router.get('mainController').checkServerClientVersion().done(function () {
+          clusterController.loadAmbariProperties().complete(function () {
             App.router.get('mainViewsController').loadAmbariViews();
-            App.router.get('clusterController').loadClusterName(false).done(function () {
+            clusterController.loadClusterName(false).done(function () {
               if (App.get('testMode')) {
                 router.get('mainController').initialize();
               } else {
                 if (router.get('clusterInstallCompleted')) {
-                  App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                    if (!App.get('isOnlyViewUser')) {
-                      App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
-                        router.get('mainController').initialize();
-                      });
-                    } else {
-                      // Don't transit to Views when user already on View page
-                      if (App.router.currentState.name !== 'viewDetails') {
-                        App.router.transitionTo('main.views.index');
-                      }
-                      App.router.get('clusterController').set('isLoaded', true); // hide loading bar
+                  if (!App.get('isOnlyViewUser')) {
+                    clusterController.checkDetailedRepoVersion().done(function () {
+                      router.get('mainController').initialize();
+                    });
+                  } else {
+                    // Don't transit to Views when user already on View page
+                    if (App.router.currentState.name !== 'viewDetails') {
+                      App.router.transitionTo('main.views.index');
                     }
-                  });
+                    clusterController.set('isLoaded', true); // hide loading bar
+                  }
                 }
                 else {
                   Em.run.next(function () {
@@ -65,13 +65,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                         if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
-                          App.router.get('clusterController').set('isLoaded', true);
+                          clusterController.set('isLoaded', true);
                           Em.run.next(function () {
                             App.router.transitionTo('main.views.index');
                           });
                         }
                       } else {
-                        App.router.get('clusterController').set('isLoaded', true);
+                        clusterController.set('isLoaded', true);
                       }
                     });
                   });

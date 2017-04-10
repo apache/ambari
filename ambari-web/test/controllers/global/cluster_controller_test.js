@@ -134,7 +134,7 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#getServerClockSuccessCallback()', function () {
+  describe('#setServerClock()', function () {
     var testCases = [
       {
         title: 'if server clock is 1 then currentServerTime should be 1000',
@@ -178,7 +178,7 @@ describe('App.clusterController', function () {
 
     testCases.forEach(function (test) {
       it(test.title, function () {
-        controller.getServerClockSuccessCallback(test.data);
+        controller.setServerClock(test.data);
         expect(App.get('currentServerTime')).to.equal(test.result);
         App.set('clockDistance', clockDistance);
         App.set('currentServerTime', currentServerTime);
@@ -572,41 +572,6 @@ describe('App.clusterController', function () {
     });
   });
 
-  describe('#loadClientServerClockDistance()', function() {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'getServerClock').returns({
-        done: Em.clb
-      });
-    });
-
-    afterEach(function() {
-      controller.getServerClock.restore();
-    });
-
-    it('getServerClock should be called', function() {
-      expect(controller.loadClientServerClockDistance()).to.be.an.object;
-      expect(controller.getServerClock).to.be.calledOnce;
-    });
-  });
-
-  describe('#getServerClock()', function() {
-
-    it('App.ajax.send should be called', function() {
-      controller.getServerClock();
-      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
-      expect(args[0]).to.eql({
-        name: 'ambari.service',
-        sender: controller,
-        data: {
-          fields: '?fields=RootServiceComponents/server_clock'
-        },
-        success: 'getServerClockSuccessCallback',
-        error: 'getServerClockErrorCallback'
-      });
-    });
-  });
-
   describe('#isRunningState()', function() {
     var testCases = [
       {
@@ -738,20 +703,25 @@ describe('App.clusterController', function () {
   });
 
   describe('#loadAmbariPropertiesSuccess()', function() {
+    var data = {
+      RootServiceComponents: {
+        properties: {
+          p1: '1'
+        }
+      }
+    };
 
     beforeEach(function() {
       sinon.stub(App.router.get('mainController'), 'monitorInactivity');
-      controller.loadAmbariPropertiesSuccess({
-        RootServiceComponents: {
-          properties: {
-            p1: '1'
-          }
-        }
-      });
+      sinon.stub(App.router.get('mainController'), 'setAmbariServerVersion');
+      sinon.stub(controller, 'setServerClock');
+      controller.loadAmbariPropertiesSuccess(data);
     });
 
     afterEach(function() {
       App.router.get('mainController').monitorInactivity.restore();
+      App.router.get('mainController').setAmbariServerVersion.restore();
+      controller.setServerClock.restore();
     });
 
     it('should set ambariProperties', function() {
@@ -764,6 +734,14 @@ describe('App.clusterController', function () {
 
     it('monitorInactivity should be called', function() {
       expect(App.router.get('mainController').monitorInactivity).to.be.calledOnce;
+    });
+
+    it('setAmbariServerVersion should be called', function() {
+      expect(App.router.get('mainController').setAmbariServerVersion.calledWith(data)).to.be.true;
+    });
+
+    it('setServerClock should be called', function() {
+      expect(controller.setServerClock.calledWith(data)).to.be.true;
     });
   });
 
@@ -849,7 +827,6 @@ describe('App.clusterController', function () {
     beforeEach(function() {
       sinon.stub(controller, 'loadAuthorizations');
       sinon.stub(controller, 'getAllHostNames');
-      sinon.stub(controller, 'loadAmbariProperties');
       sinon.stub(controller, 'loadClusterInfo');
       sinon.stub(controller, 'restoreUpgradeState');
       sinon.stub(controller, 'loadClusterDataToModel');
@@ -871,7 +848,6 @@ describe('App.clusterController', function () {
       App.router.get('mainController').startPolling.restore();
       controller.loadAuthorizations.restore();
       controller.getAllHostNames.restore();
-      controller.loadAmbariProperties.restore();
       controller.loadClusterInfo.restore();
       controller.restoreUpgradeState.restore();
       controller.loadClusterDataToModel.restore();
@@ -885,11 +861,6 @@ describe('App.clusterController', function () {
     it('getAllHostNames should be called', function() {
       controller.loadClusterData();
       expect(controller.getAllHostNames.calledOnce).to.be.true;
-    });
-
-    it('loadAmbariProperties should be called', function() {
-      controller.loadClusterData();
-      expect(controller.loadAmbariProperties.calledOnce).to.be.true;
     });
 
     it('getAllUserSettings should be called', function() {
