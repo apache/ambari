@@ -886,7 +886,6 @@ describe('App.QuickViewLinks', function () {
       sinon.stub(quickViewLinks, 'processHbaseHosts').returns(['hbaseHost']);
       sinon.stub(quickViewLinks, 'processYarnHosts').returns(['yarnHost']);
       sinon.stub(quickViewLinks, 'findHosts').returns(['host1']);
-      App.set('singleNodeInstall', false);
       sinon.stub(App.QuickLinksConfig, 'find').returns([
         Em.Object.create({
           id: 'OOZIE',
@@ -988,15 +987,6 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.findHosts.restore();
       quickViewLinks.processYarnHosts.restore();
       App.QuickLinksConfig.find.restore();
-    });
-
-    it("singleNodeInstall is true", function() {
-      App.set('singleNodeInstall', true);
-      App.set('singleNodeAlias', 'host1');
-      expect(quickViewLinks.getHosts({}, 'S1')).to.eql([{
-        hostName: 'host1',
-        publicHostName: 'host1'
-      }])
     });
 
     var tests = [
