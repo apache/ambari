@@ -295,7 +295,6 @@ require('views/main/service/services/mapreduce2');
 require('views/main/service/services/hbase');
 require('views/main/service/services/hive');
 require('views/main/service/services/zookeeper');
-require('views/main/service/services/oozie');
 require('views/main/service/services/flume');
 require('views/main/service/services/storm');
 require('views/main/service/services/ranger');

@@ -350,32 +350,6 @@ describe('App.MainServiceInfoSummaryView', function() {
     });
   });
 
-  describe("#historyServerUI", function() {
-
-    it("singleNodeInstall is true", function() {
-      App.set('singleNodeInstall', true);
-      App.set('singleNodeAlias', 'alias');
-      view.propertyDidChange('historyServerUI');
-      expect(view.get('historyServerUI')).to.equal("http://alias:19888");
-    });
-
-    it("singleNodeInstall is false", function () {
-      App.set('singleNodeInstall', false);
-      view.set('controller.content', Em.Object.create({
-        hostComponents: [
-          Em.Object.create({
-            isMaster: true,
-            host: Em.Object.create({
-              publicHostName: 'host1'
-            })
-          })
-        ]
-      }));
-      view.propertyDidChange('historyServerUI');
-      expect(view.get('historyServerUI')).to.equal("http://host1:19888");
-    });
-  });
-
   describe("#serversHost", function() {
 
     it("should return empty object", function() {

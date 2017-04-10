@@ -349,7 +349,6 @@ var files = [
   'test/views/main/service/services/storm_test',
   'test/views/main/service/services/yarn_test',
   'test/views/main/service/services/hive_test',
-  'test/views/main/service/services/oozie_test',
   'test/views/main/service/services/mapreduce2_test',
   'test/views/main/service/services/zookeeper_test',
   'test/views/main/service/services/flume_test',
