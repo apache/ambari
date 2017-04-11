@@ -1089,6 +1089,18 @@
             </organization>
         </developer>       
         <developer>
+            <id>vsairam</id>
+            <name>Venkata Sairam Lanka</name>
+            <email>vsairam@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>xiwang</id>
             <name>Xi Wang</name>
             <email>xiwang@apache.org</email>
