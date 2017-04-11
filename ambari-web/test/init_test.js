@@ -91,6 +91,7 @@ if (!Array.prototype.includes) {
   });
 }
 
+/* eslint-disable */
 if (typeof Object.assign != 'function') {
   Object.assign = function(target, varArgs) { // .length of function is 2
     'use strict';
@@ -115,6 +116,7 @@ if (typeof Object.assign != 'function') {
     return to;
   };
 }
+/* eslint-enable */
 
 Number.isFinite = Number.isFinite || function(value) {
   return typeof value === 'number' && isFinite(value);
