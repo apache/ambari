@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.checkstyle;
 
-import static org.apache.ambari.checkstyle.AvoidTransactionalOnPrivateMethodsCheck.MSG_TRANSACTIONAL_ON_PRIVATE_METHOD;
+import static org.apache.ambari.checkstyle.UndocumentedRestApiOperationCheck.MESSAGE;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.junit.Test;
 import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
 
-public class AvoidTransactionalOnPrivateMethodsCheckTest extends BaseCheckTestSupport {
+public class UndocumentedRestApiOperationCheckTest extends BaseCheckTestSupport {
 
   @Override
   protected String getPath(String filename) throws IOException {
@@ -36,14 +36,18 @@ public class AvoidTransactionalOnPrivateMethodsCheckTest extends BaseCheckTestSu
   }
 
   @Test
-  public void transactionalOnPrivateMethod() throws Exception {
-    final DefaultConfiguration config = createCheckConfig(AvoidTransactionalOnPrivateMethodsCheck.class);
+  public void test() throws Exception {
+    final DefaultConfiguration config = createCheckConfig(UndocumentedRestApiOperationCheck.class);
     final String[] expected = {
-      "32: " + MSG_TRANSACTIONAL_ON_PRIVATE_METHOD,
-      "41: " + MSG_TRANSACTIONAL_ON_PRIVATE_METHOD,
+      "36: " + MESSAGE,
+      "53: " + MESSAGE,
+      "70: " + MESSAGE,
+      "87: " + MESSAGE,
+      "104: " + MESSAGE,
+      "121: " + MESSAGE
     };
 
-    verify(config, getPath("InputTransactionalOnPrivateMethods.java"), expected);
+    verify(config, getPath("InputRestApiOperation.java"), expected);
   }
 
 }

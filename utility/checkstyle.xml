@@ -12,9 +12,6 @@
   "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 <module name="Checker">
   <module name="TreeWalker">
-    <module name="AvoidTransactionalOnPrivateMethodsCheck"/>
-    <!-- <module name="UndocumentedRestApiOperationCheck"/> Swagger - uncomment when API documentation is done -->
-
     <module name="FallThrough"/>
 
     <!-- imports -->

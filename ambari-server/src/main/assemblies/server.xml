@@ -418,7 +418,7 @@
       <fileMode>644</fileMode>
       <outputDirectory>/usr/lib/ambari-server</outputDirectory>
       <unpack>false</unpack>
-      <scope>compile</scope>
+      <scope>runtime</scope>
     </dependencySet>
   </dependencySets>
 </assembly>
