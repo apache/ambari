@@ -74,7 +74,7 @@ public class MemberDAO {
 
   @Transactional
   public void create(MemberEntity member) {
-    create(new HashSet<MemberEntity>(Arrays.asList(member)));
+    create(new HashSet<>(Arrays.asList(member)));
   }
 
   @Transactional

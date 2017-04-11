@@ -35,7 +35,7 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
  * Predicate visitor for extracting property values from the {@link PropertyPredicate}s of a predicate graph.
  */
 public class PropertyPredicateVisitor implements PredicateVisitor {
-  private final Map<String, Object> properties = new HashMap<String, Object>();
+  private final Map<String, Object> properties = new HashMap<>();
 
   @Override
   public void acceptComparisonPredicate(ComparisonPredicate predicate) {

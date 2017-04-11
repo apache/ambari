@@ -153,7 +153,7 @@ public class ExtensionDirectory extends StackDefinitionDirectory {
    * @throws AmbariException  if unable to parse the service directories
    */
   private void parseServiceDirectories(Collection<String> subDirs) throws AmbariException {
-    Collection<ServiceDirectory> dirs = new HashSet<ServiceDirectory>();
+    Collection<ServiceDirectory> dirs = new HashSet<>();
 
     if (subDirs.contains(ServiceDirectory.SERVICES_FOLDER_NAME)) {
       String servicesDir = getAbsolutePath() + File.separator + ServiceDirectory.SERVICES_FOLDER_NAME;

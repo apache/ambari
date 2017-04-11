@@ -81,38 +81,38 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * Properties of the query which make up the select portion of the query.
    */
-  private final Set<String> requestedProperties = new HashSet<String>();
+  private final Set<String> requestedProperties = new HashSet<>();
 
   /**
    * Map that associates categories with temporal data.
    */
-  private final Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+  private final Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
 
   /**
    * Map of primary and foreign key values.
    */
-  private final Map<Resource.Type, String> keyValueMap = new HashMap<Resource.Type, String>();
+  private final Map<Resource.Type, String> keyValueMap = new HashMap<>();
 
   /**
    * Map of properties from the request.
    */
-  private final Map<String, String> requestInfoProperties = new HashMap<String, String>();
+  private final Map<String, String> requestInfoProperties = new HashMap<>();
 
   /**
    * Set of query results.
    */
-  Map<Resource, QueryResult> queryResults = new LinkedHashMap<Resource, QueryResult>();
+  Map<Resource, QueryResult> queryResults = new LinkedHashMap<>();
 
   /**
    * Set of populated query results
    */
-  Map<Resource, QueryResult> populatedQueryResults = new LinkedHashMap<Resource, QueryResult>();
+  Map<Resource, QueryResult> populatedQueryResults = new LinkedHashMap<>();
 
   /**
    * Sub-resources of the resource which is being operated on.
    * Should only be added via {@link #addSubResource(String, QueryImpl)}
    */
-  private final Map<String, QueryImpl> requestedSubResources = new HashMap<String, QueryImpl>();
+  private final Map<String, QueryImpl> requestedSubResources = new HashMap<>();
 
   /**
    * Sub-resource instances of this resource.
@@ -143,7 +143,7 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * The sub resource properties referenced in the user predicate.
    */
-  private final Set<String> subResourcePredicateProperties = new HashSet<String>();
+  private final Set<String> subResourcePredicateProperties = new HashSet<>();
 
   /**
    * Associated renderer. The default renderer is used unless
@@ -276,7 +276,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
   @Override
   public Map<Resource.Type, String> getKeyValueMap() {
-    return new HashMap<Resource.Type, String>((keyValueMap));
+    return new HashMap<>((keyValueMap));
   }
 
   @Override
@@ -341,7 +341,7 @@ public class QueryImpl implements Query, ResourceInstance {
    */
   protected Map<String, QueryImpl> ensureSubResources() {
     if (availableSubResources == null) {
-      availableSubResources = new HashMap<String, QueryImpl>();
+      availableSubResources = new HashMap<>();
       Set<SubResourceDefinition> setSubResourceDefs =
           getResourceDefinition().getSubResourceDefinitions();
 
@@ -392,8 +392,8 @@ public class QueryImpl implements Query, ResourceInstance {
     // use linked hash sets so that we maintain insertion and traversal order
     // in the event that the resource provider already gave us a sorted set
     // back
-    Set<Resource> resourceSet = new LinkedHashSet<Resource>();
-    Set<Resource> providerResourceSet = new LinkedHashSet<Resource>();
+    Set<Resource> resourceSet = new LinkedHashSet<>();
+    Set<Resource> providerResourceSet = new LinkedHashSet<>();
 
     QueryResponse queryResponse = doQuery(resourceType, request, queryPredicate, true);
 
@@ -444,7 +444,7 @@ public class QueryImpl implements Query, ResourceInstance {
           queryResponse.getTotalResourceCount());
       PageResponse pageResponse = clusterController.getPage(resourceType, newResponse, request, queryPredicate, pageRequest, sortRequest);
       // build a new set
-      Set<Resource> newResourceSet = new LinkedHashSet<Resource>();
+      Set<Resource> newResourceSet = new LinkedHashSet<>();
       for (Resource r : pageResponse.getIterable()) {
         newResourceSet.add(r);
       }
@@ -468,14 +468,14 @@ public class QueryImpl implements Query, ResourceInstance {
       QueryImpl     subResource         = entry.getValue();
       Resource.Type resourceType        = subResource.getResourceDefinition().getType();
       Request       request             = subResource.createRequest();
-      Set<Resource> providerResourceSet = new HashSet<Resource>();
+      Set<Resource> providerResourceSet = new HashSet<>();
 
       for (QueryResult queryResult : populatedQueryResults.values()) {
         for (Resource resource : queryResult.getQueryResponse().getResources()) {
           Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
 
           Predicate     queryPredicate = subResource.createPredicate(map, subResource.processedPredicate);
-          Set<Resource> resourceSet    = new LinkedHashSet<Resource>();
+          Set<Resource> resourceSet    = new LinkedHashSet<>();
 
           try {
             Set<Resource> queryResources =
@@ -611,7 +611,7 @@ public class QueryImpl implements Query, ResourceInstance {
       throws SystemException, UnsupportedPropertyException, NoSuchParentResourceException, NoSuchResourceException {
 
     Map<Resource, Set<Map<String, Object>>> resourcePropertyMaps =
-        new HashMap<Resource, Set<Map<String, Object>>>();
+      new HashMap<>();
 
     Map<String, String> categoryPropertyIdMap =
         getPropertyIdsForCategory(propertyIds, category);
@@ -629,7 +629,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
         for (Resource resource : iterResource) {
           // get the resource properties
-          Map<String, Object> resourcePropertyMap = new HashMap<String, Object>();
+          Map<String, Object> resourcePropertyMap = new HashMap<>();
           for (Map.Entry<String, String> categoryPropertyIdEntry : categoryPropertyIdMap.entrySet()) {
             Object value = resource.getPropertyValue(categoryPropertyIdEntry.getValue());
             if (value != null) {
@@ -637,7 +637,7 @@ public class QueryImpl implements Query, ResourceInstance {
             }
           }
 
-          Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
+          Set<Map<String, Object>> propertyMaps = new HashSet<>();
 
           // For each sub category get the property maps for the sub resources
           for (Map.Entry<String, QueryImpl> entry : requestedSubResources.entrySet()) {
@@ -648,7 +648,7 @@ public class QueryImpl implements Query, ResourceInstance {
             Map<Resource, Set<Map<String, Object>>> subResourcePropertyMaps =
                 subResource.getJoinedResourceProperties(propertyIds, resource, subResourceCategory);
 
-            Set<Map<String, Object>> combinedSubResourcePropertyMaps = new HashSet<Map<String, Object>>();
+            Set<Map<String, Object>> combinedSubResourcePropertyMaps = new HashSet<>();
             for (Set<Map<String, Object>> maps : subResourcePropertyMaps.values()) {
               combinedSubResourcePropertyMaps.addAll(maps);
             }
@@ -678,8 +678,8 @@ public class QueryImpl implements Query, ResourceInstance {
     ResourceDefinition rootDefinition = resourceDefinition;
 
     QueryInfo rootQueryInfo = new QueryInfo(rootDefinition, requestedProperties);
-    TreeNode<QueryInfo> rootNode = new TreeNodeImpl<QueryInfo>(
-        null, rootQueryInfo, rootDefinition.getType().name());
+    TreeNode<QueryInfo> rootNode = new TreeNodeImpl<>(
+      null, rootQueryInfo, rootDefinition.getType().name());
 
     TreeNode<QueryInfo> requestedPropertyTree = buildQueryPropertyTree(this, rootNode);
 
@@ -745,7 +745,7 @@ public class QueryImpl implements Query, ResourceInstance {
   // Map the given set of property ids to corresponding property ids in the
   // given sub-resource category.
   private Map<String, String> getPropertyIdsForCategory(Set<String> propertyIds, String category) {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new HashMap<>();
 
     for (String propertyId : propertyIds) {
       if (category == null || propertyId.startsWith(category)) {
@@ -758,7 +758,7 @@ public class QueryImpl implements Query, ResourceInstance {
   // Join two sets of property maps into one.
   private static Set<Map<String, Object>> joinPropertyMaps(Set<Map<String, Object>> propertyMaps1,
                                                            Set<Map<String, Object>> propertyMaps2) {
-    Set<Map<String, Object>> propertyMaps = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertyMaps = new HashSet<>();
 
     if (propertyMaps1.isEmpty()) {
       return propertyMaps2;
@@ -769,7 +769,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
     for (Map<String, Object> map1 : propertyMaps1) {
       for (Map<String, Object> map2 : propertyMaps2) {
-        Map<String, Object> joinedMap = new HashMap<String, Object>(map1);
+        Map<String, Object> joinedMap = new HashMap<>(map1);
         joinedMap.putAll(map2);
         propertyMaps.add(joinedMap);
       }
@@ -902,12 +902,12 @@ public class QueryImpl implements Query, ResourceInstance {
     Resource.Type resourceType = getResourceDefinition().getType();
     Schema schema = clusterController.getSchema(resourceType);
 
-    Set<Predicate> setPredicates = new HashSet<Predicate>();
+    Set<Predicate> setPredicates = new HashSet<>();
     for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
       if (entry.getValue() != null) {
         String keyPropertyId = schema.getKeyPropertyId(entry.getKey());
         if (keyPropertyId != null) {
-          setPredicates.add(new EqualsPredicate<String>(keyPropertyId, entry.getValue()));
+          setPredicates.add(new EqualsPredicate<>(keyPropertyId, entry.getValue()));
         }
       }
     }
@@ -985,7 +985,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
   private Request createRequest() {
     // Initiate this request's requestInfoProperties with the ones set from the original request
-    Map<String, String> requestInfoProperties = new HashMap<String, String>(this.requestInfoProperties);
+    Map<String, String> requestInfoProperties = new HashMap<>(this.requestInfoProperties);
 
     if (pageRequest != null) {
       requestInfoProperties.put(BaseRequest.PAGE_SIZE_PROPERTY_KEY,
@@ -1002,10 +1002,10 @@ public class QueryImpl implements Query, ResourceInstance {
           requestInfoProperties, null, pageRequest, sortRequest);
     }
 
-    Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<>();
     TemporalInfo              globalTemporalInfo = temporalInfoMap.get(null);
 
-    Set<String> setProperties = new HashSet<String>();
+    Set<String> setProperties = new HashSet<>();
     setProperties.addAll(requestedProperties);
     for (String propertyId : setProperties) {
       TemporalInfo temporalInfo = temporalInfoMap.get(propertyId);
@@ -1024,7 +1024,7 @@ public class QueryImpl implements Query, ResourceInstance {
   // Get a key value map based on the given resource and an existing key value map
   private Map<Resource.Type, String> getKeyValueMap(Resource resource,
                                                     Map<Resource.Type, String> keyValueMap) {
-    Map<Resource.Type, String> resourceKeyValueMap = new HashMap<Resource.Type, String>(keyValueMap.size());
+    Map<Resource.Type, String> resourceKeyValueMap = new HashMap<>(keyValueMap.size());
     for (Map.Entry<Resource.Type, String> resourceIdEntry : keyValueMap.entrySet()) {
       Resource.Type type = resourceIdEntry.getKey();
       String value = resourceIdEntry.getValue();

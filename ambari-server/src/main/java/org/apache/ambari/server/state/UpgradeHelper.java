@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.internal.StageResourceProvider;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -407,7 +406,7 @@ public class UpgradeHelper {
               case ROLLING:
                 if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
                   // The order is important, first do the standby, then the active namenode.
-                  LinkedHashSet<String> order = new LinkedHashSet<String>();
+                  LinkedHashSet<String> order = new LinkedHashSet<>();
 
                   order.add(hostsType.secondary);
                   order.add(hostsType.master);
@@ -429,17 +428,17 @@ public class UpgradeHelper {
                   // So need to make 2 stages, and add different parameters to each one.
 
                   HostsType ht1 = new HostsType();
-                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<String>();
+                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<>();
                   h1Hosts.add(hostsType.master);
                   ht1.hosts = h1Hosts;
-                  Map<String, String> h1Params = new HashMap<String, String>();
+                  Map<String, String> h1Params = new HashMap<>();
                   h1Params.put("desired_namenode_role", "active");
 
                   HostsType ht2 = new HostsType();
-                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<String>();
+                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<>();
                   h2Hosts.add(hostsType.secondary);
                   ht2.hosts = h2Hosts;
-                  Map<String, String> h2Params = new HashMap<String, String>();
+                  Map<String, String> h2Params = new HashMap<>();
                   h2Params.put("desired_namenode_role", "standby");
 
 
@@ -664,53 +663,6 @@ public class UpgradeHelper {
       buffer.append("}");
       return buffer.toString();
     }
-  }
-
-  /**
-   * Gets a set of Stages resources to aggregate an UpgradeItem with Stage.
-   *
-   * @param clusterName the cluster name
-   * @param requestId the request id containing the stages
-   * @param stageIds the list of stages to fetch
-   * @return the list of Stage resources
-   * @throws UnsupportedPropertyException
-   * @throws NoSuchResourceException
-   * @throws NoSuchParentResourceException
-   * @throws SystemException
-   */
-  // !!! FIXME this feels very wrong
-  public Set<Resource> getStageResources(String clusterName, Long requestId, List<Long> stageIds)
-      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
-    ClusterController clusterController = ClusterControllerHelper.getClusterController();
-
-    Request request = PropertyHelper.getReadRequest();
-
-
-    Predicate p1 = new PredicateBuilder().property(StageResourceProvider.STAGE_CLUSTER_NAME).equals(clusterName).toPredicate();
-    Predicate p2 = new PredicateBuilder().property(StageResourceProvider.STAGE_REQUEST_ID).equals(requestId).toPredicate();
-    Predicate p3 = null;
-
-    if (1 == stageIds.size()) {
-      p3 = new PredicateBuilder().property(StageResourceProvider.STAGE_STAGE_ID).equals(stageIds.get(0)).toPredicate();
-    } else if (stageIds.size() > 0) {
-      PredicateBuilder pb = new PredicateBuilder();
-
-      int i = 0;
-      for (Long stageId : stageIds) {
-        if (i++ < stageIds.size()-1) {
-          pb = pb.property(StageResourceProvider.STAGE_STAGE_ID).equals(stageId).or();
-        } else {
-          pb.property(StageResourceProvider.STAGE_STAGE_ID).equals(stageId);
-        }
-      }
-
-      p3 = pb.toPredicate();
-    }
-
-    QueryResponse response = clusterController.getResources(Resource.Type.Stage,
-        request, new AndPredicate(p1, p2, p3));
-
-    return response.getResources();
   }
 
   /**

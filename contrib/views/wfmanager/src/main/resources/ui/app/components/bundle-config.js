@@ -46,6 +46,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   propertyExtractor : Ember.inject.service('property-extractor'),
   fileBrowser : Ember.inject.service('file-browser'),
   workspaceManager : Ember.inject.service('workspace-manager'),
+  jobConfigProperties: Ember.A([]),
   initialize : function(){
     var self = this;
     this.set('errors', Ember.A([]));

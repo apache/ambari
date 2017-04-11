@@ -105,7 +105,7 @@ public class UserHookServiceTest extends EasyMockSupport {
   @Before
   public void before() throws Exception {
     usersToGroups = new HashMap<>();
-    usersToGroups.put("testUser", new HashSet<String>(Arrays.asList("hdfs", "yarn")));
+    usersToGroups.put("testUser", new HashSet<>(Arrays.asList("hdfs", "yarn")));
     hookContext = new PostUserCreationHookContext(usersToGroups);
 
     userCreatedEvent = new UserCreatedEvent(hookContext);

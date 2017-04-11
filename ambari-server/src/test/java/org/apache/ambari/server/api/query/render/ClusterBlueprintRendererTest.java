@@ -99,21 +99,21 @@ public class ClusterBlueprintRendererTest {
   private static final Configuration emptyConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
       new HashMap<String, Map<String, Map<String, String>>>());
 
-  private static final Map<String, Map<String, String>> clusterProps = new HashMap<String, Map<String, String>>();
+  private static final Map<String, Map<String, String>> clusterProps = new HashMap<>();
   private static final Map<String, Map<String, Map<String, String>>> clusterAttributes =
-      new HashMap<String, Map<String, Map<String, String>>>();
+    new HashMap<>();
 
   private static final Configuration clusterConfig = new Configuration(clusterProps, clusterAttributes);
   @Before
   public void setup() throws Exception {
 
-    Map<String, String> clusterTypeProps = new HashMap<String, String>();
+    Map<String, String> clusterTypeProps = new HashMap<>();
     clusterProps.put("test-type-one", clusterTypeProps);
     clusterTypeProps.put("propertyOne", "valueOne");
 
-    Map<String, Map<String, String>> clusterTypeAttributes = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> clusterTypeAttributes = new HashMap<>();
     clusterAttributes.put("test-type-one", clusterTypeAttributes);
-    Map<String, String> clusterAttributeProps = new HashMap<String, String>();
+    Map<String, String> clusterAttributeProps = new HashMap<>();
     clusterAttributeProps.put("propertyOne", "true");
     clusterTypeAttributes.put("final", clusterAttributeProps);
 
@@ -122,11 +122,11 @@ public class ClusterBlueprintRendererTest {
 
     Collection<Component> group2Components = Arrays.asList(new Component("TASKTRACKER"), new Component("DATANODE"));
 
-    Map<String, Configuration> hostGroupConfigs = new HashMap<String, Configuration>();
+    Map<String, Configuration> hostGroupConfigs = new HashMap<>();
     hostGroupConfigs.put("host_group_1", emptyConfiguration);
     hostGroupConfigs.put("host_group_2", emptyConfiguration);
 
-    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    Map<String, HostGroup> hostGroups = new HashMap<>();
     hostGroups.put("host_group_1", group1);
     hostGroups.put("host_group_2", group2);
 
@@ -134,7 +134,7 @@ public class ClusterBlueprintRendererTest {
     group1Info.addHost("host1");
     group1Info.setConfiguration(emptyConfiguration);
     HostGroupInfo group2Info = new HostGroupInfo("host_group_2");
-    Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
+    Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
     group2Info.addHosts(Arrays.asList("host2", "host3"));
     group2Info.setConfiguration(emptyConfiguration);
     groupInfoMap.put("host_group_1", group1Info);
@@ -172,7 +172,7 @@ public class ClusterBlueprintRendererTest {
     group1Info.addHost("host1");
     group1Info.setConfiguration(emptyConfiguration);
     HostGroupInfo group2Info = new HostGroupInfo("host_group_2");
-    Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
+    Map<String, HostGroupInfo> groupInfoMap = new HashMap<>();
     group2Info.addHosts(Arrays.asList("host2", "host3"));
     group2Info.setConfiguration(emptyConfiguration);
     groupInfoMap.put("host_group_1", group1Info);
@@ -217,7 +217,7 @@ public class ClusterBlueprintRendererTest {
   @Test
   public void testFinalizeProperties__instance() {
     QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<String>());
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Cluster");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Cluster");
     rootQuery.getProperties().add("foo/bar");
     rootQuery.getProperties().add("prop1");
 
@@ -384,7 +384,7 @@ public class ClusterBlueprintRendererTest {
   @Test
   public void testFinalizeProperties__instance_noComponentNode() {
     QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<String>());
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Cluster");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Cluster");
     rootQuery.getProperties().add("foo/bar");
     rootQuery.getProperties().add("prop1");
 
@@ -461,10 +461,10 @@ public class ClusterBlueprintRendererTest {
         // 4 specified components and ambari server
         assertEquals(5, components.size());
 
-        Set<String> expectedValues = new HashSet<String>(
-            Arrays.asList("JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER"));
+        Set<String> expectedValues = new HashSet<>(
+          Arrays.asList("JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER"));
 
-        Set<String> actualValues = new HashSet<String>();
+        Set<String> actualValues = new HashSet<>();
 
 
         for (Map<String, String> componentProperties : components) {
@@ -479,10 +479,10 @@ public class ClusterBlueprintRendererTest {
         Collection<Map<String, String>> components = (Collection<Map<String, String>>) hostGroupProperties.get("components");
         assertEquals(2, components.size());
 
-        Set<String> expectedValues = new HashSet<String>(
-            Arrays.asList("TASKTRACKER", "DATANODE"));
+        Set<String> expectedValues = new HashSet<>(
+          Arrays.asList("TASKTRACKER", "DATANODE"));
 
-        Set<String> actualValues = new HashSet<String>();
+        Set<String> actualValues = new HashSet<>();
 
 
         for (Map<String, String> componentProperties : components) {
@@ -503,7 +503,7 @@ public class ClusterBlueprintRendererTest {
 
     Result result = new ResultImpl(true);
     Map<String, Object> testDesiredConfigMap =
-      new HashMap<String, Object>();
+      new HashMap<>();
 
     DesiredConfig testDesiredConfig =
       new DesiredConfig();
@@ -540,10 +540,10 @@ public class ClusterBlueprintRendererTest {
         // 4 specified components and ambari server
         assertEquals(5, components.size());
 
-        Set<String> expectedValues = new HashSet<String>(
+        Set<String> expectedValues = new HashSet<>(
           Arrays.asList("JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER"));
 
-        Set<String> actualValues = new HashSet<String>();
+        Set<String> actualValues = new HashSet<>();
 
 
         for (Map<String, String> componentProperties : components) {
@@ -558,10 +558,10 @@ public class ClusterBlueprintRendererTest {
         Collection<Map<String, String>> components = (Collection<Map<String, String>>) hostGroupProperties.get("components");
         assertEquals(2, components.size());
 
-        Set<String> expectedValues = new HashSet<String>(
+        Set<String> expectedValues = new HashSet<>(
           Arrays.asList("TASKTRACKER", "DATANODE"));
 
-        Set<String> actualValues = new HashSet<String>();
+        Set<String> actualValues = new HashSet<>();
 
 
         for (Map<String, String> componentProperties : components) {

@@ -347,7 +347,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);

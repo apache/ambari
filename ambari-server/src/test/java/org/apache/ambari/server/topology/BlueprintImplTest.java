@@ -98,7 +98,7 @@ public class BlueprintImplTest {
     requiredHDFSProperties.add(new Stack.ConfigProperty("hdfs-site", "some_password", null));
     requiredHDFSProperties.add(new Stack.ConfigProperty("category1", "prop1", null));
 
-    Collection<Stack.ConfigProperty> requiredService2Properties = new HashSet<Stack.ConfigProperty>();
+    Collection<Stack.ConfigProperty> requiredService2Properties = new HashSet<>();
     requiredService2Properties.add(new Stack.ConfigProperty("category2", "prop2", null));
     expect(stack.getRequiredConfigurationProperties("HDFS")).andReturn(requiredHDFSProperties).anyTimes();
     expect(stack.getRequiredConfigurationProperties("SERVICE2")).andReturn(requiredService2Properties).anyTimes();
@@ -158,11 +158,11 @@ public class BlueprintImplTest {
     group1Components.add("NAMENODE");
     group2Components.add("NAMENODE");
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
-    Map<String, String> hdfsProps = new HashMap<String, String>();
+    Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
-    Map<String, String> hadoopProps = new HashMap<String, String>();
+    Map<String, String> hadoopProps = new HashMap<>();
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP:group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP:group2%");
@@ -197,12 +197,12 @@ public class BlueprintImplTest {
     group2Components.add("ZKFC");
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
     expect(stack.getServiceForComponent("ZKFC")).andReturn("SERVICE2").atLeastOnce();
-    Map<String, String> hdfsProps = new HashMap<String, String>();
+    Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
     hdfsProps.put("dfs.nameservices", "val");
-    Map<String, String> hadoopProps = new HashMap<String, String>();
+    Map<String, String> hadoopProps = new HashMap<>();
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group1%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
@@ -239,12 +239,12 @@ public class BlueprintImplTest {
     group2Components.add("ZKFC");
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
     expect(stack.getServiceForComponent("ZKFC")).andReturn("SERVICE2").atLeastOnce();
-    Map<String, String> hdfsProps = new HashMap<String, String>();
+    Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
     hdfsProps.put("dfs.nameservices", "val");
-    Map<String, String> hadoopProps = new HashMap<String, String>();
+    Map<String, String> hadoopProps = new HashMap<>();
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group3%");
@@ -275,12 +275,12 @@ public class BlueprintImplTest {
     group2Components.add("ZKFC");
     expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
     expect(stack.getServiceForComponent("ZKFC")).andReturn("SERVICE2").atLeastOnce();
-    Map<String, String> hdfsProps = new HashMap<String, String>();
+    Map<String, String> hdfsProps = new HashMap<>();
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
     hdfsProps.put("dfs.nameservices", "val");
-    Map<String, String> hadoopProps = new HashMap<String, String>();
+    Map<String, String> hadoopProps = new HashMap<>();
     properties.put("hadoop-env", hadoopProps);
     hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
     hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");

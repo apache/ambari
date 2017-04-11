@@ -167,9 +167,9 @@ public class RequestResourceProviderTest {
       managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(RequestResourceProvider.REQUEST_ID_PROPERTY_ID, "Request100");
@@ -214,7 +214,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     Request request;
     Predicate predicate = new PredicateBuilder()
       .property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID)
@@ -282,7 +282,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -332,7 +332,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -385,7 +385,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -446,7 +446,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -513,7 +513,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
 
@@ -567,7 +567,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -638,7 +638,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -719,7 +719,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -769,10 +769,10 @@ public class RequestResourceProviderTest {
     Stage stage = createNiceMock(Stage.class);
     Clusters clusters = createNiceMock(Clusters.class);
 
-    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<>();
     hostRoleCommands.add(hostRoleCommand);
 
-    Collection<Stage> stages = new HashSet<Stage>();
+    Collection<Stage> stages = new HashSet<>();
     stages.add(stage);
 
     org.apache.ambari.server.actionmanager.Request requestMock =
@@ -803,7 +803,7 @@ public class RequestResourceProviderTest {
 
     // TEST CASE: Check update request validation (abort reason not specified)
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).
@@ -952,14 +952,14 @@ public class RequestResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
-    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> filterMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> filterSet = new HashSet<>();
+    Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.SERVICE_ID, "HDFS");
     filterSet.add(filterMap);
 
@@ -967,7 +967,7 @@ public class RequestResourceProviderTest {
 
     propertySet.add(properties);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
 
 
@@ -1048,14 +1048,14 @@ public class RequestResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
-    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> filterMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> filterSet = new HashSet<>();
+    Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.SERVICE_ID, "HDFS");
     filterMap.put(RequestResourceProvider.HOSTS_ID, "host1,host2,host3");
     filterSet.add(filterMap);
@@ -1064,7 +1064,7 @@ public class RequestResourceProviderTest {
 
     propertySet.add(properties);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
 
     requestInfoProperties.put("parameters/param1", "value1");
     requestInfoProperties.put("parameters/param2", "value2");
@@ -1157,15 +1157,15 @@ public class RequestResourceProviderTest {
       TestAuthenticationFactory.createAdministrator());
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
 
-    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> filterSet = new HashSet<>();
     String predicateProperty = HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID + "=true";
-    Map<String, Object> filterMap = new HashMap<String, Object>();
+    Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.HOSTS_PREDICATE, predicateProperty);
     filterSet.add(filterMap);
 
@@ -1173,7 +1173,7 @@ public class RequestResourceProviderTest {
 
     propertySet.add(properties);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
     requestInfoProperties.put(RequestResourceProvider.REQUEST_CONTEXT_ID, "Restart All with Stale Configs");
 
@@ -1255,9 +1255,9 @@ public class RequestResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     String c1 = "c1";
     String host_component = "HOST_COMPONENT";
@@ -1267,8 +1267,8 @@ public class RequestResourceProviderTest {
 
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, c1);
 
-    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> filterMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> filterSet = new HashSet<>();
+    Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.SERVICE_ID, service_id);
     filterMap.put(RequestResourceProvider.HOSTS_ID, host_name);
     filterSet.add(filterMap);
@@ -1277,7 +1277,7 @@ public class RequestResourceProviderTest {
 
     propertySet.add(properties);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
 
     requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,
@@ -1460,12 +1460,12 @@ public class RequestResourceProviderTest {
     replay(managementController, metaInfo, actionDefinition, response, cluster, clusters);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
-    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> filterMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> filterSet = new HashSet<>();
+    Map<String, Object> filterMap = new HashMap<>();
     filterMap.put(RequestResourceProvider.HOSTS_ID, "h1,h2");
     filterSet.add(filterMap);
 
@@ -1473,7 +1473,7 @@ public class RequestResourceProviderTest {
     properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     propertySet.add(properties);
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     if(commandName != null) {
       requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, commandName);
     }
@@ -1547,7 +1547,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
@@ -1601,7 +1601,7 @@ public class RequestResourceProviderTest {
       PropertyHelper.getKeyPropertyIds(type),
       managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);

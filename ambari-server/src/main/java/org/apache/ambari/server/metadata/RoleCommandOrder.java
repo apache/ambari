@@ -190,10 +190,10 @@ public class RoleCommandOrder implements Cloneable {
   public Set<Service> getTransitiveServices(Service service, RoleCommand cmd)
     throws AmbariException {
 
-    Set<Service> transitiveServices = new HashSet<Service>();
+    Set<Service> transitiveServices = new HashSet<>();
     Cluster cluster = service.getCluster();
 
-    Set<RoleCommandPair> allDeps = new HashSet<RoleCommandPair>();
+    Set<RoleCommandPair> allDeps = new HashSet<>();
     for (ServiceComponent sc : service.getServiceComponents().values()) {
       RoleCommandPair rcp = new RoleCommandPair(Role.valueOf(sc.getName()), cmd);
       Set<RoleCommandPair> deps = dependencies.get(rcp);
@@ -221,8 +221,8 @@ public class RoleCommandOrder implements Cloneable {
    */
   private void extendTransitiveDependency() {
     for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : dependencies.entrySet()) {
-      HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
-      HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
+      HashSet<RoleCommandPair> visited = new HashSet<>();
+      HashSet<RoleCommandPair> transitiveDependencies = new HashSet<>();
       for (RoleCommandPair directlyBlockedOn : dependencies.get(roleCommandPairSetEntry.getKey())) {
         visited.add(directlyBlockedOn);
         identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);

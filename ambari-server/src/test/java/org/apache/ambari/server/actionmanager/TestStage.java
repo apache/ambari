@@ -66,7 +66,7 @@ public class TestStage {
     s.addHostRoleExecutionCommand("h1", Role.HBASE_MASTER, RoleCommand.INSTALL,
         null, "c1", "HBASE", false, false);
     for (ExecutionCommandWrapper wrapper : s.getExecutionCommands("h1")) {
-      Map<String, String> commandParams = new TreeMap<String, String>();
+      Map<String, String> commandParams = new TreeMap<>();
       commandParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, "600");
       wrapper.getExecutionCommand().setCommandParams(commandParams);
     }

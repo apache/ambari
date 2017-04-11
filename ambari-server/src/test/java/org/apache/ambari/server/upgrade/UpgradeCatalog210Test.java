@@ -268,10 +268,10 @@ public class UpgradeCatalog210Test {
     final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveServer = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedRangerPlugin = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedRangerPlugin = new HashMap<>();
     propertiesExpectedRangerPlugin.put("ranger-hive-plugin-enabled", "yes");
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
-    final Map<String, String> propertiesExpectedHiveServer2 = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<>();
+    final Map<String, String> propertiesExpectedHiveServer2 = new HashMap<>();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -335,7 +335,7 @@ public class UpgradeCatalog210Test {
       put("hive.security.authorization.manager", "");
       put("hive.security.authenticator.manager", "");
     }};
-    final Map<String, Service> servicesExpected = new HashMap<String, Service>();
+    final Map<String, Service> servicesExpected = new HashMap<>();
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -476,7 +476,7 @@ public class UpgradeCatalog210Test {
     final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveServerSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
       put("hive.server2.authentication", "kerberos");
     }};
@@ -718,9 +718,9 @@ public class UpgradeCatalog210Test {
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockStormSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedClusterEnv = new HashMap<>();
     propertiesExpectedClusterEnv.put("security_enabled", "true");
-    final Map<String, String> propertiesExpectedStormSite = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedStormSite = new HashMap<>();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -761,12 +761,12 @@ public class UpgradeCatalog210Test {
     final Config mockHBaseSite = easyMockSupport.createNiceMock(Config.class);
     final Config mockHBaseEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHBaseSite = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHBaseSite = new HashMap<>();
     propertiesExpectedHBaseSite.put("hbase.region.server.rpc.scheduler.factory.class",
         "org.apache.phoenix.hbase.index.ipc.PhoenixIndexRpcSchedulerFactory");
     propertiesExpectedHBaseSite.put("hbase.security.authorization", "true");
 
-    final Map<String, String> propertiesExpectedHBaseEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHBaseEnv = new HashMap<>();
     propertiesExpectedHBaseEnv.put("phoenix_sql_enabled", "false");
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
@@ -878,8 +878,8 @@ public class UpgradeCatalog210Test {
     final Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
     final Config mockCoreSite = easyMockSupport.createStrictMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
-    final Map<String, String> propertiesExpectedCoreSite = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHdfs = new HashMap<>();
+    final Map<String, String> propertiesExpectedCoreSite = new HashMap<>();
     propertiesExpectedHdfs.put("dfs.nameservices", "nncl1,nncl2");
     propertiesExpectedHdfs.put("dfs.ha.namenodes.nncl2", "nn1,nn2");
     propertiesExpectedCoreSite.put("fs.defaultFS", "hdfs://EXAMPLE.COM:8020");
@@ -1069,7 +1069,7 @@ public class UpgradeCatalog210Test {
 
     public HostSectionDDL() {
       // Capture all tables that will have the host_id column added to it.
-      captures = new HashMap<String, Capture<DBColumnInfo>>();
+      captures = new HashMap<>();
 
       // Column Capture section
       // Hosts
@@ -1153,7 +1153,7 @@ public class UpgradeCatalog210Test {
     Capture<DBColumnInfo> userActiveLayoutsColumnCapture;
 
     public WidgetSectionDDL() {
-      captures = new HashMap<String, Capture<List<DBColumnInfo>>>();
+      captures = new HashMap<>();
 
       Capture<List<DBColumnInfo>> userWidgetColumnsCapture = EasyMock.newCapture();
       Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = EasyMock.newCapture();
@@ -1217,7 +1217,7 @@ public class UpgradeCatalog210Test {
     HashMap<String, Capture<DBColumnInfo>> captures;
 
     public ViewSectionDDL() {
-      captures = new HashMap<String, Capture<DBColumnInfo>>();
+      captures = new HashMap<>();
 
       Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = EasyMock.newCapture();
       Capture<DBAccessor.DBColumnInfo> viewInstanceAlterNamesColumnCapture = EasyMock.newCapture();
@@ -1291,8 +1291,8 @@ public class UpgradeCatalog210Test {
 
 
     public AlertSectionDDL() {
-      stringCaptures = new HashMap<String, Capture<String>>();
-      classCaptures = new HashMap<String, Capture<Class>>();
+      stringCaptures = new HashMap<>();
+      classCaptures = new HashMap<>();
 
       Capture<String> textCaptureC = EasyMock.newCapture();
       Capture<String> textCaptureH = EasyMock.newCapture();

@@ -39,7 +39,7 @@ public class PrereqCheckRequest {
   private UpgradeType m_upgradeType;
 
   private Map<CheckDescription, PrereqCheckStatus> m_results =
-      new HashMap<CheckDescription, PrereqCheckStatus>();
+    new HashMap<>();
 
 
   public PrereqCheckRequest(String clusterName, UpgradeType upgradeType) {

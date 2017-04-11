@@ -83,14 +83,14 @@ public class ViewInstanceResourceProviderTest {
   @Test
   public void testToResource() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID);
     propertyIds.add(ViewInstanceResourceProvider.CLUSTER_HANDLE_PROPERTY_ID);
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
 
-    Map<String, String> propertyMap = new HashMap<String, String>();
+    Map<String, String> propertyMap = new HashMap<>();
 
     propertyMap.put("par1", "val1");
     propertyMap.put("par2", "val2");
@@ -143,9 +143,9 @@ public class ViewInstanceResourceProviderTest {
   private void testCreateResources(Authentication authentication) throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
 
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
+    Map<String, Object> propertyMap = new HashMap<>();
 
     propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
     propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
@@ -210,9 +210,9 @@ public class ViewInstanceResourceProviderTest {
   public void testCreateResources_existingInstance() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
 
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
+    Map<String, Object> propertyMap = new HashMap<>();
 
     propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
     propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
@@ -254,9 +254,9 @@ public class ViewInstanceResourceProviderTest {
   public void testCreateResources_viewNotLoaded() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
 
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
+    Map<String, Object> propertyMap = new HashMap<>();
 
     propertyMap.put(ViewInstanceResourceProvider.VIEW_NAME_PROPERTY_ID, "V1");
     propertyMap.put(ViewInstanceResourceProvider.VIEW_VERSION_PROPERTY_ID, "1.0.0");
@@ -297,9 +297,9 @@ public class ViewInstanceResourceProviderTest {
   public void testUpdateResources_viewNotLoaded() throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
 
-    Map<String, Object> propertyMap = new HashMap<String, Object>();
+    Map<String, Object> propertyMap = new HashMap<>();
 
     propertyMap.put(ViewInstanceResourceProvider.ICON_PATH_ID, "path");
 

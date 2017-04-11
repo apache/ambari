@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,15 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+-->
+<configuration>
 
-var App = require('app');
+  <property>
+    <name>ranger.plugin.kafka.ambari.cluster.name</name>
+    <value>{{cluster_name}}</value>
+    <description>Capture cluster name from where Ranger kafka plugin is enabled.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
-App.MainDashboardServiceOozieView = App.MainDashboardServiceView.extend({
-  serviceName: 'oozie',
-  templateName: require('templates/main/service/services/oozie'),
-
-  webUi: function () {
-    var hostName = App.singleNodeInstall ? App.singleNodeAlias : this.get('service.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.publicHostName');
-    return "http://{0}:11000/oozie".format(hostName);
-  }.property('service')
-});
+</configuration>

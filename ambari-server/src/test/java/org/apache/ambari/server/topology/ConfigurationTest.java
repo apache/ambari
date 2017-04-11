@@ -34,16 +34,16 @@ import org.junit.Test;
  */
 public class ConfigurationTest {
 
-  private static final Map<String, Map<String, String>> EMPTY_PROPERTIES = new HashMap<String, Map<String, String>>();
-  private static final Map<String, Map<String, Map<String, String>>>  EMPTY_ATTRIBUTES = new HashMap<String, Map<String, Map<String, String>>>();
+  private static final Map<String, Map<String, String>> EMPTY_PROPERTIES = new HashMap<>();
+  private static final Map<String, Map<String, Map<String, String>>>  EMPTY_ATTRIBUTES = new HashMap<>();
 
   @Test
   public void testGetProperties_noParent() {
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProperties1 = new HashMap<>();
     typeProperties1.put("prop1", "val1");
     typeProperties1.put("prop2", "val2");
-    Map<String, String> typeProperties2 = new HashMap<String, String>();
+    Map<String, String> typeProperties2 = new HashMap<>();
     typeProperties2.put("prop1", "val1");
     typeProperties2.put("prop3", "val3");
 
@@ -57,11 +57,11 @@ public class ConfigurationTest {
 
   @Test
   public void testGetFullProperties_noParent() {
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProperties1 = new HashMap<>();
     typeProperties1.put("prop1", "val1");
     typeProperties1.put("prop2", "val2");
-    Map<String, String> typeProperties2 = new HashMap<String, String>();
+    Map<String, String> typeProperties2 = new HashMap<>();
     typeProperties2.put("prop1", "val1");
     typeProperties2.put("prop3", "val3");
 
@@ -75,21 +75,21 @@ public class ConfigurationTest {
 
   @Test
   public void testGetProperties_withParent() {
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProperties1 = new HashMap<>();
     typeProperties1.put("prop1", "val1");
     typeProperties1.put("prop2", "val2");
-    Map<String, String> typeProperties2 = new HashMap<String, String>();
+    Map<String, String> typeProperties2 = new HashMap<>();
     typeProperties2.put("prop1", "val1");
     typeProperties2.put("prop3", "val3");
 
     properties.put("type1", typeProperties1);
     properties.put("type2", typeProperties2);
 
-    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
-    Map<String, String> parentTypeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Map<String, String> parentTypeProperties1 = new HashMap<>();
     parentTypeProperties1.put("prop5", "val5");
-    Map<String, String> parentTypeProperties3 = new HashMap<String, String>();
+    Map<String, String> parentTypeProperties3 = new HashMap<>();
     parentTypeProperties3.put("prop6", "val6");
 
     parentProperties.put("type1", parentTypeProperties1);
@@ -195,12 +195,12 @@ public class ConfigurationTest {
 
   @Test
   public void testGetAttributes_noParent() {
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> attributeProperties = new HashMap<String, Map<String, String>>();
-    Map<String, String> properties1 = new HashMap<String, String>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
+    Map<String, Map<String, String>> attributeProperties = new HashMap<>();
+    Map<String, String> properties1 = new HashMap<>();
     properties1.put("prop1", "val1");
     properties1.put("prop2", "val2");
-    Map<String, String> properties2 = new HashMap<String, String>();
+    Map<String, String> properties2 = new HashMap<>();
     properties2.put("prop1", "val3");
     attributeProperties.put("attribute1", properties1);
     attributeProperties.put("attribute2", properties2);
@@ -362,12 +362,12 @@ public class ConfigurationTest {
 
   private Configuration createConfigurationWithParents_PropsOnly() {
     // parents parent config properties
-    Map<String, Map<String, String>> parentParentProperties = new HashMap<String, Map<String, String>>();
-    Map<String, String> parentParentTypeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> parentParentProperties = new HashMap<>();
+    Map<String, String> parentParentTypeProperties1 = new HashMap<>();
     parentParentTypeProperties1.put("prop1", "val1.1");
     parentParentTypeProperties1.put("prop2", "val2.1");
     parentParentTypeProperties1.put("prop3", "val3.1");
-    Map<String, String> parentParentTypeProperties2 = new HashMap<String, String>();
+    Map<String, String> parentParentTypeProperties2 = new HashMap<>();
     parentParentTypeProperties2.put("prop4", "val4.1");
     parentParentTypeProperties2.put("prop5", "val5.1");
 
@@ -376,12 +376,12 @@ public class ConfigurationTest {
     Configuration parentParentConfiguration = new Configuration(parentParentProperties, EMPTY_ATTRIBUTES);
 
     // parent config properties
-    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
-    Map<String, String> parentTypeProperties1 = new HashMap<String, String>(); // override
+    Map<String, Map<String, String>> parentProperties = new HashMap<>();
+    Map<String, String> parentTypeProperties1 = new HashMap<>(); // override
     parentTypeProperties1.put("prop1", "val1.2"); // override parent
     parentTypeProperties1.put("prop2", "val2.2"); // override parent
     parentTypeProperties1.put("prop6", "val6.2"); // new
-    Map<String, String> parentTypeProperties3 = new HashMap<String, String>(); // new
+    Map<String, String> parentTypeProperties3 = new HashMap<>(); // new
     parentTypeProperties3.put("prop7", "val7.2"); // new
     parentTypeProperties3.put("prop8", "val8.2"); // new
 
@@ -390,15 +390,15 @@ public class ConfigurationTest {
     Configuration parentConfiguration = new Configuration(parentProperties, EMPTY_ATTRIBUTES, parentParentConfiguration);
 
     // leaf config properties
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProperties1 = new HashMap<String, String>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProperties1 = new HashMap<>();
     typeProperties1.put("prop1", "val1.3"); // overrides both parent and parents parent
     typeProperties1.put("prop9", "val9.3"); // new
-    Map<String, String> typeProperties2 = new HashMap<String, String>(); // overrides
+    Map<String, String> typeProperties2 = new HashMap<>(); // overrides
     typeProperties2.put("prop4", "val4.3"); // overrides parents parent value
-    Map<String, String> typeProperties3 = new HashMap<String, String>(); // overrides
+    Map<String, String> typeProperties3 = new HashMap<>(); // overrides
     typeProperties3.put("prop7", "val7.3"); // overrides parents parent value
-    Map<String, String> typeProperties4 = new HashMap<String, String>(); // new
+    Map<String, String> typeProperties4 = new HashMap<>(); // new
     typeProperties4.put("prop10", "val10.3"); // new
     typeProperties4.put("prop11", "val11.3"); // new
 
@@ -411,75 +411,75 @@ public class ConfigurationTest {
 
   private Configuration createConfigurationWithParents_AttributesOnly() {
     // parents parent config attributes.
-    Map<String, Map<String, Map<String, String>>> parentParentAttributes = new HashMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> parentParentTypeAttributes1 = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> parentParentTypeAttributes2 = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, Map<String, String>>> parentParentAttributes = new HashMap<>();
+    Map<String, Map<String, String>> parentParentTypeAttributes1 = new HashMap<>();
+    Map<String, Map<String, String>> parentParentTypeAttributes2 = new HashMap<>();
     parentParentAttributes.put("type1", parentParentTypeAttributes1);
     parentParentAttributes.put("type2", parentParentTypeAttributes2);
 
-    Map<String, String> parentParentAttributeProperties1 = new HashMap<String, String>();
+    Map<String, String> parentParentAttributeProperties1 = new HashMap<>();
     parentParentAttributeProperties1.put("prop1", "val1.1");
     parentParentAttributeProperties1.put("prop2", "val2.1");
     parentParentAttributeProperties1.put("prop3", "val3.1");
-    Map<String, String> parentParentAttributeProperties2 = new HashMap<String, String>();
+    Map<String, String> parentParentAttributeProperties2 = new HashMap<>();
     parentParentAttributeProperties2.put("prop4", "val4.1");
     parentParentAttributeProperties2.put("prop5", "val5.1");
 
     parentParentTypeAttributes1.put("attribute1", parentParentAttributeProperties1);
     parentParentTypeAttributes1.put("attribute2", parentParentAttributeProperties2);
 
-    Map<String, String> parentParentAttributeProperties100 = new HashMap<String, String>();
+    Map<String, String> parentParentAttributeProperties100 = new HashMap<>();
     parentParentAttributeProperties100.put("prop100", "val100.1");
     parentParentAttributeProperties100.put("prop101", "val101.1");
 
-    Map<String, String> parentParentAttributeProperties101 = new HashMap<String, String>();
+    Map<String, String> parentParentAttributeProperties101 = new HashMap<>();
     parentParentAttributeProperties101.put("prop100", "val100.1");
     parentParentAttributeProperties101.put("prop101", "val101.1");
 
     parentParentTypeAttributes2.put("attribute100", parentParentAttributeProperties100);
     parentParentTypeAttributes2.put("attribute101", parentParentAttributeProperties101);
     Configuration parentParentConfiguration = new Configuration(EMPTY_PROPERTIES,
-        new HashMap<String, Map<String, Map<String, String>>>(parentParentAttributes));
+      new HashMap<>(parentParentAttributes));
 
     // parent config attributes
-    Map<String, Map<String, Map<String, String>>> parentAttributes = new HashMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> parentTypeAttributes1 = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> parentTypeAttributes2 = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, Map<String, String>>> parentAttributes = new HashMap<>();
+    Map<String, Map<String, String>> parentTypeAttributes1 = new HashMap<>();
+    Map<String, Map<String, String>> parentTypeAttributes2 = new HashMap<>();
     parentAttributes.put("type1", parentTypeAttributes1);
     parentAttributes.put("type2", parentTypeAttributes2);
 
-    Map<String, String> parentAttributeProperties1 = new HashMap<String, String>(); // override
+    Map<String, String> parentAttributeProperties1 = new HashMap<>(); // override
     parentAttributeProperties1.put("prop1", "val1.2"); // override parent
     parentAttributeProperties1.put("prop2", "val2.2"); // override parent
     parentAttributeProperties1.put("prop6", "val6.2"); // new
-    Map<String, String> parentAttributeProperties3 = new HashMap<String, String>(); // new
+    Map<String, String> parentAttributeProperties3 = new HashMap<>(); // new
     parentAttributeProperties3.put("prop7", "val7.2"); // new
     parentAttributeProperties3.put("prop8", "val8.2"); // new
 
     parentTypeAttributes1.put("attribute1", parentAttributeProperties1);
     parentTypeAttributes1.put("attribute3", parentAttributeProperties3);
 
-    Map<String, String> parentAttributeProperties101 = new HashMap<String, String>();
+    Map<String, String> parentAttributeProperties101 = new HashMap<>();
     parentAttributeProperties101.put("prop100", "val100.2");
     parentTypeAttributes2.put("attribute101", parentAttributeProperties101);
     Configuration parentConfiguration = new Configuration(EMPTY_PROPERTIES,
-        new HashMap<String, Map<String, Map<String, String>>>(parentAttributes), parentParentConfiguration);
+      new HashMap<>(parentAttributes), parentParentConfiguration);
 
     // leaf config attributes
-    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> typeAttributes1 = new HashMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> typeAttributes2 = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<>();
+    Map<String, Map<String, String>> typeAttributes1 = new HashMap<>();
+    Map<String, Map<String, String>> typeAttributes2 = new HashMap<>();
     attributes.put("type1", typeAttributes1);
     attributes.put("type2", typeAttributes2);
 
-    Map<String, String> attributeProperties1 = new HashMap<String, String>();
+    Map<String, String> attributeProperties1 = new HashMap<>();
     attributeProperties1.put("prop1", "val1.3"); // overrides both parent and parents parent
     attributeProperties1.put("prop9", "val9.3"); // new
-    Map<String, String> attributeProperties2 = new HashMap<String, String>(); // overrides
+    Map<String, String> attributeProperties2 = new HashMap<>(); // overrides
     attributeProperties2.put("prop4", "val4.3"); // overrides parents parent value
-    Map<String, String> attributeProperties3 = new HashMap<String, String>(); // overrides
+    Map<String, String> attributeProperties3 = new HashMap<>(); // overrides
     attributeProperties3.put("prop7", "val7.3"); // overrides parents parent value
-    Map<String, String> attributeProperties4 = new HashMap<String, String>(); // new
+    Map<String, String> attributeProperties4 = new HashMap<>(); // new
     attributeProperties4.put("prop10", "val10.3"); // new
     attributeProperties4.put("prop11", "val11.3"); // new
 
@@ -488,13 +488,13 @@ public class ConfigurationTest {
     typeAttributes1.put("attribute3", attributeProperties3);
     typeAttributes1.put("attribute4", attributeProperties4);
 
-    Map<String, String> attributeProperties100 = new HashMap<String, String>(); // overrides parents parent
+    Map<String, String> attributeProperties100 = new HashMap<>(); // overrides parents parent
     attributeProperties100.put("prop100", "val100.3"); // overrides parents parent
     attributeProperties100.put("prop102", "val102.3"); // new
 
     typeAttributes1.put("attribute1", attributeProperties1);
     typeAttributes2.put("attribute100", attributeProperties100);
     return new Configuration(EMPTY_PROPERTIES,
-        new HashMap<String, Map<String, Map<String, String>>>(attributes), parentConfiguration);
+      new HashMap<>(attributes), parentConfiguration);
   }
 }

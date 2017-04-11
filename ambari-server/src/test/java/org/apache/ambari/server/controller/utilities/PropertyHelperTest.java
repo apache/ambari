@@ -97,7 +97,7 @@ public class PropertyHelperTest {
     Assert.assertTrue(categories.contains("metrics"));
 
     String propertyId2 = "foo/bar/baz";
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(propertyId);
     propertyIds.add(propertyId2);
 
@@ -139,7 +139,7 @@ public class PropertyHelperTest {
    * this test.
    */
   public void testDuplicatePointInTimeMetrics() {
-    TreeSet<String> set = new TreeSet<String>();
+    TreeSet<String> set = new TreeSet<>();
 
     for (Resource.Type type : Resource.Type.values()) {
 
@@ -201,7 +201,7 @@ public class PropertyHelperTest {
    * exception to this test.
    */
   public void testTemporalOnlyMetrics() {
-    TreeSet<String> set = new TreeSet<String>();
+    TreeSet<String> set = new TreeSet<>();
 
     for (Resource.Type type : Resource.Type.values()) {
 
@@ -264,7 +264,7 @@ public class PropertyHelperTest {
    * Test to make sure that no JMX metrics are marked as point in time.
    */
   public void testJMXTemporal() {
-    TreeSet<String> set = new TreeSet<String>();
+    TreeSet<String> set = new TreeSet<>();
 
     for (Resource.Type type : Resource.Type.values()) {
 
@@ -369,12 +369,12 @@ public class PropertyHelperTest {
   // remove any replacement tokens (e.g. $1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)) in the metric names
   private static Map<String, Map<String, PropertyInfo>> normalizeMetricNames(Map<String, Map<String, PropertyInfo>> gids) {
 
-    Map<String, Map<String, PropertyInfo>> returnMap = new HashMap<String, Map<String, PropertyInfo>>();
+    Map<String, Map<String, PropertyInfo>> returnMap = new HashMap<>();
 
     for (Map.Entry<String, Map<String, PropertyInfo>> gComponentEntry : gids.entrySet()) {
 
       String gComponent = gComponentEntry.getKey();
-      Map<String, PropertyInfo> newMap = new HashMap<String, PropertyInfo>();
+      Map<String, PropertyInfo> newMap = new HashMap<>();
 
       Set<Map.Entry<String, PropertyInfo>> gComponentEntries = gComponentEntry.getValue().entrySet();
 

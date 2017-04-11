@@ -358,7 +358,7 @@ public class AlertsDAO implements Cleanable {
     }
 
     // sorting
-    JpaSortBuilder<AlertHistoryEntity> sortBuilder = new JpaSortBuilder<AlertHistoryEntity>();
+    JpaSortBuilder<AlertHistoryEntity> sortBuilder = new JpaSortBuilder<>();
     List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
     query.orderBy(sortOrders);
 
@@ -396,7 +396,7 @@ public class AlertsDAO implements Cleanable {
     }
 
     // sorting
-    JpaSortBuilder<AlertCurrentEntity> sortBuilder = new JpaSortBuilder<AlertCurrentEntity>();
+    JpaSortBuilder<AlertCurrentEntity> sortBuilder = new JpaSortBuilder<>();
     List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
     query.orderBy(sortOrders);
 
@@ -587,7 +587,7 @@ public class AlertsDAO implements Cleanable {
     query.setParameter("unknownState", AlertState.UNKNOWN);
     query.setParameter("maintenanceStateOff", MaintenanceState.OFF);
 
-    Map<String, AlertSummaryDTO> map = new HashMap<String, AlertSummaryDTO>();
+    Map<String, AlertSummaryDTO> map = new HashMap<>();
     List<HostAlertSummaryDTO> resultList = m_daoUtils.selectList(query);
     for (HostAlertSummaryDTO result : resultList) {
       map.put(result.getHostName(), result);

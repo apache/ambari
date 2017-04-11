@@ -104,7 +104,7 @@ public class KerberosServiceDescriptorFactory extends AbstractKerberosDescriptor
    * @see org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor
    */
   public KerberosServiceDescriptor[] createInstances(Map<String, Object> map) throws AmbariException {
-    ArrayList<KerberosServiceDescriptor> descriptors = new ArrayList<KerberosServiceDescriptor>();
+    ArrayList<KerberosServiceDescriptor> descriptors = new ArrayList<>();
 
     if (map != null) {
       Object servicesData = map.get("services");

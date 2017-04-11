@@ -232,11 +232,11 @@ define(['require',
                     //this.hostArray = content.ui.hostSelect2.val().split(',');
                     // this.levelArray = content.ui.levelSelect2.val().split(',');
 
-                    //this.filterList = { /*components : this.componentArray,*/hosts : this.hostArray/*, levels : this.levelArray */};
-
+                    //this.filterList = { /*components : this.componentArray,*/hosts : this.hostArray/*, levels : this.levelArray */}
                     content.model.set(content.setValues());
 
-                    content.model.save(content.model.attributes,{
+                    content.model.save(content.model.attributes, {
+                        url: Globals.baseURL + 'userconfig/filters',
                         success : function(model,response){
                             Utils.notifySuccess({
                                 content: "Filter has been saved."

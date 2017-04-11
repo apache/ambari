@@ -92,7 +92,7 @@ public class Parallel {
    */
   private static ExecutorService initExecutor() {
 
-    BlockingQueue<Runnable> blockingQueue = new SynchronousQueue<Runnable>(); // Using synchronous queue
+    BlockingQueue<Runnable> blockingQueue = new SynchronousQueue<>(); // Using synchronous queue
 
     // Create thread pool
     ThreadPoolExecutor threadPool = new ThreadPoolExecutor(
@@ -163,19 +163,19 @@ public class Parallel {
     if(source.size() == 1 || (endIndex - startIndex) == 1) {
       // Don't spawn a new thread for a single element list
       List<R> result = Collections.singletonList(loopBody.run(source.get(startIndex)));
-      return new ParallelLoopResult<R>(true, result);
+      return new ParallelLoopResult<>(true, result);
     }
 
     // Create a completion service for each call
-    CompletionService<ResultWrapper<R>> completionService = new ExecutorCompletionService<ResultWrapper<R>>(executor);
+    CompletionService<ResultWrapper<R>> completionService = new ExecutorCompletionService<>(executor);
 
-    List<Future<ResultWrapper<R>>> futures = new LinkedList<Future<ResultWrapper<R>>>();
+    List<Future<ResultWrapper<R>>> futures = new LinkedList<>();
     for (int i = startIndex; i < endIndex; i++) {
       final Integer k = i;
       Future<ResultWrapper<R>> future = completionService.submit(new Callable<ResultWrapper<R>>() {
         @Override
         public ResultWrapper<R> call() throws Exception {
-          ResultWrapper<R> res = new ResultWrapper<R>();
+          ResultWrapper<R> res = new ResultWrapper<>();
           res.index = k;
           res.result = loopBody.run(source.get(k));
           return res;
@@ -233,7 +233,7 @@ public class Parallel {
       }
     }
     // Return parallel loop result
-    return new ParallelLoopResult<R>(completed, Arrays.asList(result));
+    return new ParallelLoopResult<>(completed, Arrays.asList(result));
   }
 
   /**

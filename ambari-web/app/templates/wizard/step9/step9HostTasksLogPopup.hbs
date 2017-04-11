@@ -47,7 +47,7 @@
             {{#each taskInfo in view.tasks}}
               <tr {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :pointer"}}>
                 <td class="col-sm-3">
-                  <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
+                  <i {{bindAttr class="taskInfo.status taskInfo.icon"}} {{QAAttr "task-status-{taskInfo.status}"}}></i>
                   <a href="#">
                     {{taskInfo.commandDetail}}
                   </a>

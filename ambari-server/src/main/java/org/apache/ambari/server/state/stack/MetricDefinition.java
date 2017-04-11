@@ -58,7 +58,7 @@ public class MetricDefinition {
    */
   @JsonIgnore
   public Map<String, Metric> getMetrics() {
-    Map<String, Metric> metricMap = new HashMap<String, Metric>();
+    Map<String, Metric> metricMap = new HashMap<>();
     for (Entry<String, Map<String, Metric>> metricMapEntry : metrics.entrySet()) {
       metricMap.putAll(metricMapEntry.getValue());
     }

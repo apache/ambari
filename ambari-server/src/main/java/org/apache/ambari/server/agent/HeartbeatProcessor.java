@@ -357,7 +357,7 @@ public class HeartbeatProcessor extends AbstractService{
     List<CommandReport> reports = heartbeat.getReports();
 
     // Cache HostRoleCommand entities because we will need them few times
-    List<Long> taskIds = new ArrayList<Long>();
+    List<Long> taskIds = new ArrayList<>();
     for (CommandReport report : reports) {
       taskIds.add(report.getTaskId());
     }

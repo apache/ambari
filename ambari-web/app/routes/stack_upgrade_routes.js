@@ -22,7 +22,7 @@ module.exports = App.WizardRoute.extend({
   route: 'stack/upgrade',
 
   breadcrumbs: {
-    label: 'App.router.mainAdminStackAndUpgradeController.wizardModalTitle'
+    labelBindingPath: 'App.router.mainAdminStackAndUpgradeController.wizardModalTitle'
   },
 
   enter: function (router) {

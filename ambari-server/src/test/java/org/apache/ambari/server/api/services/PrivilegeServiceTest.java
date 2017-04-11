@@ -39,7 +39,7 @@ public class PrivilegeServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getPrivilege
     PrivilegeService service = new TestPrivilegeService("id");

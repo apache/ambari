@@ -175,7 +175,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
 
     // Remove request properties that request temporal information
     Set<String> ids = getRequestPropertyIds(request, predicate);
-    Set<String> temporalIds = new HashSet<String>();
+    Set<String> temporalIds = new HashSet<>();
     String resourceComponentName = (String) resource.getPropertyValue(componentNamePropertyId);
 
     if (!componentName.equals(resourceComponentName)) {
@@ -228,7 +228,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       rethrowSystemException(e);
     }
 
-    Set<String> resultIds = new HashSet<String>();
+    Set<String> resultIds = new HashSet<>();
     for (String id : ids){
       for (String metricId : propertyInfos.keySet()){
         if (metricId.startsWith(id)){
@@ -271,7 +271,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
 
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    Set<String> unsupported = new HashSet<String>();
+    Set<String> unsupported = new HashSet<>();
     for (String propertyId : propertyIds) {
       if (!getComponentMetrics().
           get(StackDefinedPropertyProvider.WRAPPED_METRICS_KEY).
@@ -444,7 +444,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
    */
   private HashMap<String, Set<String>> extractPropertyURLs(Set<String> ids,
                                                            Map<String, PropertyInfo> propertyInfos) {
-    HashMap<String, Set<String>> result = new HashMap<String, Set<String>>();
+    HashMap<String, Set<String>> result = new HashMap<>();
     for (String requestedPropertyId : ids) {
       PropertyInfo propertyInfo = propertyInfos.get(requestedPropertyId);
 
@@ -452,7 +452,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       String url = extractMetricsURL(metricsPath);
       Set<String> set;
       if (!result.containsKey(url)) {
-        set = new HashSet<String>();
+        set = new HashSet<>();
         result.put(url, set);
       } else {
         set = result.get(url);

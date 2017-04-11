@@ -96,7 +96,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
     final String frameworkPath = mrConfig.getProperties().get("mapreduce.application.framework.path");
     final String defaultFS = coreSiteConfig.getProperties().get("fs.defaultFS");
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     if (applicationClasspath == null || applicationClasspath.isEmpty()) {
       errorMessages.add(getFailReason(KEY_APP_CLASSPATH, prerequisiteCheck, request));
     }

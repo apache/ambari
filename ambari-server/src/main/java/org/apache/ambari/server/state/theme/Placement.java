@@ -67,7 +67,7 @@ public class Placement{
   }
 
   private List<ConfigPlacement> mergeConfigs(List<ConfigPlacement> parentConfigs, List<ConfigPlacement> childConfigs) {
-    Map<String, ConfigPlacement> mergedConfigPlacements = new LinkedHashMap<String, ConfigPlacement>();
+    Map<String, ConfigPlacement> mergedConfigPlacements = new LinkedHashMap<>();
     for (ConfigPlacement parentConfigPlacement : parentConfigs) {
       mergedConfigPlacements.put(parentConfigPlacement.getConfig(), parentConfigPlacement);
     }
@@ -83,6 +83,6 @@ public class Placement{
         }
       }
     }
-    return new ArrayList<ConfigPlacement>(mergedConfigPlacements.values());
+    return new ArrayList<>(mergedConfigPlacements.values());
   }
 }

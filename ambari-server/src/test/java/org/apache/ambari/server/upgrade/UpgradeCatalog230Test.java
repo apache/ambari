@@ -279,7 +279,7 @@ public class UpgradeCatalog230Test extends EasyMockSupport {
     RoleAuthorizationDAO roleAuthorizationDAO = injector.getInstance(RoleAuthorizationDAO.class);
     expect(roleAuthorizationDAO.findById(anyString())).andReturn(roleAuthorization).anyTimes();
 
-    Collection<RoleAuthorizationEntity> authorizations = new ArrayList<RoleAuthorizationEntity>();
+    Collection<RoleAuthorizationEntity> authorizations = new ArrayList<>();
 
     expect(ambariAdministratorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();
     expect(clusterAdministratorPermissionEntity.getAuthorizations()).andReturn(authorizations).atLeastOnce();

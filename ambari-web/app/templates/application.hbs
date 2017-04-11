@@ -27,16 +27,16 @@
       <li class="navigation-header">
         {{#if enableLinks}}
           <a {{translateAttr href="topnav.logo.href"}} class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
+            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
           </a>
         {{else}}
           <a class="ambari-logo">
-            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari">
+            <img src="/img/ambari-logo.png" alt="Apache Ambari" title="Apache Ambari" {{QAAttr "ambari-logo"}}>
           </a>
         {{/if}}
         <div class="btn-group">
           <div class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="ambari-header" title="Apache Ambari">{{t app.name}}</span>
+            <span class="ambari-header" title="Apache Ambari" {{QAAttr "ambari-title"}}>{{t app.name}}</span>
             <span class="toggle-icon glyphicon glyphicon-triangle-bottom"></span>
           </div>
           <ul class="dropdown-menu">
@@ -77,7 +77,7 @@
         {{! user dropdown }}
         {{#if App.router.loggedIn}}
           <div class="top-nav-user navbar-right btn-group">
-            <button class="dropdown-toggle navbar-btn btn btn-default" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            <button {{QAAttr "user-dropdown"}} class="dropdown-toggle navbar-btn btn btn-default" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
               <i class="glyphicon glyphicon-user"></i>&nbsp;{{App.router.displayLoginName}}&nbsp;<span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
@@ -113,7 +113,7 @@
               {{! sign out }}
               {{#if showExitLink}}
                 <li role="separator" class="divider"></li>
-                <li><a href="" id="sign-out" {{action logoff}}>{{t app.signout}}</a></li>
+                <li><a href="" id="sign-out" {{QAAttr "sign-out"}} {{action logoff}}>{{t app.signout}}</a></li>
               {{/if}}
               {{! sign out end }}
             </ul>

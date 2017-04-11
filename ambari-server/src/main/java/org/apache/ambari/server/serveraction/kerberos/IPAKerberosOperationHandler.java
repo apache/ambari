@@ -643,8 +643,8 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
     PrincipalKeyCredential administratorCredentials = getAdministratorCredential();
     String defaultRealm = getDefaultRealm();
 
-    List<String> command = new ArrayList<String>();
-    List<String> kinit = new ArrayList<String>();
+    List<String> command = new ArrayList<>();
+    List<String> kinit = new ArrayList<>();
 
     String adminPrincipal = (administratorCredentials == null)
             ? null

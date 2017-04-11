@@ -36,7 +36,7 @@ public class ClusterPrivilegeServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getPrivilege
     ClusterPrivilegeService privilegeService = new TestClusterPrivilegeService("c1");

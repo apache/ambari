@@ -555,7 +555,7 @@ public class AlertDefinitionEntity {
    */
   protected void addAlertGroup(AlertGroupEntity alertGroup) {
     if (null == alertGroups) {
-      alertGroups = new HashSet<AlertGroupEntity>();
+      alertGroups = new HashSet<>();
     }
 
     alertGroups.add(alertGroup);

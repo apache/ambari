@@ -180,7 +180,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
 
     if (atom != null) {
       try {
-        ArrayList<String> lines = new ArrayList<String>();
+        ArrayList<String> lines = new ArrayList<>();
         lines.add(MASTER_PERSISTENCE_TAG_PREFIX + TimeStamp.getCurrentTime().toDateString());
 
         String line = Base64.encodeBase64String((

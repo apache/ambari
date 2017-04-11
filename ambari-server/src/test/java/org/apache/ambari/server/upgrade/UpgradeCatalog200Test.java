@@ -460,10 +460,10 @@ public class UpgradeCatalog200Test {
     final StackInfo mockStackInfo = easyMockSupport.createNiceMock(StackInfo.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockCluster = easyMockSupport.createStrictMock(Cluster.class);
-    final Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
+    final Map<String, Cluster> clusterMap = new HashMap<>();
     clusterMap.put("c1",mockCluster);
     OperatingSystemInfo osi = new OperatingSystemInfo("redhat6");
-    HashSet<OperatingSystemInfo> osiSet = new HashSet<OperatingSystemInfo>();
+    HashSet<OperatingSystemInfo> osiSet = new HashSet<>();
     osiSet.add(osi);
     StackId stackId = new StackId("HDP","2.2");
     final RepositoryInfo mockRepositoryInfo = easyMockSupport.createNiceMock(RepositoryInfo.class);
@@ -535,7 +535,7 @@ public class UpgradeCatalog200Test {
     final Config mockClusterEnvExpected = easyMockSupport.createStrictMock(Config.class);
     final Config mockClusterEnvMissingSmokeUser = easyMockSupport.createStrictMock(Config.class);
 
-    final Map<String, String> propertiesExpectedT0 = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedT0 = new HashMap<>();
     propertiesExpectedT0.put("kerberos_domain", "EXAMPLE.COM");
     propertiesExpectedT0.put("user_group", "hadoop");
     propertiesExpectedT0.put("kinit_path_local", "/usr/bin");
@@ -544,13 +544,13 @@ public class UpgradeCatalog200Test {
     propertiesExpectedT0.put("smokeuser_keytab", "/etc/security/keytabs/smokeuser.headless.keytab");
     propertiesExpectedT0.put("ignore_groupsusers_create", "false");
 
-    final Map<String, String> propertiesExpectedT1 = new HashMap<String, String>(propertiesExpectedT0);
+    final Map<String, String> propertiesExpectedT1 = new HashMap<>(propertiesExpectedT0);
     propertiesExpectedT1.put("smokeuser_principal_name", "ambari-qa");
 
-    final Map<String, String> propertiesMissingSmokeUserT0 = new HashMap<String, String>(propertiesExpectedT0);
+    final Map<String, String> propertiesMissingSmokeUserT0 = new HashMap<>(propertiesExpectedT0);
     propertiesMissingSmokeUserT0.remove("smokeuser");
 
-    final Map<String, String> propertiesMissingSmokeUserT1 = new HashMap<String, String>(propertiesMissingSmokeUserT0);
+    final Map<String, String> propertiesMissingSmokeUserT1 = new HashMap<>(propertiesMissingSmokeUserT0);
     propertiesMissingSmokeUserT1.put("smokeuser_principal_name", "ambari-qa");
 
     final PropertyInfo mockSmokeUserPropertyInfo = easyMockSupport.createStrictMock(PropertyInfo.class);

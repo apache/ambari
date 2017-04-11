@@ -125,7 +125,7 @@ public class ClusterConfigurationRequest {
 
   // get names of required host groups
   public Collection<String> getRequiredHostGroups() {
-    Collection<String> requiredHostGroups = new HashSet<String>();
+    Collection<String> requiredHostGroups = new HashSet<>();
     requiredHostGroups.addAll(configurationProcessor.getRequiredHostGroups());
     if (configureSecurity) {
       requiredHostGroups.addAll(getRequiredHostgroupsForKerberosConfiguration());
@@ -191,7 +191,7 @@ public class ClusterConfigurationRequest {
       // generate principals & keytabs for headless identities
       AmbariContext.getController().getKerberosHelper()
         .ensureHeadlessIdentities(cluster, existingConfigurations,
-          new HashSet<String>(blueprint.getServices()));
+          new HashSet<>(blueprint.getServices()));
 
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
@@ -204,7 +204,7 @@ public class ClusterConfigurationRequest {
       Map<String, String> clusterEnv = updatedConfigs.get("cluster-env");
 
       if(clusterEnv == null) {
-        clusterEnv = new HashMap<String,String>();
+        clusterEnv = new HashMap<>();
         updatedConfigs.put("cluster-env", clusterEnv);
       }
 
@@ -247,7 +247,7 @@ public class ClusterConfigurationRequest {
    * @return a map of service names to component names
    */
   private Map<String, Set<String>> createServiceComponentMap(Blueprint blueprint) {
-    Map<String, Set<String>> serviceComponents = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> serviceComponents = new HashMap<>();
     Collection<String> services = blueprint.getServices();
 
     if(services != null) {
@@ -256,7 +256,7 @@ public class ClusterConfigurationRequest {
         serviceComponents.put(service,
             (components == null)
                 ? Collections.<String>emptySet()
-                : new HashSet<String>(blueprint.getComponents(service)));
+                : new HashSet<>(blueprint.getComponents(service)));
       }
     }
 
@@ -294,7 +294,7 @@ public class ClusterConfigurationRequest {
   }
 
   private Map<String, String> createComponentHostMap(Blueprint blueprint) {
-    Map<String, String> componentHostsMap = new HashMap<String, String>();
+    Map<String, String> componentHostsMap = new HashMap<>();
     for (String service : blueprint.getServices()) {
       Collection<String> components = blueprint.getComponents(service);
       for (String component : components) {
@@ -311,7 +311,7 @@ public class ClusterConfigurationRequest {
   }
 
   private Collection<String> getRequiredHostgroupsForKerberosConfiguration() {
-    Collection<String> requiredHostGroups = new HashSet<String>();
+    Collection<String> requiredHostGroups = new HashSet<>();
 
     try {
       Cluster cluster = getCluster();
@@ -367,7 +367,7 @@ public class ClusterConfigurationRequest {
    */
   public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag, Set<String> updatedConfigTypes)  {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
-    List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<BlueprintServiceConfigRequest>();
+    List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<>();
 
     Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
@@ -429,9 +429,9 @@ public class ClusterConfigurationRequest {
     for (BlueprintServiceConfigRequest blueprintConfigRequest : configurationRequests) {
       ClusterRequest clusterRequest = null;
       // iterate over the config types associated with this service
-      List<ConfigurationRequest> requestsPerService = new LinkedList<ConfigurationRequest>();
+      List<ConfigurationRequest> requestsPerService = new LinkedList<>();
       for (BlueprintServiceConfigElement blueprintElement : blueprintConfigRequest.getConfigElements()) {
-        Map<String, Object> clusterProperties = new HashMap<String, Object>();
+        Map<String, Object> clusterProperties = new HashMap<>();
         clusterProperties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
         clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/type", blueprintElement.getTypeName());
         clusterProperties.put(ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID + "/tag", tag);
@@ -512,7 +512,7 @@ public class ClusterConfigurationRequest {
     private final String serviceName;
 
     private List<BlueprintServiceConfigElement> configElements =
-        new LinkedList<BlueprintServiceConfigElement>();
+      new LinkedList<>();
 
     BlueprintServiceConfigRequest(String serviceName) {
       this.serviceName = serviceName;

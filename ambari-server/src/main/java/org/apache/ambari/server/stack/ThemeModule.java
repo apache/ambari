@@ -43,7 +43,7 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   private ThemeInfo moduleInfo;
   private boolean valid = true;
-  private Set<String> errors = new HashSet<String>();
+  private Set<String> errors = new HashSet<>();
 
   public ThemeModule(File themeFile) {
     this(themeFile, new ThemeInfo());
@@ -61,7 +61,7 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
       }
       try {
         Theme theme = mapper.readValue(reader, Theme.class);
-        Map<String, Theme> map = new HashMap<String, Theme>();
+        Map<String, Theme> map = new HashMap<>();
         map.put(THEME_KEY, theme);
         moduleInfo.setThemeMap(map);
         LOG.debug("Loaded theme: {}", moduleInfo);

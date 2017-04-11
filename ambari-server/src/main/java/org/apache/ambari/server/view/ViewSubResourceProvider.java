@@ -85,7 +85,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
     super(discoverPropertyIds(clazz), getKeyPropertyIds(pkField, type));
     this.pkField        = pkField;
     this.viewDefinition = viewDefinition;
-    this.pkPropertyIds  = new HashSet<String>(getKeyPropertyIds().values());
+    this.pkPropertyIds  = new HashSet<>(getKeyPropertyIds().values());
     this.type           = type;
     this.descriptorMap  = getDescriptorMap(clazz);
   }
@@ -125,7 +125,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+    Set<ViewInstanceEntity> instanceDefinitions = new HashSet<>();
 
     try {
 
@@ -158,7 +158,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
         }
       }
 
-      Set<Resource> results = new HashSet<Resource>();
+      Set<Resource> results = new HashSet<>();
       ReadRequest readRequest = new ViewReadRequest(request, requestedIds, predicate == null ? "" : predicate.toString());
       for (ViewInstanceEntity instanceDefinition : instanceDefinitions) {
 
@@ -274,7 +274,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
 
   // discover the property ids for the given bean class
   private static Set<String> discoverPropertyIds(Class<?> clazz) throws IntrospectionException {
-    Set<String> propertyIds = new HashSet<String>(getDescriptorMap(clazz).keySet());
+    Set<String> propertyIds = new HashSet<>(getDescriptorMap(clazz).keySet());
     propertyIds.add(INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
@@ -284,7 +284,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
 
   // get a descriptor map for the given bean class
   private static Map<String, PropertyDescriptor> getDescriptorMap(Class<?> clazz) throws IntrospectionException {
-    Map<String, PropertyDescriptor> descriptorMap = new HashMap<String, PropertyDescriptor>();
+    Map<String, PropertyDescriptor> descriptorMap = new HashMap<>();
 
     for (PropertyDescriptor pd : Introspector.getBeanInfo(clazz).getPropertyDescriptors()) {
       String name = pd.getName();
@@ -298,7 +298,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   // get the key property ids for the resource
   private static Map<Resource.Type, String> getKeyPropertyIds(String pkField, Resource.Type type) {
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);

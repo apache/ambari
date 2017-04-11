@@ -1428,7 +1428,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
       String type = entry.getKey();
-      Map<String, String> values = new HashMap<String, String>(entry.getValue());
+      Map<String, String> values = new HashMap<>(entry.getValue());
 
       String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
       values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);

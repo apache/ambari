@@ -133,7 +133,7 @@ public class RequestScheduleService extends BaseService {
    */
   private ResourceInstance createRequestSchedule(String clusterName,
                                                  String requestScheduleId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.RequestSchedule, requestScheduleId);
 

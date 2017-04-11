@@ -22,10 +22,13 @@ export default Ember.Route.extend({
   beforeModel() {
     let existingWorksheets = this.store.peekAll('worksheet');
     let newWorksheetName = 'worksheet';
-    if(!this.controllerFor("queries").worksheetCount) {
+    if(!this.controllerFor("queries").worksheetCount && !existingWorksheets.get("length")) {
       newWorksheetName = newWorksheetName + 1;
     } else {
       let id = parseInt(this.controllerFor("queries").worksheetCount);
+      if(!id){
+        id = existingWorksheets.get("length")+1;
+      }
       newWorksheetName = newWorksheetName + id;
     }
     let newWorksheetTitle = newWorksheetName.capitalize();

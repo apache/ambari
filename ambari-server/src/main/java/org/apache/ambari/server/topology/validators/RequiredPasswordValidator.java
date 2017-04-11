@@ -70,14 +70,14 @@ public class RequiredPasswordValidator implements TopologyValidator {
   private Map<String, Map<String, Collection<String>>> validateRequiredPasswords(ClusterTopology topology) {
 
     Map<String, Map<String, Collection<String>>> missingProperties =
-        new HashMap<String, Map<String, Collection<String>>>();
+      new HashMap<>();
 
     for (Map.Entry<String, HostGroupInfo> groupEntry: topology.getHostGroupInfo().entrySet()) {
       String hostGroupName = groupEntry.getKey();
       Map<String, Map<String, String>> groupProperties =
           groupEntry.getValue().getConfiguration().getFullProperties(3);
 
-      Collection<String> processedServices = new HashSet<String>();
+      Collection<String> processedServices = new HashSet<>();
       Blueprint blueprint = topology.getBlueprint();
       Stack stack = blueprint.getStack();
 
@@ -100,12 +100,12 @@ public class RequiredPasswordValidator implements TopologyValidator {
             if (! propertyExists(topology, groupProperties, category, name)) {
               Map<String, Collection<String>> missingHostGroupPropsMap = missingProperties.get(hostGroupName);
               if (missingHostGroupPropsMap == null) {
-                missingHostGroupPropsMap = new HashMap<String, Collection<String>>();
+                missingHostGroupPropsMap = new HashMap<>();
                 missingProperties.put(hostGroupName, missingHostGroupPropsMap);
               }
               Collection<String> missingHostGroupTypeProps = missingHostGroupPropsMap.get(category);
               if (missingHostGroupTypeProps == null) {
-                missingHostGroupTypeProps = new HashSet<String>();
+                missingHostGroupTypeProps = new HashSet<>();
                 missingHostGroupPropsMap.put(category, missingHostGroupTypeProps);
               }
               missingHostGroupTypeProps.add(name);

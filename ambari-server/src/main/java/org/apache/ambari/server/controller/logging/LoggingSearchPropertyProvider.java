@@ -113,7 +113,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
           HostComponentLoggingInfo loggingInfo = new HostComponentLoggingInfo();
           loggingInfo.setComponentName(mappedComponentNameForLogSearch);
           List<LogFileDefinitionInfo> listOfFileDefinitions =
-            new LinkedList<LogFileDefinitionInfo>();
+            new LinkedList<>();
 
           for (String fileName : logFileNames) {
             // generate the URIs that can be used by clients to obtain search results/tail log results/etc

@@ -128,7 +128,7 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
   public static class BlueprintConfigurations {
     @JsonProperty
-    private final Map<String, String> properties = new HashMap<String, String>();
+    private final Map<String, String> properties = new HashMap<>();
 
     @JsonProperty("property_attributes")
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
@@ -234,12 +234,12 @@ public class RecommendationResponse extends StackAdvisorResponse {
     @JsonProperty
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
     private Map<String, BlueprintConfigurations> configurations =
-      new HashMap<String, BlueprintConfigurations>();
+      new HashMap<>();
 
     @JsonProperty("dependent_configurations")
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
     private Map<String, BlueprintConfigurations> dependentConfigurations =
-      new HashMap<String, BlueprintConfigurations>();
+      new HashMap<>();
 
     public ConfigGroup() {
 

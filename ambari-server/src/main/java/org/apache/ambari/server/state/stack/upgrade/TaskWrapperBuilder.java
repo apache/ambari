@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,13 +53,12 @@ public class TaskWrapperBuilder {
     // to create.
     String ambariServerHostname = StageUtils.getHostName();
 
-    List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
+    List<TaskWrapper> collection = new ArrayList<>();
     for (Task t : tasks) {
-      if (t.getType().equals(Task.Type.CONFIGURE) || t.getType().equals(Task.Type.MANUAL)) {
-        // only add the CONFIGURE/MANUAL task if there are actual hosts for the service/component
-        if (null != hostsType.hosts && !hostsType.hosts.isEmpty()) {
-          collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
-        }
+
+      // only add the server-side task if there are actual hosts for the service/component
+      if (t.getType().isServerAction() && CollectionUtils.isNotEmpty(hostsType.hosts)) {
+        collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
         continue;
       }
 
@@ -111,7 +111,7 @@ public class TaskWrapperBuilder {
    * @return Returns the union of the hosts scheduled to perform the tasks.
    */
   public static Set<String> getEffectiveHosts(List<TaskWrapper> tasks) {
-    Set<String> effectiveHosts = new HashSet<String>();
+    Set<String> effectiveHosts = new HashSet<>();
     for(TaskWrapper t : tasks) {
       effectiveHosts.addAll(t.getHosts());
     }

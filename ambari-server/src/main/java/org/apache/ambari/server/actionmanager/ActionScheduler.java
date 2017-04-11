@@ -42,7 +42,6 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand;
-import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -161,7 +160,7 @@ class ActionScheduler implements Runnable {
   private final Object wakeupSyncObject = new Object();
   private final ServerActionExecutor serverActionExecutor;
 
-  private final Set<Long> requestsInProgress = new HashSet<Long>();
+  private final Set<Long> requestsInProgress = new HashSet<>();
 
   /**
    * Contains request ids that have been scheduled to be cancelled,
@@ -176,7 +175,7 @@ class ActionScheduler implements Runnable {
    * requestsToBeCancelled object
    */
   private final Map<Long, String> requestCancelReasons =
-    new HashMap<Long, String>();
+    new HashMap<>();
 
   /**
    * true if scheduler should run ASAP.
@@ -354,16 +353,16 @@ class ActionScheduler implements Runnable {
         return;
       }
 
-      Set<Long> runningRequestIds = new HashSet<Long>();
-      List<Stage> stages = db.getStagesInProgress();
+      Set<Long> runningRequestIds = new HashSet<>();
+      List<Stage> firstStageInProgressPerRequest = db.getFirstStageInProgressPerRequest();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Scheduler wakes up");
-        LOG.debug("Processing {} in progress stages ", stages.size());
+        LOG.debug("Processing {} in progress stages", firstStageInProgressPerRequest.size());
       }
 
-      publishInProgressTasks(stages);
+      publishInProgressTasks(firstStageInProgressPerRequest);
 
-      if (stages.isEmpty()) {
+      if (firstStageInProgressPerRequest.isEmpty()) {
         // Nothing to do
         if (LOG.isDebugEnabled()) {
           LOG.debug("There are no stages currently in progress.");
@@ -375,11 +374,19 @@ class ActionScheduler implements Runnable {
 
       int i_stage = 0;
 
-      HashSet<String> hostsWithTasks = getListOfHostsWithPendingTask(stages);
-      actionQueue.updateListOfHostsWithPendingTask(hostsWithTasks);
+      // get the range of requests in progress
+      long iLowestRequestIdInProgress = firstStageInProgressPerRequest.get(0).getRequestId();
+      long iHighestRequestIdInProgress = firstStageInProgressPerRequest.get(
+          firstStageInProgressPerRequest.size() - 1).getRequestId();
 
-      stages = filterParallelPerHostStages(stages);
-      // At this point the stages is a filtered list
+      List<String> hostsWithPendingTasks = hostRoleCommandDAO.getHostsWithPendingTasks(
+          iLowestRequestIdInProgress, iHighestRequestIdInProgress);
+
+      actionQueue.updateListOfHostsWithPendingTask(new HashSet<>(hostsWithPendingTasks));
+
+      // filter the stages in progress down to those which can be scheduled in
+      // parallel
+      List<Stage> stages = filterParallelPerHostStages(firstStageInProgressPerRequest);
 
       boolean exclusiveRequestIsGoing = false;
       // This loop greatly depends on the fact that order of stages in
@@ -453,8 +460,8 @@ class ActionScheduler implements Runnable {
           return;
         }
 
-        List<ExecutionCommand> commandsToStart = new ArrayList<ExecutionCommand>();
-        List<ExecutionCommand> commandsToUpdate = new ArrayList<ExecutionCommand>();
+        List<ExecutionCommand> commandsToStart = new ArrayList<>();
+        List<ExecutionCommand> commandsToUpdate = new ArrayList<>();
 
         //Schedule what we have so far
 
@@ -468,7 +475,7 @@ class ActionScheduler implements Runnable {
 
         //Multimap is analog of Map<Object, List<Object>> but allows to avoid nested loop
         ListMultimap<String, ServiceComponentHostEvent> eventMap = formEventMap(stage, commandsToStart);
-        Map<ExecutionCommand, String> commandsToAbort = new HashMap<ExecutionCommand, String>();
+        Map<ExecutionCommand, String> commandsToAbort = new HashMap<>();
         if (!eventMap.isEmpty()) {
           LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
           Cluster cluster = clusters.getCluster(stage.getClusterName());
@@ -501,7 +508,7 @@ class ActionScheduler implements Runnable {
         if (commandsToAbort.size() > 0) { // Code branch may be a bit slow, but is extremely rarely used
           LOG.debug("==> Aborting {} tasks...", commandsToAbort.size());
           // Build a list of HostRoleCommands
-          List<Long> taskIds = new ArrayList<Long>();
+          List<Long> taskIds = new ArrayList<>();
           for (ExecutionCommand command : commandsToAbort.keySet()) {
             taskIds.add(command.getTaskId());
           }
@@ -565,121 +572,90 @@ class ActionScheduler implements Runnable {
   }
 
   /**
-   * Returns the list of hosts that have a task assigned
-   *
-   * @param stages
-   * @return
-   */
-  private HashSet<String> getListOfHostsWithPendingTask(List<Stage> stages) {
-    HashSet<String> hostsWithTasks = new HashSet<String>();
-    for (Stage s : stages) {
-      hostsWithTasks.addAll(s.getHosts());
-    }
-    return hostsWithTasks;
-  }
-
-  /**
-   * Returns filtered list of stages such that the returned list is an ordered list of stages that may
-   * be executed in parallel or in the order in which they are presented
+   * Returns filtered list of stages such that the returned list is an ordered
+   * list of stages that may be executed in parallel or in the order in which
+   * they are presented.
    * <p/>
-   * Assumption: the list of stages supplied as input are ordered by request id and then stage id.
+   * The specified stages must be ordered by request ID and may only contain the
+   * next stage in progress per request (as returned by
+   * {@link ActionDBAccessor#getFirstStageInProgressPerRequest()}. This is
+   * because there is a requirement that within a request, no two stages may
+   * ever run in parallel.
    * <p/>
-   * Rules:
+   * The following rules will be applied to the list:
    * <ul>
-   * <li>
-   * Stages are filtered such that the first stage in the list (assumed to be the first pending
-   * stage from the earliest active request) has priority
+   * <li>Stages are filtered such that the first stage in the list (assumed to
+   * be the first pending stage from the earliest active request) has priority.
    * </li>
-   * <li>
-   * No stage in any request may be executed before an earlier stage in the same request
-   * </li>
-   * <li>
-   * A stages in different requests may be performed in parallel if the relevant hosts for the
-   * stage in the later requests do not intersect with the union of hosts from (pending) stages
-   * in earlier requests
-   * </li>
+   * <li>No stage in any request may be executed before an earlier stage in the
+   * same request. This requirement is automatically covered by virtue of the
+   * supplied stages only being for the next stage in progress per request.</li>
+   * <li>A stage in different request may be performed in parallel
+   * if-and-only-if the relevant hosts for the stage in the later requests do
+   * not intersect with the union of hosts from (pending) stages in earlier
+   * requests. In order to accomplish this</li>
    * </ul>
    *
-   * @param stages the stages to process
+   * @param firstStageInProgressPerRequest
+   *          the stages to process, one stage per request
    * @return a list of stages that may be executed in parallel
    */
-  private List<Stage> filterParallelPerHostStages(List<Stage> stages) {
-    List<Stage> retVal = new ArrayList<Stage>();
-    Set<String> affectedHosts = new HashSet<String>();
-    Set<Long> affectedRequests = new HashSet<Long>();
+  private List<Stage> filterParallelPerHostStages(List<Stage> firstStageInProgressPerRequest) {
+    // if there's only 1 stage in progress in 1 request, simply return that stage
+    if (firstStageInProgressPerRequest.size() == 1) {
+      return firstStageInProgressPerRequest;
+    }
 
-    for (Stage s : stages) {
-      long requestId = s.getRequestId();
+    List<Stage> retVal = new ArrayList<>();
+
+    // set the lower range (inclusive) of requests to limit the query a bit
+    // since there can be a LOT of commands
+    long lowerRequestIdInclusive = firstStageInProgressPerRequest.get(0).getRequestId();
+
+    // determine if this stage can be scheduled in parallel with the other
+    // stages from other requests
+    for (Stage stage : firstStageInProgressPerRequest) {
+      long requestId = stage.getRequestId();
 
       if (LOG.isTraceEnabled()) {
-        LOG.trace("==> Processing stage: {}/{} ({}) for {}", requestId, s.getStageId(), s.getRequestContext());
+        LOG.trace("==> Processing stage: {}/{} ({}) for {}", requestId, stage.getStageId(), stage.getRequestContext());
       }
 
       boolean addStage = true;
 
+      // there are at least 2 request in progress concurrently; determine which
+      // hosts are affected
+      HashSet<String> hostsInProgressForEarlierRequests = new HashSet<>(
+          hostRoleCommandDAO.getBlockingHostsForRequest(lowerRequestIdInclusive, requestId));
+
       // Iterate over the relevant hosts for this stage to see if any intersect with the set of
       // hosts needed for previous stages.  If any intersection occurs, this stage may not be
       // executed in parallel.
-      for (String host : s.getHosts()) {
+      for (String host : stage.getHosts()) {
         LOG.trace("===> Processing Host {}", host);
 
-        if (affectedHosts.contains(host)) {
+        if (hostsInProgressForEarlierRequests.contains(host)) {
           if (LOG.isTraceEnabled()) {
-            LOG.trace("===>  Skipping stage since it utilizes at least one host that a previous stage requires: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
+            LOG.trace("===>  Skipping stage since it utilizes at least one host that a previous stage requires: {}/{} ({})", stage.getRequestId(), stage.getStageId(), stage.getRequestContext());
           }
 
-          addStage &= false;
-        } else {
-          if (!Stage.INTERNAL_HOSTNAME.equalsIgnoreCase(host) && !isStageHasBackgroundCommandsOnly(s, host)) {
-            LOG.trace("====>  Adding host to affected hosts: {}", host);
-            affectedHosts.add(host);
-          }
-
-          addStage &= true;
+          addStage = false;
+          break;
         }
       }
 
-      // If this stage is for a request that we have already processed, the it cannot execute in
-      // parallel since only one stage per request my execute at a time. The first time we encounter
-      // a request id, will be for the first pending stage for that request, so it is a candidate
-      // for execution at this time - if the previous test for host intersection succeeds.
-      if (affectedRequests.contains(requestId)) {
-        if (LOG.isTraceEnabled()) {
-          LOG.trace("===>  Skipping stage since the request it is in has been processed already: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
-        }
-
-        addStage = false;
-      } else {
-        if (LOG.isTraceEnabled()) {
-          LOG.trace("====>  Adding request to affected requests: {}", requestId);
-        }
-
-        affectedRequests.add(requestId);
-        addStage &= true;
-      }
-
-      // If both tests pass - the stage is the first pending stage in its request and the hosts
-      // required in the stage do not intersect with hosts from stages that should occur before this,
-      // than add it to the list of stages that may be executed in parallel.
+      // add the stage is no other prior stages for prior requests intersect the
+      // hosts in this stage
       if (addStage) {
         if (LOG.isTraceEnabled()) {
-          LOG.trace("===>  Adding stage to return value: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
+          LOG.trace("===>  Adding stage to return value: {}/{} ({})", stage.getRequestId(), stage.getStageId(), stage.getRequestContext());
         }
 
-        retVal.add(s);
+        retVal.add(stage);
       }
     }
 
     return retVal;
-  }
-
-  private boolean isStageHasBackgroundCommandsOnly(Stage s, String host) {
-    for (ExecutionCommandWrapper c : s.getExecutionCommands(host)) {
-      if (c.getCommandType() != AgentCommandType.BACKGROUND_EXECUTION_COMMAND) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private boolean hasPreviousStageFailed(Stage stage) {
@@ -697,8 +673,8 @@ class ActionScheduler implements Runnable {
         return false;
       }
 
-      Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
-      Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
+      Map<Role, Integer> hostCountsForRoles = new HashMap<>();
+      Map<Role, Integer> failedHostCountsForRoles = new HashMap<>();
 
       for (String host : prevStage.getHostRoleCommands().keySet()) {
         Map<String, HostRoleCommand> roleCommandMap = prevStage.getHostRoleCommands().get(host);
@@ -1008,9 +984,9 @@ class ActionScheduler implements Runnable {
    */
   private Map<String, RoleStats> initRoleStats(Stage s) {
     // Meaning: how many hosts are affected by commands for each role
-    Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
+    Map<Role, Integer> hostCountsForRoles = new HashMap<>();
     // < role_name, rolestats >
-    Map<String, RoleStats> roleStats = new TreeMap<String, RoleStats>();
+    Map<String, RoleStats> roleStats = new TreeMap<>();
 
     for (String host : s.getHostRoleCommands().keySet()) {
       Map<String, HostRoleCommand> roleCommandMap = s.getHostRoleCommands().get(host);

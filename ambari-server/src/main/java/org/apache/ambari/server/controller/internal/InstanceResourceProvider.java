@@ -55,9 +55,9 @@ public class InstanceResourceProvider extends AbstractDRResourceProvider {
   protected static final String INSTANCE_LOG_PROPERTY_ID        = PropertyHelper.getPropertyId("Instance", "log");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          INSTANCE_FEED_NAME_PROPERTY_ID,
-          INSTANCE_ID_PROPERTY_ID }));
+    new HashSet<>(Arrays.asList(new String[]{
+      INSTANCE_FEED_NAME_PROPERTY_ID,
+      INSTANCE_ID_PROPERTY_ID}));
 
   /**
    * Construct a provider.
@@ -84,8 +84,8 @@ public class InstanceResourceProvider extends AbstractDRResourceProvider {
       UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
-    List<String>  feedNames    = new LinkedList<String>();
+    Set<Resource> resources    = new HashSet<>();
+    List<String>  feedNames    = new LinkedList<>();
 
     IvoryService service = getService();
     if (predicate == null) {

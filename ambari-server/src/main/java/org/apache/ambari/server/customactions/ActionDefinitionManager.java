@@ -48,7 +48,7 @@ public class ActionDefinitionManager {
   private final static Logger LOG = LoggerFactory
       .getLogger(ActionDefinitionManager.class);
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
-      new HashMap<Class<?>, JAXBContext>();
+    new HashMap<>();
   private static final Short MAX_TIMEOUT = Short.MAX_VALUE-1;
 
   static {
@@ -60,7 +60,7 @@ public class ActionDefinitionManager {
     }
   }
 
-  private final Map<String, ActionDefinition> actionDefinitionMap = new HashMap<String, ActionDefinition>();
+  private final Map<String, ActionDefinition> actionDefinitionMap = new HashMap<>();
 
   public ActionDefinitionManager() {
   }
@@ -79,7 +79,7 @@ public class ActionDefinitionManager {
     try {
       return Enum.valueOf(enumm, s);
     } catch (IllegalArgumentException iaex) {
-      reason.append("Invalid value provided for " + enumm.getName());
+      reason.append("Invalid value provided for ").append(enumm.getName());
       return null;
     }
   }
@@ -147,7 +147,7 @@ public class ActionDefinitionManager {
       }
 
       if (actionType == null || actionType == ActionType.SYSTEM_DISABLED) {
-        reason.append("Action type cannot be " + actionType);
+        reason.append("Action type cannot be ").append(actionType);
         return false;
       }
 
@@ -179,7 +179,7 @@ public class ActionDefinitionManager {
   }
 
   public List<ActionDefinition> getAllActionDefinition() {
-    return new ArrayList<ActionDefinition>(actionDefinitionMap.values());
+    return new ArrayList<>(actionDefinitionMap.values());
   }
 
   public ActionDefinition getActionDefinition(String name) {
@@ -222,7 +222,7 @@ public class ActionDefinitionManager {
     if (StringUtils.isEmpty(permissions)) {
       return null;
     } else {
-      Set<RoleAuthorization> authorizations = new HashSet<RoleAuthorization>();
+      Set<RoleAuthorization> authorizations = new HashSet<>();
       String[] parts = permissions.split(",");
 
       for (String permission : parts) {

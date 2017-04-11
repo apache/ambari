@@ -97,7 +97,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
   @Test
   public void testUpdateConfig() throws Exception {
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -119,7 +119,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
   @Test
   public void testUpdateConfigMissingDataDirectory() throws Exception {
     ExecutionCommand executionCommand = new ExecutionCommand();
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     executionCommand.setCommandParams(commandParams);
 
     replayAll();
@@ -133,7 +133,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
   @Test
   public void testUpdateConfigEmptyDataDirectory() throws Exception {
     ExecutionCommand executionCommand = new ExecutionCommand();
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, testFolder.newFolder().getAbsolutePath());
     executionCommand.setCommandParams(commandParams);
 
@@ -147,7 +147,7 @@ public class UpdateKerberosConfigsServerActionTest extends EasyMockSupport{
 
   @Test
   public void testUpdateConfigForceSecurityEnabled() throws Exception {
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, dataDir);
 
     ExecutionCommand executionCommand = new ExecutionCommand();

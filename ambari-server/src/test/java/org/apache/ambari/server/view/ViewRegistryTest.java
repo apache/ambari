@@ -288,7 +288,7 @@ public class ViewRegistryTest {
     for (ViewInstanceEntity viewInstanceEntity : viewInstanceEntities) {
       viewInstanceEntity.putInstanceData("p1", "v1");
 
-      Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+      Collection<ViewEntityEntity> entities = new HashSet<>();
       ViewEntityEntity viewEntityEntity = new ViewEntityEntity();
       viewEntityEntity.setId(99L);
       viewEntityEntity.setIdProperty("id");
@@ -313,7 +313,7 @@ public class ViewRegistryTest {
       viewInstanceEntity.setResource(resourceEntity);
     }
 
-    Map<String, File> files = new HashMap<String, File>();
+    Map<String, File> files = new HashMap<>();
     if (System.getProperty("os.name").contains("Windows")) {
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}", archiveDir);
@@ -331,10 +331,10 @@ public class ViewRegistryTest {
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
     }
 
-    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    Map<File, FileOutputStream> outputStreams = new HashMap<>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
+    Map<File, JarInputStream> jarFiles = new HashMap<>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -414,7 +414,7 @@ public class ViewRegistryTest {
     expect(autoInstanceDataEntity.getName()).andReturn("p1").anyTimes();
     expect(autoInstanceDataEntity.getUser()).andReturn(" ").anyTimes();
 
-    Map<String, Service> serviceMap = new HashMap<String, Service>();
+    Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", service);
     serviceMap.put("HIVE", service);
 
@@ -422,7 +422,7 @@ public class ViewRegistryTest {
     StackId stackId = new StackId("HDP-2.0");
 
     if(checkAutoInstanceCreation) {
-      Map<String, Cluster> allClusters = new HashMap<String, Cluster>();
+      Map<String, Cluster> allClusters = new HashMap<>();
       expect(cluster.getClusterName()).andReturn("c1").anyTimes();
       expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
       expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
@@ -542,7 +542,7 @@ public class ViewRegistryTest {
       viewInstanceEntity.setResource(resourceEntity);
     }
 
-    Map<String, File> files = new HashMap<String, File>();
+    Map<String, File> files = new HashMap<>();
 
     if (System.getProperty("os.name").contains("Windows")) {
       files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
@@ -561,10 +561,10 @@ public class ViewRegistryTest {
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
     }
 
-    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    Map<File, FileOutputStream> outputStreams = new HashMap<>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
+    Map<File, JarInputStream> jarFiles = new HashMap<>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -831,7 +831,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(3, subResourceDefinitions.size());
 
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for (SubResourceDefinition definition : subResourceDefinitions) {
       names.add(definition.getType().name());
     }
@@ -1102,7 +1102,7 @@ public class ViewRegistryTest {
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
 
-    Map<String, String> instanceProperties = new HashMap<String, String>();
+    Map<String, String> instanceProperties = new HashMap<>();
     instanceProperties.put("p1", "newV1");
     instanceProperties.put("p2", "newV2");
 
@@ -1339,7 +1339,7 @@ public class ViewRegistryTest {
     ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
     ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
 
-    Collection<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+    Collection<ViewInstanceEntity> instances = new ArrayList<>();
     instances.add(instanceEntity);
 
     expect(viewEntity.getInstances()).andReturn(instances);
@@ -1360,7 +1360,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testOnAmbariEventServiceCreation() throws Exception {
-    Set<String> serviceNames = new HashSet<String>();
+    Set<String> serviceNames = new HashSet<>();
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
@@ -1369,7 +1369,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testOnAmbariEventServiceCreation_widcardStackVersion() throws Exception {
-    Set<String> serviceNames = new HashSet<String>();
+    Set<String> serviceNames = new HashSet<>();
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
@@ -1378,7 +1378,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testOnAmbariEventServiceCreation_mismatchStackVersion() throws Exception {
-    Set<String> serviceNames = new HashSet<String>();
+    Set<String> serviceNames = new HashSet<>();
     serviceNames.add("HDFS");
     serviceNames.add("HIVE");
 
@@ -1387,7 +1387,7 @@ public class ViewRegistryTest {
 
   @Test
   public void testOnAmbariEventServiceCreation_missingClusterService() throws Exception {
-    Set<String> serviceNames = new HashSet<String>();
+    Set<String> serviceNames = new HashSet<>();
     serviceNames.add("STORM");
     serviceNames.add("HIVE");
 
@@ -1545,7 +1545,7 @@ public class ViewRegistryTest {
       viewInstanceEntity.setResource(resourceEntity);
     }
 
-    Map<String, File> files = new HashMap<String, File>();
+    Map<String, File> files = new HashMap<>();
 
     if (System.getProperty("os.name").contains("Windows")) {
       files.put("\\var\\lib\\ambari-server\\resources\\views\\my_view-1.0.0.jar", viewArchive);
@@ -1566,10 +1566,10 @@ public class ViewRegistryTest {
       files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
     }
 
-    Map<File, FileOutputStream> outputStreams = new HashMap<File, FileOutputStream>();
+    Map<File, FileOutputStream> outputStreams = new HashMap<>();
     outputStreams.put(entryFile, fos);
 
-    Map<File, JarInputStream> jarFiles = new HashMap<File, JarInputStream>();
+    Map<File, JarInputStream> jarFiles = new HashMap<>();
     jarFiles.put(viewArchive, viewJarFile);
 
     // set expectations
@@ -1907,7 +1907,7 @@ public class ViewRegistryTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
 
-    Map<String, Service> serviceMap = new HashMap<String, Service>();
+    Map<String, Service> serviceMap = new HashMap<>();
 
     for (String serviceName : serviceNames) {
       serviceMap.put(serviceName, service);

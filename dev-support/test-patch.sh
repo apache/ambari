@@ -51,7 +51,7 @@ printUsage() {
   echo
   echo "Where:"
   echo "  patch-file is a local patch file containing the changes to test"
-  echo "  defect-number is a JIRA defect number (e.g. 'HADOOP-1234') to test (Jenkins only)"
+  echo "  defect-number is a JIRA defect number (e.g. 'AMBARI-1234') to test (Jenkins only)"
   echo
   echo "Options:"
   echo "--patch-dir=<dir>      The directory for working and output files (default '/tmp')"
@@ -260,28 +260,14 @@ prebuildWithoutPatch () {
   echo "======================================================================"
   echo ""
   echo ""
-  if [[ ! -d hadoop-common-project ]]; then
-    cd $bindir/..
-    echo "Compiling $(pwd)"
-    echo "$MVN clean test -DskipTests > $PATCH_DIR/trunkCompile.txt 2>&1"
-    $MVN clean test -DskipTests > $PATCH_DIR/trunkCompile.txt 2>&1
-    if [[ $? != 0 ]] ; then
-      echo "Top-level trunk compilation is broken?"
-      JIRA_COMMENT="$JIRA_COMMENT
-
-    {color:red}-1 patch{color}.  Top-level trunk compilation may be broken."
-      return 1
-    fi
-    cd -
-  fi
   echo "Compiling $(pwd)"
-  echo "$MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess  > $PATCH_DIR/trunkJavacWarnings.txt 2>&1"
-  $MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess  > $PATCH_DIR/trunkJavacWarnings.txt 2>&1
+  echo "$MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1"
+  $MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/trunkJavacWarnings.txt 2>&1
   if [[ $? != 0 ]] ; then
-    echo "Trunk compilation is broken?"
+    echo "Top-level trunk compilation is broken?"
     JIRA_COMMENT="$JIRA_COMMENT
 
-    {color:red}-1 patch{color}.  Trunk compilation may be broken."
+    {color:red}-1 patch{color}.  Top-level trunk compilation may be broken."
     return 1
   fi
 
@@ -399,12 +385,12 @@ checkJavacWarnings () {
   echo "======================================================================"
   echo ""
   echo ""
-  echo "$MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1"
-  $MVN clean test -DskipTests -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1
+  echo "$MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1"
+  $MVN clean test -DskipTests -Dxlint=all -D${PROJECT_NAME}PatchProcess > $PATCH_DIR/patchJavacWarnings.txt 2>&1
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
-    {color:red}-1 javac{color:red}.  The patch appears to cause the build to fail."
+    {color:red}-1 javac{color}.  The patch appears to cause the build to fail."
     return 2
   fi
   ### Compare trunk and patch javac warning numbers
@@ -421,7 +407,7 @@ checkJavacWarnings () {
       {color:red}-1 javac{color}.  The applied patch generated $patchJavacWarnings javac compiler warnings (more than the trunk's current $trunkJavacWarnings warnings)."
 
     $DIFF $PATCH_DIR/filteredTrunkJavacWarnings.txt $PATCH_DIR/filteredPatchJavacWarnings.txt > $PATCH_DIR/diffJavacWarnings.txt 
-        JIRA_COMMENT_FOOTER="Javac warnings: $BUILD_URL/artifact/trunk/patchprocess/diffJavacWarnings.txt
+        JIRA_COMMENT_FOOTER="Javac warnings: $BUILD_URL/artifact/patch-work/diffJavacWarnings.txt
 $JIRA_COMMENT_FOOTER"
 
         return 1
@@ -463,7 +449,7 @@ checkReleaseAuditWarnings () {
         {color:red}-1 release audit{color}.  The applied patch generated $patchReleaseAuditWarnings release audit warnings."
         $GREP '\!?????' $PATCH_DIR/patchReleaseAuditWarnings.txt > $PATCH_DIR/patchReleaseAuditProblems.txt
         echo "Lines that start with ????? in the release audit report indicate files that do not have an Apache license header." >> $PATCH_DIR/patchReleaseAuditProblems.txt
-        JIRA_COMMENT_FOOTER="Release audit warnings: $BUILD_URL/artifact/trunk/patchprocess/patchReleaseAuditProblems.txt
+        JIRA_COMMENT_FOOTER="Release audit warnings: $BUILD_URL/artifact/patch-work/patchReleaseAuditProblems.txt
 $JIRA_COMMENT_FOOTER"
         return 1
       fi
@@ -582,7 +568,7 @@ checkFindbugsWarnings () {
       $PATCH_DIR/newPatchFindbugsWarnings${module_suffix}.xml \
       $PATCH_DIR/newPatchFindbugsWarnings${module_suffix}.html
     if [[ $newFindbugsWarnings > 0 ]] ; then
-      JIRA_COMMENT_FOOTER="Findbugs warnings: $BUILD_URL/artifact/trunk/patchprocess/newPatchFindbugsWarnings${module_suffix}.html
+      JIRA_COMMENT_FOOTER="Findbugs warnings: $BUILD_URL/artifact/patch-work/newPatchFindbugsWarnings${module_suffix}.html
 $JIRA_COMMENT_FOOTER"
     fi
   done
@@ -643,41 +629,6 @@ runTests () {
 
   failed_tests=""
   modules=$(findModules)
-  #
-  # If we are building hadoop-hdfs-project, we must build the native component
-  # of hadoop-common-project first.  In order to accomplish this, we move the
-  # hadoop-hdfs subprojects to the end of the list so that common will come
-  # first.
-  #
-  # Of course, we may not be building hadoop-common at all-- in this case, we
-  # explicitly insert a mvn compile -Pnative of common, to ensure that the
-  # native libraries show up where we need them.
-  #
-  building_common=0
-  for module in $modules; do
-      if [[ $module == hadoop-hdfs-project* ]]; then
-          hdfs_modules="$hdfs_modules $module"
-      elif [[ $module == hadoop-common-project* ]]; then
-          ordered_modules="$ordered_modules $module"
-          building_common=1
-      else
-          ordered_modules="$ordered_modules $module"
-      fi
-  done
-  if [ -n "$hdfs_modules" ]; then
-      ordered_modules="$ordered_modules $hdfs_modules"
-      if [[ $building_common -eq 0 ]]; then
-          echo "  Building hadoop-common with -Pnative in order to provide \
-libhadoop.so to the hadoop-hdfs unit tests."
-          echo "  $MVN compile -D${PROJECT_NAME}PatchProcess"
-          if ! $MVN compile -D${PROJECT_NAME}PatchProcess; then
-              JIRA_COMMENT="$JIRA_COMMENT
-        {color:red}-1 core tests{color}.  Failed to build the native portion \
-of hadoop-common prior to running the unit tests in $ordered_modules"
-              return 1
-          fi
-      fi
-  fi
   failed_test_builds=""
   test_timeouts=""
 
@@ -692,7 +643,7 @@ of hadoop-common prior to running the unit tests in $ordered_modules"
     sed -i -e 's,^[ab]/,,' $TMP
   fi
 
-  for module in $ordered_modules; do
+  for module in $modules; do
     cd $module
     skip_surefiretests=1
     module_suffix=`basename ${module}`
@@ -842,8 +793,6 @@ runContribTests () {
   ### Kill any rogue build processes from the last attempt
   $PS auxwww | $GREP ${PROJECT_NAME}PatchProcess | $AWK '{print $2}' | /usr/bin/xargs -t -I {} /bin/kill -9 {} > /dev/null
 
-  #echo "$ANT_HOME/bin/ant -Dversion="${VERSION}" $ECLIPSE_PROPERTY -DHadoopPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=no test-contrib"
-  #$ANT_HOME/bin/ant -Dversion="${VERSION}" $ECLIPSE_PROPERTY -DHadoopPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=no test-contrib
   echo "NOP"
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
@@ -873,8 +822,6 @@ checkInjectSystemFaults () {
   ### Kill any rogue build processes from the last attempt
   $PS auxwww | $GREP ${PROJECT_NAME}PatchProcess | $AWK '{print $2}' | /usr/bin/xargs -t -I {} /bin/kill -9 {} > /dev/null
 
-  #echo "$ANT_HOME/bin/ant -Dversion="${VERSION}" -DHadoopPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=no -Dcompile.c++=yes -Dforrest.home=$FORREST_HOME inject-system-faults"
-  #$ANT_HOME/bin/ant -Dversion="${VERSION}" -DHadoopPatchProcess= -Dtest.junit.output.format=xml -Dtest.output=no -Dcompile.c++=yes -Dforrest.home=$FORREST_HOME inject-system-faults
   echo "NOP"
   return 0
   if [[ $? != 0 ]] ; then
@@ -1012,6 +959,12 @@ if [[ $APPLY_PATCH_RET != 0 ]] ; then
   submitJiraComment 1
   cleanupAndExit 1
 fi
+
+echo "before checkReleaseAuditWarnings $RESULT"
+
+checkReleaseAuditWarnings
+(( RESULT = RESULT + $? ))
+
 checkJavacWarnings
 JAVAC_RET=$?
 #2 is returned if the code could not compile
@@ -1031,11 +984,6 @@ buildAndInstall
 # (( RESULT = RESULT + $? ))
 # checkFindbugsWarnings
 # (( RESULT = RESULT + $? ))
-
-echo "before checkReleaseAuditWarnings $RESULT"
-
-checkReleaseAuditWarnings
-(( RESULT = RESULT + $? ))
 
 echo "before runTests $RESULT"
 ### Run tests for Jenkins or if explictly asked for by a developer

@@ -67,7 +67,7 @@ public class PrincipalEntity {
   private PrincipalTypeEntity principalType;
 
   @OneToMany(mappedBy = "principal")
-  private Set<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
+  private Set<PrivilegeEntity> privileges = new HashSet<>();
 
 
   // ----- PrincipalEntity ---------------------------------------------------

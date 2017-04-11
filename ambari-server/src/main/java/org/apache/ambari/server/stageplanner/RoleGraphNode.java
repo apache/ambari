@@ -34,8 +34,8 @@ public class RoleGraphNode {
   private Role role;
   private RoleCommand command;
   private int inDegree = 0;
-  private List<String> hosts = new ArrayList<String>();
-  private Map<String, RoleGraphNode> edges = new TreeMap<String, RoleGraphNode>();
+  private List<String> hosts = new ArrayList<>();
+  private Map<String, RoleGraphNode> edges = new TreeMap<>();
   public synchronized void addHost(String host) {
     hosts.add(host);
   }
@@ -72,7 +72,7 @@ public class RoleGraphNode {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append("("+role+", "+command +", "+inDegree+")");
+    builder.append("(").append(role).append(", ").append(command).append(", ").append(inDegree).append(")");
     return builder.toString();
   }
 }

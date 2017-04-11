@@ -47,11 +47,11 @@ public class SetUtils {
     }
 
     int subsetCount = (int) (Math.ceil((double)original.size() / subsetSize));
-    ArrayList<Set<T>> subsets = new ArrayList<Set<T>>(subsetCount);
+    ArrayList<Set<T>> subsets = new ArrayList<>(subsetCount);
     Iterator<T> iterator = original.iterator();
 
     for(int i = 0; i < subsetCount; i++) {
-      Set<T> subset = new LinkedHashSet<T>(subsetSize);
+      Set<T> subset = new LinkedHashSet<>(subsetSize);
       for(int j = 0; j < subsetSize && iterator.hasNext(); j++) {
         subset.add(iterator.next());
       }

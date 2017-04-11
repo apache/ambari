@@ -66,11 +66,11 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   protected static final String UPGRADE_GROUP_COMPLETED_TASKS = "UpgradeGroup/completed_task_count";
 
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_GROUP_ID));
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
+    Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_GROUP_ID));
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
-  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
   private static UpgradeDAO m_dao = null;
@@ -118,7 +118,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results = new HashSet<Resource>();
+    Set<Resource> results = new HashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -141,7 +141,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
         for (UpgradeGroupEntity group : groups) {
           Resource r = toResource(upgrade, group, requestPropertyIds);
 
-          Set<Long> stageIds = new HashSet<Long>();
+          Set<Long> stageIds = new HashSet<>();
           for (UpgradeItemEntity itemEntity : group.getItems()) {
             stageIds.add(itemEntity.getStageId());
           }

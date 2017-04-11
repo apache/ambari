@@ -47,6 +47,7 @@ import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
 import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
+import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
@@ -134,7 +135,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     return responseDataGenerator.generateBarGraphDataResponseWithRanges(response, SolrConstants.AuditLogConstants.AUDIT_COMPONENT, true);
   }
 
-  public BarGraphDataListResponse topResources(FieldAuditLogRequest request) {
+  public BarGraphDataListResponse topResources(TopFieldAuditLogRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse queryResponse = auditSolrDao.process(facetQuery);
     return responseDataGenerator.generateSecondLevelBarGraphDataResponse(queryResponse, 0);

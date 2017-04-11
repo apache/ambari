@@ -60,7 +60,7 @@ public class AuthToLocalBuilder implements Cloneable {
   /**
    * Ordered set of rules which have been added to the builder.
    */
-  private Set<Rule> setRules = new TreeSet<Rule>();
+  private Set<Rule> setRules = new TreeSet<>();
 
   /**
    * The default realm.
@@ -105,7 +105,7 @@ public class AuthToLocalBuilder implements Cloneable {
 
     this.additionalRealms = (additionalRealms == null)
         ? Collections.<String>emptySet()
-        : Collections.unmodifiableSet(new HashSet<String>(additionalRealms));
+        : Collections.unmodifiableSet(new HashSet<>(additionalRealms));
 
     this.caseInsensitiveUser = caseInsensitiveUserSupport;
   }
@@ -115,7 +115,7 @@ public class AuthToLocalBuilder implements Cloneable {
     AuthToLocalBuilder copy = (AuthToLocalBuilder) super.clone();
 
     /* **** Copy mutable members **** */
-    copy.setRules = new TreeSet<Rule>(setRules);
+    copy.setRules = new TreeSet<>(setRules);
 
     return copy;
   }
@@ -301,7 +301,7 @@ public class AuthToLocalBuilder implements Cloneable {
     Collection<String> collection = null;
 
     if (!StringUtils.isEmpty(string)) {
-      collection = new HashSet<String>();
+      collection = new HashSet<>();
 
       for (String realm : string.split("\\s*(?:\\r?\\n|,)\\s*")) {
         realm = realm.trim();

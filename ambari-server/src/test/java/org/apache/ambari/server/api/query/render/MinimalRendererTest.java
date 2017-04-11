@@ -64,7 +64,7 @@ public class MinimalRendererTest {
     replay(schemaFactory, schema);
 
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), new HashSet<String>());
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -91,10 +91,10 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -120,9 +120,9 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -147,10 +147,10 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, schema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
 
     MinimalRenderer renderer = new MinimalRenderer();
     renderer.init(schemaFactory);
@@ -179,9 +179,9 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
@@ -216,11 +216,11 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
-    HashSet<String> componentProperties = new HashSet<String>();
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
+    HashSet<String> componentProperties = new HashSet<>();
     componentProperties.add("goo/car");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), componentProperties), "Component");
 
@@ -256,9 +256,9 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
@@ -292,10 +292,10 @@ public class MinimalRendererTest {
 
     replay(schemaFactory, serviceSchema, componentSchema);
 
-    HashSet<String> serviceProperties = new HashSet<String>();
+    HashSet<String> serviceProperties = new HashSet<>();
     serviceProperties.add("foo/bar");
     QueryInfo rootQuery = new QueryInfo(new ServiceResourceDefinition(), serviceProperties);
-    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<QueryInfo>(null, rootQuery, "Service");
+    TreeNode<QueryInfo> queryTree = new TreeNodeImpl<>(null, rootQuery, "Service");
     queryTree.addChild(new QueryInfo(new ComponentResourceDefinition(), new HashSet<String>()), "Component");
 
     MinimalRenderer renderer = new MinimalRenderer();
@@ -456,8 +456,8 @@ public class MinimalRendererTest {
 
 
   private TreeNode<QueryInfo> createPropertyTree() {
-    TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<QueryInfo>(null, new QueryInfo(
-        new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
+    TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<>(null, new QueryInfo(
+      new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
     Set<String> clusterProperties = propertyTree.getObject().getProperties();
     clusterProperties.add("Clusters/cluster_name");
     clusterProperties.add("Clusters/version");
@@ -468,8 +468,8 @@ public class MinimalRendererTest {
   }
 
   private TreeNode<QueryInfo> createPropertyTreeWithSubProps() {
-    TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<QueryInfo>(null, new QueryInfo(
-        new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
+    TreeNode<QueryInfo> propertyTree = new TreeNodeImpl<>(null, new QueryInfo(
+      new ClusterResourceDefinition(), new HashSet<String>()), "Cluster");
     Set<String> clusterProperties = propertyTree.getObject().getProperties();
     clusterProperties.add("Clusters/cluster_name");
     clusterProperties.add("Clusters/version");

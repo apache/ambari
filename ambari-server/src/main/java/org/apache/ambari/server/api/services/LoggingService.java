@@ -147,7 +147,7 @@ public class LoggingService extends BaseService {
       uriInfo.getQueryParameters();
 
     Map<String, String> enumeratedQueryParameters =
-      new HashMap<String, String>();
+      new HashMap<>();
 
 
     for (String queryName : queryParameters.keySet()) {

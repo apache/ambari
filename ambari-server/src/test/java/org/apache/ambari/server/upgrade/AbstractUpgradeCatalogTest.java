@@ -124,7 +124,7 @@ public class AbstractUpgradeCatalogTest {
 
     oldProperties.put("prop1", "v1-old");
 
-    Map<String, Map<String, String>> tags = Collections.<String, Map<String, String>>emptyMap();
+    Map<String, Map<String, String>> tags = Collections.emptyMap();
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
     mergedProperties.put("prop4", "v4");
@@ -145,7 +145,7 @@ public class AbstractUpgradeCatalogTest {
     oldProperties.put("prop2", "v2-old");
     oldProperties.put("prop3", "v3-old");
 
-    Map<String, Map<String, String>> tags = Collections.<String, Map<String, String>>emptyMap();
+    Map<String, Map<String, String>> tags = Collections.emptyMap();
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
     mergedProperties.put("prop2", "v2");
@@ -166,7 +166,7 @@ public class AbstractUpgradeCatalogTest {
     oldProperties.put("prop1", "v1-old");
     oldProperties.put("prop3", "v3-old");
 
-    Map<String, Map<String, String>> tags = Collections.<String, Map<String, String>>emptyMap();
+    Map<String, Map<String, String>> tags = Collections.emptyMap();
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
 

@@ -278,7 +278,7 @@ public class ConfigImpl implements Config {
   @Override
   public Map<String, Map<String, String>> getPropertiesAttributes() {
     return null == propertiesAttributes ? null
-        : new HashMap<String, Map<String, String>>(propertiesAttributes);
+        : new HashMap<>(propertiesAttributes);
   }
 
   @Override

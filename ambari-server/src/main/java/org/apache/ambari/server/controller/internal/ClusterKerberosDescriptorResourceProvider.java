@@ -90,18 +90,18 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
 
   static {
     Set<String> set;
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(CLUSTER_KERBEROS_DESCRIPTOR_CLUSTER_NAME_PROPERTY_ID);
     set.add(CLUSTER_KERBEROS_DESCRIPTOR_TYPE_PROPERTY_ID);
     PK_PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(CLUSTER_KERBEROS_DESCRIPTOR_CLUSTER_NAME_PROPERTY_ID);
     set.add(CLUSTER_KERBEROS_DESCRIPTOR_TYPE_PROPERTY_ID);
     set.add(CLUSTER_KERBEROS_DESCRIPTOR_DESCRIPTOR_PROPERTY_ID);
     PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    HashMap<Type, String> map = new HashMap<Type, String>();
+    HashMap<Type, String> map = new HashMap<>();
     map.put(Type.Cluster, CLUSTER_KERBEROS_DESCRIPTOR_CLUSTER_NAME_PROPERTY_ID);
     map.put(Type.ClusterKerberosDescriptor, CLUSTER_KERBEROS_DESCRIPTOR_TYPE_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(map);
@@ -122,7 +122,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
     AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, null, REQUIRED_GET_AUTHORIZATIONS);
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     AmbariManagementController managementController = getManagementController();
     Clusters clusters = managementController.getClusters();

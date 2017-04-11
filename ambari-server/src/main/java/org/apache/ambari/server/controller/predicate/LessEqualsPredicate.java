@@ -53,6 +53,6 @@ public class LessEqualsPredicate<T> extends ComparisonPredicate<T> {
 
   @Override
   public ComparisonPredicate<T> copy(String propertyId) {
-    return new LessEqualsPredicate<T>(propertyId, getValue());
+    return new LessEqualsPredicate<>(propertyId, getValue());
   }
 }

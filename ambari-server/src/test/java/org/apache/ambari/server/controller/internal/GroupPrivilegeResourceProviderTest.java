@@ -331,7 +331,7 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
     final TestUsers users = new TestUsers();
     users.setPrivilegeDAO(privilegeDAO);
 
-    List<PrincipalEntity> groupPrincipals = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> groupPrincipals = new LinkedList<>();
     groupPrincipals.add(principalEntity);
 
     expect(privilegeDAO.findAllByPrincipal(groupPrincipals)).
@@ -353,7 +353,7 @@ public class GroupPrivilegeResourceProviderTest extends AbstractPrivilegeResourc
 
     GroupPrivilegeResourceProvider.init(clusterDAO, groupDAO, viewInstanceDAO, users);
 
-    final Set<String> propertyIds = new HashSet<String>();
+    final Set<String> propertyIds = new HashSet<>();
     propertyIds.add(GroupPrivilegeResourceProvider.PRIVILEGE_GROUP_NAME_PROPERTY_ID);
 
     final Predicate predicate = new PredicateBuilder()

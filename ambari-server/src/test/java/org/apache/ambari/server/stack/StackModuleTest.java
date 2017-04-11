@@ -131,6 +131,17 @@ public class StackModuleTest {
     assertEquals(removedServices.size(), 0);
   }
 
+  @Test
+  public void servicesWithNoConfigsInitialValue() throws Exception {
+    StackModule sm = createStackModule("FooBar",
+        "2.4",
+        Optional.<List<RepositoryInfo>>absent(),
+        Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos6")),
+        Lists.newArrayList(repoInfo("bar", "2.0.1", "http://bar.org", "centos7")));
+    List<String> servicesWithNoConfigs = sm.getModuleInfo().getServicesWithNoConfigs();
+    assertEquals(servicesWithNoConfigs.size(), 0);
+  }
+
   @SafeVarargs
   private static StackModule createStackModule(String stackName, String stackVersion, Optional<? extends List<RepositoryInfo>> stackRepos,
                                         List<RepositoryInfo>... serviceRepoLists) throws AmbariException {
@@ -146,7 +157,7 @@ public class StackModuleTest {
       ServiceInfo serviceInfo = mock(ServiceInfo.class);
       when(serviceInfo.isValid()).thenReturn(true);
       when(serviceInfo.getName()).thenReturn(UUID.randomUUID().toString()); // unique service names
-      when(serviceMetainfoXml.getServices()).thenReturn(Lists.<ServiceInfo>newArrayList(serviceInfo));
+      when(serviceMetainfoXml.getServices()).thenReturn(Lists.newArrayList(serviceInfo));
       when(svd.getMetaInfoFile()).thenReturn(serviceMetainfoXml);
       serviceDirectories.add(svd);
     }

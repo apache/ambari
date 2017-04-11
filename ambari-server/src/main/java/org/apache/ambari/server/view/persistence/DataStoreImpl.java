@@ -99,17 +99,17 @@ public class DataStoreImpl implements DataStore {
   /**
    * Map of dynamic entity names keyed by view entity class.
    */
-  private final Map<Class, String> entityClassMap = new LinkedHashMap<Class, String>();
+  private final Map<Class, String> entityClassMap = new LinkedHashMap<>();
 
   /**
    * Map of entity primary key fields keyed by dynamic entity name.
    */
-  private final Map<String, ViewEntityEntity> entityMap = new LinkedHashMap<String, ViewEntityEntity>();
+  private final Map<String, ViewEntityEntity> entityMap = new LinkedHashMap<>();
 
   /**
    * Map of dynamic entity type builders keyed by dynamic entity name.
    */
-  private final Map<String, JPADynamicTypeBuilder> typeBuilderMap = new LinkedHashMap<String, JPADynamicTypeBuilder>();
+  private final Map<String, JPADynamicTypeBuilder> typeBuilderMap = new LinkedHashMap<>();
 
   /**
    * Indicates whether or not the data store has been initialized.
@@ -150,7 +150,7 @@ public class DataStoreImpl implements DataStore {
         DynamicEntity dynamicEntity = persistEntity(entity, em, new HashSet<DynamicEntity>());
         em.getTransaction().commit();
         Map<String, Object> props = getEntityProperties(entity);
-        List<String> keys = new ArrayList<String>(props.keySet());
+        List<String> keys = new ArrayList<>(props.keySet());
         for( String key : keys){
           String attribute = getAttributeName(key);
           try {
@@ -233,7 +233,7 @@ public class DataStoreImpl implements DataStore {
 
     EntityManager em = getEntityManager();
     try {
-      Collection<T> resources = new HashSet<T>();
+      Collection<T> resources = new HashSet<>();
       DynamicType   type      = getDynamicEntityType(clazz);
 
       if (type != null) {
@@ -485,7 +485,7 @@ public class DataStoreImpl implements DataStore {
       IllegalAccessException, InstantiationException, NoSuchFieldException {
     T resource = clazz.newInstance();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     for (String attributeName : type.getPropertiesNames()) {
       String fieldName = getFieldName(attributeName);
@@ -528,7 +528,7 @@ public class DataStoreImpl implements DataStore {
   // get a map of properties from the given view entity
   private Map<String, Object> getEntityProperties(Object entity)
       throws IntrospectionException, InvocationTargetException, IllegalAccessException {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     for (PropertyDescriptor pd : Introspector.getBeanInfo(entity.getClass()).getPropertyDescriptors()) {
       String name       = pd.getName();
@@ -555,7 +555,7 @@ public class DataStoreImpl implements DataStore {
           Object value = properties.get(name);
 
           if (value instanceof Collection) {
-            Set<Object> newCollection = new HashSet<Object>();
+            Set<Object> newCollection = new HashSet<>();
 
             for (Object collectionValue: (Collection)value) {
 
@@ -613,7 +613,7 @@ public class DataStoreImpl implements DataStore {
 
   // get a descriptor map for the given bean class
   private static Map<String, PropertyDescriptor> getDescriptorMap(Class<?> clazz) throws IntrospectionException {
-    Map<String, PropertyDescriptor> descriptorMap = new HashMap<String, PropertyDescriptor>();
+    Map<String, PropertyDescriptor> descriptorMap = new HashMap<>();
 
     for (PropertyDescriptor pd : Introspector.getBeanInfo(clazz).getPropertyDescriptors()) {
       String name = pd.getName();
@@ -626,7 +626,7 @@ public class DataStoreImpl implements DataStore {
 
   // get the property names for the given view entity class
   private static Set<String> getPropertyNames(Class clazz) throws IntrospectionException {
-    Set<String> propertyNames = new HashSet<String>();
+    Set<String> propertyNames = new HashSet<>();
     for (PropertyDescriptor pd : Introspector.getBeanInfo(clazz).getPropertyDescriptors()) {
       propertyNames.add(pd.getName());
     }

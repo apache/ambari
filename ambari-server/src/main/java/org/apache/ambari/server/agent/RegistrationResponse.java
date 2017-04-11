@@ -38,7 +38,7 @@ public class RegistrationResponse {
    * alert definitions it needs to schedule.
    */
   @JsonProperty("alertDefinitionCommands")
-  private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<AlertDefinitionCommand>();
+  private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<>();
 
   /**
    * exitstatus is a code of error which was rised on server side.

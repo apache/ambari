@@ -85,6 +85,7 @@ import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewEntityEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewInstancePropertyEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.orm.entities.ViewURLEntity;
@@ -93,6 +94,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.Closeables;
@@ -168,31 +171,31 @@ public class ViewRegistry {
   /**
    * Mapping of view names to view definitions.
    */
-  private Map<String, ViewEntity> viewDefinitions = new HashMap<String, ViewEntity>();
+  private Map<String, ViewEntity> viewDefinitions = new HashMap<>();
 
   /**
    * Mapping of view instances to view definition and instance name.
    */
   private Map<ViewEntity, Map<String, ViewInstanceEntity>> viewInstanceDefinitions =
-      new HashMap<ViewEntity, Map<String, ViewInstanceEntity>>();
+    new HashMap<>();
 
   /**
    * Mapping of view names to sub-resources.
    */
   private final Map<String, Set<SubResourceDefinition>> subResourceDefinitionsMap =
-      new ConcurrentHashMap<String, Set<SubResourceDefinition>>();
+    new ConcurrentHashMap<>();
 
   /**
    * Mapping of view types to resource providers.
    */
   private final Map<Resource.Type, ResourceProvider> resourceProviders =
-      new ConcurrentHashMap<Resource.Type, ResourceProvider>();
+    new ConcurrentHashMap<>();
 
   /**
    * Mapping of view names to registered listeners.
    */
   private final Map<String, Set<Listener>> listeners =
-      new ConcurrentHashMap<String, Set<Listener>>();
+    new ConcurrentHashMap<>();
 
   /**
    * The singleton view registry instance.
@@ -454,7 +457,7 @@ public class ViewRegistry {
   public void addInstanceDefinition(ViewEntity definition, ViewInstanceEntity instanceDefinition) {
     Map<String, ViewInstanceEntity> instanceDefinitions = viewInstanceDefinitions.get(definition);
     if (instanceDefinitions == null) {
-      instanceDefinitions = new HashMap<String, ViewInstanceEntity>();
+      instanceDefinitions = new HashMap<>();
       viewInstanceDefinitions.put(definition, instanceDefinitions);
     }
 
@@ -902,7 +905,7 @@ public class ViewRegistry {
     try {
       Masker masker = getMasker(viewConfig.getMaskerClass(classLoader));
 
-      Map<String, ParameterConfig> parameterConfigMap = new HashMap<String, ParameterConfig>();
+      Map<String, ParameterConfig> parameterConfigMap = new HashMap<>();
       for (ParameterConfig paramConfig : viewConfig.getParameters()) {
         parameterConfigMap.put(paramConfig.getName(), paramConfig);
       }
@@ -988,7 +991,7 @@ public class ViewRegistry {
 
         try {
           if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
-            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoConfig, roles);
+            installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
@@ -1000,9 +1003,10 @@ public class ViewRegistry {
     }
   }
 
-  private void installAutoInstance(Long clusterId, String clusterName, ViewEntity viewEntity, String viewName, ViewConfig viewConfig, AutoInstanceConfig autoConfig, Collection<String> roles) throws SystemException, ValidationException {
+  private void installAutoInstance(Long clusterId, String clusterName, Service service, ViewEntity viewEntity, String viewName, ViewConfig viewConfig, AutoInstanceConfig autoConfig, Collection<String> roles) throws SystemException, ValidationException {
     LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
     ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
+    updateHiveLLAPSettingsIfRequired(viewInstanceEntity, service);
     viewInstanceEntity.setClusterHandle(clusterId);
     installViewInstance(viewInstanceEntity);
     setViewInstanceRoleAccess(viewInstanceEntity, roles);
@@ -1011,6 +1015,47 @@ public class ViewRegistry {
     } catch (Exception urlCreateException) {
       LOG.error("Error while creating an auto URL for the view instance {}, Url should be created in view instance settings", viewInstanceEntity.getViewName());
       LOG.error("View URL creation error ", urlCreateException);
+    }
+
+  }
+
+  /**
+   * Checks is service is 'HIVE' and INTERACTIVE_SERVICE(LLAP) is enabled. Then, it sets the view instance
+   * parameter 'use.hive.interactive.mode' for the 'AUTO_INSTANCE_VIEW' to be true.
+   * @param viewInstanceEntity
+   * @param service
+   */
+  private void updateHiveLLAPSettingsIfRequired(ViewInstanceEntity viewInstanceEntity, Service service) {
+    String INTERACTIVE_KEY = "use.hive.interactive.mode";
+    String LLAP_COMPONENT_NAME = "HIVE_SERVER_INTERACTIVE";
+    String viewVersion = viewInstanceEntity.getViewDefinition().getVersion();
+    String viewName = viewInstanceEntity.getViewDefinition().getViewName();
+    if(!viewName.equalsIgnoreCase("HIVE") || viewVersion.equalsIgnoreCase("1.0.0")) {
+      return;
+    }
+
+    try {
+      ServiceComponent component = service.getServiceComponent(LLAP_COMPONENT_NAME);
+      if (component.getServiceComponentHosts().size() == 0) {
+        // The LLAP server is not installed in any of the hosts. Hence, return;
+        return;
+      }
+
+      for (Map.Entry<String, String> property : viewInstanceEntity.getPropertyMap().entrySet()) {
+        if (INTERACTIVE_KEY.equals(property.getKey()) && (!"true".equalsIgnoreCase(property.getValue()))) {
+          ViewInstancePropertyEntity propertyEntity = new ViewInstancePropertyEntity();
+          propertyEntity.setViewInstanceName(viewInstanceEntity.getName());
+          propertyEntity.setViewName(viewInstanceEntity.getViewName());
+          propertyEntity.setName(INTERACTIVE_KEY);
+          propertyEntity.setValue("true");
+          propertyEntity.setViewInstanceEntity(viewInstanceEntity);
+          viewInstanceEntity.getProperties().add(propertyEntity);
+        }
+      }
+
+    } catch (AmbariException e) {
+      LOG.error("Failed to update '{}' parameter for viewName: {}, version: {}. Exception: {}",
+          INTERACTIVE_KEY, viewName, viewVersion, e);
     }
 
   }
@@ -1155,7 +1200,7 @@ public class ViewRegistry {
 
     List<ParameterConfig> parameterConfigurations = viewConfig.getParameters();
 
-    Collection<ViewParameterEntity> parameters = new HashSet<ViewParameterEntity>();
+    Collection<ViewParameterEntity> parameters = new HashSet<>();
 
     String viewName = viewDefinition.getName();
 
@@ -1189,7 +1234,7 @@ public class ViewRegistry {
     ResourceInstanceFactoryImpl.addResourceDefinition(externalResourceType,
         new ViewExternalSubResourceDefinition(externalResourceType));
 
-    Collection<ViewResourceEntity> resources = new HashSet<ViewResourceEntity>();
+    Collection<ViewResourceEntity> resources = new HashSet<>();
     for (ResourceConfig resourceConfiguration : resourceConfigurations) {
       ViewResourceEntity viewResourceEntity = new ViewResourceEntity();
 
@@ -1233,7 +1278,7 @@ public class ViewRegistry {
 
     List<PermissionConfig> permissionConfigurations = viewConfig.getPermissions();
 
-    Collection<PermissionEntity> permissions = new HashSet<PermissionEntity>();
+    Collection<PermissionEntity> permissions = new HashSet<>();
     for (PermissionConfig permissionConfiguration : permissionConfigurations) {
       PermissionEntity permissionEntity = new PermissionEntity();
 
@@ -1255,7 +1300,7 @@ public class ViewRegistry {
     viewDefinition.setValidator(validator);
     viewDefinition.setMask(viewConfig.getMasker());
 
-    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
     for (Resource.Type type : viewDefinition.getViewResourceTypes()) {
       subResourceDefinitions.add(new SubResourceDefinition(type));
     }
@@ -1282,7 +1327,7 @@ public class ViewRegistry {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
 
     for (PropertyConfig propertyConfig : instanceConfig.getProperties()) {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
@@ -1335,7 +1380,7 @@ public class ViewRegistry {
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
     ViewConfig viewConfig = viewDefinition.getConfiguration();
 
-    Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+    Collection<ViewEntityEntity> entities = new HashSet<>();
 
     if (viewConfig != null) {
       PersistenceConfig persistenceConfig = viewConfig.getPersistence();
@@ -1686,7 +1731,7 @@ public class ViewRegistry {
 
         if (files != null) {
 
-          Set<Runnable> extractionRunnables = new HashSet<Runnable>();
+          Set<Runnable> extractionRunnables = new HashSet<>();
 
           final String serverVersion = ambariMetaInfoProvider.get().getServerVersion();
 
@@ -1791,7 +1836,7 @@ public class ViewRegistry {
       if (checkViewVersions(viewDefinition, serverVersion)) {
         setupViewDefinition(viewDefinition, cl);
 
-        Set<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+        Set<ViewInstanceEntity> instanceDefinitions = new HashSet<>();
 
         for (InstanceConfig instanceConfig : viewConfig.getInstances()) {
           ViewInstanceEntity instanceEntity = createViewInstanceDefinition(viewConfig, viewDefinition, instanceConfig);
@@ -1920,7 +1965,7 @@ public class ViewRegistry {
         try {
 
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
-            installAutoInstance(clusterId, clusterName, viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
+            installAutoInstance(clusterId, clusterName, cluster.getService(service), viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
@@ -2098,7 +2143,7 @@ public class ViewRegistry {
   // Get the view extraction thread pool
   private static synchronized ExecutorService getExecutorService(Configuration configuration) {
     if (executorService == null) {
-      LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+      LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 
       ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
           configuration.getViewExtractionThreadPoolCoreSize(),

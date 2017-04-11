@@ -104,12 +104,12 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   /**
    * Mapping of view instance entities to handlers.
    */
-  private final Map<ViewInstanceEntity, Handler> viewHandlerMap = new HashMap<ViewInstanceEntity, Handler>();
+  private final Map<ViewInstanceEntity, Handler> viewHandlerMap = new HashMap<>();
 
   /**
    * The non-view handlers.
    */
-  private final Collection<Handler> nonViewHandlers = new HashSet<Handler>();
+  private final Collection<Handler> nonViewHandlers = new HashSet<>();
 
   /**
    * The logger.

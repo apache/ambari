@@ -48,7 +48,7 @@ public class QueryInfo {
    */
   public QueryInfo(ResourceDefinition resource, Set<String> properties) {
     m_resource   = resource;
-    m_properties = new HashSet<String>(properties);
+    m_properties = new HashSet<>(properties);
   }
 
   // ----- QueryInfo ---------------------------------------------------------

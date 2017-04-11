@@ -69,7 +69,7 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
     Map<String, Map<String, ThreeWayValue>> changes =
         m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());
 
-    Set<String> failedTypes = new HashSet<String>();
+    Set<String> failedTypes = new HashSet<>();
 
     for (Entry<String, Map<String, ThreeWayValue>> entry : changes.entrySet()) {
       for (Entry<String, ThreeWayValue> configEntry : entry.getValue().entrySet()) {

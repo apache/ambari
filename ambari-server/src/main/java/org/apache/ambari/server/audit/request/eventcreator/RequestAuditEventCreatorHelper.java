@@ -83,7 +83,7 @@ public class RequestAuditEventCreatorHelper {
    * @return
    */
   public static List<String> getPropertyList(Request request, String propertyName) {
-    List<String> list = new LinkedList<String>();
+    List<String> list = new LinkedList<>();
     for (Map<String, Object> propertyMap : request.getBody().getPropertySets()) {
       if (propertyMap.containsKey(propertyName)) {
         list.add(String.valueOf(propertyMap.get(propertyName)));

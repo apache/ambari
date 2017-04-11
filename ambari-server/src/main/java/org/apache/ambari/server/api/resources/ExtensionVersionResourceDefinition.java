@@ -47,7 +47,7 @@ public class ExtensionVersionResourceDefinition extends BaseResourceDefinition {
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
 
-    Set<SubResourceDefinition> children = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> children = new HashSet<>();
 
     return children;
   }

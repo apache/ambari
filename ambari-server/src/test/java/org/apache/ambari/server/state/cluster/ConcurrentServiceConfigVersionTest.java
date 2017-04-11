@@ -144,7 +144,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     Assert.assertEquals(nextVersion, 1);
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       Thread thread = new ConcurrentServiceConfigThread(cluster);
       threads.add(thread);
@@ -192,7 +192,7 @@ public class ConcurrentServiceConfigVersionTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>(2);
+    Map<String, String> hostAttributes = new HashMap<>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);

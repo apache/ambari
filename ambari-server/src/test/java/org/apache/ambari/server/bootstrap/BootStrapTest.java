@@ -85,7 +85,7 @@ public class BootStrapTest extends TestCase {
     impl.init();
     SshHostInfo info = new SshHostInfo();
     info.setSshKey("xyz");
-    ArrayList<String> hosts = new ArrayList<String>();
+    ArrayList<String> hosts = new ArrayList<>();
     hosts.add("host1");
     hosts.add("host2");
     info.setUserRunAs("root");
@@ -161,7 +161,7 @@ public class BootStrapTest extends TestCase {
     impl.init();
     SshHostInfo info = new SshHostInfo();
     info.setSshKey("xyz");
-    ArrayList<String> hosts = new ArrayList<String>();
+    ArrayList<String> hosts = new ArrayList<>();
     hosts.add("host1");
     hosts.add("host2");
     info.setHosts(hosts);
@@ -212,7 +212,7 @@ public class BootStrapTest extends TestCase {
     FileUtils.writeStringToFile(new File(tmpFolder, "host2.done"), "1");
     FileUtils.writeStringToFile(new File(tmpFolder, "host2.log"), "err_log_2");
 
-    List<String> listHosts = new ArrayList<String>();
+    List<String> listHosts = new ArrayList<>();
     listHosts.add("host1");
     listHosts.add("host2");
     BSHostStatusCollector collector = new BSHostStatusCollector(tmpFolder,

@@ -127,8 +127,7 @@ final public class StateMachineFactory
         // I use HashMap here because I would expect most EVENTTYPE's to not
         //  apply out of a particular state, so FSM sizes would be
         //  quadratic if I use EnumMap's here as I do at the top level.
-        transitionMap = new HashMap<EVENTTYPE,
-          Transition<OPERAND, STATE, EVENTTYPE, EVENT>>();
+        transitionMap = new HashMap<>();
         subject.stateMachineTable.put(preState, transitionMap);
       }
       transitionMap.put(eventType, transition);
@@ -307,7 +306,7 @@ final public class StateMachineFactory
     Stack<ApplicableTransition<OPERAND, STATE, EVENTTYPE, EVENT>> stack = new Stack<>();
 
     Map<STATE, Map<EVENTTYPE, Transition<OPERAND, STATE, EVENTTYPE, EVENT>>>
-      prototype = new HashMap<STATE, Map<EVENTTYPE, Transition<OPERAND, STATE, EVENTTYPE, EVENT>>>();
+      prototype = new HashMap<>();
 
     prototype.put(defaultInitialState, null);
 

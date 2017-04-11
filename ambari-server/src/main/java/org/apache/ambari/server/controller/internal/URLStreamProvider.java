@@ -191,7 +191,7 @@ public class URLStreamProvider implements StreamProvider {
       if (headers == null || headers.isEmpty()) {
         headers = Collections.singletonMap(COOKIE, Collections.singletonList(appCookie));
       } else {
-        headers = new HashMap<String, List<String>>(headers);
+        headers = new HashMap<>(headers);
 
         List<String> cookieList = headers.get(COOKIE);
         String       cookies    = cookieList == null || cookieList.isEmpty() ? null : cookieList.get(0);

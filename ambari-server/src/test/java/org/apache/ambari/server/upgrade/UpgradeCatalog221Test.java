@@ -313,7 +313,7 @@ public class UpgradeCatalog221Test {
         .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
             Map.class, boolean.class, boolean.class)
         .createMock();
-    Map<String, String> updates = new HashMap<String, String>();
+    Map<String, String> updates = new HashMap<>();
     updates.put("tez.counters.max", "10000");
     updates.put("tez.counters.max.groups", "3000");
     upgradeCatalog221.updateConfigurationPropertiesForCluster(mockClusterExpected, "tez-site",
@@ -329,7 +329,7 @@ public class UpgradeCatalog221Test {
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
 
-    final Map<String, String> propertiesRangerKmsDbConfigs = new HashMap<String, String>();
+    final Map<String, String> propertiesRangerKmsDbConfigs = new HashMap<>();
     propertiesRangerKmsDbConfigs.put("DB_FLAVOR", "MYSQL");
     propertiesRangerKmsDbConfigs.put("db_host", "localhost");
     propertiesRangerKmsDbConfigs.put("db_name", "testdb");
@@ -365,9 +365,9 @@ public class UpgradeCatalog221Test {
   @Test
   public void testUpdateAmsHbaseSiteConfigs() throws Exception {
 
-    Map<String, String> clusterEnvProperties = new HashMap<String, String>();
-    Map<String, String> amsHbaseSecuritySite = new HashMap<String, String>();
-    Map<String, String> newPropertiesAmsHbaseSite = new HashMap<String, String>();
+    Map<String, String> clusterEnvProperties = new HashMap<>();
+    Map<String, String> amsHbaseSecuritySite = new HashMap<>();
+    Map<String, String> newPropertiesAmsHbaseSite = new HashMap<>();
 
     //Unsecure
     amsHbaseSecuritySite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");

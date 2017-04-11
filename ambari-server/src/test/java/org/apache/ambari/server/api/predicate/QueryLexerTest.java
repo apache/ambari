@@ -37,7 +37,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_simple() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "a"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -60,7 +60,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_multipleBrackets() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "<"));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "a"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -92,7 +92,7 @@ public class QueryLexerTest {
     QueryLexer lexer = new QueryLexer();
     Token[] tokens = lexer.tokens("!foo<5");
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.LOGICAL_UNARY_OPERATOR, "!"));
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "<"));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
@@ -105,7 +105,7 @@ public class QueryLexerTest {
     QueryLexer lexer = new QueryLexer();
     Token[] tokens = lexer.tokens("foo.in(one, two, 3)");
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".in("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "one, two, 3"));
@@ -119,7 +119,7 @@ public class QueryLexerTest {
     QueryLexer lexer = new QueryLexer();
     Token[] tokens = lexer.tokens("category1.isEmpty()");
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".isEmpty("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "category1"));
     listTokens.add(new Token(Token.TYPE.BRACKET_CLOSE, ")"));
@@ -138,7 +138,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreFieldsSyntax___fieldsFirst() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -152,7 +152,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreFieldsSyntax___fieldsLast() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -174,7 +174,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreFormatSyntax___formatFirst() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -188,7 +188,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreFormatSyntax___formatLast() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -210,7 +210,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreUnderscoreSyntax___fieldsFirst() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -224,7 +224,7 @@ public class QueryLexerTest {
   @Test
   public void testTokens_ignoreUnderscoreSyntax___fieldsLast() throws InvalidQueryException {
 
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -237,7 +237,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__multipleIgnoreFields() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -250,7 +250,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__multipleConsecutiveIgnoreFields() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -263,7 +263,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__multipleConsecutiveIgnoreFields2() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -276,7 +276,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__fieldsMiddle() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -293,7 +293,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__fieldsMiddle2() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -310,7 +310,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_ignore__userDefined() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR, "="));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "foo"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "1"));
@@ -320,7 +320,7 @@ public class QueryLexerTest {
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "2"));
 
     QueryLexer lexer = new QueryLexer();
-    Set<String> propertiesToIgnore = new HashSet<String>();
+    Set<String> propertiesToIgnore = new HashSet<>();
     propertiesToIgnore.add("ignore1");
     propertiesToIgnore.add("otherIgnore");
     propertiesToIgnore.add("ba");
@@ -364,7 +364,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_matchesRegexp_simple() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "StackConfigurations/property_type"));
     listTokens.add(new Token(Token.TYPE.VALUE_OPERAND, "(.*USER.*)|(.*GROUP.*)"));
@@ -378,7 +378,7 @@ public class QueryLexerTest {
 
   @Test
   public void testTokens_matchesRegexp() throws InvalidQueryException {
-    List<Token> listTokens = new ArrayList<Token>();
+    List<Token> listTokens = new ArrayList<>();
     listTokens.add(new Token(Token.TYPE.BRACKET_OPEN, "("));
     listTokens.add(new Token(Token.TYPE.RELATIONAL_OPERATOR_FUNC, ".matches("));
     listTokens.add(new Token(Token.TYPE.PROPERTY_OPERAND, "StackConfigurations/property_type"));

@@ -43,6 +43,7 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
 import org.apache.ambari.server.configuration.Configuration;
@@ -236,7 +237,7 @@ public class HostRoleCommandDAO {
    */
   @RequiresSession
   private Map<Long, HostRoleCommandStatusSummaryDTO> loadAggregateCounts(Long requestId) {
-    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
+    Map<Long, HostRoleCommandStatusSummaryDTO> map = new HashMap<>();
 
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<HostRoleCommandStatusSummaryDTO> query = entityManager.createQuery(SUMMARY_DTO,
@@ -294,9 +295,9 @@ public class HostRoleCommandDAO {
       HostRoleCommandEntity.class);
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<HostRoleCommandEntity> result = new ArrayList<HostRoleCommandEntity>();
+      List<HostRoleCommandEntity> result = new ArrayList<>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> list : lists) {
         result.addAll(daoUtils.selectList(query, list));
       }
@@ -364,9 +365,9 @@ public class HostRoleCommandDAO {
     );
 
     if (taskIds.size() > configuration.getTaskIdListLimit()) {
-      List<Long> result = new ArrayList<Long>();
+      List<Long> result = new ArrayList<>();
 
-      List<List<Long>> lists = Lists.partition(new ArrayList<Long>(taskIds), configuration.getTaskIdListLimit());
+      List<List<Long>> lists = Lists.partition(new ArrayList<>(taskIds), configuration.getTaskIdListLimit());
       for (List<Long> taskIdList : lists) {
         result.addAll(daoUtils.selectList(query, requestIds, taskIdList));
       }
@@ -424,7 +425,7 @@ public class HostRoleCommandDAO {
         "ORDER BY hostRoleCommand.hostEntity.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
     List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
 
-    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
+    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<>();
 
     for (HostRoleCommandEntity commandEntity : commandEntities) {
       if (!hostCommands.containsKey(commandEntity.getHostName())) {
@@ -669,7 +670,7 @@ public class HostRoleCommandDAO {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public List<HostRoleCommandEntity> mergeAll(Collection<HostRoleCommandEntity> entities) {
     Set<Long> requestsToInvalidate = new LinkedHashSet<>();
-    List<HostRoleCommandEntity> managedList = new ArrayList<HostRoleCommandEntity>(entities.size());
+    List<HostRoleCommandEntity> managedList = new ArrayList<>(entities.size());
     for (HostRoleCommandEntity entity : entities) {
       EntityManager entityManager = entityManagerProvider.get();
       entity = entityManager.merge(entity);
@@ -896,7 +897,7 @@ public class HostRoleCommandDAO {
     // sorting
     SortRequest sortRequest = request.getSortRequest();
     if (null != sortRequest) {
-      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<HostRoleCommandEntity>();
+      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<>();
       List<Order> sortOrders = sortBuilder.buildSortOrders(sortRequest, visitor);
       query.orderBy(sortOrders);
     }
@@ -911,6 +912,54 @@ public class HostRoleCommandDAO {
     }
 
     return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Gets a lists of hosts with commands in progress given a range of requests.
+   * The range of requests should include all requests with at least 1 stage in
+   * progress.
+   *
+   * @return the list of hosts with commands in progress.
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  @RequiresSession
+  public List<String> getHostsWithPendingTasks(long iLowestRequestIdInProgress,
+      long iHighestRequestIdInProgress) {
+    TypedQuery<String> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findHostsByCommandStatus", String.class);
+
+    query.setParameter("iLowestRequestIdInProgress", iLowestRequestIdInProgress);
+    query.setParameter("iHighestRequestIdInProgress", iHighestRequestIdInProgress);
+    query.setParameter("statuses", HostRoleStatus.IN_PROGRESS_STATUSES);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets a lists of hosts with commands in progress which occurr before the
+   * specified request ID. This will only return commands which are not
+   * {@link AgentCommandType#BACKGROUND_EXECUTION_COMMAND} as thsee commands do
+   * not block future requests.
+   *
+   * @param lowerRequestIdInclusive
+   *          the lowest request ID to consider (inclusive) when getting any
+   *          blocking hosts.
+   * @param requestId
+   *          the request ID to calculate any blocking hosts for (essentially,
+   *          the upper limit exclusive)
+   * @return the list of hosts from older running requests which will block
+   *         those same hosts in the specified request ID.
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  @RequiresSession
+  public List<String> getBlockingHostsForRequest(long lowerRequestIdInclusive,
+      long requestId) {
+    TypedQuery<String> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.getBlockingHostsForRequest", String.class);
+
+    query.setParameter("lowerRequestIdInclusive", lowerRequestIdInclusive);
+    query.setParameter("upperRequestIdExclusive", requestId);
+    query.setParameter("statuses", HostRoleStatus.IN_PROGRESS_STATUSES);
+    return daoUtils.selectList(query);
   }
 
   /**

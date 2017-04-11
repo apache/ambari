@@ -174,6 +174,8 @@ App.AddControlView = Em.View.extend({
 
   classNameBindings: ['uniqueId'],
 
+  'data-qa': 'add-master',
+
   template: Em.Handlebars.compile('+'),
 
   /**
@@ -208,6 +210,8 @@ App.RemoveControlView = Em.View.extend({
   componentName: null,
 
   tagName: "span",
+
+  'data-qa': 'remove-master',
 
   classNames: ["label", 'extra-component'],
 

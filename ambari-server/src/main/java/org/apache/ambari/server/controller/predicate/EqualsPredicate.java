@@ -61,6 +61,6 @@ public class EqualsPredicate<T> extends ComparisonPredicate<T> {
 
   @Override
   public ComparisonPredicate<T> copy(String propertyId) {
-    return new EqualsPredicate<T>(propertyId, getValue());
+    return new EqualsPredicate<>(propertyId, getValue());
   }
 }

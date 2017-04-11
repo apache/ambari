@@ -33,7 +33,7 @@ public class PageResponseImplTest {
 
   @Test
   public void testGetIterable() throws Exception {
-    Iterable<Resource> iterable = new HashSet<Resource>();
+    Iterable<Resource> iterable = new HashSet<>();
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
@@ -44,7 +44,7 @@ public class PageResponseImplTest {
 
   @Test
   public void testGetOffset() throws Exception {
-    Iterable<Resource> iterable = new HashSet<Resource>();
+    Iterable<Resource> iterable = new HashSet<>();
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
@@ -55,7 +55,7 @@ public class PageResponseImplTest {
 
   @Test
   public void testGetPreviousResource() throws Exception {
-    Iterable<Resource> iterable = new HashSet<Resource>();
+    Iterable<Resource> iterable = new HashSet<>();
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 
@@ -66,7 +66,7 @@ public class PageResponseImplTest {
 
   @Test
   public void testGetNextResource() throws Exception {
-    Iterable<Resource> iterable = new HashSet<Resource>();
+    Iterable<Resource> iterable = new HashSet<>();
     Resource prev = new ResourceImpl(Resource.Type.Cluster);
     Resource next = new ResourceImpl(Resource.Type.Cluster);
 

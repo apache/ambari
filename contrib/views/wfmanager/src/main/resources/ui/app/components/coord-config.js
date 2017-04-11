@@ -50,6 +50,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   propertyExtractor : Ember.inject.service('property-extractor'),
   workspaceManager : Ember.inject.service('workspace-manager'),
   showErrorMessage: Ember.computed.alias('saveAttempted'),
+  jobConfigProperties: Ember.A([]),
   datasetsForInputs : Ember.computed('coordinator.datasets.[]','coordinator.dataOutputs.[]',function(){
     var datasetsForInputs = Ember.copy(this.get('coordinator.datasets'));
     this.get('coordinator.dataOutputs').forEach((dataOutput)=>{

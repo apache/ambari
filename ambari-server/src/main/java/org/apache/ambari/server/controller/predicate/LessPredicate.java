@@ -52,6 +52,6 @@ public class LessPredicate<T> extends ComparisonPredicate<T> {
 
   @Override
   public ComparisonPredicate<T> copy(String propertyId) {
-    return new LessPredicate<T>(propertyId, getValue());
+    return new LessPredicate<>(propertyId, getValue());
   }
 }

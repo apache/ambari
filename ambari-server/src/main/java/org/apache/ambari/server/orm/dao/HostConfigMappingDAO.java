@@ -68,7 +68,7 @@ public class HostConfigMappingDAO {
     
     if (!cacheLoaded) {
       if (hostConfigMappingByHost == null) {
-        hostConfigMappingByHost = new ConcurrentHashMap<Long, Set<HostConfigMapping>>();
+        hostConfigMappingByHost = new ConcurrentHashMap<>();
 
         TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
             "HostConfigMappingEntity.findAll", HostConfigMappingEntity.class);
@@ -86,7 +86,7 @@ public class HostConfigMappingDAO {
           if (hostConfigMappingByHost.containsKey(hostId)) {
             setByHost = hostConfigMappingByHost.get(hostId);
           } else {
-            setByHost = new HashSet<HostConfigMapping>();
+            setByHost = new HashSet<>();
             hostConfigMappingByHost.put(hostId, setByHost);
           }
 
@@ -115,7 +115,7 @@ public class HostConfigMappingDAO {
       if (hostConfigMappingByHost.containsKey(hostId)) {
         set = hostConfigMappingByHost.get(hostId);
       } else {
-        set = new HashSet<HostConfigMapping>();
+        set = new HashSet<>();
         hostConfigMappingByHost.put(hostId, set);
       }
 
@@ -133,7 +133,7 @@ public class HostConfigMappingDAO {
       if (hostConfigMappingByHost.containsKey(hostId)) {
         set = hostConfigMappingByHost.get(hostId);
       } else {
-        set = new HashSet<HostConfigMapping>();
+        set = new HashSet<>();
         hostConfigMappingByHost.put(hostId, set);
       }
 
@@ -154,7 +154,7 @@ public class HostConfigMappingDAO {
     if (!hostConfigMappingByHost.containsKey(hostId))
       return Collections.emptySet();
       
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
+    Set<HostConfigMapping> set = new HashSet<>(hostConfigMappingByHost.get(hostId));
      
     CollectionUtils.filter(set, new Predicate() {
         
@@ -176,7 +176,7 @@ public class HostConfigMappingDAO {
     if (!hostConfigMappingByHost.containsKey(hostId))
       return null;
     
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
+    Set<HostConfigMapping> set = new HashSet<>(hostConfigMappingByHost.get(hostId));
     
     HostConfigMapping result = (HostConfigMapping) CollectionUtils.find(set, new Predicate() {
       
@@ -198,7 +198,7 @@ public class HostConfigMappingDAO {
     if (!hostConfigMappingByHost.containsKey(hostId))
       return Collections.emptySet();
     
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
+    Set<HostConfigMapping> set = new HashSet<>(hostConfigMappingByHost.get(hostId));
     
     CollectionUtils.filter(set, new Predicate() {
       
@@ -220,13 +220,13 @@ public class HostConfigMappingDAO {
       return Collections.emptySet();
     }
     
-    HashSet<HostConfigMapping> result = new HashSet<HostConfigMapping>();
+    HashSet<HostConfigMapping> result = new HashSet<>();
 
     for (final Long hostId : hostIds) {
       if (!hostConfigMappingByHost.containsKey(hostId))
         continue;
       
-      Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
+      Set<HostConfigMapping> set = new HashSet<>(hostConfigMappingByHost.get(hostId));
       
       CollectionUtils.filter(set, new Predicate() {
         
@@ -249,7 +249,7 @@ public class HostConfigMappingDAO {
                                                                              Collection<String> types) {
     populateCache();
     
-    Map<String, List<HostConfigMapping>> mappingsByType = new HashMap<String, List<HostConfigMapping>>();
+    Map<String, List<HostConfigMapping>> mappingsByType = new HashMap<>();
     
     for (String type : types) {
       if (!mappingsByType.containsKey(type)) {
@@ -258,7 +258,7 @@ public class HostConfigMappingDAO {
     }
 
     if (!types.isEmpty()) {
-      List<HostConfigMapping> mappings = new ArrayList<HostConfigMapping>();
+      List<HostConfigMapping> mappings = new ArrayList<>();
 
       for (Set<HostConfigMapping> entries : hostConfigMappingByHost.values()) {
         

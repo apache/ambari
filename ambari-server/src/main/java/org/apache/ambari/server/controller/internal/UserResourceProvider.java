@@ -60,8 +60,8 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   public static final String USER_ADMIN_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "admin");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          USER_USERNAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      USER_USERNAME_PROPERTY_ID}));
 
   /**
    * Create a new resource provider for the given management controller.
@@ -81,7 +81,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
-    final Set<UserRequest> requests = new HashSet<UserRequest>();
+    final Set<UserRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
@@ -101,7 +101,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<UserRequest> requests = new HashSet<UserRequest>();
+    final Set<UserRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
@@ -125,7 +125,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
     }
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (UserResponse userResponse : responses) {
       ResourceImpl resource = new ResourceImpl(Resource.Type.User);
@@ -157,7 +157,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<UserRequest> requests = new HashSet<UserRequest>();
+    final Set<UserRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       UserRequest req = getRequest(propertyMap);
@@ -179,7 +179,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
   @Override
   public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<UserRequest> requests = new HashSet<UserRequest>();
+    final Set<UserRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       UserRequest req = getRequest(propertyMap);

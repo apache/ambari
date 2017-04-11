@@ -58,8 +58,8 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
   protected static final String ITEMS_CONFIG_TYPE_PROPERTY_ID = "config-type";
   protected static final String ITEMS_CONFIG_NAME_PROPERTY_ID = "config-name";
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { VALIDATION_ID_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{VALIDATION_ID_PROPERTY_ID}));
 
   protected ValidationResourceProvider(Set<String> propertyIds, Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController) {
@@ -96,11 +96,11 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
         setResourceProperty(resource, STACK_NAME_PROPERTY_ID, response.getVersion().getStackName(), getPropertyIds());
         setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, response.getVersion().getStackVersion(), getPropertyIds());
 
-        List<Map<String, Object>> listItemProps = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listItemProps = new ArrayList<>();
 
         Set<ValidationItem> items = response.getItems();
         for (ValidationItem item : items) {
-          Map<String, Object> mapItemProps = new HashMap<String, Object>();
+          Map<String, Object> mapItemProps = new HashMap<>();
           mapItemProps.put(ITEMS_TYPE_PROPERTY_ID, item.getType());
           mapItemProps.put(ITEMS_LEVE_PROPERTY_ID, item.getLevel());
           mapItemProps.put(ITEMS_MESSAGE_PROPERTY_ID, item.getMessage());
@@ -124,7 +124,7 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
     });
     notifyCreate(Resource.Type.Validation, request);
 
-    Set<Resource> resources = new HashSet<Resource>(Arrays.asList(validation));
+    Set<Resource> resources = new HashSet<>(Arrays.asList(validation));
     return new RequestStatusImpl(null, resources);
   }
 

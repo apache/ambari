@@ -40,7 +40,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * metrics file
    */
-  private Map<String, File> metricsFileMap = new HashMap<String, File>();
+  private Map<String, File> metricsFileMap = new HashMap<>();
 
   /**
    * advisor file
@@ -75,7 +75,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   /**
    * widgets descriptor file
    */
-  private Map<String, File> widgetsDescriptorFileMap = new HashMap<String, File>();
+  private Map<String, File> widgetsDescriptorFileMap = new HashMap<>();
 
   /**
    * package directory path

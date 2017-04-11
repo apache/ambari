@@ -49,7 +49,7 @@ public class DeadlockWarningThread extends Thread {
   }
 
   public DeadlockWarningThread(Collection<Thread> monitoredThreads, int maxStackDepth, int sleepTimeMS) {
-    this.errorMessages = new ArrayList<String>();
+    this.errorMessages = new ArrayList<>();
     this.monitoredThreads = monitoredThreads;
     this.MAX_STACK_DEPTH = maxStackDepth;
     this.SLEEP_TIME_MS = sleepTimeMS;
@@ -111,7 +111,7 @@ public class DeadlockWarningThread extends Thread {
           deadlocked = false;
           break;
         } else if (!hasRunning) {
-          List<Long> tIds = new ArrayList<Long>();
+          List<Long> tIds = new ArrayList<>();
           for (Thread monitoredThread : monitoredThreads) {
             State state = monitoredThread.getState();
             if (state == State.WAITING || state == State.BLOCKED) {

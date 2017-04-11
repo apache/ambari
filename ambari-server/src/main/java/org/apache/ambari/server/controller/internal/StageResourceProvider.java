@@ -104,13 +104,13 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   /**
    * The property ids for a stage resource.
    */
-  static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for a stage resource.
    */
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
-      new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   static {
     // properties
@@ -155,7 +155,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(KEY_PROPERTY_IDS.values());
+    return new HashSet<>(KEY_PROPERTY_IDS.values());
   }
 
 
@@ -206,17 +206,17 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> results     = new LinkedHashSet<Resource>();
+    Set<Resource> results     = new LinkedHashSet<>();
     Set<String>   propertyIds = getRequestPropertyIds(request, predicate);
 
     // !!! poor mans cache.  toResource() shouldn't be calling the db
     // every time, when the request id is likely the same for each stageEntity
     Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache =
-        new HashMap<Long, Map<Long, HostRoleCommandStatusSummaryDTO>>();
+      new HashMap<>();
 
     List<StageEntity> entities = dao.findAll(request, predicate);
     for (StageEntity entity : entities) {
-      results.add(toResource(cache, entity, propertyIds));
+      results.add(StageResourceProvider.toResource(cache, entity, propertyIds));
     }
 
     cache.clear();
@@ -273,7 +273,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
    *
    * @return the new resource
    */
-  private Resource toResource(
+  static Resource toResource(
       Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache,
       StageEntity entity,
       Set<String> requestedIds) {

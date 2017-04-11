@@ -200,7 +200,7 @@ public class ViewVersionService extends BaseService {
    * @return a view resource instance
    */
   private ResourceInstance createResource(String viewName, String version) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, version);
     return createResource(Resource.Type.ViewVersion, mapIds);

@@ -505,7 +505,7 @@ public class AlertsDAOTest {
    */
   @Test
   public void testFindByState() {
-    List<AlertState> allStates = new ArrayList<AlertState>();
+    List<AlertState> allStates = new ArrayList<>();
     allStates.add(AlertState.OK);
     allStates.add(AlertState.WARNING);
     allStates.add(AlertState.CRITICAL);
@@ -1355,7 +1355,7 @@ public class AlertsDAOTest {
         m_componentFactory, m_schFactory, HOSTNAME);
     m_alertHelper.populateData(m_cluster);
 
-    List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();
+    List<SortRequestProperty> sortProperties = new ArrayList<>();
     SortRequest sortRequest = new SortRequestImpl(sortProperties);
     AlertHistoryRequest request = new AlertHistoryRequest();
     request.Sort = sortRequest;

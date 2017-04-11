@@ -119,7 +119,7 @@ public class TaskAttemptService extends BaseService {
    */
   ResourceInstance createTaskAttemptResource(String clusterName,
       String workflowId, String jobId, String taskAttemptId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Workflow, workflowId);
     mapIds.put(Resource.Type.Job, jobId);

@@ -16,14 +16,14 @@
 * limitations under the License.
 }}
 {{#if controller.isRecommendedLoaded}}
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs" {{QAAttr "config-tabs"}}>
       {{#each service in controller.stepConfigs}}
         {{#if service.showConfig}}
           {{#view App.ServiceConfigTab}}
               <a href="#{{unbound service.serviceName}}" {{bindAttr class=":active service.selected:new"}}
                  data-toggle="tab" {{action selectService service target="view"}}>
                 {{service.displayName}}{{#if service.errorCount}}<span
-                      class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
+                      class="badge badge-important" {{QAAttr "error-badge"}}>{{service.errorCount}}</span>{{/if}}</a>
           {{/view}}
         {{/if}}
       {{/each}}
@@ -46,7 +46,7 @@
     <p class="loading align-center"></p>
     {{#unless controller.transitionInProgress}}
       {{#if controller.hasStepConfigIssues}}
-        <div class="alert alert-warning">
+        <div class="alert alert-warning" {{QAAttr "warning-alert"}}>
           <span class="glyphicon glyphicon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
           {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
         </div>

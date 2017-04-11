@@ -60,10 +60,10 @@ public class StackConfigurationDependencyResourceProvider extends
   public static final String DEPENDENCY_TYPE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurationDependency", "dependency_type");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
-          STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
-          PROPERTY_NAME_PROPERTY_ID, DEPENDENCY_NAME_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
+      STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID,
+      PROPERTY_NAME_PROPERTY_ID, DEPENDENCY_NAME_PROPERTY_ID}));
 
   protected StackConfigurationDependencyResourceProvider(Set<String> propertyIds,
                                                          Map<Type, String> keyPropertyIds,
@@ -77,7 +77,7 @@ public class StackConfigurationDependencyResourceProvider extends
       NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<StackConfigurationDependencyRequest> requests =
-      new HashSet<StackConfigurationDependencyRequest>();
+      new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -96,7 +96,7 @@ public class StackConfigurationDependencyResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (StackConfigurationDependencyResponse response : responses) {
       Resource resource = new ResourceImpl(Type.StackConfigurationDependency);

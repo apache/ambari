@@ -38,7 +38,7 @@ public class LessOperatorTest {
 
   @Test
   public void testToPredicate() {
-    assertEquals(new LessPredicate<String>("1", "2"),
+    assertEquals(new LessPredicate<>("1", "2"),
         new LessOperator().toPredicate("1", "2"));
   }
 

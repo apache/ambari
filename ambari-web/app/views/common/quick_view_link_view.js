@@ -98,7 +98,6 @@ App.QuickLinksView = Em.View.extend({
    *
    * The flags responsible for correct, up-to-date state of quick links:
    * - App.currentStackVersionNumber
-   * - App.singleNodeInstall
    * - App.router.clusterController.isHostComponentMetricsLoaded
    */
   setQuickLinks: function () {
@@ -107,7 +106,6 @@ App.QuickLinksView = Em.View.extend({
     }
   }.observes(
     'App.currentStackVersionNumber',
-    'App.singleNodeInstall',
     'App.router.clusterController.isServiceMetricsLoaded',
     'App.router.clusterController.isHostComponentMetricsLoaded',
     'App.router.clusterController.quickLinksUpdateCounter'
@@ -612,12 +610,6 @@ App.QuickLinksView = Em.View.extend({
   getHosts: function (response, serviceName) {
     //The default error message when we cannot obtain the host information for the given service
     this.set('quickLinksErrorMessage', Em.I18n.t('quick.links.error.nohosts.label').format(serviceName));
-    if (App.get('singleNodeInstall')) {
-      return [{
-        hostName: App.get('singleNodeAlias'),
-        publicHostName: App.get('singleNodeAlias')
-      }];
-    }
     var hosts = [];
     var quickLinkConfigs = App.QuickLinksConfig.find().findProperty("id", serviceName);
     if (quickLinkConfigs) {

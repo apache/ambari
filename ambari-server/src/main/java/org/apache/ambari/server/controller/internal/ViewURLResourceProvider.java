@@ -70,7 +70,7 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   /**
    * The key property ids for a view URL resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.ViewURL, URL_NAME_PROPERTY_ID);
   }
@@ -78,7 +78,7 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
   /**
    * The property ids for a view URL resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(URL_NAME_PROPERTY_ID);
     propertyIds.add(URL_SUFFIX_PROPERTY_ID);
@@ -180,7 +180,7 @@ public class ViewURLResourceProvider extends AbstractAuthorizedResourceProvider 
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 

@@ -196,7 +196,7 @@ public class TestActionScheduler {
 
     Host host = mock(Host.class);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname, sch);
     HostEntity hostEntity = new HostEntity();
     hostEntity.setHostName(hostname);
@@ -210,13 +210,12 @@ public class TestActionScheduler {
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
-    List<Stage> stages = new ArrayList<Stage>();
     Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
-    stages.add(s);
 
+    List<Stage> stages = Collections.singletonList(s);
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
@@ -295,7 +294,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
     Host host = mock(Host.class);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
@@ -307,20 +306,19 @@ public class TestActionScheduler {
     hostEntity.setHostName(hostname);
     hostDAO.create(hostEntity);
 
-    List<Stage> stages = new ArrayList<Stage>();
     final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
             "cluster1", "HDFS", false, false);
     s.setHostRoleStatus(hostname, "SECONDARY_NAMENODE", HostRoleStatus.IN_PROGRESS);
-    stages.add(s);
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
@@ -389,7 +387,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
     Host host = mock(Host.class);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
@@ -397,10 +395,10 @@ public class TestActionScheduler {
     when(host.getState()).thenReturn(HostState.HEARTBEAT_LOST);
     when(host.getHostName()).thenReturn(hostname);
 
-    final List<Stage> stages = new ArrayList<Stage>();
     final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
-    stages.add(s);
+
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
@@ -409,7 +407,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
 
@@ -464,7 +462,7 @@ public class TestActionScheduler {
     hostDAO.merge(hostEntity2);
 
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch1);
     hosts.put(hostname2, sch2);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
@@ -484,14 +482,13 @@ public class TestActionScheduler {
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
-    final List<Stage> stages = new ArrayList<Stage>();
     final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
       CLUSTER_HOST_INFO, "{\"command_param\":\"param_value\"}", "{\"host_param\":\"param_value\"}");
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.DATANODE,
       RoleCommand.INSTALL, Service.Type.HDFS, 1);
     addInstallTaskToStage(stage, hostname2, "cluster1", Role.NAMENODE,
       RoleCommand.INSTALL, Service.Type.HDFS, 2);
-    stages.add(stage);
+    final List<Stage> stages = Collections.singletonList(stage);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
@@ -500,7 +497,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
 
@@ -606,10 +603,9 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
 
-    List<Stage> stages = new ArrayList<Stage>();
-    Map<String, String> payload = new HashMap<String, String>();
+    Map<String, String> payload = new HashMap<>();
     final Stage s = getStageWithServerAction(1, 977, payload, "test", 1200, false, false);
-    stages.add(s);
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -620,7 +616,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -704,13 +700,13 @@ public class TestActionScheduler {
     String hostname1 = "ahost.ambari.apache.org";
     String hostname2 = "bhost.ambari.apache.org";
     HashMap<String, ServiceComponentHost> hosts =
-        new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch);
     hosts.put(hostname2, sch);
     hosts.put(Stage.INTERNAL_HOSTNAME, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     Stage stage01 = createStage(clusterName, 0, 1);
     addTask(stage01, Stage.INTERNAL_HOSTNAME, clusterName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, "AMBARI", 1);
 
@@ -737,7 +733,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     Properties properties = new Properties();
     properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "true");
@@ -766,11 +762,10 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
 
-    List<Stage> stages = new ArrayList<Stage>();
-    Map<String, String> payload = new HashMap<String, String>();
+    Map<String, String> payload = new HashMap<>();
     payload.put(MockServerAction.PAYLOAD_FORCE_FAIL, "timeout");
     final Stage s = getStageWithServerAction(1, 977, payload, "test", 2, false, false);
-    stages.add(s);
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -781,7 +776,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -946,7 +941,7 @@ public class TestActionScheduler {
     s.getExecutionCommands(null).get(0).getExecutionCommand().setRoleCommand(roleCommand);
 
     aq.enqueue(Stage.INTERNAL_HOSTNAME, s.getExecutionCommands(null).get(0).getExecutionCommand());
-    List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
+    List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
     Multimap<String, AgentCommand> commandsToEnqueue = ArrayListMultimap.create();
 
     boolean taskShouldBeSkipped = stageSupportsAutoSkip && autoSkipFailedTask;
@@ -981,11 +976,10 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
 
-    List<Stage> stages = new ArrayList<Stage>();
-    Map<String, String> payload = new HashMap<String, String>();
+    Map<String, String> payload = new HashMap<>();
     payload.put(MockServerAction.PAYLOAD_FORCE_FAIL, "exception");
     final Stage s = getStageWithServerAction(1, 977, payload, "test", 300, false, false);
-    stages.add(s);
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -996,7 +990,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     doAnswer(new Answer<Void>() {
       @Override
@@ -1105,48 +1099,52 @@ public class TestActionScheduler {
     String hostname3 = "chost.ambari.apache.org";
     String hostname4 = "chost.ambari.apache.org";
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch);
     hosts.put(hostname2, sch);
     hosts.put(hostname3, sch);
     hosts.put(hostname4, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    List<Stage> stages = new ArrayList<Stage>();
-    stages.add(
+    List<Stage> firstStageInProgressPerRequest = new ArrayList<>();
+
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.DATANODE,
                     RoleCommand.START, Service.Type.HDFS, 1, 1, 1));
-    stages.add( // Stage with the same hostname, should not be scheduled
+
+    // Stage with the same hostname, should not be scheduled
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname1, "cluster1", Role.GANGLIA_MONITOR,
                     RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
 
-    stages.add(
+    firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
                     hostname2, "cluster1", Role.DATANODE,
                     RoleCommand.START, Service.Type.HDFS, 3, 3, 3));
 
-    stages.add(
+    firstStageInProgressPerRequest.add(
         getStageWithSingleTask(
             hostname3, "cluster1", Role.DATANODE,
             RoleCommand.START, Service.Type.HDFS, 4, 4, 4));
-
-    stages.add( // Stage with the same request id, should not be scheduled
-        getStageWithSingleTask(
-            hostname4, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
 
+    List<String> blockingHostsRequest1 = new ArrayList<>();
+    when(hostRoleCommandDAOMock.getBlockingHostsForRequest(1, 1)).thenReturn(blockingHostsRequest1);
+
+    List<String> blockingHostsRequest2 = Lists.newArrayList(hostname1);
+    when(hostRoleCommandDAOMock.getBlockingHostsForRequest(1, 2)).thenReturn(blockingHostsRequest2);
+
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
-    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getCommandsInProgressCount()).thenReturn(firstStageInProgressPerRequest.size());
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgressPerRequest);
 
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
@@ -1158,11 +1156,10 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(0).getHostRoleStatus(hostname1, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.PENDING, firstStageInProgressPerRequest.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(2).getHostRoleStatus(hostname2, "DATANODE"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(3).getHostRoleStatus(hostname3, "DATANODE"));
   }
 
 
@@ -1189,22 +1186,22 @@ public class TestActionScheduler {
     String hostname3 = "chost.ambari.apache.org";
     String hostname4 = "chost.ambari.apache.org";
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch);
     hosts.put(hostname2, sch);
     hosts.put(hostname3, sch);
     hosts.put(hostname4, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     Stage stage = getStageWithSingleTask(
             hostname1, "cluster1", Role.HIVE_CLIENT,
             RoleCommand.INSTALL, Service.Type.HIVE, 1, 1, 1);
-    Map<String, String> hiveSite = new TreeMap<String, String>();
+    Map<String, String> hiveSite = new TreeMap<>();
     hiveSite.put("javax.jdo.option.ConnectionPassword", "password");
     hiveSite.put("hive.server2.thrift.port", "10000");
     Map<String, Map<String, String>> configurations =
-            new TreeMap<String, Map<String, String>>();
+      new TreeMap<>();
     configurations.put("hive-site", hiveSite);
     stage.getExecutionCommands(hostname1).get(0).getExecutionCommand().setConfigurations(configurations);
     stages.add(stage);
@@ -1238,7 +1235,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     Properties properties = new Properties();
     properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "false");
@@ -1282,12 +1279,12 @@ public class TestActionScheduler {
     String hostname1 = "ahost.ambari.apache.org";
     String hostname2 = "bhost.ambari.apache.org";
     HashMap<String, ServiceComponentHost> hosts =
-        new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch);
     hosts.put(hostname2, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     Stage backgroundStage = null;
     stages.add(//stage with background command
         backgroundStage = getStageWithSingleTask(
@@ -1315,7 +1312,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     Properties properties = new Properties();
     properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "true");
@@ -1352,14 +1349,18 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    final List<Stage> stages = new ArrayList<Stage>();
+    final List<Stage> stages = new ArrayList<>();
+
     stages.add(
         getStageWithSingleTask(
             hostname, "cluster1", Role.NAMENODE, RoleCommand.UPGRADE, Service.Type.HDFS, 1, 1, 1));
+
+    List<Stage> firstStageInProgress = Collections.singletonList(stages.get(0));
+
     stages.add(
         getStageWithSingleTask(
             hostname, "cluster1", Role.DATANODE, RoleCommand.UPGRADE, Service.Type.HDFS, 2, 2, 1));
@@ -1376,7 +1377,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgress);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -1465,7 +1466,7 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     reports.add(getCommandReport(HostRoleStatus.FAILED, Role.NAMENODE, Service.Type.HDFS, "1-1", 1));
     am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(stages.get(0).getOrderedHostRoleCommands()));
 
@@ -1501,7 +1502,7 @@ public class TestActionScheduler {
     String host2 = "host2";
     Host host = mock(Host.class);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(host1, sch);
     hosts.put(host2, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
@@ -1516,8 +1517,6 @@ public class TestActionScheduler {
     hostEntity2.setHostName(host2);
     hostDAO.create(hostEntity1);
     hostDAO.create(hostEntity2);
-
-    final List<Stage> stages = new ArrayList<Stage>();
 
     long now = System.currentTimeMillis();
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,
@@ -1545,7 +1544,7 @@ public class TestActionScheduler {
     addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
         RoleCommand.INSTALL, host2, "cluster1");
 
-    stages.add(stage);
+    final List<Stage> stages = Collections.singletonList(stage);
 
     HostRoleStatus[] statusesAtIterOne = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
         HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
@@ -1572,7 +1571,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -1717,7 +1716,7 @@ public class TestActionScheduler {
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
-    final List<Stage> stages = new ArrayList<Stage>();
+    final List<Stage> stages = new ArrayList<>();
 
     long now = System.currentTimeMillis();
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "testRequestFailureBasedOnSuccessFactor",
@@ -1740,7 +1739,9 @@ public class TestActionScheduler {
         "cluster1", Service.Type.HDFS.toString(), false, false);
     stage.getExecutionCommandWrapper("host3",
         Role.DATANODE.toString()).getExecutionCommand();
+
     stages.add(stage);
+    List<Stage> stageInProgress = Collections.singletonList(stage);
 
     stage.getOrderedHostRoleCommands().get(0).setTaskId(1);
     stage.getOrderedHostRoleCommands().get(1).setTaskId(2);
@@ -1758,8 +1759,8 @@ public class TestActionScheduler {
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
-    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getCommandsInProgressCount()).thenReturn(stageInProgress.size());
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stageInProgress);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -1838,7 +1839,7 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     reports.add(getCommandReport(HostRoleStatus.FAILED, Role.DATANODE, Service.Type.HDFS, "1-1", 1));
     am.processTaskResponse("host1", reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
 
@@ -1991,7 +1992,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
     Host host = mock(Host.class);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
@@ -2013,7 +2014,7 @@ public class TestActionScheduler {
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     when(db.getCommandsInProgressCount()).thenReturn(1);
-    when(db.getStagesInProgress()).thenReturn(Collections.singletonList(s1));
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(Collections.singletonList(s1));
 
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
@@ -2030,7 +2031,7 @@ public class TestActionScheduler {
     assertEquals(clusterHostInfo1, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
 
     when(db.getCommandsInProgressCount()).thenReturn(1);
-    when(db.getStagesInProgress()).thenReturn(Collections.singletonList(s2));
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(Collections.singletonList(s2));
 
     //Verify that ActionSheduler does not return cached value of cluster host info for new requestId
     ac = waitForQueueSize(hostname, aq, 1, scheduler);
@@ -2063,9 +2064,11 @@ public class TestActionScheduler {
     when(host1.getHostName()).thenReturn(hostname1);
     when(scomp.getServiceComponentHost(hostname1)).thenReturn(sch1);
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     hosts.put(hostname1, sch1);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
+
+    HostRoleCommandDAO hostRoleCommandDAO = mock(HostRoleCommandDAO.class);
 
     HostEntity hostEntity = new HostEntity();
     hostEntity.setHostName(hostname1);
@@ -2083,14 +2086,13 @@ public class TestActionScheduler {
                 "dummyService", "dummyComponent", "dummyHostname"));
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
-    final List<Stage> stages = new ArrayList<Stage>();
     Stage stage1 = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
             CLUSTER_HOST_INFO, "", "");
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_MASTER,
             RoleCommand.INSTALL, Service.Type.HBASE, 1);
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_REGIONSERVER,
             RoleCommand.INSTALL, Service.Type.HBASE, 2);
-    stages.add(stage1);
+    final List<Stage> stages = Collections.singletonList(stage1);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
@@ -2099,11 +2101,11 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50000, db, aq, fsm, 3,
         new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock,
-        (HostRoleCommandDAO)null, (HostRoleCommandFactory)null);
+        hostRoleCommandDAO, (HostRoleCommandFactory) null);
 
     final CountDownLatch abortCalls = new CountDownLatch(2);
 
@@ -2155,10 +2157,9 @@ public class TestActionScheduler {
     Clusters fsm = mock(Clusters.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
 
-    List<Stage> stages = new ArrayList<Stage>();
-    Map<String, String> payload = new HashMap<String, String>();
+    Map<String, String> payload = new HashMap<>();
     final Stage s = getStageWithServerAction(1, 977, payload, "test", 300, false, false);
-    stages.add(s);
+    List<Stage> stages = Collections.singletonList(s);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -2169,7 +2170,7 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stages);
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -2250,15 +2251,16 @@ public class TestActionScheduler {
     hostEntity.setHostName(hostname);
     hostDAO.create(hostEntity);
 
-    HashMap<String, ServiceComponentHost> hosts = new HashMap<String, ServiceComponentHost>();
+    HashMap<String, ServiceComponentHost> hosts = new HashMap<>();
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
     // Create a single request with 3 stages, each with a single task - the first stage will be completed and should not
     // be included when cancelling the unfinished tasks of the request
     long requestId = 1;
-    final List<Stage> allStages = new ArrayList<Stage>();
-    final List<Stage> stagesInProgress = new ArrayList<Stage>();
+    final List<Stage> allStages = new ArrayList<>();
+    final List<Stage> stagesInProgress = new ArrayList<>();
+    final List<Stage> firstStageInProgress = new ArrayList<>();
     final List<HostRoleCommand> tasksInProgress = new ArrayList<>();
     final List<HostRoleCommandEntity> hrcEntitiesInProgress = new ArrayList<>();
 
@@ -2279,6 +2281,7 @@ public class TestActionScheduler {
         Service.Type.HDFS, namenodeCmdTaskId, 2, (int) requestId);
 
     tasksInProgress.addAll(stageWithTask.getOrderedHostRoleCommands());
+    firstStageInProgress.add(stageWithTask);
     stagesInProgress.add(stageWithTask);
     allStages.add(stageWithTask);
 
@@ -2319,11 +2322,11 @@ public class TestActionScheduler {
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stagesInProgress.size());
-    when(db.getStagesInProgress()).thenReturn(stagesInProgress);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(stagesInProgress);
     when(db.getStagesInProgressForRequest(requestId)).thenReturn(stagesInProgress);
     when(db.getAllStages(anyLong())).thenReturn(allStages);
 
-    List<HostRoleCommand> requestTasks = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> requestTasks = new ArrayList<>();
 
     for (Stage stage : allStages) {
       requestTasks.addAll(stage.getOrderedHostRoleCommands());
@@ -2444,7 +2447,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     HashMap<String, ServiceComponentHost> hosts =
-            new HashMap<String, ServiceComponentHost>();
+      new HashMap<>();
     String hostname1 = "hostname1";
     String hostname2 = "hostname2";
     String hostname3 = "hostname3";
@@ -2458,26 +2461,34 @@ public class TestActionScheduler {
     long requestId2 = 2;
     long requestId3 = 3;
 
-    final List<Stage> stagesInProgress = new ArrayList<Stage>();
+    final List<Stage> firstStageInProgressByRequest = new ArrayList<>();
+    final List<Stage> stagesInProgress = new ArrayList<>();
     int namenodeCmdTaskId = 1;
-    stagesInProgress.add(
-            getStageWithSingleTask(
-                    hostname1, "cluster1", Role.NAMENODE, RoleCommand.START,
-                    Service.Type.HDFS, namenodeCmdTaskId, 1, (int) requestId1));
-    stagesInProgress.add(
-            getStageWithSingleTask(
-                    hostname1, "cluster1", Role.DATANODE, RoleCommand.START,
-                    Service.Type.HDFS, 2, 2, (int) requestId1));
-    stagesInProgress.add(
-            getStageWithSingleTask(
-                    hostname2, "cluster1", Role.DATANODE, RoleCommand.STOP, //Exclusive
-                    Service.Type.HDFS, 3, 3, (int) requestId2));
 
-    stagesInProgress.add(
-            getStageWithSingleTask(
-                    hostname3, "cluster1", Role.DATANODE, RoleCommand.START,
-                    Service.Type.HDFS, 4, 4, (int) requestId3));
+    Stage request1Stage1 = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
+        RoleCommand.START,
+        Service.Type.HDFS, namenodeCmdTaskId, 1, (int) requestId1);
 
+    Stage request1Stage2 = getStageWithSingleTask(hostname1, "cluster1", Role.DATANODE,
+        RoleCommand.START,
+        Service.Type.HDFS, 2, 2, (int) requestId1);
+
+    Stage request2Stage1 = getStageWithSingleTask(hostname2, "cluster1", Role.DATANODE,
+        RoleCommand.STOP, // Exclusive
+        Service.Type.HDFS, 3, 3, (int) requestId2);
+
+    Stage request3Stage1 = getStageWithSingleTask(hostname3, "cluster1", Role.DATANODE,
+        RoleCommand.START,
+        Service.Type.HDFS, 4, 4, (int) requestId3);
+
+    firstStageInProgressByRequest.add(request1Stage1);
+    firstStageInProgressByRequest.add(request2Stage1);
+    firstStageInProgressByRequest.add(request3Stage1);
+
+    stagesInProgress.add(request1Stage1);
+    stagesInProgress.add(request1Stage2);
+    stagesInProgress.add(request2Stage1);
+    stagesInProgress.add(request3Stage1);
 
     Host host1 = mock(Host.class);
     when(fsm.getHost(anyString())).thenReturn(host1);
@@ -2498,9 +2509,9 @@ public class TestActionScheduler {
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
     when(db.getCommandsInProgressCount()).thenReturn(stagesInProgress.size());
-    when(db.getStagesInProgress()).thenReturn(stagesInProgress);
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgressByRequest);
 
-    List<HostRoleCommand> requestTasks = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> requestTasks = new ArrayList<>();
     for (Stage stage : stagesInProgress) {
       requestTasks.addAll(stage.getOrderedHostRoleCommands());
     }
@@ -2547,7 +2558,7 @@ public class TestActionScheduler {
       }
     });
 
-    final Map<Long, Boolean> startedRequests = new HashMap<Long, Boolean>();
+    final Map<Long, Boolean> startedRequests = new HashMap<>();
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -2585,6 +2596,10 @@ public class TestActionScheduler {
     Assert.assertFalse(startedRequests.containsKey(requestId3));
 
     stagesInProgress.remove(0);
+    firstStageInProgressByRequest.clear();
+    firstStageInProgressByRequest.add(request1Stage2);
+    firstStageInProgressByRequest.add(request2Stage1);
+    firstStageInProgressByRequest.add(request3Stage1);
 
     scheduler.doWork();
 
@@ -2595,6 +2610,9 @@ public class TestActionScheduler {
     // Execution of request 2
 
     stagesInProgress.remove(0);
+    firstStageInProgressByRequest.clear();
+    firstStageInProgressByRequest.add(request2Stage1);
+    firstStageInProgressByRequest.add(request3Stage1);
 
     scheduler.doWork();
 
@@ -2605,6 +2623,8 @@ public class TestActionScheduler {
     // Execution of request 3
 
     stagesInProgress.remove(0);
+    firstStageInProgressByRequest.clear();
+    firstStageInProgressByRequest.add(request3Stage1);
 
     scheduler.doWork();
 
@@ -2705,7 +2725,7 @@ public class TestActionScheduler {
 
     String hostname1 = "ahost.ambari.apache.org";
 
-    HashMap<String, ServiceComponentHost> hosts = new HashMap<String, ServiceComponentHost>();
+    HashMap<String, ServiceComponentHost> hosts = new HashMap<>();
 
     hosts.put(hostname1, sch);
 
@@ -2714,7 +2734,8 @@ public class TestActionScheduler {
     // create 1 stage with 2 commands and then another stage with 1 command
     Stage stage = null;
     Stage stage2 = null;
-    final List<Stage> stages = new ArrayList<Stage>();
+    final List<Stage> stages = new ArrayList<>();
+    final List<Stage> firstStageInProgress = new ArrayList<>();
     stages.add(stage = getStageWithSingleTask(hostname1, "cluster1", Role.NAMENODE,
         RoleCommand.STOP, Service.Type.HDFS, 1, 1, 1));
 
@@ -2735,6 +2756,9 @@ public class TestActionScheduler {
     HostRoleCommand command = stage.getOrderedHostRoleCommands().iterator().next();
     command.setStatus(HostRoleStatus.FAILED);
 
+    // still in progress even though 1 task has been failed
+    firstStageInProgress.add(stage);
+
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     Mockito.doNothing().when(hostRoleCommandDAOMock).publishTaskCreateEvent(anyListOf(HostRoleCommand.class));
@@ -2743,8 +2767,8 @@ public class TestActionScheduler {
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
-    when(db.getCommandsInProgressCount()).thenReturn(stages.size());
-    when(db.getStagesInProgress()).thenReturn(stages);
+    when(db.getCommandsInProgressCount()).thenReturn(firstStageInProgress.size());
+    when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgress);
 
     doAnswer(new Answer<Void>() {
       @Override

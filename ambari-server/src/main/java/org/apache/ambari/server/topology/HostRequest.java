@@ -70,14 +70,14 @@ public class HostRequest implements Comparable<HostRequest> {
   private boolean isOutstanding = true;
   private final boolean skipFailure;
 
-  private Map<TopologyTask, Map<String, Long>> logicalTaskMap = new HashMap<TopologyTask, Map<String, Long>>();
+  private Map<TopologyTask, Map<String, Long>> logicalTaskMap = new HashMap<>();
 
-  Map<Long, HostRoleCommand> logicalTasks = new HashMap<Long, HostRoleCommand>();
+  Map<Long, HostRoleCommand> logicalTasks = new HashMap<>();
 
   // logical task id -> physical tasks
-  private Map<Long, Long> physicalTasks = new HashMap<Long, Long>();
+  private Map<Long, Long> physicalTasks = new HashMap<>();
 
-  private List<TopologyTask> topologyTasks = new ArrayList<TopologyTask>();
+  private List<TopologyTask> topologyTasks = new ArrayList<>();
 
   private ClusterTopology topology;
 
@@ -346,7 +346,7 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   public Map<String, Long> getLogicalTasksForTopologyTask(TopologyTask topologyTask) {
-    return new HashMap<String, Long>(logicalTaskMap.get(topologyTask));
+    return new HashMap<>(logicalTaskMap.get(topologyTask));
   }
 
   public HostRoleCommand getLogicalTask(long logicalTaskId) {
@@ -354,7 +354,7 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   public Collection<HostRoleCommandEntity> getTaskEntities() {
-    Collection<HostRoleCommandEntity> taskEntities = new ArrayList<HostRoleCommandEntity>();
+    Collection<HostRoleCommandEntity> taskEntities = new ArrayList<>();
     for (HostRoleCommand task : logicalTasks.values()) {
       HostRoleCommandEntity entity = task.constructNewPersistenceEntity();
       // the above method doesn't set all of the fields for some unknown reason

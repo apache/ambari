@@ -102,7 +102,7 @@ public class TestActionManager {
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setTaskId(1);
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -143,7 +143,7 @@ public class TestActionManager {
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setTaskId(2);
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -180,7 +180,7 @@ public class TestActionManager {
     Assert.assertEquals(stageId, stage.getStageId());
     stage.setHostRoleStatus(hostname, "HBASE_MASTER", HostRoleStatus.QUEUED);
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setTaskId(1);
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -219,7 +219,7 @@ public class TestActionManager {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
             hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
@@ -236,7 +236,7 @@ public class TestActionManager {
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER.toString(),
           hostname, System.currentTimeMillis()), "cluster1", "HBASE", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, clusters);
     db.persistActions(request);
@@ -270,7 +270,7 @@ public class TestActionManager {
     Clusters clusters = createNiceMock(Clusters.class);
     Stage stage1 = createNiceMock(Stage.class);
     Stage stage2 = createNiceMock(Stage.class);
-    List<Stage> listStages = new ArrayList<Stage>();
+    List<Stage> listStages = new ArrayList<>();
     listStages.add(stage1);
     listStages.add(stage2);
 

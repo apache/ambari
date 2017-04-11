@@ -43,7 +43,7 @@ public class NotLogicalExpression extends LogicalExpression {
   @Override
   public List<Expression> merge(Expression left, Expression right, int precedence) {
     if (getOperator().getPrecedence() == precedence && getRightOperand() == null) {
-      List<Expression> listExpressions = new ArrayList<Expression>();
+      List<Expression> listExpressions = new ArrayList<>();
       if (left != null) {
         listExpressions.add(left);
       }

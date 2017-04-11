@@ -82,7 +82,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<OperatingSystemRequest> requests = new HashSet<OperatingSystemRequest>();
+    final Set<OperatingSystemRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -101,7 +101,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (OperatingSystemResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.OperatingSystem);

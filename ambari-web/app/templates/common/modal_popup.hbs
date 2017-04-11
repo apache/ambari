@@ -18,15 +18,15 @@
 
 
 <div class="modal-backdrop in"></div>
-<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
+<div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true" {{QAAttr "modal"}}>
   <div {{bindAttr class="view.modalDialogClassesStr :modal-dialog"}}>
     <div class="modal-content">
       {{! Modal header }}
-      <div class="modal-header">
+      <div class="modal-header" {{QAAttr "modal-header"}}>
         {{#if view.showCloseButton}}
-          <a class="close" {{action onClose target="view"}}>&times;</a>
+          <a {{QAAttr "close-modal"}} class="close" {{action onClose target="view"}}>&times;</a>
         {{/if}}
-        <h4 id="modal-label">
+        <h4 {{QAAttr "modal-title"}} id="modal-label">
           {{#if view.headerClass}}
             {{view view.headerClass}}
           {{else}}
@@ -36,7 +36,7 @@
       </div>
 
       {{! Modal Body }}
-      <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}}>
+      <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}} {{QAAttr "modal-body"}}>
         {{#if view.bodyClass}}
           {{view view.bodyClass}}
         {{else}}
@@ -54,15 +54,15 @@
         {{else}}
           <div class="modal-footer">
             {{#if view.third}}
-              <button
+              <button {{QAAttr "modal-tertiary"}}
                 {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass" id="view.thirdId"}}
                 {{action onThird target="view"}}>
                   {{view.third}}
-              </button>{{/if}}{{#if view.secondary}}<button
+              </button>{{/if}}{{#if view.secondary}}<button {{QAAttr "modal-secondary"}}
                 {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass" id="view.secondaryId"}}
                 {{action onSecondary target="view"}}>
                   {{view.secondary}}
-              </button>{{/if}}{{#if view.primary}}<button
+              </button>{{/if}}{{#if view.primary}}<button {{QAAttr "modal-primary"}}
                 {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass" id="view.primaryId"}}
                 {{action onPrimary target="view"}}>
                   {{view.primary}}

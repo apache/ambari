@@ -57,7 +57,7 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
 
   @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
@@ -108,11 +108,11 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     child.setProperty("href", "this is an href");
 
     // resource properties
-    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapRootProps = new LinkedHashMap<>();
     mapRootProps.put("prop2", "value2");
     mapRootProps.put("prop1", "value1");
 
-    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
@@ -166,15 +166,15 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     child.setProperty("href", "this is an href");
 
     // resource properties
-    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
+    HashMap<String, Object> mapRootProps = new HashMap<>();
     mapRootProps.put("prop1", "value1");
     mapRootProps.put("prop2", "value2");
 
-    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    HashMap<String, Object> mapCategoryProps = new HashMap<>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new HashMap<>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);

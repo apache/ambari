@@ -35,9 +35,9 @@ public class HeartBeat {
   private long responseId = -1;
   private long timestamp;
   private String hostname;
-  List<CommandReport> reports = new ArrayList<CommandReport>();
-  List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
-  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
+  List<CommandReport> reports = new ArrayList<>();
+  List<ComponentStatus> componentStatus = new ArrayList<>();
+  private List<DiskInfo> mounts = new ArrayList<>();
   HostStatus nodeStatus;
   private AgentEnv agentEnv = null;
   private List<Alert> alerts = null;

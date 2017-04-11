@@ -48,8 +48,8 @@ public class UpgradeCheckRegistry {
   /**
    * The list of upgrade checks to run through.
    */
-  private Set<AbstractCheckDescriptor> m_upgradeChecks = new TreeSet<AbstractCheckDescriptor>(
-      new PreUpgradeCheckComparator());
+  private Set<AbstractCheckDescriptor> m_upgradeChecks = new TreeSet<>(
+    new PreUpgradeCheckComparator());
 
   /**
    * Register an upgrade check.
@@ -67,12 +67,12 @@ public class UpgradeCheckRegistry {
    * @return
    */
   public List<AbstractCheckDescriptor> getUpgradeChecks() {
-    return new ArrayList<AbstractCheckDescriptor>(m_upgradeChecks);
+    return new ArrayList<>(m_upgradeChecks);
   }
 
   public List<AbstractCheckDescriptor> getServiceLevelUpgradeChecks(UpgradePack upgradePack, Map<String, ServiceInfo> services) {
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<String> missingChecks = new ArrayList<String>();
+    List<String> missingChecks = new ArrayList<>();
     for (String prerequisiteCheck : prerequisiteChecks) {
       if (!isRegistered(prerequisiteCheck)) {
         missingChecks.add(prerequisiteCheck);
@@ -84,7 +84,7 @@ public class UpgradeCheckRegistry {
       return checks;
     }
 
-    List<URL> urls = new ArrayList<URL>();
+    List<URL> urls = new ArrayList<>();
     for (ServiceInfo service : services.values()) {
       File dir = service.getChecksFolder();
       File[] jars = dir.listFiles(new FilenameFilter() {
@@ -142,7 +142,7 @@ public class UpgradeCheckRegistry {
    */
   public List<AbstractCheckDescriptor> getFilteredUpgradeChecks(UpgradePack upgradePack){
     List<String> prerequisiteChecks = upgradePack.getPrerequisiteChecks();
-    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> resultCheckDescriptor = new ArrayList<>();
     for (AbstractCheckDescriptor descriptor: m_upgradeChecks){
       if (descriptor.isRequired(upgradePack.getType())) {
         resultCheckDescriptor.add(descriptor);

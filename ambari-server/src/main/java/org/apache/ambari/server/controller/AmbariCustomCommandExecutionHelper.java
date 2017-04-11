@@ -144,7 +144,7 @@ public class AmbariCustomCommandExecutionHelper {
   private final static String ALIGN_MAINTENANCE_STATE = "align_maintenance_state";
 
   public final static int MIN_STRICT_SERVICE_CHECK_TIMEOUT = 120;
-  
+
   @Inject
   private ActionMetadata actionMetadata;
 
@@ -378,6 +378,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       //set type background
       if(customCommandDefinition != null && customCommandDefinition.isBackground()){
+        cmd.setBackgroundCommand(true);
         execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
       }
 

@@ -330,7 +330,7 @@ public class UpgradeCatalog220Test {
     Clusters clusters = createNiceMock(Clusters.class);
     expect(amc.getClusters()).andReturn(clusters);
 
-    Map<String, Cluster> clusterHashMap = new HashMap<String, Cluster>();
+    Map<String, Cluster> clusterHashMap = new HashMap<>();
     Cluster cluster = createNiceMock(Cluster.class);
     clusterHashMap.put(clusterName, cluster);
     expect(clusters.getClusters()).andReturn(clusterHashMap);
@@ -378,7 +378,7 @@ public class UpgradeCatalog220Test {
     expect(clusterEntity.getClusterName()).andReturn(clusterName).anyTimes();
     expect(clusterDAO.findByName(anyObject(String.class))).andReturn(clusterEntity);
 
-    Collection<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    Collection<HostEntity> hostEntities = new ArrayList<>();
     HostEntity hostEntity1 = createNiceMock(HostEntity.class);
     HostEntity hostEntity2 = createNiceMock(HostEntity.class);
     expect(hostEntity1.getHostName()).andReturn("host1");
@@ -594,7 +594,7 @@ public class UpgradeCatalog220Test {
 
     final Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHdfs = new HashMap<>();
     propertiesExpectedHdfs.put("dfs.namenode.rpc-address", "nn.rpc.address");
     propertiesExpectedHdfs.put("dfs.nameservices", "nn1");
     propertiesExpectedHdfs.put("dfs.ha.namenodes.nn1", "value");
@@ -1580,7 +1580,7 @@ public class UpgradeCatalog220Test {
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
 
     // We start with no client properties (< 2.2.0).
-    final Map<String, String> originalClientProperties = new HashMap<String, String>();
+    final Map<String, String> originalClientProperties = new HashMap<>();
     // And should get the following property on upgrade.
     final Map<String, String> updatedClientProperties = new HashMap<String, String>() {
       {

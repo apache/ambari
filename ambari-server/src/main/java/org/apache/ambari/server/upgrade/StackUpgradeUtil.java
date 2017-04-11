@@ -52,7 +52,7 @@ public class StackUpgradeUtil {
   public void updateStackDetails(String stackName, String stackVersion) {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    List<Long> clusterIds = new ArrayList<Long>();
+    List<Long> clusterIds = new ArrayList<>();
 
     StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
 

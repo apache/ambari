@@ -25,26 +25,24 @@
       <table class="table table-hover">
         <thead>
         <tr>
-          <th class="col-md-3">{{t common.service}}</th>
-          <th id="service-version">{{t common.version}}</th>
-          <th id="service-description">{{t common.description}}</th>
+          <th {{QAAttr "service-name-header"}} class="col-md-3">{{t common.service}}</th>
+          <th {{QAAttr "service-version-header"}} id="service-version">{{t common.version}}</th>
+          <th {{QAAttr "service-description-header"}} id="service-description">{{t common.description}}</th>
           <th>
-            {{view App.CheckboxView disabledBinding="isInstalled" checkedBinding="isAllChecked"}}
+            {{view App.CheckboxView data-qa="toggle-all" disabledBinding="isInstalled" checkedBinding="isAllChecked"}}
           </th>
         </tr>
         </thead>
         <tbody>
         {{#each controller}}
           {{#unless isHiddenOnSelectServicePage}}
-            <tr {{bindAttr class="isSelected:active isSelected:service-selected"}}>
-              <td>
-                <div class="checkbox">{{displayNameOnSelectServicePage}}</div>
-              </td>
-              <td>{{serviceVersionDisplay}}</td>
-              <td>{{{comments}}}</td>
+            <tr {{QAAttr "service-row"}} {{bindAttr class="isSelected:active isSelected:service-selected"}}>
+              <td {{QAAttr "service-name"}}>{{displayNameOnSelectServicePage}}</td>
+              <td {{QAAttr "service-version"}}>{{serviceVersionDisplay}}</td>
+              <td {{QAAttr "service-description"}}>{{{comments}}}</td>
               <td>
                 <div class="checkbox">
-                  {{view App.CheckboxView checkboxClassNamesBinding="serviceName"
+                  {{view App.CheckboxView checkboxClassNamesBinding="serviceName" data-qa="toggle-service"
                   disabledBinding="isDisabled"
                   checkedBinding="isSelected"
                   }}

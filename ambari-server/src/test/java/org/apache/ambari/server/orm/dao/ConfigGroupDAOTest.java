@@ -104,7 +104,7 @@ public class ConfigGroupDAOTest {
     configGroupDAO.create(configGroupEntity);
 
     if (hosts != null && !hosts.isEmpty()) {
-      List<ConfigGroupHostMappingEntity> hostMappingEntities = new ArrayList<ConfigGroupHostMappingEntity>();
+      List<ConfigGroupHostMappingEntity> hostMappingEntities = new ArrayList<>();
 
       for (HostEntity host : hosts) {
         host.setClusterEntities(Arrays.asList(clusterEntity));
@@ -124,7 +124,7 @@ public class ConfigGroupDAOTest {
 
     if (configs != null && !configs.isEmpty()) {
       List<ConfigGroupConfigMappingEntity> configMappingEntities = new
-        ArrayList<ConfigGroupConfigMappingEntity>();
+        ArrayList<>();
 
       for (ClusterConfigEntity config : configs) {
         config.setClusterEntity(clusterEntity);
@@ -204,7 +204,7 @@ public class ConfigGroupDAOTest {
 
   @Test
   public void testFindByHost() throws Exception {
-    List<HostEntity> hosts = new ArrayList<HostEntity>();
+    List<HostEntity> hosts = new ArrayList<>();
     // Partially constructed HostEntity that will persisted in {@link createConfigGroup}
     HostEntity hostEntity = new HostEntity();
     hostEntity.setHostName("h1");
@@ -244,7 +244,7 @@ public class ConfigGroupDAOTest {
     configEntity.setStack(stackEntity);
 
     List<ClusterConfigEntity> configEntities = new
-      ArrayList<ClusterConfigEntity>();
+      ArrayList<>();
     configEntities.add(configEntity);
 
     ConfigGroupEntity configGroupEntity =

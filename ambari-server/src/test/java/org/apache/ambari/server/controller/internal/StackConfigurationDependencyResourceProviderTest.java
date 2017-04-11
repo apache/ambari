@@ -45,7 +45,7 @@ public class StackConfigurationDependencyResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<StackConfigurationDependencyResponse> allResponse = new HashSet<StackConfigurationDependencyResponse>();
+    Set<StackConfigurationDependencyResponse> allResponse = new HashSet<>();
     
     allResponse.add(new StackConfigurationDependencyResponse("depName", "depType"));
    
@@ -62,7 +62,7 @@ public class StackConfigurationDependencyResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(StackConfigurationDependencyResourceProvider.STACK_NAME_PROPERTY_ID);
     propertyIds.add(StackConfigurationDependencyResourceProvider.STACK_VERSION_PROPERTY_ID);

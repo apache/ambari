@@ -83,9 +83,9 @@ public class StageUtils {
   protected static final String RACKS = "all_racks";
   protected static final String IPV4_ADDRESSES = "all_ipv4_ips";
   private static Map<String, String> componentToClusterInfoKeyMap =
-      new HashMap<String, String>();
+    new HashMap<>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
-      new HashMap<String, String>();
+    new HashMap<>();
   private volatile static Gson gson;
 
   @Inject
@@ -216,32 +216,32 @@ public class StageUtils {
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
 
     execCmd.setRequestAndStage(s.getRequestId(), s.getStageId());
-    List<String> slaveHostList = new ArrayList<String>();
+    List<String> slaveHostList = new ArrayList<>();
     slaveHostList.add(hostname);
     slaveHostList.add("host2");
-    Map<String, String> hdfsSite = new TreeMap<String, String>();
+    Map<String, String> hdfsSite = new TreeMap<>();
     hdfsSite.put("dfs.block.size", "2560000000");
     Map<String, Map<String, String>> configurations =
-        new TreeMap<String, Map<String, String>>();
+      new TreeMap<>();
     configurations.put("hdfs-site", hdfsSite);
     execCmd.setConfigurations(configurations);
     Map<String, Map<String, Map<String, String>>> configurationAttributes =
-        new TreeMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> hdfsSiteAttributes = new TreeMap<String, Map<String, String>>();
-    Map<String, String> finalAttribute = new TreeMap<String, String>();
+      new TreeMap<>();
+    Map<String, Map<String, String>> hdfsSiteAttributes = new TreeMap<>();
+    Map<String, String> finalAttribute = new TreeMap<>();
     finalAttribute.put("dfs.block.size", "true");
     hdfsSiteAttributes.put("final", finalAttribute);
     configurationAttributes.put("hdfsSite", hdfsSiteAttributes);
     execCmd.setConfigurationAttributes(configurationAttributes);
-    Map<String, String> params = new TreeMap<String, String>();
+    Map<String, String> params = new TreeMap<>();
     params.put("jdklocation", "/x/y/z");
     params.put("stack_version", "1.2.0");
     params.put("stack_name", "HDP");
     execCmd.setHostLevelParams(params);
-    Map<String, String> roleParams = new TreeMap<String, String>();
+    Map<String, String> roleParams = new TreeMap<>();
     roleParams.put("format", "false");
     execCmd.setRoleParams(roleParams);
-    Map<String, String> commandParams = new TreeMap<String, String>();
+    Map<String, String> commandParams = new TreeMap<>();
     commandParams.put(ExecutionCommand.KeyNames.COMMAND_TIMEOUT, "600");
     execCmd.setCommandParams(commandParams);
     return s;
@@ -266,10 +266,10 @@ public class StageUtils {
 
   public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
     //Fill hosts and ports lists
-    Set<String>   hostsSet  = new LinkedHashSet<String>();
-    List<Integer> portsList = new ArrayList<Integer>();
-    List<String>  rackList  = new ArrayList<String>();
-    List<String>  ipV4List  = new ArrayList<String>();
+    Set<String>   hostsSet  = new LinkedHashSet<>();
+    List<Integer> portsList = new ArrayList<>();
+    List<String>  rackList  = new ArrayList<>();
+    List<String>  ipV4List  = new ArrayList<>();
 
     Collection<Host> allHosts = cluster.getHosts();
     for (Host host : allHosts) {
@@ -297,11 +297,11 @@ public class StageUtils {
       }
     }
 
-    List<String> hostsList = new ArrayList<String>(hostsSet);
-    Map<String, String> additionalComponentToClusterInfoKeyMap = new HashMap<String, String>();
+    List<String> hostsList = new ArrayList<>(hostsSet);
+    Map<String, String> additionalComponentToClusterInfoKeyMap = new HashMap<>();
 
     // Fill hosts for services
-    Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<String, SortedSet<Integer>>();
+    Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<>();
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
 
       Service service = serviceEntry.getValue();
@@ -332,7 +332,7 @@ public class StageUtils {
             SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
 
             if (hostsForComponentsHost == null) {
-              hostsForComponentsHost = new TreeSet<Integer>();
+              hostsForComponentsHost = new TreeSet<>();
               hostRolesInfo.put(roleName, hostsForComponentsHost);
             }
 
@@ -347,7 +347,7 @@ public class StageUtils {
               SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(decomRoleName);
 
               if (hostsForComponentsHost == null) {
-                hostsForComponentsHost = new TreeSet<Integer>();
+                hostsForComponentsHost = new TreeSet<>();
                 hostRolesInfo.put(decomRoleName, hostsForComponentsHost);
               }
 
@@ -387,7 +387,7 @@ public class StageUtils {
           SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
 
           if (hostsForComponentsHost == null) {
-            hostsForComponentsHost = new TreeSet<Integer>();
+            hostsForComponentsHost = new TreeSet<>();
             hostRolesInfo.put(roleName, hostsForComponentsHost);
           }
 
@@ -406,10 +406,10 @@ public class StageUtils {
       }
     }
 
-    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+    Map<String, Set<String>> clusterHostInfo = new HashMap<>();
 
     for (Map.Entry<String, SortedSet<Integer>> entry : hostRolesInfo.entrySet()) {
-      TreeSet<Integer> sortedSet = new TreeSet<Integer>(entry.getValue());
+      TreeSet<Integer> sortedSet = new TreeSet<>(entry.getValue());
 
       Set<String> replacedRangesSet = replaceRanges(sortedSet);
 
@@ -452,7 +452,7 @@ public class StageUtils {
    * @throws AmbariException if an index fails to map to a host name
    */
   public static Map<String, Set<String>> substituteHostIndexes(Map<String, Set<String>> clusterHostInfo) throws AmbariException {
-    Set<String> keysToSkip = new HashSet<String>(Arrays.asList(HOSTS_LIST, PORTS, AMBARI_SERVER_HOST, AMBARI_SERVER_PORT, AMBARI_SERVER_USE_SSL, RACKS, IPV4_ADDRESSES));
+    Set<String> keysToSkip = new HashSet<>(Arrays.asList(HOSTS_LIST, PORTS, AMBARI_SERVER_HOST, AMBARI_SERVER_PORT, AMBARI_SERVER_USE_SSL, RACKS, IPV4_ADDRESSES));
     String[] allHosts = {};
     if (clusterHostInfo.get(HOSTS_LIST) != null) {
       allHosts = clusterHostInfo.get(HOSTS_LIST).toArray(new String[clusterHostInfo.get(HOSTS_LIST).size()]);
@@ -462,7 +462,7 @@ public class StageUtils {
       if (keysToSkip.contains(key)) {
         continue;
       }
-      Set<String> hosts = new HashSet<String>();
+      Set<String> hosts = new HashSet<>();
       Set<String> currentHostsIndexes = clusterHostInfo.get(key);
       if (currentHostsIndexes == null) {
         continue;
@@ -497,7 +497,7 @@ public class StageUtils {
       return null;
     }
 
-    Set<String> rangedSet = new HashSet<String>();
+    Set<String> rangedSet = new HashSet<>();
 
     Integer prevElement = null;
     Integer startOfRange = set.first();
@@ -528,7 +528,7 @@ public class StageUtils {
    */
   public static <T> Set<String> replaceMappedRanges(List<T> values) {
 
-    Map<T, SortedSet<Integer>> convolutedValues = new HashMap<T, SortedSet<Integer>>();
+    Map<T, SortedSet<Integer>> convolutedValues = new HashMap<>();
 
     int valueIndex = 0;
 
@@ -537,14 +537,14 @@ public class StageUtils {
       SortedSet<Integer> correspValues = convolutedValues.get(value);
 
       if (correspValues == null) {
-        correspValues = new TreeSet<Integer>();
+        correspValues = new TreeSet<>();
         convolutedValues.put(value, correspValues);
       }
       correspValues.add(valueIndex);
       valueIndex++;
     }
 
-    Set<String> result = new HashSet<String>();
+    Set<String> result = new HashSet<>();
 
     for (Entry<T, SortedSet<Integer>> entry : convolutedValues.entrySet()) {
       Set<String> replacedRanges = replaceRanges(entry.getValue());
@@ -567,7 +567,7 @@ public class StageUtils {
    * @return a set of integers representing the original range
    */
   private static Set<Integer> rangeToSet(String range) {
-    Set<Integer> indexSet = new HashSet<Integer>();
+    Set<Integer> indexSet = new HashSet<>();
     int startIndex;
     int endIndex;
     if (range.contains("-")) {

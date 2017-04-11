@@ -90,7 +90,7 @@ public class RequestExecutionTest {
     batchSettings.setTaskFailureToleranceLimit(10);
     batches.setBatchSettings(batchSettings);
 
-    List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();
+    List<BatchRequest> batchRequests = new ArrayList<>();
     BatchRequest batchRequest1 = new BatchRequest();
     batchRequest1.setOrderId(10L);
     batchRequest1.setType(BatchRequest.Type.DELETE);
@@ -172,7 +172,7 @@ public class RequestExecutionTest {
     // Remove host and add host
     Batch batches = new Batch();
 
-    List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();
+    List<BatchRequest> batchRequests = new ArrayList<>();
     BatchRequest batchRequest1 = new BatchRequest();
     batchRequest1.setOrderId(10L);
     batchRequest1.setType(BatchRequest.Type.PUT);

@@ -71,7 +71,7 @@ public class HiveMultipleMetastoreCheckTest {
 
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     services.put("HDFS", Mockito.mock(Service.class));
@@ -107,7 +107,7 @@ public class HiveMultipleMetastoreCheckTest {
 
     Mockito.when(hive.getServiceComponent("HIVE_METASTORE")).thenReturn(metastore);
 
-    Map<String, ServiceComponentHost> metastores = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> metastores = new HashMap<>();
     Mockito.when(metastore.getServiceComponentHosts()).thenReturn(metastores);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
@@ -129,10 +129,10 @@ public class HiveMultipleMetastoreCheckTest {
   @Test
   public void testPerformFail() throws Exception{
     final Cluster cluster = Mockito.mock(Cluster.class);
-    final LinkedHashSet<String> failedOnExpected = new LinkedHashSet<String>();
+    final LinkedHashSet<String> failedOnExpected = new LinkedHashSet<>();
     Service hive = Mockito.mock(Service.class);
     ServiceComponent metastore = Mockito.mock(ServiceComponent.class);
-    Map<String, ServiceComponentHost> metastores = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> metastores = new HashMap<>();
 
     failedOnExpected.add("HIVE");
 

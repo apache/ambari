@@ -72,12 +72,12 @@ public class ProcessingPredicateVisitor implements PredicateVisitor {
   /**
    * The set of sub-resource categories.
    */
-  private final Set<String> subResourceCategories = new HashSet<String>();
+  private final Set<String> subResourceCategories = new HashSet<>();
 
   /**
    * The set of sub-resource properties.
    */
-  private final Set<String> subResourceProperties = new HashSet<String>();
+  private final Set<String> subResourceProperties = new HashSet<>();
 
 
   // ----- Constructors ----------------------------------------------------
@@ -115,7 +115,7 @@ public class ProcessingPredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate arrayPredicate) {
-    List<Predicate> predicateList = new LinkedList<Predicate>();
+    List<Predicate> predicateList = new LinkedList<>();
 
     Predicate[] predicates = arrayPredicate.getPredicates();
     if (predicates.length > 0) {

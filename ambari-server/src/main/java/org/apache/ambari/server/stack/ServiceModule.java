@@ -71,23 +71,23 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Map of child configuration modules keyed by configuration type
    */
   private Map<String, ConfigurationModule> configurationModules =
-      new HashMap<String, ConfigurationModule>();
+    new HashMap<>();
 
   /**
    * Map of child component modules keyed by component name
    */
   private Map<String, ComponentModule> componentModules =
-      new HashMap<String, ComponentModule>();
+    new HashMap<>();
 
   /**
    * Map of themes, single value currently
    */
-  private Map<String, ThemeModule> themeModules = new HashMap<String, ThemeModule>();
+  private Map<String, ThemeModule> themeModules = new HashMap<>();
 
   /**
    * Map of quicklinks, single value currently
    */
-  private Map<String, QuickLinksConfigurationModule> quickLinksConfigurationModules = new HashMap<String, QuickLinksConfigurationModule>();
+  private Map<String, QuickLinksConfigurationModule> quickLinksConfigurationModules = new HashMap<>();
 
   /**
    * Encapsulates IO operations on service directory
@@ -108,6 +108,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Logger
    */
   private final static Logger LOG = LoggerFactory.getLogger(ServiceModule.class);
+
+  /**
+   * Most of the services contain at least one config type.
+   * However, there are special cases on third party stacks
+   * that certain services do not have any config types.
+   * */
+  private boolean hasConfigs = true;
 
   /**
    * Constructor.
@@ -271,6 +278,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setSelection(parent.getSelection());
     }
 
+    if(null == serviceInfo.getSupportDeleteViaUIField()){
+      serviceInfo.setSupportDeleteViaUI(parent.isSupportDeleteViaUI());
+    }
+
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices, extensions);
@@ -430,7 +441,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     String themesDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getThemesDir();
 
     if (serviceInfo.getThemes() != null) {
-      List<ThemeInfo> themes = new ArrayList<ThemeInfo>(serviceInfo.getThemes().size());
+      List<ThemeInfo> themes = new ArrayList<>(serviceInfo.getThemes().size());
       for (ThemeInfo themeInfo : serviceInfo.getThemes()) {
         File themeFile = new File(themesDir + File.separator + themeInfo.getFileName());
         ThemeModule module = new ThemeModule(themeFile, themeInfo);
@@ -559,7 +570,6 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
     Collection<ConfigurationModule> mergedModules = mergeChildModules(
         allStacks, commonServices, extensions, configurationModules, parent.configurationModules);
-
     for (ConfigurationModule module : mergedModules) {
       configurationModules.put(module.getId(), module);
       if(!module.isDeleted()) {
@@ -602,7 +612,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   private void mergeCustomCommands(Collection<CustomCommandDefinition> parentCmds,
                                    Collection<CustomCommandDefinition> childCmds) {
 
-    Collection<String> existingNames = new HashSet<String>();
+    Collection<String> existingNames = new HashSet<>();
 
     for (CustomCommandDefinition childCmd : childCmds) {
       existingNames.add(childCmd.getName());
@@ -619,6 +629,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Ensure that all default type attributes are set.
    */
   private void finalizeConfiguration() {
+    LOG.debug(String.format("Finalize config, number of configuration modules %s", configurationModules.size()));
+    hasConfigs = !(configurationModules.isEmpty());
+    LOG.debug(String.format("Finalize config, hasConfigs %s", hasConfigs));
+
     for (ConfigurationModule config : configurationModules.values()) {
       ConfigurationInfo configInfo = config.getModuleInfo();
       configInfo.ensureDefaultAttributes();
@@ -636,7 +650,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {
@@ -668,6 +682,12 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
   }
 
+  /**
+   * Whether the service is a special case where it does not include any config types
+   * */
+  public boolean hasConfigs(){
+    return hasConfigs;
+  }
 
   @Override
   public String toString() {

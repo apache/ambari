@@ -79,9 +79,9 @@ public class TaskResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID, 100);
@@ -134,7 +134,7 @@ public class TaskResourceProviderTest {
     // replay
     replay(hostRoleCommandDAO);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
@@ -198,7 +198,7 @@ public class TaskResourceProviderTest {
     // replay
     replay(hostRoleCommandDAO, topologyManager);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
@@ -242,7 +242,7 @@ public class TaskResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);

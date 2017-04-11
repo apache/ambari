@@ -21,7 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.commons.collections.map.HashedMap;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -59,48 +62,48 @@ public class KerberosDescriptorTest {
   public static final Map<String, Object> MAP_VALUE;
 
   static {
-    Map<String, Object> keytabOwnerMap = new TreeMap<String, Object>();
+    Map<String, Object> keytabOwnerMap = new TreeMap<>();
     keytabOwnerMap.put("name", "root");
     keytabOwnerMap.put("access", "rw");
 
-    Map<String, Object> keytabGroupMap = new TreeMap<String, Object>();
+    Map<String, Object> keytabGroupMap = new TreeMap<>();
     keytabGroupMap.put("name", "hadoop");
     keytabGroupMap.put("access", "r");
 
-    Map<String, Object> keytabMap = new TreeMap<String, Object>();
+    Map<String, Object> keytabMap = new TreeMap<>();
     keytabMap.put("file", "/etc/security/keytabs/subject.service.keytab");
     keytabMap.put("owner", keytabOwnerMap);
     keytabMap.put("group", keytabGroupMap);
     keytabMap.put("configuration", "service-site/service2.component.keytab.file");
 
-    Map<String, Object> sharedIdentityMap = new TreeMap<String, Object>();
+    Map<String, Object> sharedIdentityMap = new TreeMap<>();
     sharedIdentityMap.put("name", "shared");
     sharedIdentityMap.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
     sharedIdentityMap.put("keytab", keytabMap);
 
-    Map<String, Object> servicesMap = new TreeMap<String, Object>();
+    Map<String, Object> servicesMap = new TreeMap<>();
     servicesMap.put((String) KerberosServiceDescriptorTest.MAP_VALUE.get("name"), KerberosServiceDescriptorTest.MAP_VALUE);
 
-    Map<String, Object> identitiesMap = new TreeMap<String, Object>();
+    Map<String, Object> identitiesMap = new TreeMap<>();
     identitiesMap.put("shared", sharedIdentityMap);
 
-    Map<String, Object> clusterConfigProperties = new TreeMap<String, Object>();
+    Map<String, Object> clusterConfigProperties = new TreeMap<>();
     clusterConfigProperties.put("property1", "red");
 
-    Map<String, Map<String, Object>> clusterConfigMap = new TreeMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> clusterConfigMap = new TreeMap<>();
     clusterConfigMap.put("cluster-conf", clusterConfigProperties);
 
-    TreeMap<String, Map<String, Map<String, Object>>> configurationsMap = new TreeMap<String, Map<String, Map<String, Object>>>();
+    TreeMap<String, Map<String, Map<String, Object>>> configurationsMap = new TreeMap<>();
     configurationsMap.put("cluster-conf", clusterConfigMap);
 
-    Collection<String> authToLocalRules = new ArrayList<String>();
+    Collection<String> authToLocalRules = new ArrayList<>();
     authToLocalRules.add("global.name.rules");
 
-    TreeMap<String, Object> properties = new TreeMap<String, Object>();
+    TreeMap<String, Object> properties = new TreeMap<>();
     properties.put("realm", "EXAMPLE.COM");
     properties.put("some.property", "Hello World");
 
-    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("properties", properties);
     MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
     MAP_VALUE.put(AbstractKerberosDescriptor.Type.SERVICE.getDescriptorPluralName(), servicesMap.values());
@@ -230,7 +233,7 @@ public class KerberosDescriptorTest {
     Assert.assertNotNull(authToLocalProperties);
     Assert.assertEquals(2, authToLocalProperties.size());
     // guarantee ordering...
-    Iterator<String> iterator = new TreeSet<String>(authToLocalProperties).iterator();
+    Iterator<String> iterator = new TreeSet<>(authToLocalProperties).iterator();
     Assert.assertEquals("generic.name.rules", iterator.next());
     Assert.assertEquals("global.name.rules", iterator.next());
 
@@ -473,5 +476,21 @@ public class KerberosDescriptorTest {
       }
     }
     Assert.assertTrue(identityFound);
+  }
+
+  @Test
+  public void testFiltersOutIdentitiesBasedonInstalledServices() throws IOException {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_filtering_identity_descriptor.json");
+    KerberosComponentDescriptor componentDescriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()))
+      .getService("SERVICE1")
+      .getComponent("SERVICE1_COMPONENT1");
+    List<KerberosIdentityDescriptor> identities = componentDescriptor.getIdentities(true, new HashedMap() {{
+      put("services", Collections.emptySet());
+    }});
+    Assert.assertEquals(0, identities.size());
+    identities = componentDescriptor.getIdentities(true, new HashedMap() {{
+      put("services", Arrays.asList("REF_SERVICE1"));
+    }});
+    Assert.assertEquals(1, identities.size());
   }
 }

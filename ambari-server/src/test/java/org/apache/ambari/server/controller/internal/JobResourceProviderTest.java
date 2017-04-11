@@ -52,7 +52,7 @@ public class JobResourceProviderTest {
   public void testGetResources() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<Resource> expected = new HashSet<Resource>();
+    Set<Resource> expected = new HashSet<>();
     expected.add(createJobResponse("Cluster100", "workflow1", "job1"));
     expected.add(createJobResponse("Cluster100", "workflow2", "job2"));
     expected.add(createJobResponse("Cluster100", "workflow2", "job3"));
@@ -77,7 +77,7 @@ public class JobResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for (Resource resource : resources) {
       String clusterName = (String) resource
           .getPropertyValue(JobResourceProvider.JOB_CLUSTER_NAME_PROPERTY_ID);
@@ -98,7 +98,7 @@ public class JobResourceProviderTest {
   public void testJobFetcher1() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(JobResourceProvider.JOB_ID_PROPERTY_ID);
 
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper
@@ -124,7 +124,7 @@ public class JobResourceProviderTest {
   public void testJobFetcher2() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(JobResourceProvider.JOB_ID_PROPERTY_ID);
     requestedIds.add(JobResourceProvider.JOB_SUBMIT_TIME_PROPERTY_ID);
 
@@ -153,7 +153,7 @@ public class JobResourceProviderTest {
   public void testJobFetcher3() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(JobResourceProvider.JOB_ID_PROPERTY_ID);
     requestedIds.add(JobResourceProvider.JOB_ELAPSED_TIME_PROPERTY_ID);
 
@@ -182,7 +182,7 @@ public class JobResourceProviderTest {
   public void testJobFetcher4() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(JobResourceProvider.JOB_ID_PROPERTY_ID);
     requestedIds.add(JobResourceProvider.JOB_SUBMIT_TIME_PROPERTY_ID);
     requestedIds.add(JobResourceProvider.JOB_ELAPSED_TIME_PROPERTY_ID);

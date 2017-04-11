@@ -31,7 +31,7 @@ import com.google.common.base.Objects;
  */
 
 public class HostConfig {
-  private final Map<Long, String> configGroupOverrides = new ConcurrentHashMap<Long, String>();
+  private final Map<Long, String> configGroupOverrides = new ConcurrentHashMap<>();
   private String defaultVersionTag;
 
   public HostConfig() {
@@ -62,7 +62,7 @@ public class HostConfig {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
     if (defaultVersionTag != null) {
-      sb.append("default = " + defaultVersionTag);
+      sb.append("default = ").append(defaultVersionTag);
     }
     if (!configGroupOverrides.isEmpty()) {
       sb.append(", overrides = [ ");
@@ -71,7 +71,7 @@ public class HostConfig {
         if (i++ != 0) {
           sb.append(", ");
         }
-        sb.append(entry.getKey().toString() + " : " + entry.getValue());
+        sb.append(entry.getKey()).append(" : ").append(entry.getValue());
       }
       sb.append("]");
     }

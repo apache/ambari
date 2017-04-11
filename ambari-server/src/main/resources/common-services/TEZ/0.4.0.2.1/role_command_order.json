@@ -1,0 +1,6 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for TEZ",
+    "TEZ_SERVICE_CHECK-SERVICE_CHECK": ["NODEMANAGER-START", "HISTORYSERVER-START"]
+  }
+}

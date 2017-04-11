@@ -32,7 +32,7 @@ public class AmbariLocalSessionInterceptor implements MethodInterceptor {
   @Inject
   private final AmbariJpaPersistService emProvider = null;
 
-  private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<Boolean>();
+  private final ThreadLocal<Boolean> didWeStartWork = new ThreadLocal<>();
 
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {

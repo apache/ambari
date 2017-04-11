@@ -73,13 +73,18 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private String upgradesFolder = null;
   private volatile Map<String, PropertyInfo> requiredProperties;
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
   private RepositoryXml repoXml = null;
 
   /**
    * List of services removed from current stack
    * */
-  private List<String> removedServices = new ArrayList<String>();
+  private List<String> removedServices = new ArrayList<>();
+
+  /**
+  * List of services withnot configurations
+  * */
+  private List<String> servicesWithNoConfigs = new ArrayList<String>();
 
   public String getMinJdk() {
     return minJdk;
@@ -147,7 +152,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   }
 
   public List<RepositoryInfo> getRepositories() {
-    if( repositories == null ) repositories = new ArrayList<RepositoryInfo>();
+    if( repositories == null ) repositories = new ArrayList<>();
     return repositories;
   }
 
@@ -159,7 +164,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   }
 
   public synchronized Collection<ServiceInfo> getServices() {
-    if (services == null) services = new ArrayList<ServiceInfo>();
+    if (services == null) services = new ArrayList<>();
     return services;
   }
 
@@ -179,7 +184,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   }
 
   public synchronized Collection<ExtensionInfo> getExtensions() {
-    if (extensions == null) extensions = new ArrayList<ExtensionInfo>();
+    if (extensions == null) extensions = new ArrayList<>();
     return extensions;
   }
 
@@ -207,7 +212,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   }
 
   public List<PropertyInfo> getProperties() {
-    if (properties == null) properties = new ArrayList<PropertyInfo>();
+    if (properties == null) properties = new ArrayList<>();
     return properties;
   }
 
@@ -235,7 +240,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public synchronized void setConfigTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
     if (this.configTypes == null) {
-      configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+      configTypes = new HashMap<>();
     }
     // todo: no exclusion mechanism for stack config types
     configTypes.put(type, typeAttributes);
@@ -248,7 +253,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    * @param types map of type attributes
    */
   public synchronized void setAllConfigAttributes(Map<String, Map<String, Map<String, String>>> types) {
-    configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+    configTypes = new HashMap<>();
     for (Map.Entry<String, Map<String, Map<String, String>>> entry : types.entrySet()) {
       setConfigTypeAttributes(entry.getKey(), entry.getValue());
     }
@@ -305,7 +310,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     // The collection of service descriptor files. A Set is being used because some Kerberos descriptor
     // files contain multiple services, therefore the same File may be encountered more than once.
     // For example the YARN directory may contain YARN and MAPREDUCE2 services.
-    Collection<File> serviceDescriptorFiles = new HashSet<File>();
+    Collection<File> serviceDescriptorFiles = new HashSet<>();
     if (serviceInfos != null) {
       for (ServiceInfo serviceInfo : serviceInfos) {
         File file = serviceInfo.getKerberosDescriptorFile();
@@ -466,7 +471,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
       synchronized(this) {
         result = requiredProperties;
         if (result == null) {
-          requiredProperties = result = new HashMap<String, PropertyInfo>();
+          requiredProperties = result = new HashMap<>();
           List<PropertyInfo> properties = getProperties();
           for (PropertyInfo propertyInfo : properties) {
             if (propertyInfo.isRequireInput()) {
@@ -572,5 +577,13 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   public void setRemovedServices(List<String> removedServices) {
     this.removedServices = removedServices;
+  }
+
+  public List<String> getServicesWithNoConfigs() {
+    return servicesWithNoConfigs;
+  }
+
+  public void setServicesWithNoConfigs(List<String> servicesWithNoConfigs) {
+    this.servicesWithNoConfigs = servicesWithNoConfigs;
   }
 }

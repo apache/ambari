@@ -101,7 +101,7 @@ public class OsFamily {
      * @return separated os name and os version
      */
     private Map<String,String> parse_os(String os){
-      Map<String,String> pos = new HashMap<String,String>();
+      Map<String,String> pos = new HashMap<>();
 
       Pattern r = Pattern.compile(os_pattern);
       Matcher m = r.matcher(os);
@@ -126,7 +126,7 @@ public class OsFamily {
       for ( String family : osMap.keySet()) {
         JsonOsFamilyEntry fam = osMap.get(family);
         if (fam.getDistro().contains(pos.get(OS_DISTRO)) && fam.getVersions().contains(pos.get(OS_VERSION))){
-          Set<String> data=new HashSet<String>();
+          Set<String> data= new HashSet<>();
           for (String item: fam.getDistro()) {
             data.add(item + pos.get(OS_VERSION));
           }
@@ -173,11 +173,11 @@ public class OsFamily {
      * @return one dimension list with os types
      */
     public Set<String> os_list(){
-      Set<String> r= new HashSet<String>();
+      Set<String> r= new HashSet<>();
       for ( String family : osMap.keySet()) {
         JsonOsFamilyEntry fam = osMap.get(family);
         for (String version: fam.getVersions()){
-          Set<String> data=new HashSet<String>();
+          Set<String> data= new HashSet<>();
           for (String item: fam.getDistro()) {
             data.add(item + version);
           }

@@ -40,7 +40,7 @@ public class LessOperator extends AbstractOperator implements RelationalOperator
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new LessPredicate<String>(prop, val);
+    return new LessPredicate<>(prop, val);
   }
 
   @Override

@@ -26,7 +26,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 public class RequestResourceFilter {
   private String serviceName;
   private String componentName;
-  private final List<String> hostNames = new ArrayList<String>();
+  private final List<String> hostNames = new ArrayList<>();
 
   public RequestResourceFilter() {
 

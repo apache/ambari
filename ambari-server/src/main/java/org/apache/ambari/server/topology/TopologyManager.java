@@ -103,14 +103,14 @@ public class TopologyManager {
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Executor taskExecutor; // executes TopologyTasks
   private final boolean parallelTaskCreationEnabled;
-  private Collection<String> hostsToIgnore = new HashSet<String>();
-  private final List<HostImpl> availableHosts = new LinkedList<HostImpl>();
-  private final Map<String, LogicalRequest> reservedHosts = new HashMap<String, LogicalRequest>();
-  private final Map<Long, LogicalRequest> allRequests = new HashMap<Long, LogicalRequest>();
+  private Collection<String> hostsToIgnore = new HashSet<>();
+  private final List<HostImpl> availableHosts = new LinkedList<>();
+  private final Map<String, LogicalRequest> reservedHosts = new HashMap<>();
+  private final Map<Long, LogicalRequest> allRequests = new HashMap<>();
   // priority is given to oldest outstanding requests
-  private final Collection<LogicalRequest> outstandingRequests = new ArrayList<LogicalRequest>();
+  private final Collection<LogicalRequest> outstandingRequests = new ArrayList<>();
   //todo: currently only support a single cluster
-  private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<Long, ClusterTopology>();
+  private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
 
   @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
@@ -639,7 +639,7 @@ public class TopologyManager {
     if (requestIds.isEmpty()) {
       return allRequests.values();
     } else {
-      Collection<LogicalRequest> matchingRequests = new ArrayList<LogicalRequest>();
+      Collection<LogicalRequest> matchingRequests = new ArrayList<>();
       for (long id : requestIds) {
         LogicalRequest request = allRequests.get(id);
         if (request != null) {
@@ -656,7 +656,7 @@ public class TopologyManager {
    */
   public Collection<StageEntity> getStages() {
     ensureInitialized();
-    Collection<StageEntity> stages = new ArrayList<StageEntity>();
+    Collection<StageEntity> stages = new ArrayList<>();
     for (LogicalRequest logicalRequest : allRequests.values()) {
       stages.addAll(logicalRequest.getStageEntities());
     }
@@ -671,7 +671,7 @@ public class TopologyManager {
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> requestIds) {
     ensureInitialized();
-    Collection<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>();
+    Collection<HostRoleCommand> tasks = new ArrayList<>();
     for (long id : requestIds) {
       tasks.addAll(getTasks(id));
     }
@@ -694,7 +694,7 @@ public class TopologyManager {
 
   public Collection<RequestStatusResponse> getRequestStatus(Collection<Long> ids) {
     ensureInitialized();
-    List<RequestStatusResponse> requestStatusResponses = new ArrayList<RequestStatusResponse>();
+    List<RequestStatusResponse> requestStatusResponses = new ArrayList<>();
     for (long id : ids) {
       RequestStatusResponse response = getRequestStatus(id);
       if (response != null) {
@@ -720,7 +720,7 @@ public class TopologyManager {
    */
   public Map<String, Collection<String>> getPendingHostComponents() {
     ensureInitialized();
-    Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> hostComponentMap = new HashMap<>();
 
     for (LogicalRequest logicalRequest : allRequests.values()) {
       Map<Long, HostRoleCommandStatusSummaryDTO> summary = logicalRequest.getStageSummaries();
@@ -740,7 +740,7 @@ public class TopologyManager {
           String host = entry.getKey();
           Collection<String> hostComponents = hostComponentMap.get(host);
           if (hostComponents == null) {
-            hostComponents = new HashSet<String>();
+            hostComponents = new HashSet<>();
             hostComponentMap.put(host, hostComponents);
           }
           hostComponents.addAll(entry.getValue());

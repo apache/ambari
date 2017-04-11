@@ -17,44 +17,9 @@
  */
 
 var App = require('app');
-var testHelpers = require('test/helpers');
 
 describe('App.MainController', function () {
   var mainController = App.MainController.create();
-
-  describe('#getServerVersionSuccessCallback', function () {
-
-    var controller = App.MainController.create(),
-      cases = [
-        {
-          osFamily: 'redhat5',
-          expected: false
-        },
-        {
-          osFamily: 'redhat6',
-          expected: true
-        },
-        {
-          osFamily: 'suse11',
-          expected: false
-        }
-      ],
-      title = 'App.isManagedMySQLForHiveEnabled should be {0} for {1}';
-
-    cases.forEach(function (item) {
-      it(title.format(item.expected, item.osFamily), function () {
-        controller.getServerVersionSuccessCallback({
-          'RootServiceComponents': {
-            'component_version': '',
-            'properties': {
-              'server.os_family': item.osFamily
-            }
-          }
-        });
-        expect(App.get('isManagedMySQLForHiveEnabled')).to.equal(item.expected);
-      });
-    });
-  });
 
   App.TestAliases.testAsComputedAlias(mainController, 'isClusterDataLoaded', 'App.router.clusterController.isLoaded', 'boolean');
 
@@ -107,38 +72,6 @@ describe('App.MainController', function () {
         expect(val).to.be.undefined;
         done();
       });
-    });
-  });
-
-  describe('#checkServerClientVersion', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'getServerVersion').returns({
-        done: function(func) {
-          if (func) {
-            func();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      mainController.getServerVersion.restore();
-    });
-    it ('Should resolve promise', function() {
-      var deffer = mainController.checkServerClientVersion();
-      deffer.then(function(val){
-        expect(val).to.be.undefined;
-      });
-    });
-  });
-
-  describe('#getServerVersion', function() {
-
-    it ('Should send data', function() {
-      mainController.getServerVersion();
-      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
-      expect(args[0]).to.exists;
-      expect(args[0].sender).to.be.eql(mainController);
-      expect(args[0].data.fields).to.be.equal('?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true');
     });
   });
 

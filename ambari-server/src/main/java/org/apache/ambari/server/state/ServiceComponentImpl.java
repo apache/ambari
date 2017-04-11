@@ -74,7 +74,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   private AmbariMetaInfo ambariMetaInfo;
 
-  private final ConcurrentMap<String, ServiceComponentHost> hostComponents = new ConcurrentHashMap<String, ServiceComponentHost>();
+  private final ConcurrentMap<String, ServiceComponentHost> hostComponents = new ConcurrentHashMap<>();
 
   /**
    * The ID of the persisted {@link ServiceComponentDesiredStateEntity}.
@@ -256,7 +256,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public Map<String, ServiceComponentHost> getServiceComponentHosts() {
-    return new HashMap<String, ServiceComponentHost>(hostComponents);
+    return new HashMap<>(hostComponents);
   }
 
   @Override
@@ -439,11 +439,14 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    sb.append("ServiceComponent={ serviceComponentName=" + getName() + ", recoveryEnabled="
-        + isRecoveryEnabled() + ", clusterName=" + service.getCluster().getClusterName()
-        + ", clusterId=" + service.getCluster().getClusterId() + ", serviceName="
-        + service.getName() + ", desiredStackVersion=" + getDesiredStackVersion()
-        + ", desiredState=" + getDesiredState().toString() + ", hostcomponents=[ ");
+    sb.append("ServiceComponent={ serviceComponentName=").append(getName())
+      .append(", recoveryEnabled=").append(isRecoveryEnabled())
+      .append(", clusterName=").append(service.getCluster().getClusterName())
+      .append(", clusterId=").append(service.getCluster().getClusterId())
+      .append(", serviceName=").append(service.getName())
+      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredState=").append(getDesiredState())
+      .append(", hostcomponents=[ ");
     boolean first = true;
     for (ServiceComponentHost sch : hostComponents.values()) {
       if (!first) {
@@ -583,7 +586,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   private Map <String, Integer> getServiceComponentStateCount() {
-    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", getSCHCountByState(State.STARTED));
     serviceComponentStateCountMap.put("installedCount", getSCHCountByState(State.INSTALLED));
     serviceComponentStateCountMap.put("installFailedCount", getSCHCountByState(State.INSTALL_FAILED));

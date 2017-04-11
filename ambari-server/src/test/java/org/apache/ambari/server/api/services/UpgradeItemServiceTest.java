@@ -35,7 +35,7 @@ import org.junit.Assert;
  */
 public class UpgradeItemServiceTest extends BaseServiceTest {
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //updateServices
     UpgradeItemService service = new TestUpgradeItemService("clusterName", "upgradeId", "upgradeGroupId", 99L);

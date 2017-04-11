@@ -156,7 +156,7 @@ public class StageService extends BaseService {
    * @return a stage resource instance
    */
   ResourceInstance createStageResource(String clusterName, String requestId, String stageId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
 
     if (clusterName != null) {
       mapIds.put(Resource.Type.Cluster, clusterName);

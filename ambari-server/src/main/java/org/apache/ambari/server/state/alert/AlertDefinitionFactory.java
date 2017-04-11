@@ -139,7 +139,7 @@ public class AlertDefinitionFactory {
       IOUtils.closeQuietly(reader);
     }
 
-    Set<AlertDefinition> definitions = new HashSet<AlertDefinition>();
+    Set<AlertDefinition> definitions = new HashSet<>();
 
     // it's OK if the service doesn't have any definitions; this can happen if
     // 2 services are defined in a single metainfo.xml and only 1 service has

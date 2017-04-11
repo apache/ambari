@@ -108,7 +108,7 @@ public class Users {
 
   public List<User> getAllUsers() {
     List<UserEntity> userEntities = userDAO.findAll();
-    List<User> users = new ArrayList<User>(userEntities.size());
+    List<User> users = new ArrayList<>(userEntities.size());
 
     for (UserEntity userEntity : userEntities) {
       users.add(new User(userEntity));
@@ -393,7 +393,7 @@ public class Users {
     if (groupEntity == null) {
       return null;
     } else {
-      final Set<User> users = new HashSet<User>();
+      final Set<User> users = new HashSet<>();
       for (MemberEntity memberEntity : groupEntity.getMemberEntities()) {
         if (memberEntity.getUser() != null) {
           users.add(new User(memberEntity.getUser()));
@@ -438,7 +438,7 @@ public class Users {
    */
   public List<Group> getAllGroups() {
     final List<GroupEntity> groupEntities = groupDAO.findAll();
-    final List<Group> groups = new ArrayList<Group>(groupEntities.size());
+    final List<Group> groups = new ArrayList<>(groupEntities.size());
 
     for (GroupEntity groupEntity : groupEntities) {
       groups.add(new Group(groupEntity));
@@ -454,7 +454,7 @@ public class Users {
    * @return list of user names
    */
   public List<String> getAllMembers(String groupName) throws AmbariException {
-    final List<String> members = new ArrayList<String>();
+    final List<String> members = new ArrayList<>();
     final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
     if (groupEntity == null) {
       throw new AmbariException("Group " + groupName + " doesn't exist");
@@ -607,7 +607,7 @@ public class Users {
    */
   public synchronized boolean isUserCanBeRemoved(UserEntity userEntity) {
     List<PrincipalEntity> adminPrincipals = principalDAO.findByPermissionId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
-    Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findUsersByPrincipal(adminPrincipals));
+    Set<UserEntity> userEntitysSet = new HashSet<>(userDAO.findUsersByPrincipal(adminPrincipals));
     return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
   }
 
@@ -633,8 +633,8 @@ public class Users {
    * @param batchInfo DTO with batch information
    */
   public void processLdapSync(LdapBatchDto batchInfo) {
-    final Map<String, UserEntity> allUsers = new HashMap<String, UserEntity>();
-    final Map<String, GroupEntity> allGroups = new HashMap<String, GroupEntity>();
+    final Map<String, UserEntity> allUsers = new HashMap<>();
+    final Map<String, GroupEntity> allGroups = new HashMap<>();
 
     // prefetch all user and group data to avoid heavy queries in membership creation
 
@@ -652,7 +652,7 @@ public class Users {
         .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
 
     // remove users
-    final Set<UserEntity> usersToRemove = new HashSet<UserEntity>();
+    final Set<UserEntity> usersToRemove = new HashSet<>();
     for (String userName : batchInfo.getUsersToBeRemoved()) {
       UserEntity userEntity = userDAO.findUserByName(userName);
       if (userEntity == null) {
@@ -664,7 +664,7 @@ public class Users {
     userDAO.remove(usersToRemove);
 
     // remove groups
-    final Set<GroupEntity> groupsToRemove = new HashSet<GroupEntity>();
+    final Set<GroupEntity> groupsToRemove = new HashSet<>();
     for (String groupName : batchInfo.getGroupsToBeRemoved()) {
       final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
       allGroups.remove(groupEntity.getGroupName());
@@ -673,7 +673,7 @@ public class Users {
     groupDAO.remove(groupsToRemove);
 
     // update users
-    final Set<UserEntity> usersToBecomeLdap = new HashSet<UserEntity>();
+    final Set<UserEntity> usersToBecomeLdap = new HashSet<>();
     for (String userName : batchInfo.getUsersToBecomeLdap()) {
       UserEntity userEntity = userDAO.findLocalUserByName(userName);
       if (userEntity == null) {
@@ -689,7 +689,7 @@ public class Users {
     userDAO.merge(usersToBecomeLdap);
 
     // update groups
-    final Set<GroupEntity> groupsToBecomeLdap = new HashSet<GroupEntity>();
+    final Set<GroupEntity> groupsToBecomeLdap = new HashSet<>();
     for (String groupName : batchInfo.getGroupsToBecomeLdap()) {
       final GroupEntity groupEntity = groupDAO.findGroupByName(groupName);
       groupEntity.setGroupType(GroupType.LDAP);
@@ -699,10 +699,10 @@ public class Users {
     groupDAO.merge(groupsToBecomeLdap);
 
     // prepare create principals
-    final List<PrincipalEntity> principalsToCreate = new ArrayList<PrincipalEntity>();
+    final List<PrincipalEntity> principalsToCreate = new ArrayList<>();
 
     // prepare create users
-    final Set<UserEntity> usersToCreate = new HashSet<UserEntity>();
+    final Set<UserEntity> usersToCreate = new HashSet<>();
     for (String userName : batchInfo.getUsersToBeCreated()) {
       final PrincipalEntity principalEntity = new PrincipalEntity();
       principalEntity.setPrincipalType(userPrincipalType);
@@ -719,7 +719,7 @@ public class Users {
     }
 
     // prepare create groups
-    final Set<GroupEntity> groupsToCreate = new HashSet<GroupEntity>();
+    final Set<GroupEntity> groupsToCreate = new HashSet<>();
     for (String groupName : batchInfo.getGroupsToBeCreated()) {
       final PrincipalEntity principalEntity = new PrincipalEntity();
       principalEntity.setPrincipalType(groupPrincipalType);
@@ -740,8 +740,8 @@ public class Users {
     groupDAO.create(groupsToCreate);
 
     // create membership
-    final Set<MemberEntity> membersToCreate = new HashSet<MemberEntity>();
-    final Set<GroupEntity> groupsToUpdate = new HashSet<GroupEntity>();
+    final Set<MemberEntity> membersToCreate = new HashSet<>();
+    final Set<GroupEntity> groupsToUpdate = new HashSet<>();
     for (LdapUserGroupMemberDto member : batchInfo.getMembershipToAdd()) {
       final MemberEntity memberEntity = new MemberEntity();
       final GroupEntity groupEntity = allGroups.get(member.getGroupName());
@@ -755,7 +755,7 @@ public class Users {
     groupDAO.merge(groupsToUpdate); // needed for Derby DB as it doesn't fetch newly added members automatically
 
     // remove membership
-    final Set<MemberEntity> membersToRemove = new HashSet<MemberEntity>();
+    final Set<MemberEntity> membersToRemove = new HashSet<>();
     for (LdapUserGroupMemberDto member : batchInfo.getMembershipToRemove()) {
       MemberEntity memberEntity = memberDAO.findByUserAndGroup(member.getUserName(), member.getGroupName());
       if (memberEntity != null) {
@@ -820,7 +820,7 @@ public class Users {
     }
 
     // get all of the privileges for the user
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> principalEntities = new LinkedList<>();
 
     principalEntities.add(userEntity.getPrincipal());
 
@@ -837,7 +837,7 @@ public class Users {
     if (implicitPrivilegeEntities.isEmpty()) {
       privilegeEntities = explicitPrivilegeEntities;
     } else {
-      privilegeEntities = new LinkedList<PrivilegeEntity>();
+      privilegeEntities = new LinkedList<>();
       privilegeEntities.addAll(explicitPrivilegeEntities);
       privilegeEntities.addAll(implicitPrivilegeEntities);
     }
@@ -867,7 +867,7 @@ public class Users {
     }
 
     // get all of the privileges for the group
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> principalEntities = new LinkedList<>();
 
     principalEntities.add(groupEntity.getPrincipal());
 
@@ -878,7 +878,7 @@ public class Users {
     if (implicitPrivilegeEntities.isEmpty()) {
       privilegeEntities = explicitPrivilegeEntities;
     } else {
-      privilegeEntities = new LinkedList<PrivilegeEntity>();
+      privilegeEntities = new LinkedList<>();
       privilegeEntities.addAll(explicitPrivilegeEntities);
       privilegeEntities.addAll(implicitPrivilegeEntities);
     }
@@ -938,13 +938,13 @@ public class Users {
       return Collections.emptyList();
     }
 
-    List<PrivilegeEntity> implicitPrivileges = new LinkedList<PrivilegeEntity>();
+    List<PrivilegeEntity> implicitPrivileges = new LinkedList<>();
 
     // A list of principals representing roles/permissions. This collection of roles will be used to
     // find additional inherited privileges based on the assigned roles.
     // For example a File View instance may be set to be accessible to all authenticated user with
     // the Cluster User role.
-    List<PrincipalEntity> rolePrincipals = new ArrayList<PrincipalEntity>();
+    List<PrincipalEntity> rolePrincipals = new ArrayList<>();
 
     for (PrivilegeEntity privilegeEntity : privilegeEntities) {
       // Add the principal representing the role associated with this PrivilegeEntity to the collection

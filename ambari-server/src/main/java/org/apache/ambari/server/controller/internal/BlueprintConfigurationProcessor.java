@@ -85,31 +85,31 @@ public class BlueprintConfigurationProcessor {
    * Single host topology updaters
    */
   protected static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
-      new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Multi host topology updaters
    */
   private static Map<String, Map<String, PropertyUpdater>> multiHostTopologyUpdaters =
-      new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Database host topology updaters
    */
   private static Map<String, Map<String, PropertyUpdater>> dbHostTopologyUpdaters =
-      new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Updaters for properties which need 'm' appended
    */
   private static Map<String, Map<String, PropertyUpdater>> mPropertyUpdaters =
-      new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Non topology related updaters
    */
   private static Map<String, Map<String, PropertyUpdater>> nonTopologyUpdaters =
-      new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Updaters that preserve the original property value, functions
@@ -118,13 +118,13 @@ public class BlueprintConfigurationProcessor {
    * cluster creation
    */
   private Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
-    new HashMap<String, Map<String, PropertyUpdater>>();
+    new HashMap<>();
 
   /**
    * Collection of all updaters
    */
   private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
-      new ArrayList<Map<String, Map<String, PropertyUpdater>>>();
+    new ArrayList<>();
 
   /**
    * Compiled regex for hostgroup token with port information.
@@ -148,7 +148,7 @@ public class BlueprintConfigurationProcessor {
    *   expected hostname information is not found.
    */
   private static Set<String> configPropertiesWithHASupport =
-    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
+    new HashSet<>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url", "xasecure.audit.destination.hdfs.dir"));
 
   /**
    * Statically-defined list of filters to apply on property exports.
@@ -160,6 +160,7 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
+      new SimplePropertyNameExportFilter("master_kdc", "kerberos-env"),
       new SimplePropertyNameExportFilter("realm", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
       new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
@@ -228,8 +229,8 @@ public class BlueprintConfigurationProcessor {
       singleHostTopologyUpdaters.put("oozie-env", oozieEnvUpdaters);
       singleHostTopologyUpdaters.put("oozie-site", oozieSiteUpdaters);
     } else {
-      Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
-      Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
+      Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<>();
+      Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<>();
       // register updaters for Oozie properties that may point to an external DB
       oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
       oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
@@ -242,7 +243,7 @@ public class BlueprintConfigurationProcessor {
       removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
     }
 
-    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<>();
     // register updaters for Hive properties that may point to an external DB
     hiveEnvOriginalValueMap.put("hive_existing_oracle_host", new OriginalValuePropertyUpdater());
     hiveEnvOriginalValueMap.put("hive_existing_mssql_server_2_host", new OriginalValuePropertyUpdater());
@@ -278,7 +279,7 @@ public class BlueprintConfigurationProcessor {
   }
 
   public Collection<String> getRequiredHostGroups() {
-    Collection<String> requiredHostGroups = new HashSet<String>();
+    Collection<String> requiredHostGroups = new HashSet<>();
 
     for (Map<String, Map<String, PropertyUpdater>> updaterMap : createCollectionOfUpdaters()) {
       for (Map.Entry<String, Map<String, PropertyUpdater>> entry : updaterMap.entrySet()) {
@@ -317,7 +318,7 @@ public class BlueprintConfigurationProcessor {
    * @return Set of config type names that were updated by this update call
    */
   public Set<String> doUpdateForClusterCreate() throws ConfigurationTopologyException {
-      Set<String> configTypesUpdated = new HashSet<String>();
+      Set<String> configTypesUpdated = new HashSet<>();
     Configuration clusterConfig = clusterTopology.getConfiguration();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
@@ -477,7 +478,7 @@ public class BlueprintConfigurationProcessor {
       doOozieServerHAUpdate();
     }
 
-    Collection<Configuration> allConfigs = new ArrayList<Configuration>();
+    Collection<Configuration> allConfigs = new ArrayList<>();
     allConfigs.add(clusterTopology.getConfiguration());
     for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
       Configuration hgConfiguration = groupInfo.getConfiguration();
@@ -516,6 +517,15 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
       String type = configEntry.getKey();
+      try {
+          clusterTopology.getBlueprint().getStack().getServiceForConfigType(type);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            LOG.error(new StringBuilder(String.format("Error encountered while trying to obtain the service name for config type [%s]. ", type))
+            .append("Further processing on this config type will be skipped. ")
+            .append("This usually means that a service's definitions have been manually removed from the Ambari stack definitions. ")
+            .append("If the stack definitions have not been changed manually, this may indicate a stack definition error in Ambari. ").toString(), illegalArgumentException);
+            continue;
+        }
       Map<String, String> typeProperties = configEntry.getValue();
 
       for (Map.Entry<String, String> propertyEntry : typeProperties.entrySet()) {
@@ -689,7 +699,7 @@ public class BlueprintConfigurationProcessor {
    */
   private Collection<Map<String, Map<String, PropertyUpdater>>> addNameNodeHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
     Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
-      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+      new LinkedList<>();
 
     // always add the statically-defined list of updaters to the list to use
     // in processing cluster configuration
@@ -716,7 +726,7 @@ public class BlueprintConfigurationProcessor {
    */
   private Collection<Map<String, Map<String, PropertyUpdater>>> addYarnResourceManagerHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
     Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
-      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+      new LinkedList<>();
 
     // always add the statically-defined list of updaters to the list to use
     // in processing cluster configuration
@@ -742,7 +752,7 @@ public class BlueprintConfigurationProcessor {
    */
   private Collection<Map<String, Map<String, PropertyUpdater>>> addOozieServerHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
     Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
-      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+      new LinkedList<>();
 
     // always add the statically-defined list of updaters to the list to use
     // in processing cluster configuration
@@ -841,8 +851,8 @@ public class BlueprintConfigurationProcessor {
    * @return a Map of registered PropertyUpdaters for handling HA properties in hdfs-site
    */
   private Map<String, Map<String, PropertyUpdater>> createMapOfNameNodeHAUpdaters() {
-    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
-    Map<String, PropertyUpdater> hdfsSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<>();
+    Map<String, PropertyUpdater> hdfsSiteUpdatersForAvailability = new HashMap<>();
     highAvailabilityUpdaters.put("hdfs-site", hdfsSiteUpdatersForAvailability);
 
     //todo: Do we need to call this for HG configurations?
@@ -872,8 +882,8 @@ public class BlueprintConfigurationProcessor {
    * @return a Map of registered PropertyUpdaters for handling HA properties in yarn-site
    */
   private Map<String, Map<String, PropertyUpdater>> createMapOfYarnResourceManagerHAUpdaters() {
-    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
-    Map<String, PropertyUpdater> yarnSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<>();
+    Map<String, PropertyUpdater> yarnSiteUpdatersForAvailability = new HashMap<>();
     highAvailabilityUpdaters.put("yarn-site", yarnSiteUpdatersForAvailability);
 
     Map<String, String> yarnSiteConfig = clusterTopology.getConfiguration().getFullProperties().get("yarn-site");
@@ -899,8 +909,8 @@ public class BlueprintConfigurationProcessor {
    * @return a Map of registered PropertyUpdaters for handling HA properties in oozie-site
    */
   private Map<String, Map<String, PropertyUpdater>> createMapOfOozieServerHAUpdaters() {
-    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
-    Map<String, PropertyUpdater> oozieSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<>();
+    Map<String, PropertyUpdater> oozieSiteUpdatersForAvailability = new HashMap<>();
     highAvailabilityUpdaters.put("oozie-site", oozieSiteUpdatersForAvailability);
 
     // register a multi-host property updater for this Oozie property.
@@ -1174,7 +1184,7 @@ public class BlueprintConfigurationProcessor {
                   groupInfo.getHostGroupName() + "%");
             }
           }
-          Collection<String> addedGroups = new HashSet<String>();
+          Collection<String> addedGroups = new HashSet<>();
           String[] toks = propValue.split(",");
           boolean inBrackets = propValue.startsWith("[");
 
@@ -1216,7 +1226,7 @@ public class BlueprintConfigurationProcessor {
   //todo: replace this with parseHostGroupToken which would return a hostgroup or null
   private static Collection<String> getHostStrings(String val, ClusterTopology topology) {
 
-    Collection<String> hosts = new LinkedHashSet<String>();
+    Collection<String> hosts = new LinkedHashSet<>();
     Matcher m = HOSTGROUP_PORT_REGEX.matcher(val);
     while (m.find()) {
       String groupName = m.group(1);
@@ -1248,7 +1258,7 @@ public class BlueprintConfigurationProcessor {
    *         elements in this property
    */
   private static String[] splitAndTrimStrings(String propertyName) {
-    List<String> namesWithoutWhitespace = new LinkedList<String>();
+    List<String> namesWithoutWhitespace = new LinkedList<>();
     for (String service : propertyName.split(",")) {
       namesWithoutWhitespace.add(service.trim());
     }
@@ -1480,7 +1490,7 @@ public class BlueprintConfigurationProcessor {
         Collection<String> matchingGroups = topology.getHostGroupsForComponent(component);
         int matchingGroupCount = matchingGroups.size();
         if (matchingGroupCount != 0) {
-          return new HashSet<String>(matchingGroups);
+          return new HashSet<>(matchingGroups);
         } else {
           Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
           // if no matching host groups are found for a component whose configuration
@@ -1892,7 +1902,7 @@ public class BlueprintConfigurationProcessor {
      * @return list of hosts that have the given components
      */
     private Collection<String> getHostStringsFromLocalhost(String origValue, ClusterTopology topology) {
-      Set<String> hostStrings = new HashSet<String>();
+      Set<String> hostStrings = new HashSet<>();
       if(origValue.contains("localhost")) {
         Matcher localhostMatcher = LOCALHOST_PORT_REGEX.matcher(origValue);
         String port = null;
@@ -1934,7 +1944,7 @@ public class BlueprintConfigurationProcessor {
     private String removePorts(Collection<String> hostStrings) {
       String port = null;
       if(!usePortForEachHost && !hostStrings.isEmpty()) {
-        Set<String> temp = new HashSet<String>();
+        Set<String> temp = new HashSet<>();
 
         // extract port
         Iterator<String> i = hostStrings.iterator();
@@ -1969,7 +1979,7 @@ public class BlueprintConfigurationProcessor {
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
 
-      Collection<String> requiredHostGroups = new HashSet<String>();
+      Collection<String> requiredHostGroups = new HashSet<>();
 
       // add all host groups specified in host group tokens
       Matcher m = HOSTGROUP_PORT_REGEX.matcher(origValue);
@@ -2216,7 +2226,7 @@ public class BlueprintConfigurationProcessor {
   private static class TempletonHivePropertyUpdater implements PropertyUpdater {
 
     private Map<String, PropertyUpdater> mapOfKeysToUpdaters =
-      new HashMap<String, PropertyUpdater>();
+      new HashMap<>();
 
     TempletonHivePropertyUpdater() {
       // the only known property that requires hostname substitution is hive.metastore.uris,
@@ -2281,7 +2291,7 @@ public class BlueprintConfigurationProcessor {
         return Collections.emptySet();
       }
 
-      Collection<String> requiredGroups = new HashSet<String>();
+      Collection<String> requiredGroups = new HashSet<>();
       // split out the key/value pairs
       String[] keyValuePairs = origValue.split(",");
       for (String keyValuePair : keyValuePairs) {
@@ -2328,58 +2338,58 @@ public class BlueprintConfigurationProcessor {
     allUpdaters.add(mPropertyUpdaters);
     allUpdaters.add(nonTopologyUpdaters);
 
-    Map<String, PropertyUpdater> amsSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> mapredSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> coreSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hbaseSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> yarnSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveSiteNonTopologyMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> stormSiteNonTopologyMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> accumuloSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> kafkaBrokerNonTopologyMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> atlasPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> shHadoopEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hiveInteractiveSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiHiveSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiKafkaBrokerMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiSliderClientMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerEnvPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerYarnAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerHdfsAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerHbaseAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerHiveAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerKnoxAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerKafkaAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerStormAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerAtlasAuditPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> amsSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> mapredSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> coreSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> hbaseSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> yarnSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveSiteNonTopologyMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<>();
+    Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<>();
+    Map<String, PropertyUpdater> oozieSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> stormSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> stormSiteNonTopologyMap = new HashMap<>();
+    Map<String, PropertyUpdater> accumuloSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<>();
+    Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<>();
+    Map<String, PropertyUpdater> kafkaBrokerNonTopologyMap = new HashMap<>();
+    Map<String, PropertyUpdater> atlasPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> mapredEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> shHadoopEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> hbaseEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveInteractiveEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> hiveInteractiveSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> oozieEnvMap = new HashMap<>();
+    Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiCoreSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiHdfsSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiHiveSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiKafkaBrokerMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiSliderClientMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerEnvPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerYarnAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerHdfsAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerHbaseAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerHiveAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerKnoxAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerKafkaAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerStormAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> rangerAtlasAuditPropsMap = new HashMap<>();
+    Map<String, PropertyUpdater> hawqSiteMap = new HashMap<>();
+    Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<>();
 
     singleHostTopologyUpdaters.put("ams-site", amsSiteMap);
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -2518,7 +2528,7 @@ public class BlueprintConfigurationProcessor {
         String atlasHookClass = "org.apache.atlas.hive.hook.HiveHook";
         String[] hiveHooks = origValue.split(",");
 
-        List<String> hiveHooksClean = new ArrayList<String>();
+        List<String> hiveHooksClean = new ArrayList<>();
         for(String hiveHook : hiveHooks) {
           if (!StringUtils.isBlank(hiveHook.trim())) {
             hiveHooksClean.add(hiveHook.trim());
@@ -2775,7 +2785,7 @@ public class BlueprintConfigurationProcessor {
    */
   void setMissingConfigurations(Configuration configuration, Set<String> configTypesUpdated) {
     // AMBARI-5206
-    final Map<String , String> userProps = new HashMap<String , String>();
+    final Map<String , String> userProps = new HashMap<>();
 
     setRetryConfiguration(configuration, configTypesUpdated);
 
@@ -3190,7 +3200,7 @@ public class BlueprintConfigurationProcessor {
      * namenode.
      */
     private final Set<String> setOfHDFSPropertyNamesNonHA =
-      Collections.unmodifiableSet( new HashSet<String>(Arrays.asList("dfs.namenode.http-address", "dfs.namenode.https-address", "dfs.namenode.rpc-address")));
+      Collections.unmodifiableSet(new HashSet<>(Arrays.asList("dfs.namenode.http-address", "dfs.namenode.https-address", "dfs.namenode.rpc-address")));
 
 
     /**
@@ -3260,7 +3270,7 @@ public class BlueprintConfigurationProcessor {
      * Set of HAWQ Property names that are only valid in a HA scenario.
      */
     private final Set<String> setOfHawqPropertyNamesNonHA =
-            Collections.unmodifiableSet( new HashSet<String>(Arrays.asList(HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST)));
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(HAWQ_SITE_HAWQ_STANDBY_ADDRESS_HOST)));
 
 
     /**

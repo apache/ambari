@@ -93,7 +93,7 @@ public class AmbariServerAlertService extends AbstractScheduledService {
   /**
    * A map of all of the definition names to {@link ScheduledFuture}s.
    */
-  private final Map<String, ScheduledAlert> m_futureMap = new ConcurrentHashMap<String, ScheduledAlert>();
+  private final Map<String, ScheduledAlert> m_futureMap = new ConcurrentHashMap<>();
 
   /**
    * Constructor.

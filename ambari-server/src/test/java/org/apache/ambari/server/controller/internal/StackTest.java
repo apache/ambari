@@ -134,7 +134,7 @@ public class StackTest {
   public void testConfigPropertyReadsInDependencies() throws Exception {
     EasyMockSupport mockSupport = new EasyMockSupport();
 
-    Set<PropertyDependencyInfo> setOfDependencyInfo = new HashSet<PropertyDependencyInfo>();
+    Set<PropertyDependencyInfo> setOfDependencyInfo = new HashSet<>();
 
     StackConfigurationResponse mockResponse = mockSupport.createMock(StackConfigurationResponse.class);
     expect(mockResponse.getPropertyName()).andReturn("test-property-one");
@@ -187,8 +187,8 @@ public class StackTest {
     expect(stackComponentResponse.getComponentCategory()).andReturn("test-site.xml").anyTimes();
 
     expect(controller.getStackConfigurations(capture(stackConfigurationRequestCapture))).
-        andReturn(new HashSet<StackConfigurationResponse>(Arrays.asList(
-            stackConfigurationResponse, stackConfigurationResponse2))).anyTimes();
+        andReturn(new HashSet<>(Arrays.asList(
+          stackConfigurationResponse, stackConfigurationResponse2))).anyTimes();
 
     // no stack level configs for this test
     expect(controller.getStackLevelConfigurations(capture(stackLevelConfigurationRequestCapture))).
@@ -335,7 +335,7 @@ public class StackTest {
     expect(stackServiceResponse.getServiceName()).andReturn(testServiceName).anyTimes();
 
     // Config type test-site is excluded for the service service1
-    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.<String>singleton(testSiteConfigType));
+    expect(stackServiceResponse.getExcludedConfigTypes()).andReturn(Collections.singleton(testSiteConfigType));
 
     // stack components
     expect(stackComponentResponse.getComponentName()).andReturn("component1").anyTimes();

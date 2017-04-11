@@ -41,10 +41,10 @@ public class ClusterDefinition {
   private static final String DEFAULT_VERSION_ID      = "HDP-1.2.0";
   private static final String VERSION_ID_TAG          = "VERSION=";
 
-  private final Set<String> services = new HashSet<String>();
-  private final Set<String> hosts = new HashSet<String>();
-  private final Map<String, Set<String>> components = new HashMap<String, Set<String>>();
-  private final Map<String, Map<String, Set<String>>> hostComponents = new HashMap<String, Map<String, Set<String>>>();
+  private final Set<String> services = new HashSet<>();
+  private final Set<String> hosts = new HashSet<>();
+  private final Map<String, Set<String>> components = new HashMap<>();
+  private final Map<String, Map<String, Set<String>>> hostComponents = new HashMap<>();
 
   private final GSInstallerStateProvider stateProvider;
   private String clusterName;
@@ -53,22 +53,22 @@ public class ClusterDefinition {
   /**
    * Index of host names to host component state.
    */
-  private final Map<String, Set<HostComponentState>> hostStateMap = new HashMap<String, Set<HostComponentState>>();
+  private final Map<String, Set<HostComponentState>> hostStateMap = new HashMap<>();
 
   /**
    * Index of service names to host component state.
    */
-  private final Map<String, Set<HostComponentState>> serviceStateMap = new HashMap<String, Set<HostComponentState>>();
+  private final Map<String, Set<HostComponentState>> serviceStateMap = new HashMap<>();
 
   /**
    * Index of component names to host component state.
    */
-  private final Map<String, Set<HostComponentState>> componentStateMap = new HashMap<String, Set<HostComponentState>>();
+  private final Map<String, Set<HostComponentState>> componentStateMap = new HashMap<>();
 
   /**
    * Index of host component names to host component state.
    */
-  private final Map<String, HostComponentState> hostComponentStateMap = new HashMap<String, HostComponentState>();
+  private final Map<String, HostComponentState> hostComponentStateMap = new HashMap<>();
 
   /**
    * Expiry for the health value.
@@ -79,7 +79,7 @@ public class ClusterDefinition {
    * Component name mapping to account for differences in what is provided by the gsInstaller
    * and what is expected by the Ambari providers.
    */
-  private static final Map<String, String> componentNameMap = new HashMap<String, String>();
+  private static final Map<String, String> componentNameMap = new HashMap<>();
 
   static {
     componentNameMap.put("GANGLIA", "GANGLIA_SERVER");
@@ -260,20 +260,20 @@ public class ClusterDefinition {
           services.add(serviceName);
           Set<String> serviceComponents = components.get(serviceName);
           if (serviceComponents == null) {
-            serviceComponents = new HashSet<String>();
+            serviceComponents = new HashSet<>();
             components.put(serviceName, serviceComponents);
           }
           serviceComponents.add(componentName);
 
           Map<String, Set<String>> serviceHostComponents = hostComponents.get(serviceName);
           if (serviceHostComponents == null) {
-            serviceHostComponents = new HashMap<String, Set<String>>();
+            serviceHostComponents = new HashMap<>();
             hostComponents.put(serviceName, serviceHostComponents);
           }
 
           Set<String> hostHostComponents = serviceHostComponents.get(hostName);
           if (hostHostComponents == null) {
-            hostHostComponents = new HashSet<String>();
+            hostHostComponents = new HashSet<>();
             serviceHostComponents.put(hostName, hostHostComponents);
           }
           hostHostComponents.add(componentName);
@@ -328,7 +328,7 @@ public class ClusterDefinition {
   private static void addState(String hostName, Map<String, Set<HostComponentState>> stateMap, HostComponentState state) {
     Set<HostComponentState> states = stateMap.get(hostName);
     if (states == null) {
-      states = new HashSet<HostComponentState>();
+      states = new HashSet<>();
       stateMap.put(hostName, states);
     }
     states.add(state);

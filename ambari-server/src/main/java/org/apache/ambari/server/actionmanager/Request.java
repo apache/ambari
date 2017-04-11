@@ -78,7 +78,7 @@ public class Request {
   private RequestOperationLevel operationLevel;
   private RequestType requestType;
 
-  private Collection<Stage> stages = new ArrayList<Stage>();
+  private Collection<Stage> stages = new ArrayList<>();
 
   @Inject
   private static HostDAO hostDAO;
@@ -207,7 +207,7 @@ public class Request {
   }
 
   private static List<String> getHostsList(String hosts) {
-    List<String> hostList = new ArrayList<String>();
+    List<String> hostList = new ArrayList<>();
     if (hosts != null && !hosts.isEmpty()) {
       for (String host : hosts.split(",")) {
         if (!host.trim().isEmpty()) {
@@ -248,7 +248,7 @@ public class Request {
     //TODO set all fields
 
     if (resourceFilters != null) {
-      List<RequestResourceFilterEntity> filterEntities = new ArrayList<RequestResourceFilterEntity>();
+      List<RequestResourceFilterEntity> filterEntities = new ArrayList<>();
       for (RequestResourceFilter resourceFilter : resourceFilters) {
         RequestResourceFilterEntity filterEntity = new RequestResourceFilterEntity();
         filterEntity.setServiceName(resourceFilter.getServiceName());
@@ -367,7 +367,7 @@ public class Request {
   }
 
   public List<HostRoleCommand> getCommands() {
-    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> commands = new ArrayList<>();
     for (Stage stage : stages) {
       commands.addAll(stage.getOrderedHostRoleCommands());
     }
@@ -420,7 +420,7 @@ public class Request {
 
     Collection<RequestResourceFilterEntity> resourceFilterEntities = entity.getResourceFilterEntities();
     if (resourceFilterEntities != null) {
-      resourceFilters = new ArrayList<RequestResourceFilter>();
+      resourceFilters = new ArrayList<>();
       for (RequestResourceFilterEntity resourceFilterEntity : resourceFilterEntities) {
         RequestResourceFilter resourceFilter =
           new RequestResourceFilter(

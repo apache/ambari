@@ -41,7 +41,7 @@ public class GangliaMetricTest {
   public void testSetDatapointsOfPercentValue() {
     System.out.println("setDatapoints");
     List<GangliaMetric.TemporalMetric> listTemporalMetrics =
-              new ArrayList<GangliaMetric.TemporalMetric>();
+      new ArrayList<>();
     GangliaMetric instance = new GangliaMetric();
     instance.setDs_name("dsName");
     instance.setCluster_name("c1");
@@ -62,7 +62,7 @@ public class GangliaMetricTest {
   public void testSetDatapointsOfgcTimeMillisValue() {
     System.out.println("setDatapoints");
     List<GangliaMetric.TemporalMetric> listTemporalMetrics =
-              new ArrayList<GangliaMetric.TemporalMetric>();
+      new ArrayList<>();
     GangliaMetric instance = new GangliaMetric();
     instance.setDs_name("dsName");
     instance.setCluster_name("c1");

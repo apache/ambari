@@ -184,7 +184,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     
@@ -203,7 +203,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
       dStateStr = desiredState.toString();
     }
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
-    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
 
     ServiceResourceProviderTest.createServices(controller, requests);
@@ -219,7 +219,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
-        new HashSet<ServiceComponentRequest>();
+      new HashSet<>();
     requests.add(r);
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
@@ -233,7 +233,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
-        new HashSet<ServiceComponentHostRequest>();
+      new HashSet<>();
     requests.add(r);
     controller.createHostComponents(requests);
     

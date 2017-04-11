@@ -201,7 +201,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
         ? temporaryCredentialStore.listCredentials()
         : null;
 
-    Map<String, CredentialStoreType> map = new HashMap<String, CredentialStoreType>();
+    Map<String, CredentialStoreType> map = new HashMap<>();
 
     if (persistedAliases != null) {
       for (String alias : persistedAliases) {

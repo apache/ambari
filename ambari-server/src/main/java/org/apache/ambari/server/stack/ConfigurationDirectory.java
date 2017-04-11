@@ -55,7 +55,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
    * Map of configuration type to configuration module.
    * One entry for each configuration file in this configuration directory.
    */
-  private Map<String, ConfigurationModule> configurationModules = new HashMap<String, ConfigurationModule>();
+  private Map<String, ConfigurationModule> configurationModules = new HashMap<>();
 
   /**
    * Logger instance
@@ -137,7 +137,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
    * @return  collection of properties
    */
   private Collection<PropertyInfo> parseProperties(ConfigurationXml configuration, String fileName) {
-  List<PropertyInfo> props = new ArrayList<PropertyInfo>();
+  List<PropertyInfo> props = new ArrayList<>();
   for (PropertyInfo pi : configuration.getProperties()) {
     pi.setFilename(fileName);
     if(pi.getPropertyTypes().contains(PropertyInfo.PropertyType.VALUE_FROM_PROPERTY_FILE)) {
@@ -194,7 +194,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
    * @return  collection of attributes for the configuration type
    */
   private Map<String, String> parseAttributes(ConfigurationXml configuration) {
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
     for (Map.Entry<QName, String> attribute : configuration.getAttributes().entrySet()) {
       attributes.put(attribute.getKey().getLocalPart(), attribute.getValue());
     }

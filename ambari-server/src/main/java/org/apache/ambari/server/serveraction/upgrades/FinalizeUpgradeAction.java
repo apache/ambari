@@ -187,9 +187,9 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           clusterName, clusterDesiredStackId, version);
 
       // Will include hosts whose state is INSTALLED
-      Set<HostVersionEntity> hostVersionsAllowed = new HashSet<HostVersionEntity>();
-      Set<String> hostsWithoutCorrectVersionState = new HashSet<String>();
-      Set<String> hostsToUpdate = new HashSet<String>();
+      Set<HostVersionEntity> hostVersionsAllowed = new HashSet<>();
+      Set<String> hostsWithoutCorrectVersionState = new HashSet<>();
+      Set<String> hostsToUpdate = new HashSet<>();
 
       // It is important to only iterate over the hosts with a version, as
       // opposed to all hosts, since some hosts may only have components that do
@@ -406,7 +406,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           "for cluster versions that do not match %s\n", version));
       }
 
-      Set<String> badVersions = new HashSet<String>();
+      Set<String> badVersions = new HashSet<>();
 
       // update the cluster version
       for (ClusterVersionEntity cve : clusterVersionDAO.findByCluster(clusterName)) {
@@ -427,7 +427,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       out.append(String.format("Found %d other version(s) not matching downgrade: %s\n",
           badVersions.size(), StringUtils.join(badVersions, ", ")));
 
-      Set<String> badHosts = new HashSet<String>();
+      Set<String> badHosts = new HashSet<>();
       for (String badVersion : badVersions) {
         List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
             clusterName, targetStackId, badVersion);
@@ -482,7 +482,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   protected List<InfoTuple> checkHostComponentVersions(Cluster cluster, String desiredVersion, StackId targetStackId)
           throws AmbariException {
 
-    ArrayList<InfoTuple> errors = new ArrayList<InfoTuple>();
+    ArrayList<InfoTuple> errors = new ArrayList<>();
 
     for (Service service : cluster.getServices().values()) {
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {

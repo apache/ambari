@@ -96,7 +96,7 @@ public class ActionResourceProviderTest {
     AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
     expect(managementController.getAmbariMetaInfo()).andReturn(am).anyTimes();
 
-    List<ActionDefinition> allDefinition = new ArrayList<ActionDefinition>();
+    List<ActionDefinition> allDefinition = new ArrayList<>();
     allDefinition.add(new ActionDefinition(
         "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null));
@@ -107,7 +107,7 @@ public class ActionResourceProviderTest {
         "a3", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null));
 
-    Set<ActionResponse> allResponse = new HashSet<ActionResponse>();
+    Set<ActionResponse> allResponse = new HashSet<>();
     for (ActionDefinition definition : allDefinition) {
       allResponse.add(definition.convertToResponse());
     }
@@ -116,7 +116,7 @@ public class ActionResourceProviderTest {
         "a1", ActionType.SYSTEM, "fileName", "HDFS", "DATANODE", "Does file exist", TargetHostType.ANY,
         Short.valueOf("100"), null);
 
-    Set<ActionResponse> nameResponse = new HashSet<ActionResponse>();
+    Set<ActionResponse> nameResponse = new HashSet<>();
     nameResponse.add(namedDefinition.convertToResponse());
 
     expect(am.getAllActionDefinition()).andReturn(allDefinition).once();
@@ -130,7 +130,7 @@ public class ActionResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ActionResourceProvider.ACTION_NAME_PROPERTY_ID);
     propertyIds.add(ActionResourceProvider.ACTION_TYPE_PROPERTY_ID);

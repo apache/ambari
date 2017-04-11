@@ -47,12 +47,12 @@ public class RootServiceResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<RootServiceResponse> allResponse = new HashSet<RootServiceResponse>();
+    Set<RootServiceResponse> allResponse = new HashSet<>();
     allResponse.add(new RootServiceResponse("service1"));
     allResponse.add(new RootServiceResponse("service2"));
     allResponse.add(new RootServiceResponse("service3"));
 
-    Set<RootServiceResponse> nameResponse = new HashSet<RootServiceResponse>();
+    Set<RootServiceResponse> nameResponse = new HashSet<>();
     nameResponse.add(new RootServiceResponse("service4"));
 
 
@@ -68,7 +68,7 @@ public class RootServiceResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RootServiceResourceProvider.SERVICE_NAME_PROPERTY_ID);
 

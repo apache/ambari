@@ -417,7 +417,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new TreeMap<String, Object>();
+    Map<String, Object> map = new TreeMap<>();
 
     String data;
 
@@ -425,7 +425,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
     map.put("file", data);
 
     // Build file owner map
-    Map<String, String> owner = new TreeMap<String, String>();
+    Map<String, String> owner = new TreeMap<>();
 
     data = getOwnerName();
     if (data != null) {
@@ -443,7 +443,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
     // Build file owner map (end)
 
     // Build file owner map
-    Map<String, String> group = new TreeMap<String, String>();
+    Map<String, String> group = new TreeMap<>();
 
     data = getGroupName();
     if (data != null) {

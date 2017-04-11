@@ -106,7 +106,7 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
       if (headers == null || headers.isEmpty()) {
         headers = Collections.singletonMap(URLStreamProvider.COOKIE, ambariSessionCookie);
       } else {
-        headers = new HashMap<String, String>(headers);
+        headers = new HashMap<>(headers);
 
         String cookies = headers.get(URLStreamProvider.COOKIE);
 
@@ -115,7 +115,7 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
     }
 
     // adapt the headers for the internal URLStreamProvider signature
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     for (Map.Entry<String, String> entry : headers.entrySet()) {
       headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
     }

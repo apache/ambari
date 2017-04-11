@@ -35,7 +35,7 @@ import com.google.inject.Inject;
 @Path("/connection_info")
 public class ConnectionInfo {
     private static Log LOG = LogFactory.getLog(ConnectionInfo.class);
-    private static HashMap<String,String> response=new HashMap<String,String>();
+    private static HashMap<String,String> response= new HashMap<>();
     private static Configuration conf;
 
 

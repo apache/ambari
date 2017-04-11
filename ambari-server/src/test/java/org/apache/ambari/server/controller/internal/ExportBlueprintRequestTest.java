@@ -90,7 +90,7 @@ public class ExportBlueprintRequestTest {
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_ID_PROPERTY_ID, CLUSTER_ID);
     clusterResource.setProperty(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "TEST-1.0");
 
-    TreeNode<Resource> clusterNode = new TreeNodeImpl<Resource>(null, clusterResource, "cluster");
+    TreeNode<Resource> clusterNode = new TreeNodeImpl<>(null, clusterResource, "cluster");
     // add empty config child resource
     Resource configResource = new ResourceImpl(Resource.Type.Configuration);
     clusterNode.addChild(configResource, "configurations");

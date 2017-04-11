@@ -71,7 +71,7 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException {
 
-    Set<Resource> keepers = new HashSet<Resource>();
+    Set<Resource> keepers = new HashSet<>();
     for (Resource resource : resources) {
       if (populateResource(resource, request, predicate)) {
         keepers.add(resource);
@@ -152,7 +152,7 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
   }
 
   private Map<String, Map<String, String>> getPropertyIdMaps(Request request, Set<String> ids) {
-    Map<String, Map<String, String>> propertyMap = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> propertyMap = new HashMap<>();
 
     for (String id : ids) {
       Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap("*", id);
@@ -175,7 +175,7 @@ public class GangliaReportPropertyProvider extends MetricsReportPropertyProvider
           if (report !=  null) {
             Map<String, String> map = propertyMap.get(report);
             if (map == null) {
-              map = new HashMap<String, String>();
+              map = new HashMap<>();
               propertyMap.put(report, map);
             }
             map.put(propertyName, propertyId);

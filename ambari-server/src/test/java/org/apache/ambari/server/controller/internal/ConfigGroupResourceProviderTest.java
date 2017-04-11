@@ -187,20 +187,20 @@ public class ConfigGroupResourceProviderTest {
     ResourceProvider provider = getConfigGroupResourceProvider
         (managementController);
 
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
-    Set<Map<String, Object>> hostSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> host1 = new HashMap<String, Object>();
+    Set<Map<String, Object>> hostSet = new HashSet<>();
+    Map<String, Object> host1 = new HashMap<>();
     host1.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h1");
     hostSet.add(host1);
-    Map<String, Object> host2 = new HashMap<String, Object>();
+    Map<String, Object> host2 = new HashMap<>();
     host2.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h2");
     hostSet.add(host2);
 
-    Set<Map<String, Object>> configSet = new HashSet<Map<String, Object>>();
-    Map<String, String> configMap = new HashMap<String, String>();
-    Map<String, Object> configs = new HashMap<String, Object>();
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
     configs.put("type", "core-site");
     configs.put("tag", "version100");
     configMap.put("key1", "value1");
@@ -272,7 +272,7 @@ public class ConfigGroupResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
     ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
-    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
     configGroupMap.put(1L, configGroup);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -296,8 +296,8 @@ public class ConfigGroupResourceProviderTest {
     ResourceProvider provider = getConfigGroupResourceProvider
         (managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Map<String, Object> properties = new LinkedHashMap<>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     properties.put(ConfigGroupResourceProvider
         .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -369,7 +369,7 @@ public class ConfigGroupResourceProviderTest {
     expect(cluster.getConfigGroups()).andStubAnswer(new IAnswer<Map<Long, ConfigGroup>>() {
       @Override
       public Map<Long, ConfigGroup> answer() throws Throwable {
-        Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+        Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
         configGroupMap.put(configGroup.getId(), configGroup);
         return configGroupMap;
       }
@@ -381,19 +381,19 @@ public class ConfigGroupResourceProviderTest {
     ResourceProvider provider = getConfigGroupResourceProvider
         (managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
-    Set<Map<String, Object>> hostSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> host1 = new HashMap<String, Object>();
+    Set<Map<String, Object>> hostSet = new HashSet<>();
+    Map<String, Object> host1 = new HashMap<>();
     host1.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h1");
     hostSet.add(host1);
-    Map<String, Object> host2 = new HashMap<String, Object>();
+    Map<String, Object> host2 = new HashMap<>();
     host2.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h2");
     hostSet.add(host2);
 
-    Set<Map<String, Object>> configSet = new HashSet<Map<String, Object>>();
-    Map<String, String> configMap = new HashMap<String, String>();
-    Map<String, Object> configs = new HashMap<String, Object>();
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
     configs.put("type", "core-site");
     configs.put("tag", "version100");
     configMap.put("key1", "value1");
@@ -411,7 +411,7 @@ public class ConfigGroupResourceProviderTest {
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
         configSet);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
@@ -506,7 +506,7 @@ public class ConfigGroupResourceProviderTest {
     expect(cluster.getConfigGroups()).andStubAnswer(new IAnswer<Map<Long, ConfigGroup>>() {
       @Override
       public Map<Long, ConfigGroup> answer() throws Throwable {
-        Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+        Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
         configGroupMap.put(configGroup.getId(), configGroup);
         return configGroupMap;
       }
@@ -518,19 +518,19 @@ public class ConfigGroupResourceProviderTest {
     ResourceProvider provider = getConfigGroupResourceProvider
         (managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
-    Set<Map<String, Object>> hostSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> host1 = new HashMap<String, Object>();
+    Set<Map<String, Object>> hostSet = new HashSet<>();
+    Map<String, Object> host1 = new HashMap<>();
     host1.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h1");
     hostSet.add(host1);
-    Map<String, Object> host2 = new HashMap<String, Object>();
+    Map<String, Object> host2 = new HashMap<>();
     host2.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID, "h2");
     hostSet.add(host2);
 
-    Set<Map<String, Object>> configSet = new HashSet<Map<String, Object>>();
-    Map<String, String> configMap = new HashMap<String, String>();
-    Map<String, Object> configs = new HashMap<String, Object>();
+    Set<Map<String, Object>> configSet = new HashSet<>();
+    Map<String, String> configMap = new HashMap<>();
+    Map<String, Object> configs = new HashMap<>();
     configs.put("type", "core-site");
     configs.put("tag", "version100");
     configMap.put("key1", "value1");
@@ -548,7 +548,7 @@ public class ConfigGroupResourceProviderTest {
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
         configSet);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
@@ -625,13 +625,13 @@ public class ConfigGroupResourceProviderTest {
     ConfigGroupResponse response3 = createNiceMock(ConfigGroupResponse.class);
     ConfigGroupResponse response4 = createNiceMock(ConfigGroupResponse.class);
 
-    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<>();
     configGroupMap.put(1L, configGroup1);
     configGroupMap.put(2L, configGroup2);
     configGroupMap.put(3L, configGroup3);
     configGroupMap.put(4L, configGroup4);
 
-    Map<Long, ConfigGroup> configGroupByHostname = new HashMap<Long, ConfigGroup>();
+    Map<Long, ConfigGroup> configGroupByHostname = new HashMap<>();
     configGroupByHostname.put(4L, configGroup4);
 
     expect(configGroup1.convertToResponse()).andReturn(response1).anyTimes();
@@ -653,7 +653,7 @@ public class ConfigGroupResourceProviderTest {
     expect(configGroup3.getTag()).andReturn("t3").anyTimes();
     expect(configGroup4.getTag()).andReturn("t4").anyTimes();
 
-    Map<Long, Host> hostMap = new HashMap<Long, Host>();
+    Map<Long, Host> hostMap = new HashMap<>();
     hostMap.put(host1Id, h1);
     expect(configGroup4.getHosts()).andReturn(hostMap).anyTimes();
 
@@ -670,8 +670,8 @@ public class ConfigGroupResourceProviderTest {
     expect(response3.getTag()).andReturn("t3").anyTimes();
     expect(cluster.getConfigGroupsByHostname("h1")).andReturn(configGroupByHostname).anyTimes();
 
-    Set<Map<String, Object>> hostObj = new HashSet<Map<String, Object>>();
-    Map<String, Object> hostnames = new HashMap<String, Object>();
+    Set<Map<String, Object>> hostObj = new HashSet<>();
+    Map<String, Object> hostnames = new HashMap<>();
     hostnames.put("host_name", "h1");
     hostObj.add(hostnames);
     expect(response4.getHosts()).andReturn(hostObj).anyTimes();
@@ -683,7 +683,7 @@ public class ConfigGroupResourceProviderTest {
 
     ResourceProvider resourceProvider = getConfigGroupResourceProvider(managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID);
@@ -896,8 +896,8 @@ public class ConfigGroupResourceProviderTest {
     ConfigGroupResourceProvider resourceProvider = getConfigGroupResourceProvider
         (managementController);
 
-    Set<Map<String, String>> desiredConfigProperties = new HashSet<Map<String, String>>();
-    Map<String, String> desiredConfig1 = new HashMap<String, String>();
+    Set<Map<String, String>> desiredConfigProperties = new HashSet<>();
+    Map<String, String> desiredConfig1 = new HashMap<>();
     desiredConfig1.put("tag", "version2");
     desiredConfig1.put("type", "type1");
     desiredConfig1.put("properties/key1", "value1");
@@ -907,7 +907,7 @@ public class ConfigGroupResourceProviderTest {
     desiredConfig1.put("properties_attributes/attr2/key1", "15");
     desiredConfigProperties.add(desiredConfig1);
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put("ConfigGroup/hosts", new HashMap<String, String>() {{
       put("host_name", "ambari1");
     }});

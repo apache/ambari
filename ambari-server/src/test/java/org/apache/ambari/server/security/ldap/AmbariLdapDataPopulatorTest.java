@@ -231,7 +231,7 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   private <T> Set<T> createSet(T...elements) {
-    return new HashSet<T>(Arrays.asList(elements));
+    return new HashSet<>(Arrays.asList(elements));
   }
 
   @Test
@@ -1522,7 +1522,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(externalGroup.getMemberAttributes()).andReturn(createSet("user1", "user2", "user4", "user6")).anyTimes();
     replay(externalGroup);
 
-    Map<String, User> internalMembers = new HashMap<String, User>();
+    Map<String, User> internalMembers = new HashMap<>();
     internalMembers.put("user1", user1);
     internalMembers.put("user3", user3);
     internalMembers.put("user4", user4);
@@ -1548,22 +1548,22 @@ public class AmbariLdapDataPopulatorTest {
     populator.setLdapTemplate(ldapTemplate);
     populator.setLdapServerProperties(ldapServerProperties);
 
-    Map<String, User> internalUsers = new HashMap<String, User>();
+    Map<String, User> internalUsers = new HashMap<>();
     internalUsers.putAll(internalMembers);
     internalUsers.put("user2", user2);
-    Map<String, Group> internalGroups = new HashMap<String, Group>();
+    Map<String, Group> internalGroups = new HashMap<>();
     internalGroups.put("group2", group2);
 
     populator.refreshGroupMembers(batchInfo, externalGroup, internalUsers, internalGroups, null, true);
 
-    Set<String> groupMembersToAdd = new HashSet<String>();
+    Set<String> groupMembersToAdd = new HashSet<>();
     for (LdapUserGroupMemberDto ldapUserGroupMemberDto : batchInfo.getMembershipToAdd()) {
       groupMembersToAdd.add(ldapUserGroupMemberDto.getUserName());
     }
     assertEquals(3, groupMembersToAdd.size());
     assertTrue(groupMembersToAdd.contains("user2"));
     assertTrue(groupMembersToAdd.contains("user6"));
-    Set<String> groupMembersToRemove = new HashSet<String>();
+    Set<String> groupMembersToRemove = new HashSet<>();
     for (LdapUserGroupMemberDto ldapUserGroupMemberDto : batchInfo.getMembershipToRemove()) {
       groupMembersToRemove.add(ldapUserGroupMemberDto.getUserName());
     }
@@ -1606,9 +1606,9 @@ public class AmbariLdapDataPopulatorTest {
         add(localUserWithGroup);
       }
     };
-    expect(users.getAllUsers()).andReturn(new ArrayList<User>(allUsers));
+    expect(users.getAllUsers()).andReturn(new ArrayList<>(allUsers));
 
-    final List<User> removedUsers = new ArrayList<User>();
+    final List<User> removedUsers = new ArrayList<>();
     final Capture<User> userCapture = EasyMock.newCapture();
     users.removeUser(capture(userCapture));
     expectLastCall().andAnswer(new IAnswer<Void>() {
@@ -1650,7 +1650,7 @@ public class AmbariLdapDataPopulatorTest {
     PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
     LdapUserDto dto = new LdapUserDto();
 
-    List<LdapUserDto> list = new LinkedList<LdapUserDto>();
+    List<LdapUserDto> list = new LinkedList<>();
     list.add(dto);
 
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
@@ -1689,7 +1689,7 @@ public class AmbariLdapDataPopulatorTest {
     PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
     LdapUserDto dto = new LdapUserDto();
 
-    List<LdapUserDto> list = new LinkedList<LdapUserDto>();
+    List<LdapUserDto> list = new LinkedList<>();
     list.add(dto);
 
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();

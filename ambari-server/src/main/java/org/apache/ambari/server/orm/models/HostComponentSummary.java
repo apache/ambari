@@ -81,7 +81,7 @@ public class HostComponentSummary {
   }
 
   public static List<HostComponentSummary> getHostComponentSummaries(String serviceName, String componentName) {
-    List<HostComponentSummary> hostComponentSummaries = new ArrayList<HostComponentSummary>();
+    List<HostComponentSummary> hostComponentSummaries = new ArrayList<>();
     List<HostComponentStateEntity> hostComponentStates = hostComponentStateDao.findByServiceAndComponent(serviceName, componentName);
 
     if (hostComponentStates != null) {

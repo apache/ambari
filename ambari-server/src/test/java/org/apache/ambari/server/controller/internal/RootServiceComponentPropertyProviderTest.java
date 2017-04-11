@@ -67,7 +67,7 @@ public class RootServiceComponentPropertyProviderTest {
     resource.setProperty(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID, componentName);
     resource.setProperty(RootServiceComponentResourceProvider.SERVICE_NAME_PROPERTY_ID, RootServiceResponseFactory.Services.AMBARI.name());
 
-    HashSet<String> requestIds = new HashSet<String>();
+    HashSet<String> requestIds = new HashSet<>();
 
     if (requestCiphers) {
       requestIds.add(RootServiceComponentPropertyProvider.CIPHER_PROPERTIES_PROPERTY_ID);

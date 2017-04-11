@@ -79,7 +79,7 @@ public class HostsRemovedEvent extends AmbariEvent {
    */
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer("HostsRemovedEvent{");
+    final StringBuilder sb = new StringBuilder("HostsRemovedEvent{");
     sb.append("m_clusters=").append(m_clusters);
     sb.append(", m_hosts=").append(m_hosts);
     sb.append('}');

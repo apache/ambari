@@ -211,7 +211,7 @@ public class TestHeartbeatHandler {
     HeartBeat hb = new HeartBeat();
     hb.setResponseId(0);
     HostStatus hs = new HostStatus(Status.HEALTHY, DummyHostStatus);
-    List<Alert> al = new ArrayList<Alert>();
+    List<Alert> al = new ArrayList<>();
     al.add(new Alert());
     hb.setNodeStatus(hs);
     hb.setHostname(hostname);
@@ -244,7 +244,7 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     hb.setComponentStatus(componentStatuses);
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
@@ -309,7 +309,7 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
 
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
@@ -757,7 +757,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testStateCommandsAtRegistration() throws Exception, InvalidStateTransitionException {
-    List<StatusCommand> dummyCmds = new ArrayList<StatusCommand>();
+    List<StatusCommand> dummyCmds = new ArrayList<>();
     StatusCommand statusCmd1 = new StatusCommand();
     statusCmd1.setClusterName(DummyCluster);
     statusCmd1.setServiceName(HDFS);
@@ -814,7 +814,7 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setTaskId(1);
@@ -872,7 +872,7 @@ public class TestHeartbeatHandler {
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
         DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"),
           DummyCluster, "HDFS", false, false);
-    List<Stage> stages = new ArrayList<Stage>();
+    List<Stage> stages = new ArrayList<>();
     stages.add(s);
     Request request = new Request(stages, clusters);
     actionDBAccessor.persistActions(request);
@@ -884,7 +884,7 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
 
-    List<CommandReport> reports = new ArrayList<CommandReport>();
+    List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(1, 1));
     cr.setTaskId(1);
@@ -959,7 +959,7 @@ public class TestHeartbeatHandler {
     hb.setAgentEnv(new AgentEnv());
     hb.setMounts(new ArrayList<DiskInfo>());
 
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED,
         SecurityState.UNSECURED, DATANODE, "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.0\"}");
     ComponentStatus componentStatus2 =
@@ -1041,7 +1041,7 @@ public class TestHeartbeatHandler {
     hb1.setHostname(DummyHostname1);
     RecoveryReport rr = new RecoveryReport();
     rr.setSummary("RECOVERABLE");
-    List<ComponentRecoveryReport> compRecReports = new ArrayList<ComponentRecoveryReport>();
+    List<ComponentRecoveryReport> compRecReports = new ArrayList<>();
     ComponentRecoveryReport compRecReport = new ComponentRecoveryReport();
     compRecReport.setLimitReached(Boolean.FALSE);
     compRecReport.setName("DATANODE");
@@ -1060,7 +1060,7 @@ public class TestHeartbeatHandler {
     hb2.setHostname(DummyHostname1);
     rr = new RecoveryReport();
     rr.setSummary("UNRECOVERABLE");
-    compRecReports = new ArrayList<ComponentRecoveryReport>();
+    compRecReports = new ArrayList<>();
     compRecReport = new ComponentRecoveryReport();
     compRecReport.setLimitReached(Boolean.TRUE);
     compRecReport.setName("DATANODE");
@@ -1122,7 +1122,7 @@ public class TestHeartbeatHandler {
     hb1.setResponseId(0);
     hb1.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb1.setHostname(DummyHostname1);
-    List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
+    List<ComponentStatus> componentStatus = new ArrayList<>();
     ComponentStatus dataNodeStatus = new ComponentStatus();
     dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
@@ -1147,7 +1147,7 @@ public class TestHeartbeatHandler {
     hb2.setResponseId(1);
     hb2.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb2.setHostname(DummyHostname1);
-    componentStatus = new ArrayList<ComponentStatus>();
+    componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
     dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
@@ -1174,7 +1174,7 @@ public class TestHeartbeatHandler {
     hb2a.setResponseId(2);
     hb2a.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb2a.setHostname(DummyHostname1);
-    componentStatus = new ArrayList<ComponentStatus>();
+    componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
     dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
@@ -1202,7 +1202,7 @@ public class TestHeartbeatHandler {
     hb3.setResponseId(3);
     hb3.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb3.setHostname(DummyHostname1);
-    componentStatus = new ArrayList<ComponentStatus>();
+    componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
     dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
@@ -1241,7 +1241,7 @@ public class TestHeartbeatHandler {
     hb4.setResponseId(5);
     hb4.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb4.setHostname(DummyHostname1);
-    componentStatus = new ArrayList<ComponentStatus>();
+    componentStatus = new ArrayList<>();
     dataNodeStatus = new ComponentStatus();
     dataNodeStatus.setClusterName(cluster.getClusterName());
     dataNodeStatus.setServiceName(HDFS);
@@ -1275,7 +1275,7 @@ public class TestHeartbeatHandler {
     cr1.setExitCode(215);
     cr1.setRoleCommand("STOP");
     cr1.setClusterName(DummyCluster);
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     hb5.setReports(reports);
     handler.handleHeartBeat(hb5);
@@ -1309,7 +1309,7 @@ public class TestHeartbeatHandler {
     cr2.setStdOut("dummy output");
     cr2.setExitCode(0);
 
-    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    ArrayList<CommandReport> reports = new ArrayList<>();
     reports.add(cr1);
     reports.add(cr2);
 
@@ -1351,19 +1351,19 @@ public class TestHeartbeatHandler {
       InvalidStateTransitionException {
     ComponentsResponse expected = new ComponentsResponse();
     StackId dummyStackId = new StackId(DummyStackId);
-    Map<String, Map<String, String>> dummyComponents = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> dummyComponents = new HashMap<>();
 
-    Map<String, String> dummyCategoryMap = new HashMap<String, String>();
+    Map<String, String> dummyCategoryMap = new HashMap<>();
     dummyCategoryMap.put("PIG", "CLIENT");
     dummyComponents.put("PIG", dummyCategoryMap);
 
-    dummyCategoryMap = new HashMap<String, String>();
+    dummyCategoryMap = new HashMap<>();
     dummyCategoryMap.put("MAPREDUCE_CLIENT", "CLIENT");
     dummyCategoryMap.put("JOBTRACKER", "MASTER");
     dummyCategoryMap.put("TASKTRACKER", "SLAVE");
     dummyComponents.put("MAPREDUCE", dummyCategoryMap);
 
-    dummyCategoryMap = new HashMap<String, String>();
+    dummyCategoryMap = new HashMap<>();
     dummyCategoryMap.put("DATANODE2", "SLAVE");
     dummyCategoryMap.put("NAMENODE", "MASTER");
     dummyCategoryMap.put("HDFS_CLIENT", "CLIENT");
@@ -1428,7 +1428,7 @@ public class TestHeartbeatHandler {
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
 
-    ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
+    ArrayList<ComponentStatus> componentStatuses = new ArrayList<>();
     ComponentStatus componentStatus1 = new ComponentStatus();
     componentStatus1.setClusterName(DummyCluster);
     componentStatus1.setServiceName(HDFS);
@@ -1516,11 +1516,11 @@ public class TestHeartbeatHandler {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
 
-    Map<String, String> hlp = new HashMap<String, String>();
+    Map<String, String> hlp = new HashMap<>();
     hlp.put("custom_command", "SET_KEYTAB");
     executionCommand.setHostLevelParams(hlp);
 
-    Map<String, String> commandparams = new HashMap<String, String>();
+    Map<String, String> commandparams = new HashMap<>();
     commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
     commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData().getAbsolutePath());
     executionCommand.setCommandParams(commandparams);
@@ -1547,11 +1547,11 @@ public class TestHeartbeatHandler {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
 
-    Map<String, String> hlp = new HashMap<String, String>();
+    Map<String, String> hlp = new HashMap<>();
     hlp.put("custom_command", "REMOVE_KEYTAB");
     executionCommand.setHostLevelParams(hlp);
 
-    Map<String, String> commandparams = new HashMap<String, String>();
+    Map<String, String> commandparams = new HashMap<>();
     commandparams.put(KerberosServerAction.AUTHENTICATED_USER_NAME, "admin");
     commandparams.put(KerberosServerAction.DATA_DIRECTORY, createTestKeytabData().getAbsolutePath());
     executionCommand.setCommandParams(commandparams);

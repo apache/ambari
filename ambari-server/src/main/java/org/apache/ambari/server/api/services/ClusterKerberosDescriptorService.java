@@ -97,7 +97,7 @@ public class ClusterKerberosDescriptorService extends BaseService {
    * @return a service resource instance
    */
   ResourceInstance createResource(String type) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ClusterKerberosDescriptor, type);
     return createResource(Resource.Type.ClusterKerberosDescriptor, mapIds);

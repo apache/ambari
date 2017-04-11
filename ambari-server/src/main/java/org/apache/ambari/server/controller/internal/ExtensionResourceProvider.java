@@ -50,8 +50,8 @@ public class ExtensionResourceProvider extends ReadOnlyResourceProvider {
   public static final String EXTENSION_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Extensions", "extension_name");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { EXTENSION_NAME_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{EXTENSION_NAME_PROPERTY_ID}));
 
   protected ExtensionResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -65,7 +65,7 @@ public class ExtensionResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ExtensionRequest> requests = new HashSet<ExtensionRequest>();
+    final Set<ExtensionRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -84,7 +84,7 @@ public class ExtensionResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (ExtensionResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Extension);

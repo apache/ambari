@@ -344,7 +344,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public Collection<ViewInstanceDefinition> getViewInstanceDefinitions() {
-    Collection<ViewInstanceEntity> instanceDefinitions = new HashSet<ViewInstanceEntity>();
+    Collection<ViewInstanceEntity> instanceDefinitions = new HashSet<>();
     for (ViewEntity viewEntity : viewRegistry.getDefinitions()) {
       instanceDefinitions.addAll(viewRegistry.getInstanceDefinitions(viewEntity));
     }
@@ -429,7 +429,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
   private Map<String, String> getPropertyValues() {
     Map<String, String> properties = viewInstanceEntity.getPropertyMap();
 
-    Map<String, ParameterConfig> parameters = new HashMap<String, ParameterConfig>();
+    Map<String, ParameterConfig> parameters = new HashMap<>();
 
     for (ParameterConfig paramConfig : viewEntity.getConfiguration().getParameters()) {
       parameters.put(paramConfig.getName(), paramConfig);

@@ -438,7 +438,7 @@ public class AlertDefinitionResourceProviderTest {
     MetricSource source = (MetricSource)getMockSource();
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
@@ -586,7 +586,7 @@ public class AlertDefinitionResourceProviderTest {
 
     MetricSource source = (MetricSource) getMockSource();
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
@@ -655,7 +655,7 @@ public class AlertDefinitionResourceProviderTest {
     expect(dao.merge((AlertDefinitionEntity) anyObject())).andReturn(entity).anyTimes();
     replay(dao);
 
-    requestProps = new HashMap<String, Object>();
+    requestProps = new HashMap<>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_ID, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "2");
@@ -719,7 +719,7 @@ public class AlertDefinitionResourceProviderTest {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     MetricSource source = (MetricSource) getMockSource();
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");
@@ -804,7 +804,7 @@ public class AlertDefinitionResourceProviderTest {
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_INTERVAL, "1");
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_NAME, "my_def");

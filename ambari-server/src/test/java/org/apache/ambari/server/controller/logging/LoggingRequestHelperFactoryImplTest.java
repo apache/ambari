@@ -76,7 +76,7 @@ public class LoggingRequestHelperFactoryImplTest {
       mockSupport.createMock(Configuration.class);
 
     Map<String, String> testProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
     testProperties.put("logsearch_ui_port", expectedPortNumber);
 
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
@@ -144,7 +144,7 @@ public class LoggingRequestHelperFactoryImplTest {
       mockSupport.createMock(Configuration.class);
 
     Map<String, String> testProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
     testProperties.put("logsearch_ui_port", expectedPortNumber);
 
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();

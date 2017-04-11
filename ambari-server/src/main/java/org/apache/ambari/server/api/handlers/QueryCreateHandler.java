@@ -111,7 +111,7 @@ public class QueryCreateHandler extends BaseManagementHandler {
     Set<NamedPropertySet> setRequestProps = request.getBody().getNamedPropertySets();
 
     HashMap<Resource.Type, Set<Map<String, Object>>> mapProps =
-        new HashMap<Resource.Type, Set<Map<String, Object>>>();
+      new HashMap<>();
 
     ResourceInstance  resource            = request.getResource();
     Resource.Type     type                = resource.getResourceDefinition().getType();
@@ -128,13 +128,13 @@ public class QueryCreateHandler extends BaseManagementHandler {
         for (Map.Entry<String, Object> entry : namedProps.getProperties().entrySet()) {
           Set<Map<String, Object>> set = (Set<Map<String, Object>>) entry.getValue();
           for (Map<String, Object> map : set) {
-            Map<String, Object> mapResourceProps = new HashMap<String, Object>(map);
+            Map<String, Object> mapResourceProps = new HashMap<>(map);
             Resource.Type       createType       = getCreateType(resource, entry.getKey());
             mapResourceProps.put(controller.getSchema(createType).
                 getKeyPropertyId(resource.getResourceDefinition().getType()), keyVal);
             Set<Map<String, Object>> setCreateProps = mapProps.get(createType);
             if (setCreateProps == null) {
-              setCreateProps = new HashSet<Map<String, Object>>();
+              setCreateProps = new HashSet<>();
               mapProps.put(createType, setCreateProps);
             }
             setCreateProps.add(mapResourceProps);

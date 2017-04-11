@@ -173,7 +173,7 @@ public class InstanceService extends BaseService {
   ResourceInstance createInstanceResource(String feedName, String instanceID, UriInfo ui) {
     boolean isAttached = ui.getRequestUri().toString().contains("/feeds/");
 
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.DRInstance, instanceID);
     if (isAttached) {
       mapIds.put(Resource.Type.DRFeed, feedName);

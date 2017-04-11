@@ -61,7 +61,7 @@ public class AlertNoticeEntity_ {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, List<? extends SingularAttribute<?, ?>>> getPredicateMapping() {
-    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<String, List<? extends SingularAttribute<?, ?>>>();
+    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<>();
 
     mapping.put(AlertNoticeResourceProvider.ALERT_NOTICE_ID,
         Collections.singletonList(notificationId));

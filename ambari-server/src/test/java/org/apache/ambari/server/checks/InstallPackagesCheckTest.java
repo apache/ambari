@@ -136,13 +136,13 @@ public class InstallPackagesCheckTest {
     Mockito.when(clusterVersionEntity.getState()).thenReturn(RepositoryVersionState.INSTALLED);
     Mockito.when(clusterVersionDAO.findByClusterAndStackAndVersion(
         clusterName, targetStackId, repositoryVersion)).thenReturn(clusterVersionEntity);
-    final List<String> hostNames = new ArrayList<String>();
+    final List<String> hostNames = new ArrayList<>();
     hostNames.add("host1");
     hostNames.add("host2");
     hostNames.add("host3");
 
-    final List<Host> hosts = new ArrayList<Host>();
-    final List<HostVersionEntity> hostVersionEntities = new ArrayList<HostVersionEntity>();
+    final List<Host> hosts = new ArrayList<>();
+    final List<HostVersionEntity> hostVersionEntities = new ArrayList<>();
     for(String hostName : hostNames) {
       Host host =  Mockito.mock(Host.class);
       Mockito.when(host.getHostName()).thenReturn(hostName);

@@ -45,8 +45,8 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Stacks", "stack_name");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID}));
 
   protected StackResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -60,7 +60,7 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<StackRequest> requests = new HashSet<StackRequest>();
+    final Set<StackRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -79,7 +79,7 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (StackResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Stack);

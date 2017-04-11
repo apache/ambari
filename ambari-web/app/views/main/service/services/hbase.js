@@ -67,12 +67,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServersTotal'), avgLoad);
   }.property('service.regionServersTotal', 'service.averageLoad'),
 
-  hbaseMasterWebUrl: function () {
-    if (this.get('activeMaster.host.publicHostName')) {
-      return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('activeMaster.host.publicHostName')) + ":60010";
-    }
-  }.property('activeMaster'),
-
   averageLoad: function () {
     var avgLoad = this.get('service.averageLoad');
     if (isNaN(avgLoad)) {

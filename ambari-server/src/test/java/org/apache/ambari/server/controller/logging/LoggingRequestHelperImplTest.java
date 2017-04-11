@@ -144,7 +144,7 @@ public class LoggingRequestHelperImplTest {
       mockSupport.createMock(Config.class);
 
     Map<String, String> testConfigProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
 
     testConfigProperties.put("logsearch_admin_username", EXPECTED_USER_NAME);
     testConfigProperties.put("logsearch_admin_password", EXPECTED_ADMIN_PASSWORD);
@@ -233,7 +233,7 @@ public class LoggingRequestHelperImplTest {
       mockSupport.createMock(Config.class);
 
     Map<String, String> testConfigProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
     testConfigProperties.put("logsearch_admin_username", "admin-user");
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
@@ -326,7 +326,7 @@ public class LoggingRequestHelperImplTest {
       mockSupport.createMock(Config.class);
 
     Map<String, String> testConfigProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
     testConfigProperties.put("logsearch_admin_username", "admin-user");
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
@@ -408,13 +408,13 @@ public class LoggingRequestHelperImplTest {
       mockSupport.createMock(Config.class);
 
     Map<String, String> testConfigProperties =
-      new HashMap<String, String>();
+      new HashMap<>();
     testConfigProperties.put("logsearch_admin_username", "admin-user");
     testConfigProperties.put("logsearch_admin_password", "admin-pwd");
     testConfigProperties = Collections.unmodifiableMap(testConfigProperties);
 
-    Capture<HttpURLConnection> captureURLConnection = new Capture<HttpURLConnection>();
-    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
+    Capture<HttpURLConnection> captureURLConnection = new Capture<>();
+    Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<>();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();

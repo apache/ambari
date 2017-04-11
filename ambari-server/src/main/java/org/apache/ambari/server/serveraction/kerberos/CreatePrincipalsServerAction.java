@@ -71,7 +71,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * A set of visited principal names used to prevent unnecessary processing on already processed
    * principal names
    */
-  private Set<String> seenPrincipals = new HashSet<String>();
+  private Set<String> seenPrincipals = new HashSet<>();
 
   /**
    * Called to execute this action.  Upon invocation, calls

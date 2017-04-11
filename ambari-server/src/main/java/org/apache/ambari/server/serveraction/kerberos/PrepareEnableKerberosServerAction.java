@@ -68,7 +68,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
 
     Map<String, String> commandParameters = getCommandParameters();
     String dataDirectory = getCommandParameterValue(commandParameters, DATA_DIRECTORY);
-    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
 
     int schCount = schToProcess.size();
     if (schCount == 0) {
@@ -100,7 +100,7 @@ public class PrepareEnableKerberosServerAction extends PrepareKerberosIdentities
     // Ensure the cluster-env/security_enabled flag is set properly
     Map<String, String> clusterEnvProperties = kerberosConfigurations.get(KerberosHelper.SECURITY_ENABLED_CONFIG_TYPE);
     if (clusterEnvProperties == null) {
-      clusterEnvProperties = new HashMap<String, String>();
+      clusterEnvProperties = new HashMap<>();
       kerberosConfigurations.put(KerberosHelper.SECURITY_ENABLED_CONFIG_TYPE, clusterEnvProperties);
     }
     clusterEnvProperties.put(KerberosHelper.SECURITY_ENABLED_PROPERTY_NAME, "true");

@@ -52,7 +52,7 @@ public class WorkflowResourceProviderTest {
   public void testGetResources() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<Resource> expected = new HashSet<Resource>();
+    Set<Resource> expected = new HashSet<>();
     expected.add(createWorkflowResponse("Cluster100", "workflow1"));
     expected.add(createWorkflowResponse("Cluster100", "workflow2"));
     expected.add(createWorkflowResponse("Cluster100", "workflow3"));
@@ -77,7 +77,7 @@ public class WorkflowResourceProviderTest {
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     for (Resource resource : resources) {
       String clusterName = (String) resource
           .getPropertyValue(WorkflowResourceProvider.WORKFLOW_CLUSTER_NAME_PROPERTY_ID);
@@ -98,7 +98,7 @@ public class WorkflowResourceProviderTest {
   public void testWorkflowFetcher() throws SystemException,
       UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
-    Set<String> requestedIds = new HashSet<String>();
+    Set<String> requestedIds = new HashSet<>();
     requestedIds.add(WorkflowResourceProvider.WORKFLOW_ID_PROPERTY_ID);
 
     Map<Resource.Type,String> keyPropertyIds = PropertyHelper

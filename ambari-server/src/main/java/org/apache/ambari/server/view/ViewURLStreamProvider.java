@@ -232,7 +232,7 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
 
     // adapt the headers to the internal URLStreamProvider processURL signature
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     for (Map.Entry<String, String> entry : headers.entrySet()) {
       headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
     }
@@ -314,7 +314,7 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
      */
     private void initializeAllowedHostPorts() {
       boolean proxyCallRestricted = false;
-      Map<String, HashSet<String>> allowed = new HashMap<String, HashSet<String>>();
+      Map<String, HashSet<String>> allowed = new HashMap<>();
       if (StringUtils.isNotBlank(allowedHostPortsValue)) {
         String allowedStr = allowedHostPortsValue.toLowerCase();
         if (!allowedStr.equals(Configuration.PROXY_ALLOWED_HOST_PORTS.getDefaultValue())) {

@@ -97,7 +97,7 @@ public class KerberosKeytabsActionTest {
     expect(m_kerberosHelper.isClusterKerberosEnabled(EasyMock.anyObject(Cluster.class))).andReturn(Boolean.FALSE).atLeastOnce();
     replay(m_kerberosHelper);
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -129,7 +129,7 @@ public class KerberosKeytabsActionTest {
     expect(m_kerberosHelper.isClusterKerberosEnabled(EasyMock.anyObject(Cluster.class))).andReturn(Boolean.TRUE).atLeastOnce();
     replay(m_kerberosHelper);
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -162,7 +162,7 @@ public class KerberosKeytabsActionTest {
     replay(m_kerberosHelper);
     m_kerberosConfig.getProperties().put("kdc_type", "mit-kdc");
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

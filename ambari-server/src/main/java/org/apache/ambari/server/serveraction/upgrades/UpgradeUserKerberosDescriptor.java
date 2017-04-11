@@ -105,13 +105,13 @@ public class UpgradeUserKerberosDescriptor extends AbstractServerAction {
     HostRoleCommand hostRoleCommand = getHostRoleCommand();
     String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    List<String> messages = new ArrayList<String>();
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> messages = new ArrayList<>();
+    List<String> errorMessages = new ArrayList<>();
 
     if (cluster != null) {
       logMessage(messages, "Obtaining the user-defined Kerberos descriptor");
 
-      TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+      TreeMap<String, String> foreignKeys = new TreeMap<>();
       foreignKeys.put("cluster", String.valueOf(cluster.getClusterId()));
 
       ArtifactEntity entity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor", foreignKeys);

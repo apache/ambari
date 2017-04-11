@@ -171,7 +171,7 @@ public class WidgetLayoutResourceProviderTest {
 
     WidgetLayoutResourceProvider provider = createProvider(amc);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, "display_name");
@@ -179,7 +179,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set<Map<String, String>> widgetsInfo = new LinkedHashSet<>();
-    Map<String, String> widget = new HashMap<String, String>();
+    Map<String, String> widget = new HashMap<>();
     widget.put("id","1");
     widgetsInfo.add(widget);
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
@@ -232,7 +232,7 @@ public class WidgetLayoutResourceProviderTest {
 
     replay(amc, clusters, cluster, dao, widgetDAO);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, "display_name");
@@ -240,7 +240,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set<Map<String, String>> widgetsInfo = new LinkedHashSet<>();
-    Map<String, String> widget = new HashMap<String, String>();
+    Map<String, String> widget = new HashMap<>();
     widget.put("id","1");
     widgetsInfo.add(widget);
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
@@ -274,7 +274,7 @@ public class WidgetLayoutResourceProviderTest {
     expect(widgetDAO.findById(2L)).andReturn(widgetEntity2).anyTimes();
     replay(dao, widgetDAO);
 
-    requestProps = new HashMap<String, Object>();
+    requestProps = new HashMap<>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name_new");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "USER");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_ID_PROPERTY_ID, "1");
@@ -312,7 +312,7 @@ public class WidgetLayoutResourceProviderTest {
 
     WidgetLayoutResourceProvider provider = createProvider(amc);
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, "display_name");
@@ -372,7 +372,7 @@ public class WidgetLayoutResourceProviderTest {
     widgetLayoutEntity.setUserName("username");
     widgetLayoutEntity.setScope("CLUSTER");
     widgetLayoutEntity.setDisplayName("displ_name");
-    List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+    List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntityList = new LinkedList<>();
     widgetLayoutEntity.setListWidgetLayoutUserWidgetEntity(layoutUserWidgetEntityList);
     return Arrays.asList(widgetLayoutEntity);
   }

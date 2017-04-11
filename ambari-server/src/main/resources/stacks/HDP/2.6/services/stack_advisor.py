@@ -16,7 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from resource_management.core.logger import Logger
 import json
 import re
 from resource_management.libraries.functions import format
@@ -25,7 +24,7 @@ from resource_management.libraries.functions import format
 class HDP26StackAdvisor(HDP25StackAdvisor):
   def __init__(self):
       super(HDP26StackAdvisor, self).__init__()
-      Logger.initialize_logger()
+      self.initialize_logger("HDP26StackAdvisor")
 
   def getServiceConfigurationRecommenderDict(self):
       parentRecommendConfDict = super(HDP26StackAdvisor, self).getServiceConfigurationRecommenderDict()
@@ -181,11 +180,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         putYarnSiteProperty('yarn.log.server.web-service.url',webservice_url )
 
     if ranger_yarn_plugin_enabled and 'ranger-yarn-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
-      Logger.info("Setting Yarn Repo user for Ranger.")
+      self.logger.info("Setting Yarn Repo user for Ranger.")
       putRangerYarnPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
       putRangerYarnPluginProperty("REPOSITORY_CONFIG_USERNAME",yarn_user)
     else:
-      Logger.info("Not setting Yarn Repo user for Ranger.")
+      self.logger.info("Not setting Yarn Repo user for Ranger.")
 
   def getMetadataConnectionString(self, database_type):
       driverDict = {
@@ -282,7 +281,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       else:
          webapp_address = services["configurations"]["yarn-site"]["properties"]["yarn.timeline-service.webapp.https.address"]
          propertyValue = "https://"+webapp_address+"/ws/v1/applicationhistory"
-      Logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
+      self.logger.info("validateYarnSiteConfigurations: recommended value for webservice url"+services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"])
       if services["configurations"]["yarn-site"]["properties"]["yarn.log.server.web-service.url"] != propertyValue:
          validationItems = [
               {"config-name": "yarn.log.server.web-service.url",
@@ -325,7 +324,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
     tez_jvm_updated_opts = tez_jvm_opts + jvmGCParams + "{{heap_dump_opts}}"
     putTezProperty('tez.am.launch.cmd-opts', tez_jvm_updated_opts)
     putTezProperty('tez.task.launch.cmd-opts', tez_jvm_updated_opts)
-    Logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' and 'tez.am.launch.cmd-opts' as "
+    self.logger.info("Updated 'tez-site' config 'tez.task.launch.cmd-opts' and 'tez.am.launch.cmd-opts' as "
                 ": {0}".format(tez_jvm_updated_opts))
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
@@ -390,11 +389,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       ranger_hdfs_plugin_enabled = False
 
     if ranger_hdfs_plugin_enabled and 'ranger-hdfs-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
-      Logger.info("Setting HDFS Repo user for Ranger.")
+      self.logger.info("Setting HDFS Repo user for Ranger.")
       putRangerHDFSPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
       putRangerHDFSPluginProperty("REPOSITORY_CONFIG_USERNAME",hdfs_user)
     else:
-      Logger.info("Not setting HDFS Repo user for Ranger.")
+      self.logger.info("Not setting HDFS Repo user for Ranger.")
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
@@ -411,11 +410,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       ranger_hive_plugin_enabled = False
 
     if ranger_hive_plugin_enabled and 'ranger-hive-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hive-plugin-properties']['properties']:
-      Logger.info("Setting Hive Repo user for Ranger.")
+      self.logger.info("Setting Hive Repo user for Ranger.")
       putRangerHivePluginProperty = self.putProperty(configurations, "ranger-hive-plugin-properties", services)
       putRangerHivePluginProperty("REPOSITORY_CONFIG_USERNAME",hive_user)
     else:
-      Logger.info("Not setting Hive Repo user for Ranger.")
+      self.logger.info("Not setting Hive Repo user for Ranger.")
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
@@ -432,11 +431,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       ranger_hbase_plugin_enabled = False
 
     if ranger_hbase_plugin_enabled and 'ranger-hbase-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hbase-plugin-properties']['properties']:
-      Logger.info("Setting Hbase Repo user for Ranger.")
+      self.logger.info("Setting Hbase Repo user for Ranger.")
       putRangerHbasePluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
       putRangerHbasePluginProperty("REPOSITORY_CONFIG_USERNAME",hbase_user)
     else:
-      Logger.info("Not setting Hbase Repo user for Ranger.")
+      self.logger.info("Not setting Hbase Repo user for Ranger.")
 
   def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendKAFKAConfigurations(configurations, clusterData, services, hosts)
@@ -453,8 +452,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       ranger_kafka_plugin_enabled = False
 
     if ranger_kafka_plugin_enabled and 'ranger-kafka-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-kafka-plugin-properties']['properties']:
-      Logger.info("Setting Kafka Repo user for Ranger.")
+      self.logger.info("Setting Kafka Repo user for Ranger.")
       putRangerKafkaPluginProperty = self.putProperty(configurations, "ranger-kafka-plugin-properties", services)
       putRangerKafkaPluginProperty("REPOSITORY_CONFIG_USERNAME",kafka_user)
     else:
-      Logger.info("Not setting Kafka Repo user for Ranger.")
+      self.logger.info("Not setting Kafka Repo user for Ranger.")

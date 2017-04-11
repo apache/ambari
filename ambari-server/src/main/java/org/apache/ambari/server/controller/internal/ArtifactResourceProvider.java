@@ -75,36 +75,36 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   /**
    * primary key fields
    */
-  private static Set<String> pkPropertyIds = new HashSet<String>();
+  private static Set<String> pkPropertyIds = new HashSet<>();
 
   /**
    * map of resource type to fk field
    */
   private static Map<Resource.Type, String> keyPropertyIds =
-      new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   /**
    * resource properties
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
 
   /**
    * map of resource type to type registration
    */
   private static final Map<Resource.Type, TypeRegistration> typeRegistrations =
-      new HashMap<Resource.Type, TypeRegistration>();
+    new HashMap<>();
 
   /**
    * map of foreign key field to type registration
    */
   private static final Map<String, TypeRegistration> typeRegistrationsByFK =
-      new HashMap<String, TypeRegistration>();
+    new HashMap<>();
 
   /**
    * map of short foreign key field to type registration
    */
   private static final Map<String, TypeRegistration> typeRegistrationsByShortFK =
-      new HashMap<String, TypeRegistration>();
+    new HashMap<>();
 
   /**
    * serializer used to convert json to map
@@ -203,7 +203,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
              NoSuchParentResourceException {
 
     Set<Map<String, Object>> requestProps = getPropertyMaps(predicate);
-    Set<Resource> resources = new LinkedHashSet<Resource>();
+    Set<Resource> resources = new LinkedHashSet<>();
 
     for (Map<String, Object> props : requestProps) {
       resources.addAll(getResources(getGetCommand(request, predicate, props)));
@@ -301,7 +301,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
         String name = (String) properties.get(ARTIFACT_NAME_PROPERTY);
         validateParent(properties);
 
-        Set<Resource> matchingResources = new HashSet<Resource>();
+        Set<Resource> matchingResources = new HashSet<>();
         TreeMap<String, String> foreignKeys = createForeignKeyMap(properties);
         Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
         if (name != null) {
@@ -341,7 +341,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
       @Override
       public Void invoke() throws AmbariException {
         Map<String, Object> entityUpdateProperties =
-            new HashMap<String, Object>(request.getProperties().iterator().next());
+          new HashMap<>(request.getProperties().iterator().next());
 
         // ensure name is set.  It won't be in case of query
         entityUpdateProperties.put(ARTIFACT_NAME_PROPERTY,
@@ -367,7 +367,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
       @Override
       public Void invoke() throws AmbariException {
         // flatten out key properties as is expected by createForeignKeyMap()
-        Map<String, Object> keyProperties = new HashMap<String, Object>();
+        Map<String, Object> keyProperties = new HashMap<>();
         for (Map.Entry<String, Object> entry : resource.getPropertiesMap().get("Artifacts").entrySet()) {
           keyProperties.put(String.format("Artifacts/%s", entry.getKey()), entry.getValue());
         }
@@ -419,7 +419,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   private Resource.Type getRequestType(Map<String, Object> properties) throws AmbariException {
     Set<String> requestFKs = getRequestForeignKeys(properties).keySet();
     for (TypeRegistration registration : typeRegistrations.values()) {
-      Collection<String> typeFKs = new HashSet<String>(registration.getForeignKeyInfo().values());
+      Collection<String> typeFKs = new HashSet<>(registration.getForeignKeyInfo().values());
       typeFKs.add(registration.getFKPropertyName());
       if (requestFKs.equals(typeFKs)) {
         return registration.getType();
@@ -439,7 +439,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
    * @return map of foreign key to value for the provided request properties
    */
   private Map<String, String> getRequestForeignKeys(Map<String, Object> properties) {
-    Map<String, String> requestFKs = new HashMap<String, String>();
+    Map<String, String> requestFKs = new HashMap<>();
     for (String property : properties.keySet()) {
       if (! property.equals(ARTIFACT_NAME_PROPERTY) && ! property.startsWith(ARTIFACT_DATA_PROPERTY)) {
         requestFKs.put(property, String.valueOf(properties.get(property)));
@@ -495,7 +495,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
    * @throws AmbariException an unexpected exception occurred
    */
   private TreeMap<String, String> createForeignKeyMap(Map<String, Object> properties) throws AmbariException {
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     for (String keyProperty : keyPropertyIds.values()) {
       if (! keyProperty.equals(ARTIFACT_NAME_PROPERTY)) {
         String origValue = (String) properties.get(keyProperty);

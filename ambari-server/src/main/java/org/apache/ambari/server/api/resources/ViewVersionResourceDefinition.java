@@ -53,7 +53,7 @@ public class ViewVersionResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewInstance));
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ViewPermission));
     return subResourceDefinitions;

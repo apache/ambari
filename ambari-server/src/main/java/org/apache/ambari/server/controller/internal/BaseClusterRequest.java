@@ -49,7 +49,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * host group info map
    */
-  protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+  protected final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
   protected ProvisionAction provisionAction;
 
@@ -135,7 +135,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
           String.format("The specified host query is invalid: %s", e.getMessage()));
     }
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     for (Token token : tokens) {
       if (token.getType() == Token.TYPE.PROPERTY_OPERAND) {
         propertyIds.add(token.getValue());

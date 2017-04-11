@@ -45,7 +45,7 @@ public class HostInfo {
   private String macaddress;
   private long memoryfree;
   private long memorysize;
-  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();
+  private List<DiskInfo> mounts = new ArrayList<>();
   private long memorytotal;
   private String netmask;
   private String operatingsystem;

@@ -44,7 +44,7 @@ public class JaxbMapKeyValAdapter extends
     if (jm == null) {
       return null;
     }
-    Map<String, String> m = new TreeMap<String, String>();
+    Map<String, String> m = new TreeMap<>();
     for (JaxbMapKeyVal jaxbMap : jm) {
       m.put(jaxbMap.key, jaxbMap.value);
     }

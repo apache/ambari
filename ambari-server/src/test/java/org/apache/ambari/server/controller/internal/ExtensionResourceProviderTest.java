@@ -47,7 +47,7 @@ public class ExtensionResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<ExtensionResponse> allResponse = new HashSet<ExtensionResponse>();
+    Set<ExtensionResponse> allResponse = new HashSet<>();
     allResponse.add(new ExtensionResponse("Extension1"));
     allResponse.add(new ExtensionResponse("Extension2"));
 
@@ -63,7 +63,7 @@ public class ExtensionResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ExtensionResourceProvider.EXTENSION_NAME_PROPERTY_ID);
 
@@ -76,7 +76,7 @@ public class ExtensionResourceProviderTest {
     Assert.assertEquals(2, resources.size());
 
 
-    Set<String> extensionNames = new HashSet<String>();
+    Set<String> extensionNames = new HashSet<>();
     extensionNames.add("Extension1");
     extensionNames.add("Extension2");
 

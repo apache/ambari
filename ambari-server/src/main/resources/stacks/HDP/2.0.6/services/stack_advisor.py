@@ -25,9 +25,9 @@ import socket
 from math import ceil, floor, log
 
 # Local Imports
-from resource_management.core.logger import Logger
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 from resource_management.libraries.functions.data_structure_utils import get_from_dict
+from resource_management.core.logger import Logger
 from stack_advisor import DefaultStackAdvisor
 
 
@@ -35,7 +35,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def __init__(self):
     super(HDP206StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("HDP206StackAdvisor")
+    Logger.logger = self.logger
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()
@@ -1181,7 +1182,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       yarn_nm_mem_in_mb = float(yarn_site['yarn.nodemanager.resource.memory-mb'])
 
     if yarn_nm_mem_in_mb <= 0.0:
-      Logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
+      self.logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
 
     return yarn_nm_mem_in_mb
 

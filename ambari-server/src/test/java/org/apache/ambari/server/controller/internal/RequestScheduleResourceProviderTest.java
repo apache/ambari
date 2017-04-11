@@ -105,8 +105,8 @@ public class RequestScheduleResourceProviderTest {
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
 
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -121,16 +121,16 @@ public class RequestScheduleResourceProviderTest {
     properties.put(RequestScheduleResourceProvider
       .SCHEDULE_DAYS_OF_MONTH_PROPERTY_ID, "*");
 
-    HashSet<Map<String, Object>> batch = new HashSet<Map<String, Object>>();
-    Map<String, Object> batchSettings = new HashMap<String, Object>();
+    HashSet<Map<String, Object>> batch = new HashSet<>();
+    Map<String, Object> batchSettings = new HashMap<>();
     batchSettings.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_BATCH_SEPARATION_PROPERTY_ID, "15");
 
-    Map<String, Object> batchRequests = new HashMap<String, Object>();
-    HashSet<Map<String, Object>> requestSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> batchRequests = new HashMap<>();
+    HashSet<Map<String, Object>> requestSet = new HashSet<>();
 
-    Map<String, Object> request1 = new HashMap<String, Object>();
-    Map<String, Object> request2 = new HashMap<String, Object>();
+    Map<String, Object> request1 = new HashMap<>();
+    Map<String, Object> request2 = new HashMap<>();
 
     request1.put(RequestScheduleResourceProvider
       .BATCH_REQUEST_TYPE_PROPERTY_ID, BatchRequest.Type.PUT.name());
@@ -215,8 +215,7 @@ public class RequestScheduleResourceProviderTest {
     expect(cluster.getAllRequestExecutions()).andStubAnswer(new IAnswer<Map<Long, RequestExecution>>() {
       @Override
       public Map<Long, RequestExecution> answer() throws Throwable {
-        Map<Long, RequestExecution> requestExecutionMap = new HashMap<Long,
-          RequestExecution>();
+        Map<Long, RequestExecution> requestExecutionMap = new HashMap<>();
         requestExecutionMap.put(requestExecution.getId(), requestExecution);
         return requestExecutionMap;
       }
@@ -228,7 +227,7 @@ public class RequestScheduleResourceProviderTest {
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -243,16 +242,16 @@ public class RequestScheduleResourceProviderTest {
     properties.put(RequestScheduleResourceProvider
       .SCHEDULE_DAYS_OF_MONTH_PROPERTY_ID, "*");
 
-    HashSet<Map<String, Object>> batch = new HashSet<Map<String, Object>>();
-    Map<String, Object> batchSettings = new HashMap<String, Object>();
+    HashSet<Map<String, Object>> batch = new HashSet<>();
+    Map<String, Object> batchSettings = new HashMap<>();
     batchSettings.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_BATCH_SEPARATION_PROPERTY_ID, "15");
 
-    Map<String, Object> batchRequests = new HashMap<String, Object>();
-    HashSet<Map<String, Object>> requestSet = new HashSet<Map<String, Object>>();
+    Map<String, Object> batchRequests = new HashMap<>();
+    HashSet<Map<String, Object>> requestSet = new HashSet<>();
 
-    Map<String, Object> request1 = new HashMap<String, Object>();
-    Map<String, Object> request2 = new HashMap<String, Object>();
+    Map<String, Object> request1 = new HashMap<>();
+    Map<String, Object> request2 = new HashMap<>();
 
     request1.put(RequestScheduleResourceProvider
       .BATCH_REQUEST_TYPE_PROPERTY_ID, BatchRequest.Type.PUT.name());
@@ -282,7 +281,7 @@ public class RequestScheduleResourceProviderTest {
     properties.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_BATCH_PROPERTY_ID, batch);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
@@ -325,8 +324,7 @@ public class RequestScheduleResourceProviderTest {
     expect(cluster.getAllRequestExecutions()).andStubAnswer(new IAnswer<Map<Long, RequestExecution>>() {
       @Override
       public Map<Long, RequestExecution> answer() throws Throwable {
-        Map<Long, RequestExecution> requestExecutionMap = new HashMap<Long,
-          RequestExecution>();
+        Map<Long, RequestExecution> requestExecutionMap = new HashMap<>();
         requestExecutionMap.put(requestExecution.getId(), requestExecution);
         return requestExecutionMap;
       }
@@ -338,14 +336,14 @@ public class RequestScheduleResourceProviderTest {
     RequestScheduleResourceProvider resourceProvider = getResourceProvider
       (managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_DESC_PROPERTY_ID, "some description");
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(RequestScheduleResourceProvider
       .REQUEST_SCHEDULE_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(RequestScheduleResourceProvider
@@ -390,8 +388,7 @@ public class RequestScheduleResourceProviderTest {
     ExecutionScheduleManager executionScheduleManager = createNiceMock
       (ExecutionScheduleManager.class);
 
-    Map<Long, RequestExecution> requestExecutionMap = new HashMap<Long,
-      RequestExecution>();
+    Map<Long, RequestExecution> requestExecutionMap = new HashMap<>();
     requestExecutionMap.put(1L, requestExecution);
 
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();

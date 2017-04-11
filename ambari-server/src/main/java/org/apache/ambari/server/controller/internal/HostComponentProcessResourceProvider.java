@@ -56,8 +56,8 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
 
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          HC_PROCESS_CLUSTER_NAME_ID, HC_PROCESS_HOST_NAME_ID, HC_PROCESS_COMPONENT_NAME_ID, HC_PROCESS_NAME_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      HC_PROCESS_CLUSTER_NAME_ID, HC_PROCESS_HOST_NAME_ID, HC_PROCESS_COMPONENT_NAME_ID, HC_PROCESS_NAME_ID}));
 
   // ----- Constructors ----------------------------------------------------
 
@@ -97,7 +97,7 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
       }
     });
     
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
     
     for (HostComponentProcessResponse response : responses) {
       Resource r = new ResourceImpl(Resource.Type.HostComponentProcess);
@@ -136,7 +136,7 @@ public class HostComponentProcessResourceProvider extends ReadOnlyResourceProvid
       Set<Map<String, Object>> requestMaps)
     throws AmbariException {
     
-    Set<HostComponentProcessResponse> results = new HashSet<HostComponentProcessResponse>();
+    Set<HostComponentProcessResponse> results = new HashSet<>();
     
     Clusters clusters = getManagementController().getClusters();
 

@@ -279,7 +279,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     Collection<PermissionEntity> administratorOnly = Collections.singleton(administratorPermission);
 
     // A map of the authorizations to the relevant roles
-    Map<String, Collection<PermissionEntity>> map = new HashMap<String, Collection<PermissionEntity>>();
+    Map<String, Collection<PermissionEntity>> map = new HashMap<>();
     map.put("VIEW.USE", viewUserAndAdministrator);
     map.put("SERVICE.VIEW_METRICS", clusterUserAndUp);
     map.put("SERVICE.VIEW_STATUS_INFO", clusterUserAndUp);
@@ -351,14 +351,14 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
 
     //  Add roleauthorization table
     LOG.info("Creating " + ROLE_AUTHORIZATION_TABLE + " table");
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo(ROLE_AUTHORIZATION_ID_COL, String.class, 100, null, false));
     columns.add(new DBColumnInfo(ROLE_AUTHORIZATION_NAME_COL, String.class, 255, null, false));
     dbAccessor.createTable(ROLE_AUTHORIZATION_TABLE, columns, ROLE_AUTHORIZATION_ID_COL);
 
     //  Add permission_roleauthorization table to map roleauthorizations to permissions (aka roles)
     LOG.info("Creating " + PERMISSION_ROLE_AUTHORIZATION_TABLE + " table");
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo(PERMISSION_ID_COL, Long.class, null, null, false));
     columns.add(new DBColumnInfo(ROLE_AUTHORIZATION_ID_COL, String.class, 100, null, false));
     dbAccessor.createTable(PERMISSION_ROLE_AUTHORIZATION_TABLE, columns, PERMISSION_ID_COL, ROLE_AUTHORIZATION_ID_COL);

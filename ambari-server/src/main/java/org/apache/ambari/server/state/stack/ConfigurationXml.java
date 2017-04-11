@@ -41,10 +41,10 @@ import org.apache.ambari.server.state.PropertyInfo;
 public class ConfigurationXml implements Validable{
   
   @XmlAnyAttribute
-  private Map<QName, String> attributes = new HashMap<QName, String>();
+  private Map<QName, String> attributes = new HashMap<>();
 
   @XmlElement(name="property")
-  private List<PropertyInfo> properties = new ArrayList<PropertyInfo>();
+  private List<PropertyInfo> properties = new ArrayList<>();
 
   @XmlTransient
   private boolean valid = true;
@@ -68,7 +68,7 @@ public class ConfigurationXml implements Validable{
   }
 
   @XmlTransient
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
   
   @Override
   public void addError(String error) {

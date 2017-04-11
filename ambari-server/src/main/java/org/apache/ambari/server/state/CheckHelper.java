@@ -89,7 +89,7 @@ public class CheckHelper {
       List<AbstractCheckDescriptor> checksRegistry) {
 
     final String clusterName = request.getClusterName();
-    final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<PrerequisiteCheck>();
+    final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<>();
 
     List<DescriptorPreCheck> applicablePreChecks = getApplicablePrerequisiteChecks(request, checksRegistry);
     for (DescriptorPreCheck descriptorPreCheck : applicablePreChecks) {

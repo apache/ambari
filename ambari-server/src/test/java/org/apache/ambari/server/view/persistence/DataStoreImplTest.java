@@ -635,7 +635,7 @@ public class DataStoreImplTest {
         "SELECT e FROM DS_DataStoreImplTest$TestEntity_1 e WHERE e.DS_name='foo'")).andReturn(query);
     entityManager.close();
 
-    List<DynamicEntity> entityList = new LinkedList<DynamicEntity>();
+    List<DynamicEntity> entityList = new LinkedList<>();
     entityList.add(dynamicEntity1);
     entityList.add(dynamicEntity2);
     entityList.add(dynamicEntity3);
@@ -698,7 +698,7 @@ public class DataStoreImplTest {
   // TODO : move to ViewEntityEntity test.
   private static void setPersistenceEntities(ViewInstanceEntity viewInstanceDefinition) {
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
-    Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
+    Collection<ViewEntityEntity> entities = new HashSet<>();
 
     ViewConfig viewConfig = viewDefinition.getConfiguration();
     for (EntityConfig entityConfiguration : viewConfig.getPersistence().getEntities()) {

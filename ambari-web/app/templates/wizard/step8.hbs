@@ -27,7 +27,7 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      <div id="step8-content" class="well pre-scrollable">
+      <div id="step8-content" class="well pre-scrollable" {{QAAttr "review-content"}}>
         <div id="step8-info">
           {{#each item in controller.clusterInfo}}
             <p>
@@ -62,12 +62,12 @@
               <p><b>{{t menu.item.services}}:</b></p>
               <ul>
                 {{#each controller.services}}
-                  <li>
-                    <em><b class="service-name">{{display_name}}</b></em>
+                  <li {{QAAttr "service-block"}}>
+                    <em><b {{QAAttr "service-name"}} class="service-name">{{display_name}}</b></em>
                     <ul>
                       {{#each component in this.service_components}}
                         <li>
-                          <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
+                          <span class="text text-info" {{QAAttr "component-name"}}>{{component.display_name }} : </span> <span {{QAAttr "host-name"}}>{{component.component_value}}</span>
                         </li>
                       {{/each}}
                     </ul>

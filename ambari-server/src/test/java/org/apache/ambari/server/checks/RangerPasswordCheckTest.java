@@ -82,7 +82,7 @@ public class RangerPasswordCheckTest {
       "]}";
 
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
-  private Map<String, String> m_configMap = new HashMap<String, String>();
+  private Map<String, String> m_configMap = new HashMap<>();
   private RangerPasswordCheck m_rpc = null;
   private URLStreamProvider m_streamProvider = EasyMock.createMock(URLStreamProvider.class);
 

@@ -167,7 +167,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         Short.class, 1, 0, false));
 
     // create alert_target_states table
-    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    ArrayList<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("target_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("alert_state", String.class, 255, null, false));
     dbAccessor.createTable(ALERT_TARGET_STATES_TABLE, columns);
@@ -185,7 +185,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void prepareRollingUpgradesDDL() throws SQLException {
-    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
 
     columns.add(new DBColumnInfo("repo_version_id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("stack",           String.class,  255,   null, false));
@@ -214,7 +214,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         Integer.class, 1, 0, false));
 
     // New tables
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("repo_version_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
@@ -224,7 +224,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("user_name", String.class, 32, null, true));
     dbAccessor.createTable("cluster_version", columns, "id");
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("repo_version_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("host_name", String.class, 255, null, false));
@@ -244,7 +244,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     addSequence("host_version_id_seq", 0L, false);
 
     // upgrade tables
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("cluster_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("request_id", Long.class, null, null, false));
@@ -256,7 +256,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_request_id", "request_id", "request", "request_id", false);
     addSequence("upgrade_id_seq", 0L, false);
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_group_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("upgrade_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("group_name", String.class, 255, "", false));
@@ -266,7 +266,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     addSequence("upgrade_group_id_seq", 0L, false);
 
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_item_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("upgrade_group_id", Long.class, null, null, false));
     columns.add(new DBAccessor.DBColumnInfo("stage_id", Long.class, null, null, false));
@@ -280,7 +280,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   }
 
   private void createArtifactTable() throws SQLException {
-    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    ArrayList<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("artifact_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("foreign_keys", String.class, 255, null, false));
     columns.add(new DBColumnInfo("artifact_data", char[].class, null, null, false));
@@ -290,13 +290,13 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private void createKerberosPrincipalTables() throws SQLException {
     ArrayList<DBColumnInfo> columns;
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("is_service", Short.class, 1, 1, false));
     columns.add(new DBColumnInfo("cached_keytab_path", String.class, 255, null, true));
     dbAccessor.createTable(KERBEROS_PRINCIPAL_TABLE, columns, "principal_name");
 
-    columns = new ArrayList<DBColumnInfo>();
+    columns = new ArrayList<>();
     columns.add(new DBColumnInfo("principal_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, false));
     dbAccessor.createTable(KERBEROS_PRINCIPAL_HOST_TABLE, columns, "principal_name", "host_name");
@@ -426,7 +426,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
 
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
+      Map<String, String> prop = new HashMap<>();
       String hive_database_type = null;
 
       if (clusterMap != null && !clusterMap.isEmpty()) {

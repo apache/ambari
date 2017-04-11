@@ -146,7 +146,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     stackInfo.setName("HDP");
     stackInfo.setVersion("2.0.6");
     StackId stackId = new StackId(stackInfo);
-    Map<String, DesiredConfig> desiredConfigMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> desiredConfigMap = new HashMap<>();
     Map<PropertyInfo, String> userProperties = new HashMap<>();
     Map<PropertyInfo, String> groupProperties = new HashMap<>();
     PropertyInfo userProperty = new PropertyInfo();
@@ -169,7 +169,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     userProperties.put(userProperty, "zookeeperUser");
     groupProperties.put(groupProperty, "zookeeperGroup");
     Map<String, Set<String>> userGroupsMap = new HashMap<>();
-    userGroupsMap.put("zookeeperUser", new HashSet<String>(Arrays.asList("zookeeperGroup")));
+    userGroupsMap.put("zookeeperUser", new HashSet<>(Arrays.asList("zookeeperGroup")));
     Cluster cluster = clusters.getCluster("c1");
     EasyMock.expect(configHelper.getPropertiesWithPropertyType(
       stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userProperties).anyTimes();
@@ -596,7 +596,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     }
   }
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
 
@@ -616,7 +616,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       dStateStr = desiredState.toString();
     }
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
-    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
 
     ServiceResourceProviderTest.createServices(ambariManagementController, requests);
@@ -632,7 +632,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
         serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
-        new HashSet<ServiceComponentRequest>();
+      new HashSet<>();
     requests.add(r);
     ComponentResourceProviderTest.createComponents(ambariManagementController, requests);
   }
@@ -646,7 +646,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
         serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
-        new HashSet<ServiceComponentHostRequest>();
+      new HashSet<>();
     requests.add(r);
     ambariManagementController.createHostComponents(requests);
   }

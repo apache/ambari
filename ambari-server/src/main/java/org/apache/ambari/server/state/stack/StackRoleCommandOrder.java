@@ -95,7 +95,7 @@ public class StackRoleCommandOrder {
    */
 
   public void merge(StackRoleCommandOrder parent, boolean mergeProperties) {
-    HashMap<String, Object> mergedRoleCommandOrders = new HashMap<String, Object>();
+    HashMap<String, Object> mergedRoleCommandOrders = new HashMap<>();
     HashMap<String, Object> parentData = parent.getContent();
 
     List<String> keys = Arrays.asList(GENERAL_DEPS_KEY, GLUSTERFS_DEPS_KEY, NO_GLUSTERFS_DEPS_KEY,
@@ -103,7 +103,7 @@ public class StackRoleCommandOrder {
 
     for (String key : keys) {
       if (parentData.containsKey(key) && content.containsKey(key)) {
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, Object> parentProperties = (Map<String, Object>) parentData.get(key);
         Map<String, Object> childProperties = (Map<String, Object>) content.get(key);
         MultiValueMap childAndParentProperties = null;
@@ -116,7 +116,7 @@ public class StackRoleCommandOrder {
           List propertyValues = (List) childAndParentProperties.get(property);
           Object values = propertyValues.get(0);
           if (mergeProperties) {
-            List<String> valueList = new ArrayList<String>();
+            List<String> valueList = new ArrayList<>();
             for (Object value : propertyValues) {
               if (value instanceof List) {
                 valueList.addAll((List<String>) value);
@@ -152,7 +152,7 @@ public class StackRoleCommandOrder {
 		for (String depKey : deps.keySet()) {
 		  Object depValue = deps.get(depKey);
 		  if (depValue instanceof Collection) {
-			StringBuffer buffer = new StringBuffer();
+			StringBuilder buffer = new StringBuilder();
 			for (Object o : ((Collection) depValue)) {
 				if (buffer.length() > 0) {
           buffer.append(",");

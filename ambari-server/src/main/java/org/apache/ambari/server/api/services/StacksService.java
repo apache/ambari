@@ -342,7 +342,7 @@ public class StacksService extends BaseService {
    */
   @Path("{stackName}/versions/{stackVersion}/operating_systems")
   public OperatingSystemService getOperatingSystemsHandler(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
     return new OperatingSystemService(stackProperties);
@@ -357,7 +357,7 @@ public class StacksService extends BaseService {
    */
   @Path("{stackName}/versions/{stackVersion}/repository_versions")
   public RepositoryVersionService getRepositoryVersionHandler(@PathParam("stackName") String stackName, @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
     return new RepositoryVersionService(stackProperties);
@@ -374,7 +374,7 @@ public class StacksService extends BaseService {
   public CompatibleRepositoryVersionService getCompatibleRepositoryVersionHandler(
       @PathParam("stackName") String stackName,
       @PathParam("stackVersion") String stackVersion) {
-    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
     return new CompatibleRepositoryVersionService(stackProperties);
@@ -383,7 +383,7 @@ public class StacksService extends BaseService {
   ResourceInstance createStackServiceComponentResource(
       String stackName, String stackVersion, String serviceName, String componentName) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -395,7 +395,7 @@ public class StacksService extends BaseService {
   ResourceInstance createStackServiceComponentDependencyResource(
       String stackName, String stackVersion, String serviceName, String componentName, String dependencyName) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -408,7 +408,7 @@ public class StacksService extends BaseService {
   ResourceInstance createStackConfigurationResource(String stackName,
                                                     String stackVersion, String serviceName, String propertyName) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -420,7 +420,7 @@ public class StacksService extends BaseService {
   ResourceInstance createStackConfigurationDependencyResource(String stackName,
                                                               String stackVersion, String serviceName, String propertyName) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -431,7 +431,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createStackServiceResource(String stackName,
                                               String stackVersion, String serviceName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -441,7 +441,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createStackVersionResource(String stackName,
                                               String stackVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
 
@@ -450,7 +450,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createStackLevelConfigurationsResource(String stackName,
       String stackVersion, String propertyName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackLevelConfiguration, propertyName);
@@ -459,7 +459,7 @@ public class StacksService extends BaseService {
   }
 
   ResourceInstance createStackArtifactsResource(String stackName, String stackVersion, String artifactName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackArtifact, artifactName);
@@ -472,7 +472,7 @@ public class StacksService extends BaseService {
                                                        String serviceName,
                                                        String artifactName) {
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -483,7 +483,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createStackServiceThemesResource(String stackName, String stackVersion, String serviceName,
                                                     String themeName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -494,7 +494,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createStackServiceQuickLinksResource(String stackName, String stackVersion, String serviceName,
       String quickLinksConfigurationName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.StackService, serviceName);
@@ -505,7 +505,7 @@ public class StacksService extends BaseService {
 
   ResourceInstance createExtensionLinkResource(String stackName, String stackVersion,
                                   String extensionName, String extensionVersion) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Stack, stackName);
     mapIds.put(Resource.Type.StackVersion, stackVersion);
     mapIds.put(Resource.Type.Extension, extensionName);

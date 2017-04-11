@@ -52,8 +52,8 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   public static final String GROUP_GROUPTYPE_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_type");
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          GROUP_GROUPNAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      GROUP_GROUPNAME_PROPERTY_ID}));
 
   /**
    * Create a new resource provider for the given management controller.
@@ -80,7 +80,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
-    final Set<GroupRequest> requests = new HashSet<GroupRequest>();
+    final Set<GroupRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
       requests.add(getRequest(propertyMap));
     }
@@ -100,7 +100,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<GroupRequest> requests = new HashSet<GroupRequest>();
+    final Set<GroupRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
@@ -122,7 +122,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
         + responses.size());
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (GroupResponse groupResponse : responses) {
       ResourceImpl resource = new ResourceImpl(Resource.Type.Group);
@@ -145,7 +145,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   @Override
   protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<GroupRequest> requests = new HashSet<GroupRequest>();
+    final Set<GroupRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       final GroupRequest req = getRequest(propertyMap);
@@ -166,7 +166,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   @Override
   protected RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<GroupRequest> requests = new HashSet<GroupRequest>();
+    final Set<GroupRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final GroupRequest req = getRequest(propertyMap);

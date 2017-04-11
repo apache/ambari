@@ -36,7 +36,7 @@ public class LessPredicateTest {
   public void testApply() {
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    Predicate predicate = new LessPredicate<Integer>(propertyId, 10);
+    Predicate predicate = new LessPredicate<>(propertyId, 10);
 
     resource.setProperty(propertyId, 1);
     Assert.assertTrue(predicate.evaluate(resource));
@@ -61,7 +61,7 @@ public class LessPredicateTest {
   @Test
   public void testGetProperties() {
     String propertyId = PropertyHelper.getPropertyId("category1", "foo");
-    LessPredicate predicate = new LessPredicate<Integer>(propertyId, 1);
+    LessPredicate predicate = new LessPredicate<>(propertyId, 1);
 
     Set<String> ids = predicate.getPropertyIds();
 

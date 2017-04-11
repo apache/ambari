@@ -45,7 +45,7 @@ public class PersistKeyValueImpl {
   }
 
   public Collection<String> generateKeys(int number) {
-    List<String> keys = new ArrayList<String>(number);
+    List<String> keys = new ArrayList<>(number);
     for (int i = 0; i < number; i++) {
       keys.add(generateKey());
     }
@@ -80,7 +80,7 @@ public class PersistKeyValueImpl {
   }
   
   public synchronized Map<String, String> getAllKeyValues() {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new HashMap<>();
     for (KeyValueEntity keyValueEntity : keyValueDAO.findAll()) {
       map.put(keyValueEntity.getKey(), keyValueEntity.getValue());
     }

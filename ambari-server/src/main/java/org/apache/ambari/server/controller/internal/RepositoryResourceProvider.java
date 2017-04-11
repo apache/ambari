@@ -113,7 +113,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    final Set<RepositoryRequest> requests = new HashSet<>();
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
     if (iterator.hasNext()) {
@@ -138,7 +138,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    final Set<RepositoryRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -156,7 +156,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RepositoryResponse response : responses) {
         Resource resource = new ResourceImpl(Resource.Type.Repository);
@@ -194,7 +194,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
     final String validateOnlyProperty = request.getRequestInfoProperties().get(RepositoryResourceDefinition.VALIDATE_ONLY_DIRECTIVE);
     if (BooleanUtils.toBoolean(validateOnlyProperty)) {
-      final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+      final Set<RepositoryRequest> requests = new HashSet<>();
       final Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
       if (iterator.hasNext()) {
         for (Map<String, Object> propertyMap : request.getProperties()) {

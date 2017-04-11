@@ -114,7 +114,7 @@ public class JpaSortBuilderTest {
     MockAlertHistoryredicateVisitor visitor = new MockAlertHistoryredicateVisitor();
     PredicateHelper.visit(predicate, visitor);
 
-    JpaSortBuilder<AlertHistoryEntity> sortBuilder = new JpaSortBuilder<AlertHistoryEntity>();
+    JpaSortBuilder<AlertHistoryEntity> sortBuilder = new JpaSortBuilder<>();
     List<Order> sortOrders = sortBuilder.buildSortOrders(sortRequest, visitor);
 
     Assert.assertEquals(sortOrders.size(), 1);

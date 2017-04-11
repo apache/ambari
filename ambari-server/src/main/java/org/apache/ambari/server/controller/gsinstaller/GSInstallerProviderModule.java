@@ -35,7 +35,7 @@ public class GSInstallerProviderModule extends AbstractProviderModule implements
 
   private final ClusterDefinition clusterDefinition;
 
-  private static final Map<String, String> PORTS = new HashMap<String, String>();
+  private static final Map<String, String> PORTS = new HashMap<>();
 
   static {
     PORTS.put("NAMENODE",           "50070");

@@ -1950,7 +1950,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
-    Map existingConfigs = new HashMap<String, Map<String, String>>();
+    Map existingConfigs = new HashMap<>();
     existingConfigs.put("kerberos-env", new HashMap<String, String>());
 
     kerberosHelper.setAuthToLocalRules(kerberosDescriptor, "EXAMPLE.COM", installedServices, existingConfigs, kerberosConfigurations);

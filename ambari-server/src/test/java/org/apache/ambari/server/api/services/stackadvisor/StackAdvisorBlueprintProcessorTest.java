@@ -74,7 +74,7 @@ public class StackAdvisorBlueprintProcessorTest {
   public void testAdviseConfiguration() throws StackAdvisorException, ConfigurationTopologyException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
@@ -108,13 +108,13 @@ public class StackAdvisorBlueprintProcessorTest {
   public void testAdviseConfigurationWithOnlyStackDefaultsApply() throws StackAdvisorException, ConfigurationTopologyException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
-    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
@@ -143,13 +143,13 @@ public class StackAdvisorBlueprintProcessorTest {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
     props.get("core-site").put("dummyKey3", "stackDefaultValue");
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
-    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
@@ -178,7 +178,7 @@ public class StackAdvisorBlueprintProcessorTest {
     ConfigurationTopologyException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
@@ -210,7 +210,7 @@ public class StackAdvisorBlueprintProcessorTest {
   public void testAdviseConfigurationWhenConfigurationRecommendFails() throws StackAdvisorException, ConfigurationTopologyException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
@@ -239,7 +239,7 @@ public class StackAdvisorBlueprintProcessorTest {
   public void testAdviseConfigurationWhenConfigurationRecommendHasInvalidResponse() throws StackAdvisorException, ConfigurationTopologyException {
     // GIVEN
     Map<String, Map<String, String>> props = createProps();
-    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
+    Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
     expect(clusterTopology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
@@ -282,7 +282,7 @@ public class StackAdvisorBlueprintProcessorTest {
   }
 
   private Map<String, HostGroupInfo> createHostGroupInfo() {
-    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
     HostGroupInfo hgi1 = new HostGroupInfo("hostGroup1");
     HostGroupInfo hgi2 = new HostGroupInfo("hostGroup2");
     hostGroupInfoMap.put("hg1", hgi1);
@@ -292,13 +292,13 @@ public class StackAdvisorBlueprintProcessorTest {
 
   private Configuration createStackDefaults() {
     Map<String, Map<String, String>> stackDefaultProps =
-      new HashMap<String, Map<String, String>>();
-    Map<String, String> coreSiteDefault = new HashMap<String, String>();
+      new HashMap<>();
+    Map<String, String> coreSiteDefault = new HashMap<>();
     coreSiteDefault.put("dummyKey3", "stackDefaultValue");
     stackDefaultProps.put("core-site", coreSiteDefault);
 
     Map<String, Map<String, Map<String, String>>> stackDefaultAttributes =
-      new HashMap<String, Map<String, Map<String, String>>>();
+      new HashMap<>();
     return new Configuration(stackDefaultProps, stackDefaultAttributes);
   }
 
@@ -307,14 +307,14 @@ public class StackAdvisorBlueprintProcessorTest {
     RecommendationResponse.Recommendation recommendations = new RecommendationResponse.Recommendation();
     RecommendationResponse.Blueprint blueprint = new RecommendationResponse.Blueprint();
     Map<String, RecommendationResponse.BlueprintConfigurations> blueprintConfigurationsMap =
-      new HashMap<String, RecommendationResponse.BlueprintConfigurations>();
+      new HashMap<>();
     RecommendationResponse.BlueprintConfigurations blueprintConfig =
       new RecommendationResponse.BlueprintConfigurations();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put("dummyKey1", "dummyValue");
     properties.put("dummyKey3", "dummyValue-override");
     blueprintConfig.setProperties(properties);
-    Map<String, ValueAttributesInfo> propAttributes = new HashMap<String, ValueAttributesInfo>();
+    Map<String, ValueAttributesInfo> propAttributes = new HashMap<>();
     ValueAttributesInfo valueAttributesInfo1 = new ValueAttributesInfo();
     ValueAttributesInfo valueAttributesInfo2 = new ValueAttributesInfo();
     valueAttributesInfo1.setDelete("true");

@@ -38,13 +38,13 @@ public class MockEventListener {
    * When an event is received, its class is captured and the event object is
    * added to the list.
    */
-  private final Map<Class<?>, List<AmbariEvent>> m_receivedAmbariEvents = new HashMap<Class<?>, List<AmbariEvent>>();
+  private final Map<Class<?>, List<AmbariEvent>> m_receivedAmbariEvents = new HashMap<>();
 
   /**
    * When an event is received, its class is captured and the event object is
    * added to the list.
    */
-  private final Map<Class<?>, List<AlertEvent>> m_receivedAlertEvents = new HashMap<Class<?>, List<AlertEvent>>();
+  private final Map<Class<?>, List<AlertEvent>> m_receivedAlertEvents = new HashMap<>();
 
   /**
    * Resets the captured events.
@@ -146,7 +146,7 @@ public class MockEventListener {
   public void onAmbariEvent(AmbariEvent event) {
     List<AmbariEvent> events = m_receivedAmbariEvents.get(event.getClass());
     if (null == events) {
-      events = new ArrayList<AmbariEvent>();
+      events = new ArrayList<>();
       m_receivedAmbariEvents.put(event.getClass(), events);
     }
 
@@ -160,7 +160,7 @@ public class MockEventListener {
   public void onAlertEvent(AlertEvent event) {
     List<AlertEvent> events = m_receivedAlertEvents.get(event.getClass());
     if (null == events) {
-      events = new ArrayList<AlertEvent>();
+      events = new ArrayList<>();
       m_receivedAlertEvents.put(event.getClass(), events);
     }
 

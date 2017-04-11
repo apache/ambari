@@ -31,12 +31,12 @@ import org.junit.Test;
 public class LdapSyncRequestTest {
   @Test
   public void testAddPrincipalNames() throws Exception {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     names.add("name1");
 
     LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC,names);
 
-    names = new HashSet<String>();
+    names = new HashSet<>();
     names.add("name2");
     names.add("name3");
 
@@ -51,7 +51,7 @@ public class LdapSyncRequestTest {
 
   @Test
   public void testGetPrincipalNames() throws Exception {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
     names.add("name1");
     names.add("name2");
     names.add("name3");
@@ -67,7 +67,7 @@ public class LdapSyncRequestTest {
 
   @Test
   public void testGetType() throws Exception {
-    Set<String> names = new HashSet<String>();
+    Set<String> names = new HashSet<>();
 
     LdapSyncRequest request = new LdapSyncRequest(LdapSyncSpecEntity.SyncType.SPECIFIC, names);
 

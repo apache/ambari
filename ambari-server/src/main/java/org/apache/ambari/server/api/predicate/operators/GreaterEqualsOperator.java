@@ -40,7 +40,7 @@ public class GreaterEqualsOperator extends AbstractOperator implements Relationa
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new GreaterEqualsPredicate<String>(prop, val);
+    return new GreaterEqualsPredicate<>(prop, val);
   }
 
   @Override

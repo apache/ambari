@@ -142,13 +142,13 @@ public class HostVersionOutOfSyncListenerTest {
     assertRepoVersionState(stackId.getStackId(), CURRENT_VERSION, RepositoryVersionState.CURRENT);
 
     // Add ZK service with only ZOOKEEPER_SERVER
-    List<String> hostList = new ArrayList<String>();
+    List<String> hostList = new ArrayList<>();
     hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
-    Map<String, List<Integer>> zkTopology = new HashMap<String, List<Integer>>();
+    Map<String, List<Integer>> zkTopology = new HashMap<>();
     List<Integer> zkServerHosts = Arrays.asList(0, 1, 2);
-    zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<Integer>(zkServerHosts));
+    zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<>(zkServerHosts));
     addService(c1, hostList, zkTopology, "ZOOKEEPER");
 
     // Register and install new version
@@ -215,19 +215,19 @@ public class HostVersionOutOfSyncListenerTest {
 
 
     //Add HDFS service
-    List<String> hostList = new ArrayList<String>();
+    List<String> hostList = new ArrayList<>();
     hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
-    Map<String, List<Integer>> hdfsTopology = new HashMap<String, List<Integer>>();
+    Map<String, List<Integer>> hdfsTopology = new HashMap<>();
     hdfsTopology.put("NAMENODE", Collections.singletonList(0));
     hdfsTopology.put("SECONDARY_NAMENODE", Collections.singletonList(1));
     List<Integer> datanodeHosts = Arrays.asList(0, 1);
-    hdfsTopology.put("DATANODE", new ArrayList<Integer>(datanodeHosts));
+    hdfsTopology.put("DATANODE", new ArrayList<>(datanodeHosts));
     addService(c1, hostList, hdfsTopology, "HDFS");
 
     // Check result
-    Set<String> changedHosts = new HashSet<String>();
+    Set<String> changedHosts = new HashSet<>();
     changedHosts.add("h1");
     changedHosts.add("h2");
 
@@ -264,18 +264,18 @@ public class HostVersionOutOfSyncListenerTest {
     createClusterAndHosts(INSTALLED_VERSION, stackId);
 
     //Add Ganglia service
-    List<String> hostList = new ArrayList<String>();
+    List<String> hostList = new ArrayList<>();
     hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
-    Map<String, List<Integer>> hdfsTopology = new HashMap<String, List<Integer>>();
+    Map<String, List<Integer>> hdfsTopology = new HashMap<>();
     hdfsTopology.put("GANGLIA_SERVER", Collections.singletonList(0));
     List<Integer> monitorHosts = Arrays.asList(0, 1);
-    hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<Integer>(monitorHosts));
+    hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<>(monitorHosts));
     addService(c1, hostList, hdfsTopology, "GANGLIA");
 
     // Check result
-    Set<String> changedHosts = new HashSet<String>();
+    Set<String> changedHosts = new HashSet<>();
     changedHosts.add("h1");
     changedHosts.add("h2");
 
@@ -307,14 +307,14 @@ public class HostVersionOutOfSyncListenerTest {
     addRepoVersion(INSTALLED_VERSION_2, yaStackId);
 
     //Add ZOOKEEPER_CLIENT component
-    List<String> hostList = new ArrayList<String>();
+    List<String> hostList = new ArrayList<>();
     hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
     addServiceComponent(c1, hostList, "ZOOKEEPER", "ZOOKEEPER_CLIENT");
 
     // Check result
-    Set<String> changedHosts = new HashSet<String>();
+    Set<String> changedHosts = new HashSet<>();
     changedHosts.add("h1");
     changedHosts.add("h2");
     changedHosts.add("h3");
@@ -532,7 +532,7 @@ public class HostVersionOutOfSyncListenerTest {
     host1.setIPv4("ipv4");
     host1.setIPv6("ipv6");
 
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host1.setHostAttributes(hostAttributes);

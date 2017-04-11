@@ -38,15 +38,15 @@ public class StackAdvisorRequest {
   private String stackName;
   private String stackVersion;
   private StackAdvisorRequestType requestType;
-  private List<String> hosts = new ArrayList<String>();
-  private List<String> services = new ArrayList<String>();
-  private Map<String, Set<String>> componentHostsMap = new HashMap<String, Set<String>>();
-  private Map<String, Set<String>> hostComponents = new HashMap<String, Set<String>>();
-  private Map<String, Set<String>> hostGroupBindings = new HashMap<String, Set<String>>();
-  private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
-  private List<ChangedConfigInfo> changedConfigurations = new LinkedList<ChangedConfigInfo>();
+  private List<String> hosts = new ArrayList<>();
+  private List<String> services = new ArrayList<>();
+  private Map<String, Set<String>> componentHostsMap = new HashMap<>();
+  private Map<String, Set<String>> hostComponents = new HashMap<>();
+  private Map<String, Set<String>> hostGroupBindings = new HashMap<>();
+  private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<>();
+  private List<ChangedConfigInfo> changedConfigurations = new LinkedList<>();
   private Set<RecommendationResponse.ConfigGroup> configGroups;
-  private Map<String, String> userContext = new HashMap<String, String>();
+  private Map<String, String> userContext = new HashMap<>();
 
   public String getStackName() {
     return stackName;

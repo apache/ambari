@@ -166,7 +166,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     // configured with a boundary, then the buffered service ensures that no
     // requests are discarded.
     final CompletionService<Resource> completionService =
-        new BufferedThreadPoolExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
+      new BufferedThreadPoolExecutorCompletionService<>(EXECUTOR_SERVICE);
 
     // In a large cluster we could have thousands of resources to populate here.
     // Distribute the work across multiple threads.
@@ -175,7 +175,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
           getPopulateResourceCallable(resource, request, predicate, ticket));
     }
 
-    Set<Resource> keepers = new HashSet<Resource>();
+    Set<Resource> keepers = new HashSet<>();
     try {
       for (int i = 0; i < resources.size(); ++i) {
         Future<Resource> resourceFuture = completionService.poll(COMPLETION_SERVICE_POLL_TIMEOUT,

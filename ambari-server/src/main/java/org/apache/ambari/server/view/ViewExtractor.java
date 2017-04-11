@@ -192,7 +192,7 @@ public class ViewExtractor {
       throws IOException {
 
     String    archivePath = archiveDir.getAbsolutePath();
-    List<URL> urlList     = new LinkedList<URL>();
+    List<URL> urlList     = new LinkedList<>();
 
     // include the classes directory
     String classesPath = archivePath + File.separator + ARCHIVE_CLASSES_DIR;

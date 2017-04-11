@@ -38,7 +38,7 @@ public class ClusterKerberosDescriptorServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     ClusterKerberosDescriptorService service;
     Method m;

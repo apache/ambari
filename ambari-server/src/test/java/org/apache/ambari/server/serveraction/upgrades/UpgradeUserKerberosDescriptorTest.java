@@ -83,7 +83,7 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testUpgrade() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "UPGRADE");
     commandParams.put("original_stack", "HDP-2.4");
@@ -141,7 +141,7 @@ public class UpgradeUserKerberosDescriptorTest {
   @Test
   public void testDowngrade() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
     commandParams.put("upgrade_direction", "DOWNGRADE");
     commandParams.put("original_stack", "HDP-2.4");

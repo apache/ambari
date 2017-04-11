@@ -65,13 +65,13 @@ public class RootServiceHostComponentResourceProviderTest {
 
     AbstractRootServiceResponseFactory factory = createNiceMock(AbstractRootServiceResponseFactory.class);
 
-    List<Host> hosts = new LinkedList<Host>();
+    List<Host> hosts = new LinkedList<>();
     hosts.add(host1);
 
-    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    Set<Cluster> clusterSet = new HashSet<>();
     clusterSet.add(cluster);
 
-    Set<RootServiceHostComponentResponse> responseSet = new HashSet<RootServiceHostComponentResponse>();
+    Set<RootServiceHostComponentResponse> responseSet = new HashSet<>();
     responseSet.add(response);
 
     // set expectations
@@ -110,7 +110,7 @@ public class RootServiceHostComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(RootServiceHostComponentResourceProvider.SERVICE_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceHostComponentResourceProvider.HOST_NAME_PROPERTY_ID);

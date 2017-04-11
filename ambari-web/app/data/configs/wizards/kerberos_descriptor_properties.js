@@ -29,6 +29,11 @@ var properties = [
     "name": "additional_realms",
     "index": 5,
     "placeholderText": "(" + Em.I18n.t("common.optional") + ")"
+  },
+  {
+    "name": "principal_suffix",
+    "index": 6,
+    "placeholderText": "(" + Em.I18n.t("common.optional") + ")"
   }
 ];
 

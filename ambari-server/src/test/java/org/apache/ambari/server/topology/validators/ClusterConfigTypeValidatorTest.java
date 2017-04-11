@@ -75,7 +75,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   @Test
   public void testShouldValidationPassWhenNoConfigTypesSpecifiedInCCTemplate() throws Exception {
     // GIVEN
-    clusterRequestConfigTypes = Collections.<String>emptySet();
+    clusterRequestConfigTypes = Collections.emptySet();
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
     replayAll();
@@ -91,10 +91,10 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   public void testShouldValidationPassWhenAllConfigTypesAreValid() throws Exception {
     // GIVEN
     // all the config types are OK
-    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("core-site", "yarn-site"));
+    clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
@@ -114,10 +114,10 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
     // GIVEN
 
     // the config type that is not present in the stack definition for services
-    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("oozie-site"));
+    clusterRequestConfigTypes = new HashSet<>(Arrays.asList("oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));
 
@@ -135,10 +135,10 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   public void testShouldValidationFailWhenThereIsAnInvalidConfigGroupProvided() throws Exception {
     // GIVEN
     // oozzie-type is wrong!
-    clusterRequestConfigTypes = new HashSet<String>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
+    clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 
-    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<String>(Arrays.asList("YARN", "HDFS")));
+    EasyMock.expect(blueprintMock.getServices()).andReturn(new HashSet<>(Arrays.asList("YARN", "HDFS")));
 
     EasyMock.expect(stackMock.getConfigurationTypes("HDFS")).andReturn(Arrays.asList("core-site"));
     EasyMock.expect(stackMock.getConfigurationTypes("YARN")).andReturn(Arrays.asList("yarn-site"));

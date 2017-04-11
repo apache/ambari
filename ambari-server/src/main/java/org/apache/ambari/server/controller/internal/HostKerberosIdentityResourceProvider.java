@@ -76,7 +76,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
   );
 
   protected static final Set<String> PK_PROPERTY_IDS = Collections.unmodifiableSet(
-      new HashSet<String>(PK_PROPERTY_MAP.values())
+    new HashSet<>(PK_PROPERTY_MAP.values())
   );
 
   protected static final Set<String> PROPERTY_IDS = Collections.unmodifiableSet(
@@ -154,7 +154,7 @@ public class HostKerberosIdentityResourceProvider extends ReadOnlyResourceProvid
 
     @Override
     public Set<Resource> invoke() throws AmbariException {
-      Set<Resource> resources = new HashSet<Resource>();
+      Set<Resource> resources = new HashSet<>();
 
       for (Map<String, Object> propertyMap : propertyMaps) {
         String clusterName = (String) propertyMap.get(KERBEROS_IDENTITY_CLUSTER_NAME_PROPERTY_ID);

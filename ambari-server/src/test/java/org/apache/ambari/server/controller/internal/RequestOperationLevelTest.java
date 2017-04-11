@@ -40,7 +40,7 @@ public class RequestOperationLevelTest {
     String hostcomponent_id = "Namenode";
     String host_id = "host1";
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
 
     requestInfoProperties.put(RequestOperationLevel.OPERATION_LEVEL_ID,

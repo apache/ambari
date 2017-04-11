@@ -74,7 +74,7 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
     protected void buildAuditMessage(StringBuilder builder) {
       super.buildAuditMessage(builder);
 
-      SortedSet<String> roleSet = new TreeSet<String>();
+      SortedSet<String> roleSet = new TreeSet<>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
       roleSet.addAll(roles.keySet());
@@ -84,7 +84,7 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
         builder.append(System.lineSeparator());
       }
 
-      List<String> lines = new LinkedList<String>();
+      List<String> lines = new LinkedList<>();
 
       for (String role : roleSet) {
         lines.add(role + ": ");

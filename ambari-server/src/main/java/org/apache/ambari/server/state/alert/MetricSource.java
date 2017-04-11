@@ -145,8 +145,8 @@ public class MetricSource extends Source {
 
       JmxInfo other = (JmxInfo)object;
 
-      List<String> list1 = new ArrayList<String>(propertyList);
-      List<String> list2 = new ArrayList<String>(other.propertyList);
+      List<String> list1 = new ArrayList<>(propertyList);
+      List<String> list2 = new ArrayList<>(other.propertyList);
 
       // !!! even if out of order, this is enough to fail
       return list1.equals(list2);

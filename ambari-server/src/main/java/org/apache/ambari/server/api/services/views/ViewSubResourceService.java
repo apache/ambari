@@ -94,7 +94,7 @@ public class ViewSubResourceService extends BaseService implements ViewResourceH
 
   // create a resource with the given id
   protected ResourceInstance createResource(String resourceId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
 
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, version);

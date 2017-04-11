@@ -398,7 +398,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     PrincipalKeyCredential administratorCredential = getAdministratorCredential();
     String defaultRealm = getDefaultRealm();
 
-    List<String> command = new ArrayList<String>();
+    List<String> command = new ArrayList<>();
 
     String adminPrincipal = (administratorCredential == null)
         ? null
@@ -537,7 +537,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
      * @param userPassword  the user's password (optional)
      */
     public InteractivePasswordHandler(String adminPassword, String userPassword) {
-      responses = new LinkedList<String>();
+      responses = new LinkedList<>();
 
       if (adminPassword != null) {
         responses.offer(adminPassword);
@@ -548,7 +548,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         responses.offer(userPassword);  // Add a 2nd time for the password "confirmation" request
       }
 
-      currentResponses = new LinkedList<String>(responses);
+      currentResponses = new LinkedList<>(responses);
     }
 
     @Override
@@ -563,7 +563,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
     @Override
     public void start() {
-      currentResponses = new LinkedList<String>(responses);
+      currentResponses = new LinkedList<>(responses);
     }
   }
 }

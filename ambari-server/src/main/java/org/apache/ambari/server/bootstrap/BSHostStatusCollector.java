@@ -54,7 +54,7 @@ class BSHostStatusCollector {
 
   public void run() {
     LOG.info("Request directory " + requestIdDir);
-    hostStatus = new ArrayList<BSHostStatus>();
+    hostStatus = new ArrayList<>();
     if (hosts == null) {
       return;
     }

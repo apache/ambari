@@ -69,11 +69,11 @@ public class BlueprintFactoryTest {
   public void init() throws Exception {
     setPrivateField(factory, "blueprintDAO", dao);
 
-    Map<String, Collection<String>> componentMap = new HashMap<String, Collection<String>>();
-    Collection<String> components1 = new HashSet<String>();
+    Map<String, Collection<String>> componentMap = new HashMap<>();
+    Collection<String> components1 = new HashSet<>();
     componentMap.put("test-service1", components1);
     components1.add("component1");
-    Collection<String> components2 = new HashSet<String>();
+    Collection<String> components2 = new HashSet<>();
     componentMap.put("test-service2", components2);
     components2.add("component2");
 

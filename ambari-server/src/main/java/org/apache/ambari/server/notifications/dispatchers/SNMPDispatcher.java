@@ -171,7 +171,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
    */
   @Override
   public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties) {
-    Map<String, String> stringValuesConfig = new HashMap<String, String>(properties.size());
+    Map<String, String> stringValuesConfig = new HashMap<>(properties.size());
     for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
       stringValuesConfig.put(propertyEntry.getKey(), propertyEntry.getValue().toString());
     }

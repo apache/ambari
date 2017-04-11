@@ -134,7 +134,7 @@ public class StaleAlertRunnable extends AlertRunnable {
     long uptime = rb.getUptime();
 
     int totalStaleAlerts = 0;
-    Set<String> staleAlertGroupings = new TreeSet<String>();
+    Set<String> staleAlertGroupings = new TreeSet<>();
     Map<String, Set<String>> staleAlertsByHost = new HashMap<>();
     Set<String> hostsWithStaleAlerts = new TreeSet<>();
 

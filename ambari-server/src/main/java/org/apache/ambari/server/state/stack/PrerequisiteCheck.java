@@ -33,8 +33,8 @@ public class PrerequisiteCheck {
   private final String m_clusterName;
   private PrereqCheckStatus m_status = PrereqCheckStatus.PASS;
   private String m_failReason = "";
-  private LinkedHashSet<String> m_failedOn = new LinkedHashSet<String>();
-  private List<Object> m_failedDetail = new ArrayList<Object>();
+  private LinkedHashSet<String> m_failedOn = new LinkedHashSet<>();
+  private List<Object> m_failedDetail = new ArrayList<>();
 
   public PrerequisiteCheck(CheckDescription description, String clusterName) {
     m_description = description;

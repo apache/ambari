@@ -35,7 +35,7 @@ public class PredicateClassFactory {
   private static final Map<String, Class<? extends Predicate>> NAME_TO_CLASS;
 
   static {
-    Map<String, Class<? extends Predicate>> map = new HashMap<String, Class<? extends Predicate>>();
+    Map<String, Class<? extends Predicate>> map = new HashMap<>();
 
     map.put(AndPredicate.NAME, AndPredicate.class);
     map.put(OrPredicate.NAME, OrPredicate.class);

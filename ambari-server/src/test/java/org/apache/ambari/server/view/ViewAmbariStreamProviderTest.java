@@ -50,11 +50,11 @@ public class ViewAmbariStreamProviderTest {
     HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
     InputStream inputStream = createNiceMock(InputStream.class);
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
     headers.put("Cookie", "FOO=bar");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
 
@@ -85,11 +85,11 @@ public class ViewAmbariStreamProviderTest {
 
     InputStream body = new ByteArrayInputStream("params".getBytes());
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
     headers.put("Cookie", "FOO=bar");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
 
@@ -120,11 +120,11 @@ public class ViewAmbariStreamProviderTest {
 
     String body = null;
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
     headers.put("Cookie", "FOO=bar");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
 
@@ -155,11 +155,11 @@ public class ViewAmbariStreamProviderTest {
 
     InputStream body = null;
 
-    Map<String, String> headers = new HashMap<String, String>();
+    Map<String, String> headers = new HashMap<>();
     headers.put("header", "headerValue");
     headers.put("Cookie", "FOO=bar");
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
 

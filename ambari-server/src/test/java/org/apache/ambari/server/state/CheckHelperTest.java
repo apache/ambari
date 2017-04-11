@@ -67,7 +67,7 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
     descriptor.perform(EasyMock.<PrerequisiteCheck> anyObject(), EasyMock.<PrereqCheckRequest> anyObject());
     EasyMock.expectLastCall().times(1);
@@ -85,7 +85,7 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckNotApplicable() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(false);
     EasyMock.replay(descriptor);
@@ -100,7 +100,7 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
 
     descriptor.perform(EasyMock.<PrerequisiteCheck> anyObject(), EasyMock.<PrereqCheckRequest> anyObject());
@@ -122,7 +122,7 @@ public class CheckHelperTest {
     // This mock class extends CheckHelper and overrides the getPrerequisiteChecks method in order to return
     // a PrerequisiteCheck object whose status is FAIL.
     final CheckHelperMock helper =  new CheckHelperMock();
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
 
     PrereqCheckRequest checkRequest = EasyMock.createNiceMock(PrereqCheckRequest.class);
     EasyMock.expect(checkRequest.getClusterName()).andReturn("c1").anyTimes();
@@ -167,7 +167,7 @@ public class CheckHelperTest {
     });
 
     final CheckHelper helper = injector.getInstance(CheckHelper.class);
-    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<>();
 
     // mocked Cluster has no services, so the check should always be PASS
     updateChecksRegistry.add(injector.getInstance(ServicesUpCheck.class));

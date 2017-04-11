@@ -74,7 +74,7 @@ public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
   //   given the type of upgrade. The PrereqCheckRequest object has a field for the type of upgrade.
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    Set<String> hosts = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
     final String SECONDARY_NAMENODE = "SECONDARY_NAMENODE";
 
     final String clusterName = request.getClusterName();

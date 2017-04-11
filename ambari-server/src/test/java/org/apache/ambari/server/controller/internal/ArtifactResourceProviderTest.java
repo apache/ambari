@@ -89,26 +89,26 @@ public class ArtifactResourceProviderTest {
 
   @Test
   public void testGetResources_instance() throws Exception {
-    Set<String> propertyIds = new HashSet<String>();
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    Set<String> propertyIds = new HashSet<>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     foreignKeys.put("cluster", "500");
 
-    Map<String, Object> childMap = new TreeMap<String, Object>();
+    Map<String, Object> childMap = new TreeMap<>();
     childMap.put("childKey", "childValue");
-    Map<String, Object> child2Map = new TreeMap<String, Object>();
+    Map<String, Object> child2Map = new TreeMap<>();
     childMap.put("child2", child2Map);
     child2Map.put("child2Key", "child2Value");
-    Map<String, Object> child3Map = new TreeMap<String, Object>();
+    Map<String, Object> child3Map = new TreeMap<>();
     child2Map.put("child3", child3Map);
-    Map<String, Object> child4Map = new TreeMap<String, Object>();
+    Map<String, Object> child4Map = new TreeMap<>();
     child3Map.put("child4", child4Map);
     child4Map.put("child4Key", "child4Value");
 
-    Map<String, Object> artifact_data = new TreeMap<String, Object>();
+    Map<String, Object> artifact_data = new TreeMap<>();
     artifact_data.put("foo", "bar");
     artifact_data.put("child", childMap);
 
-    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
 
     // expectations
@@ -152,18 +152,18 @@ public class ArtifactResourceProviderTest {
 
   @Test
   public void testGetResources_collection() throws Exception {
-    Set<String> propertyIds = new HashSet<String>();
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    Set<String> propertyIds = new HashSet<>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     foreignKeys.put("cluster", "500");
 
-    List<ArtifactEntity> entities = new ArrayList<ArtifactEntity>();
+    List<ArtifactEntity> entities = new ArrayList<>();
     entities.add(entity);
     entities.add(entity2);
 
     Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
     Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
 
-    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
 
     // expectations
@@ -215,37 +215,37 @@ public class ArtifactResourceProviderTest {
   @Test
   public void testCreateResource() throws Exception {
     Capture<ArtifactEntity> createEntityCapture = newCapture();
-    Map<String, Object> outerMap = new TreeMap<String, Object>();
-    Map<String, Object> childMap = new TreeMap<String, Object>();
+    Map<String, Object> outerMap = new TreeMap<>();
+    Map<String, Object> childMap = new TreeMap<>();
     outerMap.put("child", childMap);
     childMap.put("childKey", "childValue");
-    Map<String, Object> child2Map = new TreeMap<String, Object>();
+    Map<String, Object> child2Map = new TreeMap<>();
     childMap.put("child2", child2Map);
     child2Map.put("child2Key", "child2Value");
-    Map<String, Object> child3Map = new TreeMap<String, Object>();
+    Map<String, Object> child3Map = new TreeMap<>();
     child2Map.put("child3", child3Map);
-    Map<String, Object> child4Map = new TreeMap<String, Object>();
+    Map<String, Object> child4Map = new TreeMap<>();
     child3Map.put("child4", child4Map);
     child4Map.put("child4Key", "child4Value");
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
     propertySet.add(outerMap);
     propertySet.add(child4Map);
 
-    Map<String, Object> artifact_data = new TreeMap<String, Object>();
+    Map<String, Object> artifact_data = new TreeMap<>();
     artifact_data.put("foo", "bar");
     artifact_data.put("child", childMap);
     artifact_data.put("collection", propertySet);
 
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     foreignKeys.put("cluster", "500");
 
-    Map<String, String> requestInfoProps = new HashMap<String, String>();
+    Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
 
 
     // map with flattened properties
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put("Artifacts/artifact_name", "test-artifact");
     properties.put("Artifacts/cluster_name", "test-cluster");
     properties.put("artifact_data/foo", "bar");
@@ -253,18 +253,18 @@ public class ArtifactResourceProviderTest {
     properties.put("artifact_data/child/child2/child2Key", "child2Value");
     properties.put("artifact_data/child/child2/child3/child4/child4Key", "child4Value");
 
-    Collection<Object> collectionProperties = new HashSet<Object>();
+    Collection<Object> collectionProperties = new HashSet<>();
     properties.put("artifact_data/collection", collectionProperties);
 
     // collection with maps of flattened properties
-    Map<String, Object> map1 = new TreeMap<String, Object>();
+    Map<String, Object> map1 = new TreeMap<>();
     collectionProperties.add(map1);
     map1.put("foo", "bar");
     map1.put("child/childKey", "childValue");
     map1.put("child/child2/child2Key", "child2Value");
     map1.put("child/child2/child3/child4/child4Key", "child4Value");
 
-    Map<String, Object> map2 = new TreeMap<String, Object>();
+    Map<String, Object> map2 = new TreeMap<>();
     collectionProperties.add(map2);
     map2.put("child4Key", "child4Value");
 
@@ -303,27 +303,27 @@ public class ArtifactResourceProviderTest {
 
   @Test
   public void testUpdateResources() throws Exception {
-    Map<String, String> requestInfoProps = new HashMap<String, String>();
+    Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(Request.REQUEST_INFO_BODY_PROPERTY, bodyJson);
 
     Capture<ArtifactEntity> updateEntityCapture = newCapture();
     Capture<ArtifactEntity> updateEntityCapture2 = newCapture();
-    Set<String> propertyIds = new HashSet<String>();
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    Set<String> propertyIds = new HashSet<>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     foreignKeys.put("cluster", "500");
 
-    List<ArtifactEntity> entities = new ArrayList<ArtifactEntity>();
+    List<ArtifactEntity> entities = new ArrayList<>();
     entities.add(entity);
     entities.add(entity2);
 
     Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
     Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
 
-    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
 
     // map with flattened properties
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put("Artifacts/artifact_name", "test-artifact");
     properties.put("Artifacts/cluster_name", "test-cluster");
     properties.put("artifact_data/foo", "bar");
@@ -396,17 +396,17 @@ public class ArtifactResourceProviderTest {
 
     Capture<ArtifactEntity> deleteEntityCapture = newCapture();
     Capture<ArtifactEntity> deleteEntityCapture2 = newCapture();
-    TreeMap<String, String> foreignKeys = new TreeMap<String, String>();
+    TreeMap<String, String> foreignKeys = new TreeMap<>();
     foreignKeys.put("cluster", "500");
 
-    List<ArtifactEntity> entities = new ArrayList<ArtifactEntity>();
+    List<ArtifactEntity> entities = new ArrayList<>();
     entities.add(entity);
     entities.add(entity2);
 
     Map<String, Object> artifact_data = Collections.<String, Object>singletonMap("foo", "bar");
     Map<String, Object> artifact_data2 = Collections.<String, Object>singletonMap("foo2", "bar2");
 
-    Map<String, String> responseForeignKeys = new HashMap<String, String>();
+    Map<String, String> responseForeignKeys = new HashMap<>();
     responseForeignKeys.put("cluster", "500");
 
     // expectations

@@ -79,14 +79,14 @@ public class BlueprintValidatorImplTest {
   @Mock(type = MockType.NICE)
   private DependencyConditionInfo dependencyConditionInfo2;
 
-  private final Collection<String> group1Components = new ArrayList<String>();
-  private final Collection<String> group2Components = new ArrayList<String>();
-  private final Collection<String> services = new ArrayList<String>();
+  private final Collection<String> group1Components = new ArrayList<>();
+  private final Collection<String> group2Components = new ArrayList<>();
+  private final Collection<String> services = new ArrayList<>();
 
-  private Collection<DependencyInfo> dependencies1 = new ArrayList<DependencyInfo>();
-  private List<DependencyConditionInfo> dependenciesConditionInfos1 = new ArrayList<DependencyConditionInfo>();
+  private Collection<DependencyInfo> dependencies1 = new ArrayList<>();
+  private List<DependencyConditionInfo> dependenciesConditionInfos1 = new ArrayList<>();
   private AutoDeployInfo autoDeploy = new AutoDeployInfo();
-  private Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+  private Map<String, Map<String, String>> configProperties = new HashMap<>();
   private Configuration configuration = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
 
@@ -220,7 +220,7 @@ public class BlueprintValidatorImplTest {
 
   @Test(expected=InvalidTopologyException.class)
   public void testValidateRequiredProperties_SqlaInHiveStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<String, String>();
+    Map<String, String> hiveEnvConfig = new HashMap<>();
     hiveEnvConfig.put("hive_database","Existing SQL Anywhere Database");
     configProperties.put("hive-env", hiveEnvConfig);
 
@@ -244,7 +244,7 @@ public class BlueprintValidatorImplTest {
 
   @Test(expected=InvalidTopologyException.class)
   public void testValidateRequiredProperties_SqlaInOozieStackHdp22() throws Exception {
-    Map<String, String> hiveEnvConfig = new HashMap<String, String>();
+    Map<String, String> hiveEnvConfig = new HashMap<>();
     hiveEnvConfig.put("oozie_database","Existing SQL Anywhere Database");
     configProperties.put("oozie-env", hiveEnvConfig);
 
@@ -369,8 +369,8 @@ public class BlueprintValidatorImplTest {
 
     expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
     expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProps = new HashMap<String, String>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
+    Map<String, String> typeProps = new HashMap<>();
     typeProps.put("yarn.resourcemanager.hostname", "testhost");
     properties.put("yarn-site", typeProps);
 

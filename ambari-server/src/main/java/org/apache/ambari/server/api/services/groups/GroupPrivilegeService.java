@@ -105,7 +105,7 @@ public class GroupPrivilegeService extends BaseService {
 
 
   protected ResourceInstance createPrivilegeResource(String groupName, String privilegeId) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Group, groupName);
     mapIds.put(Resource.Type.GroupPrivilege, privilegeId);
     return createResource(Resource.Type.GroupPrivilege, mapIds);

@@ -19,7 +19,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 
-App.TableView = Em.View.extend(App.UserPref, {
+App.TableView = Em.View.extend(App.Persist, {
 
   init: function() {
     this.set('filterConditions', []);

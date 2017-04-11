@@ -157,7 +157,7 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         // create the request
-        Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+        Map<Resource.Type, String> mapIds = new HashMap<>();
         mapIds.put(Resource.Type.Cluster, cluster.getClusterName());
 
         ClusterController clusterController = ClusterControllerHelper.getClusterController();

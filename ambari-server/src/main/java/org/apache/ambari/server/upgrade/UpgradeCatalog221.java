@@ -393,7 +393,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
             VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
 
         if (isStackNotLess23) {
-          Map<String, String> updates = new HashMap<String, String>();
+          Map<String, String> updates = new HashMap<>();
           if (tezCountersMaxProperty != null && tezCountersMaxProperty.equals("2000")) {
             updates.put(TEZ_COUNTERS_MAX, "10000");
           }

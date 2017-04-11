@@ -62,12 +62,12 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    Set<String> failedServiceNames = new HashSet<String>();
+    Set<String> failedServiceNames = new HashSet<>();
 
     StackId stackId = cluster.getCurrentStackVersion();
 
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
-    Set<String> installFailedHostComponents = new HashSet<String>();
+    Set<String> installFailedHostComponents = new HashSet<>();
 
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();
@@ -99,7 +99,7 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     if(!installFailedHostComponents.isEmpty()) {
       String message = MessageFormat.format("Service components in INSTALL_FAILED state: {0}.",
           StringUtils.join(installFailedHostComponents, ", "));
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>(failedServiceNames));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(
           "Found service components in INSTALL_FAILED state. Please re-install these components. " + message);

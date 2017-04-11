@@ -27,10 +27,16 @@ import sys
 import signal
 import cStringIO
 from functools import wraps
+
+import re
+
 from resource_management.core.exceptions import Fail
 from itertools import chain, repeat, islice
 
 PASSWORDS_HIDE_STRING = "[PROTECTED]"
+PERM_STRING_REGEXP = re.compile("(?P<scope>[ugoa]*)(?P<direction>[-+=])(?P<attr>[rwx]*)")
+PERM_REGISTER = {"u": 0o100, "g": 0o010, "o": 0o001}
+PERM_BITS = {"r": 0o004, "w": 0o002, "x": 0o001}
 
 class AttributeDictionary(object):
   def __init__(self, *args, **kwargs):
@@ -158,3 +164,51 @@ def pad_infinite(iterable, padding=None):
 
 def pad(iterable, size, padding=None):
   return islice(pad_infinite(iterable, padding), size)
+
+
+def attr_to_bitmask(attr, initial_bitmask=0o0):
+  """
+  Function able to generate permission bits from passed named permission string (chmod like style)
+   
+  Supports:
+   - scope modifications: u,g,o or a 
+   - setting mode: +,-,-
+   - attributes: r,x,w
+   
+  Samples:
+    uo+rw, a+x, u-w, o=r
+  
+  :type attr str 
+  :type initial_bitmask int
+  """
+  attr_dict = {"scope": "", "direction": "", "attr": ""}
+  re_match_result = PERM_STRING_REGEXP.match(attr)
+
+  if re_match_result:
+    attr_dict = re_match_result.groupdict(default=attr_dict)
+
+  if attr_dict["scope"] == "":
+    attr_dict["scope"] = "a"
+
+  if "a" in attr_dict["scope"]:
+    attr_dict["scope"] = "ugo"
+
+  attr_dict["scope"] = list(attr_dict["scope"])
+  attr_dict["attr"] = list(attr_dict["attr"])
+
+  if attr_dict["direction"] == "=":
+    clear_mask = 0o0
+    for scope in attr_dict["scope"]:
+      clear_mask = clear_mask | 0o007 * PERM_REGISTER[scope]
+
+    initial_bitmask = initial_bitmask ^ (initial_bitmask & clear_mask)
+    attr_dict["direction"] = "+"
+
+  for scope in attr_dict["scope"]:
+    for attr in attr_dict["attr"]:
+      if attr_dict["direction"] == "-" and (initial_bitmask & (PERM_BITS[attr] * PERM_REGISTER[scope])) > 0:
+        initial_bitmask = initial_bitmask ^ (PERM_BITS[attr] * PERM_REGISTER[scope])
+      elif attr_dict["direction"] == "+":
+        initial_bitmask = initial_bitmask | (PERM_BITS[attr] * PERM_REGISTER[scope])
+
+  return initial_bitmask

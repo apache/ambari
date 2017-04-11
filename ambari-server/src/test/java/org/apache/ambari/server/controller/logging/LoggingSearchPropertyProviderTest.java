@@ -152,7 +152,7 @@ public class LoggingSearchPropertyProviderTest {
     levelQueryResponse.setTotalCount("3");
     // setup test data for log levels
     List<NameValuePair> testListOfLogLevels =
-      new LinkedList<NameValuePair>();
+      new LinkedList<>();
     testListOfLogLevels.add(new NameValuePair("ERROR", "150"));
     testListOfLogLevels.add(new NameValuePair("WARN", "500"));
     testListOfLogLevels.add(new NameValuePair("INFO", "2200"));
@@ -357,7 +357,7 @@ public class LoggingSearchPropertyProviderTest {
     levelQueryResponse.setTotalCount("3");
     // setup test data for log levels
     List<NameValuePair> testListOfLogLevels =
-      new LinkedList<NameValuePair>();
+      new LinkedList<>();
     testListOfLogLevels.add(new NameValuePair("ERROR", "150"));
     testListOfLogLevels.add(new NameValuePair("WARN", "500"));
     testListOfLogLevels.add(new NameValuePair("INFO", "2200"));

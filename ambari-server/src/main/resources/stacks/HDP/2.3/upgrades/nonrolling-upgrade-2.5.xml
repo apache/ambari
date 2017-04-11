@@ -393,6 +393,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+          <summary>Removing atlas.cluster.name property</summary>
+        </task>
+      </execute-stage>
+
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
@@ -949,6 +955,16 @@
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Delete HBase snapshots">
+        <direction>UPGRADE</direction>
+        <task xsi:type="manual">
+          <message>You can now remove any HBase snapshots which were created at the beginning of the upgrade. To see existing snapshots, use the following HBase shell command:</message>
+          <message>hbase> list_snapshots</message>
+          <message>Once you have found an existing snapshot which you would like to remove, you can use the following command:</message>
+          <message>hbase> delete_snapshot 'snapshotName'</message>
         </task>
       </execute-stage>
 

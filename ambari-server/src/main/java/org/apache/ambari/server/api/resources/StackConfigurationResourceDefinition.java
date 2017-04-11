@@ -47,7 +47,7 @@ public class StackConfigurationResourceDefinition extends BaseResourceDefinition
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subs = new HashSet<>();
     subs.add(new SubResourceDefinition(Resource.Type.StackConfigurationDependency));
 
     return subs;

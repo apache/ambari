@@ -163,7 +163,7 @@ public class StackManagerTest {
     List<String> removedServices = stack.getRemovedServices();
     assertEquals(removedServices.size(), 2);
 
-    HashSet<String> expectedServices = new HashSet<String>();
+    HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("SPARK");
     expectedServices.add("SPARK2");
 
@@ -172,6 +172,21 @@ public class StackManagerTest {
     }
     assertTrue(expectedServices.isEmpty());
 
+  }
+
+  @Test
+  public void testSerivcesWithNoConfigs(){
+    StackInfo stack = stackManager.getStack("HDP", "2.0.8");
+    List<String> servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    //Via inheritance, Hive should have config types
+    //Via inheritance, SystemML should still have no config types
+    assertTrue((servicesWithNoConfigs.contains("SYSTEMML")));
+    assertFalse((servicesWithNoConfigs.contains("HIVE")));
+
+    stack = stackManager.getStack("HDP", "2.0.7");
+    //Directly from the stack, SystemML should have no config types
+    servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    assertTrue((servicesWithNoConfigs.contains("SYSTEMML")));
   }
 
   @Test
@@ -185,7 +200,7 @@ public class StackManagerTest {
     Collection<ServiceInfo> services = stack.getServices();
     assertEquals(3, services.size());
 
-    Map<String, ServiceInfo> serviceMap = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> serviceMap = new HashMap<>();
     for (ServiceInfo service : services) {
       serviceMap.put(service.getName(), service);
     }
@@ -270,8 +285,8 @@ public class StackManagerTest {
     assertNotNull(si);
 
     //should include all stacks in hierarchy
-    assertEquals(17, services.size());
-    HashSet<String> expectedServices = new HashSet<String>();
+    assertEquals(18, services.size());
+    HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
@@ -289,6 +304,7 @@ public class StackManagerTest {
     expectedServices.add("TEZ");
     expectedServices.add("AMBARI_METRICS");
     expectedServices.add("SPARK3");
+    expectedServices.add("SYSTEMML");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {
@@ -382,7 +398,7 @@ public class StackManagerTest {
     // compare components
     List<ComponentInfo> stormServiceComponents = stormService.getComponents();
     List<ComponentInfo> baseStormServiceComponents = baseStormService.getComponents();
-    assertEquals(new HashSet<ComponentInfo>(stormServiceComponents), new HashSet<ComponentInfo>(baseStormServiceComponents));
+    assertEquals(new HashSet<>(stormServiceComponents), new HashSet<>(baseStormServiceComponents));
     // values from base service
     assertEquals(baseStormService.isDeleted(), stormService.isDeleted());
     //todo: specify alerts file in stack
@@ -493,7 +509,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(14, allServices.size());
+    assertEquals(15, allServices.size());
 
     boolean monitoringServiceFound = false;
 
@@ -515,7 +531,7 @@ public class StackManagerTest {
     Collection<ServiceInfo> allServices = stack.getServices();
 
     assertEquals(12, allServices.size());
-    HashSet<String> expectedServices = new HashSet<String>();
+    HashSet<String> expectedServices = new HashSet<>();
     expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");

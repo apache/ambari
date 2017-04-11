@@ -295,7 +295,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName) {
     Map<String, String> queryParameters =
-      new HashMap<String, String>();
+      new HashMap<>();
 
     // TODO, this current method will be a temporary workaround
     // TODO, until the new LogSearch API method is available to handle this request
@@ -403,7 +403,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
     URIBuilder uriBuilder = createBasicURI(scheme);
     uriBuilder.setPath(LOGSEARCH_GET_LOG_LEVELS_PATH);
 
-    Map<String, String> queryParameters = new HashMap<String, String>();
+    Map<String, String> queryParameters = new HashMap<>();
     // set the query parameters to limit this level count
     // request to the specific component on the specified host
     queryParameters.put(HOST_QUERY_PARAMETER_NAME, hostName);

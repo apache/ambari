@@ -39,8 +39,8 @@ public class AndOperatorTest {
 
   @Test
   public void testToPredicate() {
-    EqualsPredicate p1 = new EqualsPredicate<String>("p1", "one");
-    EqualsPredicate p2 = new EqualsPredicate<String>("p2", "two");
+    EqualsPredicate p1 = new EqualsPredicate<>("p1", "one");
+    EqualsPredicate p2 = new EqualsPredicate<>("p2", "two");
     AndPredicate andPredicate = new AndPredicate(p1, p2);
 
     assertEquals(andPredicate, new AndOperator(1).toPredicate(p1, p2));

@@ -79,7 +79,7 @@ public class ViewSubResourceDefinition extends BaseResourceDefinition {
   @Override
   public synchronized Set<SubResourceDefinition> getSubResourceDefinitions() {
     if (definitions == null) {
-      definitions = new HashSet<SubResourceDefinition>();
+      definitions = new HashSet<>();
       List<String> subResourceNames = resourceConfiguration.getSubResourceNames();
       if (subResourceNames != null) {
         for (String subType : subResourceNames) {

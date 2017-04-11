@@ -5673,7 +5673,7 @@ public class Configuration {
     // now write out specific groupings
     StringBuilder baselineBuffer = new StringBuilder(1024);
     for( ConfigurationGrouping grouping : ConfigurationGrouping.values() ){
-      baselineBuffer.append("#### " + grouping);
+      baselineBuffer.append("#### ").append(grouping);
       baselineBuffer.append(System.lineSeparator());
       baselineBuffer.append("| Property Name | ");
 

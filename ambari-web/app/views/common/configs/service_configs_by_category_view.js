@@ -21,13 +21,17 @@ var App = require('app');
 var validator = require('utils/validator');
 require('utils/configs/modification_handlers/modification_handler');
 
-App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverridable, {
+App.ServiceConfigsByCategoryView = Em.View.extend(App.Persist, App.ConfigOverridable, {
 
   templateName: require('templates/common/configs/service_config_category'),
 
   classNames: ['panel-group', 'common-config-category'],
 
-  classNameBindings: ['category.name', 'isShowBlock::hidden'],
+  classNameBindings: ['isShowBlock::hidden'],
+
+  'data-qa': function () {
+    return this.get('category.name') + ' ' + 'panel-group';
+  }.property('category.name'),
 
   content: null,
 

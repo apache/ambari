@@ -37,8 +37,8 @@ public class ContainsPredicateTest extends EasyMockSupport {
 
   @Test
   public void testEvaluate() {
-    Set<String> data1 = new HashSet<String>(Arrays.asList("ONE", "TWO", "THREE"));
-    Set<String> data2 = new HashSet<String>(Arrays.asList("TWO", "THREE"));
+    Set<String> data1 = new HashSet<>(Arrays.asList("ONE", "TWO", "THREE"));
+    Set<String> data2 = new HashSet<>(Arrays.asList("TWO", "THREE"));
 
     ContextTransformer transformer = createStrictMock(ContextTransformer.class);
     expect(transformer.transform(EasyMock.<Map<?, ?>>anyObject())).andReturn(data1).times(1);
@@ -66,8 +66,8 @@ public class ContainsPredicateTest extends EasyMockSupport {
 
     verifyAll();
 
-    Map<String, Object> expectedMap = new HashMap<String, Object>();
-    expectedMap.put("contains", new ArrayList<String>(Arrays.asList("data", "ONE")));
+    Map<String, Object> expectedMap = new HashMap<>();
+    expectedMap.put("contains", new ArrayList<>(Arrays.asList("data", "ONE")));
 
     Assert.assertEquals(expectedMap, actualMap);
   }

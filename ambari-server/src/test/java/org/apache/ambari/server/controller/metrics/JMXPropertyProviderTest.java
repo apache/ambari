@@ -219,7 +219,7 @@ public class JMXPropertyProviderTest {
     Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    List<String> expectedSpecs = new ArrayList<String>();
+    List<String> expectedSpecs = new ArrayList<>();
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
     Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
@@ -258,7 +258,7 @@ public class JMXPropertyProviderTest {
 
 
     // only ask for specific properties
-    Set<String> properties = new HashSet<String>();
+    Set<String> properties = new HashSet<>();
 
     // hbase master
     resource = new ResourceImpl(Resource.Type.HostComponent);
@@ -268,7 +268,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for specific properties
-    properties = new HashSet<String>();
+    properties = new HashSet<>();
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax"));
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed"));
     properties.add(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax"));
@@ -313,7 +313,7 @@ public class JMXPropertyProviderTest {
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
 
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/rpc/ReceivedBytes"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
@@ -349,12 +349,12 @@ public class JMXPropertyProviderTest {
 
     // request with an empty set should get all supported properties
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    List<String> expectedSpecs = new ArrayList<String>();
+    List<String> expectedSpecs = new ArrayList<>();
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
     Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
@@ -389,12 +389,12 @@ public class JMXPropertyProviderTest {
 
     // request with an empty set should get all supported properties
     // only ask for one property
-    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
     Request request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs/FSNamesystem"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    List<String> expectedSpecs = new ArrayList<String>();
+    List<String> expectedSpecs = new ArrayList<>();
     expectedSpecs.add(propertyProvider.getSpec("http","domu-12-31-39-0e-34-e1.compute-1.internal","50070","/jmx"));
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
 
@@ -417,7 +417,7 @@ public class JMXPropertyProviderTest {
 
     // request with an empty set should get all supported properties
     // only ask for one property
-    temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap = new HashMap<>();
     request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs/FSNamesystem/CapacityUsed"), temporalInfoMap);
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
@@ -460,7 +460,7 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    List<String> expectedSpecs = new ArrayList<String>();
+    List<String> expectedSpecs = new ArrayList<>();
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx"));
     expectedSpecs.add(propertyProvider.getSpec("http", "domu-12-31-39-0e-34-e1.compute-1.internal", "50070", "/jmx?get=Hadoop:service=NameNode,name=FSNamesystem::tag.HAState"));
     Assert.assertEquals(expectedSpecs, streamProvider.getSpecs());
@@ -510,7 +510,7 @@ public class JMXPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider(50L);
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
     TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     JMXPropertyProvider propertyProvider = metricPropertyProviderFactory.createJMXPropertyProvider(
       PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
@@ -556,7 +556,7 @@ public class JMXPropertyProviderTest {
     TestStreamProvider streamProvider = new TestStreamProvider(100L);
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
     TestMetricHostProvider metricsHostProvider = new TestMetricHostProvider();
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     JMXPropertyProvider propertyProvider = metricPropertyProviderFactory.createJMXPropertyProvider(
       PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),

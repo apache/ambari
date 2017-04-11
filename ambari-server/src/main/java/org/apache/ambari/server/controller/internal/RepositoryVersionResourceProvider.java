@@ -226,12 +226,12 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   @Override
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
 
-    List<RepositoryVersionEntity> requestedEntities = new ArrayList<RepositoryVersionEntity>();
+    List<RepositoryVersionEntity> requestedEntities = new ArrayList<>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
@@ -384,7 +384,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    final List<RepositoryVersionEntity> entitiesToBeRemoved = new ArrayList<RepositoryVersionEntity>();
+    final List<RepositoryVersionEntity> entitiesToBeRemoved = new ArrayList<>();
     for (Map<String, Object> propertyMap : propertyMaps) {
       final Long id;
       try {
@@ -456,7 +456,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     final String requiredStackId = requiredStack.getStackId();
 
     // List of all repo urls that are already added at stack
-    Set<String> existingRepoUrls = new HashSet<String>();
+    Set<String> existingRepoUrls = new HashSet<>();
     List<RepositoryVersionEntity> existingRepoVersions = dao.findByStack(requiredStack);
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
       for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
@@ -469,12 +469,12 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     }
 
     // check that repositories contain only supported operating systems
-    final Set<String> osSupported = new HashSet<String>();
+    final Set<String> osSupported = new HashSet<>();
     for (OperatingSystemInfo osInfo: metaInfo.getOperatingSystems(requiredStackName, requiredStackVersion)) {
       osSupported.add(osInfo.getOsType());
     }
 
-    final Set<String> osRepositoryVersion = new HashSet<String>();
+    final Set<String> osRepositoryVersion = new HashSet<>();
 
     for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
       osRepositoryVersion.add(os.getOsType());

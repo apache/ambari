@@ -57,7 +57,7 @@ public class AmbariErrorHandler extends ErrorHandler {
 
     response.setContentType(MimeTypes.TEXT_PLAIN);
 
-    Map<String, Object> errorMap = new LinkedHashMap<String, Object>();
+    Map<String, Object> errorMap = new LinkedHashMap<>();
     int code = connection.getResponse().getStatus();
     errorMap.put("status", code);
     String message = connection.getResponse().getReason();

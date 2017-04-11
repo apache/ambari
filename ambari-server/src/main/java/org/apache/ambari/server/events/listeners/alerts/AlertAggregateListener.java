@@ -92,7 +92,7 @@ public class AlertAggregateListener {
    * shouldn't need to fire new aggregate alerts unless the state or text has
    * changed.
    */
-  private Map<String, Alert> m_alertCache = new ConcurrentHashMap<String, Alert>();
+  private Map<String, Alert> m_alertCache = new ConcurrentHashMap<>();
 
   /**
    * Used for quick lookups of aggregate alerts.

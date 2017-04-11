@@ -46,7 +46,7 @@ public class BufferedThreadPoolExecutorCompletionServiceTest {
     int CORE_POOL_SIZE = 2;
     int MAX_POOL_SIZE = 5;
     int TASKS_COUNT = 8;
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
+    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
     ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, 30000, TimeUnit.MILLISECONDS, queue);
     BufferedThreadPoolExecutorCompletionService<Runnable> service = new BufferedThreadPoolExecutorCompletionService<>(threadPoolExecutor);
     for (int tc = 0; tc < TASKS_COUNT; tc++) {
@@ -84,7 +84,7 @@ public class BufferedThreadPoolExecutorCompletionServiceTest {
     int CORE_POOL_SIZE = 2;
     int MAX_POOL_SIZE = 10;
     int TASKS_COUNT = 8;
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(CORE_POOL_SIZE);
+    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(CORE_POOL_SIZE);
     ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, 30000, TimeUnit.MILLISECONDS, queue);
     BufferedThreadPoolExecutorCompletionService<Runnable> service = new BufferedThreadPoolExecutorCompletionService<>(threadPoolExecutor);
     for (int tc = 0; tc < TASKS_COUNT; tc++) {
@@ -122,7 +122,7 @@ public class BufferedThreadPoolExecutorCompletionServiceTest {
     int CORE_POOL_SIZE = 2;
     int MAX_POOL_SIZE = 10;
     int TASKS_COUNT = 24;
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(CORE_POOL_SIZE);
+    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(CORE_POOL_SIZE);
     ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, 30000, TimeUnit.MILLISECONDS, queue);
     BufferedThreadPoolExecutorCompletionService<Runnable> service = new BufferedThreadPoolExecutorCompletionService<>(threadPoolExecutor);
     for (int tc = 0; tc < TASKS_COUNT; tc++) {

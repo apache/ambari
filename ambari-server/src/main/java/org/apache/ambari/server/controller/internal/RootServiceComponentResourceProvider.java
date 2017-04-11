@@ -57,8 +57,8 @@ public class RootServiceComponentResourceProvider extends
   public static final String PROPERTIES_SERVER_CLOCK = PropertyHelper
       .getPropertyId("RootServiceComponents", "server_clock");
   
-  private Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { SERVICE_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID }));
+  private Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{SERVICE_NAME_PROPERTY_ID, COMPONENT_NAME_PROPERTY_ID}));
 
   protected RootServiceComponentResourceProvider(Set<String> propertyIds,
       Map<Type, String> keyPropertyIds,
@@ -71,7 +71,7 @@ public class RootServiceComponentResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<RootServiceComponentRequest> requests = new HashSet<RootServiceComponentRequest>();
+    final Set<RootServiceComponentRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -90,7 +90,7 @@ public class RootServiceComponentResourceProvider extends
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (RootServiceComponentResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.RootServiceComponent);

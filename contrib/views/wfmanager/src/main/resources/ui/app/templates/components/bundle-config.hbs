@@ -124,7 +124,7 @@
   {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
 {{/if}}
 {{#if showingJobConfig}}
-  {{job-config type='bundle' closeJobConfigs="closeBundleSubmitConfig" jobFilePath=bundleFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=bundleConfigs containsParameteriedPaths=containsParameteriedPaths}}
+  {{job-config type='bundle' closeJobConfigs="closeBundleSubmitConfig" jobFilePath=bundleFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=bundleConfigs containsParameteriedPaths=containsParameteriedPaths jobConfigProperties=jobConfigProperties}}
 {{/if}}
 {{#if showingResetConfirmation}}
   {{#confirmation-dialog title="Confirm Bundle Reset"

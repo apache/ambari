@@ -136,7 +136,7 @@ public class CredentialService extends BaseService {
    * @return a credential resource instance
    */
   ResourceInstance createCredentialResource(String alias) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, this.clusterName);
     mapIds.put(Resource.Type.Credential, alias);
 

@@ -62,7 +62,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a permission resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
@@ -72,7 +72,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   /**
    * The property ids for a permission resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
@@ -117,7 +117,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     ViewRegistry  viewRegistry = ViewRegistry.getInstance();
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
     PermissionEntity viewUsePermission = permissionDAO.findViewUsePermission();
@@ -171,7 +171,7 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 
 

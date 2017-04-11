@@ -198,7 +198,7 @@ public class ViewPermissionService extends BaseService {
    * @return a permission resource instance
    */
   protected ResourceInstance createPermissionResource(String viewName, String viewVersion, String permissionId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, viewVersion);
     mapIds.put(Resource.Type.ViewPermission, permissionId);

@@ -36,7 +36,7 @@ public class ClusterRequestTest {
     String provisioningState = State.INIT.name();
     SecurityType securityType = SecurityType.NONE;
     StackId stackVersion = new StackId("HDP-1.0.1");
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add("h1");
 
     ClusterRequest r1 =

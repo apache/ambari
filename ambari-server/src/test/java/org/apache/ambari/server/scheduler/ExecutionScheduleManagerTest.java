@@ -171,7 +171,7 @@ public class ExecutionScheduleManagerTest {
     batchSettings.setTaskFailureToleranceLimit(10);
     batches.setBatchSettings(batchSettings);
 
-    List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();
+    List<BatchRequest> batchRequests = new ArrayList<>();
     BatchRequest batchRequest1 = new BatchRequest();
     batchRequest1.setOrderId(10L);
     batchRequest1.setType(BatchRequest.Type.DELETE);
@@ -356,7 +356,7 @@ public class ExecutionScheduleManagerTest {
     String type = "post";
     String body = "body";
     Integer userId = 1;
-    Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
 
     BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
@@ -418,7 +418,7 @@ public class ExecutionScheduleManagerTest {
     long requestId = 5L;
     String clusterName = "mycluster";
 
-    Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
 
     BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
@@ -510,7 +510,7 @@ public class ExecutionScheduleManagerTest {
     BatchSettings batchSettings = new BatchSettings();
     batchSettings.setTaskFailureToleranceLimit(1);
 
-    Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
 
     expect(clustersMock.getCluster(clusterName)).andReturn(clusterMock).anyTimes();
@@ -560,7 +560,7 @@ public class ExecutionScheduleManagerTest {
     String clusterName = "c1";
     Date pastDate = new Date(new Date().getTime() - 2);
 
-    Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
+    Map<Long, RequestExecution> executionMap = new HashMap<>();
     executionMap.put(executionId, requestExecutionMock);
 
     EasyMock.expect(configurationMock.getApiSSLAuthentication()).andReturn(Boolean.FALSE);

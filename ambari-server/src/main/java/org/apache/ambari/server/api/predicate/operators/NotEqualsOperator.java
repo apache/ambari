@@ -41,7 +41,7 @@ public class NotEqualsOperator extends AbstractOperator implements RelationalOpe
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new NotPredicate(new EqualsPredicate<String>(prop, val));
+    return new NotPredicate(new EqualsPredicate<>(prop, val));
   }
 
   @Override

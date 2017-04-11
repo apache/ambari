@@ -127,7 +127,7 @@ public class AmbariKerberosAuthenticationProperties {
     if (orderedUserTypes == null) {
       this.orderedUserTypes = Collections.emptyList();
     } else {
-      this.orderedUserTypes = Collections.unmodifiableList(new ArrayList<UserType>(orderedUserTypes));
+      this.orderedUserTypes = Collections.unmodifiableList(new ArrayList<>(orderedUserTypes));
     }
   }
 

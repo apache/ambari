@@ -76,12 +76,12 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     ResourceProvider provider = new HostKerberosIdentityResourceProvider(managementController);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(HostKerberosIdentityResourceProvider.KERBEROS_IDENTITY_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(HostKerberosIdentityResourceProvider.KERBEROS_IDENTITY_HOST_NAME_PROPERTY_ID, "Host100");
@@ -198,14 +198,14 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     HostDAO hostDAO = createStrictMock(HostDAO.class);
     expect(hostDAO.findByName("Host100")).andReturn(host100).times(1);
 
-    Collection<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
+    Collection<KerberosIdentityDescriptor> identities = new ArrayList<>();
     identities.add(identity1);
     identities.add(identity2);
     identities.add(identity3);
     identities.add(identity4);
     identities.add(identity5);
 
-    Map<String, Collection<KerberosIdentityDescriptor>> activeIdentities = new HashMap<String, Collection<KerberosIdentityDescriptor>>();
+    Map<String, Collection<KerberosIdentityDescriptor>> activeIdentities = new HashMap<>();
     activeIdentities.put("Host100", identities);
 
     KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
@@ -236,7 +236,7 @@ public class HostKerberosIdentityResourceProviderTest extends EasyMockSupport {
     field.setAccessible(true);
     field.set(provider, hostDAO);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(HostKerberosIdentityResourceProvider.KERBEROS_IDENTITY_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(HostKerberosIdentityResourceProvider.KERBEROS_IDENTITY_HOST_NAME_PROPERTY_ID);

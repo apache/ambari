@@ -443,7 +443,7 @@ public class ViewInstanceEntityTest {
   }
 
   public static Set<ViewInstanceEntity> getViewInstanceEntities(ViewEntity viewDefinition) throws Exception {
-    Set<ViewInstanceEntity> entities = new HashSet<ViewInstanceEntity>();
+    Set<ViewInstanceEntity> entities = new HashSet<>();
 
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
     entities.add(new ViewInstanceEntity(viewDefinition, instanceConfig));

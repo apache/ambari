@@ -35,7 +35,7 @@ public class DesiredConfig {
   private String tag;
   private String serviceName;
   private Long version;
-  private List<HostOverride> hostOverrides = new ArrayList<HostOverride>();
+  private List<HostOverride> hostOverrides = new ArrayList<>();
 
   /**
    * Sets the tag

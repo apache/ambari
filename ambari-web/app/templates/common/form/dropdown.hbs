@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="dropdown">
+<div class="dropdown" {{QAAttr "select-host-for-component"}}>
   <button {{bindAttr class=":btn :btn-default :dropdown-toggle view.disabled:disabled"}} type="button" data-toggle="dropdown">
     {{view App.DropdownOptionView optionBinding="view.selection" optionLabelPathBinding="view.optionLabelPath" class="selected-item"}}
     <span class="caret"></span>

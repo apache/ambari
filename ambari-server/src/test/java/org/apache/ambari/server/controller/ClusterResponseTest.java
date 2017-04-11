@@ -34,7 +34,7 @@ public class ClusterResponseTest {
     String clusterName = "foo";
     State provisioningState = State.INSTALLED;
     SecurityType securityType = SecurityType.KERBEROS;
-    Set<String> hostNames = new HashSet<String>();
+    Set<String> hostNames = new HashSet<>();
     hostNames.add("h1");
 
     ClusterResponse r1 =

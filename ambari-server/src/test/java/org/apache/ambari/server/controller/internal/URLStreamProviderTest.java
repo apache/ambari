@@ -53,7 +53,7 @@ public class URLStreamProviderTest {
     expect(urlStreamProvider.getAppCookieManager()).andReturn(appCookieManager).anyTimes();
     expect(urlStreamProvider.getConnection("spec")).andReturn(connection);
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("Header1", Collections.singletonList("value"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar"));
 
@@ -83,7 +83,7 @@ public class URLStreamProviderTest {
         addMockedMethod("getConnection", String.class).
         createMock();
 
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     headerMap.put("Header1", Collections.singletonList("value"));
     headerMap.put("Cookie", Collections.singletonList("FOO=bar"));
 

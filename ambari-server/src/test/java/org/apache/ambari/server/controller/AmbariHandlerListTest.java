@@ -85,7 +85,7 @@ public class AmbariHandlerListTest {
 
     handlerList.addViewInstance(viewInstanceEntity);
 
-    ArrayList<Handler> handlers = new ArrayList<Handler>(Arrays.asList(handlerList.getHandlers()));
+    ArrayList<Handler> handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
 
     Assert.assertTrue(handlers.contains(handler));
 
@@ -112,13 +112,13 @@ public class AmbariHandlerListTest {
 
     handlerList.addViewInstance(viewInstanceEntity);
 
-    ArrayList<Handler> handlers = new ArrayList<Handler>(Arrays.asList(handlerList.getHandlers()));
+    ArrayList<Handler> handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
 
     Assert.assertTrue(handlers.contains(handler));
 
     handlerList.removeViewInstance(viewInstanceEntity);
 
-    handlers = new ArrayList<Handler>(Arrays.asList(handlerList.getHandlers()));
+    handlers = new ArrayList<>(Arrays.asList(handlerList.getHandlers()));
 
     Assert.assertFalse(handlers.contains(handler));
 

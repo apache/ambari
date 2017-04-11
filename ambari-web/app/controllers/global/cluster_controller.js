@@ -142,30 +142,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     }
   },
 
-  /**
-   * load current server clock in milli-seconds
-   */
-  loadClientServerClockDistance: function () {
-    var dfd = $.Deferred();
-    this.getServerClock().done(function () {
-      dfd.resolve();
-    });
-    return dfd.promise();
-  },
-
-  getServerClock: function () {
-    return App.ajax.send({
-      name: 'ambari.service',
-      sender: this,
-      data: {
-        fields: '?fields=RootServiceComponents/server_clock'
-      },
-      success: 'getServerClockSuccessCallback',
-      error: 'getServerClockErrorCallback'
-    });
-  },
-
-  getServerClockSuccessCallback: function (data) {
+  setServerClock: function (data) {
     var clientClock = new Date().getTime();
     var serverClock = (data.RootServiceComponents.server_clock).toString();
     serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
@@ -185,7 +162,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadClusterData: function () {
     this.loadAuthorizations();
     this.getAllHostNames();
-    this.loadAmbariProperties();
 
     if (!App.get('clusterName')) {
       return;
@@ -441,10 +417,13 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAmbariPropertiesSuccess: function (data) {
+    var mainController = App.router.get('mainController');
     this.set('ambariProperties', data.RootServiceComponents.properties);
     // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
     this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
-    App.router.get('mainController').monitorInactivity();
+    this.setServerClock(data);
+    mainController.setAmbariServerVersion.call(mainController, data);
+    mainController.monitorInactivity();
   },
 
   loadAmbariPropertiesError: Em.K,

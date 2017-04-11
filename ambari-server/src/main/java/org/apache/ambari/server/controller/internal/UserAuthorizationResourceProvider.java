@@ -76,13 +76,13 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
 
   static {
     Set<String> set;
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(AUTHORIZATION_ID_PROPERTY_ID);
     set.add(USERNAME_PROPERTY_ID);
     set.add(AUTHORIZATION_RESOURCE_TYPE_PROPERTY_ID);
     PK_PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    set = new HashSet<String>();
+    set = new HashSet<>();
     set.add(AUTHORIZATION_ID_PROPERTY_ID);
     set.add(USERNAME_PROPERTY_ID);
     set.add(AUTHORIZATION_NAME_PROPERTY_ID);
@@ -93,7 +93,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
     set.add(AUTHORIZATION_VIEW_INSTANCE_NAME_PROPERTY_ID);
     PROPERTY_IDS = Collections.unmodifiableSet(set);
 
-    HashMap<Type, String> map = new HashMap<Type, String>();
+    HashMap<Type, String> map = new HashMap<>();
     map.put(Type.User, USERNAME_PROPERTY_ID);
     map.put(Type.UserAuthorization, AUTHORIZATION_ID_PROPERTY_ID);
     KEY_PROPERTY_IDS = Collections.unmodifiableMap(map);
@@ -138,7 +138,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     // Use the UserPrivilegeProvider to get the set of privileges the user has. This set of privileges
     // is used to generate a composite set of authorizations the user has been granted.
@@ -204,7 +204,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
    * @return a predicate
    */
   private Predicate createUserPrivilegePredicate(String username) {
-    return new EqualsPredicate<String>(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID, username);
+    return new EqualsPredicate<>(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID, username);
   }
 
   /**

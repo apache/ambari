@@ -48,13 +48,13 @@ public class KerberosPrincipalDescriptorTest {
   public static final Map<String, Object> MAP_VALUE_SPARSE;
 
   static {
-    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("value", "user@_REALM");
     MAP_VALUE.put("configuration", "service-site/service.component.kerberos.https.principal");
     MAP_VALUE.put("type", "user");
     MAP_VALUE.put("local_username", null);
 
-    MAP_VALUE_SPARSE = new TreeMap<String, Object>();
+    MAP_VALUE_SPARSE = new TreeMap<>();
     MAP_VALUE_SPARSE.put("value", "userOther@_REALM");
   }
 

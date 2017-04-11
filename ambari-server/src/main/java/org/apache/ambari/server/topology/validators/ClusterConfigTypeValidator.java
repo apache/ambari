@@ -49,7 +49,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
     }
 
     // identifying invalid config types
-    Set<String> configTypeIntersection = new HashSet<String>(topologyClusterConfigTypes);
+    Set<String> configTypeIntersection = new HashSet<>(topologyClusterConfigTypes);
 
     if (configTypeIntersection.retainAll(stackServiceConfigTypes)) {
       // there are config types not present in the stack for the services listed in the blueprint

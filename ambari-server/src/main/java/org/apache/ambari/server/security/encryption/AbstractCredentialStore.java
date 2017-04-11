@@ -159,7 +159,7 @@ public abstract class AbstractCredentialStore implements CredentialStore {
           Enumeration<String> aliases = ks.aliases();
 
           if (aliases != null) {
-            credentials = new HashSet<String>();
+            credentials = new HashSet<>();
             while (aliases.hasMoreElements()) {
               credentials.add(aliases.nextElement());
             }

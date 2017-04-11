@@ -66,7 +66,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * The key property ids for a view resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.View, VIEW_NAME_PROPERTY_ID);
     keyPropertyIds.put(Resource.Type.ViewVersion, VIEW_VERSION_PROPERTY_ID);
@@ -75,7 +75,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   /**
    * The property ids for a view resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(VIEW_NAME_PROPERTY_ID);
     propertyIds.add(VIEW_VERSION_PROPERTY_ID);
@@ -116,7 +116,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     ViewRegistry  viewRegistry = ViewRegistry.getInstance();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
@@ -211,6 +211,6 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 }

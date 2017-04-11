@@ -44,7 +44,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
   private final ClusterDefinition clusterDefinition;
 
-  private final Set<Resource> resources = new HashSet<Resource>();
+  private final Set<Resource> resources = new HashSet<>();
 
   private final Resource.Type type;
 
@@ -63,7 +63,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
     this.clusterDefinition = clusterDefinition;
 
     Set<String> propertyIds = PropertyHelper.getPropertyIds(type);
-    this.propertyIds = new HashSet<String>(propertyIds);
+    this.propertyIds = new HashSet<>(propertyIds);
     this.propertyIds.addAll(PropertyHelper.getCategories(propertyIds));
   }
 
@@ -80,7 +80,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resultSet = new HashSet<Resource>();
+    Set<Resource> resultSet = new HashSet<>();
 
     for (Resource resource : resources) {
       if (predicate == null || predicate.evaluate(resource)) {
@@ -111,7 +111,7 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    propertyIds = new HashSet<String>(propertyIds);
+    propertyIds = new HashSet<>(propertyIds);
     propertyIds.removeAll(this.propertyIds);
     return propertyIds;
   }
@@ -165,10 +165,10 @@ public abstract class GSInstallerResourceProvider implements ResourceProvider {
 
     // if no properties are specified, then return them all
     if (propertyIds == null || propertyIds.isEmpty()) {
-      return new HashSet<String>(this.propertyIds);
+      return new HashSet<>(this.propertyIds);
     }
 
-    propertyIds = new HashSet<String>(propertyIds);
+    propertyIds = new HashSet<>(propertyIds);
 
     if (predicate != null) {
       propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));

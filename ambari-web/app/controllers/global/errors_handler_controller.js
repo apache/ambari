@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ErrorsHandlerController = Em.Controller.extend(App.UserPref, {
+App.ErrorsHandlerController = Em.Controller.extend(App.Persist, {
 
   name: 'errorsHandlerController',
 

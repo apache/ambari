@@ -54,9 +54,9 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
-  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
-  private final Map<String, HostGroup> hostGroupMap = new HashMap<String, HostGroup>();
-  private final List<TopologyValidator> topologyValidators = new ArrayList<TopologyValidator>();
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+  private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
+  private final List<TopologyValidator> topologyValidators = new ArrayList<>();
   private Configuration configuration;
   private Configuration bpconfiguration;
 
@@ -78,16 +78,16 @@ public class ClusterTopologyImplTest {
     hostGroupInfoMap.put("group4", group4Info);
 
     group1Info.setConfiguration(configuration);
-    Collection<String> group1Hosts = new HashSet<String>();
+    Collection<String> group1Hosts = new HashSet<>();
     group1Hosts.add("host1");
     group1Hosts.add("host2");
     group1Info.addHosts(group1Hosts);
 
     group2Info.setConfiguration(configuration);
-    Collection<String> group2Hosts = new HashSet<String>();
+    Collection<String> group2Hosts = new HashSet<>();
     group2Hosts.add("host3");
     group2Info.addHosts(group2Hosts);
-    Collection<String> group4Hosts = new HashSet<String>();
+    Collection<String> group4Hosts = new HashSet<>();
     group4Hosts.add("host4");
     group4Hosts.add("host5");
     group4Info.addHosts(group4Hosts);
@@ -106,19 +106,19 @@ public class ClusterTopologyImplTest {
     hostGroupMap.put("group3", group3);
     hostGroupMap.put("group4", group4);
 
-    Set<Component> group1Components = new HashSet<Component>();
+    Set<Component> group1Components = new HashSet<>();
     group1Components.add(new Component("component1"));
     group1Components.add(new Component("component2"));
 
-    Set<String> group1ComponentNames = new HashSet<String>();
+    Set<String> group1ComponentNames = new HashSet<>();
     group1ComponentNames.add("component1");
     group1ComponentNames.add("component2");
 
-    Set<Component> group2Components = new HashSet<Component>();
+    Set<Component> group2Components = new HashSet<>();
     group2Components.add(new Component("component3"));
-    Set<Component> group3Components = new HashSet<Component>();
+    Set<Component> group3Components = new HashSet<>();
     group3Components.add(new Component("component4"));
-    Set<Component> group4Components = new HashSet<Component>();
+    Set<Component> group4Components = new HashSet<>();
     group4Components.add(new Component("component5"));
 
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();

@@ -57,7 +57,7 @@ public class ConfigurationMergeCheckTest {
   private static final String CONFIG_PROPERTY = "hdfs.property";
 
   private Clusters clusters = EasyMock.createMock(Clusters.class);
-  private Map<String, String> m_configMap = new HashMap<String, String>();
+  private Map<String, String> m_configMap = new HashMap<>();
 
   private static final StackId stackId_1_0 = new StackId("HDP-1.0");
 

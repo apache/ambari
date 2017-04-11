@@ -24,7 +24,7 @@
     <service>
       <name>RANGER</name>
       <extends>common-services/RANGER/0.7.0</extends>
-      <version>0.7.0.2.6</version>
+      <version>0.7.0</version>
     </service>
   </services>
 </metainfo>

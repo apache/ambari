@@ -198,7 +198,7 @@ public class ClusterConfigurationRequestTest {
     ConfigurationTopologyException {
 
 
-    Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackDefaultConfig = new Configuration(existingConfig,
       new HashMap<String, Map<String, Map<String, String>>>());
     if (stackPropertyValue != null) {
@@ -222,7 +222,7 @@ public class ClusterConfigurationRequestTest {
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
@@ -294,7 +294,7 @@ public class ClusterConfigurationRequestTest {
   @Test
   public void testProcessClusterConfigRequestDontIncludeKererosConfigs() throws Exception {
 
-    Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> existingConfig = new HashMap<>();
     Configuration stackConfig = new Configuration(existingConfig,
       new HashMap<String, Map<String, Map<String, String>>>());
 
@@ -306,7 +306,7 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.singletonList("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
     expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
@@ -355,7 +355,7 @@ public class ClusterConfigurationRequestTest {
   public void testProcessClusterConfigRequestRemoveUnusedConfigTypes() throws Exception {
     // GIVEN
     Configuration configuration = createConfigurations();
-    Set<String> services = new HashSet<String>();
+    Set<String> services = new HashSet<>();
     services.add("HDFS");
     services.add("RANGER");
     Map<String, HostGroupInfo> hostGroupInfoMap = Maps.newHashMap();

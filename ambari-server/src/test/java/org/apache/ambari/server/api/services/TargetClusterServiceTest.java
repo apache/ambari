@@ -39,7 +39,7 @@ public class TargetClusterServiceTest extends BaseServiceTest {
 
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getTargetCluster
     TargetClusterService targetClusterService = new TestTargetClusterService("targetClusterName");

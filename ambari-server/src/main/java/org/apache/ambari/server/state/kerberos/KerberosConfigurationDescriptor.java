@@ -113,7 +113,7 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
     if (properties == null) {
       this.properties = null;
     } else {
-      this.properties = new TreeMap<String, String>(properties);
+      this.properties = new TreeMap<>(properties);
     }
   }
 
@@ -150,7 +150,7 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
     }
 
     if (properties == null) {
-      properties = new TreeMap<String, String>();
+      properties = new TreeMap<>();
     }
 
     properties.put(name, value);
@@ -186,7 +186,7 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new TreeMap<String, Object>();
+    Map<String, Object> map = new TreeMap<>();
     map.put(getName(), (properties == null) ? null : new TreeMap<String, Object>(properties));
     return map;
   }

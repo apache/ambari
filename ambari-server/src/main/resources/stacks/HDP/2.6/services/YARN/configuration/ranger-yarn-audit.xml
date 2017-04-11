@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -15,31 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+-->
+<configuration>
 
-var App = require('app');
-var persistUtils = require('utils/persist');
+  <property>
+    <name>ranger.plugin.yarn.ambari.cluster.name</name>
+    <value>{{cluster_name}}</value>
+    <description>Capture cluster name from where Ranger yarn plugin is enabled.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
-App.Persist = Em.Mixin.create({
-
-  persistNamespace: function() {
-    var name = this.get('name');
-    if (Em.isNone(name)) {
-      name = this.get('controller.name');
-    }
-    return name.capitalize().replace('Controller', '');
-  }.property('name'),
-
-  getPersistentProperty: function(key) {
-    return persistUtils.get(this.get('persistNamespace') + '__' + key);
-  },
-
-  setPersistentProperty: function(key, value) {
-    return persistUtils.put(this.get('persistNamespace') + '__' + key, value);
-  },
-
-  removePersistentProperty: function(key) {
-    return persistUtils.remove(this.get('persistNamespace') + '__' + key);
-  }
-
-
-});
+</configuration>

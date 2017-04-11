@@ -80,16 +80,16 @@ public class SettingTest {
     Set<HashMap<String, String>> setting2 = new HashSet<>();
 
     // Setting 1: Property1
-    HashMap<String, String> setting1Properties1 = new HashMap<String, String>();
+    HashMap<String, String> setting1Properties1 = new HashMap<>();
     setting1Properties1.put(Setting.SETTING_NAME_RECOVERY_ENABLED, "true");
     setting1.add(setting1Properties1);
 
     // Setting 2: Property1 and Property2
-    HashMap<String, String> setting2Properties1 = new HashMap<String, String>();
+    HashMap<String, String> setting2Properties1 = new HashMap<>();
     setting2Properties1.put(Setting.SETTING_NAME_NAME, "HDFS");
     setting2Properties1.put(Setting.SETTING_NAME_RECOVERY_ENABLED, "false");
 
-    HashMap<String, String> setting2Properties2 = new HashMap<String, String>();
+    HashMap<String, String> setting2Properties2 = new HashMap<>();
     setting2Properties2.put(Setting.SETTING_NAME_NAME, "TEZ");
     setting2Properties2.put(Setting.SETTING_NAME_RECOVERY_ENABLED, "false");
 

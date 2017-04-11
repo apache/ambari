@@ -109,52 +109,52 @@ public class QueryCreateHandlerTest {
     //      ]
     //   }
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
 
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
-    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapProperties = new HashMap<>();
+    Set<Map<String, Object>> arraySet  = new HashSet<>();
 
     mapProperties.put("components", arraySet);
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     arraySet.add(map);
 
-    map = new HashMap<String, Object>();
+    map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     arraySet.add(map);
 
     setRequestProps.add(new NamedPropertySet("", mapProperties));
 
 
-    Set<Map<String, Object>> setCreateProps = new HashSet<Map<String, Object>>();
-    Map<String, Object> map1 = new HashMap<String, Object>();
+    Set<Map<String, Object>> setCreateProps = new HashSet<>();
+    Map<String, Object> map1 = new HashMap<>();
     map1.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     map1.put(createKeyProperty, "id1");
     setCreateProps.add(map1);
-    Map<String, Object> map2 = new HashMap<String, Object>();
+    Map<String, Object> map2 = new HashMap<>();
     map2.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     map2.put(createKeyProperty, "id2");
     setCreateProps.add(map2);
-    Map<String, Object> map3 = new HashMap<String, Object>();
+    Map<String, Object> map3 = new HashMap<>();
     map3.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     map3.put(createKeyProperty, "id1");
     setCreateProps.add(map3);
-    Map<String, Object> map4 = new HashMap<String, Object>();
+    Map<String, Object> map4 = new HashMap<>();
     map4.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     map4.put(createKeyProperty, "id2");
     setCreateProps.add(map4);
 
-    Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
+    Map<String, ResourceInstance> mapSubResources = new HashMap<>();
     mapSubResources.put("components", subResource);
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 
-    Set<Resource> setStatusResources = new HashSet<Resource>();
+    Set<Resource> setStatusResources = new HashSet<>();
     setStatusResources.add(statusResource1);
     setStatusResources.add(statusResource2);
 
@@ -273,25 +273,25 @@ public class QueryCreateHandlerTest {
     //      }
     //   }
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
-    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
+    Map<String, Object> mapProperties = new HashMap<>();
+    Set<Map<String, Object>> arraySet  = new HashSet<>();
 
     mapProperties.put("", arraySet);
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     arraySet.add(map);
 
-    map = new HashMap<String, Object>();
+    map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     arraySet.add(map);
 
     setRequestProps.add(new NamedPropertySet("", mapProperties));
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 
@@ -373,28 +373,28 @@ public class QueryCreateHandlerTest {
     //      ]
     //   }
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
-    Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
+    Map<String, Object> mapProperties = new HashMap<>();
+    Set<Map<String, Object>> arraySet  = new HashSet<>();
 
     mapProperties.put("INVALID", arraySet);
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     arraySet.add(map);
 
-    map = new HashMap<String, Object>();
+    map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     arraySet.add(map);
 
     setRequestProps.add(new NamedPropertySet("", mapProperties));
 
-    Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
+    Map<String, ResourceInstance> mapSubResources = new HashMap<>();
     mapSubResources.put("components", subResource);
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 
@@ -463,12 +463,12 @@ public class QueryCreateHandlerTest {
     RequestHandler readHandler = createStrictMock(RequestHandler.class);
     ResultStatus queryResultStatus = createNiceMock(ResultStatus.class);
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
     // no body specified so no props
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 
@@ -552,32 +552,32 @@ public class QueryCreateHandlerTest {
     //    ]
     //  }
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
-    Map<String, Object>   mapProperties   = new HashMap<String, Object>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
+    Map<String, Object>   mapProperties   = new HashMap<>();
 
-    Set<Map<String, Object>> arraySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> arraySet = new HashSet<>();
     mapProperties.put("foo", arraySet);
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     map.put("prop", "val");
     arraySet.add(map);
 
-    arraySet = new HashSet<Map<String, Object>>();
+    arraySet = new HashSet<>();
     mapProperties.put("bar", arraySet);
 
-    map = new HashMap<String, Object>();
+    map = new HashMap<>();
     map.put("prop", "val");
     arraySet.add(map);
 
     setRequestProps.add(new NamedPropertySet("", mapProperties));
 
-    Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
+    Map<String, ResourceInstance> mapSubResources = new HashMap<>();
     mapSubResources.put("foo", subResource1);
     mapSubResources.put("bar", subResource2);
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 
@@ -661,29 +661,29 @@ public class QueryCreateHandlerTest {
     RequestHandler readHandler = createStrictMock(RequestHandler.class);
     ResultStatus resultStatus = createMock(ResultStatus.class);
 
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
 
-    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
+    Set<NamedPropertySet> setRequestProps = new HashSet<>();
 
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
-    Set<Map<String, Object>> arraySet = new HashSet<Map<String, Object>>();
+    Map<String, Object> mapProperties = new HashMap<>();
+    Set<Map<String, Object>> arraySet = new HashSet<>();
 
     mapProperties.put("components", arraySet);
 
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
     arraySet.add(map);
 
-    map = new HashMap<String, Object>();
+    map = new HashMap<>();
     map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
     arraySet.add(map);
 
     setRequestProps.add(new NamedPropertySet("", mapProperties));
 
-    Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
+    Map<String, ResourceInstance> mapSubResources = new HashMap<>();
     mapSubResources.put("components", subResource);
 
-    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    TreeNode<Resource> resultTree = new TreeNodeImpl<>(null, null, "result");
     resultTree.addChild(resource1, "resource1");
     resultTree.addChild(resource2, "resource2");
 

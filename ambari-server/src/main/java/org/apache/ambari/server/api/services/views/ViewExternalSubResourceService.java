@@ -66,7 +66,7 @@ public class ViewExternalSubResourceService  extends BaseService {
   /**
    * Mapping of resource names to services.
    */
-  private final Map<String, Object> resourceServiceMap = new HashMap<String, Object>();
+  private final Map<String, Object> resourceServiceMap = new HashMap<>();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -139,7 +139,7 @@ public class ViewExternalSubResourceService  extends BaseService {
    * @return a view instance resource
    */
   private ResourceInstance createResource(String viewName, String instanceName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, version);
     mapIds.put(Resource.Type.ViewInstance, instanceName);

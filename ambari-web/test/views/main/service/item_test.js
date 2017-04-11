@@ -26,7 +26,9 @@ function getView() {
     controller: Em.Object.create({
       content: Em.Object.create({
         hostComponents: []
-      })
+      }),
+      setStartStopState: sinon.spy(),
+      loadConfigs: sinon.spy()
     })
   });
 }
@@ -37,21 +39,17 @@ describe('App.MainServiceItemView', function () {
 
   App.TestAliases.testAsComputedAlias(getView(), 'displayName', 'controller.content.displayName', 'string');
 
+  beforeEach(function() {
+    view = getView();
+  });
+
   describe('#mastersExcludedCommands', function () {
-
-    view = App.MainServiceItemView.create({
-      controller: Em.Object.create({
-        content: Em.Object.create({
-          hostComponents: []
-        })
-      })
-    });
-
+    view = getView();
     var nonCustomAction = ['RESTART_ALL', 'RUN_SMOKE_TEST', 'REFRESH_CONFIGS', 'ROLLING_RESTART', 'TOGGLE_PASSIVE', 'TOGGLE_NN_HA', 'TOGGLE_RM_HA', 'MOVE_COMPONENT', 'DOWNLOAD_CLIENT_CONFIGS', 'MASTER_CUSTOM_COMMAND'];
-    var keys = Object.keys(view.mastersExcludedCommands);
+    var keys = Object.keys(view.get('mastersExcludedCommands'));
     var mastersExcludedCommands = [];
     for (var i = 0; i < keys.length; i++) {
-      mastersExcludedCommands[i] = view.mastersExcludedCommands[keys[i]];
+      mastersExcludedCommands[i] = view.get('mastersExcludedCommands')[keys[i]];
     }
     var allMastersExcludedCommands = mastersExcludedCommands.reduce(function (previous, current) {
       return previous.concat(current);
@@ -146,6 +144,7 @@ describe('App.MainServiceItemView', function () {
         {
           serviceName: "HDFS",
           displayName: "HDFS",
+          supportDeleteViaUi: true,
           isSingleNode: true,
           serviceTypes: ["HA_MODE"],
           slaveComponents: [
@@ -437,8 +436,6 @@ describe('App.MainServiceItemView', function () {
 
     beforeEach(function () {
 
-      view = App.MainServiceItemView.create({});
-
       sinon.stub(App, 'get', function (k) {
         switch (k) {
           case 'isSingleNode':
@@ -452,6 +449,8 @@ describe('App.MainServiceItemView', function () {
           case 'components.reassignable':
             return ["NAMENODE", "SECONDARY_NAMENODE", "APP_TIMELINE_SERVER", "RESOURCEMANAGER", "WEBHCAT_SERVER", "OOZIE_SERVER"];
           case 'services.supportsServiceCheck':
+            return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
+          case 'services.supportsDeleteViaUI':
             return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
           case 'components.addableToHost':
             return ["DATANODE", "HDFS_CLIENT", "MAPREDUCE2_CLIENT", "NODEMANAGER", "YARN_CLIENT", "TEZ_CLIENT", "GANGLIA_MONITOR", "HCAT", "HIVE_CLIENT", "HIVE_METASTORE", "HIVE_SERVER", "WEBHCAT_SERVER", "HBASE_CLIENT", "HBASE_MASTER", "HBASE_REGIONSERVER", "PIG", "SQOOP", "OOZIE_CLIENT", "OOZIE_SERVER", "ZOOKEEPER_CLIENT", "ZOOKEEPER_SERVER", "FALCON_CLIENT", "SUPERVISOR", "FLUME_HANDLER", "METRICS_MONITOR", "KAFKA_BROKER", "KERBEROS_CLIENT", "KNOX_GATEWAY", "SLIDER", "SPARK_CLIENT"];
@@ -592,5 +591,144 @@ describe('App.MainServiceItemView', function () {
     });
   });
 
+  describe('#isMaintenanceActive', function() {
+
+    it('isMaintenanceActive should be false when maintenance empty', function() {
+      view.set('state', 'inDOM');
+      view.set('maintenance', []);
+      expect(view.get('isMaintenanceActive')).to.be.false;
+    });
+
+    it('isMaintenanceActive should be true when maintenance not empty', function() {
+      view.set('state', 'inDOM');
+      view.set('maintenance', [{}]);
+      expect(view.get('isMaintenanceActive')).to.be.true;
+    });
+
+    it('isMaintenanceActive should be true when state not inDOM', function() {
+      view.set('state', '');
+      view.set('maintenance', [{}]);
+      expect(view.get('isMaintenanceActive')).to.be.true;
+    });
+  });
+
+  describe('#hasConfigTab', function() {
+    beforeEach(function() {
+      this.mockAuthorized = sinon.stub(App, 'isAuthorized');
+      this.mockGet = sinon.stub(App, 'get').returns(['S2']);
+    });
+    afterEach(function() {
+      this.mockAuthorized.restore();
+      this.mockGet.restore();
+    });
+
+    it('should return false when not authorized', function() {
+      this.mockAuthorized.returns(false);
+      view.set('controller.content.serviceName', 'S1');
+      expect(view.get('hasConfigTab')).to.be.false;
+    });
+
+    it('should return false when service does not have config types', function() {
+      this.mockAuthorized.returns(true);
+      view.set('controller.content.serviceName', 'S2');
+      expect(view.get('hasConfigTab')).to.be.false;
+    });
+
+    it('should return true when authorized', function() {
+      this.mockAuthorized.returns(true);
+      view.set('controller.content.serviceName', 'S1');
+      expect(view.get('hasConfigTab')).to.be.true;
+    });
+  });
+
+  describe('#hasHeatmapTab', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(['S1']);
+    });
+    afterEach(function() {
+      App.get.restore();
+    });
+
+    it('should return false when service does not have heatmaps', function() {
+      view.set('controller.content.serviceName', 'S2');
+      expect(view.get('hasHeatmapTab')).to.be.false;
+    });
+    it('should return true when service has heatmaps', function() {
+      view.set('controller.content.serviceName', 'S1');
+      expect(view.get('hasHeatmapTab')).to.be.true;
+    });
+  });
+
+  describe('#didInsertElement', function() {
+
+    it('setStartStopState should be called', function() {
+      view.didInsertElement();
+      expect(view.get('controller').setStartStopState.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#willInsertElement', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'addObserver');
+    });
+    afterEach(function() {
+      view.addObserver.restore();
+    });
+
+    it('loadConfigs should be called', function() {
+      view.willInsertElement();
+      expect(view.get('controller').loadConfigs.calledOnce).to.be.true;
+    });
+    it('addObserver should be called', function() {
+      view.set('maintenanceObsFields', ['foo']);
+      view.willInsertElement();
+      expect(view.addObserver.calledWith('controller.foo')).to.be.true;
+    });
+  });
+
+  describe('#willDestroyElement', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'removeObserver');
+    });
+    afterEach(function() {
+      view.removeObserver.restore();
+    });
+
+    it('addObserver should be called', function() {
+      view.set('maintenanceObsFields', ['foo']);
+      view.willDestroyElement();
+      expect(view.removeObserver.calledWith('controller.foo')).to.be.true;
+    });
+  });
+
+  describe('#service', function() {
+
+    beforeEach(function() {
+      sinon.stub(App.HDFSService, 'find').returns(Em.A([{}]));
+      sinon.stub(App.YARNService, 'find').returns(Em.A([{}]));
+      sinon.stub(App.HBaseService, 'find').returns(Em.A([{}]));
+      sinon.stub(App.FlumeService, 'find').returns(Em.A([{}]));
+    });
+    afterEach(function() {
+      App.HDFSService.find.restore();
+      App.YARNService.find.restore();
+      App.HBaseService.find.restore();
+      App.FlumeService.find.restore();
+    });
+
+    ['HDFS', 'YARN', 'HBASE', 'FLUME'].forEach(function(service) {
+      it('should return object of ' + service, function() {
+        view.set('controller.content.serviceName', service);
+        expect(view.get('service')).to.be.an.object;
+      });
+    });
+
+    it('should return content', function() {
+      view.set('controller.content', Em.Object.create({
+        serviceName: 'S1'
+      }));
+      expect(view.get('service')).to.be.an.object;
+    });
+  });
 });
 

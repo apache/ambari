@@ -204,7 +204,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     for (var propertyName in kerberosProperties) {
       var predefinedProperty = this.get('kerberosDescriptorProperties').findProperty('name', propertyName);
       var value = kerberosProperties[propertyName];
-      var isRequired = propertyName == 'additional_realms' ? false : value !== "";
+      var isRequired = ['additional_realms', 'principal_suffix'].contains(propertyName) ? false : value !== "";
       var propertyObject = {
         name: propertyName,
         value: value,
@@ -390,7 +390,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         var prop = identity[item];
 
         // compare ui rendered config against identity with `configuration attribute` (Most of the identities have `configuration attribute`)
-        var isIdentityWithConfig =  (prop.configuration && prop.configuration.split('/')[0] === config.filename && prop.configuration.split('/')[1] === config.name);
+        var isIdentityWithConfig = (prop.configuration && prop.configuration.split('/')[0] === App.config.getConfigTagFromFileName(config.filename) && prop.configuration.split('/')[1] === config.name);
 
         // compare ui rendered config against identity without `configuration attribute` (For example spnego principal and keytab)
         var isIdentityWithoutConfig = (!prop.configuration && identity.name === config.name.split('_')[0] && item === config.name.split('_')[1]);

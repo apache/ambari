@@ -82,6 +82,11 @@ public class ServiceInfo implements Validable{
   @XmlElement(name="deleted")
   private boolean isDeleted = false;
 
+  @XmlElement(name="supportDeleteViaUI")
+  private Boolean supportDeleteViaUIField;
+
+  private boolean supportDeleteViaUIInternal = true;
+
   @JsonIgnore
   @XmlTransient
   private volatile Map<String, Set<String>> configLayout = null;
@@ -92,7 +97,7 @@ public class ServiceInfo implements Validable{
 
   @XmlElementWrapper(name="excluded-config-types")
   @XmlElement(name="config-type")
-  private Set<String> excludedConfigTypes = new HashSet<String>();
+  private Set<String> excludedConfigTypes = new HashSet<>();
 
   @XmlTransient
   private Map<String, Map<String, Map<String, String>>> configTypes;
@@ -186,7 +191,7 @@ public class ServiceInfo implements Validable{
   }
 
   @XmlTransient
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public void addError(String error) {
@@ -260,7 +265,7 @@ public class ServiceInfo implements Validable{
 
   @XmlElementWrapper(name="requiredServices")
   @XmlElement(name="service")
-  private List<String> requiredServices = new ArrayList<String>();
+  private List<String> requiredServices = new ArrayList<>();
 
   /**
    * Meaning: stores subpath from stack root to exact directory, that contains
@@ -289,6 +294,27 @@ public class ServiceInfo implements Validable{
 
   public void setDeleted(boolean deleted) {
     isDeleted = deleted;
+  }
+
+  public Boolean getSupportDeleteViaUIField(){
+    return supportDeleteViaUIField;
+  }
+
+  public void setSupportDeleteViaUIField(Boolean supportDeleteViaUIField) {
+    this.supportDeleteViaUIField = supportDeleteViaUIField;
+  }
+
+  public boolean isSupportDeleteViaUI() {
+    if (null != supportDeleteViaUIField) {
+      return supportDeleteViaUIField.booleanValue();
+    }
+    // If set to null and has a parent, then the value would have already been resolved and set.
+    // Otherwise, return the default value (true).
+    return this.supportDeleteViaUIInternal;
+  }
+
+  public void setSupportDeleteViaUI(boolean supportDeleteViaUI){
+    this.supportDeleteViaUIInternal = supportDeleteViaUI;
   }
 
   public String getName() {
@@ -382,7 +408,7 @@ public String getVersion() {
     this.requiredServices = requiredServices;
   }
   public List<PropertyInfo> getProperties() {
-    if (properties == null) properties = new ArrayList<PropertyInfo>();
+    if (properties == null) properties = new ArrayList<>();
     return properties;
   }
 
@@ -391,7 +417,7 @@ public String getVersion() {
   }
 
   public List<ComponentInfo> getComponents() {
-    if (components == null) components = new ArrayList<ComponentInfo>();
+    if (components == null) components = new ArrayList<>();
     return components;
   }
 
@@ -601,7 +627,7 @@ public String getVersion() {
    */
   public synchronized void setTypeAttributes(String type, Map<String, Map<String, String>> typeAttributes) {
     if (this.configTypes == null) {
-      configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+      configTypes = new HashMap<>();
     }
     configTypes.put(type, typeAttributes);
   }
@@ -613,7 +639,7 @@ public String getVersion() {
    * @param types map of type attributes
    */
   public synchronized void setAllConfigAttributes(Map<String, Map<String, Map<String, String>>> types) {
-    configTypes = new HashMap<String, Map<String, Map<String, String>>>();
+    configTypes = new HashMap<>();
     for (Map.Entry<String, Map<String, Map<String, String>>> entry : types.entrySet()) {
       setTypeAttributes(entry.getKey(), entry.getValue());
     }
@@ -668,7 +694,7 @@ public String getVersion() {
     if (null == configLayout) {
       synchronized(this) {
         if (null == configLayout) {
-          configLayout = new HashMap<String, Set<String>>();
+          configLayout = new HashMap<>();
 
           for (PropertyInfo pi : getProperties()) {
             String type = pi.getFilename();
@@ -689,7 +715,7 @@ public String getVersion() {
     return configDependencies;
   }
   public List<String> getConfigDependenciesWithComponents(){
-    List<String> retVal = new ArrayList<String>();
+    List<String> retVal = new ArrayList<>();
     if(configDependencies != null){
       retVal.addAll(configDependencies);
     }
@@ -754,7 +780,7 @@ public String getVersion() {
       synchronized (this) { // Double-checked locking pattern
         if (serviceOsSpecificsMap == null) {
           Map<String, ServiceOsSpecific> tmpMap =
-                  new TreeMap<String, ServiceOsSpecific>();
+            new TreeMap<>();
           if (serviceOsSpecifics != null) {
             for (ServiceOsSpecific osSpecific : serviceOsSpecifics) {
               tmpMap.put(osSpecific.getOsFamily(), osSpecific);
@@ -773,7 +799,7 @@ public String getVersion() {
 
   public List<CustomCommandDefinition> getCustomCommands() {
     if (customCommands == null) {
-      customCommands = new ArrayList<CustomCommandDefinition>();
+      customCommands = new ArrayList<>();
     }
     return customCommands;
   }
@@ -904,7 +930,7 @@ public String getVersion() {
       synchronized(this) {
         result = requiredProperties;
         if (result == null) {
-          requiredProperties = result = new HashMap<String, PropertyInfo>();
+          requiredProperties = result = new HashMap<>();
           List<PropertyInfo> properties = getProperties();
           for (PropertyInfo propertyInfo : properties) {
             if (propertyInfo.isRequireInput()) {

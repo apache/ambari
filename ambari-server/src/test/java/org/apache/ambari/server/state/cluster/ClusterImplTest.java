@@ -75,7 +75,7 @@ public class ClusterImplTest {
 
   @Test
   public void testAddSessionAttributes() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -101,14 +101,14 @@ public class ClusterImplTest {
 
   @Test
   public void testSetSessionAttribute() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
     attributes.put("foo2", "bar2");
 
-    Map<String, Object> updatedAttributes = new HashMap<String, Object>(attributes);
+    Map<String, Object> updatedAttributes = new HashMap<>(attributes);
     updatedAttributes.put("foo2", "updated value");
 
-    Map<String, Object> addedAttributes = new HashMap<String, Object>(updatedAttributes);
+    Map<String, Object> addedAttributes = new HashMap<>(updatedAttributes);
     updatedAttributes.put("foo3", "added value");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -144,11 +144,11 @@ public class ClusterImplTest {
 
   @Test
   public void testRemoveSessionAttribute() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
     attributes.put("foo2", "bar2");
 
-    Map<String, Object> trimmedAttributes = new HashMap<String, Object>(attributes);
+    Map<String, Object> trimmedAttributes = new HashMap<>(attributes);
     trimmedAttributes.remove("foo2");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
@@ -175,7 +175,7 @@ public class ClusterImplTest {
 
   @Test
   public void testGetSessionAttributes() throws Exception {
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     attributes.put("foo", "bar");
 
     AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);

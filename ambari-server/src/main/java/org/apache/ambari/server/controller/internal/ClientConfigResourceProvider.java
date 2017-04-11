@@ -126,10 +126,10 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   private final Gson gson;
 
   private static Set<String> pkPropertyIds =
-          new HashSet<String>(Arrays.asList(new String[]{
-                  COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-                  COMPONENT_SERVICE_NAME_PROPERTY_ID,
-                  COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      COMPONENT_CLUSTER_NAME_PROPERTY_ID,
+      COMPONENT_SERVICE_NAME_PROPERTY_ID,
+      COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
 
   private MaintenanceStateHelper maintenanceStateHelper;
   private static final Logger LOG = LoggerFactory.getLogger(ClientConfigResourceProvider.class);
@@ -168,9 +168,9 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   public Set<Resource> getResources(Request request, Predicate predicate)
           throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
-    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    final Set<ServiceComponentHostRequest> requests = new HashSet<>();
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       requests.add(getRequest(propertyMap));
@@ -203,7 +203,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     String requestServiceName = schRequest.getServiceName();
     String requestHostName =  schRequest.getHostname();
 
-    Map<String,List<ServiceComponentHostResponse>> serviceToComponentMap = new HashMap<String,List<ServiceComponentHostResponse>>();
+    Map<String,List<ServiceComponentHostResponse>> serviceToComponentMap = new HashMap<>();
 
     // sch response for the service components that have configFiles defined in the stack definition of the service
     List <ServiceComponentHostResponse> schWithConfigFiles = new ArrayList<>();
@@ -213,6 +213,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     String TMP_PATH = configMap.get(Configuration.SERVER_TMP_DIR.getKey());
     String pythonCmd = configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey());
     List<String> pythonCompressFilesCmds = new ArrayList<>();
+    List<File> commandFiles = new ArrayList<>();
 
     for (ServiceComponentHostResponse response : componentMap.values()){
 
@@ -265,10 +266,10 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         String commandScriptAbsolute = packageFolderAbsolute + File.separator + commandScript;
 
 
-        Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-        Map<String, Long> configVersions = new TreeMap<String, Long>();
+        Map<String, Map<String, String>> configurations = new TreeMap<>();
+        Map<String, Long> configVersions = new TreeMap<>();
         Map<String, Map<PropertyType, Set<String>>> configPropertiesTypes = new TreeMap<>();
-        Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
+        Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<>();
 
         Map<String, DesiredConfig> desiredClusterConfigs = cluster.getDesiredConfigs();
 
@@ -280,15 +281,14 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           Config clusterConfig = cluster.getConfig(configType, desiredConfig.getTag());
 
           if (clusterConfig != null) {
-            Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
+            Map<String, String> props = new HashMap<>(clusterConfig.getProperties());
 
             // Apply global properties for this host from all config groups
             Map<String, Map<String, String>> allConfigTags = null;
             allConfigTags = configHelper
               .getEffectiveDesiredTags(cluster, schRequest.getHostname());
 
-            Map<String, Map<String, String>> configTags = new HashMap<String,
-              Map<String, String>>();
+            Map<String, Map<String, String>> configTags = new HashMap<>();
 
             for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
               if (entry.getKey().equals(clusterConfig.getType())) {
@@ -309,7 +309,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
             configVersions.put(clusterConfig.getType(), clusterConfig.getVersion());
             configPropertiesTypes.put(clusterConfig.getType(), clusterConfig.getPropertiesTypes());
 
-            Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
+            Map<String, Map<String, String>> attrs = new TreeMap<>();
             configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
 
             Map<String, Map<String, Map<String, String>>> attributes = configHelper
@@ -356,7 +356,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
         osFamily = clusters.getHost(hostName).getOsFamily();
 
-        TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
+        TreeMap<String, String> hostLevelParams = new TreeMap<>();
         hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
         hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
@@ -382,7 +382,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
         // Build package list that is relevant for host
         List<ServiceOsSpecific.Package> packages =
-          new ArrayList<ServiceOsSpecific.Package>();
+          new ArrayList<>();
         if (anyOs != null) {
           packages.addAll(anyOs.getPackages());
         }
@@ -412,14 +412,14 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
         String jsonConfigurations = null;
-        Map<String, Object> commandParams = new HashMap<String, Object>();
-        List<Map<String, String>> xmlConfigs = new LinkedList<Map<String, String>>();
-        List<Map<String, String>> envConfigs = new LinkedList<Map<String, String>>();
-        List<Map<String, String>> propertiesConfigs = new LinkedList<Map<String, String>>();
+        Map<String, Object> commandParams = new HashMap<>();
+        List<Map<String, String>> xmlConfigs = new LinkedList<>();
+        List<Map<String, String>> envConfigs = new LinkedList<>();
+        List<Map<String, String>> propertiesConfigs = new LinkedList<>();
 
         //Fill file-dictionary configs from metainfo
         for (ClientConfigFileDefinition clientConfigFile : clientConfigFiles) {
-          Map<String, String> fileDict = new HashMap<String, String>();
+          Map<String, String> fileDict = new HashMap<>();
           fileDict.put(clientConfigFile.getFileName(), clientConfigFile.getDictionaryName());
           if (clientConfigFile.getType().equals("xml")) {
             xmlConfigs.add(fileDict);
@@ -435,7 +435,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandParams.put("properties_configs_list", propertiesConfigs);
         commandParams.put("output_file", componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
 
-        Map<String, Object> jsonContent = new TreeMap<String, Object>();
+        Map<String, Object> jsonContent = new TreeMap<>();
         jsonContent.put("configurations", configurations);
         jsonContent.put("configuration_attributes", configurationAttributes);
         jsonContent.put("commandParams", commandParams);
@@ -445,8 +445,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         jsonContent.put("clusterName", cluster.getClusterName());
         jsonConfigurations = gson.toJson(jsonContent);
 
-        File jsonFileName = new File(TMP_PATH + File.separator + componentName + "-configuration.json");
-        File tmpDirectory = new File(jsonFileName.getParent());
+        File tmpDirectory = new File(TMP_PATH);
         if (!tmpDirectory.exists()) {
           try {
             tmpDirectory.mkdirs();
@@ -456,21 +455,32 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
             throw new SystemException("Failed to get temporary directory to store configurations", se);
           }
         }
+        File jsonFile = File.createTempFile(componentName, "-configuration.json", tmpDirectory);
+        try {
+          jsonFile.setWritable(true, true);
+          jsonFile.setReadable(true, true);
+        } catch (SecurityException e) {
+          throw new SystemException("Failed to set permission", e);
+        }
+
         PrintWriter printWriter = null;
         try {
-          printWriter = new PrintWriter(jsonFileName.getAbsolutePath());
+          printWriter = new PrintWriter(jsonFile.getAbsolutePath());
           printWriter.print(jsonConfigurations);
           printWriter.close();
         } catch (FileNotFoundException e) {
           throw new SystemException("Failed to write configurations to json file ", e);
         }
 
-        String cmd = pythonCmd + " " + commandScriptAbsolute + " generate_configs " + jsonFileName.getAbsolutePath() + " " +
+        String cmd = pythonCmd + " " + commandScriptAbsolute + " generate_configs " + jsonFile.getAbsolutePath() + " " +
           packageFolderAbsolute + " " + TMP_PATH + File.separator + "structured-out.json" + " INFO " + TMP_PATH;
 
+        commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
       } catch (AmbariException e) {
+        throw new SystemException("Controller error ", e);
+      } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }
     }
@@ -484,11 +494,17 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     ExecutorService processExecutor = Executors.newFixedThreadPool(threadPoolSize);
 
     // put all threads that starts process to compress each component config files in the executor
-    List<CommandLineThreadWrapper> pythonCmdThreads = executeCommands(processExecutor, pythonCompressFilesCmds);
+    try {
+      List<CommandLineThreadWrapper> pythonCmdThreads = executeCommands(processExecutor, pythonCompressFilesCmds);
 
-    // wait for all threads to finish
-    Integer timeout =  configs.getExternalScriptTimeout();
-    waitForAllThreadsToJoin(processExecutor, pythonCmdThreads, timeout);
+      // wait for all threads to finish
+      Integer timeout = configs.getExternalScriptTimeout();
+      waitForAllThreadsToJoin(processExecutor, pythonCmdThreads, timeout);
+    } finally {
+      for (File each : commandFiles) {
+        each.delete();
+      }
+    }
 
     if (StringUtils.isEmpty(requestComponentName)) {
       TarUtils tarUtils;
@@ -916,7 +932,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<ServiceOsSpecific>();
+    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<>();
     for (Map.Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
       if (osSpecific.getKey().indexOf(osFamily) != -1) {
         foundedOSSpecifics.add(osSpecific.getValue());

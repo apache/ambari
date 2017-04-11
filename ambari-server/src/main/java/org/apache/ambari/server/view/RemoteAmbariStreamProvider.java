@@ -90,7 +90,7 @@ public class RemoteAmbariStreamProvider implements AmbariStreamProvider {
   }
 
   private Map<String,List<String>> modifyHeaders(Map<String,String> headers){
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    Map<String, List<String>> headerMap = new HashMap<>();
     for (Map.Entry<String, String> entry : headers.entrySet()) {
       headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
     }
@@ -98,7 +98,7 @@ public class RemoteAmbariStreamProvider implements AmbariStreamProvider {
   }
 
   private Map<String, List<String>> addHeaders(Map<String, String> customHeaders) {
-    HashMap<String, String> newHeaders = new HashMap<String, String>();
+    HashMap<String, String> newHeaders = new HashMap<>();
     if (customHeaders != null)
       newHeaders.putAll(customHeaders);
 

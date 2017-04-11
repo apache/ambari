@@ -49,7 +49,7 @@ import com.google.gson.Gson;
 public class BlueprintImpl implements Blueprint {
 
   private String name;
-  private Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+  private Map<String, HostGroup> hostGroups = new HashMap<>();
   private Stack stack;
   private Configuration configuration;
   private BlueprintValidator validator;
@@ -142,7 +142,7 @@ public class BlueprintImpl implements Blueprint {
    */
   @Override
   public Collection<String> getServices() {
-    Collection<String> services = new HashSet<String>();
+    Collection<String> services = new HashSet<>();
     for (HostGroup group : getHostGroups().values()) {
       services.addAll(group.getServices());
     }
@@ -151,7 +151,7 @@ public class BlueprintImpl implements Blueprint {
 
   @Override
   public Collection<String> getComponents(String service) {
-    Collection<String> components = new HashSet<String>();
+    Collection<String> components = new HashSet<>();
     for (HostGroup group : getHostGroupsForService(service)) {
       components.addAll(group.getComponents(service));
     }
@@ -286,7 +286,7 @@ public class BlueprintImpl implements Blueprint {
    */
   @Override
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
-    Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
+    Collection<HostGroup> resultGroups = new HashSet<>();
     for (HostGroup group : hostGroups.values() ) {
       if (group.getComponentNames().contains(component)) {
         resultGroups.add(group);
@@ -304,7 +304,7 @@ public class BlueprintImpl implements Blueprint {
    */
   @Override
   public Collection<HostGroup> getHostGroupsForService(String service) {
-    Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
+    Collection<HostGroup> resultGroups = new HashSet<>();
     for (HostGroup group : hostGroups.values() ) {
       if (group.getServices().contains(service)) {
         resultGroups.add(group);
@@ -404,7 +404,7 @@ public class BlueprintImpl implements Blueprint {
    */
   private Map<String, Map<String, String>> parseConfigurations(Collection<BlueprintConfigEntity> configs) {
 
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> properties = new HashMap<>();
     Gson gson = new Gson();
     for (BlueprintConfiguration config : configs) {
       String type = config.getType();
@@ -422,7 +422,7 @@ public class BlueprintImpl implements Blueprint {
    */
   private Map<String, Set<HashMap<String, String>>> parseSetting(Collection<BlueprintSettingEntity> blueprintSetting) {
 
-    Map<String, Set<HashMap<String, String>>> properties = new HashMap<String, Set<HashMap<String, String>>>();
+    Map<String, Set<HashMap<String, String>>> properties = new HashMap<>();
     Gson gson = new Gson();
     for (BlueprintSettingEntity setting : blueprintSetting) {
       String settingName = setting.getSettingName();
@@ -441,7 +441,7 @@ public class BlueprintImpl implements Blueprint {
   //todo: do inline with config processing
   private Map<String, Map<String, Map<String, String>>> parseAttributes(Collection<BlueprintConfigEntity> configs) {
     Map<String, Map<String, Map<String, String>>> mapAttributes =
-        new HashMap<String, Map<String, Map<String, String>>>();
+      new HashMap<>();
 
     if (configs != null) {
       Gson gson = new Gson();
@@ -461,7 +461,7 @@ public class BlueprintImpl implements Blueprint {
    */
   @SuppressWarnings("unchecked")
   private void createHostGroupEntities(BlueprintEntity blueprintEntity) {
-    Collection<HostGroupEntity> entities = new ArrayList<HostGroupEntity>();
+    Collection<HostGroupEntity> entities = new ArrayList<>();
     for (HostGroup group : getHostGroups().values()) {
       HostGroupEntity hostGroupEntity = new HostGroupEntity();
       entities.add(hostGroupEntity);
@@ -483,7 +483,7 @@ public class BlueprintImpl implements Blueprint {
    */
   private void createHostGroupConfigEntities(HostGroupEntity hostGroup, Configuration groupConfiguration) {
     Gson jsonSerializer = new Gson();
-    Map<String, HostGroupConfigEntity> configEntityMap = new HashMap<String, HostGroupConfigEntity>();
+    Map<String, HostGroupConfigEntity> configEntityMap = new HashMap<>();
     for (Map.Entry<String, Map<String, String>> propEntry : groupConfiguration.getProperties().entrySet()) {
       String type = propEntry.getKey();
       Map<String, String> properties = propEntry.getValue();
@@ -520,7 +520,7 @@ public class BlueprintImpl implements Blueprint {
     */
   @SuppressWarnings("unchecked")
   private void createComponentEntities(HostGroupEntity group, Collection<Component> components) {
-    Collection<HostGroupComponentEntity> componentEntities = new HashSet<HostGroupComponentEntity>();
+    Collection<HostGroupComponentEntity> componentEntities = new HashSet<>();
     group.setComponents(componentEntities);
 
     for (Component component : components) {
@@ -548,7 +548,7 @@ public class BlueprintImpl implements Blueprint {
   private void createBlueprintConfigEntities(BlueprintEntity blueprintEntity) {
     Gson jsonSerializer = new Gson();
     Configuration config = getConfiguration();
-    Map<String, BlueprintConfigEntity> configEntityMap = new HashMap<String, BlueprintConfigEntity>();
+    Map<String, BlueprintConfigEntity> configEntityMap = new HashMap<>();
     for (Map.Entry<String, Map<String, String>> propEntry : config.getProperties().entrySet()) {
       String type = propEntry.getKey();
       Map<String, String> properties = propEntry.getValue();

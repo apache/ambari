@@ -183,26 +183,6 @@ describe('App.MainDashboardServiceHdfsView', function () {
     });
   });
 
-  describe("#nodeWebUrl", function () {
-
-    it("singleNodeInstall is true", function () {
-      App.set('singleNodeInstall', true);
-      App.set('singleNodeAlias', 'host1');
-
-      view.propertyDidChange('nodeWebUrl');
-      expect(view.get('nodeWebUrl')).to.be.equal("http://host1:50070");
-    });
-
-    it("singleNodeInstall is false", function () {
-      App.set('singleNodeInstall', false);
-      view.set('service.nameNode', Em.Object.create({
-        publicHostName: 'host2'
-      }));
-      view.propertyDidChange('nodeWebUrl');
-      expect(view.get('nodeWebUrl')).to.be.equal("http://host2:50070");
-    });
-  });
-
   describe("#nonDfsUsed", function() {
     var testCases = [
       {

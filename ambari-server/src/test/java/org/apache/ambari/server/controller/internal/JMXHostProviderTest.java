@@ -112,7 +112,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
-    Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
+    Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
     ServiceResourceProviderTest.createServices(controller, requests);
   }
@@ -127,7 +127,7 @@ public class JMXHostProviderTest {
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
       serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
-      new HashSet<ServiceComponentRequest>();
+      new HashSet<>();
     requests.add(r);
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
@@ -142,7 +142,7 @@ public class JMXHostProviderTest {
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
       serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
-      new HashSet<ServiceComponentHostRequest>();
+      new HashSet<>();
     requests.add(r);
     controller.createHostComponents(requests);
   }
@@ -168,13 +168,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<String, String>();
+    hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -194,7 +194,7 @@ public class JMXHostProviderTest {
 
     // Create configs
     if (version1) {
-      Map<String, String> configs = new HashMap<String, String>();
+      Map<String, String> configs = new HashMap<>();
       configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
       configs.put(DATANODE_PORT, "localhost:70075");
       configs.put("ambari.dfs.datanode.http.port", "70070");
@@ -206,7 +206,7 @@ public class JMXHostProviderTest {
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
 
     } else {
-      Map<String, String> configs = new HashMap<String, String>();
+      Map<String, String> configs = new HashMap<>();
       configs.put(NAMENODE_PORT_V2, "localhost:70071");
       configs.put(DATANODE_PORT, "localhost:70075");
 
@@ -266,13 +266,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<String, String>();
+    hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -305,7 +305,7 @@ public class JMXHostProviderTest {
       host2, null);
 
     // Create configs
-    Map<String, String> configs = new HashMap<String, String>();
+    Map<String, String> configs = new HashMap<>();
     configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
     configs.put(DATANODE_PORT, "localhost:70075");
     configs.put("ambari.dfs.datanode.http.port", "70070");
@@ -313,18 +313,18 @@ public class JMXHostProviderTest {
     configs.put(DATANODE_HTTPS_PORT, "50475");
     configs.put(HDFS_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> yarnConfigs = new HashMap<String, String>();
+    Map<String, String> yarnConfigs = new HashMap<>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
     yarnConfigs.put(NODEMANAGER_PORT, "8042");
     yarnConfigs.put(RESOURCEMANAGER_HTTPS_PORT, "8090");
     yarnConfigs.put(NODEMANAGER_HTTPS_PORT, "8044");
     yarnConfigs.put(YARN_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> mapreduceConfigs = new HashMap<String, String>();
+    Map<String, String> mapreduceConfigs = new HashMap<>();
     mapreduceConfigs.put(MAPREDUCE_HTTPS_PORT, "19889");
     mapreduceConfigs.put(MAPREDUCE_HTTPS_POLICY, "HTTPS_ONLY");
 
-    Map<String, String> hbaseConfigs = new HashMap<String, String>();
+    Map<String, String> hbaseConfigs = new HashMap<>();
     hbaseConfigs.put("hbase.ssl.enabled", "true");
 
     ConfigurationRequest cr1 = new ConfigurationRequest(clusterName,
@@ -379,13 +379,13 @@ public class JMXHostProviderTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
     String host2 = "h2";
     clusters.addHost(host2);
-    hostAttributes = new HashMap<String, String>();
+    hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
@@ -406,7 +406,7 @@ public class JMXHostProviderTest {
         host2, null);
 
     // Create configs
-    Map<String, String> configs = new HashMap<String, String>();
+    Map<String, String> configs = new HashMap<>();
     configs.put("dfs.internal.nameservices", "ns");
     configs.put("dfs.namenode.http-address", "h1:50070");
     configs.put("dfs.namenode.http-address.ns.nn1", "h1:50071");
@@ -513,7 +513,7 @@ public class JMXHostProviderTest {
     Service serviceMock = createNiceMock(Service.class);
     ServiceComponent serviceComponentMock = createNiceMock(ServiceComponent.class);
 
-    Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<>();
     hostComponents.put("host1", null);
 
     expect(managementControllerMock.getClusters()).andReturn(clustersMock).anyTimes();
@@ -612,7 +612,7 @@ public class JMXHostProviderTest {
     // Non default port addresses
     Assert.assertEquals("8088", providerModule.getPort("c1", "RESOURCEMANAGER", "localhost"));
 
-    Map<String, String> yarnConfigs = new HashMap<String, String>();
+    Map<String, String> yarnConfigs = new HashMap<>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "localhost:50030");
     yarnConfigs.put(NODEMANAGER_PORT, "localhost:11111");
     ConfigurationRequest cr2 = new ConfigurationRequest("c1",

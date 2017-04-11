@@ -60,7 +60,7 @@ public class StageEntity_ {
    * @return a mapping of between a resource provider property
    */
   public static Map<String, List<? extends SingularAttribute<StageEntity, ?>>> getPredicateMapping() {
-    Map<String, List<? extends SingularAttribute<StageEntity, ?>>> mapping = new HashMap<String, List<? extends SingularAttribute<StageEntity, ?>>>();
+    Map<String, List<? extends SingularAttribute<StageEntity, ?>>> mapping = new HashMap<>();
 
     mapping.put(StageResourceProvider.STAGE_REQUEST_ID,
         Collections.singletonList(requestId));

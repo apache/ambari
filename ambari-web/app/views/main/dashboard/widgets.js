@@ -28,7 +28,7 @@ const WidgetObject = Em.Object.extend({
   isVisible: true
 });
 
-App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, App.TimeRangeMixin, {
+App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App.TimeRangeMixin, {
   name: 'mainDashboardWidgetsView',
   templateName: require('templates/main/dashboard/widgets'),
 

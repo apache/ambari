@@ -82,7 +82,7 @@ public class DBAccessorImplTest {
   private void createMyTable(String tableName) throws Exception {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("name", String.class, 20000, null, true));
     columns.add(new DBColumnInfo("time", Long.class, null, null, true));
@@ -217,7 +217,7 @@ public class DBAccessorImplTest {
     createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fname", String.class, null, null, false));
 
@@ -252,7 +252,7 @@ public class DBAccessorImplTest {
 
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("sid", Long.class, null, null, false));
     columns.add(new DBColumnInfo("data", char[].class, null, null, true));
@@ -314,7 +314,7 @@ public class DBAccessorImplTest {
 
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fname", String.class, null, null, false));
 
@@ -336,7 +336,7 @@ public class DBAccessorImplTest {
 
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    List<DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fname", String.class, null, null, false));
 

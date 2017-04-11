@@ -49,7 +49,7 @@ public class JaxbMapKeyMapAdapter extends
     if (list == null) {
       return null;
     }
-    Map<String, Map<String, String>> map = new TreeMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> map = new TreeMap<>();
     for (JaxbMapKeyMap jaxbkeyMap : list) {
       map.put(jaxbkeyMap.key, mapAdapter.unmarshal(jaxbkeyMap.value));
     }

@@ -149,10 +149,10 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       Request request, Predicate predicate) throws SystemException {
 
     // only arrange for one instance of Ganglia and JMX instantiation
-    Map<String, Map<String, PropertyInfo>> gangliaMap = new HashMap<String, Map<String, PropertyInfo>>();
-    Map<String, Map<String, PropertyInfo>> jmxMap = new HashMap<String, Map<String, PropertyInfo>>();
+    Map<String, Map<String, PropertyInfo>> gangliaMap = new HashMap<>();
+    Map<String, Map<String, PropertyInfo>> jmxMap = new HashMap<>();
 
-    List<PropertyProvider> additional = new ArrayList<PropertyProvider>();
+    List<PropertyProvider> additional = new ArrayList<>();
 
     try {
       for (Resource r : resources) {
@@ -245,7 +245,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
    * Format: <metric name, property info>
    */
   public static Map<String, PropertyInfo> getPropertyInfo(MetricDefinition def) {
-    Map<String, PropertyInfo> defs = new HashMap<String, PropertyInfo>();
+    Map<String, PropertyInfo> defs = new HashMap<>();
 
     for (Entry<String, Metric> entry : def.getMetrics().entrySet()) {
       Metric metric = entry.getValue();
@@ -320,7 +320,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                        String componentName) {
     Map<String, PropertyInfo> metrics = getPropertyInfo(definition);
     HashMap<String, Map<String, PropertyInfo>> componentMetrics =
-        new HashMap<String, Map<String, PropertyInfo>>();
+      new HashMap<>();
     componentMetrics.put(WRAPPED_METRICS_KEY, metrics);
 
     try {

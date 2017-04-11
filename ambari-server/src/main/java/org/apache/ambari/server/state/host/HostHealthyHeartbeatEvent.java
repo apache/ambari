@@ -31,7 +31,7 @@ public class HostHealthyHeartbeatEvent extends HostEvent {
 
   private final long heartbeatTime;
   private AgentEnv agentEnv = null;
-  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();;
+  private List<DiskInfo> mounts = new ArrayList<>();;
 
   public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime, AgentEnv env, List<DiskInfo> mounts) {
     super(hostName, HostEventType.HOST_HEARTBEAT_HEALTHY);

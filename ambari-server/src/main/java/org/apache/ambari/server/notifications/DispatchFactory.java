@@ -37,7 +37,7 @@ public class DispatchFactory {
   /**
    * Mapping of dispatch type to dispatcher singleton.
    */
-  private final Map<String, NotificationDispatcher> m_dispatchers = new HashMap<String, NotificationDispatcher>();
+  private final Map<String, NotificationDispatcher> m_dispatchers = new HashMap<>();
 
   /**
    * Constructor.

@@ -22,13 +22,14 @@
       <div class="progress-bar-info active progress-bar" {{bindAttr style="view.progressWidth"}}></div>
     </div>
   {{else}}
-    <span {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</span>
+    <span {{bindAttr class="view.updateStatusClass"}} {{QAAttr "host-checks-result-{view.footerController.checksUpdateStatus}"}}>{{view.updateStatus}}</span>
   {{/if}}
 </div>
 {{#if view.parentView.secondary}}
   <button type="button" class="btn btn-info"
     {{bindAttr disabled="view.isUpdateInProgress"}}
-    {{action onSecondary target="view.parentView"}}>
+    {{action onSecondary target="view.parentView"}}
+    {{QAAttr "modal-secondary"}}>
       <i class="glyphicon glyphicon-repeat"></i>&nbsp;{{view.parentView.secondary}}
   </button>{{/if}}{{#if view.parentView.primary}}<button type="button" class="btn btn-default"
     {{action onPrimary target="view.parentView"}}>

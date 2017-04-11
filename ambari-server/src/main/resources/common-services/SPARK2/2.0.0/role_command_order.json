@@ -1,0 +1,6 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for SPARK2",
+    "SPARK2_SERVICE_CHECK-SERVICE_CHECK" : ["SPARK2_JOBHISTORYSERVER-START", "APP_TIMELINE_SERVER-START"]
+  }
+}

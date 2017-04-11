@@ -159,7 +159,7 @@ public class AlertStateChangedListener {
     }
 
     List<AlertGroupEntity> groups = m_alertsDispatchDao.findGroupsByDefinition(definition);
-    List<AlertNoticeEntity> notices = new LinkedList<AlertNoticeEntity>();
+    List<AlertNoticeEntity> notices = new LinkedList<>();
 
     // for each group, determine if there are any targets that need to receive
     // a notification about the alert state change event
@@ -227,7 +227,7 @@ public class AlertStateChangedListener {
     Long clusterId = history.getClusterId();
     try {
       Cluster cluster = m_clusters.get().getClusterById(clusterId);
-      if (null != cluster.getUpgradeEntity() || cluster.isUpgradeSuspended()) {
+      if (null != cluster.getUpgradeInProgress()) {
         // only send AMBARI alerts if in an upgrade
         String serviceName = definition.getServiceName();
         if (!StringUtils.equals(serviceName, Services.AMBARI.name())) {

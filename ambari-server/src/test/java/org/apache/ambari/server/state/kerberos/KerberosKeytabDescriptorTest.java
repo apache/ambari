@@ -48,15 +48,15 @@ public class KerberosKeytabDescriptorTest {
   public static final Map<String, Object> MAP_VALUE;
 
   static {
-    TreeMap<String, Object> ownerMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> ownerMap = new TreeMap<>();
     ownerMap.put("name", "root");
     ownerMap.put("access", "rw");
 
-    TreeMap<String, Object> groupMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> groupMap = new TreeMap<>();
     groupMap.put("name", "hadoop");
     groupMap.put("access", "r");
 
-    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("file", "/etc/security/keytabs/subject.service.keytab");
     MAP_VALUE.put("owner", ownerMap);
     MAP_VALUE.put("group", groupMap);

@@ -34,6 +34,7 @@ App.StackService = DS.Model.extend({
   configTypes: DS.attr('object'),
   serviceVersion: DS.attr('string'),
   serviceCheckSupported: DS.attr('boolean'),
+  supportDeleteViaUi: DS.attr('boolean'),
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   selection: DS.attr('string'),

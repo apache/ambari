@@ -31,7 +31,7 @@ import org.apache.ambari.server.controller.spi.Resource;
  */
 public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
 
-  private final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private final Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
   // ----- GSInstallerResourceProvider ---------------------------------------
 

@@ -55,7 +55,7 @@ public class ViewInstanceResourceDefinitionTest {
   }
 
   public static ViewInstanceResourceDefinition getViewInstanceResourceDefinition() {
-    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
 
     subResourceDefinitions.add(new SubResourceDefinition(new Resource.Type("sub1")));
     subResourceDefinitions.add(new SubResourceDefinition(new Resource.Type("sub2")));

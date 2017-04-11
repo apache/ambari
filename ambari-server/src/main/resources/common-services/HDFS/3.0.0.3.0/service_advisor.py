@@ -24,7 +24,6 @@ import traceback
 import inspect
 
 # Local imports
-from resource_management.core.logger import Logger
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 
 
@@ -45,6 +44,8 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
     self.as_super = super(HDFSServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
+
+    self.initialize_logger("HDFSServiceAdvisor")
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -120,7 +121,7 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
     Get a list of errors.
     Must be overriden in child class.
     """
-    Logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
+    self.logger.info("Class: %s, Method: %s. Validating Service Component Layout." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     # HDFS allows NameNode and Secondary NameNode to be on the same host.
@@ -131,7 +132,7 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
     Entry point.
     Must be overriden in child class.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     # Due to the existing stack inheritance, make it clear where each calculation came from.
@@ -146,7 +147,7 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    Logger.info("Class: %s, Method: %s. Validating Configurations." %
+    self.logger.info("Class: %s, Method: %s. Validating Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     validator = HDFSValidator()
@@ -167,7 +168,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     """
     Recommend configurations for this service based on HDP 2.0.6.
     """
-    Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
+    self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
@@ -175,7 +176,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     putHDFSSitePropertyAttributes = self.putPropertyAttribute(configurations, "hdfs-site")
 
     totalAvailableRam = clusterData['totalAvailableRam']
-    Logger.info("Class: %s, Method: %s. Total Available Ram: %s" % (self.__class__.__name__, inspect.stack()[0][3], str(totalAvailableRam)))
+    self.logger.info("Class: %s, Method: %s. Total Available Ram: %s" % (self.__class__.__name__, inspect.stack()[0][3], str(totalAvailableRam)))
     putHDFSProperty('namenode_heapsize', max(int(totalAvailableRam / 2), 1024))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_newsize', max(int(totalAvailableRam / 8), 128))
@@ -194,7 +195,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       if len(namenodes.split(',')) > 1:
         putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
 
-    Logger.info("Class: %s, Method: %s. HDFS nameservices: %s" %
+    self.logger.info("Class: %s, Method: %s. HDFS nameservices: %s" %
                 (self.__class__.__name__, inspect.stack()[0][3], str(nameServices)))
 
     hdfs_mount_properties = [
@@ -203,7 +204,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       ("dfs.namenode.checkpoint.dir", "SECONDARY_NAMENODE", "/hadoop/hdfs/namesecondary", "single")
     ]
 
-    Logger.info("Class: %s, Method: %s. Updating HDFS mount properties." %
+    self.logger.info("Class: %s, Method: %s. Updating HDFS mount properties." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
     self.updateMountProperties("hdfs-site", hdfs_mount_properties, configurations, services, hosts)
 
@@ -217,7 +218,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
             hdfsSiteProperties["dfs.datanode.data.dir"] is not None:
       dataDirs = hdfsSiteProperties["dfs.datanode.data.dir"].split(",")
 
-    Logger.info("Class: %s, Method: %s. HDFS Data Dirs: %s" %
+    self.logger.info("Class: %s, Method: %s. HDFS Data Dirs: %s" %
                 (self.__class__.__name__, inspect.stack()[0][3], str(dataDirs)))
 
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
@@ -242,7 +243,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       if (not reservedSizeRecommendation) or (maxFreeVolumeSizeForHost and maxFreeVolumeSizeForHost < reservedSizeRecommendation):
         reservedSizeRecommendation = maxFreeVolumeSizeForHost
 
-    Logger.info("Class: %s, Method: %s. HDFS Datanode recommended reserved size: %d" %
+    self.logger.info("Class: %s, Method: %s. HDFS Datanode recommended reserved size: %d" %
                 (self.__class__.__name__, inspect.stack()[0][3], reservedSizeRecommendation))
 
     if reservedSizeRecommendation:
@@ -290,11 +291,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       ranger_hdfs_plugin_enabled = False
 
     if ranger_hdfs_plugin_enabled and 'ranger-hdfs-plugin-properties' in services['configurations'] and 'REPOSITORY_CONFIG_USERNAME' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
-      Logger.info("Setting HDFS Repo user for Ranger.")
+      self.logger.info("Setting HDFS Repo user for Ranger.")
       putRangerHDFSPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
       putRangerHDFSPluginProperty("REPOSITORY_CONFIG_USERNAME",hdfs_user)
     else:
-      Logger.info("Not setting HDFS Repo user for Ranger.")
+      self.logger.info("Not setting HDFS Repo user for Ranger.")
 
 
 class HDFSValidator(service_advisor.ServiceAdvisor):
@@ -590,7 +591,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     If Ranger service is present and the ranger plugin is enabled, check that the provider class is correctly set.
     :return: A list of configuration validation problems.
     """
-    Logger.info("Class: %s, Method: %s. Checking if Ranger service is present and if the provider class is using the Ranger Authorizer." %
+    self.logger.info("Class: %s, Method: %s. Checking if Ranger service is present and if the provider class is using the Ranger Authorizer." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here

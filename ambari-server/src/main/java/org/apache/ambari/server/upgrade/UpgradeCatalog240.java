@@ -195,7 +195,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
   static {
     // Manually create role order since there really isn't any mechanism for this
-    ROLE_ORDER = new HashMap<String, Integer>();
+    ROLE_ORDER = new HashMap<>();
     ROLE_ORDER.put("AMBARI.ADMINISTRATOR", 1);
     ROLE_ORDER.put("CLUSTER.ADMINISTRATOR", 2);
     ROLE_ORDER.put("CLUSTER.OPERATOR", 3);
@@ -2174,7 +2174,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
       Config yarnEnvConfig = cluster.getDesiredConfigByType(YARN_ENV_CONFIG);
-      Map<String, String> yarnEnvProps = new HashMap<String, String>();
+      Map<String, String> yarnEnvProps = new HashMap<>();
       if (yarnEnvConfig != null) {
         String content = yarnEnvConfig.getProperties().get("content");
         // comment old property
@@ -2248,8 +2248,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       // Update the kerberos-env properties to change kdc_host to kdc_hosts
       config = cluster.getDesiredConfigByType("kerberos-env");
       if (config != null) {
-        Map<String, String> updates = new HashMap<String, String>();
-        Set<String> removes = new HashSet<String>();
+        Map<String, String> updates = new HashMap<>();
+        Set<String> removes = new HashSet<>();
 
         // Rename kdc_host to kdc_hosts
         String value = config.getProperties().get("kdc_host");
@@ -2490,7 +2490,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           Set<PrivilegeEntity> privileges = principal.getPrivileges();
 
           if (privileges != null) {
-            Map<ResourceEntity, Set<PrivilegeEntity>> resourceExplicitPrivileges = new HashMap<ResourceEntity, Set<PrivilegeEntity>>();
+            Map<ResourceEntity, Set<PrivilegeEntity>> resourceExplicitPrivileges = new HashMap<>();
             PrivilegeEntity ambariAdministratorPrivilege = null;
 
             // Find the set of explicitly assigned roles per cluster
@@ -2509,7 +2509,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                     Set<PrivilegeEntity> explicitPrivileges = resourceExplicitPrivileges.get(resource);
 
                     if (explicitPrivileges == null) {
-                      explicitPrivileges = new HashSet<PrivilegeEntity>();
+                      explicitPrivileges = new HashSet<>();
                       resourceExplicitPrivileges.put(resource, explicitPrivileges);
                     }
 

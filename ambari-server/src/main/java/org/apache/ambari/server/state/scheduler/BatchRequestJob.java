@@ -141,7 +141,7 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
                                         Map<String, Integer> oldCounts,
                                         BatchRequestResponse batchRequestResponse) {
 
-    Map<String, Integer> taskCounts = new HashMap<String, Integer>();
+    Map<String, Integer> taskCounts = new HashMap<>();
 
     if (batchRequestResponse != null) {
       Integer failedTasks = batchRequestResponse.getFailedTaskCount() +
@@ -163,7 +163,7 @@ public class BatchRequestJob extends AbstractLinearExecutionJob {
   }
 
   private Map<String, Integer> getTaskCountProperties(Map<String, Object> properties) {
-    Map<String, Integer> taskCounts = new HashMap<String, Integer>();
+    Map<String, Integer> taskCounts = new HashMap<>();
     if (properties != null) {
       Object countObj = properties.get(BATCH_REQUEST_FAILED_TASKS_KEY);
       taskCounts.put(BATCH_REQUEST_FAILED_TASKS_KEY,

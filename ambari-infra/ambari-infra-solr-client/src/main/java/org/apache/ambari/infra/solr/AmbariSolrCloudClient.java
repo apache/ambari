@@ -30,6 +30,7 @@ import org.apache.ambari.infra.solr.commands.ListCollectionCommand;
 import org.apache.ambari.infra.solr.commands.SecureSolrZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SecureZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.SetClusterPropertyZkCommand;
+import org.apache.ambari.infra.solr.commands.UnsecureZNodeZkCommand;
 import org.apache.ambari.infra.solr.commands.UploadConfigZkCommand;
 import org.apache.ambari.infra.solr.commands.CheckZnodeZkCommand;
 import org.apache.ambari.infra.solr.util.ShardUtils;
@@ -175,6 +176,14 @@ public class AmbariSolrCloudClient {
    */
   public void secureZnode() throws Exception {
     new SecureZNodeZkCommand(getRetryTimes(), getInterval()).run(this);
+  }
+
+  /**
+   * Unsecure znode
+   */
+  public void unsecureZnode() throws Exception {
+    LOG.info("Disable security for znode - ", this.getZnode());
+    new UnsecureZNodeZkCommand(getRetryTimes(), getInterval()).run(this);
   }
 
   /**

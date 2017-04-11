@@ -107,26 +107,26 @@ public class KerberosServiceDescriptorTest {
   public static final Map<String, Object> MAP_VALUE;
 
   static {
-    Map<String, Object> identitiesMap = new TreeMap<String, Object>();
+    Map<String, Object> identitiesMap = new TreeMap<>();
     identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE);
 
-    Map<String, Object> componentsMap = new TreeMap<String, Object>();
+    Map<String, Object> componentsMap = new TreeMap<>();
     componentsMap.put((String) KerberosComponentDescriptorTest.MAP_VALUE.get("name"), KerberosComponentDescriptorTest.MAP_VALUE);
 
-    Map<String, Object> serviceSiteProperties = new TreeMap<String, Object>();
+    Map<String, Object> serviceSiteProperties = new TreeMap<>();
     serviceSiteProperties.put("service.property1", "red");
     serviceSiteProperties.put("service.property", "green");
 
-    Map<String, Map<String, Object>> serviceSiteMap = new TreeMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> serviceSiteMap = new TreeMap<>();
     serviceSiteMap.put("service-site", serviceSiteProperties);
 
-    TreeMap<String, Map<String, Map<String, Object>>> configurationsMap = new TreeMap<String, Map<String, Map<String, Object>>>();
+    TreeMap<String, Map<String, Map<String, Object>>> configurationsMap = new TreeMap<>();
     configurationsMap.put("service-site", serviceSiteMap);
 
-    Collection<String> authToLocalRules = new ArrayList<String>();
+    Collection<String> authToLocalRules = new ArrayList<>();
     authToLocalRules.add("service.name.rules2");
 
-    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("name", "A_DIFFERENT_SERVICE_NAME");
     MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), identitiesMap.values());
     MAP_VALUE.put(AbstractKerberosDescriptor.Type.COMPONENT.getDescriptorPluralName(), componentsMap.values());
@@ -275,7 +275,7 @@ public class KerberosServiceDescriptorTest {
     Assert.assertNotNull(authToLocalProperties);
     Assert.assertEquals(2, authToLocalProperties.size());
     // guarantee ordering...
-    Iterator<String> iterator = new TreeSet<String>(authToLocalProperties).iterator();
+    Iterator<String> iterator = new TreeSet<>(authToLocalProperties).iterator();
     Assert.assertEquals("service.name.rules1", iterator.next());
     Assert.assertEquals("service.name.rules2", iterator.next());
 

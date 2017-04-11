@@ -651,13 +651,60 @@ public class ServiceInfoTest {
     assertTrue("true".equals(serviceProperties.get(ServiceInfo.DEFAULT_SERVICE_MONITORED_PROPERTY.getKey())));
   }
 
+  @Test
+  public void testSupportDeleteViaUI() throws Exception {
+    //Explicitly set to true
+    String serviceInfoXml =
+      "<metainfo>" +
+      "  <schemaVersion>2.0</schemaVersion>" +
+      "  <services>" +
+      "    <service>" +
+      "      <name>HDFS</name>" +
+      "      <displayName>HDFS</displayName>" +
+      "      <supportDeleteViaUI>true</supportDeleteViaUI>" +
+      "    </service>" +
+      "  </services>" +
+      "</metainfo>";
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    assertTrue(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
+
+    //Explicitly set to false
+    serviceInfoXml =
+        "<metainfo>" +
+        "  <schemaVersion>2.0</schemaVersion>" +
+        "  <services>" +
+        "    <service>" +
+        "      <name>HDFS</name>" +
+        "      <displayName>HDFS</displayName>" +
+        "      <supportDeleteViaUI>false</supportDeleteViaUI>" +
+        "    </service>" +
+        "  </services>" +
+        "</metainfo>";
+      serviceInfoMap = getServiceInfo(serviceInfoXml);
+      assertFalse(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
+
+      //Default to true
+      serviceInfoXml =
+          "<metainfo>" +
+          "  <schemaVersion>2.0</schemaVersion>" +
+          "  <services>" +
+          "    <service>" +
+          "      <name>HDFS</name>" +
+          "      <displayName>HDFS</displayName>" +
+          "    </service>" +
+          "  </services>" +
+          "</metainfo>";
+        serviceInfoMap = getServiceInfo(serviceInfoXml);
+        assertTrue(serviceInfoMap.get("HDFS").isSupportDeleteViaUI());
+  }
+
   public static Map<String, ServiceInfo> getServiceInfo(String xml) throws JAXBException {
     InputStream configStream = new ByteArrayInputStream(xml.getBytes());
     JAXBContext jaxbContext = JAXBContext.newInstance(ServiceMetainfoXml.class);
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     ServiceMetainfoXml serviceMetainfoXml = (ServiceMetainfoXml) unmarshaller.unmarshal(configStream);
 
-    Map<String, ServiceInfo> serviceInfoMap = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> serviceInfoMap = new HashMap<>();
     for (ServiceInfo serviceInfo : serviceMetainfoXml.getServices()) {
       serviceInfoMap.put(serviceInfo.getName(), serviceInfo);
     }

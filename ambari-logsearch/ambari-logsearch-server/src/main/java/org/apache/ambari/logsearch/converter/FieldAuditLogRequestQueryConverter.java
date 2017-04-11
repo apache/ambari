@@ -33,7 +33,6 @@ public class FieldAuditLogRequestQueryConverter extends AbstractLogRequestFacetQ
   @Override
   public void appendFacetOptions(FacetOptions facetOptions, FieldAuditLogRequest request) {
     facetOptions.addFacetOnPivot(request.getField(), AUDIT_COMPONENT);
-    facetOptions.setFacetLimit(request.getTop());
   }
 
   @Override

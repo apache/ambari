@@ -75,7 +75,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public List<String> getHostsForServiceComponent(String serviceName, String componentName){
     List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(serviceName, componentName);
-    List<String> hosts = new ArrayList<String>();
+    List<String> hosts = new ArrayList<>();
     for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
       hosts.add(serviceComponentHost.getHostName());
     }

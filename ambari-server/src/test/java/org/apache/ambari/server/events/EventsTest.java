@@ -107,7 +107,7 @@ public class EventsTest {
     m_clusters.addHost(HOSTNAME);
 
     Host host = m_clusters.getHost(HOSTNAME);
-    Map<String, String> hostAttributes = new HashMap<String, String>();
+    Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);

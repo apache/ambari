@@ -72,7 +72,7 @@ public class RootServiceResponseFactory extends
       
       response = Collections.singleton(new RootServiceResponse(service.toString()));
     } else {
-      response = new HashSet<RootServiceResponse>();
+      response = new HashSet<>();
       
       for (Services service: Services.values())    
         response.add(new RootServiceResponse(service.toString()));
@@ -83,7 +83,7 @@ public class RootServiceResponseFactory extends
   @Override
   public Set<RootServiceComponentResponse> getRootServiceComponents(
       RootServiceComponentRequest request) throws ObjectNotFoundException {
-    Set<RootServiceComponentResponse> response = new HashSet<RootServiceComponentResponse>();
+    Set<RootServiceComponentResponse> response = new HashSet<>();
     
     String serviceName = request.getServiceName();
     String componentName = request.getComponentName();
@@ -196,7 +196,7 @@ public class RootServiceResponseFactory extends
 
   @Override
   public Set<RootServiceHostComponentResponse> getRootServiceHostComponent(RootServiceHostComponentRequest request, Set<HostResponse> hosts) throws AmbariException {
-    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
+    Set<RootServiceHostComponentResponse> response = new HashSet<>();
 
     Set<RootServiceComponentResponse> rootServiceComponents = 
         getRootServiceComponents(new RootServiceComponentRequest(request.getServiceName(), request.getComponentName()));
@@ -204,7 +204,7 @@ public class RootServiceResponseFactory extends
     //Cartesian product with hosts and components
     for (RootServiceComponentResponse component : rootServiceComponents) {
       
-      Set<HostResponse> filteredHosts = new HashSet<HostResponse>(hosts);      
+      Set<HostResponse> filteredHosts = new HashSet<>(hosts);
       
       //Make some filtering of hosts if need
       if (component.getComponentName().equals(Components.AMBARI_SERVER.name()))

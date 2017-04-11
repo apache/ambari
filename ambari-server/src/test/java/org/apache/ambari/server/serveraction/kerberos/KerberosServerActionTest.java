@@ -56,7 +56,7 @@ import junit.framework.Assert;
 
 public class KerberosServerActionTest {
 
-  Map<String, String> commandParams = new HashMap<String, String>();
+  Map<String, String> commandParams = new HashMap<>();
   File temporaryDirectory;
   private Injector injector;
   private KerberosServerAction action;
@@ -169,8 +169,8 @@ public class KerberosServerActionTest {
 
   @Test
   public void testSetPrincipalPasswordMapStatic() throws Exception {
-    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
-    Map<String, String> dataMap = new HashMap<String, String>();
+    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
+    Map<String, String> dataMap = new HashMap<>();
 
     KerberosServerAction.setPrincipalPasswordMap(sharedMap, dataMap);
     Assert.assertSame(dataMap, KerberosServerAction.getPrincipalPasswordMap(sharedMap));
@@ -178,7 +178,7 @@ public class KerberosServerActionTest {
 
   @Test
   public void testGetPrincipalPasswordMapStatic() throws Exception {
-    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
     Assert.assertNotNull(KerberosServerAction.getPrincipalPasswordMap(sharedMap));
   }
 
@@ -196,7 +196,7 @@ public class KerberosServerActionTest {
 
     replay(kerberosHelper);
 
-    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
     CommandReport report = action.processIdentities(sharedMap);
     Assert.assertNotNull(report);
     Assert.assertEquals(HostRoleStatus.COMPLETED.toString(), report.getStatus());
@@ -218,7 +218,7 @@ public class KerberosServerActionTest {
 
     replay(kerberosHelper);
 
-    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<String, Object>();
+    ConcurrentMap<String, Object> sharedMap = new ConcurrentHashMap<>();
     sharedMap.put("FAIL", "true");
 
     CommandReport report = action.processIdentities(sharedMap);

@@ -124,8 +124,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String INPUTS_ID = "parameters";
   protected static final String EXLUSIVE_ID = "exclusive";
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-        REQUEST_ID_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      REQUEST_ID_PROPERTY_ID}));
 
   private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
@@ -255,7 +255,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     String maxResultsRaw = request.getRequestInfoProperties().get(BaseRequest.PAGE_SIZE_PROPERTY_KEY);
     String ascOrderRaw = request.getRequestInfoProperties().get(BaseRequest.ASC_ORDER_PROPERTY_KEY);
@@ -298,7 +298,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           throws SystemException, UnsupportedPropertyException,
           NoSuchResourceException, NoSuchParentResourceException {
     AmbariManagementController amc = getManagementController();
-    final Set<RequestRequest> requests = new HashSet<RequestRequest>();
+    final Set<RequestRequest> requests = new HashSet<>();
 
     Iterator<Map<String,Object>> iterator = requestInfo.getProperties().iterator();
     if (iterator.hasNext()) {
@@ -308,7 +308,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     // Validate
     List<org.apache.ambari.server.actionmanager.Request> targets =
-            new ArrayList<org.apache.ambari.server.actionmanager.Request>();
+      new ArrayList<>();
     for (RequestRequest updateRequest : requests) {
       ActionManager actionManager = amc.getActionManager();
       List<org.apache.ambari.server.actionmanager.Request> internalRequests =
@@ -414,7 +414,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Object resourceFilterObj = propertyMap.get(REQUEST_RESOURCE_FILTER_ID);
     if (resourceFilterObj != null && resourceFilterObj instanceof HashSet) {
       resourceFilters = (HashSet<Map<String, Object>>) resourceFilterObj;
-      resourceFilterList = new ArrayList<RequestResourceFilter>();
+      resourceFilterList = new ArrayList<>();
 
       for (Map<String, Object> resourceMap : resourceFilters) {
         resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
@@ -428,7 +428,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       operationLevel = new RequestOperationLevel(requestInfoProperties);
     }
 
-    Map<String, String> params = new HashMap<String, String>();
+    Map<String, String> params = new HashMap<>();
     String keyPrefix = INPUTS_ID + "/";
     for (String key : requestInfoProperties.keySet()) {
       if (key.startsWith(keyPrefix)) {
@@ -466,9 +466,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     String componentName = (String) resourceMap.get(COMPONENT_ID);
     String hostsPredicate = (String) resourceMap.get(HOSTS_PREDICATE);
     Object hostListStr = resourceMap.get(HOSTS_ID);
-    List<String> hostList = Collections.<String>emptyList();
+    List<String> hostList = Collections.emptyList();
     if (hostListStr != null) {
-      hostList = new ArrayList<String>();
+      hostList = new ArrayList<>();
       for (String hostName : ((String) hostListStr).split(",")) {
         hostList.add(hostName.trim());
       }
@@ -486,7 +486,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
       ResourceProvider resourceProvider = getResourceProvider(Resource.Type.HostComponent);
 
-      Set<String> propertyIds = new HashSet<String>();
+      Set<String> propertyIds = new HashSet<>();
       propertyIds.add(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
       propertyIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
       propertyIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
@@ -601,7 +601,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
                                             Set<String> requestedPropertyIds)
       throws NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> response = new HashSet<Resource>();
+    Set<Resource> response = new HashSet<>();
     ActionManager actionManager = getManagementController().getActionManager();
 
     Long clusterId = null;
@@ -670,13 +670,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   private Collection<Resource> getRequestResources(Long clusterId, String clusterName,
       List<Long> requestIds, Set<String> requestedPropertyIds) {
 
-    Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
+    Map<Long, Resource> resourceMap = new HashMap<>();
 
     List<RequestEntity> requests = s_requestDAO.findByPks(requestIds, true);
 
 
     //todo: this was (and still is) in ActionManager but this class was changed to not use ActionManager recently
-    List<RequestEntity> topologyRequestEntities = new ArrayList<RequestEntity>();
+    List<RequestEntity> topologyRequestEntities = new ArrayList<>();
     Collection<? extends org.apache.ambari.server.actionmanager.Request> topologyRequests =
         topologyManager.getRequests(requestIds);
     for (org.apache.ambari.server.actionmanager.Request request : topologyRequests) {
@@ -685,7 +685,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     // if requests is empty, map is Collections.emptyMap() which can't be added to so create a new map
     if (requests.isEmpty()) {
-      requests = new ArrayList<RequestEntity>();
+      requests = new ArrayList<>();
     }
 
     requests.addAll(topologyRequestEntities);

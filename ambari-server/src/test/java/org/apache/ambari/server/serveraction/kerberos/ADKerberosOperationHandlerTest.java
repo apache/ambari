@@ -465,7 +465,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
   @Test
   public void testDigests() throws Exception {
     PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, DEFAULT_ADMIN_PASSWORD);
-    Map<String, String> kerberosEnvMap = new HashMap<String, String>();
+    Map<String, String> kerberosEnvMap = new HashMap<>();
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, DEFAULT_LDAP_URL);
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_AD_CREATE_ATTRIBUTES_TEMPLATE, "" +
@@ -560,7 +560,7 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
     }
 
     PrincipalKeyCredential credentials = new PrincipalKeyCredential(principal, password);
-    Map<String, String> kerberosEnvMap = new HashMap<String, String>();
+    Map<String, String> kerberosEnvMap = new HashMap<>();
 
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, ldapUrl);
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, containerDN);

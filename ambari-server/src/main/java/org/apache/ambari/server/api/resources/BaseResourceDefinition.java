@@ -54,12 +54,12 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
   /**
    * The sub-resource type definitions.
    */
-  private final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+  private final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
 
   /**
    * A map of directives for the different request types, each entry is expected to be modifiable by sub resources.
    */
-  private final Map<DirectiveType, Collection<String>> directives = new HashMap<DirectiveType, Collection<String>>();
+  private final Map<DirectiveType, Collection<String>> directives = new HashMap<>();
 
   /**
    * Constructor.
@@ -116,7 +116,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
 
   @Override
   public List<PostProcessor> getPostProcessors() {
-    List<PostProcessor> listProcessors = new ArrayList<PostProcessor>();
+    List<PostProcessor> listProcessors = new ArrayList<>();
     listProcessors.add(new BaseHrefPostProcessor());
     return listProcessors;
   }
@@ -242,7 +242,7 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
    * @param directives the map of directives from which to copy
    */
   private void initializeDirectives(DirectiveType type, Map<DirectiveType, ? extends Collection<String>> directives) {
-    HashSet<String> requestDirectives = new HashSet<String>();
+    HashSet<String> requestDirectives = new HashSet<>();
 
     if ((directives != null) && directives.get(type) != null) {
       requestDirectives.addAll(directives.get(type));

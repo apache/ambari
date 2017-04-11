@@ -337,7 +337,7 @@ public class UpgradeCatalog242Test {
     allClusterAdministratorPrivilege2.setPrincipal(clusterAdministratorPrincipalEntity);
     expectLastCall().once();
 
-    Set<PrivilegeEntity> allClusterAdministratorPrivileges = new HashSet<PrivilegeEntity>();
+    Set<PrivilegeEntity> allClusterAdministratorPrivileges = new HashSet<>();
     allClusterAdministratorPrivileges.add(allClusterAdministratorPrivilege1);
     allClusterAdministratorPrivileges.add(allClusterAdministratorPrivilege2);
 
@@ -346,7 +346,7 @@ public class UpgradeCatalog242Test {
         .andReturn(allClusterAdministratorPrivileges)
         .once();
 
-    List<PrincipalEntity> allClusterAdministratorPrincipals = new ArrayList<PrincipalEntity>();
+    List<PrincipalEntity> allClusterAdministratorPrincipals = new ArrayList<>();
     allClusterAdministratorPrincipals.add(allClusterAdministratorPrincipalEntity);
 
     PrincipalDAO principalDAO = easyMockSupport.createMock(PrincipalDAO.class);

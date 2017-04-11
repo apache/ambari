@@ -69,8 +69,8 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
   public static final String ALERT_HISTORY_TIMESTAMP = "AlertHistory/timestamp";
   public static final String ALERT_HISTORY_INSTANCE = "AlertHistory/instance";
 
-  private static final Set<String> PK_PROPERTY_IDS = new HashSet<String>(
-      Arrays.asList(ALERT_HISTORY_ID));
+  private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
+    Arrays.asList(ALERT_HISTORY_ID));
 
   /**
    * Used for querying alert history.
@@ -84,13 +84,13 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
   /**
    * The property ids for an alert history resource.
    */
-  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
    * The key property ids for an alert history resource.
    */
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS =
-      new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   static {
     // properties
@@ -199,7 +199,7 @@ public class AlertHistoryResourceProvider extends ReadOnlyResourceProvider imple
       }
     }
 
-    Set<Resource> results = new LinkedHashSet<Resource>();
+    Set<Resource> results = new LinkedHashSet<>();
     Set<String> requestPropertyIds = getRequestPropertyIds(request, predicate);
 
     AlertHistoryRequest historyRequest = new AlertHistoryRequest();

@@ -74,16 +74,16 @@ public class StackDependencyResourceProviderTest {
     dependencyInfo.setName("service_name/comp_name");
     dependencyInfo.setScope("cluster");
 
-    Predicate namePredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name");
-    Predicate depServicePredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.DEPENDENT_SERVICE_NAME_ID, "dep_service_name");
-    Predicate depCompPredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.DEPENDENT_COMPONENT_NAME_ID, "dep_comp_name");
-    Predicate stackNamePredicate = new EqualsPredicate<String>
-        (StackDependencyResourceProvider.STACK_NAME_ID, "stack_name");
-    Predicate stackVersionPredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.STACK_VERSION_ID, "stack_version");
+    Predicate namePredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name");
+    Predicate depServicePredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.DEPENDENT_SERVICE_NAME_ID, "dep_service_name");
+    Predicate depCompPredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.DEPENDENT_COMPONENT_NAME_ID, "dep_comp_name");
+    Predicate stackNamePredicate = new EqualsPredicate<>
+      (StackDependencyResourceProvider.STACK_NAME_ID, "stack_name");
+    Predicate stackVersionPredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.STACK_VERSION_ID, "stack_version");
 
     Predicate andPredicate = new AndPredicate(namePredicate, depServicePredicate,
         depCompPredicate, stackNamePredicate, stackVersionPredicate);
@@ -120,18 +120,18 @@ public class StackDependencyResourceProviderTest {
     dependencyInfo.setName("service_name/comp_name");
     dependencyInfo.setScope("cluster");
 
-    Predicate namePredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name");
-    Predicate name2Predicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name2");
-    Predicate depServicePredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.DEPENDENT_SERVICE_NAME_ID, "dep_service_name");
-    Predicate depCompPredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.DEPENDENT_COMPONENT_NAME_ID, "dep_comp_name");
-    Predicate stackNamePredicate = new EqualsPredicate<String>
-        (StackDependencyResourceProvider.STACK_NAME_ID, "stack_name");
-    Predicate stackVersionPredicate = new EqualsPredicate<String>(
-        StackDependencyResourceProvider.STACK_VERSION_ID, "stack_version");
+    Predicate namePredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name");
+    Predicate name2Predicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.COMPONENT_NAME_ID, "comp_name2");
+    Predicate depServicePredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.DEPENDENT_SERVICE_NAME_ID, "dep_service_name");
+    Predicate depCompPredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.DEPENDENT_COMPONENT_NAME_ID, "dep_comp_name");
+    Predicate stackNamePredicate = new EqualsPredicate<>
+      (StackDependencyResourceProvider.STACK_NAME_ID, "stack_name");
+    Predicate stackVersionPredicate = new EqualsPredicate<>(
+      StackDependencyResourceProvider.STACK_VERSION_ID, "stack_version");
 
     Predicate andPredicate1 = new AndPredicate(namePredicate, depServicePredicate,
         depCompPredicate, stackNamePredicate, stackVersionPredicate);

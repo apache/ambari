@@ -149,7 +149,7 @@ public class ConfigGroupService extends BaseService {
    */
   ResourceInstance createConfigGroupResource(String clusterName,
                                              String groupId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.ConfigGroup, groupId);
 

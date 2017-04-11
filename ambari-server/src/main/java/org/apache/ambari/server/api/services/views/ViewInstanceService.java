@@ -288,7 +288,7 @@ public class ViewInstanceService extends BaseService {
    * @return a view instance resource
    */
   private ResourceInstance createResource(String viewName, String viewVersion, String instanceName) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.View, viewName);
     mapIds.put(Resource.Type.ViewVersion, viewVersion);
     mapIds.put(Resource.Type.ViewInstance, instanceName);

@@ -40,14 +40,14 @@ public class ActionQueue {
 
   private static Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
 
-  private static HashSet<String> EMPTY_HOST_LIST = new HashSet<String>();
+  private static HashSet<String> EMPTY_HOST_LIST = new HashSet<>();
 
   final ConcurrentMap<String, Queue<AgentCommand>> hostQueues;
 
-  HashSet<String> hostsWithPendingTask = new HashSet<String>();
+  HashSet<String> hostsWithPendingTask = new HashSet<>();
 
   public ActionQueue() {
-    hostQueues = new ConcurrentHashMap<String, Queue<AgentCommand>>();
+    hostQueues = new ConcurrentHashMap<>();
   }
 
   private Queue<AgentCommand> getQueue(String hostname) {
@@ -138,8 +138,8 @@ public class ActionQueue {
       return null;
     }
 
-    List<AgentCommand> removedCommands = new ArrayList<AgentCommand>(
-        queue.size());
+    List<AgentCommand> removedCommands = new ArrayList<>(
+      queue.size());
 
     Iterator<AgentCommand> iterator = queue.iterator();
     while (iterator.hasNext()) {
@@ -196,7 +196,7 @@ public class ActionQueue {
       return null;
     }
 
-    List<AgentCommand> l = new ArrayList<AgentCommand>();
+    List<AgentCommand> l = new ArrayList<>();
 
     AgentCommand command;
     do {

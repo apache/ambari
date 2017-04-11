@@ -155,8 +155,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
 
   private static Set<String> pkPropertyIds =
-      new HashSet<String>(Arrays.asList(new String[]{
-          HOST_NAME_PROPERTY_ID}));
+    new HashSet<>(Arrays.asList(new String[]{
+      HOST_NAME_PROPERTY_ID}));
 
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
@@ -220,7 +220,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<HostRequest> requests = new HashSet<HostRequest>();
+    final Set<HostRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(null));
@@ -239,7 +239,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     });
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
 
     for (HostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
@@ -313,7 +313,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<HostRequest> requests = new HashSet<HostRequest>();
+    final Set<HostRequest> requests = new HashSet<>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       requests.add(getRequest(propertyMap));
     }
@@ -460,12 +460,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();
 
-    Set<String> duplicates = new HashSet<String>();
-    Set<String> unknowns = new HashSet<String>();
-    Set<String> allHosts = new HashSet<String>();
+    Set<String> duplicates = new HashSet<>();
+    Set<String> unknowns = new HashSet<>();
+    Set<String> allHosts = new HashSet<>();
 
 
-    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
+    Set<HostRequest> hostRequests = new HashSet<>();
     for (Map<String, Object> propertyMap : propertySet) {
       HostRequest hostRequest = getRequest(propertyMap);
       hostRequests.add(hostRequest);
@@ -504,9 +504,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           "These hosts have not been registered with the server: " + names.toString());
     }
 
-    Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
-    Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
-    Set<String> allClusterSet = new HashSet<String>();
+    Map<String, Set<String>> hostClustersMap = new HashMap<>();
+    Map<String, Map<String, String>> hostAttributes = new HashMap<>();
+    Set<String> allClusterSet = new HashSet<>();
 
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
@@ -514,7 +514,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           hostRequest.getClusterName() != null &&
           !hostRequest.getClusterName().isEmpty()){
 
-        Set<String> clusterSet = new HashSet<String>();
+        Set<String> clusterSet = new HashSet<>();
         clusterSet.add(hostRequest.getClusterName());
         allClusterSet.add(hostRequest.getClusterName());
         hostClustersMap.put(hostRequest.getHostname(), clusterSet);
@@ -597,7 +597,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
   protected Set<HostResponse> getHosts(Set<HostRequest> requests) throws AmbariException {
-    Set<HostResponse> response = new HashSet<HostResponse>();
+    Set<HostResponse> response = new HashSet<>();
 
     AmbariManagementController controller = getManagementController();
 
@@ -622,7 +622,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     //TODO/FIXME what is the requirement for filtering on host attributes?
 
     List<Host> hosts;
-    Set<HostResponse> response = new HashSet<HostResponse>();
+    Set<HostResponse> response = new HashSet<>();
     Cluster           cluster  = null;
 
     Clusters                   clusters   = controller.getClusters();
@@ -642,7 +642,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     if (hostName == null) {
       hosts = clusters.getHosts();
     } else {
-      hosts = new ArrayList<Host>();
+      hosts = new ArrayList<>();
       try {
         hosts.add(clusters.getHost(request.getHostname()));
       } catch (HostNotFoundException e) {

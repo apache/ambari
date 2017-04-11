@@ -82,7 +82,7 @@ public class UserConfigResource {
   }
 
   @PUT
-  @Path("/filters/{id}")
+  @Path("/filters")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_USER_FILTER_OD)
   public LogFeederDataMap updateUserFilter(LogFeederDataMap request) {

@@ -24,7 +24,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 public class Batch {
-  private final List<BatchRequest> batchRequests = new ArrayList<BatchRequest>();
+  private final List<BatchRequest> batchRequests = new ArrayList<>();
   private BatchSettings batchSettings;
 
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)

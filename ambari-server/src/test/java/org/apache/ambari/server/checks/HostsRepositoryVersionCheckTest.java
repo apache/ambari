@@ -97,7 +97,7 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId());
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final Map<String, Host> hosts = new HashMap<>();
     final Host host1 = Mockito.mock(Host.class);
     final Host host2 = Mockito.mock(Host.class);
     final Host host3 = Mockito.mock(Host.class);
@@ -177,7 +177,7 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId());
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final Map<String, Host> hosts = new HashMap<>();
     final Host host1 = Mockito.mock(Host.class);
     final Host host2 = Mockito.mock(Host.class);
     final Host host3 = Mockito.mock(Host.class);
@@ -234,7 +234,7 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(cluster.getDesiredStackVersion()).thenReturn(new StackId());
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final Map<String, Host> hosts = new HashMap<>();
     final Host host1 = Mockito.mock(Host.class);
     final Host host2 = Mockito.mock(Host.class);
     final Host host3 = Mockito.mock(Host.class);

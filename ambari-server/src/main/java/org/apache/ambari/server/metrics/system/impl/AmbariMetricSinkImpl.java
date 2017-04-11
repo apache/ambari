@@ -123,7 +123,7 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
         }
       }
 
-      Set<String> propertyIds = new HashSet<String>();
+      Set<String> propertyIds = new HashSet<>();
       propertyIds.add(ServiceConfigVersionResourceProvider.SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID);
 
       Predicate predicate = new PredicateBuilder().property(

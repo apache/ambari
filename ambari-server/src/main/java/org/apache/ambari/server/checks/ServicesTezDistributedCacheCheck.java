@@ -96,7 +96,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
     final String useHadoopLibs = tezConfig.getProperties().get("tez.use.cluster.hadoop-libs");
     final String defaultFS = coreSiteConfig.getProperties().get("fs.defaultFS");
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     if (libUris == null || libUris.isEmpty()) {
       errorMessages.add(getFailReason(KEY_LIB_URI_MISSING, prerequisiteCheck, request));
     }

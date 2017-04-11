@@ -280,7 +280,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         pending.size());
 
     Map<AlertTargetEntity, List<AlertNoticeEntity>> aggregateMap =
-        new HashMap<AlertTargetEntity, List<AlertNoticeEntity>>(pending.size());
+      new HashMap<>(pending.size());
 
     // combine all histories by target
     for (AlertNoticeEntity notice : pending) {
@@ -288,7 +288,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
 
       List<AlertNoticeEntity> notices = aggregateMap.get(target);
       if (null == notices) {
-        notices = new ArrayList<AlertNoticeEntity>();
+        notices = new ArrayList<>();
         aggregateMap.put(target, notices);
       }
 
@@ -313,9 +313,9 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
       // create a single digest notification if supported
       if (dispatcher.isDigestSupported()) {
         AlertNotification notification = buildNotificationFromTarget(target);
-        notification.CallbackIds = new ArrayList<String>(notices.size());
-        List<AlertHistoryEntity> histories = new ArrayList<AlertHistoryEntity>(
-            notices.size());
+        notification.CallbackIds = new ArrayList<>(notices.size());
+        List<AlertHistoryEntity> histories = new ArrayList<>(
+          notices.size());
 
         // add callback IDs so that the notices can be marked as DELIVERED or
         // FAILED, and create a list of just the alert histories
@@ -416,8 +416,8 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
 
     // create recipients
     if (null != targetProperties.Recipients) {
-      List<Recipient> recipients = new ArrayList<Recipient>(
-          targetProperties.Recipients.size());
+      List<Recipient> recipients = new ArrayList<>(
+        targetProperties.Recipients.size());
 
       for (String stringRecipient : targetProperties.Recipients) {
         Recipient recipient = new Recipient();
@@ -603,7 +603,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         JsonDeserializationContext context) throws JsonParseException {
 
       AlertTargetProperties properties = new AlertTargetProperties();
-      properties.Properties = new HashMap<String, String>();
+      properties.Properties = new HashMap<>();
 
       final JsonObject jsonObject = json.getAsJsonObject();
       Set<Entry<String, JsonElement>> entrySet = jsonObject.entrySet();
@@ -846,12 +846,12 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     /**
      * The hosts that have at least 1 alert reported.
      */
-    private final Set<String> m_hosts = new HashSet<String>();
+    private final Set<String> m_hosts = new HashSet<>();
 
     /**
      * The services that have at least 1 alert reported.
      */
-    private final Set<String> m_services = new HashSet<String>();
+    private final Set<String> m_services = new HashSet<>();
 
     /**
      * All of the alerts for the {@link Notification}.
@@ -862,17 +862,17 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
      * A mapping of service to alerts where the alerts are also grouped by state
      * for that service.
      */
-    private final Map<String, Map<AlertState, List<AlertHistoryEntity>>> m_alertsByServiceAndState = new HashMap<String, Map<AlertState, List<AlertHistoryEntity>>>();
+    private final Map<String, Map<AlertState, List<AlertHistoryEntity>>> m_alertsByServiceAndState = new HashMap<>();
 
     /**
      * A mapping of all services by state.
      */
-    private final Map<String, Set<String>> m_servicesByState = new HashMap<String, Set<String>>();
+    private final Map<String, Set<String>> m_servicesByState = new HashMap<>();
 
     /**
      * A mapping of all alerts by the service that owns them.
      */
-    private final Map<String, List<AlertHistoryEntity>> m_alertsByService = new HashMap<String, List<AlertHistoryEntity>>();
+    private final Map<String, List<AlertHistoryEntity>> m_alertsByService = new HashMap<>();
 
     /**
      * Constructor.
@@ -899,13 +899,13 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         // group alerts by service name & state
         Map<AlertState, List<AlertHistoryEntity>> service = m_alertsByServiceAndState.get(serviceName);
         if (null == service) {
-          service = new HashMap<AlertState, List<AlertHistoryEntity>>();
+          service = new HashMap<>();
           m_alertsByServiceAndState.put(serviceName, service);
         }
 
         List<AlertHistoryEntity> alertList = service.get(alertState);
         if (null == alertList) {
-          alertList = new ArrayList<AlertHistoryEntity>();
+          alertList = new ArrayList<>();
           service.put(alertState, alertList);
         }
 
@@ -914,7 +914,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         // group services by alert states
         Set<String> services = m_servicesByState.get(alertState.name());
         if (null == services) {
-          services = new HashSet<String>();
+          services = new HashSet<>();
           m_servicesByState.put(alertState.name(), services);
         }
 
@@ -923,7 +923,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         // group alerts by service
         List<AlertHistoryEntity> alertsByService = m_alertsByService.get(serviceName);
         if (null == alertsByService) {
-          alertsByService = new ArrayList<AlertHistoryEntity>();
+          alertsByService = new ArrayList<>();
           m_alertsByService.put(serviceName, alertsByService);
         }
 

@@ -33,7 +33,7 @@ public class NamedPropertySetTest {
 
   @Test
   public void testGetters() {
-    Map<String, Object> mapProps = new HashMap<String, Object>();
+    Map<String, Object> mapProps = new HashMap<>();
     mapProps.put("foo", "bar");
 
     NamedPropertySet propertySet = new NamedPropertySet("foo", mapProps);
@@ -43,7 +43,7 @@ public class NamedPropertySetTest {
 
   @Test
   public void testEquals() {
-    Map<String, Object> mapProps = new HashMap<String, Object>();
+    Map<String, Object> mapProps = new HashMap<>();
     mapProps.put("foo", "bar");
 
     NamedPropertySet propertySet = new NamedPropertySet("foo", mapProps);
@@ -60,7 +60,7 @@ public class NamedPropertySetTest {
 
   @Test
   public void testHashCode() {
-    Map<String, Object> mapProps = new HashMap<String, Object>();
+    Map<String, Object> mapProps = new HashMap<>();
 
     NamedPropertySet propertySet = new NamedPropertySet("foo", mapProps);
     NamedPropertySet propertySet2 = new NamedPropertySet("foo", mapProps);

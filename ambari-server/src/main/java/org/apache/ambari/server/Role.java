@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Role {
 
-  private static final Map<String, Role> roles = new ConcurrentHashMap<String, Role>();
+  private static final Map<String, Role> roles = new ConcurrentHashMap<>();
 
   /**
    * @param name the role name

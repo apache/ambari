@@ -40,7 +40,7 @@ public class EqualsOperator extends AbstractOperator implements RelationalOperat
 
   @Override
   public Predicate toPredicate(String prop, String val) {
-    return new EqualsPredicate<String>(prop, val);
+    return new EqualsPredicate<>(prop, val);
   }
 
   @Override

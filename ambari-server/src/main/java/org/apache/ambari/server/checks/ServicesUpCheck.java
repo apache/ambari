@@ -88,8 +88,8 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
 
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    List<String> errorMessages = new ArrayList<String>();
-    Set<String> failedServiceNames = new HashSet<String>();
+    List<String> errorMessages = new ArrayList<>();
+    Set<String> failedServiceNames = new HashSet<>();
 
     StackId stackId = cluster.getCurrentStackVersion();
 
@@ -182,7 +182,7 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     }
 
     if (!errorMessages.isEmpty()) {
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>(failedServiceNames));
+      prerequisiteCheck.setFailedOn(new LinkedHashSet<>(failedServiceNames));
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(
           "The following Service Components should be in a started state.  Please invoke a service Stop and full Start and try again. "

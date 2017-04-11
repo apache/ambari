@@ -64,8 +64,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_MIN_JDK     = PropertyHelper.getPropertyId("Versions", "min_jdk");
   public static final String STACK_MAX_JDK     = PropertyHelper.getPropertyId("Versions", "max_jdk");
 
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID }));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID, STACK_VERSION_PROPERTY_ID}));
 
   /**
    * KerberosDescriptorFactory used to create KerberosDescriptor instances
@@ -90,7 +90,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<StackVersionRequest> requests = new HashSet<StackVersionRequest>();
+    final Set<StackVersionRequest> requests = new HashSet<>();
 
     if (predicate == null) {
       requests.add(getRequest(Collections.<String, Object>emptyMap()));
@@ -109,7 +109,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       }
     });
 
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (StackVersionResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.StackVersion);

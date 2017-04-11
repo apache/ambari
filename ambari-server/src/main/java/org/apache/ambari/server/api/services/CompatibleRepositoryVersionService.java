@@ -90,7 +90,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
    */
   @Path("{repositoryVersionId}/operating_systems")
   public OperatingSystemService getOperatingSystemsHandler(@PathParam("repositoryVersionId") String repositoryVersionId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.CompatibleRepositoryVersion, repositoryVersionId);
 
@@ -105,7 +105,7 @@ public class CompatibleRepositoryVersionService extends BaseService {
    * @return a repository resource instance
    */
   private ResourceInstance createResource(String repositoryVersionId) {
-    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.putAll(parentKeyProperties);
     mapIds.put(Resource.Type.CompatibleRepositoryVersion, repositoryVersionId);
 

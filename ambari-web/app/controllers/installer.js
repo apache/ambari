@@ -21,7 +21,7 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
 
-App.InstallerController = App.WizardController.extend(App.UserPref, {
+App.InstallerController = App.WizardController.extend(App.Persist, {
 
   name: 'installerController',
 
@@ -856,7 +856,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
             repo.setProperties({
               errorTitle: '',
               errorContent: '',
-              validation: App.Repository.validation.INPROGRESS
+              validation: 'INPROGRESS'
             });
             this.set('content.isCheckInProgress', true);
             App.ajax.send({
@@ -896,7 +896,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       var os = selectedStack.get('operatingSystems').findProperty('id', data.osId);
       var repo = os.get('repositories').findProperty('repoId', data.repoId);
       if (repo) {
-        repo.set('validation', App.Repository.validation.OK);
+        repo.set('validation', 'OK');
       }
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
@@ -916,7 +916,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
       var repo = os.get('repositories').findProperty('repoId', params.repoId);
       if (repo) {
         repo.setProperties({
-          validation: App.Repository.validation.INVALID,
+          validation: 'INVALID',
           errorTitle: request.status + ":" + request.statusText,
           errorContent: $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : ""
         });
@@ -1022,14 +1022,13 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
         callback: function () {
           var dfd = $.Deferred();
           var self = this;
-          this.loadServiceConfigProperties().always(function() {
-            self.loadServiceConfigGroups();
-            self.loadCurrentHostGroups();
-            self.loadRecommendationsConfigs();
-            self.loadComponentsFromConfigs();
-            self.loadConfigThemes().then(function() {
-              dfd.resolve();
-            });
+          this.loadServiceConfigGroups();
+          this.loadCurrentHostGroups();
+          this.loadRecommendationsConfigs();
+          this.loadComponentsFromConfigs();
+          this.loadConfigThemes().then(function() {
+            self.loadServiceConfigProperties();
+            dfd.resolve();
           });
           return dfd.promise();
         }

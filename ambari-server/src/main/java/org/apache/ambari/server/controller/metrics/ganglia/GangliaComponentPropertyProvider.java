@@ -65,8 +65,8 @@ public class GangliaComponentPropertyProvider extends GangliaPropertyProvider {
   protected Set<String> getGangliaClusterNames(Resource resource, String clusterName) {
     String component = getComponentName(resource);
     
-    return new HashSet<String>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
-        GANGLIA_CLUSTER_NAME_MAP.get(component) :
-          Collections.<String>emptyList());    
+    return new HashSet<>(GANGLIA_CLUSTER_NAME_MAP.containsKey(component) ?
+      GANGLIA_CLUSTER_NAME_MAP.get(component) :
+      Collections.<String>emptyList());
   }
 }

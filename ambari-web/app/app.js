@@ -304,6 +304,10 @@ module.exports = Em.Application.create({
 
     supportsServiceCheck: function() {
       return App.StackService.find().filterProperty('serviceCheckSupported').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
+    supportsDeleteViaUI: function() {
+      return App.StackService.find().filterProperty('supportDeleteViaUi').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded')
   }),
 

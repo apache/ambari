@@ -50,7 +50,7 @@ public class StartServer {
   }
 
   private static Map<String, String> parseArgs(String[] args) {
-    Map<String, String> mapProps = new HashMap<String, String>();
+    Map<String, String> mapProps = new HashMap<>();
     mapProps.put("port", "9998");
     mapProps.put("db", "/var/db/hmc/data/data.db");
 

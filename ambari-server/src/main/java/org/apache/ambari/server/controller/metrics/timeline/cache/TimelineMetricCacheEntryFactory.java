@@ -212,7 +212,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     if (newMetrics != null && !newMetrics.getMetrics().isEmpty()) {
       for (TimelineMetric timelineMetric : newMetrics.getMetrics()) {
         if (LOG.isTraceEnabled()) {
-          TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(timelineMetric.getMetricValues());
+          TreeMap<Long, Double> sortedMetrics = new TreeMap<>(timelineMetric.getMetricValues());
 
           LOG.trace("New metric: " + timelineMetric.getMetricName() +
             " # " + timelineMetric.getMetricValues().size() + ", startTime = " +
@@ -232,7 +232,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
           existingMetric.getMetricValues().putAll(timelineMetric.getMetricValues());
 
           if (LOG.isTraceEnabled()) {
-            TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(existingMetric.getMetricValues());
+            TreeMap<Long, Double> sortedMetrics = new TreeMap<>(existingMetric.getMetricValues());
             LOG.trace("Merged metric: " + timelineMetric.getMetricName() + ", " +
               "Final size: " + existingMetric.getMetricValues().size() + ", startTime = " +
               sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());

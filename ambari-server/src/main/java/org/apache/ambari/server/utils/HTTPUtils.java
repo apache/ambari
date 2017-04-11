@@ -50,7 +50,7 @@ public class HTTPUtils {
       URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
           ProxyService.URL_READ_TIMEOUT, ComponentSSLConfiguration.instance());
 
-      Map<String, List<String>> headers = new HashMap<String, List<String>>();
+      Map<String, List<String>> headers = new HashMap<>();
 
       HttpURLConnection connection = urlStreamProvider.processURL(url, "GET", (String) null, headers);
 

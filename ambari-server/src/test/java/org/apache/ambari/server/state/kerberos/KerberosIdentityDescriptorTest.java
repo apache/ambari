@@ -49,34 +49,34 @@ public class KerberosIdentityDescriptorTest {
   static final Map<String, Object> MAP_VALUE_REFERENCE;
 
   static {
-    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE = new TreeMap<>();
     MAP_VALUE.put("name", "identity_1");
     MAP_VALUE.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
     MAP_VALUE.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
     MAP_VALUE.put("password", "secret");
 
-    MAP_VALUE_ALT = new TreeMap<String, Object>();
+    MAP_VALUE_ALT = new TreeMap<>();
     MAP_VALUE_ALT.put("name", "identity_2");
     MAP_VALUE_ALT.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
     MAP_VALUE_ALT.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
     MAP_VALUE_ALT.put("password", "secret2");
 
-    TreeMap<String, Object> ownerMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> ownerMap = new TreeMap<>();
     ownerMap.put("name", "me");
     ownerMap.put("access", "rw");
 
-    TreeMap<String, Object> groupMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> groupMap = new TreeMap<>();
     groupMap.put("name", "nobody");
     groupMap.put("access", "");
 
 
-    TreeMap<String, Object> keytabMap = new TreeMap<String, Object>();
+    TreeMap<String, Object> keytabMap = new TreeMap<>();
     keytabMap.put("file", "/home/user/me/subject.service.keytab");
     keytabMap.put("owner", ownerMap);
     keytabMap.put("group", groupMap);
     keytabMap.put("configuration", "service-site/me.component.keytab.file");
 
-    MAP_VALUE_REFERENCE = new TreeMap<String, Object>();
+    MAP_VALUE_REFERENCE = new TreeMap<>();
     MAP_VALUE_REFERENCE.put("name", "shared_identity");
     MAP_VALUE_REFERENCE.put("reference", "/shared");
     MAP_VALUE_REFERENCE.put("keytab", keytabMap);
@@ -159,12 +159,12 @@ public class KerberosIdentityDescriptorTest {
   public void testShouldInclude() {
     KerberosIdentityDescriptor identityDescriptor = createFromJSON();
 
-    Map<String, Object> context = new TreeMap<String, Object>();
+    Map<String, Object> context = new TreeMap<>();
 
-    context.put("services", new HashSet<String>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
+    context.put("services", new HashSet<>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
     Assert.assertTrue(identityDescriptor.shouldInclude(context));
 
-    context.put("services", new HashSet<String>(Arrays.asList("NOT_HIVE", "HDFS", "ZOOKEEPER")));
+    context.put("services", new HashSet<>(Arrays.asList("NOT_HIVE", "HDFS", "ZOOKEEPER")));
     Assert.assertFalse(identityDescriptor.shouldInclude(context));
   }
 }

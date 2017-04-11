@@ -215,11 +215,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Override
   public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<Resource> resources = new HashSet<>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
-    List<ClusterVersionEntity> requestedEntities = new ArrayList<ClusterVersionEntity>();
+    List<ClusterVersionEntity> requestedEntities = new ArrayList<>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID).toString();
       final Long id;
@@ -243,7 +243,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     for (ClusterVersionEntity entity: requestedEntities) {
       final Resource resource = new ResourceImpl(Resource.Type.ClusterStackVersion);
 
-      final Map<String, List<String>> hostStates = new HashMap<String, List<String>>();
+      final Map<String, List<String>> hostStates = new HashMap<>();
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
         hostStates.put(state.name(), new ArrayList<String>());
       }
@@ -299,7 +299,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     Map<String, Object> propertyMap = iterator.next();
 
-    Set<String> requiredProperties = new HashSet<String>();
+    Set<String> requiredProperties = new HashSet<>();
     requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
     requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
     requiredProperties.add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
@@ -490,7 +490,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     // build the list of OS repos
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
-    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
+    Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
 
       if (operatingSystem.isAmbariManagedRepos()) {
@@ -503,7 +503,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     RequestStageContainer req = createRequest();
 
     Iterator<Host> hostIterator = hosts.iterator();
-    Map<String, String> hostLevelParams = new HashMap<String, String>();
+    Map<String, String> hostLevelParams = new HashMap<>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
     String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
@@ -534,7 +534,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     boolean hasStage = false;
 
-    ArrayList<Stage> stages = new ArrayList<Stage>(batchCount);
+    ArrayList<Stage> stages = new ArrayList<>(batchCount);
     for (int batchId = 1; batchId <= batchCount; batchId++) {
       // Create next stage
       String stageName;
@@ -612,8 +612,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
-    Set<String> servicesOnHost = new HashSet<String>();
+    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
+    Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
       if (repoServices.isEmpty() || repoServices.contains(component.getServiceName())) {
@@ -664,7 +664,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     final String packageList = gson.toJson(packages);
     final String repoList = gson.toJson(repoInfo);
 
-    Map<String, String> params = new HashMap<String, String>();
+    Map<String, String> params = new HashMap<>();
     params.put("stack_id", stackId.getStackId());
     params.put("repository_version", repoVersion.getVersion());
     params.put("base_urls", repoList);
@@ -781,7 +781,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
       Map<String, Object> propertyMap = iterator.next();
 
-      Set<String> requiredProperties = new HashSet<String>();
+      Set<String> requiredProperties = new HashSet<>();
       requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
       requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
       requiredProperties.add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
@@ -820,7 +820,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       if (!force) {
-        Map<String, String> args = new HashMap<String, String>();
+        Map<String, String> args = new HashMap<>();
         if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
           // Finalize upgrade workflow
           args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
@@ -835,7 +835,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
         // Get a host name to populate the hostrolecommand table's hostEntity.
         String defaultHostName;
-        ArrayList<Host> hosts = new ArrayList<Host>(cluster.getHosts());
+        ArrayList<Host> hosts = new ArrayList<>(cluster.getHosts());
         if (!hosts.isEmpty()) {
           Collections.sort(hosts);
           defaultHostName = hosts.get(0).getHostName();

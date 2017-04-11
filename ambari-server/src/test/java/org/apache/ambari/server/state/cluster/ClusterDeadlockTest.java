@@ -105,7 +105,7 @@ public class ClusterDeadlockTest {
   /**
    *
    */
-  private List<String> hostNames = new ArrayList<String>(NUMBER_OF_HOSTS);
+  private List<String> hostNames = new ArrayList<>(NUMBER_OF_HOSTS);
 
   /**
    * Creates 100 hosts and adds them to the cluster.
@@ -130,7 +130,7 @@ public class ClusterDeadlockTest {
     Config config2 = configFactory.createNew(cluster, "test-type2", "version1", new HashMap<String, String>(), new HashMap<String,
         Map<String, String>>());
 
-    cluster.addDesiredConfig("test user", new HashSet<Config>(Arrays.asList(config1, config2)));
+    cluster.addDesiredConfig("test user", new HashSet<>(Arrays.asList(config1, config2)));
 
     // 100 hosts
     for (int i = 0; i < NUMBER_OF_HOSTS; i++) {
@@ -170,7 +170,7 @@ public class ClusterDeadlockTest {
     ServiceComponentHost dataNodeSCH = createNewServiceComponentHost("HDFS",
         "DATANODE", "c64-0");
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       DeadlockExerciserThread thread = new DeadlockExerciserThread();
       thread.setCluster(cluster);
@@ -209,7 +209,7 @@ public class ClusterDeadlockTest {
     ServiceComponent nameNodeComponent = service.getServiceComponent("NAMENODE");
     ServiceComponent dataNodeComponent = service.getServiceComponent("DATANODE");
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       ServiceComponentReaderWriterThread thread = new ServiceComponentReaderWriterThread();
       thread.setDataNodeComponent(dataNodeComponent);
@@ -241,7 +241,7 @@ public class ClusterDeadlockTest {
   @Test()
   public void testDeadlockWhileRestartingComponents() throws Exception {
     // for each host, install both components
-    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
+    List<ServiceComponentHost> serviceComponentHosts = new ArrayList<>();
     for (String hostName : hostNames) {
       serviceComponentHosts.add(createNewServiceComponentHost("HDFS",
           "NAMENODE", hostName));
@@ -250,7 +250,7 @@ public class ClusterDeadlockTest {
           "DATANODE", hostName));
     }
 
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       ClusterReaderThread clusterReaderThread = new ClusterReaderThread();
       ClusterWriterThread clusterWriterThread = new ClusterWriterThread();
@@ -281,7 +281,7 @@ public class ClusterDeadlockTest {
 
   @Test
   public void testDeadlockWithConfigsUpdate() throws Exception {
-    List<Thread> threads = new ArrayList<Thread>();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       ClusterDesiredConfigsReaderThread readerThread = null;
       for (int j = 0; j < NUMBER_OF_THREADS; j++) {
@@ -559,7 +559,7 @@ public class ClusterDeadlockTest {
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
-    Map<String, String> hostAttributes = new HashMap<String, String>(2);
+    Map<String, String> hostAttributes = new HashMap<>(2);
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);

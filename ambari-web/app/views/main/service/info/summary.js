@@ -21,7 +21,7 @@ var misc = require('utils/misc');
 require('views/main/service/service');
 require('data/service_graph_config');
 
-App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin, {
+App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin, {
   templateName: require('templates/main/service/info/summary'),
   /**
    * @property {Number} chunkSize - number of columns in Metrics section
@@ -133,13 +133,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       }
     }
     return result;
-  }.property('controller.content'),
-
-  historyServerUI: function () {
-    var master = this.get('controller.content.hostComponents').findProperty('isMaster');
-    return App.singleNodeInstall
-      ? "http://" + App.singleNodeAlias + ":19888"
-      : "http://" + master.get("host.publicHostName") + ":19888";
   }.property('controller.content'),
 
   /**

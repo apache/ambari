@@ -294,6 +294,13 @@
         </task>
       </execute-stage>
 
+      <!--Yarn Apptimeline server-->
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">
+          <summary>Fixing YARN Webservice Url</summary>
+        </task>
+      </execute-stage>
+
       <!-- YARN -->
       <execute-stage service="YARN" component="NODEMANAGER" title="Add Spark2 shuffle">
         <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
@@ -317,13 +324,19 @@
           <summary>Modifying ATS Scan default</summary>
         </task>
       </execute-stage>
+      
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Validate Root Queue Ordering Policy">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixCapacitySchedulerOrderingPolicy">
+          <summary>Validate Root Queue Ordering Policy</summary>
+        </task>
+      </execute-stage>
 
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
           <summary>Adding queue customization property</summary>
         </task>
       </execute-stage>
-
+      
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
@@ -497,6 +510,12 @@
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_6_0_0_templeton_hadoop_queue_name">
           <summary>Adding queue customization setting</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Hive properties">
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_atlas_cluster_name">
+          <summary>Removing atlas.cluster.name property</summary>
         </task>
       </execute-stage>
 
@@ -992,6 +1011,16 @@
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Delete HBase snapshots">
+        <direction>UPGRADE</direction>
+        <task xsi:type="manual">
+          <message>You can now remove any HBase snapshots which were created at the beginning of the upgrade. To see existing snapshots, use the following HBase shell command:</message>
+          <message>hbase> list_snapshots</message>
+          <message>Once you have found an existing snapshot which you would like to remove, you can use the following command:</message>
+          <message>hbase> delete_snapshot 'snapshotName'</message>
         </task>
       </execute-stage>
 

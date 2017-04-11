@@ -82,9 +82,9 @@ public class ConfigurationResourceProviderTest {
     ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
         managementController);
 
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
@@ -129,9 +129,9 @@ public class ConfigurationResourceProviderTest {
     ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
         managementController);
 
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID, "tag");
@@ -157,7 +157,7 @@ public class ConfigurationResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<ConfigurationResponse> allResponse = new HashSet<ConfigurationResponse>();
+    Set<ConfigurationResponse> allResponse = new HashSet<>();
     allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
         "tag1", 1L, null, null));
     allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
@@ -165,7 +165,7 @@ public class ConfigurationResourceProviderTest {
     allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
         "tag3", 3L, null, null));
 
-    Set<ConfigurationResponse> orResponse = new HashSet<ConfigurationResponse>();
+    Set<ConfigurationResponse> orResponse = new HashSet<>();
     orResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
         "tag1", 1L, null, null));
     orResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
@@ -192,7 +192,7 @@ public class ConfigurationResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
@@ -302,7 +302,7 @@ public class ConfigurationResourceProviderTest {
         managementController);
 
     // add the property map to a set for the request.
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);

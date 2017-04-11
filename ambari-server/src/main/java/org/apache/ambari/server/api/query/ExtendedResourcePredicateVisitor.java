@@ -72,7 +72,7 @@ public class ExtendedResourcePredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate arrayPredicate) {
-    List<Predicate> predicateList = new LinkedList<Predicate>();
+    List<Predicate> predicateList = new LinkedList<>();
 
     Predicate[] predicates = arrayPredicate.getPredicates();
     if (predicates.length > 0) {

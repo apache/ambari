@@ -39,7 +39,7 @@ public class NotEqualsOperatorTest {
 
   @Test
   public void testToPredicate() {
-    assertEquals(new NotPredicate(new EqualsPredicate<String>("prop", "val")),
+    assertEquals(new NotPredicate(new EqualsPredicate<>("prop", "val")),
         new NotEqualsOperator().toPredicate("prop", "val"));
   }
 

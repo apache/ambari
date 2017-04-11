@@ -30,7 +30,7 @@ public class RecoveryReport {
    * One of DISABLED, RECOVERABLE, UNRECOVERABLE, PARTIALLY_RECOVERABLE
    */
   private String summary = "DISABLED";
-  private List<ComponentRecoveryReport> componentReports = new ArrayList<ComponentRecoveryReport>();
+  private List<ComponentRecoveryReport> componentReports = new ArrayList<>();
 
 
   @JsonProperty("summary")

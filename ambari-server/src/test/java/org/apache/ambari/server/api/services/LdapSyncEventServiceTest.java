@@ -37,7 +37,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 public class LdapSyncEventServiceTest extends BaseServiceTest {
 
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
-    List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
+    List<ServiceTestInvocation> listInvocations = new ArrayList<>();
 
     //getEvent
     LdapSyncEventService permissionService = new TestLdapSyncEventService();

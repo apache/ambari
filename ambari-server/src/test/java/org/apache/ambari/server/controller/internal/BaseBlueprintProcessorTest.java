@@ -73,7 +73,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(hCatDependency);
           setOfDependencies.add(yarnClientDependency);
@@ -174,7 +174,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(yarnClientDependency);
           setOfDependencies.add(tezClientDependency);
@@ -272,7 +272,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(hCatDependency);
           setOfDependencies.add(tezClientDependency);
@@ -368,7 +368,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(hCatDependency);
           setOfDependencies.add(yarnClientDependency);
@@ -466,7 +466,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(hCatDependency);
           setOfDependencies.add(yarnClientDependency);
@@ -562,7 +562,7 @@ public class BaseBlueprintProcessorTest {
           String component) {
         // simulate the dependencies in a given stack by overriding this method
         if (component.equals("FAKE_MONITORING_SERVER")) {
-          Set<DependencyInfo> setOfDependencies = new HashSet<DependencyInfo>();
+          Set<DependencyInfo> setOfDependencies = new HashSet<>();
 
           setOfDependencies.add(hCatDependency);
           setOfDependencies.add(yarnClientDependency);

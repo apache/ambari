@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>OOZIE</name>
-      <version>4.2.0.2.6</version>
+      <version>4.2.0</version>
       <configuration-dependencies>
         <config-type>application-properties</config-type>
       </configuration-dependencies>

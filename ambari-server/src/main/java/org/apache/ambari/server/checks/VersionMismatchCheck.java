@@ -55,7 +55,7 @@ public class VersionMismatchCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Map<String, Service> services = cluster.getServices();
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     for (Service service : services.values()) {
       validateService(service, prerequisiteCheck, errorMessages);
     }

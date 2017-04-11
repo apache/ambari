@@ -105,13 +105,13 @@ public class UsersTest extends EasyMockSupport {
     PrivilegeEntity clusterOperatorPrivilegeEntity = createMock(PrivilegeEntity.class);
     expect(clusterOperatorPrivilegeEntity.getPermission()).andReturn(clusterOperatorPrivilegePermissionEntity).times(1);
 
-    List<PrivilegeEntity> privilegeEntities = new ArrayList<PrivilegeEntity>();
+    List<PrivilegeEntity> privilegeEntities = new ArrayList<>();
     privilegeEntities.add(clusterUserPrivilegeEntity);
     privilegeEntities.add(clusterOperatorPrivilegeEntity);
 
     PrivilegeEntity clusterUserViewUserPrivilegeEntity = createMock(PrivilegeEntity.class);
 
-    List<PrivilegeEntity> rolePrivilegeEntities = new ArrayList<PrivilegeEntity>();
+    List<PrivilegeEntity> rolePrivilegeEntities = new ArrayList<>();
     rolePrivilegeEntities.add(clusterUserViewUserPrivilegeEntity);
 
     Capture<? extends List<PrincipalEntity>> principalEntitiesCapture = newCapture();

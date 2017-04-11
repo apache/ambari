@@ -328,7 +328,7 @@ public class AlertTargetEntity {
    */
   protected void addAlertGroup(AlertGroupEntity alertGroup) {
     if (null == alertGroups) {
-      alertGroups = new HashSet<AlertGroupEntity>();
+      alertGroups = new HashSet<>();
     }
 
     alertGroups.add(alertGroup);
@@ -356,7 +356,7 @@ public class AlertTargetEntity {
    */
   protected void addAlertNotice(AlertNoticeEntity notice) {
     if (null == alertNotices) {
-      alertNotices = new ArrayList<AlertNoticeEntity>();
+      alertNotices = new ArrayList<>();
     }
 
     alertNotices.add(notice);

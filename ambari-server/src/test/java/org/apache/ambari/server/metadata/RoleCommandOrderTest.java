@@ -224,7 +224,7 @@ public class RoleCommandOrderTest {
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
     expect(cluster.getClusterId()).andReturn(1L);
 
-    Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<>();
     hostComponents.put("1",sch1);
     hostComponents.put("2",sch2);
 
@@ -415,7 +415,7 @@ public class RoleCommandOrderTest {
         "HBASE_MASTER", hbaseMaster);
     expect(hbaseService.getServiceComponents()).andReturn(hbaseComponents).anyTimes();
 
-    Map<String, Service> installedServices = new HashMap<String, Service>();
+    Map<String, Service> installedServices = new HashMap<>();
     installedServices.put("HDFS", hdfsService);
     installedServices.put("HBASE", hbaseService);
     expect(cluster.getServices()).andReturn(installedServices).atLeastOnce();

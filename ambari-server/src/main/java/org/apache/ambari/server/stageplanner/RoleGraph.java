@@ -110,7 +110,7 @@ public class RoleGraph {
    *          {@link RoleCommand}.
    */
   private void build(Map<String, Map<String, HostRoleCommand>> hostRoleCommands) {
-    graph = new TreeMap<String, RoleGraphNode>();
+    graph = new TreeMap<>();
 
     for (String host : hostRoleCommands.keySet()) {
       for (String role : hostRoleCommands.get(host).keySet()) {
@@ -167,8 +167,8 @@ public class RoleGraph {
    */
   public List<Stage> getStages() {
     long initialStageId = initialStage.getStageId();
-    List<Stage> stageList = new ArrayList<Stage>();
-    List<RoleGraphNode> firstStageNodes = new ArrayList<RoleGraphNode>();
+    List<Stage> stageList = new ArrayList<>();
+    List<RoleGraphNode> firstStageNodes = new ArrayList<>();
     while (!graph.isEmpty()) {
       if (LOG.isDebugEnabled()) {
         LOG.debug(stringifyGraph());
@@ -226,7 +226,7 @@ public class RoleGraph {
     // represents an ordered list of stages
     List<Map<String, List<HostRoleCommand>>> orderedCommands = new ArrayList<>();
 
-    List<RoleGraphNode> firstStageNodes = new ArrayList<RoleGraphNode>();
+    List<RoleGraphNode> firstStageNodes = new ArrayList<>();
     while (!graph.isEmpty()) {
       for (String role : graph.keySet()) {
         RoleGraphNode rgn = graph.get(role);

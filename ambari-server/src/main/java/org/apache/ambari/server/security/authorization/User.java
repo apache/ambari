@@ -43,7 +43,7 @@ public class User {
   final UserType userType;
   final Date createTime;
   final boolean active;
-  final Collection<String> groups = new ArrayList<String>();
+  final Collection<String> groups = new ArrayList<>();
   boolean admin = false;
   final List<GrantedAuthority> authorities = new ArrayList<>();
 

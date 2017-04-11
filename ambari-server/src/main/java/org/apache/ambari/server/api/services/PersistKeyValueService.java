@@ -72,7 +72,7 @@ public class PersistKeyValueService {
   public String store(String values) throws IOException, JAXBException {
     LOG.debug("Received message from UI " + values);
     Collection<String> valueCollection = StageUtils.fromJson(values, Collection.class);
-    Collection<String> keys = new ArrayList<String>(valueCollection.size());
+    Collection<String> keys = new ArrayList<>(valueCollection.size());
     for (String s : valueCollection) {
       keys.add(persistKeyVal.put(s));
     }

@@ -73,7 +73,7 @@ public class HostRoleCommandEntity_ {
    * @return
    */
   public static Map<String, List<? extends SingularAttribute<?, ?>>> getPredicateMapping() {
-    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<String, List<? extends SingularAttribute<?, ?>>>();
+    Map<String, List<? extends SingularAttribute<?, ?>>> mapping = new HashMap<>();
 
     mapping.put(TaskResourceProvider.TASK_ID_PROPERTY_ID,
         Collections.singletonList(taskId));

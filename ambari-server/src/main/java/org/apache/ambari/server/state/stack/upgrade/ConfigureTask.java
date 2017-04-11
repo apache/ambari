@@ -217,7 +217,7 @@ public class ConfigureTask extends ServerSideActionTask {
 
     // replacements
 
-    List<Replace> replacements = new ArrayList<Replace>();
+    List<Replace> replacements = new ArrayList<>();
     replacements.addAll(definition.getReplacements());
     //Fetch the replacements that used regex to find a string
     replacements.addAll(definition.getRegexReplacements(cluster));

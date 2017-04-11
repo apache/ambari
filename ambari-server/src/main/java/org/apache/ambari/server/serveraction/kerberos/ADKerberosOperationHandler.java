@@ -266,7 +266,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
       realm = "";
     }
 
-    Map<String, Object> context = new HashMap<String, Object>();
+    Map<String, Object> context = new HashMap<>();
     context.put("normalized_principal", deconstructedPrincipal.getNormalizedPrincipal());
     context.put("principal_name", deconstructedPrincipal.getPrincipalName());
     context.put("principal_primary", deconstructedPrincipal.getPrimary());

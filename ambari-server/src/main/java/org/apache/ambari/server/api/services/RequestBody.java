@@ -41,7 +41,7 @@ public class RequestBody {
   /**
    * The body properties.
    */
-  private Set<NamedPropertySet> m_propertySets = new HashSet<NamedPropertySet>();
+  private Set<NamedPropertySet> m_propertySets = new HashSet<>();
 
   /**
    * The request body.  Query and partial response data is stripped before setting.
@@ -51,7 +51,7 @@ public class RequestBody {
   /**
    * Request properties.
    */
-  private Map<String, String> m_requestInfoProps = new HashMap<String, String>();
+  private Map<String, String> m_requestInfoProps = new HashMap<>();
 
 
   /**
@@ -119,7 +119,7 @@ public class RequestBody {
    */
   public Set<Map<String, Object>> getPropertySets() {
     Set<NamedPropertySet> setNamedProps = getNamedPropertySets();
-    Set<Map<String, Object>> setProps = new HashSet<Map<String, Object>>(setNamedProps.size());
+    Set<Map<String, Object>> setProps = new HashSet<>(setNamedProps.size());
 
     for (NamedPropertySet namedProps : setNamedProps) {
       setProps.add(namedProps.getProperties());

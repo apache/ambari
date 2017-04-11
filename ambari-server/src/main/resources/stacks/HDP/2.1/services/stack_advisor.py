@@ -21,14 +21,13 @@ limitations under the License.
 import socket
 
 # Local Imports
-from resource_management.core.logger import Logger
 
 
 class HDP21StackAdvisor(HDP206StackAdvisor):
 
   def __init__(self):
     super(HDP21StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+    self.initialize_logger("HDP21StackAdvisor")
 
     self.modifyMastersWithMultipleInstances()
     self.modifyCardinalitiesDict()

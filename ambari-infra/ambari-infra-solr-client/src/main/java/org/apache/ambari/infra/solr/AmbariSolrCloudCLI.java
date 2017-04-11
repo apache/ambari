@@ -49,6 +49,7 @@ public class AmbariSolrCloudCLI {
   private static final String SETUP_KERBEROS_PLUGIN = "setup-kerberos-plugin";
   private static final String CHECK_ZNODE = "check-znode";
   private static final String SECURE_ZNODE_COMMAND = "secure-znode";
+  private static final String UNSECURE_ZNODE_COMMAND = "unsecure-znode";
   private static final String SECURE_SOLR_ZNODE_COMMAND = "secure-solr-znode";
   private static final String SECURITY_JSON_LOCATION = "security-json-location";
   private static final String CMD_LINE_SYNTAX =
@@ -61,6 +62,7 @@ public class AmbariSolrCloudCLI {
       + "\n./solrCloudCli.sh --check-znode -z host1:2181,host2:2181 -zn /ambari-solr"
       + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
       + "\n./solrCloudCli.sh --secure-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
+      + "\n./solrCloudCli.sh --unsecure-znode -z host1:2181,host2:2181 -zn /ambari-solr --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --secure-solr-znode -z host1:2181,host2:2181 -zn /ambari-solr -su logsearch,atlas,ranger --jaas-file /etc/myconf/jaas_file"
       + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr --security-json-location /etc/infra-solr/conf/security.json\n";
 
@@ -128,6 +130,11 @@ public class AmbariSolrCloudCLI {
     final Option secureZnodeOption = Option.builder("sz")
       .longOpt(SECURE_ZNODE_COMMAND)
       .desc("Set acls for znode")
+      .build();
+
+    final Option unsecureZnodeOption = Option.builder("uz")
+      .longOpt(UNSECURE_ZNODE_COMMAND)
+      .desc("Disable security for znode")
       .build();
 
     final Option shardNameOption = Option.builder("sn")
@@ -327,6 +334,7 @@ public class AmbariSolrCloudCLI {
     options.addOption(configDirOption);
     options.addOption(collectionOption);
     options.addOption(secureZnodeOption);
+    options.addOption(unsecureZnodeOption);
     options.addOption(secureSolrZnodeOption);
     options.addOption(shardsOption);
     options.addOption(replicationOption);
@@ -403,9 +411,12 @@ public class AmbariSolrCloudCLI {
       } else if (cli.hasOption("ssz")) {
         command = SECURE_SOLR_ZNODE_COMMAND;
         validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption, jaasFileOption, saslUsersOption);
+      } else if (cli.hasOption("uz")) {
+        command = UNSECURE_ZNODE_COMMAND;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption, jaasFileOption);
       } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
-          DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SECURE_ZNODE_COMMAND,
+          DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SECURE_ZNODE_COMMAND, UNSECURE_ZNODE_COMMAND,
           SECURE_SOLR_ZNODE_COMMAND, CHECK_ZNODE, SETUP_KERBEROS_PLUGIN);
         helpFormatter.printHelp(CMD_LINE_SYNTAX, options);
         exit(1, String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
@@ -520,6 +531,10 @@ public class AmbariSolrCloudCLI {
         case SECURE_ZNODE_COMMAND:
           solrCloudClient = clientBuilder.build();
           solrCloudClient.secureZnode();
+          break;
+        case UNSECURE_ZNODE_COMMAND:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.unsecureZnode();
           break;
         case SECURE_SOLR_ZNODE_COMMAND:
           solrCloudClient = clientBuilder.build();

@@ -131,7 +131,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
-                  "validation": "glyphicon glyphicon-repeat"
+                  "validation": "INPROGRESS"
                 }
               ]
             }
@@ -220,7 +220,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "1",
                   "errorContent": "1",
-                  "validation": "glyphicon glyphicon-ok"
+                  "validation": "OK"
                 }
               ]
             }
@@ -307,7 +307,7 @@ describe('App.InstallerController', function () {
                   "repoId": 11,
                   "errorTitle": "500:error",
                   "errorContent": "",
-                  "validation": "glyphicon glyphicon-exclamation-sign"
+                  "validation": "INVALID"
                 }
               ]
             }
@@ -782,23 +782,6 @@ describe('App.InstallerController', function () {
           ]
         }
       ]);
-    });
-  });
-
-  describe('#loadServiceConfigProperties', function() {
-    beforeEach(function () {
-      sinon.stub(installerController, 'getPersistentProperty').returns($.Deferred().resolve({
-        value: 2
-      }).promise());
-    });
-    afterEach(function () {
-      installerController.getPersistentProperty.restore();
-    });
-    it ('Should load service config property', function() {
-      installerController.loadServiceConfigProperties();
-      expect(installerController.get('content.serviceConfigProperties')).to.eql({
-        "value": 2
-      });
     });
   });
 

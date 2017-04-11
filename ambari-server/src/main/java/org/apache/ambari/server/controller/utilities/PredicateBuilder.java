@@ -36,7 +36,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 public class PredicateBuilder {
 
   private String propertyId;
-  private List<Predicate> predicates = new LinkedList<Predicate>();
+  private List<Predicate> predicates = new LinkedList<>();
   private Operator operator = null;
   private final PredicateBuilder outer;
   private boolean done = false;
@@ -142,7 +142,7 @@ public class PredicateBuilder {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new EqualsPredicate<T>(propertyId, value));
+      addPredicate(new EqualsPredicate<>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
     }
@@ -152,7 +152,7 @@ public class PredicateBuilder {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new GreaterPredicate<T>(propertyId, value));
+      addPredicate(new GreaterPredicate<>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
     }
@@ -162,7 +162,7 @@ public class PredicateBuilder {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new GreaterEqualsPredicate<T>(propertyId, value));
+      addPredicate(new GreaterEqualsPredicate<>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
     }
@@ -172,7 +172,7 @@ public class PredicateBuilder {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new LessPredicate<T>(propertyId, value));
+      addPredicate(new LessPredicate<>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
     }
@@ -182,7 +182,7 @@ public class PredicateBuilder {
       if (propertyId == null) {
         throw new IllegalStateException("No property.");
       }
-      addPredicate(new LessEqualsPredicate<T>(propertyId, value));
+      addPredicate(new LessEqualsPredicate<>(propertyId, value));
 
       return new PredicateBuilderWithPredicate();
     }

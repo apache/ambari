@@ -64,11 +64,11 @@ public class AmbariKerberosAuthenticationPropertiesTest {
   public void testOrderedUserTypes() throws Exception {
     AmbariKerberosAuthenticationProperties properties = new AmbariKerberosAuthenticationProperties();
 
-    properties.setOrderedUserTypes(new ArrayList<UserType>(Arrays.asList(UserType.LDAP, UserType.LOCAL)));
-    Assert.assertEquals(new ArrayList<UserType>(Arrays.asList(UserType.LDAP, UserType.LOCAL)), properties.getOrderedUserTypes());
+    properties.setOrderedUserTypes(new ArrayList<>(Arrays.asList(UserType.LDAP, UserType.LOCAL)));
+    Assert.assertEquals(new ArrayList<>(Arrays.asList(UserType.LDAP, UserType.LOCAL)), properties.getOrderedUserTypes());
 
     properties.setOrderedUserTypes(Collections.singletonList(UserType.JWT));
-    Assert.assertEquals(new ArrayList<UserType>(Collections.singletonList(UserType.JWT)), properties.getOrderedUserTypes());
+    Assert.assertEquals(new ArrayList<>(Collections.singletonList(UserType.JWT)), properties.getOrderedUserTypes());
   }
 
   @Test

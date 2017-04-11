@@ -71,7 +71,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -95,7 +95,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    notification.DispatchProperties = new HashMap<String, String>();
+    notification.DispatchProperties = new HashMap<>();
     dispatcher.dispatch(notification);
     verify(notification.Callback).onFailure(notification.CallbackIds);
     verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -107,7 +107,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -128,7 +128,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -138,7 +138,7 @@ public class SNMPDispatcherTest {
     notification.DispatchProperties = properties;
     notification.Body = "body";
     notification.Subject = "subject";
-    notification.Recipients = new ArrayList<Recipient>();
+    notification.Recipients = new ArrayList<>();
     dispatcher.dispatch(notification);
     verify(notification.Callback).onFailure(notification.CallbackIds);
     verify(notification.Callback, never()).onSuccess(notification.CallbackIds);
@@ -150,7 +150,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -173,7 +173,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -196,7 +196,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -220,7 +220,7 @@ public class SNMPDispatcherTest {
     Notification notification = mock(Notification.class);
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "3");
@@ -245,7 +245,7 @@ public class SNMPDispatcherTest {
     notification.CallbackIds = new ArrayList<>();
     notification.Body = "body";
     notification.Subject = "subject";
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -270,7 +270,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv1;
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "3");
@@ -279,7 +279,7 @@ public class SNMPDispatcherTest {
     notification.Subject = "subject";
     PDU pdu = dispatcher.prepareTrap(notification, snmpVersion);
     assertEquals(PDU.V1TRAP, pdu.getType());
-    Map<String, VariableBinding> variableBindings = new HashMap<String, VariableBinding>();
+    Map<String, VariableBinding> variableBindings = new HashMap<>();
     for (VariableBinding variableBinding : pdu.toArray()) {
       variableBindings.put(variableBinding.getOid().toString(), variableBinding);
     }
@@ -294,7 +294,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher.SnmpVersion snmpVersion = SNMPDispatcher.SnmpVersion.SNMPv2c;
     SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "4");
@@ -303,7 +303,7 @@ public class SNMPDispatcherTest {
     notification.Subject = "subject";
     PDU pdu = dispatcher.prepareTrap(notification, snmpVersion);
     assertEquals(PDU.TRAP, pdu.getType());
-    Map<String, VariableBinding> variableBindings = new HashMap<String, VariableBinding>();
+    Map<String, VariableBinding> variableBindings = new HashMap<>();
     for (VariableBinding variableBinding : pdu.toArray()) {
       variableBindings.put(variableBinding.getOid().toString(), variableBinding);
     }
@@ -320,7 +320,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(snmp));
     PDU trap = mock(PDU.class);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
     notification.DispatchProperties = properties;
@@ -342,7 +342,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(snmp));
     PDU trap = mock(PDU.class);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
     notification.DispatchProperties = properties;
@@ -364,7 +364,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(snmp));
     PDU trap = mock(PDU.class);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
     properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
@@ -391,7 +391,7 @@ public class SNMPDispatcherTest {
     SNMPDispatcher dispatcher = spy(new SNMPDispatcher(snmp));
     PDU trap = mock(PDU.class);
     Notification notification = new Notification();
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
     properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv3");
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
@@ -409,7 +409,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv1() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -423,7 +423,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_incorrectSNMPversion() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -437,7 +437,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv1_invalid() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -450,7 +450,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv2c() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -464,7 +464,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv2c_invalid() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -477,7 +477,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_incorrectSecurityLevel() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -494,7 +494,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_noAuthNoPriv() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -509,7 +509,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_AuthNoPriv_valid() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -525,7 +525,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_AuthNoPriv_invalid() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -540,7 +540,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_AuthPriv_valid() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -557,7 +557,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_AuthPriv_noPassphrases() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");
@@ -572,7 +572,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testValidateAlertValidation_SNMPv3_AuthPriv_onlyAuthPassphrase() throws Exception {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
     properties.put(SNMPDispatcher.SUBJECT_OID_PROPERTY, "1");
     properties.put(SNMPDispatcher.BODY_OID_PROPERTY, "2");
     properties.put(SNMPDispatcher.PORT_PROPERTY, "162");

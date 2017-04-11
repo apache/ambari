@@ -147,8 +147,8 @@ public class ConfigGroupImpl implements ConfigGroup {
     configGroupId = configGroupEntity.getGroupId();
     configGroupName = configGroupEntity.getGroupName();
 
-    m_configurations = new ConcurrentHashMap<String, Config>();
-    m_hosts = new ConcurrentHashMap<Long, Host>();
+    m_configurations = new ConcurrentHashMap<>();
+    m_hosts = new ConcurrentHashMap<>();
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity.getConfigGroupConfigMappingEntities()) {
@@ -478,17 +478,17 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public ConfigGroupResponse convertToResponse() throws AmbariException {
-    Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> hostnames = new HashSet<>();
     for (Host host : m_hosts.values()) {
-      Map<String, Object> hostMap = new HashMap<String, Object>();
+      Map<String, Object> hostMap = new HashMap<>();
       hostMap.put("host_name", host.getHostName());
       hostnames.add(hostMap);
     }
 
-    Set<Map<String, Object>> configObjMap = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> configObjMap = new HashSet<>();
 
     for (Config config : m_configurations.values()) {
-      Map<String, Object> configMap = new HashMap<String, Object>();
+      Map<String, Object> configMap = new HashMap<>();
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
           config.getType());
       configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,

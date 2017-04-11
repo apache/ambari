@@ -54,17 +54,17 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
   /**
    * primary key fields
    */
-  public static Set<String> pkPropertyIds = new HashSet<String>();
+  public static Set<String> pkPropertyIds = new HashSet<>();
   /**
    * map of resource type to fk field
    */
   public static Map<Resource.Type, String> keyPropertyIds =
-    new HashMap<Resource.Type, String>();
+    new HashMap<>();
 
   /**
    * resource properties
    */
-  public static Set<String> propertyIds = new HashSet<String>();
+  public static Set<String> propertyIds = new HashSet<>();
 
   static {
     keyPropertyIds.put(Resource.Type.Theme, THEME_FILE_NAME_PROPERTY_ID);
@@ -102,7 +102,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
   public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Set<Resource> resources = new LinkedHashSet<Resource>();
+    Set<Resource> resources = new LinkedHashSet<>();
 
     resources.addAll(getThemes(request, predicate));
     // add other artifacts types here
@@ -130,7 +130,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
   private Set<Resource> getThemes(Request request, Predicate predicate) throws NoSuchParentResourceException,
     NoSuchResourceException, UnsupportedPropertyException, SystemException {
 
-    Set<Resource> resources = new LinkedHashSet<Resource>();
+    Set<Resource> resources = new LinkedHashSet<>();
     for (Map<String, Object> properties : getPropertyMaps(predicate)) {
       String themeFileName = (String) properties.get(THEME_FILE_NAME_PROPERTY_ID);
 
@@ -147,7 +147,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
           "Parent stack resource doesn't exist: stackName='%s', stackVersion='%s'", stackName, stackVersion));
       }
 
-      List<ServiceInfo> serviceInfoList = new ArrayList<ServiceInfo>();
+      List<ServiceInfo> serviceInfoList = new ArrayList<>();
 
       if (stackService == null) {
         serviceInfoList.addAll(stackInfo.getServices());
@@ -162,7 +162,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
       }
 
       for (ServiceInfo serviceInfo : serviceInfoList) {
-        List<ThemeInfo> serviceThemes = new ArrayList<ThemeInfo>();
+        List<ThemeInfo> serviceThemes = new ArrayList<>();
         if (themeFileName != null) {
           LOG.debug("Getting themes from service {}, themes = {}", serviceInfo.getName(), serviceInfo.getThemesMap());
           serviceThemes.add(serviceInfo.getThemesMap().get(themeFileName));
@@ -176,7 +176,7 @@ public class ThemeArtifactResourceProvider extends AbstractControllerResourcePro
           }
         }
 
-        List<Resource> serviceResources = new ArrayList<Resource>();
+        List<Resource> serviceResources = new ArrayList<>();
         for (ThemeInfo themeInfo : serviceThemes) {
           Resource resource = new ResourceImpl(Resource.Type.Theme);
           Set<String> requestedIds = getRequestPropertyIds(request, predicate);

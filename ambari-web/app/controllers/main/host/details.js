@@ -2426,8 +2426,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   runHostCheck: function () {
     var dataForCheckHostRequest = this.getDataForHostCheck();
 
-    this.set('stopChecking', false);
-    this.set('checkHostFinished', false);
+    this.setProperties({
+      stopChecking: false,
+      checkHostFinished: false,
+      isRerun: false
+    });
     this.setBootHostsProp();
     this.showHostWarningsPopup();
     this.requestToPerformHostCheck(dataForCheckHostRequest);
@@ -2486,14 +2489,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       },
 
       footerClass: App.WizardStep3HostWarningPopupFooter.reopen({
-        footerControllerBinding: 'App.router.mainHostDetailsController'
+        footerControllerBinding: 'App.router.mainHostDetailsController',
+        checkHostFinished: function () {
+          return this.get('footerController.checkHostFinished');
+        }.property('footerController.checkHostFinished')
       }),
 
       bodyClass: App.WizardStep3HostWarningPopupBody.reopen({
         bodyControllerBinding: 'App.router.mainHostDetailsController',
         checkHostFinished: function () {
           return this.get('bodyController.checkHostFinished');
-        }.property('bodyController.checkHostFinished'),
+        }.property('bodyController.checkHostFinished')
       })
     });
   },

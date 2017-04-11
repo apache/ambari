@@ -52,10 +52,10 @@ public class StackAdvisorResourceProviderTest {
         keyPropertyIds, ambariManagementController);
 
     Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> propertiesMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> propertiesSet = new HashSet<>();
+    Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string");
-    List<Object> array = new ArrayList<Object>();
+    List<Object> array = new ArrayList<>();
     array.add("array1");
     array.add("array2");
     propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", array);
@@ -87,10 +87,10 @@ public class StackAdvisorResourceProviderTest {
                                                                                  keyPropertyIds, ambariManagementController);
 
     Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> propertiesMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> propertiesSet = new HashSet<>();
+    Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", "string");
-    List<Object> array = new ArrayList<Object>();
+    List<Object> array = new ArrayList<>();
     array.add("array1");
     array.add("array2");
     propertiesMap.put(USER_CONTEXT_OPERATION_PROPERTY, "op1");
@@ -117,10 +117,10 @@ public class StackAdvisorResourceProviderTest {
       keyPropertyIds, ambariManagementController);
 
     Request request = mock(Request.class);
-    Set<Map<String, Object>> propertiesSet = new HashSet<Map<String, Object>>();
-    Map<String, Object> propertiesMap = new HashMap<String, Object>();
+    Set<Map<String, Object>> propertiesSet = new HashSet<>();
+    Map<String, Object> propertiesMap = new HashMap<>();
     propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/string_prop", null); //null value means no value specified for the property
-    List<Object> array = new ArrayList<Object>();
+    List<Object> array = new ArrayList<>();
     array.add("array1");
     array.add("array2");
     propertiesMap.put(CONFIGURATIONS_PROPERTY_ID + "site/properties/array_prop", array);

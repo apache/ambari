@@ -50,9 +50,9 @@ public class InstanceResourceProviderTest {
   public void testCreateResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     // replay
     replay(service);
@@ -81,11 +81,11 @@ public class InstanceResourceProviderTest {
   public void testGetResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
-    List<Instance> instances = new LinkedList<Instance>();
+    List<Instance> instances = new LinkedList<>();
 
     Instance instance1 = new Instance("Feed1", "Instance1", "s", "st", "et", "d", "l");
     Instance instance2 = new Instance("Feed1", "Instance2", "s", "st", "et", "d", "l");
@@ -122,9 +122,9 @@ public class InstanceResourceProviderTest {
   public void testUpdateResources() throws Exception {
     IvoryService service = createMock(IvoryService.class);
 
-    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new HashSet<>();
 
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = new HashMap<>();
 
     properties.put(InstanceResourceProvider.INSTANCE_FEED_NAME_PROPERTY_ID, "Feed1");
     properties.put(InstanceResourceProvider.INSTANCE_ID_PROPERTY_ID, "Instance1");
@@ -134,7 +134,7 @@ public class InstanceResourceProviderTest {
     properties.put(InstanceResourceProvider.INSTANCE_DETAILS_PROPERTY_ID, "DETAILS");
     properties.put(InstanceResourceProvider.INSTANCE_LOG_PROPERTY_ID, "log");
 
-    List<Instance> instances = new LinkedList<Instance>();
+    List<Instance> instances = new LinkedList<>();
 
     // set expectations
     expect(service.getFeedNames()).andReturn(Collections.singletonList("Feed1"));

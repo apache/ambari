@@ -104,7 +104,7 @@ public class WorkflowService extends BaseService {
    * @return a workflow resource instance
    */
   ResourceInstance createWorkflowResource(String clusterName, String workflowId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type,String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Cluster, clusterName);
     mapIds.put(Resource.Type.Workflow, workflowId);
     return createResource(Resource.Type.Workflow, mapIds);

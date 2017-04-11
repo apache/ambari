@@ -192,7 +192,7 @@ public class MemberService extends BaseService {
    * @return a member resource instance
    */
   private ResourceInstance createMemberResource(String groupName, String userName) {
-    final Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.Group, groupName);
     mapIds.put(Resource.Type.Member, userName);
     return createResource(Resource.Type.Member, mapIds);

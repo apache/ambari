@@ -90,7 +90,7 @@ public class FixOozieAdminUsersTest {
   @Test
   public void testOozieAdminUserUpdated() throws Exception {
 
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put("clusterName", "c1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();

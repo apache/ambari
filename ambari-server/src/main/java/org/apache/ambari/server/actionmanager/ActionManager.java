@@ -142,7 +142,7 @@ public class ActionManager {
         return (int) (o1.getTaskId()-o2.getTaskId());
       }
     });
-    List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
+    List<CommandReport> reportsToProcess = new ArrayList<>();
     //persist the action response into the db.
     for (CommandReport report : reports) {
       HostRoleCommand command = commands.get(report.getTaskId());

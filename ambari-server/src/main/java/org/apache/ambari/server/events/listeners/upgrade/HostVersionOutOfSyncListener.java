@@ -224,11 +224,11 @@ public class HostVersionOutOfSyncListener {
 
     try {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
-      Set<RepositoryVersionEntity> changedRepositoryVersions = new HashSet<RepositoryVersionEntity>();
+      Set<RepositoryVersionEntity> changedRepositoryVersions = new HashSet<>();
       Map<String, ServiceComponent> serviceComponents = cluster.getService(event.getServiceName()).getServiceComponents();
       // Determine hosts that become OUT_OF_SYNC when adding components for new service
       Map<String, List<ServiceComponent>> affectedHosts =
-              new HashMap<String, List<ServiceComponent>>();
+        new HashMap<>();
       for (ServiceComponent component : serviceComponents.values()) {
         for (String hostname : component.getServiceComponentHosts().keySet()) {
           if (! affectedHosts.containsKey(hostname)) {

@@ -57,10 +57,10 @@ import com.google.common.collect.Iterables;
  */
 public class LogicalRequest extends Request {
 
-  private final Collection<HostRequest> allHostRequests = new ArrayList<HostRequest>();
+  private final Collection<HostRequest> allHostRequests = new ArrayList<>();
   // sorted set with master host requests given priority
-  private final Collection<HostRequest> outstandingHostRequests = new TreeSet<HostRequest>();
-  private final Map<String, HostRequest> requestsWithReservedHosts = new HashMap<String, HostRequest>();
+  private final Collection<HostRequest> outstandingHostRequests = new TreeSet<>();
+  private final Map<String, HostRequest> requestsWithReservedHosts = new HashMap<>();
 
   private final ClusterTopology topology;
 
@@ -153,9 +153,9 @@ public class LogicalRequest extends Request {
 
   @Override
   public List<HostRoleCommand> getCommands() {
-    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> commands = new ArrayList<>();
     for (HostRequest hostRequest : allHostRequests) {
-      commands.addAll(new ArrayList<HostRoleCommand>(hostRequest.getLogicalTasks()));
+      commands.addAll(new ArrayList<>(hostRequest.getLogicalTasks()));
     }
     return commands;
   }
@@ -169,7 +169,7 @@ public class LogicalRequest extends Request {
   }
 
   public Collection<HostRequest> getCompletedHostRequests() {
-    Collection<HostRequest> completedHostRequests = new ArrayList<HostRequest>(allHostRequests);
+    Collection<HostRequest> completedHostRequests = new ArrayList<>(allHostRequests);
     completedHostRequests.removeAll(outstandingHostRequests);
     completedHostRequests.removeAll(requestsWithReservedHosts.values());
 
@@ -178,11 +178,11 @@ public class LogicalRequest extends Request {
 
   //todo: this is only here for toEntity() functionality
   public Collection<HostRequest> getHostRequests() {
-    return new ArrayList<HostRequest>(allHostRequests);
+    return new ArrayList<>(allHostRequests);
   }
 
   public Map<String, Collection<String>> getProjectedTopology() {
-    Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> hostComponentMap = new HashMap<>();
 
     //todo: synchronization
     for (HostRequest hostRequest : allHostRequests) {
@@ -190,7 +190,7 @@ public class LogicalRequest extends Request {
       for (String host : topology.getHostGroupInfo().get(hostGroup.getName()).getHostNames()) {
         Collection<String> hostComponents = hostComponentMap.get(host);
         if (hostComponents == null) {
-          hostComponents = new HashSet<String>();
+          hostComponents = new HashSet<>();
           hostComponentMap.put(host, hostComponents);
         }
         hostComponents.addAll(hostGroup.getComponentNames());
@@ -202,7 +202,7 @@ public class LogicalRequest extends Request {
   // currently we are just returning all stages for all requests
   //TODO technically StageEntity is simply a container for HostRequest info with additional redundant transformations
   public Collection<StageEntity> getStageEntities() {
-    Collection<StageEntity> stages = new ArrayList<StageEntity>();
+    Collection<StageEntity> stages = new ArrayList<>();
     for (HostRequest hostRequest : allHostRequests) {
       StageEntity stage = new StageEntity();
       stage.setStageId(hostRequest.getStageId());
@@ -227,7 +227,7 @@ public class LogicalRequest extends Request {
     requestStatus.setRequestContext(getRequestContext());
 
     // convert HostRoleCommands to ShortTaskStatus
-    List<ShortTaskStatus> shortTasks = new ArrayList<ShortTaskStatus>();
+    List<ShortTaskStatus> shortTasks = new ArrayList<>();
     for (HostRoleCommand task : getCommands()) {
       shortTasks.add(new ShortTaskStatus(task));
     }
@@ -237,7 +237,7 @@ public class LogicalRequest extends Request {
   }
 
   public Map<Long, HostRoleCommandStatusSummaryDTO> getStageSummaries() {
-    Map<Long, HostRoleCommandStatusSummaryDTO> summaryMap = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
+    Map<Long, HostRoleCommandStatusSummaryDTO> summaryMap = new HashMap<>();
 
     Map<Long, Collection<HostRoleCommand>> stageTasksMap = new HashMap<>();
 
@@ -371,7 +371,7 @@ public class LogicalRequest extends Request {
     for (HostGroupInfo hostGroupInfo : hostGroupInfoMap.values()) {
       String groupName = hostGroupInfo.getHostGroupName();
       int hostCardinality = hostGroupInfo.getRequestedHostCount();
-      List<String> hostnames = new ArrayList<String>(hostGroupInfo.getHostNames());
+      List<String> hostnames = new ArrayList<>(hostGroupInfo.getHostNames());
 
       for (int i = 0; i < hostCardinality; ++i) {
         if (! hostnames.isEmpty()) {

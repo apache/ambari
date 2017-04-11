@@ -56,7 +56,7 @@ public class AppCookieManager {
 
   private static final EmptyJaasCredentials EMPTY_JAAS_CREDENTIALS = new EmptyJaasCredentials();
 
-  private Map<String, String> endpointCookieMap = new ConcurrentHashMap<String, String>();
+  private Map<String, String> endpointCookieMap = new ConcurrentHashMap<>();
   private static Log LOG = LogFactory.getLog(AppCookieManager.class);
 
   /**

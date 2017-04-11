@@ -267,7 +267,7 @@ public class AmbariMetaInfo {
   @Inject
   public void init() throws Exception {
     // Need to be initialized before all actions
-    ALL_SUPPORTED_OS = new ArrayList<String>(osFamily.os_list());
+    ALL_SUPPORTED_OS = new ArrayList<>(osFamily.os_list());
 
     readServerVersion();
 
@@ -385,7 +385,7 @@ public class AmbariMetaInfo {
     StackInfo stack = getStack(stackName, version);
     List<RepositoryInfo> repository = stack.getRepositories();
 
-    Map<String, List<RepositoryInfo>> reposResult = new HashMap<String, List<RepositoryInfo>>();
+    Map<String, List<RepositoryInfo>> reposResult = new HashMap<>();
     for (RepositoryInfo repo : repository) {
       if (!reposResult.containsKey(repo.getOsType())) {
         reposResult.put(repo.getOsType(),
@@ -402,7 +402,7 @@ public class AmbariMetaInfo {
     StackInfo stack = getStack(stackName, version);
     List<RepositoryInfo> repositories = stack.getRepositories();
 
-    List<RepositoryInfo> repositoriesResult = new ArrayList<RepositoryInfo>();
+    List<RepositoryInfo> repositoriesResult = new ArrayList<>();
     for (RepositoryInfo repository : repositories) {
       if (repository.getOsType().equals(osType)) {
         repositoriesResult.add(repository);
@@ -519,7 +519,7 @@ public class AmbariMetaInfo {
    */
   public Map<String, ServiceInfo> getServices(String stackName, String version) throws AmbariException {
 
-    Map<String, ServiceInfo> servicesInfoResult = new HashMap<String, ServiceInfo>();
+    Map<String, ServiceInfo> servicesInfoResult = new HashMap<>();
 
     Collection<ServiceInfo> services;
     StackInfo stack;
@@ -555,10 +555,16 @@ public class AmbariMetaInfo {
     return removedServices.contains(serviceName);
   }
 
+  public boolean isServiceWithNoConfigs(String stackName, String version, String serviceName) throws AmbariException{
+    StackInfo stack = getStack(stackName, version);
+    List<String> servicesWithNoConfigs = stack.getServicesWithNoConfigs();
+    return servicesWithNoConfigs.contains(serviceName);
+  }
+
   public Collection<String> getMonitoringServiceNames(String stackName, String version)
     throws AmbariException{
 
-    List<String> monitoringServices = new ArrayList<String>();
+    List<String> monitoringServices = new ArrayList<>();
     for (ServiceInfo service : getServices(stackName, version).values()) {
       if ((service.isMonitoringService() != null) && service.isMonitoringService()) {
         monitoringServices.add(service.getName());
@@ -570,7 +576,7 @@ public class AmbariMetaInfo {
   public Set<String> getRestartRequiredServicesNames(String stackName, String version)
     throws AmbariException{
 
-    HashSet<String> needRestartServices = new HashSet<String>();
+    HashSet<String> needRestartServices = new HashSet<>();
     Collection<ServiceInfo> serviceInfos = getServices(stackName, version).values();
 
     for (ServiceInfo service : serviceInfos) {
@@ -597,7 +603,7 @@ public class AmbariMetaInfo {
   public Set<String> getRackSensitiveServicesNames(String stackName, String version)
       throws AmbariException {
 
-    HashSet<String> needRestartServices = new HashSet<String>();
+    HashSet<String> needRestartServices = new HashSet<>();
 
     Collection<ServiceInfo> serviceInfos = getServices(stackName, version).values();
 
@@ -637,7 +643,7 @@ public class AmbariMetaInfo {
   }
 
   public List<String> getStackParentVersions(String stackName, String version) {
-    List<String> parents = new ArrayList<String>();
+    List<String> parents = new ArrayList<>();
     try {
       StackInfo stackInfo = getStack(stackName, version);
       String parentVersion = stackInfo.getParentStackVersion();
@@ -678,13 +684,13 @@ public class AmbariMetaInfo {
   public Set<PropertyInfo> getServiceProperties(String stackName, String version, String serviceName)
       throws AmbariException {
 
-    return new HashSet<PropertyInfo>(getService(stackName, version, serviceName).getProperties());
+    return new HashSet<>(getService(stackName, version, serviceName).getProperties());
   }
 
   public Set<PropertyInfo> getStackProperties(String stackName, String version)
       throws AmbariException {
 
-    return new HashSet<PropertyInfo>(getStack(stackName, version).getProperties());
+    return new HashSet<>(getStack(stackName, version).getProperties());
   }
 
   public Set<PropertyInfo> getPropertiesByName(String stackName, String version, String serviceName, String propertyName)
@@ -701,7 +707,7 @@ public class AmbariMetaInfo {
           + ", propertyName=" + propertyName);
     }
 
-    Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
+    Set<PropertyInfo> propertyResult = new HashSet<>();
 
     for (PropertyInfo property : properties) {
       if (property.getName().equals(propertyName)) {
@@ -729,7 +735,7 @@ public class AmbariMetaInfo {
           + ", propertyName=" + propertyName);
     }
 
-    Set<PropertyInfo> propertyResult = new HashSet<PropertyInfo>();
+    Set<PropertyInfo> propertyResult = new HashSet<>();
 
     for (PropertyInfo property : properties) {
       if (property.getName().equals(propertyName)) {
@@ -752,7 +758,7 @@ public class AmbariMetaInfo {
   public Set<OperatingSystemInfo> getOperatingSystems(String stackName, String version)
       throws AmbariException {
 
-    Set<OperatingSystemInfo> operatingSystems = new HashSet<OperatingSystemInfo>();
+    Set<OperatingSystemInfo> operatingSystems = new HashSet<>();
     StackInfo stack = getStack(stackName, version);
     List<RepositoryInfo> repositories = stack.getRepositories();
     for (RepositoryInfo repository : repositories) {
@@ -1027,7 +1033,7 @@ public class AmbariMetaInfo {
   }
 
   private Map<String, Metric> getAggregateFunctionMetrics(String metricName, Metric currentMetric) {
-    Map<String, Metric> newMetrics = new HashMap<String, Metric>();
+    Map<String, Metric> newMetrics = new HashMap<>();
     if (!PropertyHelper.hasAggregateFunctionSuffix(currentMetric.getName())) {
       // For every function id
       for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
@@ -1139,8 +1145,8 @@ public class AmbariMetaInfo {
 
       // creating a mapping between names and service/component for fast lookups
       Collection<ServiceInfo> stackServices = stackInfo.getServices();
-      Map<String, ServiceInfo> stackServiceMap = new HashMap<String, ServiceInfo>();
-      Map<String, ComponentInfo> stackComponentMap = new HashMap<String, ComponentInfo>();
+      Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
+      Map<String, ComponentInfo> stackComponentMap = new HashMap<>();
       for (ServiceInfo stackService : stackServices) {
         stackServiceMap.put(stackService.getName(), stackService);
 
@@ -1155,7 +1161,7 @@ public class AmbariMetaInfo {
 
       // for every service installed in that cluster, get the service metainfo
       // and off of that the alert definitions
-      List<AlertDefinition> stackDefinitions = new ArrayList<AlertDefinition>(50);
+      List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
       for (String clusterServiceName : clusterServiceNames) {
         ServiceInfo stackService = stackServiceMap.get(clusterServiceName);
         if (null == stackService) {
@@ -1168,11 +1174,11 @@ public class AmbariMetaInfo {
         stackDefinitions.addAll(serviceDefinitions);
       }
 
-      List<AlertDefinitionEntity> persist = new ArrayList<AlertDefinitionEntity>();
+      List<AlertDefinitionEntity> persist = new ArrayList<>();
       List<AlertDefinitionEntity> entities = alertDefinitionDao.findAll(clusterId);
 
       // create a map of the entities for fast extraction
-      Map<String, AlertDefinitionEntity> mappedEntities = new HashMap<String, AlertDefinitionEntity>(100);
+      Map<String, AlertDefinitionEntity> mappedEntities = new HashMap<>(100);
       for (AlertDefinitionEntity entity : entities) {
         mappedEntities.put(entity.getDefinitionName(), entity);
       }
@@ -1253,7 +1259,7 @@ public class AmbariMetaInfo {
       // stack but still exists in the database - we disable the alert to
       // preserve historical references
       List<AlertDefinitionEntity> definitions = alertDefinitionDao.findAllEnabled(clusterId);
-      List<AlertDefinitionEntity> definitionsToDisable = new ArrayList<AlertDefinitionEntity>();
+      List<AlertDefinitionEntity> definitionsToDisable = new ArrayList<>();
 
       for (AlertDefinitionEntity definition : definitions) {
         String serviceName = definition.getServiceName();

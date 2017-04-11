@@ -231,7 +231,7 @@ public class AlertDefinitionDAOTest {
   @Test
   public void testFindByIds() {
     List<AlertDefinitionEntity> definitions = dao.findAll();
-    List<Long> ids = new ArrayList<Long>();
+    List<Long> ids = new ArrayList<>();
     ids.add(definitions.get(0).getDefinitionId());
     ids.add(definitions.get(1).getDefinitionId());
     ids.add(99999L);

@@ -51,8 +51,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Configuration configuration;
   private ConfigRecommendationStrategy configRecommendationStrategy;
   private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
-  private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
-  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+  private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
 
   private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
@@ -121,7 +121,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   //todo: do we want to return groups with no requested hosts?
   @Override
   public Collection<String> getHostGroupsForComponent(String component) {
-    Collection<String> resultGroups = new ArrayList<String>();
+    Collection<String> resultGroups = new ArrayList<>();
     for (HostGroup group : getBlueprint().getHostGroups().values() ) {
       if (group.getComponentNames().contains(component)) {
         resultGroups.add(group.getName());
@@ -173,7 +173,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public Collection<String> getHostAssignmentsForComponent(String component) {
     //todo: ordering requirements?
-    Collection<String> hosts = new ArrayList<String>();
+    Collection<String> hosts = new ArrayList<>();
     Collection<String> hostGroups = getHostGroupsForComponent(component);
     for (String group : hostGroups) {
       HostGroupInfo hostGroupInfo = getHostGroupInfo().get(group);
@@ -382,12 +382,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
 
   private void checkForDuplicateHosts(Map<String, HostGroupInfo> groupInfoMap) throws InvalidTopologyException {
-    Set<String> hosts = new HashSet<String>();
-    Set<String> duplicates = new HashSet<String>();
+    Set<String> hosts = new HashSet<>();
+    Set<String> duplicates = new HashSet<>();
     for (HostGroupInfo group : groupInfoMap.values()) {
       // check for duplicates within the new groups
       Collection<String> groupHosts = group.getHostNames();
-      Collection<String> groupHostsCopy = new HashSet<String>(group.getHostNames());
+      Collection<String> groupHostsCopy = new HashSet<>(group.getHostNames());
       groupHostsCopy.retainAll(hosts);
       duplicates.addAll(groupHostsCopy);
       hosts.addAll(groupHosts);

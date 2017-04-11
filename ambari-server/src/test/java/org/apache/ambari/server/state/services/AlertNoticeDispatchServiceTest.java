@@ -93,8 +93,8 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   private AlertDispatchDAO m_dao = null;
   private Injector m_injector;
 
-  List<AlertDefinitionEntity> m_definitions = new ArrayList<AlertDefinitionEntity>();
-  List<AlertHistoryEntity> m_histories = new ArrayList<AlertHistoryEntity>();
+  List<AlertDefinitionEntity> m_definitions = new ArrayList<>();
+  List<AlertHistoryEntity> m_histories = new ArrayList<>();
 
   @Before
   public void before() {
@@ -494,7 +494,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     notice.setAlertHistory(history);
     notice.setNotifyState(NotificationState.PENDING);
 
-    ArrayList<AlertNoticeEntity> notices = new ArrayList<AlertNoticeEntity>();
+    ArrayList<AlertNoticeEntity> notices = new ArrayList<>();
     notices.add(notice);
 
     return notices;
@@ -552,7 +552,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     notice2.setAlertHistory(history2);
     notice2.setNotifyState(NotificationState.PENDING);
 
-    ArrayList<AlertNoticeEntity> notices = new ArrayList<AlertNoticeEntity>();
+    ArrayList<AlertNoticeEntity> notices = new ArrayList<>();
     notices.add(notice1);
     notices.add(notice2);
 
@@ -614,7 +614,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   private static class MockSnmpDispatcher implements
       NotificationDispatcher {
 
-    private List<Notification> m_notifications = new ArrayList<Notification>();
+    private List<Notification> m_notifications = new ArrayList<>();
 
     /**
      * {@inheritDoc}

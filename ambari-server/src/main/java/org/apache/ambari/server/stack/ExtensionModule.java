@@ -78,12 +78,12 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
   /**
    * Map of child configuration modules keyed by configuration type
    */
-  private Map<String, ConfigurationModule> configurationModules = new HashMap<String, ConfigurationModule>();
+  private Map<String, ConfigurationModule> configurationModules = new HashMap<>();
 
   /**
    * Map of child service modules keyed by service name
    */
-  private Map<String, ServiceModule> serviceModules = new HashMap<String, ServiceModule>();
+  private Map<String, ServiceModule> serviceModules = new HashMap<>();
 
   /**
    * Corresponding ExtensionInfo instance
@@ -431,7 +431,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
    * @param serviceDirectory the child service directory
    */
   private void populateService(ServiceDirectory serviceDirectory)  {
-    Collection<ServiceModule> serviceModules = new ArrayList<ServiceModule>();
+    Collection<ServiceModule> serviceModules = new ArrayList<>();
     // unfortunately, we allow multiple services to be specified in the same metainfo.xml,
     // so we can't move the unmarshal logic into ServiceModule
     ServiceMetainfoXml metaInfoXml = serviceDirectory.getMetaInfoFile();
@@ -517,7 +517,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
     this.valid = valid;
   }
 
-  private Set<String> errorSet = new HashSet<String>();
+  private Set<String> errorSet = new HashSet<>();
 
   @Override
   public Collection<String> getErrors() {

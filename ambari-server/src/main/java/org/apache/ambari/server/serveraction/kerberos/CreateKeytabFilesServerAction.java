@@ -86,7 +86,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    * A map of data used to track what has been processed in order to optimize the creation of keytabs
    * such as knowing when to create a cached keytab file or use a cached keytab file.
    */
-  Map<String, Set<String>> visitedIdentities = new HashMap<String, Set<String>>();
+  Map<String, Set<String>> visitedIdentities = new HashMap<>();
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -274,7 +274,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
                   }
 
                   if (visitedPrincipalKeys == null) {
-                    visitedPrincipalKeys = new HashSet<String>();
+                    visitedPrincipalKeys = new HashSet<>();
                     visitedIdentities.put(evaluatedPrincipal, visitedPrincipalKeys);
                   }
 

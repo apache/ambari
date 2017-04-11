@@ -273,7 +273,7 @@ public class TestOrmImpl extends Assert {
     RequestDAO requestDAO = injector.getInstance(RequestDAO.class);
 
     RequestEntity requestEntity = requestDAO.findByPK(1L);
-    List<StageEntity> stageEntities = new ArrayList<StageEntity>();
+    List<StageEntity> stageEntities = new ArrayList<>();
 
     StageEntity stageEntity = new StageEntity();
     stageEntity.setClusterId(clusterDAO.findByName("test_cluster1").getClusterId());

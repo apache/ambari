@@ -611,7 +611,7 @@ public class CredentialResourceProviderTest {
     injector.injectMembers(credentialResourceProvider);
 
     // Create resources requests
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
     properties.addAll(getCredentialTestProperties("c1", "alias1", "username1", "password1", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias2", "username2", "password2", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias3", "username3", "password3", CredentialStoreType.TEMPORARY));
@@ -705,7 +705,7 @@ public class CredentialResourceProviderTest {
     injector.injectMembers(credentialResourceProvider);
 
     // Create resources requests
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
     properties.addAll(getCredentialTestProperties("c1", "alias1", "username1", "password1", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias2", "username2", "password2", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias3", "username3", "password3", CredentialStoreType.TEMPORARY));
@@ -776,7 +776,7 @@ public class CredentialResourceProviderTest {
     injector.injectMembers(credentialResourceProvider);
 
     // Create resources requests
-    Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
+    Set<Map<String, Object>> properties = new HashSet<>();
     properties.addAll(getCredentialTestProperties("c1", "alias1", "username1", "password1", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias2", "username2", "password2", CredentialStoreType.TEMPORARY));
     properties.addAll(getCredentialTestProperties("c1", "alias3", "username3", "password3", CredentialStoreType.TEMPORARY));
@@ -838,7 +838,7 @@ public class CredentialResourceProviderTest {
   }
 
   private Set<Map<String, Object>> getCredentialTestProperties(String clusterName, String alias, String principal, String password, CredentialStoreType credentialStoreType) {
-    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Map<String, Object> mapProperties = new HashMap<>();
 
     if (clusterName != null) {
       mapProperties.put(CredentialResourceProvider.CREDENTIAL_CLUSTER_NAME_PROPERTY_ID, clusterName);

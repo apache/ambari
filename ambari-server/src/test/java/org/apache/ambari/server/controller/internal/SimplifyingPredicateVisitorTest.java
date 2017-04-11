@@ -159,7 +159,7 @@ public class SimplifyingPredicateVisitorTest {
     verify(provider);
     reset(provider);
     expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>emptySet());
-    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.<String>singleton(PROPERTY_D));
+    expect(provider.checkPropertyIds(capture(propertiesCapture))).andReturn(Collections.singleton(PROPERTY_D));
     replay(provider);
 
     // ---

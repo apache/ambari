@@ -43,7 +43,7 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
 
   private QuickLinksConfigurationInfo moduleInfo;
   private boolean valid = true;
-  private Set<String> errors = new HashSet<String>();
+  private Set<String> errors = new HashSet<>();
 
   public QuickLinksConfigurationModule(File quickLinksConfigurationFile) {
     this(quickLinksConfigurationFile, new QuickLinksConfigurationInfo());
@@ -61,7 +61,7 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
       }
       try {
         QuickLinks quickLinksConfig = mapper.readValue(reader, QuickLinks.class);
-        Map<String, QuickLinks> map = new HashMap<String, QuickLinks>();
+        Map<String, QuickLinks> map = new HashMap<>();
         map.put(QUICKLINKS_CONFIGURATION_KEY, quickLinksConfig);
         moduleInfo.setQuickLinksConfigurationMap(map);
         LOG.debug("Loaded quicklinks configuration: {}", moduleInfo);

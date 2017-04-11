@@ -193,7 +193,7 @@ public class RemoteAmbariCluster implements Cluster {
     String url = String.format("%s/services/%s/components/%s?" +
       "fields=host_components/HostRoles/host_name", this.clusterPath, serviceName, componentName);
 
-    List<String> hosts = new ArrayList<String>();
+    List<String> hosts = new ArrayList<>();
 
     try {
       JsonElement response = configurationCache.get(url);
@@ -223,7 +223,7 @@ public class RemoteAmbariCluster implements Cluster {
    * @return list of services Available on cluster
    */
   public Set<String> getServices() throws IOException, AmbariHttpException {
-    Set<String> services = new HashSet<String>();
+    Set<String> services = new HashSet<>();
     String path = this.clusterPath + "?fields=services/ServiceInfo/service_name";
     JsonElement config = configurationCache.getUnchecked(path);
 

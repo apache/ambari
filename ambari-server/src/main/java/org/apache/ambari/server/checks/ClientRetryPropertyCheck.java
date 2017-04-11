@@ -70,7 +70,7 @@ public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     Map<String, Service> services = cluster.getServices();
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
 
     // HDFS needs to actually prevent client retry since that causes them to try too long and not failover quickly.
     if (services.containsKey("HDFS")) {

@@ -62,8 +62,8 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       .getPropertyId("Actions", "target_type");
   public static final String DEFAULT_TIMEOUT_PROPERTY_ID = PropertyHelper
       .getPropertyId("Actions", "default_timeout");
-  private static Set<String> pkPropertyIds = new HashSet<String>(
-      Arrays.asList(new String[]{ACTION_NAME_PROPERTY_ID}));
+  private static Set<String> pkPropertyIds = new HashSet<>(
+    Arrays.asList(new String[]{ACTION_NAME_PROPERTY_ID}));
 
   public ActionResourceProvider(Set<String> propertyIds,
                                 Map<Type, String> keyPropertyIds,
@@ -96,7 +96,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final Set<ActionRequest> requests = new HashSet<ActionRequest>();
+    final Set<ActionRequest> requests = new HashSet<>();
     if (predicate != null) {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         ActionRequest actionReq = getRequest(propertyMap);
@@ -117,7 +117,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
     });
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-    Set<Resource> resources = new HashSet<Resource>();
+    Set<Resource> resources = new HashSet<>();
 
     for (ActionResponse response : responses) {
       Resource resource = new ResourceImpl(Type.Action);
@@ -178,7 +178,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
 
   protected synchronized Set<ActionResponse> getActionDefinitions(Set<ActionRequest> requests)
       throws AmbariException {
-    Set<ActionResponse> responses = new HashSet<ActionResponse>();
+    Set<ActionResponse> responses = new HashSet<>();
     for (ActionRequest request : requests) {
       if (request.getActionName() == null) {
         List<ActionDefinition> ads = getAmbariMetaInfo().getAllActionDefinition();

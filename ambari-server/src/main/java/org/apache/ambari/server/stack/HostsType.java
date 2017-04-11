@@ -47,7 +47,7 @@ public class HostsType {
    * That is to say, a downgrade only occurs where the current version is not
    * the target version.
    */
-  public LinkedHashSet<String> hosts = new LinkedHashSet<String>();
+  public LinkedHashSet<String> hosts = new LinkedHashSet<>();
 
   /**
    * Unhealthy hosts are those which are explicitely put into maintenance mode.
@@ -56,6 +56,6 @@ public class HostsType {
    * the administrator know that it must be put into maintenance mode before an
    * upgrade can begin.
    */
-  public List<ServiceComponentHost> unhealthy = new ArrayList<ServiceComponentHost>();
+  public List<ServiceComponentHost> unhealthy = new ArrayList<>();
 
 }

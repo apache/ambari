@@ -37,7 +37,7 @@ public class SortRequestImpl implements SortRequest {
 
   @Override
   public List<String> getPropertyIds() {
-    List<String> propertyIds = new ArrayList<String>();
+    List<String> propertyIds = new ArrayList<>();
     for (SortRequestProperty property : properties) {
       propertyIds.add(property.getPropertyId());
     }

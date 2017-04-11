@@ -71,7 +71,7 @@ public class PreviousUpgradeCompleted extends AbstractCheckDescriptor {
     }
 
     if (null != errorMessage) {
-      LinkedHashSet<String> failedOn = new LinkedHashSet<String>();
+      LinkedHashSet<String> failedOn = new LinkedHashSet<>();
       failedOn.add(cluster.getClusterName());
       prerequisiteCheck.setFailedOn(failedOn);
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);

@@ -88,7 +88,7 @@ public class ServicesYarnWorkPreservingCheckTest {
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(Collections.singletonMap("yarn-site", desiredConfig));
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);

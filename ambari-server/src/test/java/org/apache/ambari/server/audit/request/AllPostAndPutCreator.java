@@ -30,7 +30,7 @@ public class AllPostAndPutCreator extends AbstractBaseCreator {
 
   @Override
   public Set<Request.Type> getRequestTypes() {
-    return new HashSet<Request.Type>(Arrays.asList(Request.Type.POST, Request.Type.PUT));
+    return new HashSet<>(Arrays.asList(Request.Type.POST, Request.Type.PUT));
   }
 
   @Override

@@ -78,7 +78,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
   /**
    * The key property ids for a Remote Cluster resource.
    */
-  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
+  private static Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
   static {
     keyPropertyIds.put(Resource.Type.RemoteCluster, CLUSTER_NAME_PROPERTY_ID);
   }
@@ -86,7 +86,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
   /**
    * The property ids for a Remote Cluster resource.
    */
-  private static Set<String> propertyIds = new HashSet<String>();
+  private static Set<String> propertyIds = new HashSet<>();
   static {
     propertyIds.add(CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(CLUSTER_ID_PROPERTY_ID);
@@ -124,7 +124,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return new HashSet<String>(keyPropertyIds.values());
+    return new HashSet<>(keyPropertyIds.values());
   }
 
   @Override
@@ -139,7 +139,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
-    Set<Resource> resources    = new HashSet<Resource>();
+    Set<Resource> resources    = new HashSet<>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
@@ -173,7 +173,7 @@ public class RemoteClusterResourceProvider extends AbstractAuthorizedResourcePro
     setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, cluster.getId(), requestedIds);
     setResourceProperty(resource, CLUSTER_URL_PROPERTY_ID, cluster.getUrl(), requestedIds);
     setResourceProperty(resource, USERNAME_PROPERTY_ID, cluster.getUsername(), requestedIds);
-    ArrayList<String> services = new ArrayList<String>();
+    ArrayList<String> services = new ArrayList<>();
     for (RemoteAmbariClusterServiceEntity remoteClusterServiceEntity : cluster.getServices()) {
       services.add(remoteClusterServiceEntity.getServiceName());
     }

@@ -139,7 +139,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =
-    new HashMap<String, UpgradeCatalog>();
+    new HashMap<>();
 
   protected String ambariUpgradeConfigUpdatesFileName;
 
@@ -377,9 +377,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Map<String, Set<String>> toAddProperties = new HashMap<String, Set<String>>();
-        Map<String, Set<String>> toUpdateProperties = new HashMap<String, Set<String>>();
-        Map<String, Set<String>> toRemoveProperties = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toAddProperties = new HashMap<>();
+        Map<String, Set<String>> toUpdateProperties = new HashMap<>();
+        Map<String, Set<String>> toRemoveProperties = new HashMap<>();
 
 
         Set<PropertyInfo> stackProperties = configHelper.getStackProperties(cluster);
@@ -497,7 +497,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
       for (Cluster cluster : clusterMap.values()) {
-        Map<String, String> properties = new HashMap<String, String>();
+        Map<String, String> properties = new HashMap<>();
 
         for(String propertyName:propertyNames) {
           String propertyValue = configHelper.getPropertyValueFromStackDefinitions(cluster, configType, propertyName);
@@ -551,7 +551,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
               "Skipping configuration properties update");
           return;
         } else if (oldConfig == null) {
-          oldConfigProperties = new HashMap<String, String>();
+          oldConfigProperties = new HashMap<>();
         } else {
           oldConfigProperties = oldConfig.getProperties();
         }
@@ -659,7 +659,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                                Map<String, String> newProperties,
                                boolean updateIfExists, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog) {
 
-    Map<String, String> properties = new HashMap<String, String>(originalProperties);
+    Map<String, String> properties = new HashMap<>(originalProperties);
     for (Map.Entry<String, String> entry : newProperties.entrySet()) {
       if (!properties.containsKey(entry.getKey())) {
         properties.put(entry.getKey(), entry.getValue());
@@ -675,12 +675,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private Map<String, String> removeProperties(Map<String, String> originalProperties,
                                                Set<String> removeList, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog){
-    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, String> properties = new HashMap<>();
     properties.putAll(originalProperties);
     for (String removeProperty: removeList){
       if (originalProperties.containsKey(removeProperty)){
         properties.remove(removeProperty);
-        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<String, String>(removeProperty, ""));
+        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<>(removeProperty, ""));
       }
     }
     return properties;
@@ -784,7 +784,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
     KerberosDescriptor artifactDescriptor = null;
     ArtifactEntity artifactEntity = artifactDAO.findByNameAndForeignKeys("kerberos_descriptor",
-        new TreeMap<String, String>(Collections.singletonMap("cluster", String.valueOf(cluster.getClusterId()))));
+      new TreeMap<>(Collections.singletonMap("cluster", String.valueOf(cluster.getClusterId()))));
     if (artifactEntity != null) {
       Map<String, Object> data = artifactEntity.getArtifactData();
 

@@ -50,7 +50,7 @@ def perform_grafana_get_call(url, server):
   ca_certs = None
   if grafana_https_enabled:
     import params
-    ca_certs = params.ams_grafana_cert_file
+    ca_certs = params.ams_grafana_ca_cert
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
@@ -90,7 +90,7 @@ def perform_grafana_put_call(url, id, payload, server):
   ca_certs = None
   if grafana_https_enabled:
     import params
-    ca_certs = params.ams_grafana_cert_file
+    ca_certs = params.ams_grafana_ca_cert
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
@@ -125,7 +125,7 @@ def perform_grafana_post_call(url, payload, server):
   ca_certs = None
   if grafana_https_enabled:
     import params
-    ca_certs = params.ams_grafana_cert_file
+    ca_certs = params.ams_grafana_ca_cert
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
@@ -167,7 +167,7 @@ def perform_grafana_delete_call(url, server):
   ca_certs = None
   if grafana_https_enabled:
     import params
-    ca_certs = params.ams_grafana_cert_file
+    ca_certs = params.ams_grafana_ca_cert
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:

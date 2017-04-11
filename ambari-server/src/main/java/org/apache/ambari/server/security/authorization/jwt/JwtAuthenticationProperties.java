@@ -62,7 +62,7 @@ public class JwtAuthenticationProperties {
     if (StringUtils.isNotEmpty(audiencesString)) {
       // parse into the list
       String[] audArray = audiencesString.split(",");
-      audiences = new ArrayList<String>();
+      audiences = new ArrayList<>();
       Collections.addAll(audiences, audArray);
     } else {
       audiences = null;

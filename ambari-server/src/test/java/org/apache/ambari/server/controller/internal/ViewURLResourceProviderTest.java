@@ -76,7 +76,7 @@ public class ViewURLResourceProviderTest {
   @Test
   public void testToResource() throws Exception {
     ViewURLResourceProvider provider = new ViewURLResourceProvider();
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
     propertyIds.add(ViewURLResourceProvider.URL_NAME_PROPERTY_ID);
     propertyIds.add(ViewURLResourceProvider.URL_SUFFIX_PROPERTY_ID);
     ViewURLEntity viewURLEntity = createNiceMock(ViewURLEntity.class);

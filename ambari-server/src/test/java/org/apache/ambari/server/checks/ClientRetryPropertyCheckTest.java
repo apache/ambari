@@ -69,7 +69,7 @@ public class ClientRetryPropertyCheckTest {
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
 
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
@@ -94,12 +94,12 @@ public class ClientRetryPropertyCheckTest {
 
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(m_clusters.getCluster("cluster")).thenReturn(cluster);
-    Map<String, Service> services = new HashMap<String, Service>();
+    Map<String, Service> services = new HashMap<>();
     Mockito.when(cluster.getServices()).thenReturn(services);
 
     final DesiredConfig desiredConfig = Mockito.mock(DesiredConfig.class);
     Mockito.when(desiredConfig.getTag()).thenReturn("tag");
-    Map<String, DesiredConfig> configMap = new HashMap<String, DesiredConfig>();
+    Map<String, DesiredConfig> configMap = new HashMap<>();
     configMap.put("hdfs-site", desiredConfig);
     configMap.put("hive-site", desiredConfig);
     configMap.put("oozie-env", desiredConfig);
@@ -107,7 +107,7 @@ public class ClientRetryPropertyCheckTest {
     Mockito.when(cluster.getDesiredConfigs()).thenReturn(configMap);
     final Config config = Mockito.mock(Config.class);
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
-    final Map<String, String> properties = new HashMap<String, String>();
+    final Map<String, String> properties = new HashMap<>();
     Mockito.when(config.getProperties()).thenReturn(properties);
 
     // Add HDFS

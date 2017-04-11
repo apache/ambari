@@ -36,7 +36,7 @@ public class GangliaHostPropertyProvider extends GangliaPropertyProvider {
   /**
    * Set of Ganglia cluster names.
    */
-  private static final Set<String> GANGLIA_CLUSTER_NAMES = new HashSet<String>();
+  private static final Set<String> GANGLIA_CLUSTER_NAMES = new HashSet<>();
 
   static {
     GANGLIA_CLUSTER_NAMES.add("HDPNameNode");

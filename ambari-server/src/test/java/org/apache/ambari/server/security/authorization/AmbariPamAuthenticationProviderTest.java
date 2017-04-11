@@ -79,7 +79,7 @@ public class AmbariPamAuthenticationProviderTest {
     PAM pam = createNiceMock(PAM.class);
     UnixUser unixUser = createNiceMock(UnixUser.class);
     expect(pam.authenticate(EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(unixUser).atLeastOnce();
-    expect(unixUser.getGroups()).andReturn(new HashSet<String>(Arrays.asList("group"))).atLeastOnce();
+    expect(unixUser.getGroups()).andReturn(new HashSet<>(Arrays.asList("group"))).atLeastOnce();
     EasyMock.replay(unixUser);
     EasyMock.replay(pam);
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");

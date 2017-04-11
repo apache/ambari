@@ -155,7 +155,7 @@ public class RequestService extends BaseService {
    * @return a request resource instance
    */
   ResourceInstance createRequestResource(String clusterName, String requestId) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
+    Map<Resource.Type,String> mapIds = new HashMap<>();
     
     if (null != clusterName)
       mapIds.put(Resource.Type.Cluster, clusterName);

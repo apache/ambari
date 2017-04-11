@@ -165,10 +165,10 @@ public class ComponentResourceProviderTest {
         managementController, maintenanceStateHelper);
 
     // add the property map to a set for the request.  add more maps for multiple creates
-    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
     // Service 1: create a map of properties for the request
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     // add properties to the request map
     properties.put(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
@@ -217,7 +217,7 @@ public class ComponentResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     final ComponentInfo componentInfo1 = createNiceMock(ComponentInfo.class);
     final ComponentInfo componentInfo2 = createNiceMock(ComponentInfo.class);
-    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 1);
     serviceComponentStateCountMap.put("installedCount", 0);
     serviceComponentStateCountMap.put("installFailedCount", 0);
@@ -225,7 +225,7 @@ public class ComponentResourceProviderTest {
     serviceComponentStateCountMap.put("unknownCount", 1);
     serviceComponentStateCountMap.put("totalCount", 2);
 
-    Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> serviceComponentMap = new HashMap<>();
     serviceComponentMap.put("Component101", serviceComponent1);
     serviceComponentMap.put("Component102", serviceComponent2);
     serviceComponentMap.put("Component103", serviceComponent3);
@@ -272,7 +272,7 @@ public class ComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController, maintenanceStateHelper);
 
-    Set<String> propertyIds = new HashSet<String>();
+    Set<String> propertyIds = new HashSet<>();
 
     propertyIds.add(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID);
@@ -359,12 +359,12 @@ public class ComponentResourceProviderTest {
     RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
     StackId stackId = createNiceMock(StackId.class);
 
-    Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> serviceComponentMap = new HashMap<>();
     serviceComponentMap.put("Component101", serviceComponent1);
     serviceComponentMap.put("Component102", serviceComponent2);
     serviceComponentMap.put("Component103", serviceComponent3);
 
-    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 0);
     serviceComponentStateCountMap.put("installedCount", 1);
     serviceComponentStateCountMap.put("installFailedCount", 0);
@@ -439,7 +439,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.createAndPersistStages(capture(clusterCapture), capture(requestPropertiesCapture), capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture), capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
     )).andReturn(requestStatusResponse);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
 
@@ -455,7 +455,7 @@ public class ComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController, maintenanceStateHelper);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
     properties.put(ComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -679,10 +679,10 @@ public class ComponentResourceProviderTest {
     RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
     StackId stackId = createMock(StackId.class);
 
-    Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
+    Map<String, ServiceComponent> serviceComponentMap = new HashMap<>();
     serviceComponentMap.put("Component101", serviceComponent1);
 
-    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap<>();
     serviceComponentStateCountMap.put("startedCount", 0);
     serviceComponentStateCountMap.put("installedCount", 1);
     serviceComponentStateCountMap.put("installFailedCount", 0);
@@ -745,7 +745,7 @@ public class ComponentResourceProviderTest {
     expect(managementController.createAndPersistStages(capture(clusterCapture), capture(requestPropertiesCapture), capture(requestParametersCapture), capture(changedServicesCapture), capture(changedCompsCapture), capture(changedScHostsCapture), capture(ignoredScHostsCapture), anyBoolean(), anyBoolean()
     )).andReturn(requestStatusResponse);
 
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    Map<String, String> mapRequestProps = new HashMap<>();
     mapRequestProps.put("context", "Called from a test");
 
     // replay
@@ -759,7 +759,7 @@ public class ComponentResourceProviderTest {
         PropertyHelper.getKeyPropertyIds(type),
         managementController, maintenanceStateHelper);
 
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(true) /* recovery enabled */);
 
@@ -794,7 +794,7 @@ public class ComponentResourceProviderTest {
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
         null, String.valueOf(true /* recovery enabled */));
 
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
+    Set<ServiceComponentRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
 
     // expectations
@@ -862,7 +862,7 @@ public class ComponentResourceProviderTest {
     ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null,
               String.valueOf(true /* recovery enabled */));
 
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
+    Set<ServiceComponentRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
     setRequests.add(request2);
     setRequests.add(request3);
@@ -946,7 +946,7 @@ public class ComponentResourceProviderTest {
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
         null, String.valueOf(true /* recovery enabled */));
 
-    Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
+    Set<ServiceComponentRequest> setRequests = new HashSet<>();
     setRequests.add(request1);
 
     // expectations

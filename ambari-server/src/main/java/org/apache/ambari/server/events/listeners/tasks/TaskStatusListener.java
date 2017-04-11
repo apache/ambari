@@ -554,7 +554,7 @@ public class TaskStatusListener {
     private Set <Long> taskIds;
 
     //Map of roles to successFactors for this stage. Default is 1 i.e. 100%
-    private Map<Role, Float> successFactors = new HashMap<Role, Float>();
+    private Map<Role, Float> successFactors = new HashMap<>();
 
     public ActiveStage(HostRoleStatus status, HostRoleStatus displayStatus,
                        Map<Role, Float> successFactors, Boolean skippable, Set<Long> taskIds) {

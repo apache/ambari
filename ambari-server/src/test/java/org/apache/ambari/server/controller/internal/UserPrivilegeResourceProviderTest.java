@@ -400,10 +400,10 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
     users.setPrivilegeDAO(privilegeDAO);
     users.setMemberDAO(memberDAO);
 
-    List<PrincipalEntity> rolePrincipals = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> rolePrincipals = new LinkedList<>();
     rolePrincipals.add(rolePrincipalEntity);
 
-    List<PrincipalEntity> userPrincipals = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> userPrincipals = new LinkedList<>();
     userPrincipals.add(principalEntity);
 
     expect(privilegeDAO.findAllByPrincipal(userPrincipals)).
@@ -419,7 +419,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     replayAll();
 
-    final Set<String> propertyIds = new HashSet<String>();
+    final Set<String> propertyIds = new HashSet<>();
     propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
     final Predicate predicate = new PredicateBuilder()
       .property(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID)
@@ -462,7 +462,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
     users.setPrivilegeDAO(privilegeDAO);
     users.setMemberDAO(memberDAO);
 
-    List<PrincipalEntity> userPrincipals = new LinkedList<PrincipalEntity>();
+    List<PrincipalEntity> userPrincipals = new LinkedList<>();
     userPrincipals.add(principalEntity);
 
     expect(privilegeDAO.findAllByPrincipal(userPrincipals)).
@@ -495,7 +495,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
 
     UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO, users);
 
-    final Set<String> propertyIds = new HashSet<String>();
+    final Set<String> propertyIds = new HashSet<>();
     propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
 
     final Predicate predicate = new PredicateBuilder()

@@ -118,9 +118,9 @@ public class AmbariContextTest {
   private static final ConfigFactory configFactory = createNiceMock(ConfigFactory.class);
   private static final Service mockService1 = createStrictMock(Service.class);
 
-  private static final Collection<String> blueprintServices = new HashSet<String>();
-  private static final Map<String, Service> clusterServices = new HashMap<String, Service>();
-  private static final Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
+  private static final Collection<String> blueprintServices = new HashSet<>();
+  private static final Map<String, Service> clusterServices = new HashMap<>();
+  private static final Map<Long, ConfigGroup> configGroups = new HashMap<>();
   private Configuration bpConfiguration = null;
   private Configuration group1Configuration = null;
   private static final Collection<String> group1Hosts = Arrays.asList(HOST1, HOST2);
@@ -156,26 +156,26 @@ public class AmbariContextTest {
     f.set(null, hostComponentResourceProvider);
 
     // bp configuration
-    Map<String, Map<String, String>> bpProperties = new HashMap<String, Map<String, String>>();
-    Map<String, String> bpType1Props = new HashMap<String, String>();
+    Map<String, Map<String, String>> bpProperties = new HashMap<>();
+    Map<String, String> bpType1Props = new HashMap<>();
     bpProperties.put("type1", bpType1Props);
     bpType1Props.put("prop1", "val1");
     bpType1Props.put("prop2", "val2");
     bpConfiguration = new Configuration(bpProperties, null);
 
     // host group 1 configuration
-    Map<String, Map<String, String>> group1Properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> type1Props = new HashMap<String, String>();
+    Map<String, Map<String, String>> group1Properties = new HashMap<>();
+    Map<String, String> type1Props = new HashMap<>();
     group1Properties.put("type1", type1Props);
     type1Props.put("prop1", "val1.2");
     type1Props.put("prop3", "val3");
     group1Configuration = new Configuration(group1Properties, null, bpConfiguration);
 
-    Map<String, String> group1ResolvedProperties = new HashMap<String, String>(bpType1Props);
+    Map<String, String> group1ResolvedProperties = new HashMap<>(bpType1Props);
     group1ResolvedProperties.putAll(type1Props);
 
     // config type -> service mapping
-    Map<String, String> configTypeServiceMapping = new HashMap<String, String>();
+    Map<String, String> configTypeServiceMapping = new HashMap<>();
     configTypeServiceMapping.put("type1", "service1");
 
     // config groups
@@ -305,7 +305,7 @@ public class AmbariContextTest {
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequests.size());
-    Collection<String> servicesFound = new HashSet<String>();
+    Collection<String> servicesFound = new HashSet<>();
     for (ServiceRequest serviceRequest : serviceRequests) {
       servicesFound.add(serviceRequest.getServiceName());
       assertEquals(CLUSTER_NAME, serviceRequest.getClusterName());
@@ -315,13 +315,13 @@ public class AmbariContextTest {
 
     Collection<ServiceComponentRequest> serviceComponentRequests = serviceComponentRequestCapture.getValue();
     assertEquals(3, serviceComponentRequests.size());
-    Map<String, Collection<String>> foundServiceComponents = new HashMap<String, Collection<String>>();
+    Map<String, Collection<String>> foundServiceComponents = new HashMap<>();
     for (ServiceComponentRequest componentRequest : serviceComponentRequests) {
       assertEquals(CLUSTER_NAME, componentRequest.getClusterName());
       String serviceName = componentRequest.getServiceName();
       Collection<String> serviceComponents = foundServiceComponents.get(serviceName);
       if (serviceComponents == null) {
-        serviceComponents = new HashSet<String>();
+        serviceComponents = new HashSet<>();
         foundServiceComponents.put(serviceName, serviceComponents);
       }
       serviceComponents.add(componentRequest.getComponentName());
@@ -342,7 +342,7 @@ public class AmbariContextTest {
     Map<String, Object> installProperties = installPropertiesSet.iterator().next();
     assertEquals(CLUSTER_NAME, installProperties.get(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
     assertEquals("INSTALLED", installProperties.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID));
-    assertEquals(new EqualsPredicate<String>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
+    assertEquals(new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
         installPredicateCapture.getValue());
 
     Request startRequest = serviceStartRequestCapture.getValue();
@@ -351,7 +351,7 @@ public class AmbariContextTest {
     Map<String, Object> startProperties = startPropertiesSet.iterator().next();
     assertEquals(CLUSTER_NAME, startProperties.get(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
     assertEquals("STARTED", startProperties.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID));
-    assertEquals(new EqualsPredicate<String>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
+    assertEquals(new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
         installPredicateCapture.getValue());
   }
 
@@ -555,7 +555,7 @@ public class AmbariContextTest {
     testClusterEnvDesiredConfig.setTag(topologyResolvedState);
 
     Map<String, DesiredConfig> testDesiredConfigs =
-      new HashMap<String, DesiredConfig>();
+      new HashMap<>();
     testDesiredConfigs.put("hdfs-site", testHdfsDesiredConfig);
     testDesiredConfigs.put("core-site", testCoreSiteDesiredConfig);
     testDesiredConfigs.put("cluster-env", testClusterEnvDesiredConfig);
@@ -565,7 +565,7 @@ public class AmbariContextTest {
     replayAll();
 
     Set<String> testUpdatedConfigTypes =
-      new HashSet<String>();
+      new HashSet<>();
     testUpdatedConfigTypes.add("hdfs-site");
     testUpdatedConfigTypes.add("core-site");
     testUpdatedConfigTypes.add("cluster-env");

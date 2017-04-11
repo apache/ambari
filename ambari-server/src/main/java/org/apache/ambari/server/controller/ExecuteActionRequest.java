@@ -61,11 +61,11 @@ public class ExecuteActionRequest {
     this.clusterName = clusterName;
     this.commandName = commandName;
     this.actionName = null;
-    this.parameters = new HashMap<String, String>();
+    this.parameters = new HashMap<>();
     if (parameters != null) {
       this.parameters.putAll(parameters);
     }
-    this.resourceFilters = new ArrayList<RequestResourceFilter>();
+    this.resourceFilters = new ArrayList<>();
     this.exclusive = exclusive;
   }
 
@@ -107,13 +107,13 @@ public class ExecuteActionRequest {
 
   @Override
   public synchronized String toString() {
-    return (new StringBuilder()).
-        append("isCommand :" + isCommand().toString()).
-        append(", action :" + actionName).
-        append(", command :" + commandName).
-        append(", inputs :" + parameters.toString()).
-        append(", resourceFilters: " + resourceFilters).
-        append(", exclusive: " + exclusive).
-        append(", clusterName :" + clusterName).toString();
+    return new StringBuilder()
+      .append("isCommand :").append(isCommand())
+      .append(", action :").append(actionName)
+      .append(", command :").append(commandName)
+      .append(", inputs :").append(parameters)
+      .append(", resourceFilters: ").append(resourceFilters)
+      .append(", exclusive: ").append(exclusive)
+      .append(", clusterName :").append(clusterName).toString();
   }
 }

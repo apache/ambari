@@ -832,7 +832,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
-      Map<String, String> prop = new HashMap<String, String>();
+      Map<String, String> prop = new HashMap<>();
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {

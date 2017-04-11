@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="select-stack" class="wizard-content col-md-9">
+<div id="select-stack" class="wizard-content col-md-9" {{QAAttr "select-stack-page"}}>
   <h4 class="step-title">{{t installer.step1.header}}</h4>
   <p class="step-description">{{t installer.step1.body}}</p>
 
@@ -23,31 +23,29 @@
     <div class="panel-body">
       {{! left tabs }}
       <div class="tabs-menu">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" {{QAAttr "stack-tabs"}}>
           {{#each stack in availableStackTypes}}
-            <li {{bindAttr class="stack.isSelected:active"}}><a {{action "selectRepoInList" stack target="controller"}} href="#">{{stack.stackName}}</a></li>
+            <li {{bindAttr class="stack.isSelected:active"}} {{QAAttr "stack-tab"}}><a {{QAAttr "stack-link-{stack.stackName}"}} {{action "selectRepoInList" stack target="controller"}} href="#">{{stack.stackName}}</a></li>
           {{/each}}
         </ul>
       </div>
       <div class="stacks-options">
         <div class="details-panel">
-          <div class="version-info">
-            <div class="btn-group">
-              <button type="button" data-toggle="dropdown" class="btn dropdown-toggle btn-default">{{controller.selectedStack.displayName}} <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                {{#each stack in selectedStackType.stacks}}
-                  <li>
-                    {{!view view.stackRadioButton stackBinding="stack"}}
-                    <a href="#" {{action "changeVersion" stack target="controller"}}>{{stack.displayName}}
-                      {{#if stack.stackDefault}}
-                        ({{t installer.step1.changeVersion.defaultVersion}})
-                      {{/if}}
-                    </a>
-                  </li>
-                {{/each}}
-                <li><a href="#" {{action "uploadVdf" target="controller"}}>{{t installer.step1.addVersion}} ...</a></li>
-              </ul>
-            </div>
+          <div class="btn-group" {{QAAttr "select-version"}}>
+            <button type="button" data-toggle="dropdown" class="btn dropdown-toggle btn-default" {{QAAttr "select-version-button"}}>{{controller.selectedStack.displayName}} <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              {{#each stack in selectedStackType.stacks}}
+                <li>
+                  {{!view view.stackRadioButton stackBinding="stack"}}
+                  <a href="#" {{action "changeVersion" stack target="controller"}} {{QAAttr "{stack.displayName}"}}>{{stack.displayName}}
+                    {{#if stack.stackDefault}}
+                      ({{t installer.step1.changeVersion.defaultVersion}})
+                    {{/if}}
+                  </a>
+                </li>
+              {{/each}}
+              <li><a href="#" {{action "uploadVdf" target="controller"}} {{QAAttr "add-new-version"}}>{{t installer.step1.addVersion}} ...</a></li>
+            </ul>
           </div>
           <div class="version-contents-section">
             {{#unless servicesForSelectedStack}}
@@ -82,17 +80,17 @@
             <div class="row radio-group">
               {{! Public Repository radio }}
               <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}}>
-                {{view view.usePublicRepoRadioButton classNames="display-inline-block"}}
+                {{view view.usePublicRepoRadioButton classNames="display-inline-block" labelIdentifier="use-public-repo"}}
                 {{#if networkIssuesExist}}
                   <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
                 {{/if}}
               </div>
               {{!--Local repo radio--}}
-              {{view view.useLocalRepoRadioButton classNames="radio big-radio col-sm-4"}}
+              {{view view.useLocalRepoRadioButton classNames="radio big-radio col-sm-4" labelIdentifier="use-local-repo"}}
             </div>
             <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.baseUrl}}</div>
             {{#if view.showWarning}}
-              <div class="alert alert-warning">{{t installer.step1.attentionNeeded}}</div>
+              <div class="alert alert-warning" {{QAAttr "step1-warning"}}>{{t installer.step1.attentionNeeded}}</div>
             {{/if}}
 
             {{! OSes and Repositories }}
@@ -103,13 +101,14 @@
                   <div class="btn-group pull-right">
                     <button
                       type="button" {{bindAttr data-original-title="view.addOsButtonTooltip" class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
+                      {{QAAttr "add-os-button"}}
                       data-toggle="dropdown">
                       <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
                       {{#each operatingSystem in selectedStack.operatingSystems}}
                         {{#unless operatingSystem.isSelected}}
-                          <li><a {{action "addOS" operatingSystem target="controller"}}>{{operatingSystem.osType}}</a></li>
+                          <li><a {{action "addOS" operatingSystem target="controller"}} {{QAAttr "add-os-{operatingSystem.osType}"}}>{{operatingSystem.osType}}</a></li>
                         {{/unless}}
                       {{/each}}
                     </ul>
@@ -130,29 +129,31 @@
               <tbody>
                 {{#each operatingSystem in selectedStack.operatingSystems}}
                   {{#if operatingSystem.isSelected}}
-                    <tr>
-                      <td class="col-sm-2">{{operatingSystem.osType}}</td>
+                    <tr {{QAAttr "os-wrapper"}}>
+                      <td class="col-sm-2" {{QAAttr "os-type-label"}}>{{operatingSystem.osType}}</td>
                       <td class="col-sm-9" colspan="2">
-                        <table class="table table-condensed no-borders inner-table">
+                        <table class="table table-condensed no-borders inner-table" {{QAAttr "{operatingSystem.osType}"}}>
                           <tbody>
                             {{#each repository in operatingSystem.repositories}}
-                              <tr>
+                              <tr {{QAAttr "{repository.repoName}"}}>
                                 <td class="col-sm-3">{{repository.repoId}}</td>
                                 <td class="col-sm-1">
-                                  {{view view.popoverView repositoryBinding="repository"}}
+                                  {{view view.popoverView repositoryBinding="repository" data-qaBinding="repository.validation"}}
                                 </td>
                                 <td class="col-sm-8">
                                   <div {{bindAttr class=":repo-url repository.invalidFormatError:has-error repository.invalidError:has-error"}}>
-                                    {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
+                                    {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control" data-qa="repo-url-input"}}
                                     {{#if controller.selectedStack.usePublicRepo}}
                                       <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
                                         {{action "doRestoreDefaultValue" repository target="controller"}}
-                                        {{translateAttr title="common.undo"}}>
+                                        {{translateAttr title="common.undo"}}
+                                        {{QAAttr "undo-icon"}}>
                                       </i>
                                     {{else}}
                                       <i {{bindAttr class="repository.notEmpty::invisible :icon-undo"}}
                                         {{action "doRestoreToEmpty" repository target="controller"}}
-                                        {{translateAttr title="common.undo"}}>
+                                        {{translateAttr title="common.undo"}}
+                                        {{QAAttr "undo-icon"}}>
                                       </i>
                                     {{/if}}
                                   </div>
@@ -163,7 +164,7 @@
                         </table>
                       </td>
                       <td class="col-sm-1">
-                        <a class="action remove-icon" href="#" {{action "removeOS" operatingSystem target="view"}}>
+                        <a class="action remove-icon" href="#" {{action "removeOS" operatingSystem target="view"}} {{QAAttr "remove-icon"}}>
                           <span class="icon icon-minus"></span>
                             {{t common.remove}}
                         </a>
@@ -182,6 +183,7 @@
                 labelClassNamesBinding="controller.selectedStack.useRedhatSatellite:disabled"
                 checkedBinding="skipValidationChecked"
                 disabledBinding="controller.selectedStack.useRedhatSatellite"
+                labelIdentifier="skip-validation"
               }}
                 <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
                 data-toggle="tooltip" {{translateAttr data-original-title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
@@ -219,13 +221,13 @@
   </div>
 </div>
 <div class="wizard-footer col-md-12">
-  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+  <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}} {{QAAttr "wizard-back"}}>
     &larr; {{t common.back}}
     {{#if App.router.backBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
   </button>
-  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}}>
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action next}} {{QAAttr "wizard-next"}}>
     {{#if App.router.nextBtnClickInProgress}}
       {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
     {{/if}}
