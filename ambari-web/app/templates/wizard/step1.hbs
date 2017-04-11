@@ -129,7 +129,7 @@
               <tbody>
                 {{#each operatingSystem in selectedStack.operatingSystems}}
                   {{#if operatingSystem.isSelected}}
-                    <tr>
+                    <tr {{QAAttr "os-wrapper"}}>
                       <td class="col-sm-2" {{QAAttr "os-type-label"}}>{{operatingSystem.osType}}</td>
                       <td class="col-sm-9" colspan="2">
                         <table class="table table-condensed no-borders inner-table" {{QAAttr "{operatingSystem.osType}"}}>
