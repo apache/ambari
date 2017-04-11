@@ -26,13 +26,15 @@ __all__ = ['retry', 'safe_retry', ]
 from resource_management.core.logger import Logger
 
 
-def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception):
+def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, timeout_func=None):
   """
   Retry decorator for improved robustness of functions.
-  :param times: Number of times to attempt to call the function.
+  :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
   :param sleep_time: Initial sleep time between attempts
   :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
   :param err_class: Exception class to handle
+  :param timeout_func: used when the 'times' argument should be computed.  this function should
+         return an integer value that indicates the number of seconds to wait
   :return: Returns the output of the wrapped function.
   """
   def decorator(function):
@@ -42,6 +44,10 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
       _backoff_factor = backoff_factor
       _err_class = err_class
 
+      if timeout_func is not None:
+        timeout = timeout_func()
+        _times = timeout // sleep_time  # ensure we end up with an integer
+
       while _times > 1:
         _times -= 1
         try:
@@ -49,7 +55,8 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
         except _err_class, err:
           Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
           time.sleep(_sleep_time)
-        if(_sleep_time * _backoff_factor <= max_sleep_time):
+
+        if _sleep_time * _backoff_factor <= max_sleep_time:
           _sleep_time *= _backoff_factor
 
       return function(*args, **kwargs)
@@ -57,15 +64,17 @@ def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=E
   return decorator
 
 
-def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, return_on_fail=None):
+def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception, return_on_fail=None, timeout_func=None):
   """
   Retry decorator for improved robustness of functions. Instead of error generation on the last try, will return
   return_on_fail value.
-  :param times: Number of times to attempt to call the function.
+  :param times: Number of times to attempt to call the function.  Optionally specify the timeout_func.
   :param sleep_time: Initial sleep time between attempts
   :param backoff_factor: After every failed attempt, multiple the previous sleep time by this factor.
   :param err_class: Exception class to handle
   :param return_on_fail value to return on the last try
+  :param timeout_func: used when the 'times' argument should be computed.  this function should
+         return an integer value that indicates the number of seconds to wait
   :return: Returns the output of the wrapped function.
   """
   def decorator(function):
@@ -75,6 +84,10 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
       _backoff_factor = backoff_factor
       _err_class = err_class
       _return_on_fail = return_on_fail
+
+      if timeout_func is not None:
+        timeout = timeout_func()
+        _times = timeout // sleep_time  # ensure we end up with an integer
 
       while _times > 1:
         _times -= 1

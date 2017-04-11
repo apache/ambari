@@ -42,6 +42,12 @@ public abstract class Task {
   public boolean isSequential = false;
 
   /**
+   * The config property to check for timeout.
+   */
+  @XmlAttribute(name="timeout-config")
+  public String timeoutConfig = null;
+
+  /**
    * @return the type of the task
    */
   public abstract Type getType();
