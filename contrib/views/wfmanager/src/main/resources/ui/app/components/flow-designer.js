@@ -116,6 +116,7 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   isDraft: false,
   jobConfigProperties: Ember.A([]),
   saveJobService : Ember.inject.service('save-job'),
+  isDefaultNameForWFEnabled : false,
   initialize : function(){
     var id = 'cy-' + Math.ceil(Math.random() * 1000);
     this.set('cyId', id);
@@ -140,7 +141,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.restoreWorkflow();
       }
     }
-    if(Ember.isBlank(this.get('workflow.name'))){
+    /*
+       This block will enable/disable giving default name for workflow
+    */
+    if(Ember.isBlank(this.get('workflow.name')) && this.get('isDefaultNameForWFEnabled')) {
       this.set('workflow.name', Ember.copy(this.get('tabInfo.name')));
     }
   }.on('didInsertElement'),
