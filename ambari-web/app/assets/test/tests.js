@@ -226,6 +226,7 @@ var files = [
   'test/utils/number_utils_test',
   'test/utils/polling_test',
   'test/utils/validator_test',
+  'test/utils/stomp_client_test',
   'test/utils/config_test',
   'test/utils/string_utils_test',
   'test/utils/helper_test',

@@ -1,0 +1,172 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var App = require('app');
+
+module.exports = Em.Object.extend({
+  /**
+   * @type {Stomp}
+   */
+  client: null,
+
+  /**
+   * TODO set actual url
+   * @type string
+   */
+  webSocketUrl: 'ws://localhost:11080/stomp',
+
+  //TODO set actual url
+  sockJsUrl: 'http://localhost:11080/stomp',
+
+  /**
+   * @type {boolean}
+   */
+  isConnected: false,
+
+  /**
+   * @type {boolean}
+   */
+  isWebSocketSupported: true,
+
+  RECONNECT_TIMEOUT: 6000,
+
+  /**
+   * @type {object}
+   */
+  subscriptions: {},
+
+  /**
+   * default headers
+   * @type {object}
+   */
+  headers: {
+    "Authorization": "Basic " + btoa("admin:admin"),
+    "correlationId": 1,
+    "content-type": "text/plain"
+  },
+
+  connect: function(useSockJS) {
+    const dfd = $.Deferred();
+    const socket = this.getSocket(useSockJS);
+    const client = Stomp.over(socket);
+    const headers = this.get('headers');
+
+    client.connect(headers, () => {
+      this.onConnectionSuccess();
+      dfd.resolve();
+    }, () => {
+      this.onConnectionError();
+      dfd.reject();
+    });
+    client.debug = Em.K;
+    this.set('client', client);
+    return dfd.promise();
+  },
+
+  /**
+   *
+   * @param {boolean} useSockJS
+   * @returns {*}
+   */
+  getSocket: function(useSockJS) {
+    if (!WebSocket || useSockJS) {
+      this.set('isWebSocketSupported', false);
+      return new SockJS(this.get('sockJsUrl'));
+    } else {
+      return new WebSocket(this.get('webSocketUrl'));
+    }
+  },
+
+  onConnectionSuccess: function() {
+    this.set('isConnected', true);
+  },
+
+  onConnectionError: function() {
+    if (this.get('isConnected')) {
+      this.reconnect();
+    } else {
+      //if webSocket failed on initial connect then switch to SockJS
+      //TODO enable when SockJS API provided
+      //this.connect(true);
+    }
+  },
+
+  reconnect: function() {
+    const subscriptions = this.get('subscriptions');
+    setTimeout(() => {
+      console.debug('Reconnecting to WebSocket...');
+      this.connect().done(() => {
+        for (var i in subscriptions) {
+          subscriptions[i].unsubscribe();
+          this.subscribe(subscriptions[i].destination, subscriptions[i].callback);
+        }
+      });
+    }, this.RECONNECT_TIMEOUT);
+  },
+
+  disconnect: function () {
+    this.get('client').disconnect();
+  },
+
+  /**
+   *
+   * @param {string} destination
+   * @param {string} body
+   * @param {object} headers
+   */
+  send: function(destination, body, headers = {}) {
+    if (this.get('client.connected')) {
+      this.get('client').send(destination, headers, body);
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   *
+   * @param destination
+   * @param callback
+   * @returns {*}
+   */
+  subscribe: function(destination, callback = Em.K) {
+    if (!this.get('client.connected')) {
+      return null;
+    }
+    const subscription = this.get('client').subscribe(destination, (message) => {
+      callback(JSON.parse(message.body));
+    });
+    subscription.destination = destination;
+    subscription.callback = callback;
+    this.get('subscriptions')[destination] = subscription;
+    return subscription;
+  },
+
+  /**
+   *
+   * @param {string} destination
+   * @returns {boolean}
+   */
+  unsubscribe: function(destination) {
+    if (this.get('subscriptions')[destination]) {
+      this.get('subscriptions')[destination].unsubscribe();
+      delete this.get('subscriptions')[destination];
+      return true;
+    }
+    return false;
+  }
+});
