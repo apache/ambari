@@ -707,6 +707,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
    */
   getSupportedOSListSuccessCallback: function (response, request, data) {
     var self = this;
+    var stack_default = data.versionDefinition.VersionDefinition.stack_default;
     var existedOS = data.versionDefinition.operating_systems;
     var existedMap = {};
     existedOS.map(function (existedOS) {
@@ -720,8 +721,7 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
           repo.Repositories.base_url = '';
         });
         existedOS.push(supportedOS);
-      }
-      if(existedMap[supportedOS.OperatingSystems.os_type]) {
+      } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
         existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
           supportedOS.repositories.forEach(function (supportedRepo) {
             if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
@@ -753,16 +753,6 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
         } else {
           this.setSelected(data.stackInfo.isStacksExistInDb);
         }
-      }
-      // log diagnosis data for abnormal number of repos
-      var post_diagnosis = false;
-      data.versionDefinition.operating_systems.map(function(item) {
-        if (item.repositories.length > 2) {
-          post_diagnosis = true;
-        }
-      });
-      if (post_diagnosis) {
-        this.postUserPref('stack_response_diagnosis', data);
       }
     }
   },
