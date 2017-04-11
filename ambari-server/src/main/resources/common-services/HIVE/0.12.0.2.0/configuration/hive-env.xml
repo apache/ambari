@@ -117,7 +117,8 @@
     <name>hive_ambari_database</name>
     <value>MySQL</value>
     <description>Database type.</description>
-    <on-ambari-upgrade add="true"/>
+    <deleted>true</true>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive_database_name</name>
