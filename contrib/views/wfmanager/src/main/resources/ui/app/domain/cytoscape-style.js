@@ -28,6 +28,13 @@ var labelFunction=function(target) {
     return target.data().node.name;
   }
 };
+
+var actionNodeImage = function(target) {
+  if (target && target.data() && target.data().node && target.data().node.actionType) {
+    return 'assets/' + target.data().node.actionType + '.png';
+  }
+};
+
 export default Ember.Object.create({
   style: [
     {
@@ -100,7 +107,8 @@ export default Ember.Object.create({
     {
       selector: 'node[type = "action"]',
       style: {
-        'background-color': actionNodeColor,
+        'background-image': actionNodeImage,
+        'background-position-x': 10,
         width: 150
       }
     },
