@@ -207,6 +207,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var dependent = this.findProperty('serviceName', dependentService);
     if (selected && selected.get('isSelected') && dependent && !dependent.get('isSelected')) {
       this.serviceValidation(callback, dependentService, checkId);
+    } else {
+      var unNeededError = this.get('errorStack').filterProperty('id', checkId);
+      if (unNeededError) {
+        this.get('errorStack').removeObject(unNeededError[0]);
+      }
     }
   },
 
