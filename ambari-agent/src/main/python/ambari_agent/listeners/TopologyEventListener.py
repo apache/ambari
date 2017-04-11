@@ -18,5 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
-CORRELATION_ID_STRING = 'correlationId'
+import ambari_stomp
+
+class MyListener(ambari_stomp.ConnectionListener):
+  def on_message(self, headers, message):
+    print "Received {0}".format(message)

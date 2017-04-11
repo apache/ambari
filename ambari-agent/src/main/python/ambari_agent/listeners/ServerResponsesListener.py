@@ -18,5 +18,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
-CORRELATION_ID_STRING = 'correlationId'
+import logging
+import ambari_stomp
+
+from ambari_agent import Utils
+from ambari_agent.Constants import CORRELATION_ID_STRING
+
+logging = logging.getLogger(__name__)
+
+class ServerResponsesListener(ambari_stomp.ConnectionListener):
+  def __init__(self):
+    self.responses = Utils.BlockingDictionary()
+
+  def on_message(self, headers, message):
+    logging.debug("Received headers={0} ; message={1}".format(headers, message))
+
+    if CORRELATION_ID_STRING in headers:
+      self.responses.put(headers[CORRELATION_ID_STRING], message)
+    else:
+      logging.warn("Received a message from server without a '{0}' header. Ignoring the message".format(CORRELATION_ID_STRING))

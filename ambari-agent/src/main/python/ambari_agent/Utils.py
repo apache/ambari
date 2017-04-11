@@ -17,6 +17,43 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import threading
+
+class BlockingDictionary():
+  """
+  A dictionary like class.
+  Which allow putting an item. And retrieving it in blocking way (the caller is blocked until item is available).
+  """
+  def __init__(self, dictionary=None):
+    self.dict = {} if dictionary is None else dictionary
+    self.cv = threading.Condition()
+    self.put_event = threading.Event()
+    self.dict_lock = threading.RLock()
+
+  def put(self, key, value):
+    """
+    Thread-safe put to dictionary.
+    """
+    with self.dict_lock:
+      self.dict[key] = value
+    self.put_event.set()
+
+  def blocking_pop(self, key):
+    """
+    Block until a key in dictionary is available and than pop it.
+    """
+    while True:
+      self.put_event.wait()
+      self.put_event.clear()
+      with self.dict_lock:
+        if key in self.dict:
+          return self.dict.pop(key)
+
+  def __repr__(self):
+    return self.dict.__repr__()
+
+  def __str__(self):
+    return self.dict.__str__()
 
 class Utils(object):
   @staticmethod

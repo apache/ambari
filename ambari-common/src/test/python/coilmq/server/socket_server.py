@@ -4,6 +4,7 @@ The default/recommended SocketServer-based server implementation.
 import logging
 import socket
 import threading
+import Queue
 try:
     from socketserver import BaseRequestHandler, TCPServer, ThreadingMixIn
 except ImportError:
@@ -79,6 +80,7 @@ class StompRequestHandler(BaseRequestHandler, StompConnection):
                     self.buffer.append(data)
 
                     for frame in self.buffer:
+                        self.server.frames_queue.put(frame)
                         self.log.debug("Processing frame: %s" % frame)
                         self.engine.process_frame(frame)
                         if not self.engine.connected:
@@ -154,6 +156,7 @@ class StompServer(TCPServer):
         self.queue_manager = queue_manager
         self.topic_manager = topic_manager
         self.protocol = protocol
+        self.frames_queue = Queue.Queue()
         self._serving_event = threading.Event()
         self._shutdown_request_event = threading.Event()
         TCPServer.__init__(self, server_address, RequestHandlerClass)

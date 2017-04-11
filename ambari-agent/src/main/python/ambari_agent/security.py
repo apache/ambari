@@ -29,6 +29,7 @@ import pprint
 import traceback
 import hostname
 import platform
+import ambari_stomp
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,41 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
+# TODO STOMP: When server part is ready re-write this class by extending WsConnection.
+class StompConnector:
+  def __init__(self):
+    self.correlation_id = -1
+    self._connection = None
+
+  # TODO STOMP: re-init this on_disconnect
+  def _get_connection(self):
+    if not self._connection:
+      self._connection = self._create_new_connection()
+    return self._connection
+
+  def _create_new_connection(self, listener):
+    # Connection for unit tests. TODO STOMP: fix this
+    hosts = [('127.0.0.1', 21613)]
+    connection = ambari_stomp.Connection(host_and_ports=hosts)
+    connection.set_listener('my_listener', listener)
+    connection.start()
+    connection.connect(wait=True)
+
+    return connection
+
+  def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+    self.correlation_id += 1
+    self._get_connection().send(destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
+
+  def subscribe(self, *args, **kwargs):
+    self._get_connection().subscribe(*args, **kwargs)
+
+  def untrack_connection(self):
+    self.conn = None
+
+  def add_listener(self, listener):
+    pass
+    #self._get_connection().set_listener('my_listener', listener)
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """
@@ -254,7 +290,7 @@ class CertificateManager():
     generate_script = GEN_AGENT_KEY % {
       'hostname': hostname.hostname(self.config),
       'keysdir': keysdir}
-    
+
     logger.info(generate_script)
     if platform.system() == 'Windows':
       p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
