@@ -379,7 +379,7 @@ CREATE TABLE host_role_command (
   structured_out BLOB NULL,
   command_detail VARCHAR2(255) NULL,
   custom_command_name VARCHAR2(255) NULL,
-  is_background_command SMALLINT DEFAULT 0 NOT NULL,
+  is_background SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id));

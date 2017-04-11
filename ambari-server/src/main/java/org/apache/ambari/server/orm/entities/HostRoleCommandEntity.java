@@ -203,7 +203,7 @@ public class HostRoleCommandEntity {
   private TopologyLogicalTaskEntity topologyLogicalTaskEntity;
 
   @Basic
-  @Column(name = "is_background_command", nullable = false)
+  @Column(name = "is_background", nullable = false)
   private short isBackgroundCommand = 0;
 
   public Long getTaskId() {
