@@ -24,7 +24,7 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
   const width = '1570', height = '800';
 
   d3.select(selector).select('*').remove();
-
+  var isSingleReducer = isSingleReducerAvailable(data);
   const svg =
     d3.select(selector)
       .append('svg')
@@ -64,10 +64,10 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
       .attr('data-vertex', d => d._vertex);
 
   root
-    .call(recurseC, onRequestDetail);
+    .call(recurseC, onRequestDetail, isSingleReducer);
 
   root
-    .call(recurseV, onRequestDetail);
+    .call(recurseV, onRequestDetail, isSingleReducer);
 
   container.selectAll('path.edge')
     .data(data.connections)
@@ -79,8 +79,16 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
   reset(zoom, svg, container);
 
 }
-
-function recurseV(vertices, onRequestDetail) {
+function isSingleReducerAvailable(data){
+  let reducerCount = data.vertices.filter(function(item){
+    return item['_vertex'].indexOf("Reducer") === 0;
+  });
+  if(reducerCount && reducerCount.length === 1) {
+    return true;
+  }
+  return false;
+}
+function recurseV(vertices, onRequestDetail, isSingleReducer) {
   vertices.each(function(cVertx) {
     const vertex = d3.select(this);
 
@@ -95,14 +103,14 @@ function recurseV(vertices, onRequestDetail) {
         .style('transform', d => `translate(${d._widthOfSelf * 200}px, ${d._offsetY * 100}px)`);
 
       vertices
-        .call(recurseC, onRequestDetail);
+        .call(recurseC, onRequestDetail, isSingleReducer);
 
       vertices
-        .call(recurseV, onRequestDetail);
+        .call(recurseV, onRequestDetail, isSingleReducer);
   });
 }
 
-function recurseC(children, onRequestDetail) {
+function recurseC(children, onRequestDetail, isSingleReducer) {
   children.each(function(d) {
     const child = d3.select(this);
 
@@ -131,18 +139,18 @@ function recurseC(children, onRequestDetail) {
         .attr('width', 140)
           .append('xhtml:body')
         .style('margin', 0)
-          .html(d => getRenderer(d._operator)(d))
+          .html(d => getRenderer(d._operator, isSingleReducer)(d))
         .on('click', d => {
           const vertex = d3.select(Ember.$(d3.select(this).node()).closest('.vertex').get(0)).data()[0];
           onRequestDetail(doClean(d), vertex);
         });
 
       children
-        .call(recurseC, onRequestDetail);
+        .call(recurseC, onRequestDetail, isSingleReducer);
     });
 }
 
-function getRenderer(type) {
+function getRenderer(type, isSingleReducer) {
   if(type === 'Fetch Operator') {
     return (d => {
       return (`
@@ -151,7 +159,7 @@ function getRenderer(type) {
             <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
           </div>
           <div class='operator-body' style='margin-left: 10px;'>
-            <div>${getOperatorLabel(d)}</div>
+            <div>${getOperatorLabel(d, isSingleReducer)}</div>
             ${(d['limit:'] && d['limit:'] > -1) ? '<div><span style="font-weight: lighter;">Limit:</span> ' + d['limit:'] + ' </div>' : ''}
           </div>
         </div>
@@ -167,7 +175,7 @@ function getRenderer(type) {
           <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
         </div>
         <div class='operator-body' style='margin-left: 10px;'>
-          <div>${getOperatorLabel(d)}</div>
+          <div>${getOperatorLabel(d, isSingleReducer)}</div>
           ${stats}
         </div>
       </div>
@@ -180,9 +188,11 @@ function getNumberOfRows(statistics) {
   const match = statistics.match(/([^\?]*)\Num rows: (\d*)/);
   return (match.length === 3 && Number.isNaN(Number(match[2])) === false) ? match[2] : 0;
 }
-function getOperatorLabel(d) {
+function getOperatorLabel(d, isSingleReducer) {
   const operator = d._operator;
-
+  if(operator === 'Partition/Sort Pseudo-Edge' && isSingleReducer) {
+    return "Sort";
+  }
   if(operator === 'TableScan') {
     return d['alias:'];
   }
