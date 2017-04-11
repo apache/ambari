@@ -1314,6 +1314,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       String serviceName = wrapper.getTasks().get(0).getService();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), serviceName);
+
       params.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     }
@@ -1324,7 +1325,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);
 
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
+    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
@@ -1404,7 +1405,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         function, filters, commandParams);
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
+    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
@@ -1440,6 +1441,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+
     request.addStages(Collections.singletonList(stage));
   }
 
@@ -1464,7 +1466,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
 
-    actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
+    actionContext.setTimeout(wrapper.getMaxTimeout(s_configuration));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
 

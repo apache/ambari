@@ -40,13 +40,16 @@ public class TaskWrapperBuilder {
   private static Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
 
   /**
-   * Creates a collection of tasks based on the set of hosts they are allowed to run on
+   * Creates a collection of task wrappers based on the set of hosts they are allowed to run on
    * by analyzing the "hosts" attribute of any ExecuteTask objects.
+   *
    * @param service the service name for the tasks
    * @param component the component name for the tasks
    * @param hostsType the collection of sets along with their status
    * @param tasks collection of tasks
    * @param params additional parameters
+   *
+   * @return the task wrappers, one for each task that is passed with {@code tasks}
    */
   public static List<TaskWrapper> getTaskList(String service, String component, HostsType hostsType, List<Task> tasks, Map<String, String> params) {
     // Ok if Ambari Server is not part of the cluster hosts since this is only used in the calculation of how many batches

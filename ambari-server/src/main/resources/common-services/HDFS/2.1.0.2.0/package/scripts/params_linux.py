@@ -70,6 +70,8 @@ version = default("/commandParams/version", None)
 # are started using different commands.
 desired_namenode_role = default("/commandParams/desired_namenode_role", None)
 
+command_timeout = default("/commandParams/command_timeout", 900)
+
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
 
