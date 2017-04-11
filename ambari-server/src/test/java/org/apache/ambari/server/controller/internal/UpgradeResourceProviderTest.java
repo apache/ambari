@@ -42,9 +42,11 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
@@ -160,9 +162,10 @@ public class UpgradeResourceProviderTest {
 
     EasyMock.replay(configHelper);
 
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
+
     // create an injector which will inject the mocks
-    injector = Guice.createInjector(Modules.override(
-        new InMemoryDefaultTestModule()).with(new MockModule()));
+    injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
 
     H2DatabaseCleaner.resetSequences(injector);
     injector.getInstance(GuiceJpaInitializer.class);
@@ -250,9 +253,12 @@ public class UpgradeResourceProviderTest {
     sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
 
+    Configuration configuration = injector.getInstance(Configuration.class);
+    configuration.setProperty("upgrade.parameter.zk-server.timeout", "824");
+
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
-    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
+    StageUtils.setConfiguration(configuration);
     ActionManager.setTopologyManager(topologyManager);
     EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
@@ -1649,6 +1655,60 @@ public class UpgradeResourceProviderTest {
     // that the upgrade commands do get aborted
     hrcDAO.updateStatusByRequestId(requestId, HostRoleStatus.ABORTED,
         HostRoleStatus.IN_PROGRESS_STATUSES);
+  }
+
+  @Test
+  public void testTimeouts() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
+    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setDisplayName("My New Version 3");
+    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setStack(stackEntity);
+    repoVersionEntity.setVersion("2.2.2.3");
+    repoVersionDao.create(repoVersionEntity);
+
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.3");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+
+    ActionManager am = injector.getInstance(ActionManager.class);
+
+    List<HostRoleCommand> commands = am.getRequestTasks(id);
+
+    boolean found = false;
+
+    for (HostRoleCommand command : commands) {
+      ExecutionCommandWrapper wrapper = command.getExecutionCommandWrapper();
+
+      if (command.getRole().equals(Role.ZOOKEEPER_SERVER) && command.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND)) {
+        Map<String, String> commandParams = wrapper.getExecutionCommand().getCommandParams();
+        assertTrue(commandParams.containsKey(KeyNames.COMMAND_TIMEOUT));
+        assertEquals("824",commandParams.get(KeyNames.COMMAND_TIMEOUT));
+        found = true;
+      }
+    }
+
+    assertTrue("ZooKeeper timeout override was found", found);
+
   }
 
   /**

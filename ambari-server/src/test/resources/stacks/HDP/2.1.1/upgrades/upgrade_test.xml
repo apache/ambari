@@ -146,7 +146,7 @@
         </pre-upgrade>
         <pre-downgrade copy-upgrade="true" />
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.zk-server.timeout"/>
         </upgrade>
         <post-upgrade>
           <task xsi:type="configure" id="hdp_2_1_1_zookeeper_new_config_type" />
