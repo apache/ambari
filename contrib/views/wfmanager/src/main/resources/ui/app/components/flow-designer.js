@@ -723,10 +723,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   openJobConfig () {
     this.get('workflowContext').clearErrors();
-    var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
-    workflowContext:this.get('workflowContext')});
-    var workflowXml=workflowGenerator.process();
-    if(this.get('workflowContext').hasErrors()){
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var workflowXml = workflowGenerator.process();
+    if(this.get('workflowContext').hasErrors() || (this.get("validationErrors") && this.get("validationErrors").length)){
       this.set('errors',this.get('workflowContext').getErrors());
     }else{
       var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
