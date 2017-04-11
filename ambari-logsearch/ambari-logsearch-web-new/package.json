@@ -19,7 +19,9 @@
     "@angular/platform-browser": "^4.0.0",
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
+    "bootstrap": "^3.3.7",
     "core-js": "^2.4.1",
+    "ngx-bootstrap": "^1.6.6",
     "rxjs": "^5.1.0",
     "zone.js": "^0.8.4"
   },
@@ -28,6 +30,7 @@
     "@angular/compiler-cli": "^4.0.0",
     "@types/jasmine": "2.5.38",
     "@types/node": "~6.0.60",
+    "angular-in-memory-web-api": "^0.3.1",
     "codelyzer": "~2.0.0",
     "jasmine-core": "~2.5.2",
     "jasmine-spec-reporter": "~3.2.0",

@@ -16,29 +16,10 @@
  * limitations under the License.
  */
 
-import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
-import {InMemoryWebApiModule} from 'angular-in-memory-web-api';
-import {mockApiDataService} from './mock-api-data.service'
-import {AlertModule} from 'ngx-bootstrap';
+import {InMemoryDbService} from 'angular-in-memory-web-api';
 
-import {AppComponent} from './app.component';
-
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    HttpModule,
-    InMemoryWebApiModule.forRoot(mockApiDataService),
-    AlertModule.forRoot()
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule {
+export class mockApiDataService implements InMemoryDbService {
+  createDb() {
+    return {};
+  }
 }
