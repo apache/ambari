@@ -653,7 +653,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
       route: '/serviceAutoStart',
       enter: function(router, transition) {
-        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START')) {
+        if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.MANAGE_AUTO_START')) {
           router.transitionTo('main.dashboard.index');
         }
       },

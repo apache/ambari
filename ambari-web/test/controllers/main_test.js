@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var testHelpers = require('test/helpers');
 
 describe('App.MainController', function () {
   var mainController = App.MainController.create();
