@@ -37,7 +37,7 @@ export default Ember.Route.extend({
     return deferred.promise;
   },
   model : function(params){
-    return this.getJobInfo(Ember.ENV.API_URL+'/v2/job/'+params.id+'?show=info&timezone=GMT&offset=1').catch(function(){
+    return this.getJobInfo(Ember.ENV.API_URL+'/v2/job/'+params.id+'?show=info&timezone=GMT&offset=1&len='+1000).catch(function(){
         return {error : "Remote API Failed"};
       }).then(function(response){
       if (typeof response === "string") {
