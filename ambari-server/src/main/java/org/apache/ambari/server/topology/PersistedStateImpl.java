@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -399,10 +398,6 @@ public class PersistedStateImpl implements PersistedState {
       return hostGroupInfoMap;
     }
 
-    @Override
-    public List<TopologyValidator> getTopologyValidators() {
-      return Collections.emptyList();
-    }
 
     @Override
     public String getDescription() {
