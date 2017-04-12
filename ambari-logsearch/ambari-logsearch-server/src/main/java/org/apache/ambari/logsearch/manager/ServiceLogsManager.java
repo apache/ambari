@@ -72,6 +72,7 @@ import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
 import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
 import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
+import org.apache.ambari.logsearch.solr.SolrConstants;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
@@ -613,5 +614,9 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
     UpdateResponse updateResponse = serviceLogsSolrDao.deleteByQuery(solrQuery, "/service/logs");
     return new StatusMessage(updateResponse.getStatus());
+  }
+
+  public List<String> getClusters() {
+    return getClusters(serviceLogsSolrDao, CLUSTER, "/service/logs/clusters");
   }
 }

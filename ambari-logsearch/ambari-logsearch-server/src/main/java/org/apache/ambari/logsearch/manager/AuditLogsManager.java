@@ -71,6 +71,7 @@ import org.springframework.data.solr.core.query.SimpleFacetQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 
 @Named
 public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResponse> {
@@ -220,5 +221,9 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
     UpdateResponse updateResponse = auditSolrDao.deleteByQuery(solrQuery, "/audit/logs");
     return new StatusMessage(updateResponse.getStatus());
+  }
+
+  public List<String> getClusters() {
+    return getClusters(auditSolrDao, CLUSTER, "/audit/logs/clusters");
   }
 }
