@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,9 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class TopologyManager {
 
-  /** internal token for topology related async tasks */
+  /**
+   * internal token for topology related async tasks
+   */
   public static final String INTERNAL_AUTH_TOKEN = "internal_topology_token";
 
   public static final String INITIAL_CONFIG_TAG = "INITIAL";
@@ -134,6 +137,9 @@ public class TopologyManager {
 
   @Inject
   private SettingDAO settingDAO;
+
+  @Inject
+  private TopologyValidatorService topologyValidatorService;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -264,32 +270,35 @@ public class TopologyManager {
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
-    boolean configureSecurity = false;
+    SecurityType securityType = null;
+    Credential credential = null;
 
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-      configureSecurity = true;
+      securityType = SecurityType.KERBEROS;
       addKerberosClient(topology);
 
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint
-        ().getServices()));
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
 
-      // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
-      // upon host install task execution
-      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS, repoVersion);
-      if (securityConfiguration.getDescriptor() != null) {
-        submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
-      }
-
-      Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
+      credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
         throw new InvalidTopologyException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
       }
+    }
+
+    topologyValidatorService.validateTopologyConfiguration(topology);
+
+    // create resources
+    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
+
+    if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
+      submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
+    }
+
+    if (credential != null) {
       submitCredential(clusterName, credential);
-    } else {
-      ambariContext.createAmbariResources(topology, clusterName, null, repoVersion);
     }
 
     long clusterId = ambariContext.getClusterId(clusterName);
@@ -312,8 +321,8 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    addClusterConfigRequest(topology, new ClusterConfigurationRequest(
-      ambariContext, topology, true, stackAdvisorBlueprintProcessor, configureSecurity));
+    addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
+      stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
 
 
     // Notify listeners that cluster configuration finished

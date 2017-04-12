@@ -59,7 +59,7 @@ public class HiveServiceValidator implements TopologyValidator {
     }
 
     // hive database settings need the mysql-server component in the blueprint
-    if (!topology.getBlueprint().getServices().contains(MYSQL_SERVER_COMPONENT)) {
+    if (!topology.getBlueprint().getComponents(HIVE_SERVICE).contains(MYSQL_SERVER_COMPONENT)) {
       String errorMessage = String.format("Component [%s] must explicitly be set in the blueprint when hive database " +
         "is configured with the current settings. HIVE service validation failed.", MYSQL_SERVER_COMPONENT);
       LOGGER.error(errorMessage);

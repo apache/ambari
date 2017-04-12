@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,13 +67,6 @@ public interface TopologyRequest {
    * @return map of host group name to group info
    */
   Map<String, HostGroupInfo> getHostGroupInfo();
-
-  /**
-   * Get request topology validators.
-   *
-   * @return list of topology validators
-   */
-  List<TopologyValidator> getTopologyValidators();
 
   /**
    * Get request description.
