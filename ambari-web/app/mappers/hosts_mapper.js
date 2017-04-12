@@ -38,6 +38,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     cpu: 'Hosts.cpu_count',
     cpu_physical: 'Hosts.ph_cpu_count',
     memory: 'Hosts.total_mem',
+    has_jce_policy: "Hosts.last_agent_env.hasUnlimitedJcePolicy",
     disk_info: 'Hosts.disk_info',
     disk_total: 'metrics.disk.disk_total',
     disk_free: 'metrics.disk.disk_free',

@@ -2926,6 +2926,7 @@ public class Configuration {
     agentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
     agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
     agentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
+    agentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
 
     configsMap = new HashMap<>();
     configsMap.putAll(agentConfigsMap);

@@ -64,6 +64,8 @@ public class AgentEnv {
 
   private String firewallName;
 
+  private Boolean hasUnlimitedJcePolicy;
+
   private Boolean reverseLookup;
 
   public Boolean getReverseLookup() {
@@ -152,6 +154,10 @@ public class AgentEnv {
 
   public void setFirewallName(String firewallName) {
     this.firewallName = firewallName;
+  }
+
+  public Boolean getHasUnlimitedJcePolicy() {
+    return hasUnlimitedJcePolicy;
   }
 
   public static class HostHealth {

@@ -2620,6 +2620,7 @@ Em.I18n.translations = {
   'hosts.host.summary.header':'Summary',
   'hosts.host.summary.hostname':'Hostname',
   'hosts.host.summary.agentHeartbeat':'Heartbeat',
+  'hosts.host.summary.agentHasJce':'Unlimited JCE installed',
   'hosts.host.summary.hostMetrics':'Host Metrics',
   'hosts.host.summary.hostLogMetrics':'Host Log Metrics',
   'hosts.host.summary.addComponent':'Add Component',
