@@ -34,6 +34,8 @@
     <module>ambari-logsearch-server</module>
     <module>ambari-logsearch-web</module>
     <module>ambari-logsearch-logfeeder</module>
+    <module>ambari-logsearch-config-api</module>
+    <module>ambari-logsearch-config-zookeeper</module>
     <module>ambari-logsearch-it</module>
   </modules>
   <properties>

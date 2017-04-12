@@ -116,6 +116,12 @@ public class DocConstants {
     public static final String GET_ALL_USER_NAMES_OD = "Get all user names";
   }
 
+  public class ShipperConfigOperationDescriptions {
+    public static final String GET_SERVICE_NAMES = "Get service names";
+    public static final String GET_SHIPPER_CONFIG = "Get shipper config";
+    public static final String SET_SHIPPER_CONFIG = "Set shipper config";
+  }
+
   public class StatusOperationDescriptions {
     public static final String STATUS_OD = "Get statuses for collections (not health state - show true if something already done)";
     public static final String SERVICE_LOGS_STATUS_OD = "Get statuses for service log collection (not health state - show true if something already done)";

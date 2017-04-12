@@ -80,6 +80,9 @@ public class LogFeederUtil {
   }
   
   private static Properties props;
+  public static Properties getProperties() {
+    return props;
+  }
 
   /**
    * This method will read the properties from System, followed by propFile and finally from the map

@@ -1,0 +1,92 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "input":[
+    {
+      "type":"accumulo_gc",
+      "rowtype":"service",
+      "path":"{{default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')}}/gc_*.log"
+    },
+    {
+      "type":"accumulo_master",
+      "rowtype":"service",
+      "path":"{{default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')}}/master_*.log"
+    },
+    {
+      "type":"accumulo_monitor",
+      "rowtype":"service",
+      "path":"{{default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')}}/monitor_*.log"
+    },
+    {
+      "type":"accumulo_tracer",
+      "rowtype":"service",
+      "path":"{{default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')}}/tracer_*.log"
+    },
+    {
+      "type":"accumulo_tserver",
+      "rowtype":"service",
+      "path":"{{default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')}}/tserver_*.log"
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "accumulo_master"
+          ]
+        }
+      },
+      "log4j_format":"%d{ISO8601} [%-8c{2}] %-5p: %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{JAVACLASS:logger_name}\\]%{SPACE}%{LOGLEVEL:level}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    },
+    {
+      "filter":"grok",
+      "comment":"This one has one extra space after LEVEL",
+      "conditions":{
+        "fields":{
+          "type":[
+            "accumulo_gc",
+            "accumulo_monitor",
+            "accumulo_tracer",
+            "accumulo_tserver"
+          ]
+        }
+      },
+      "log4j_format":"%d{ISO8601} [%-8c{2}] %-5p: %X{application} %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}\\[%{JAVACLASS:logger_name}\\]%{SPACE}%{LOGLEVEL:level}%{SPACE}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

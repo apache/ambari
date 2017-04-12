@@ -25,6 +25,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -46,101 +47,163 @@ public class InputManager {
   private static final String CHECKPOINT_SUBFOLDER_NAME = "logfeeder_checkpoints";
   public static final String DEFAULT_CHECKPOINT_EXTENSION = ".cp";
   
-  private List<Input> inputList = new ArrayList<Input>();
+  private Map<String, List<Input>> inputs = new HashMap<>();
   private Set<Input> notReadyList = new HashSet<Input>();
 
   private boolean isDrain = false;
-  private boolean isAnyInputTail = false;
-
-  private File checkPointFolderFile = null;
-
-  private MetricData filesCountMetric = new MetricData("input.files.count", true);
 
   private String checkPointExtension;
-  
-  private Thread inputIsReadyMonitor = null;
+  private File checkPointFolderFile;
 
-  public List<Input> getInputList() {
-    return inputList;
+  private MetricData filesCountMetric = new MetricData("input.files.count", true);
+  
+  private Thread inputIsReadyMonitor;
+
+  public List<Input> getInputList(String serviceName) {
+    return inputs.get(serviceName);
   }
 
-  public void add(Input input) {
+  public void add(String serviceName, Input input) {
+    List<Input> inputList = inputs.get(serviceName);
+    if (inputList == null) {
+      inputList = new ArrayList<>();
+      inputs.put(serviceName, inputList);
+    }
     inputList.add(input);
+  }
+
+  public void removeInputsForService(String serviceName) {
+    List<Input> inputList = inputs.get(serviceName);
+    for (Input input : inputList) {
+      input.setDrain(true);
+    }
+    inputList.clear();
+    inputs.remove(serviceName);
   }
 
   public void removeInput(Input input) {
     LOG.info("Trying to remove from inputList. " + input.getShortDescription());
-    Iterator<Input> iter = inputList.iterator();
-    while (iter.hasNext()) {
-      Input iterInput = iter.next();
-      if (iterInput.equals(input)) {
-        LOG.info("Removing Input from inputList. " + input.getShortDescription());
-        iter.remove();
+    for (List<Input> inputList : inputs.values()) {
+      Iterator<Input> iter = inputList.iterator();
+      while (iter.hasNext()) {
+        Input iterInput = iter.next();
+        if (iterInput.equals(input)) {
+          LOG.info("Removing Input from inputList. " + input.getShortDescription());
+          iter.remove();
+        }
       }
     }
   }
 
   private int getActiveFilesCount() {
     int count = 0;
-    for (Input input : inputList) {
-      if (input.isReady()) {
-        count++;
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        if (input.isReady()) {
+          count++;
+        }
       }
     }
     return count;
   }
 
   public void init() {
+    initCheckPointSettings();
+    startMonitorThread();
+  }
+  
+  private void initCheckPointSettings() {
     checkPointExtension = LogFeederUtil.getStringProperty("logfeeder.checkpoint.extension", DEFAULT_CHECKPOINT_EXTENSION);
-    for (Input input : inputList) {
+    LOG.info("Determining valid checkpoint folder");
+    boolean isCheckPointFolderValid = false;
+    // We need to keep track of the files we are reading.
+    String checkPointFolder = LogFeederUtil.getStringProperty("logfeeder.checkpoint.folder");
+    if (!StringUtils.isEmpty(checkPointFolder)) {
+      checkPointFolderFile = new File(checkPointFolder);
+      isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
+    }
+    if (!isCheckPointFolderValid) {
+      // Let's try home folder
+      String userHome = LogFeederUtil.getStringProperty("user.home");
+      if (userHome != null) {
+        checkPointFolderFile = new File(userHome, CHECKPOINT_SUBFOLDER_NAME);
+        LOG.info("Checking if home folder can be used for checkpoints. Folder=" + checkPointFolderFile);
+        isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
+      }
+    }
+    if (!isCheckPointFolderValid) {
+      // Let's use tmp folder
+      String tmpFolder = LogFeederUtil.getStringProperty("java.io.tmpdir");
+      if (tmpFolder == null) {
+        tmpFolder = "/tmp";
+      }
+      checkPointFolderFile = new File(tmpFolder, CHECKPOINT_SUBFOLDER_NAME);
+      LOG.info("Checking if tmps folder can be used for checkpoints. Folder=" + checkPointFolderFile);
+      isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
+      if (isCheckPointFolderValid) {
+        LOG.warn("Using tmp folder " + checkPointFolderFile + " to store check points. This is not recommended." +
+            "Please set logfeeder.checkpoint.folder property");
+      }
+    }
+    
+    if (isCheckPointFolderValid) {
+      LOG.info("Using folder " + checkPointFolderFile + " for storing checkpoints");
+    }
+  }
+
+  private void startMonitorThread() {
+    inputIsReadyMonitor = new Thread("InputIsReadyMonitor") {
+      @Override
+      public void run() {
+        LOG.info("Going to monitor for these missing files: " + notReadyList.toString());
+        while (true) {
+          if (isDrain) {
+            LOG.info("Exiting missing file monitor.");
+            break;
+          }
+          try {
+            Iterator<Input> iter = notReadyList.iterator();
+            while (iter.hasNext()) {
+              Input input = iter.next();
+              try {
+                if (input.isReady()) {
+                  input.monitor();
+                  iter.remove();
+                }
+              } catch (Throwable t) {
+                LOG.error("Error while enabling monitoring for input. " + input.getShortDescription());
+              }
+            }
+            Thread.sleep(30 * 1000);
+          } catch (Throwable t) {
+            // Ignore
+          }
+        }
+      }
+    };
+    
+    inputIsReadyMonitor.start();
+  }
+  
+  public void startInputs(String serviceName) {
+    for (Input input : inputs.get(serviceName)) {
       try {
         input.init();
-        if (input.isTail()) {
-          isAnyInputTail = true;
+        if (input.isReady()) {
+          input.monitor();
+        } else {
+          if (input.isTail()) {
+            LOG.info("Adding input to not ready list. Note, it is possible this component is not run on this host. " +
+                "So it might not be an issue. " + input.getShortDescription());
+            notReadyList.add(input);
+          } else {
+            LOG.info("Input is not ready, so going to ignore it " + input.getShortDescription());
+          }
         }
       } catch (Exception e) {
         LOG.error("Error initializing input. " + input.getShortDescription(), e);
       }
     }
-
-    if (isAnyInputTail) {
-      LOG.info("Determining valid checkpoint folder");
-      boolean isCheckPointFolderValid = false;
-      // We need to keep track of the files we are reading.
-      String checkPointFolder = LogFeederUtil.getStringProperty("logfeeder.checkpoint.folder");
-      if (!StringUtils.isEmpty(checkPointFolder)) {
-        checkPointFolderFile = new File(checkPointFolder);
-        isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
-      }
-      if (!isCheckPointFolderValid) {
-        // Let's try home folder
-        String userHome = LogFeederUtil.getStringProperty("user.home");
-        if (userHome != null) {
-          checkPointFolderFile = new File(userHome, CHECKPOINT_SUBFOLDER_NAME);
-          LOG.info("Checking if home folder can be used for checkpoints. Folder=" + checkPointFolderFile);
-          isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
-        }
-      }
-      if (!isCheckPointFolderValid) {
-        // Let's use tmp folder
-        String tmpFolder = LogFeederUtil.getStringProperty("java.io.tmpdir");
-        if (tmpFolder == null) {
-          tmpFolder = "/tmp";
-        }
-        checkPointFolderFile = new File(tmpFolder, CHECKPOINT_SUBFOLDER_NAME);
-        LOG.info("Checking if tmps folder can be used for checkpoints. Folder=" + checkPointFolderFile);
-        isCheckPointFolderValid = verifyCheckPointFolder(checkPointFolderFile);
-        if (isCheckPointFolderValid) {
-          LOG.warn("Using tmp folder " + checkPointFolderFile + " to store check points. This is not recommended." +
-              "Please set logfeeder.checkpoint.folder property");
-        }
-      }
-
-      if (isCheckPointFolderValid) {
-        LOG.info("Using folder " + checkPointFolderFile + " for storing checkpoints");
-      }
-    }
-
   }
 
   private boolean verifyCheckPointFolder(File folderPathFile) {
@@ -171,70 +234,25 @@ public class InputManager {
     return checkPointFolderFile;
   }
 
-  public void monitor() {
-    for (Input input : inputList) {
-      if (input.isReady()) {
-        input.monitor();
-      } else {
-        if (input.isTail()) {
-          LOG.info("Adding input to not ready list. Note, it is possible this component is not run on this host. " +
-              "So it might not be an issue. " + input.getShortDescription());
-          notReadyList.add(input);
-        } else {
-          LOG.info("Input is not ready, so going to ignore it " + input.getShortDescription());
-        }
-      }
-    }
-    // Start the monitoring thread if any file is in tail mode
-    if (isAnyInputTail) {
-       inputIsReadyMonitor = new Thread("InputIsReadyMonitor") {
-        @Override
-        public void run() {
-          LOG.info("Going to monitor for these missing files: " + notReadyList.toString());
-          while (true) {
-            if (isDrain) {
-              LOG.info("Exiting missing file monitor.");
-              break;
-            }
-            try {
-              Iterator<Input> iter = notReadyList.iterator();
-              while (iter.hasNext()) {
-                Input input = iter.next();
-                try {
-                  if (input.isReady()) {
-                    input.monitor();
-                    iter.remove();
-                  }
-                } catch (Throwable t) {
-                  LOG.error("Error while enabling monitoring for input. " + input.getShortDescription());
-                }
-              }
-              Thread.sleep(30 * 1000);
-            } catch (Throwable t) {
-              // Ignore
-            }
-          }
-        }
-      };
-      inputIsReadyMonitor.start();
-    }
-  }
-
   void addToNotReady(Input notReadyInput) {
     notReadyList.add(notReadyInput);
   }
 
   public void addMetricsContainers(List<MetricData> metricsList) {
-    for (Input input : inputList) {
-      input.addMetricsContainers(metricsList);
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        input.addMetricsContainers(metricsList);
+      }
     }
     filesCountMetric.value = getActiveFilesCount();
     metricsList.add(filesCountMetric);
   }
 
   public void logStats() {
-    for (Input input : inputList) {
-      input.logStat();
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        input.logStat();
+      }
     }
 
     filesCountMetric.value = getActiveFilesCount();
@@ -308,14 +326,16 @@ public class InputManager {
 
   public void waitOnAllInputs() {
     //wait on inputs
-    for (Input input : inputList) {
-      if (input != null) {
-        Thread inputThread = input.getThread();
-        if (inputThread != null) {
-          try {
-            inputThread.join();
-          } catch (InterruptedException e) {
-            // ignore
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        if (input != null) {
+          Thread inputThread = input.getThread();
+          if (inputThread != null) {
+            try {
+              inputThread.join();
+            } catch (InterruptedException e) {
+              // ignore
+            }
           }
         }
       }
@@ -332,17 +352,21 @@ public class InputManager {
   }
 
   public void checkInAll() {
-    for (Input input : inputList) {
-      input.lastCheckIn();
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        input.lastCheckIn();
+      }
     }
   }
 
   public void close() {
-    for (Input input : inputList) {
-      try {
-        input.setDrain(true);
-      } catch (Throwable t) {
-        LOG.error("Error while draining. input=" + input.getShortDescription(), t);
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        try {
+          input.setDrain(true);
+        } catch (Throwable t) {
+          LOG.error("Error while draining. input=" + input.getShortDescription(), t);
+        }
       }
     }
     isDrain = true;
@@ -352,14 +376,16 @@ public class InputManager {
     int waitTimeMS = 1000;
     for (int i = 0; i < iterations; i++) {
       boolean allClosed = true;
-      for (Input input : inputList) {
-        if (!input.isClosed()) {
-          try {
-            allClosed = false;
-            LOG.warn("Waiting for input to close. " + input.getShortDescription() + ", " + (iterations - i) + " more seconds");
-            Thread.sleep(waitTimeMS);
-          } catch (Throwable t) {
-            // Ignore
+      for (List<Input> inputList : inputs.values()) {
+        for (Input input : inputList) {
+          if (!input.isClosed()) {
+            try {
+              allClosed = false;
+              LOG.warn("Waiting for input to close. " + input.getShortDescription() + ", " + (iterations - i) + " more seconds");
+              Thread.sleep(waitTimeMS);
+            } catch (Throwable t) {
+              // Ignore
+            }
           }
         }
       }
@@ -370,9 +396,11 @@ public class InputManager {
     }
     
     LOG.warn("Some inputs were not closed after " + iterations + " iterations");
-    for (Input input : inputList) {
-      if (!input.isClosed()) {
-        LOG.warn("Input not closed. Will ignore it." + input.getShortDescription());
+    for (List<Input> inputList : inputs.values()) {
+      for (Input input : inputList) {
+        if (!input.isClosed()) {
+          LOG.warn("Input not closed. Will ignore it." + input.getShortDescription());
+        }
       }
     }
   }

@@ -40,6 +40,9 @@ public class PropertiesHelper extends PropertyPlaceholderConfigurer {
   private static final String LOGSEARCH_PROP_FILE="logsearch.properties";
   
   private static Map<String, String> propertiesMap;
+  public static Map<String, String> getProperties() {
+    return propertiesMap;
+  }
 
   private PropertiesHelper() {
   }

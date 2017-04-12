@@ -35,6 +35,7 @@ import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.commons.collections.MapUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
@@ -46,10 +47,12 @@ public class InputSimulate extends Input {
   private static final String LOG_TEXT_PATTERN = "{ logtime=\"%d\", level=\"%s\", log_message=\"%s\", host=\"%s\"}";
   
   private static final Map<String, String> typeToFilePath = new HashMap<>();
+  private static List<String> inputTypes = new ArrayList<>();
   public static void loadTypeToFilePath(List<Map<String, Object>> inputList) {
     for (Map<String, Object> input : inputList) {
       if (input.containsKey("type") && input.containsKey("path")) {
         typeToFilePath.put((String)input.get("type"), (String)input.get("path"));
+        inputTypes.add((String)input.get("type"));
       }
     }
   }
@@ -90,13 +93,9 @@ public class InputSimulate extends Input {
   
   private List<String> getSimulatedLogTypes() {
     String logsToSimulate = LogFeederUtil.getStringProperty("logfeeder.simulate.log_ids");
-    if (logsToSimulate == null) {
-      return new ArrayList<>(typeToFilePath.keySet());
-    } else {
-      List<String> simulatedLogTypes = Arrays.asList(logsToSimulate.split(","));
-      simulatedLogTypes.retainAll(typeToFilePath.keySet());
-      return simulatedLogTypes;
-    }
+    return (logsToSimulate == null) ?
+      inputTypes :
+      Arrays.asList(logsToSimulate.split(","));
   }
 
   @Override
@@ -120,11 +119,12 @@ public class InputSimulate extends Input {
 
   @Override
   void start() throws Exception {
-    if (types.isEmpty())
-      return;
-    
     getFirstFilter().setOutputManager(outputManager);
     while (true) {
+      if (types.isEmpty()) {
+        try { Thread.sleep(sleepMillis); } catch(Exception e) { /* Ignore */ }
+        continue;
+      }
       String type = imitateRandomLogFile();
       
       String line = getLine();
@@ -139,7 +139,7 @@ public class InputSimulate extends Input {
   private String imitateRandomLogFile() {
     int typePos = random.nextInt(types.size());
     String type = types.get(typePos);
-    String filePath = typeToFilePath.get(type);
+    String filePath = MapUtils.getString(typeToFilePath, type, "path of " + type);
     
     configs.put("type", type);
     setFilePath(filePath);
