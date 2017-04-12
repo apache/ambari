@@ -23,16 +23,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.model.response.LogSearchResponse;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
+import org.apache.ambari.logsearch.util.SolrUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.springframework.data.solr.core.DefaultQueryParser;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.data.solr.core.query.SolrDataQuery;
+
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 
 public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE extends LogSearchResponse> extends JsonManagerBase {
   private static final Logger logger = Logger.getLogger(ManagerBase.class);
@@ -92,4 +100,26 @@ public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE
   protected abstract List<LOG_DATA_TYPE> convertToSolrBeans(QueryResponse response);
 
   protected abstract SEARCH_RESPONSE createLogSearchResponse();
+
+  protected List<String> getClusters(SolrDaoBase solrDaoBase, String clusterField, String event) {
+    List<String> clusterResponse = Lists.newArrayList();
+    SolrQuery solrQuery = new SolrQuery();
+    solrQuery.setQuery("*:*");
+    SolrUtil.setFacetField(solrQuery, clusterField);
+    SolrUtil.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
+
+    QueryResponse response = solrDaoBase.process(solrQuery, event);
+    if (response == null) {
+      return clusterResponse;
+    }
+    List<FacetField> clusterFields = response.getFacetFields();
+    if (CollectionUtils.isNotEmpty(clusterFields)) {
+      FacetField clusterFacets = clusterFields.get(0);
+      for (FacetField.Count clusterCount : clusterFacets.getValues()) {
+        clusterResponse.add(clusterCount.getName());
+      }
+    }
+    return clusterResponse;
+  }
+
 }

@@ -48,6 +48,7 @@ public class DocConstants {
   }
 
   public class AuditOperationDescriptions {
+    public static final String GET_AUDIT_CLUSTERS_OD = "Get all of the clusters for audit logs";
     public static final String GET_AUDIT_SCHEMA_FIELD_LIST_OD = "Get list of schema fields in audit collection";
     public static final String GET_AUDIT_LOGS_OD = "Get the list of logs details";
     public static final String PURGE_AUDIT_LOGS_OD = "Purge service logs based by criteria";
@@ -77,6 +78,7 @@ public class DocConstants {
   }
 
   public class ServiceOperationDescriptions {
+    public static final String GET_SERVICE_CLUSTERS_OD = "Get all of the clusters for service logs";
     public static final String SEARCH_LOGS_OD = "Searching logs entry";
     public static final String PURGE_LOGS_OD = "Purge service logs based by criteria";
     public static final String GET_HOSTS_OD = "Get the list of service hosts currently active or having data in Solr";
