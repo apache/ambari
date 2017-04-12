@@ -435,7 +435,7 @@ public class MaintenanceStateHelper {
    * {@link MaintenanceStateHelper#isOperationAllowed(org.apache.ambari.server.controller.spi.Resource.Type, Service)}
    * methods.
    */
-  public static interface HostPredicate {
+  public interface HostPredicate {
     /**
      * Gets whether the specified host should not be included in a result set.
      *
@@ -445,6 +445,6 @@ public class MaintenanceStateHelper {
      *         choice, {@code false} otherwise.
      * @throws AmbariException
      */
-    public boolean shouldHostBeRemoved(String hostname) throws AmbariException;
+    boolean shouldHostBeRemoved(String hostname) throws AmbariException;
   }
 }

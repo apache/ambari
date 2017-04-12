@@ -32,5 +32,5 @@ public interface SchemaManagerFactory {
    *
    * @return the schema manager
    */
-  public SchemaManager getSchemaManager(DatabaseSession session);
+  SchemaManager getSchemaManager(DatabaseSession session);
 }

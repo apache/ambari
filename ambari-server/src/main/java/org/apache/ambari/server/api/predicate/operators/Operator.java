@@ -26,7 +26,7 @@ public interface Operator {
   /**
    * Operator types.
    */
-  public enum TYPE {
+  enum TYPE {
     LESS,
     LESS_EQUAL,
     GREATER,
@@ -44,14 +44,14 @@ public interface Operator {
   /**
    * The highest base operator precedence level.
    */
-  public static final int MAX_OP_PRECEDENCE = 3;
+  int MAX_OP_PRECEDENCE = 3;
 
   /**
    * Get the operator type.
    *
    * @return the operator type
    */
-  public TYPE getType();
+  TYPE getType();
 
   /**
    * Obtain the precedence of the operator.
@@ -60,5 +60,5 @@ public interface Operator {
    *
    * @return  the precedence of this operator in it's current context
    */
-  public int getPrecedence();
+  int getPrecedence();
 }

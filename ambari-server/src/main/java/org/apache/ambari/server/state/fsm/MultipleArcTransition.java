@@ -34,6 +34,6 @@ public interface MultipleArcTransition
    *                state may change.
    * @param event causal event
    */
-  public STATE transition(OPERAND operand, EVENT event);
+  STATE transition(OPERAND operand, EVENT event);
 
 }

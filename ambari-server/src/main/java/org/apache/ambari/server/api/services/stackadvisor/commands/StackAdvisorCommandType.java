@@ -35,7 +35,7 @@ public enum StackAdvisorCommandType {
 
   private final String name;
 
-  private StackAdvisorCommandType(String name) {
+  StackAdvisorCommandType(String name) {
     this.name = name;
   }
 

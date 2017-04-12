@@ -22,5 +22,5 @@ public interface UpgradeFunction {
   /**
    * @return Return the function that the group must provide.
    */
-  public Task.Type getFunction();
+  Task.Type getFunction();
 }

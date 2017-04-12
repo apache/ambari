@@ -29,5 +29,5 @@ public interface Predicate {
    * @param resource the resource to evaluate the predicate against
    * @return the result of applying the predicate to the given resource
    */
-  public boolean evaluate(Resource resource);
+  boolean evaluate(Resource resource);
 }

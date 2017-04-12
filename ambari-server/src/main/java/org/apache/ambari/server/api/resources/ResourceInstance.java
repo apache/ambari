@@ -33,14 +33,14 @@ public interface ResourceInstance {
    *
    * @param keyValueMap  map of all parent foreign keys. Map from resource type to id value.
    */
-  public void setKeyValueMap(Map<Resource.Type, String> keyValueMap);
+  void setKeyValueMap(Map<Resource.Type, String> keyValueMap);
 
   /**
    * Obtain the primary and foreign key properties for the resource.
    *
    * @return map of primary and foreign key values keyed by resource type
    */
-  public Map<Resource.Type, String> getKeyValueMap();
+  Map<Resource.Type, String> getKeyValueMap();
 
   /**
    * Return the query associated with the resource.
@@ -48,7 +48,7 @@ public interface ResourceInstance {
    *
    * @return the associated query
    */
-  public Query getQuery();
+  Query getQuery();
 
   /**
    * Return the resource definition for this resource type.
@@ -57,7 +57,7 @@ public interface ResourceInstance {
    *
    * @return  the associated resource definition
    */
-  public ResourceDefinition getResourceDefinition();
+  ResourceDefinition getResourceDefinition();
 
   /**
    * Return all sub-resource instances.
@@ -66,12 +66,12 @@ public interface ResourceInstance {
    *
    * @return all sub-resource instances
    */
-  public Map<String, ResourceInstance> getSubResources();
+  Map<String, ResourceInstance> getSubResources();
 
   /**
    * Determine if resource is a collection resource.
    *
    * @return true if the resource is a collection resource; false otherwise
    */
-  public boolean isCollectionResource();
+  boolean isCollectionResource();
 }

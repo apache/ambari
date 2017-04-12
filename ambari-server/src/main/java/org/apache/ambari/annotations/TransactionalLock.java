@@ -60,7 +60,7 @@ public @interface TransactionalLock {
    * The area that the lock is being applied to. There is exactly 1
    * {@link ReadWriteLock} for every area defined.
    */
-  public enum LockArea {
+  enum LockArea {
     /**
      * Joinpoint lock around work performed on caching the host role command
      * status in a given stage and request.
@@ -89,7 +89,7 @@ public @interface TransactionalLock {
      *
      * @param configurationProperty
      */
-    private LockArea(String configurationProperty) {
+    LockArea(String configurationProperty) {
       m_configurationProperty = configurationProperty;
     }
 
@@ -134,7 +134,7 @@ public @interface TransactionalLock {
   /**
    * The type of lock which should be acquired.
    */
-  public enum LockType {
+  enum LockType {
     /**
      * Read Lock.
      */

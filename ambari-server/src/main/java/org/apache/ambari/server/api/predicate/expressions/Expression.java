@@ -43,47 +43,47 @@ public interface Expression<T> {
    *
    * @return a list of expressions after merging.  Do not return any null elements.
    */
-  public List<Expression> merge(Expression left, Expression right, int precedence);
+  List<Expression> merge(Expression left, Expression right, int precedence);
 
 
   /**
    * Get the predicate representation of the expression.
    * @return a predicate instance for the expression
    */
-  public Predicate toPredicate() throws InvalidQueryException;
+  Predicate toPredicate() throws InvalidQueryException;
 
   /**
    * Set the expressions left operand.
    *
    * @param left  the left operand
    */
-  public void setLeftOperand(T left);
+  void setLeftOperand(T left);
 
   /**
    * Set the expressions right operand.
    *
    * @param right  the right operand
    */
-  public void setRightOperand(T right);
+  void setRightOperand(T right);
 
   /**
    * Get the left operand expression.
    *
    * @return the left operand
    */
-  public T getLeftOperand();
+  T getLeftOperand();
 
   /**
    * Get the right operand expression.
    *
    * @return the right operand.
    */
-  public T getRightOperand();
+  T getRightOperand();
 
   /**
    * Get the expression operator.
    *
    * @return the logical operator for the expression
    */
-  public Operator getOperator();
+  Operator getOperator();
 }

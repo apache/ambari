@@ -18,6 +18,6 @@
 package org.apache.ambari.server.security.encryption;
 
 public interface MasterKeyService {
-  public char[] getMasterSecret();
-  public boolean isMasterKeyInitialized();
+  char[] getMasterSecret();
+  boolean isMasterKeyInitialized();
 }

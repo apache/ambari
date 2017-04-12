@@ -22,7 +22,7 @@ public interface MetricsServiceProvider {
   /**
    * Enumeration to distinguish metrics service installed for a cluster
    */
-  public enum MetricsService {
+  enum MetricsService {
     GANGLIA,
     TIMELINE_METRICS
   }
@@ -31,5 +31,5 @@ public interface MetricsServiceProvider {
    * Provide type of metrics service installed.
    * @return @MetricsService
    */
-  public MetricsService getMetricsServiceType();
+  MetricsService getMetricsServiceType();
 }

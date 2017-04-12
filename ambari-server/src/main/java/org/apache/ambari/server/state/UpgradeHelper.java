@@ -98,7 +98,7 @@ public class UpgradeHelper {
   /**
    * Enum used to define placeholder text for replacement
    */
-  private static enum Placeholder {
+  private enum Placeholder {
     /**
      * No placeholder defined
      */
@@ -154,7 +154,7 @@ public class UpgradeHelper {
     DIRECTION_VERB_PROPER("direction.verb.proper");
 
     private String pattern;
-    private Placeholder(String key) {
+    Placeholder(String key) {
       pattern = "{{" + key + "}}";
     }
 

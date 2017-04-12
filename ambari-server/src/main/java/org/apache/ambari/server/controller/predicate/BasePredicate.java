@@ -27,5 +27,5 @@ import org.apache.ambari.server.controller.spi.Predicate;
  * associated property ids.
  */
 public interface BasePredicate extends Predicate, PredicateVisitorAcceptor {
-  public Set<String> getPropertyIds();
+  Set<String> getPropertyIds();
 }

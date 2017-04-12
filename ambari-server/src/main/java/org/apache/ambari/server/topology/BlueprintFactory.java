@@ -228,7 +228,7 @@ public class BlueprintFactory {
    * simulate various Stack or error conditions.
    */
   interface StackFactory {
-      public Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
+      Stack createStack(String stackName, String stackVersion, AmbariManagementController managementController) throws AmbariException;
   }
 
   /**

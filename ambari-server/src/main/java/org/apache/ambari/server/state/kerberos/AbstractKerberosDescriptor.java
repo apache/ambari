@@ -222,7 +222,7 @@ public abstract class AbstractKerberosDescriptor {
     private final String descriptorName;
     private final String descriptorPluralName;
 
-    private Type(String descriptorName, String descriptorPluralName) {
+    Type(String descriptorName, String descriptorPluralName) {
       this.descriptorName = descriptorName;
       this.descriptorPluralName = descriptorPluralName;
     }

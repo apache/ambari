@@ -30,19 +30,19 @@ public interface Validable {
    * 
    * @return valid xml flag
    */
-  public boolean isValid();
+  boolean isValid();
 
   /**
    * 
    * @param valid set validity flag
    */
-  public void setValid(boolean valid);
+  void setValid(boolean valid);
   
-  public void addError(String error);
+  void addError(String error);
   
-  public void addErrors(Collection<String> errors);
+  void addErrors(Collection<String> errors);
   
-  public Collection<String> getErrors();
+  Collection<String> getErrors();
   
   
 }

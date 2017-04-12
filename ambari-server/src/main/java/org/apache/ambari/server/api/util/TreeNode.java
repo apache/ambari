@@ -29,42 +29,42 @@ public interface TreeNode<T> {
    *
    * @return the parent node or null if this node is the root
    */
-  public TreeNode<T> getParent();
+  TreeNode<T> getParent();
 
   /**
    * Obtain the list of child nodes.
    *
    * @return a list of child nodes or an empty list if a leaf node
    */
-  public Collection<TreeNode<T>> getChildren();
+  Collection<TreeNode<T>> getChildren();
 
   /**
    * Obtain the object associated with this node.
    *
    * @return the object associated with this node or null
    */
-  public T getObject();
+  T getObject();
 
   /**
    * Obtain the name of the node.
    *
    * @return the name of the node or null
    */
-  public String getName();
+  String getName();
 
   /**
    * Set the name of the node.
    *
    * @param name the name to set
    */
-  public void setName(String name);
+  void setName(String name);
 
   /**
    * Set the parent node.
    *
    * @param parent the parent node to set
    */
-  public void setParent(TreeNode<T> parent);
+  void setParent(TreeNode<T> parent);
 
   /**
    * Add a child node for the provided object.
@@ -73,7 +73,7 @@ public interface TreeNode<T> {
    * @param name  the name of the child node
    * @return the newly created child node
    */
-  public TreeNode<T> addChild(T child, String name);
+  TreeNode<T> addChild(T child, String name);
 
   /**
    * Add the specified child node.
@@ -81,7 +81,7 @@ public interface TreeNode<T> {
    * @param child the child node to add
    * @return the added child node
    */
-  public TreeNode<T> addChild(TreeNode<T> child);
+  TreeNode<T> addChild(TreeNode<T> child);
 
   /**
    * Remove a child from this resource.
@@ -90,7 +90,7 @@ public interface TreeNode<T> {
    *
    * @return the previous value associated with key, or null if there was no mapping for key
    */
-  public TreeNode<T> removeChild(String name);
+  TreeNode<T> removeChild(String name);
 
   /**
    * Set a property on the node.
@@ -98,7 +98,7 @@ public interface TreeNode<T> {
    * @param name  the name of the property
    * @param value the value of the property
    */
-  public void setProperty(String name, Object value);
+  void setProperty(String name, Object value);
 
   /**
    * Get the specified node property.
@@ -106,7 +106,7 @@ public interface TreeNode<T> {
    * @param name property name
    * @return the requested property value or null
    */
-  public Object getProperty(String name);
+  Object getProperty(String name);
 
   /**
    * Get the specified node property as a String.
@@ -114,14 +114,14 @@ public interface TreeNode<T> {
    * @param name property name
    * @return the requested property value (as a String) or null
    */
-  public String getStringProperty(String name);
+  String getStringProperty(String name);
 
   /**
    * Remove a property from the node.
    *
    * @param name  name of property to be removed
    */
-  public void removeProperty(String name);
+  void removeProperty(String name);
 
   /**
    * Find a child node by name.
@@ -132,5 +132,5 @@ public interface TreeNode<T> {
    *
    * @return the requested node or null if the child was not found
    */
-  public TreeNode<T> getChild(String name);
+  TreeNode<T> getChild(String name);
 }

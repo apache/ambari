@@ -200,7 +200,7 @@ public interface Cluster {
    * @param stackId the stack id
    * @param cascade {@code true} to cascade the desired version
    */
-  public void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
+  void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
 
 
   /**
@@ -437,7 +437,7 @@ public interface Cluster {
    * @param serviceName service name
    * @return
    */
-  public List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
+  List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
 
   /**
    * Get service config version history

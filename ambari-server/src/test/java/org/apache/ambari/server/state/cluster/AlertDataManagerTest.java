@@ -508,7 +508,7 @@ public class AlertDataManagerTest {
   /**
    * Test interface collects aggregate alert invocations
    */
-  private static interface TestListener {
-    public void catchIt(AlertReceivedEvent event);
+  private interface TestListener {
+    void catchIt(AlertReceivedEvent event);
   }
 }

@@ -200,7 +200,7 @@ public class StackAdvisorRequest {
 
     private String type;
 
-    private StackAdvisorRequestType(String type) {
+    StackAdvisorRequestType(String type) {
       this.type = type;
     }
 

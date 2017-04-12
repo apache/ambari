@@ -23,12 +23,12 @@ import org.quartz.Job;
  * Type of Quartz Job that can be executed by the @ExecutionScheduleManager
  */
 public interface ExecutionJob extends Job {
-  public static final String NEXT_EXECUTION_JOB_NAME_KEY = "ExecutionJob.Name";
-  public static final String NEXT_EXECUTION_JOB_GROUP_KEY = "ExecutionJob.Group";
-  public static final String NEXT_EXECUTION_SEPARATION_SECONDS =
+  String NEXT_EXECUTION_JOB_NAME_KEY = "ExecutionJob.Name";
+  String NEXT_EXECUTION_JOB_GROUP_KEY = "ExecutionJob.Group";
+  String NEXT_EXECUTION_SEPARATION_SECONDS =
     "ExecutionJob.SeparationMinutes";
-  public static final String LINEAR_EXECUTION_JOB_GROUP =
+  String LINEAR_EXECUTION_JOB_GROUP =
     "LinearExecutionJobs";
-  public static final String LINEAR_EXECUTION_TRIGGER_GROUP =
+  String LINEAR_EXECUTION_TRIGGER_GROUP =
     "LinearExecutionTriggers";
 }
