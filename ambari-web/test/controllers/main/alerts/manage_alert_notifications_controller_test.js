@@ -336,6 +336,9 @@ describe('App.ManageAlertNotificationsController', function () {
         port: {
           value: ''
         },
+        scriptDispatchProperty:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -401,6 +404,9 @@ describe('App.ManageAlertNotificationsController', function () {
           value: 'test1@test.test, test2@test.test'
         },
         port: {},
+        scriptDispatchProperty:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
         ]
@@ -495,6 +501,9 @@ describe('App.ManageAlertNotificationsController', function () {
         port: {
           value: ''
         },
+        scriptDispatchProperty:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -555,6 +564,9 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         port: {
           value: 161
+        },
+        scriptDispatchProperty:{
+          value: ''
         },
         customProperties: [
           {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
@@ -649,6 +661,9 @@ describe('App.ManageAlertNotificationsController', function () {
         port: {
           value: ''
         },
+        scriptDispatchProperty:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
           {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
@@ -708,12 +723,160 @@ describe('App.ManageAlertNotificationsController', function () {
         port: {
           value: 161
         },
+        scriptDispatchProperty:{
+          value: ''
+        },
         customProperties: [
           {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
         ]
       }));
 
-    })
+    });
+
+    it("should map properties from selectedAlertNotification to inputFields - ALERT_SCRIPT", function () {
+
+          controller.set('selectedAlertNotification', Em.Object.create({
+            name: 'test_alert_script',
+            global: true,
+            description: 'test_description',
+            groups: ['test1', 'test2'],
+            type: 'ALERT_SCRIPT',
+            alertStates: ['OK', 'UNKNOWN'],
+            properties: {
+              'ambari.dispatch-property.script': "com.mycompany.dispatch.syslog.script",
+              'customName': 'customValue'
+            }
+          }));
+
+          controller.set('inputFields', Em.Object.create({
+            name: {
+              value: ''
+            },
+            groups: {
+              value: []
+            },
+            global: {
+              value: false
+            },
+            allGroups: {
+              value: false
+            },
+            method: {
+              value: ''
+            },
+            email: {
+              value: ''
+            },
+            severityFilter: {
+              value: []
+            },
+            description: {
+              value: ''
+            },
+            SMTPServer: {
+              value: ''
+            },
+            SMTPPort: {
+              value: ''
+            },
+            SMTPUseAuthentication: {
+              value: ''
+            },
+            SMTPUsername: {
+              value: ''
+            },
+            SMTPPassword: {
+              value: ''
+            },
+            retypeSMTPPassword: {
+              value: ''
+            },
+            SMTPSTARTTLS: {
+              value: ''
+            },
+            emailFrom: {
+              value: ''
+            },
+            version: {
+              value: ''
+            },
+            OIDs: {
+              value: ''
+            },
+            community: {
+              value: ''
+            },
+            host: {
+              value: ''
+            },
+            port: {
+              value: ''
+            },
+            scriptDispatchProperty: {
+              value: ''
+            },
+            customProperties: [
+              {name: 'customName', value: 'customValue1', defaultValue: 'customValue1'},
+              {name: 'customName2', value: 'customValue1', defaultValue: 'customValue1'}
+            ]
+          }));
+
+          controller.fillEditCreateInputs();
+
+          expect(JSON.stringify(controller.get('inputFields'))).to.equal(JSON.stringify({
+            name: {
+              value: 'test_alert_script'
+            },
+            groups: {
+              value: ['test1', 'test2']
+            },
+            global: {
+              value: true,
+              disabled: true
+            },
+            allGroups: {
+              value: 'all'
+            },
+            method: {
+              value: 'Alert Script'
+            },
+            email: {
+              value: ''
+            },
+            severityFilter: {
+              value: ['OK', 'UNKNOWN']
+            },
+            description: {
+              value: 'test_description'
+            },
+            SMTPServer: {},
+            SMTPPort: {},
+            SMTPUseAuthentication: {
+              value: true
+            },
+            SMTPUsername: {},
+            SMTPPassword: {},
+            retypeSMTPPassword: {},
+            SMTPSTARTTLS: {
+              value: true
+            },
+            emailFrom: {},
+            version: {},
+            OIDs: {},
+            community: {},
+            host: {
+              value: ''
+            },
+            port: {},
+            scriptDispatchProperty: {
+               value: 'com.mycompany.dispatch.syslog.script'
+            },
+            customProperties: [
+              {name: 'customName', value: 'customValue', defaultValue: 'customValue'}
+            ]
+          }));
+
+        });
   });
 
   describe("#showCreateEditPopup()", function () {

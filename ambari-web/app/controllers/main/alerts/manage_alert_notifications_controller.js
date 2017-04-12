@@ -149,6 +149,11 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
+    scriptDispatchProperty: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.scriptDispatchProperty'),
+      value: '',
+      defaultValue: ''
+    },
     customProperties: Em.A([])
   }),
 
@@ -167,7 +172,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * used in Type combobox
    * @type {Array}
    */
-  methods: ['EMAIL', 'SNMP', 'Custom SNMP'],
+  methods: ['EMAIL', 'SNMP', 'Custom SNMP', 'Alert Script'],
 
   /**
    * List of available value for Severity Filter
@@ -283,7 +288,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     'mail.smtp.from',
     'mail.smtp.host',
     'mail.smtp.port',
-    'mail.smtp.starttls.enable'
+    'mail.smtp.starttls.enable',
+    'ambari.dispatch-property.script'
   ],
 
   validationMap: {
@@ -332,7 +338,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         errorKey: 'hostError',
         validator: 'hostsValidation'
       }
-    ]
+    ],
+    AlertScript:[]
   },
 
   /**
@@ -427,6 +434,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('severityFilter.value', selectedAlertNotification.get('alertStates'));
     inputFields.set('global.value', selectedAlertNotification.get('global'));
     inputFields.set('allGroups.value', selectedAlertNotification.get('global') ? 'all' : 'custom');
+    inputFields.set('scriptDispatchProperty.value', properties['ambari.dispatch-property.script'] || '');
     // not allow to edit global field
     inputFields.set('global.disabled', true);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
@@ -477,6 +485,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         isSNMPMethodSelected: Em.computed.equal('controller.inputFields.method.value', 'SNMP'),
 
         isCustomSNMPMethodSelected: Em.computed.equal('controller.inputFields.method.value', 'Custom SNMP'),
+
+        isAlertScriptMethodSelected: Em.computed.equal('controller.inputFields.method.value', 'Alert Script'),
 
         methodObserver: function () {
           var currentMethod = this.get('controller.inputFields.method.value'),
@@ -557,7 +567,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         hostsValidation: function() {
           var inputValue = this.get('controller.inputFields.host.value').trim(),
             hostError = false;
-          if (!this.get('isEmailMethodSelected')) {
+          if (!this.get('isEmailMethodSelected') && !this.get('isAlertScriptMethodSelected')) {
             var array = inputValue.split(',');
             hostError = array.some(function(hostname) {
               return hostname && !validator.isHostname(hostname.trim());
@@ -757,7 +767,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       properties['ambari.dispatch.snmp.community'] = inputFields.get('community.value');
       properties['ambari.dispatch.recipients'] = inputFields.get('host.value').replace(/\s/g, '').split(',');
       properties['ambari.dispatch.snmp.port'] = inputFields.get('port.value');
-    } else {
+    } else if(inputFields.get('method.value') === 'Custom SNMP') {
       properties['ambari.dispatch.snmp.version'] = inputFields.get('version.value');
       properties['ambari.dispatch.snmp.oids.trap'] = inputFields.get('OIDs.value');
       properties['ambari.dispatch.snmp.oids.subject'] = inputFields.get('OIDs.value');
@@ -765,6 +775,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       properties['ambari.dispatch.snmp.community'] = inputFields.get('community.value');
       properties['ambari.dispatch.recipients'] = inputFields.get('host.value').replace(/\s/g, '').split(',');
       properties['ambari.dispatch.snmp.port'] = inputFields.get('port.value');
+    }else if (inputFields.get('method.value') === 'Alert Script') {
+      var scriptDispatchProperty = inputFields.get('scriptDispatchProperty.value').trim();
+      if( scriptDispatchProperty != '')
+          properties['ambari.dispatch-property.script'] = scriptDispatchProperty;
     }
     inputFields.get('customProperties').forEach(function (customProperty) {
       properties[customProperty.name] = customProperty.value;
@@ -791,6 +805,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       notificationType = "SNMP";
     } else if(notificationType === "SNMP") {
       notificationType = "AMBARI_SNMP";
+    } else if(notificationType === "Alert Script"){
+      notificationType = "ALERT_SCRIPT";
     }
     return notificationType;
   },
@@ -801,6 +817,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       notificationTypeText = "Custom SNMP";
     } else if(notificationType === "AMBARI_SNMP") {
       notificationTypeText = "SNMP";
+    } else if(notificationType === "ALERT_SCRIPT"){
+      notificationTypeText = "Alert Script";
     }
     return notificationTypeText;
   },
