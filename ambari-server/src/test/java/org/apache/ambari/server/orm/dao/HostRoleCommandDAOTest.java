@@ -175,8 +175,6 @@ public class HostRoleCommandDAOTest {
    * @param hostEntity
    * @param requestEntity
    * @param status
-   * @param skipStage
-   * @param supportsAutoSkipOnFailure
    * @return
    */
   private void createStage(long startStageId, int count, HostEntity hostEntity,

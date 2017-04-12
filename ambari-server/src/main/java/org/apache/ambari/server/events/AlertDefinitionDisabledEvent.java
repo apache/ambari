@@ -35,7 +35,7 @@ public class AlertDefinitionDisabledEvent extends ClusterEvent {
    *
    * @param clusterId
    *          the ID of the cluster that the definition is in.
-   * @param definition
+   * @param definitionId
    *          the alert definition being registered.
    */
   public AlertDefinitionDisabledEvent(long clusterId, long definitionId) {

@@ -588,7 +588,7 @@ public class AlertReceivedListener {
    *          the definition to read any repeat tolerance overrides from.
    * @param state
    *          the state of the {@link AlertCurrentEntity}.
-   * @param the
+   * @param occurrences
    *          occurrences of the alert in the current state (used for
    *          calculation firmness when moving between non-OK states)
    * @return

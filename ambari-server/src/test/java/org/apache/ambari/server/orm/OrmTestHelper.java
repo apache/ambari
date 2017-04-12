@@ -431,10 +431,6 @@ public class OrmTestHelper {
     serviceComponentHost.setDesiredState(State.INSTALLED);
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   public void installHdfsService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
@@ -469,10 +465,6 @@ public class OrmTestHelper {
     sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   public void installYarnService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {

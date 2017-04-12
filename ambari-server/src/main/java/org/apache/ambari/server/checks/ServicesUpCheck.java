@@ -195,8 +195,6 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
    * purposes of this check. Component type, maintenance mode, and state are
    * taken into account.
    *
-   * @param clusters
-   *          the clusters instance
    * @param cluster
    *          the cluster
    * @param serviceComponent

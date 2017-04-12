@@ -608,8 +608,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Validates a singular API request.
    *
-   * @param requestMap
-   *          the map of properties
+   * @param upgradeContext the map of properties
    * @return the validated upgrade pack
    * @throws AmbariException
    */
@@ -1650,7 +1649,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * command was created. For upgrades, this is problematic since the commands
    * are all created ahead of time, but the upgrade may change configs as part
    * of the upgrade pack.</li>
-   * <li>{@link #COMMAND_PARAM_REQUEST_ID}</li> the ID of the request.
+   * <li>{@link UpgradeContext#COMMAND_PARAM_REQUEST_ID}</li> the ID of the request.
    * <ul>
    *
    * @return the initialized parameter map.

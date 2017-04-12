@@ -447,8 +447,6 @@ public class AlertDefinitionHash {
    *
    * @param clusterId
    *          the ID of the cluster.
-   * @param hosts
-   *          the hosts to push {@link AlertDefinitionCommand}s for.
    */
   public void enqueueAgentCommands(long clusterId) {
     String clusterName = null;

@@ -42,10 +42,10 @@ public class TaskWrapper {
   private Set<String> timeoutKeys = new HashSet<>();
 
   /**
-   * @param s the service name for the tasks
-   * @param c the component name for the tasks
-   * @param hosts the set of hosts that the tasks are for
-   * @param tasks an array of tasks as a convenience
+   * @param s the service name for the task
+   * @param c the component name for the task
+   * @param hosts the set of hosts that the task is for
+   * @param task a single task
    */
   public TaskWrapper(String s, String c, Set<String> hosts, Task task) {
     this(s, c, hosts, null, task);

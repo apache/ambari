@@ -376,10 +376,6 @@ public class EventsTest {
     Assert.assertEquals(AmbariEventType.CLUSTER_RENAME, ambariEvents.get(0).getType());
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install along with
-   * creating a single {@link Host} and {@link ServiceComponentHost}.
-   */
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);

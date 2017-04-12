@@ -80,7 +80,6 @@ public class ViewURLEntity {
 
   /**
    * Set the URL suffix
-   * @param URL suffix
      */
   public void setUrlSuffix(String urlSuffix) {
     this.urlSuffix = urlSuffix;

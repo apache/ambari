@@ -135,7 +135,7 @@ public class ExtensionDAO {
 
   /**
    * Creates or updates the specified entity. This method will check
-   * {@link ExtensionEntity#getStackId()} in order to determine whether the entity
+   * {@link ExtensionEntity#getExtensionId()} in order to determine whether the entity
    * should be created or merged.
    *
    * @param extension

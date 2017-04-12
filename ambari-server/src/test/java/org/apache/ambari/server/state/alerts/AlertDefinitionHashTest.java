@@ -275,7 +275,7 @@ public class AlertDefinitionHashTest extends TestCase {
   }
 
   /**
-   * Test {@link AlertDefinitionHash#isHashCached(String)}.
+   * Test {@link AlertDefinitionHash#isHashCached(String,String)}.
    */
   @Test
   public void testIsHashCached() {

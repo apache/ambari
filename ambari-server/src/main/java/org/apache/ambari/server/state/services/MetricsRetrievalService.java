@@ -281,7 +281,7 @@ public class MetricsRetrievalService extends AbstractService {
    * @param streamProvider
    *          the {@link StreamProvider} to use to read from the remote
    *          endpoint.
-   * @param jmxUrl
+   * @param url
    *          the URL to read from
    *
    * @see #getCachedJMXMetric(String)
@@ -399,7 +399,7 @@ public class MetricsRetrievalService extends AbstractService {
      *          the URLs which are currently waiting to be processed. This
      *          method will remove the specified URL from this {@link Set} when
      *          it completes (successful or not).
-     * @param m_ttlUrlCache
+     * @param ttlUrlCache
      *          an evicting cache which is used to determine if a request for a
      *          metric is too soon after the last request, or {@code null} if
      *          requests can be made sequentially without any separation.
@@ -501,7 +501,7 @@ public class MetricsRetrievalService extends AbstractService {
      *
      * @param throwable
      * @param url
-     * @return the key, such as {@value IOException-http://www.server.com/jmx}.
+     * @return the key, such as <code>IOException-http://www.server.com/jmx</code>.
      */
     private String buildCacheKey(Throwable throwable, String url) {
       if (null == throwable || null == url) {
