@@ -56,7 +56,7 @@ service_package_folder = config['commandParams']['service_package_folder']
 logsearch_service_name = service_name.lower().replace("_", "-")
 logsearch_config_file_name = 'input.config-' + logsearch_service_name + ".json"
 logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/templates/" + logsearch_config_file_name + ".j2"
-logsearch_config_file_exists = os.path.exists(logsearch_config_file_path)
+logsearch_config_file_exists = os.path.isfile(logsearch_config_file_path)
 
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"

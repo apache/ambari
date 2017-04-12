@@ -24,6 +24,7 @@ from stacks.utils.RMFTestCase import *
 from resource_management.libraries.functions import conf_select
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
+@patch("os.path.isfile", new = MagicMock(return_value=False))
 class TestHookAfterInstall(RMFTestCase):
 
   def test_hook_default(self):
@@ -40,7 +41,11 @@ class TestHookAfterInstall(RMFTestCase):
                               configurations = self.getConfig()['configurations']['core-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
                               only_if="ls /etc/hadoop/conf")
-
+    self.assertResourceCalled('Directory',
+                              '/etc/ambari-logsearch-logfeeder/conf',
+                              mode = 0755,
+                              cd_access = 'a',
+                              create_parents = True)
     self.assertNoMoreResources()
 
 
@@ -80,6 +85,12 @@ class TestHookAfterInstall(RMFTestCase):
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
       only_if="ls /usr/hdp/current/hadoop-client/conf")
+
+    self.assertResourceCalled('Directory',
+                              '/etc/ambari-logsearch-logfeeder/conf',
+                              mode = 0755,
+                              cd_access = 'a',
+                              create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
     for package, dir_defs in package_dirs.iteritems():
@@ -147,6 +158,12 @@ class TestHookAfterInstall(RMFTestCase):
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
       only_if="ls /usr/hdp/current/hadoop-client/conf")
+
+    self.assertResourceCalled('Directory',
+                              '/etc/ambari-logsearch-logfeeder/conf',
+                              mode = 0755,
+                              cd_access = 'a',
+                              create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
     for package, dir_defs in package_dirs.iteritems():
@@ -247,6 +264,12 @@ class TestHookAfterInstall(RMFTestCase):
       configurations = self.getConfig()['configurations']['core-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
       only_if="ls /usr/hdp/current/hadoop-client/conf")
+
+    self.assertResourceCalled('Directory',
+                              '/etc/ambari-logsearch-logfeeder/conf',
+                              mode = 0755,
+                              cd_access = 'a',
+                              create_parents = True)
 
     package_dirs = conf_select.get_package_dirs();
     for package, dir_defs in package_dirs.iteritems():
