@@ -279,7 +279,7 @@
   {{#global-config closeGlobalConfig="closeWorkflowGlobalProps" saveGlobalConfig="saveGlobalConfig" actionModel=globalConfig}}{{/global-config}}
 {{/if}}
 {{#if showingFileBrowser}}
-  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath}}
+  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath hideUpload=true}}
 {{/if}}
 {{#if showingActionSettingsFileBrowser}}
   {{hdfs-browser closeFileBrowser="closeActionSettingsFileBrowser" selectFileCallback=selectFileCallback filePath=actionSettingsFilePath}}
