@@ -18,13 +18,18 @@
 
 package org.apache.ambari.server.topology;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Singleton;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
@@ -46,13 +51,8 @@ import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Singleton;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
 
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
@@ -171,10 +171,10 @@ public class PersistedStateImpl implements PersistedState {
   public Map<ClusterTopology, List<LogicalRequest>> getAllRequests() {
     //todo: we only currently support a single request per ambari instance so there should only
     //todo: be a single cluster topology
-    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<ClusterTopology, List<LogicalRequest>>();
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
     Collection<TopologyRequestEntity> entities = topologyRequestDAO.findAll();
 
-    Map<Long, ClusterTopology> topologyRequests = new HashMap<Long, ClusterTopology>();
+    Map<Long, ClusterTopology> topologyRequests = new HashMap<>();
     for (TopologyRequestEntity entity : entities) {
       TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
       ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterId());
@@ -238,7 +238,7 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     // host groups
-    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<TopologyHostGroupEntity>();
+    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<>();
     for (HostGroupInfo groupInfo : request.getHostGroupInfo().values())  {
       hostGroupEntities.add(toEntity(groupInfo, entity));
     }
@@ -256,7 +256,7 @@ public class PersistedStateImpl implements PersistedState {
     entity.setTopologyRequestId(topologyRequestEntity.getId());
 
     // host requests
-    Collection<TopologyHostRequestEntity> hostRequests = new ArrayList<TopologyHostRequestEntity>();
+    Collection<TopologyHostRequestEntity> hostRequests = new ArrayList<>();
     entity.setTopologyHostRequestEntities(hostRequests);
     for (HostRequest hostRequest : request.getHostRequests()) {
       hostRequests.add(toEntity(hostRequest, entity));
@@ -275,7 +275,7 @@ public class PersistedStateImpl implements PersistedState {
         logicalRequestEntity.getTopologyRequestId(), request.getHostgroupName()));
 
     // logical tasks
-    Collection<TopologyHostTaskEntity> hostRequestTaskEntities = new ArrayList<TopologyHostTaskEntity>();
+    Collection<TopologyHostTaskEntity> hostRequestTaskEntities = new ArrayList<>();
     entity.setTopologyHostTaskEntities(hostRequestTaskEntities);
     // for now only worry about install and start tasks
     for (TopologyTask task : request.getTopologyTasks()) {
@@ -284,7 +284,7 @@ public class PersistedStateImpl implements PersistedState {
         hostRequestTaskEntities.add(topologyTaskEntity);
         topologyTaskEntity.setType(task.getType().name());
         topologyTaskEntity.setTopologyHostRequestEntity(entity);
-        Collection<TopologyLogicalTaskEntity> logicalTaskEntities = new ArrayList<TopologyLogicalTaskEntity>();
+        Collection<TopologyLogicalTaskEntity> logicalTaskEntities = new ArrayList<>();
         topologyTaskEntity.setTopologyLogicalTaskEntities(logicalTaskEntities);
         for (Long logicalTaskId : request.getLogicalTasksForTopologyTask(task).values()) {
           TopologyLogicalTaskEntity logicalTaskEntity = new TopologyLogicalTaskEntity();
@@ -312,7 +312,7 @@ public class PersistedStateImpl implements PersistedState {
     entity.setTopologyRequestEntity(topologyRequestEntity);
 
     // host info
-    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<TopologyHostInfoEntity>();
+    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<>();
     entity.setTopologyHostInfoEntities(hostInfoEntities);
 
     Collection<String> hosts = groupInfo.getHostNames();
@@ -355,7 +355,7 @@ public class PersistedStateImpl implements PersistedState {
     private final String description;
     private final Blueprint blueprint;
     private final Configuration configuration;
-    private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+    private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
 
     public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
@@ -398,10 +398,6 @@ public class PersistedStateImpl implements PersistedState {
       return hostGroupInfoMap;
     }
 
-    @Override
-    public List<TopologyValidator> getTopologyValidators() {
-      return Collections.emptyList();
-    }
 
     @Override
     public String getDescription() {

@@ -37,10 +37,10 @@ import org.apache.ambari.server.topology.TopologyValidator;
  */
 public class RequiredPasswordValidator implements TopologyValidator {
 
+  // todo remove the field as all the information is available in the topology being validated
   private String defaultPassword;
 
-  public RequiredPasswordValidator(String defaultPassword) {
-    this.defaultPassword = defaultPassword;
+  public RequiredPasswordValidator() {
   }
 
   /**
@@ -50,6 +50,8 @@ public class RequiredPasswordValidator implements TopologyValidator {
    *                                  default is specified via 'default_password'
    */
   public void validate(ClusterTopology topology) throws InvalidTopologyException {
+
+    defaultPassword = topology.getDefaultPassword();
     Map<String, Map<String, Collection<String>>> missingPasswords = validateRequiredPasswords(topology);
 
     if (! missingPasswords.isEmpty()) {

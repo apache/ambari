@@ -20,10 +20,6 @@ package org.apache.ambari.server.topology;
 
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.verify;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,20 +31,37 @@ import java.util.Map;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
+import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.TestSubject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * Unit tests for RequiredPasswordValidator.
  */
-public class RequiredPasswordValidatorTest {
+public class RequiredPasswordValidatorTest extends EasyMockSupport {
 
-  private static final ClusterTopology topology = createNiceMock(ClusterTopology.class);
-  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final Stack stack = createNiceMock(Stack.class);
-  private static final HostGroup group1 = createNiceMock(HostGroup.class);
-  private static final HostGroup group2 = createNiceMock(HostGroup.class);
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock
+  private ClusterTopology topology;
+
+  @Mock
+  private Blueprint blueprint;
+
+  @Mock
+  private Stack stack;
+
+  @Mock
+  private HostGroup group1;
+
+  @Mock
+  private HostGroup group2;
 
   private static Configuration stackDefaults;
   private static Configuration bpClusterConfig;
@@ -71,30 +84,33 @@ public class RequiredPasswordValidatorTest {
   private static final Collection<Stack.ConfigProperty> service2RequiredPwdConfigs = new HashSet<Stack.ConfigProperty>();
   private static final Collection<Stack.ConfigProperty> service3RequiredPwdConfigs = new HashSet<Stack.ConfigProperty>();
 
+  @TestSubject
+  private RequiredPasswordValidator validator = new RequiredPasswordValidator();
+
 
   @Before
   public void setup() {
 
     stackDefaults = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<String, Map<String, Map<String, String>>>());
 
     bpClusterConfig = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), stackDefaults);
+      new HashMap<String, Map<String, Map<String, String>>>(), stackDefaults);
 
     topoClusterConfig = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), bpClusterConfig);
+      new HashMap<String, Map<String, Map<String, String>>>(), bpClusterConfig);
 
     bpGroup1Config = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), topoClusterConfig);
+      new HashMap<String, Map<String, Map<String, String>>>(), topoClusterConfig);
 
     bpGroup2Config = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), topoClusterConfig);
+      new HashMap<String, Map<String, Map<String, String>>>(), topoClusterConfig);
 
     topoGroup1Config = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), bpGroup1Config);
+      new HashMap<String, Map<String, Map<String, String>>>(), bpGroup1Config);
 
     topoGroup2Config = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>(), bpGroup2Config);
+      new HashMap<String, Map<String, Map<String, String>>>(), bpGroup2Config);
 
     service1RequiredPwdConfigs.clear();
     service2RequiredPwdConfigs.clear();
@@ -149,45 +165,57 @@ public class RequiredPasswordValidatorTest {
     expect(stack.getRequiredConfigurationProperties("service2", PropertyInfo.PropertyType.PASSWORD)).andReturn(service2RequiredPwdConfigs).anyTimes();
     expect(stack.getRequiredConfigurationProperties("service3", PropertyInfo.PropertyType.PASSWORD)).andReturn(service3RequiredPwdConfigs).anyTimes();
 
-    replay(topology, blueprint, stack, group1, group2);
   }
 
   @After
   public void tearDown() {
-    verify(topology, blueprint, stack, group1, group2);
-    reset(topology, blueprint, stack, group1, group2);
+    verifyAll();
+    resetAll();
   }
 
 
   @Test
   public void testValidate_noRequiredProps__noDefaultPwd() throws Exception {
-    TopologyValidator validator = new RequiredPasswordValidator(null);
+    // GIVEN
     // no required pwd properties so shouldn't throw an exception
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
+    // WHEN
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_noRequiredProps__defaultPwd() throws Exception {
-    TopologyValidator validator = new RequiredPasswordValidator("pwd");
-    // no required pwd properties so shouldn't throw an exception
+    // GIVEN
+    expect(topology.getDefaultPassword()).andReturn("pwd");
+    replayAll();
+
+    // WHEN
     validator.validate(topology);
+
   }
 
   @Test(expected = InvalidTopologyException.class)
   public void testValidate_missingPwd__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service1RequiredPwdConfigs.add(pwdProp);
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
+
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_missingPwd__defaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn("default-pwd");
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service1RequiredPwdConfigs.add(pwdProp);
 
-    TopologyValidator validator = new RequiredPasswordValidator("default-pwd");
     // default value should be set
     validator.validate(topology);
 
@@ -197,62 +225,78 @@ public class RequiredPasswordValidatorTest {
 
   @Test
   public void testValidate_pwdPropertyInTopoGroupConfig__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service3RequiredPwdConfigs.add(pwdProp);
     // group2 has a component from service 3
     topoGroup2Config.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_pwdPropertyInTopoClusterConfig__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service3RequiredPwdConfigs.add(pwdProp);
     // group2 has a component from service 3
     topoClusterConfig.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_pwdPropertyInBPGroupConfig__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service3RequiredPwdConfigs.add(pwdProp);
     // group2 has a component from service 3
     bpGroup2Config.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
+
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_pwdPropertyInBPClusterConfig__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service3RequiredPwdConfigs.add(pwdProp);
     // group2 has a component from service 3
     bpClusterConfig.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
+
     validator.validate(topology);
   }
 
   @Test(expected = InvalidTopologyException.class)
   public void testValidate_pwdPropertyInStackConfig__NoDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn(null);
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     service3RequiredPwdConfigs.add(pwdProp);
     // group2 has a component from service 3
     stackDefaults.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
+
     // because stack config is ignored for validation, an exception should be thrown
     validator.validate(topology);
   }
 
   @Test
   public void testValidate_twoRequiredPwdOneSpecified__defaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn("default-pwd");
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     Stack.ConfigProperty pwdProp2 = new Stack.ConfigProperty("test2-type", "pwdProp2", null);
     service1RequiredPwdConfigs.add(pwdProp);
@@ -260,7 +304,6 @@ public class RequiredPasswordValidatorTest {
 
     topoClusterConfig.getProperties().put("test2-type", Collections.singletonMap("pwdProp2", "secret"));
 
-    TopologyValidator validator = new RequiredPasswordValidator("default-pwd");
     // default value should be set
     validator.validate(topology);
 
@@ -271,6 +314,9 @@ public class RequiredPasswordValidatorTest {
 
   @Test
   public void testValidate_twoRequiredPwdTwoSpecified__noDefaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn("default-pwd");
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     Stack.ConfigProperty pwdProp2 = new Stack.ConfigProperty("test2-type", "pwdProp2", null);
     service1RequiredPwdConfigs.add(pwdProp);
@@ -279,7 +325,6 @@ public class RequiredPasswordValidatorTest {
     topoClusterConfig.getProperties().put("test2-type", Collections.singletonMap("pwdProp2", "secret2"));
     topoClusterConfig.getProperties().put("test-type", Collections.singletonMap("pwdProp", "secret1"));
 
-    TopologyValidator validator = new RequiredPasswordValidator(null);
     // default value should be set
     validator.validate(topology);
 
@@ -290,12 +335,14 @@ public class RequiredPasswordValidatorTest {
 
   @Test
   public void testValidate_multipleMissingPwd__defaultPwd() throws Exception {
+    expect(topology.getDefaultPassword()).andReturn("default-pwd");
+    replayAll();
+
     Stack.ConfigProperty pwdProp = new Stack.ConfigProperty("test-type", "pwdProp", null);
     Stack.ConfigProperty pwdProp2 = new Stack.ConfigProperty("test2-type", "pwdProp2", null);
     service1RequiredPwdConfigs.add(pwdProp);
     service3RequiredPwdConfigs.add(pwdProp2);
 
-    TopologyValidator validator = new RequiredPasswordValidator("default-pwd");
     // default value should be set
     validator.validate(topology);
 

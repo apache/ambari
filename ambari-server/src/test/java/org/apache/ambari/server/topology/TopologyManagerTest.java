@@ -67,6 +67,7 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -159,6 +160,9 @@ public class TopologyManagerTest {
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
+
+  @Mock
+  private TopologyValidatorService topologyValidatorService;
 
   private final Configuration stackConfig = new Configuration(new HashMap<String, Map<String, String>>(),
       new HashMap<String, Map<String, Map<String, String>>>());
@@ -280,7 +284,6 @@ public class TopologyManagerTest {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
 
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
 
