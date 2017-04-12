@@ -27,32 +27,32 @@ public interface PageResponse {
    *
    * @return the iterable set of resources
    */
-  public Iterable<Resource> getIterable();
+  Iterable<Resource> getIterable();
 
   /**
    * Get the offset of the first resource of the page.
    *
    * @return the offset
    */
-  public int getOffset();
+  int getOffset();
 
   /**
    * Get the last resource before this page.
    *
    * @return the last resource before this page; null if this is the first page
    */
-  public Resource getPreviousResource();
+  Resource getPreviousResource();
 
   /**
    * Get the next resource after this page.
    *
    * @return the next resource after this page; null if this is the last page
    */
-  public Resource getNextResource();
+  Resource getNextResource();
 
   /**
    * Get the count of total resources without account for paging request.
    * @return total count
    */
-  public Integer getTotalResourceCount();
+  Integer getTotalResourceCount();
 }

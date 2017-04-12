@@ -199,6 +199,12 @@ def restart(args):
   start(args)
 
 
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def database_cleanup(args):
+  logger.info("Database cleanup.")
+  if args.silent:
+    stop(args)
+  db_cleanup(args)
 
 #
 # The Ambari Server status.
@@ -469,7 +475,7 @@ def init_parser_options(parser):
                     help="Print verbose status messages")
   parser.add_option("-s", "--silent",
                     action="store_true", dest="silent", default=False,
-                    help="Silently accepts default prompt values")
+                    help="Silently accepts default prompt values. For db-cleanup command, silent mode will stop ambari server.")
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
   parser.add_option('-y', '--suspend-start', action="store_true", dest='suspend_start', default=False,
@@ -759,7 +765,7 @@ def create_user_action_map(args, options):
         CHECK_DATABASE_ACTION: UserAction(check_database, options),
         ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
         SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
-        DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
+        DB_CLEANUP_ACTION: UserAction(database_cleanup, options),
         INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
         UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
         UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),

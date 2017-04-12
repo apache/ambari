@@ -31,7 +31,7 @@ public interface IvoryService {
    *
    * @param feed  the feed
    */
-  public void submitFeed(Feed feed);
+  void submitFeed(Feed feed);
 
   /**
    * Get a feed for the given name.
@@ -40,49 +40,49 @@ public interface IvoryService {
    *
    * @return a feed that matches the given name; null if none is found
    */
-  public Feed getFeed(String feedName);
+  Feed getFeed(String feedName);
 
   /**
    * Get all the known feed names.
    *
    * @return a list of feed names; may not be null
    */
-  public List<String> getFeedNames();
+  List<String> getFeedNames();
 
   /**
    * Update a feed based on the given {@link Feed} object.
    *
    * @param feed the feed object
    */
-  public void updateFeed(Feed feed);
+  void updateFeed(Feed feed);
 
   /**
    * Suspend the feed with the given feed name.
    *
    * @param feedName  the feed name
    */
-  public void suspendFeed(String feedName);
+  void suspendFeed(String feedName);
 
   /**
    * Resume the feed with the given feed name.
    *
    * @param feedName  the feed name
    */
-  public void resumeFeed(String feedName);
+  void resumeFeed(String feedName);
 
   /**
    * Schedule the feed with the given feed name.
    *
    * @param feedName  the feed name
    */
-  public void scheduleFeed(String feedName);
+  void scheduleFeed(String feedName);
 
   /**
    * Delete the feed with the given feed name.
    *
    * @param feedName the feed name
    */
-  public void deleteFeed(String feedName);
+  void deleteFeed(String feedName);
 
 
   // ----- Cluster operations ------------------------------------------------
@@ -92,7 +92,7 @@ public interface IvoryService {
    *
    * @param cluster  the cluster
    */
-  public void submitCluster(Cluster cluster);
+  void submitCluster(Cluster cluster);
 
   /**
    * Get a cluster for the given name.
@@ -101,28 +101,28 @@ public interface IvoryService {
    *
    * @return a cluster that matches the given name; null if none is found
    */
-  public Cluster getCluster(String clusterName);
+  Cluster getCluster(String clusterName);
 
   /**
    * Get all the known cluster names.
    *
    * @return a list of cluster names; may not be null
    */
-  public List<String> getClusterNames();
+  List<String> getClusterNames();
 
   /**
    * Update a cluster based on the given {@link Cluster} object.
    *
    * @param cluster  the cluster
    */
-  public void updateCluster(Cluster cluster);
+  void updateCluster(Cluster cluster);
 
   /**
    * Delete the cluster with the given name.
    *
    * @param clusterName  the cluster name
    */
-  public void deleteCluster(String clusterName);
+  void deleteCluster(String clusterName);
 
 
   // ----- Instance operations -----------------------------------------------
@@ -134,7 +134,7 @@ public interface IvoryService {
    *
    * @return the list of instances for the given feed
    */
-  public List<Instance> getInstances(String feedName); //read
+  List<Instance> getInstances(String feedName); //read
 
   /**
    * Suspend the instance for the given feed name and id.
@@ -142,7 +142,7 @@ public interface IvoryService {
    * @param feedName    the feed name
    * @param instanceId  the id
    */
-  public void suspendInstance(String feedName, String instanceId);
+  void suspendInstance(String feedName, String instanceId);
 
   /**
    * Resume the instance for the given feed name and id.
@@ -150,7 +150,7 @@ public interface IvoryService {
    * @param feedName    the feed name
    * @param instanceId  the id
    */
-  public void resumeInstance(String feedName, String instanceId);
+  void resumeInstance(String feedName, String instanceId);
 
   /**
    * Kill the instance for the given feed name and id.
@@ -158,5 +158,5 @@ public interface IvoryService {
    * @param feedName    the feed name
    * @param instanceId  the id
    */
-  public void killInstance(String feedName, String instanceId);
+  void killInstance(String feedName, String instanceId);
 }

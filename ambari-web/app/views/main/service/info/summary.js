@@ -135,13 +135,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.Persist, App.TimeRangeMixin,
     return result;
   }.property('controller.content'),
 
-  historyServerUI: function () {
-    var master = this.get('controller.content.hostComponents').findProperty('isMaster');
-    return App.singleNodeInstall
-      ? "http://" + App.singleNodeAlias + ":19888"
-      : "http://" + master.get("host.publicHostName") + ":19888";
-  }.property('controller.content'),
-
   /**
    * Property related to ZOOKEEPER service, is unused for other services
    * @return {Object}

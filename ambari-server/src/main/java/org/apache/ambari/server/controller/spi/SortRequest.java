@@ -27,17 +27,17 @@ public interface SortRequest {
   /**
    * Get a list of @SortRequestProperty.
    */
-  public List<SortRequestProperty> getProperties();
+  List<SortRequestProperty> getProperties();
 
   /**
    * Get a list of propertyIds
    */
-  public List<String> getPropertyIds();
+  List<String> getPropertyIds();
 
   /**
    * Enumeration for order of sorting
    */
-  public enum Order {
+  enum Order {
     ASC,
     DESC
   }

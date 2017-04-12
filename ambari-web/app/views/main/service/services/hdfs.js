@@ -113,10 +113,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.t('services.service.summary.notRunning');
   }.property("service.nameNodeStartTime"),
 
-  nodeWebUrl: function () {
-    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias :  this.get('service.nameNode.publicHostName')) + ":50070";
-  }.property('service.nameNode'),
-
   nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.hdfs.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   dfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityUsed'),

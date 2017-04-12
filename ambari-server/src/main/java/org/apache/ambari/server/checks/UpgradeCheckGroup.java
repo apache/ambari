@@ -99,7 +99,7 @@ public enum UpgradeCheckGroup {
    *
    * @param order
    */
-  private UpgradeCheckGroup(Float order) {
+  UpgradeCheckGroup(Float order) {
     m_order = order;
   }
 

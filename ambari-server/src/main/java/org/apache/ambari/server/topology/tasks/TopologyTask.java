@@ -26,7 +26,7 @@ public interface TopologyTask extends Runnable {
   /**
    * Task type.
    */
-  public enum Type {
+  enum Type {
     RESOURCE_CREATION,
     CONFIGURE,
     INSTALL,
@@ -38,5 +38,5 @@ public interface TopologyTask extends Runnable {
    *
    * @return the type of task
    */
-  public Type getType();
+  Type getType();
 }

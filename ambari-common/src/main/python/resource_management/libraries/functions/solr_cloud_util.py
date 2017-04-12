@@ -294,7 +294,6 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
   if it is then update the user-roles mapping for Solr (this will upgrade the solr_znode/security.json file).
   In case of custom security.json is used for infra-solr, this step will be skipped.
   """
-  sudo = AMBARI_SUDO_BINARY
   solr_hosts = default_config(config, "/clusterHostInfo/infra_solr_hosts", [])
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   solr_ssl_enabled = default_config(config, 'configurations/infra-solr-env/infra_solr_ssl_enabled', False)
@@ -316,10 +315,11 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
     hostname = config['hostname'].lower()
     solr_host = __get_random_solr_host(hostname, solr_hosts)
     solr_url = format("{solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization")
+    solr_user = config['configurations']['infra-solr-env']['infra_solr_user']
     solr_user_keytab = config['configurations']['infra-solr-env']['infra_solr_kerberos_keytab']
     solr_user_principal = config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'].replace('_HOST', hostname)
     solr_user_kinit_cmd = format("{kinit_path_local} -kt {solr_user_keytab} {solr_user_principal};")
-    solr_authorization_enabled_cmd=format("{sudo} {solr_user_kinit_cmd} {sudo} curl -k -s --negotiate -u : {solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization | grep authorization.enabled")
+    solr_authorization_enabled_cmd=format("{solr_user_kinit_cmd} curl -k -s --negotiate -u : {solr_protocol}://{solr_host}:{solr_port}/solr/admin/authorization | grep authorization.enabled")
 
     if len(new_service_principals) > 0:
       new_service_users = []
@@ -338,10 +338,11 @@ def add_solr_roles(config, roles = [], new_service_principals = [], tries = 30, 
       set_user_role_map['set-user-role'] = user_role_map
       set_user_role_json = json.dumps(set_user_role_map)
 
-      add_solr_role_cmd = format("{sudo} {solr_user_kinit_cmd} {sudo} curl -H 'Content-type:application/json' -d '{set_user_role_json}' -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {solr_url} | grep 200")
+      add_solr_role_cmd = format("{solr_user_kinit_cmd} curl -H 'Content-type:application/json' -d '{set_user_role_json}' -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {solr_url} | grep 200")
 
       Logger.info(format("Check authorization enabled command: {solr_authorization_enabled_cmd} \nSet user-role settings command: {add_solr_role_cmd}"))
       Execute(solr_authorization_enabled_cmd + " && "+ add_solr_role_cmd,
               tries=tries,
               try_sleep=try_sleep,
+              user=solr_user,
               logoutput=True)

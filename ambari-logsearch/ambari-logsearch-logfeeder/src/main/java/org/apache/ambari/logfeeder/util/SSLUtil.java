@@ -26,6 +26,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 public class SSLUtil {
   private static final Logger LOG = Logger.getLogger(SSLUtil.class);
@@ -120,10 +121,10 @@ public class SSLUtil {
     try {
       File pwdFile = new File(LOGFEEDER_CERT_DEFAULT_FOLDER, fileName);
       if (!pwdFile.exists()) {
-        FileUtils.writeStringToFile(pwdFile, LOGFEEDER_STORE_DEFAULT_PASSWORD);
+        FileUtils.writeStringToFile(pwdFile, LOGFEEDER_STORE_DEFAULT_PASSWORD, Charset.defaultCharset());
         return LOGFEEDER_STORE_DEFAULT_PASSWORD;
       } else {
-        return FileUtils.readFileToString(pwdFile);
+        return FileUtils.readFileToString(pwdFile, Charset.defaultCharset());
       }
     } catch (Exception e) {
       LOG.warn("Exception occurred during read/write password file for keystore/truststore.", e);

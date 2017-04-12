@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class SolrCollectionConfigurer implements SolrConfigurer {
+public class SolrCollectionConfigurer implements Configurer {
 
   private Logger LOG = LoggerFactory.getLogger(SolrCollectionConfigurer.class);
 

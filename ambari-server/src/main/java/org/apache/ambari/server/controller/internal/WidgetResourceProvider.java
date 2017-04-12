@@ -74,7 +74,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   public static final String WIDGET_METRICS_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "metrics");
   public static final String WIDGET_VALUES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "values");
   public static final String WIDGET_PROPERTIES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "properties");
-  public static enum SCOPE {
+  public enum SCOPE {
     CLUSTER,
     USER
   }

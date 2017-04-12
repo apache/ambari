@@ -412,7 +412,8 @@ App.HostComponentActionMap = {
         action: 'deleteService',
         context: ctx.get('serviceName'),
         label: Em.I18n.t('services.service.actions.deleteService'),
-        cssClass: 'glyphicon glyphicon-remove'
+        cssClass: 'glyphicon glyphicon-remove',
+        isHidden: !App.get('services.supportsDeleteViaUI').contains(ctx.get('serviceName')) //hide the menu item when the service has a custom behavior setting in its metainfo.xml to disallow Delete Services via UI
       },
       IMMEDIATE_STOP_HAWQ_SERVICE: {
         action: 'executeHawqCustomCommand',

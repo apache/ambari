@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.output;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +29,8 @@ import java.util.UUID;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.input.cache.LRUCache;
 import org.apache.ambari.logfeeder.logconfig.FilterLogData;
 import org.apache.ambari.logfeeder.metrics.MetricData;
-import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.MurmurHash;
 import org.apache.commons.lang3.StringUtils;
@@ -61,10 +58,6 @@ public class OutputManager {
 
   public void add(Output output) {
     this.outputs.add(output);
-  }
-
-  public void retainUsedOutputs(Collection<Output> usedOutputs) {
-    outputs.retainAll(usedOutputs);
   }
 
   public void init() throws Exception {

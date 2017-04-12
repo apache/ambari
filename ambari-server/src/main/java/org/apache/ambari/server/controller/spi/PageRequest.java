@@ -28,14 +28,14 @@ public interface PageRequest {
    *
    * @return the starting point
    */
-  public StartingPoint getStartingPoint();
+  StartingPoint getStartingPoint();
 
   /**
    * Get the desired page size.
    *
    * @return the page size; -1 means from the starting point to the end of the resource set
    */
-  public int getPageSize();
+  int getPageSize();
 
   /**
    * Get the offset (zero based) of the resource that should be used as the start or end
@@ -43,7 +43,7 @@ public interface PageRequest {
    *
    * @return the offset
    */
-  public int getOffset();
+  int getOffset();
 
   /**
    * Return the predicate that identifies the single resource to be used
@@ -51,12 +51,12 @@ public interface PageRequest {
    *
    * @return the associated predicate
    */
-  public Predicate getPredicate();
+  Predicate getPredicate();
 
   /**
    * The desired starting point of the page being requested.
    */
-  public enum StartingPoint {
+  enum StartingPoint {
     Beginning,      // start the page from the beginning of the resource set
     End,            // end the page at the end of the resource set
     OffsetStart,    // start the page from the associated offset point

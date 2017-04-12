@@ -31,7 +31,7 @@ public interface MetricHostProvider {
    *
    * @throws org.apache.ambari.server.controller.spi.SystemException if unable to get the metrics server host name
    */
-  public String getCollectorHostName(String clusterName, MetricsService service) throws SystemException;
+  String getCollectorHostName(String clusterName, MetricsService service) throws SystemException;
 
   /**
    * Get the host name for the given cluster name and component name.
@@ -42,7 +42,7 @@ public interface MetricHostProvider {
    * @throws org.apache.ambari.server.controller.spi.SystemException
    *          if unable to get the JMX host name
    */
-  public String getHostName(String clusterName, String componentName) throws SystemException;
+  String getHostName(String clusterName, String componentName) throws SystemException;
 
   /**
    * Get the metrics server port for the given cluster name.
@@ -53,7 +53,7 @@ public interface MetricHostProvider {
    *
    * @throws org.apache.ambari.server.controller.spi.SystemException if unable to get the metrics server port
    */
-  public String getCollectorPort(String clusterName, MetricsService service) throws SystemException;
+  String getCollectorPort(String clusterName, MetricsService service) throws SystemException;
 
   /**
    * Get the status of metrics server host for the given cluster name.
@@ -64,7 +64,7 @@ public interface MetricHostProvider {
    *
    * @throws SystemException if unable to get the status of metrics server host
    */
-  public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException;
+  boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException;
 
   /**
    * Get the status of metrics server component for the given cluster name.
@@ -75,5 +75,5 @@ public interface MetricHostProvider {
    *
    * @throws SystemException if unable to get the status of metrics server component
    */
-  public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException;
+  boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException;
 }

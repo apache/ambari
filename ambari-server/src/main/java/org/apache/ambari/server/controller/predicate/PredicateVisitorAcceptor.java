@@ -27,5 +27,5 @@ public interface PredicateVisitorAcceptor {
    *
    * @param visitor  the visitor
    */
-  public void accept(PredicateVisitor visitor);
+  void accept(PredicateVisitor visitor);
 }

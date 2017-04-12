@@ -278,6 +278,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setSelection(parent.getSelection());
     }
 
+    if(null == serviceInfo.getSupportDeleteViaUIField()){
+      serviceInfo.setSupportDeleteViaUI(parent.isSupportDeleteViaUI());
+    }
+
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices, extensions);

@@ -32,12 +32,12 @@ public interface ActionDBAccessor {
   /**
    * Given an action id of the form requestId-stageId, retrieve the Stage
    */
-  public Stage getStage(String actionId);
+  Stage getStage(String actionId);
 
   /**
    * Get all stages associated with a single request id
    */
-  public List<Stage> getAllStages(long requestId);
+  List<Stage> getAllStages(long requestId);
 
   /**
    * Gets the request entity by id.  Will not load the entire
@@ -62,12 +62,12 @@ public interface ActionDBAccessor {
    *
    * Returns the list of the aborted operations.
    */
-  public Collection<HostRoleCommandEntity> abortOperation(long requestId);
+  Collection<HostRoleCommandEntity> abortOperation(long requestId);
 
   /**
    * Mark the task as to have timed out
    */
-  public void timeoutHostRole(String host, long requestId, long stageId, String role);
+  void timeoutHostRole(String host, long requestId, long stageId, String role);
 
   /**
    * Mark the task as to have timed out
@@ -88,7 +88,7 @@ public interface ActionDBAccessor {
    *
    * @see HostRoleStatus#IN_PROGRESS_STATUSES
    */
-  public List<Stage> getFirstStageInProgressPerRequest();
+  List<Stage> getFirstStageInProgressPerRequest();
 
   /**
    * Returns all the pending stages in a request, including queued and not-queued. A stage is
@@ -101,14 +101,14 @@ public interface ActionDBAccessor {
    *
    * @see HostRoleStatus#IN_PROGRESS_STATUSES
    */
-  public List<Stage> getStagesInProgressForRequest(Long requestId);
+  List<Stage> getStagesInProgressForRequest(Long requestId);
 
   /**
    * Gets the number of commands in progress.
    *
    * @return the number of commands in progress.
    */
-  public int getCommandsInProgressCount();
+  int getCommandsInProgressCount();
 
   /**
    * Persists all tasks for a given request
@@ -135,19 +135,19 @@ public interface ActionDBAccessor {
   /**
    * For the given host, update all the tasks based on the command report
    */
-  public void updateHostRoleState(String hostname, long requestId,
-                                  long stageId, String role, CommandReport report);
+  void updateHostRoleState(String hostname, long requestId,
+                           long stageId, String role, CommandReport report);
 
   /**
    * Mark the task as to have been aborted
    */
-  public void abortHostRole(String host, long requestId, long stageId, String role);
+  void abortHostRole(String host, long requestId, long stageId, String role);
 
   /**
    * Mark the task as to have been aborted. Reason should be specified manually.
    */
-  public void abortHostRole(String host, long requestId, long stageId,
-                            String role, String reason);
+  void abortHostRole(String host, long requestId, long stageId,
+                     String role, String reason);
 
   /**
    * Return the last persisted Request ID as seen when the DBAccessor object
@@ -156,7 +156,7 @@ public interface ActionDBAccessor {
    *
    * @return Request Id seen at init time
    */
-  public long getLastPersistedRequestIdWhenInitialized();
+  long getLastPersistedRequestIdWhenInitialized();
 
   /**
    * Bulk update scheduled commands
@@ -171,37 +171,37 @@ public interface ActionDBAccessor {
   /**
    * Updates scheduled stage.
    */
-  public void hostRoleScheduled(Stage s, String hostname, String roleStr);
+  void hostRoleScheduled(Stage s, String hostname, String roleStr);
 
   /**
    * Given a request id, get all the tasks that belong to this request
    */
-  public List<HostRoleCommand> getRequestTasks(long requestId);
+  List<HostRoleCommand> getRequestTasks(long requestId);
 
   /**
    * Given a list of request ids, get all the tasks that belong to these requests
    */
-  public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds);
+  List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds);
 
   /**
    * Given a list of task ids, get all the host role commands
    */
-  public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
+  Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
 
   /**
    * Get a List of host role commands where the host, role and status are as specified
    */
-  public List<HostRoleCommand> getTasksByHostRoleAndStatus(String hostname, String role, HostRoleStatus status);
+  List<HostRoleCommand> getTasksByHostRoleAndStatus(String hostname, String role, HostRoleStatus status);
 
   /**
    * Get a List of host role commands where the role and status are as specified
    */
-  public List<HostRoleCommand> getTasksByRoleAndStatus(String role, HostRoleStatus status);
+  List<HostRoleCommand> getTasksByRoleAndStatus(String role, HostRoleStatus status);
 
   /**
    * Gets the host role command corresponding to the task id
    */
-  public HostRoleCommand getTask(long taskId);
+  HostRoleCommand getTask(long taskId);
 
   /**
    * Get first or last maxResults requests that are in the specified status
@@ -215,28 +215,28 @@ public interface ActionDBAccessor {
    * @return First or last maxResults request id's if ascOrder is true or false,
    *         respectively
    */
-  public List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder);
+  List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder);
 
   /**
    * Gets request contexts associated with the list of request id
    */
-  public Map<Long, String> getRequestContext(List<Long> requestIds);
+  Map<Long, String> getRequestContext(List<Long> requestIds);
 
   /**
    * Gets the request context associated with the request id
    */
-  public String getRequestContext(long requestId);
+  String getRequestContext(long requestId);
 
   /**
    * Gets request objects by ids
    */
-  public List<Request> getRequests(Collection<Long> requestIds);
+  List<Request> getRequests(Collection<Long> requestIds);
 
   /**
    * Resubmits a series of tasks
    * @param taskIds
    */
-  public void resubmitTasks(List<Long> taskIds);
+  void resubmitTasks(List<Long> taskIds);
 
 
 

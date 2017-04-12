@@ -36,7 +36,7 @@ var CytoscapeRenderer= Ember.Object.extend({
 
     // the default values of each option are outlined below:
     var defaults = {
-      zoomFactor: 2.0, // zoom factor per zoom tick
+      zoomFactor: 0.01, // zoom factor per zoom tick
       minZoom: 0.1, // min zoom level
       maxZoom: 10, // max zoom level
 

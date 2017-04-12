@@ -30,6 +30,7 @@ export default Ember.Component.extend({
       this.set("actionModel.configuration",{});
       this.set("actionModel.configuration.property", Ember.A([]));
     }
+    this.sendAction('register','globalConfigurations',this);
   }.on('init'),
   saveClicked : false,
   initialize : function(){
@@ -46,12 +47,16 @@ export default Ember.Component.extend({
     }.bind(this));
   }.on('didInsertElement'),
   actions : {
+    register(component, context){
+      this.set('nameValueContext', context);
+    },
     close (){
       this.$('#global_properties_dialog').modal('hide');
       this.set('saveClicked', false);
     },
     save(){
       this.$('#global_properties_dialog').modal('hide');
+      this.get("nameValueContext").trigger("bindInputPlaceholder");
       this.set('saveClicked', true);
     },
     openFileBrowser(model, context){

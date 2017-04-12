@@ -40,6 +40,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     is_service_with_widgets: 'is_service_with_widgets',
     required_services: 'required_services',
     service_check_supported: 'service_check_supported',
+    support_delete_via_ui: 'support_delete_via_ui',
     service_components_key: 'service_components',
     service_components_type: 'array',
     service_components: {

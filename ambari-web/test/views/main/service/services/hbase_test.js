@@ -86,27 +86,4 @@ describe('App.MainDashboardServiceHbaseView', function () {
     });
   });
 
-  describe("#hbaseMasterWebUrl", function() {
-
-    it("activeMaster is present", function() {
-      view.reopen({
-        activeMaster: Em.Object.create({
-          host: Em.Object.create({
-            publicHostName: 'host1'
-          })
-        })
-      });
-      App.set('singleNodeInstall', false);
-      view.propertyDidChange('hbaseMasterWebUrl');
-      expect(view.get('hbaseMasterWebUrl')).to.be.equal('http://host1:60010');
-    });
-    it("activeMaster is null", function() {
-      view.reopen({
-        activeMaster: null
-      });
-      view.propertyDidChange('hbaseMasterWebUrl');
-      expect(view.get('hbaseMasterWebUrl')).to.be.undefined;
-    });
-  });
-
 });

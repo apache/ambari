@@ -23,19 +23,19 @@ package org.apache.ambari.server.serveraction.kerberos;
  * for the Kerberos action (metadata) data files.
  */
 public interface KerberosIdentityDataFile extends KerberosDataFile {
-  public static final String DATA_FILE_NAME = "identity.dat";
+  String DATA_FILE_NAME = "identity.dat";
 
-  public static final String HOSTNAME = "hostname";
-  public static final String SERVICE = "service";
-  public static final String COMPONENT = "component";
-  public static final String PRINCIPAL = "principal";
-  public static final String PRINCIPAL_TYPE = "principal_type";
-  public static final String KEYTAB_FILE_PATH = "keytab_file_path";
-  public static final String KEYTAB_FILE_OWNER_NAME = "keytab_file_owner_name";
-  public static final String KEYTAB_FILE_OWNER_ACCESS = "keytab_file_owner_access";
-  public static final String KEYTAB_FILE_GROUP_NAME = "keytab_file_group_name";
-  public static final String KEYTAB_FILE_GROUP_ACCESS = "keytab_file_group_access";
-  public static final String KEYTAB_FILE_IS_CACHABLE = "keytab_file_is_cachable";
+  String HOSTNAME = "hostname";
+  String SERVICE = "service";
+  String COMPONENT = "component";
+  String PRINCIPAL = "principal";
+  String PRINCIPAL_TYPE = "principal_type";
+  String KEYTAB_FILE_PATH = "keytab_file_path";
+  String KEYTAB_FILE_OWNER_NAME = "keytab_file_owner_name";
+  String KEYTAB_FILE_OWNER_ACCESS = "keytab_file_owner_access";
+  String KEYTAB_FILE_GROUP_NAME = "keytab_file_group_name";
+  String KEYTAB_FILE_GROUP_ACCESS = "keytab_file_group_access";
+  String KEYTAB_FILE_IS_CACHABLE = "keytab_file_is_cachable";
 
 
 }

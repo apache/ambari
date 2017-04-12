@@ -2770,7 +2770,7 @@ public class Configuration {
      * Constructor.
      *
      */
-    private DatabaseType(String databaseType) {
+    DatabaseType(String databaseType) {
       m_databaseType = databaseType;
     }
 
@@ -2805,7 +2805,7 @@ public class Configuration {
      *
      * @param name
      */
-    private ConnectionPoolType(String name) {
+    ConnectionPoolType(String name) {
       m_name = name;
     }
 
@@ -5914,7 +5914,7 @@ public class Configuration {
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  static @interface ConfigurationMarkdown {
+  @interface ConfigurationMarkdown {
     /**
      * The base Markdown.
      *
@@ -5944,7 +5944,7 @@ public class Configuration {
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
-  private static @interface ClusterScale {
+  private @interface ClusterScale {
     ClusterSizeType clusterSize();
     String value();
   }

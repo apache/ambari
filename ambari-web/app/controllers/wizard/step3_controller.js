@@ -121,12 +121,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   }.property('content.hosts'),
 
   /**
-   * Timeout for "warning"-requests
-   * @type {number}
-   */
-  warningsTimeInterval: 60000,
-
-  /**
    * Are hosts warnings loaded
    * @type {bool}
    */
@@ -909,7 +903,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
         this.fitHeight();
       },
 
-      footerClass: App.WizardStep3HostWarningPopupFooter,
+      footerClass: App.WizardStep3HostWarningPopupFooter.reopen({
+        checkHostFinished: true
+      }),
 
       bodyClass: App.WizardStep3HostWarningPopupBody.reopen({
         checkHostFinished: true

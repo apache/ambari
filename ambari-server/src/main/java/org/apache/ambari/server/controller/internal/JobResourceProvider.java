@@ -177,7 +177,7 @@ public class JobResourceProvider extends
   /**
    * Simple interface for fetching jobs from db.
    */
-  public static interface JobFetcher {
+  public interface JobFetcher {
     /**
      * Fetch job resources.
      * 
@@ -191,8 +191,8 @@ public class JobResourceProvider extends
      *          the job id
      * @return a set of job resources
      */
-    public Set<Resource> fetchJobDetails(Set<String> requestedIds,
-        String clusterName, String workflowId, String jobId);
+    Set<Resource> fetchJobDetails(Set<String> requestedIds,
+                                  String clusterName, String workflowId, String jobId);
   }
 
   /**
@@ -315,7 +315,7 @@ public class JobResourceProvider extends
   /**
    * Enumeration of db fields for the job table.
    */
-  static enum JobFields {
+  enum JobFields {
     JOBID,
     JOBNAME,
     STATUS,

@@ -36,13 +36,19 @@ describe('App.WizardStep3HostWarningPopupFooter', function() {
 
   describe('#isUpdateInProgress', function() {
     var tests = Em.A([
-      {checksUpdateProgress: 0, e: false},
-      {checksUpdateProgress: 100, e: false},
-      {checksUpdateProgress: 50, e: true}
+      {checksUpdateProgress: 0, checkHostFinished: true, e: false},
+      {checksUpdateProgress: 100, checkHostFinished: true, e: false},
+      {checksUpdateProgress: 50, checkHostFinished: true, e: true},
+      {checksUpdateProgress: 0, checkHostFinished: false, e: true},
+      {checksUpdateProgress: 100, checkHostFinished: false, e: true},
+      {checksUpdateProgress: 50, checkHostFinished: false, e: true}
     ]);
     tests.forEach(function(test) {
       it(test.checksUpdateProgress, function() {
-        view.set('footerController.checksUpdateProgress', test.checksUpdateProgress);
+        view.setProperties({
+          'checkHostFinished': test.checkHostFinished,
+          'footerController.checksUpdateProgress': test.checksUpdateProgress
+        });
         expect(view.get('isUpdateInProgress')).to.equal(test.e);
       });
     });

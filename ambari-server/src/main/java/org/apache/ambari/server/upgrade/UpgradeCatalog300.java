@@ -23,8 +23,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -143,6 +145,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
+    updateLogSearchConfigs();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -287,5 +290,37 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     // if the above execution and committed the transaction, then we can remove
     // the cluster configuration mapping table
     dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
+  }
+  
+  /**
+   * Updates Log Search configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateLogSearchConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Collection<Config> configs = cluster.getAllConfigs();
+          for (Config config : configs) {
+            String configType = config.getType();
+            if (!configType.endsWith("-logsearch-conf")) {
+              continue;
+            }
+            
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("service_name");
+            removeProperties.add("component_mappings");
+            removeProperties.add("content");
+            
+            removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
+          }
+        }
+      }
+    }
   }
 }

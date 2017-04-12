@@ -304,9 +304,9 @@ class TestMetadataServer(RMFTestCase):
                                     action=['delete'],
                                     create_parents=True)
     kinit_path_local = get_kinit_path()
-    self.assertResourceCalled('Execute', "ambari-sudo.sh " + kinit_path_local + " -kt /etc/security/keytabs/ambari-infra-solr.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && ambari-sudo.sh "
-                              + kinit_path_local +" -kt /etc/security/keytabs/ambari-infra-solr.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; ambari-sudo.sh curl -H 'Content-type:application/json' -d '{\"set-user-role\": {\"atlas@EXAMPLE.COM\": [\"atlas_user\", \"ranger_audit_user\", \"dev\"]}}' -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
-                              logoutput = True, tries = 30, try_sleep = 10)
+    self.assertResourceCalled('Execute', kinit_path_local + " -kt /etc/security/keytabs/ambari-infra-solr.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -k -s --negotiate -u : http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep authorization.enabled && "
+                              + kinit_path_local +" -kt /etc/security/keytabs/ambari-infra-solr.keytab infra-solr/c6401.ambari.apache.org@EXAMPLE.COM; curl -H 'Content-type:application/json' -d '{\"set-user-role\": {\"atlas@EXAMPLE.COM\": [\"atlas_user\", \"ranger_audit_user\", \"dev\"]}}' -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://c6401.ambari.apache.org:8886/solr/admin/authorization | grep 200",
+                              logoutput = True, tries = 30, try_sleep = 10, user='solr')
 
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection vertex_index --config-set atlas_configs --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection edge_index --config-set atlas_configs --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')

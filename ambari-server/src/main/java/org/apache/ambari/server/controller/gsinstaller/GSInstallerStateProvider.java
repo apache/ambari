@@ -31,5 +31,5 @@ public interface GSInstallerStateProvider {
    *
    * @return true if the host component is healthy
    */
-  public boolean isHealthy(String hostName, String componentName);
+  boolean isHealthy(String hostName, String componentName);
 }

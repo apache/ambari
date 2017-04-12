@@ -46,7 +46,7 @@ public class HostHealthStatus {
     return healthReport;
   }
 
-  public static enum HealthStatus {
+  public enum HealthStatus {
     UNKNOWN,      // lost heartbeat
     HEALTHY,      // all masters and slaves are live
     UNHEALTHY,    // at least one master is dead

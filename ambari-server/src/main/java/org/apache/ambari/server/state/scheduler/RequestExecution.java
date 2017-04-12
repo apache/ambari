@@ -28,137 +28,137 @@ public interface RequestExecution {
    * Primary key of Request Execution
    * @return
    */
-  public Long getId();
+  Long getId();
 
   /**
    * Cluster name to which request schedule belongs
    * @return
    */
-  public String getClusterName();
+  String getClusterName();
 
   /**
    * Get the batch of requests along with batch settings
    * @return
    */
-  public Batch getBatch();
+  Batch getBatch();
 
   /**
    * Set batch of requests and batch settings
    */
-  public void setBatch(Batch batch);
+  void setBatch(Batch batch);
 
   /**
    * Get schedule for the execution
    * @return
    */
-  public Schedule getSchedule();
+  Schedule getSchedule();
 
   /**
    * Set schedule for the execution
    */
-  public void setSchedule(Schedule schedule);
+  void setSchedule(Schedule schedule);
 
   /**
    * Get @RequestScheduleResponse for this Request Execution
    * @return
    */
-  public RequestScheduleResponse convertToResponse();
+  RequestScheduleResponse convertToResponse();
 
   /**
    * Persist the Request Execution and schedule
    */
-  public void persist();
+  void persist();
 
   /**
    * Refresh entity from DB.
    */
-  public void refresh();
+  void refresh();
 
   /**
    * Delete Request Schedule entity
    */
-  public void delete();
+  void delete();
 
   /**
    * Get status of schedule
    */
-  public String getStatus();
+  String getStatus();
 
   /**
    * Set request execution description
    */
-  public void setDescription(String description);
+  void setDescription(String description);
 
   /**
    * Get description of the request execution
    */
-  public String getDescription();
+  String getDescription();
 
   /**
    * Set status of the schedule
    */
-  public void setStatus(Status status);
+  void setStatus(Status status);
 
   /**
    * Set datetime:status of last request that was executed
    */
-  public void setLastExecutionStatus(String status);
+  void setLastExecutionStatus(String status);
 
   /**
    * Set authenticated user
    */
-  public void setAuthenticatedUserId(Integer username);
+  void setAuthenticatedUserId(Integer username);
 
   /**
    * Set create username
    */
-  public void setCreateUser(String username);
+  void setCreateUser(String username);
 
   /**
    * Set create username
    */
-  public void setUpdateUser(String username);
+  void setUpdateUser(String username);
 
   /**
    * Get created time
    */
-  public String getCreateTime();
+  String getCreateTime();
 
   /**
    * Get updated time
    */
-  public String getUpdateTime();
+  String getUpdateTime();
 
   /**
    * Get authenticated user
    */
-  public Integer getAuthenticatedUserId();
+  Integer getAuthenticatedUserId();
 
   /**
    * Get create user
    */
-  public String getCreateUser();
+  String getCreateUser();
 
   /**
    * Get update user
    */
-  public String getUpdateUser();
+  String getUpdateUser();
 
   /**
    * Get status of the last batch of requests
    * @return
    */
-  public String getLastExecutionStatus();
+  String getLastExecutionStatus();
 
   /**
    * Get response with request body
    */
-  public RequestScheduleResponse convertToResponseWithBody();
+  RequestScheduleResponse convertToResponseWithBody();
 
   /**
    * Get the request body for a batch request
    */
-  public String getRequestBody(Long batchId);
+  String getRequestBody(Long batchId);
 
   /**
    * Get batch request with specified order id
@@ -176,12 +176,12 @@ public interface RequestExecution {
   /**
    * Update status and save RequestExecution
    */
-  public void updateStatus(Status status);
+  void updateStatus(Status status);
 
   /**
    * Status of the Request execution
    */
-  public enum Status {
+  enum Status {
     SCHEDULED,
     COMPLETED,
     DISABLED

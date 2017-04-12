@@ -28,12 +28,12 @@ public interface ObservableResourceProvider {
    *
    * @param event  the event
    */
-  public void updateObservers(ResourceProviderEvent event);
+  void updateObservers(ResourceProviderEvent event);
 
   /**
    * Add an observer.
    *
    * @param observer  the observer
    */
-  public void addObserver(ResourceProviderObserver observer);
+  void addObserver(ResourceProviderObserver observer);
 }

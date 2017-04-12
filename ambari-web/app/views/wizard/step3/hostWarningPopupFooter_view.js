@@ -29,9 +29,9 @@ App.WizardStep3HostWarningPopupFooter = Em.View.extend({
   progressWidth: Em.computed.format('width:{0}%', 'footerController.checksUpdateProgress'),
 
   isUpdateInProgress: function () {
-    return (this.get('footerController.checksUpdateProgress') > 0) &&
+    return !this.get('checkHostFinished') || (this.get('footerController.checksUpdateProgress') > 0) &&
       (this.get('footerController.checksUpdateProgress') < 100);
-  }.property('footerController.checksUpdateProgress'),
+  }.property('checkHostFinished', 'footerController.checksUpdateProgress'),
 
   updateStatusClass: function () {
     var status = this.get('footerController.checksUpdateStatus');

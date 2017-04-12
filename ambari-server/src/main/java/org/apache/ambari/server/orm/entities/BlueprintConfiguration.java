@@ -27,28 +27,28 @@ public interface BlueprintConfiguration {
    *
    * @param type configuration type
    */
-  public void setType(String type);
+  void setType(String type);
 
   /**
    * Get the configuration type.
    *
    * @return configuration type
    */
-  public String getType();
+  String getType();
 
   /**
    * Set the blueprint name.
    *
    * @param blueprintName  blueprint name
    */
-  public void setBlueprintName(String blueprintName);
+  void setBlueprintName(String blueprintName);
 
   /**
    * Get the blueprint name.
    *
    * @return blueprint name
    */
-  public String getBlueprintName();
+  String getBlueprintName();
 
   /**
    * Set the configuration properties.
@@ -57,21 +57,21 @@ public interface BlueprintConfiguration {
    *
    * @param configData json representation of property map
    */
-  public void setConfigData(String configData);
+  void setConfigData(String configData);
 
   /**
    * Get the configuration properties.
    *
    * @return json representation of property map
    */
-  public String getConfigData();
+  String getConfigData();
 
   /**
    * Get the configuration attributes.
    *
    * @return json representation of attributes map
    */
-  public String getConfigAttributes();
+  String getConfigAttributes();
 
   /**
    * Set the configuration attributes.
@@ -80,5 +80,5 @@ public interface BlueprintConfiguration {
    *
    * @param configAttributes json representation of attributes map
    */
-  public void setConfigAttributes(String configAttributes);
+  void setConfigAttributes(String configAttributes);
 }

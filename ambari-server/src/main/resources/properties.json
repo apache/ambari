@@ -226,6 +226,7 @@
         "StackServices/credential_store_enabled",
         "StackServices/credential_store_required",
         "StackServices/properties",
+        "StackServices/support_delete_via_ui",
         "_"
     ],
     "StackConfiguration":[

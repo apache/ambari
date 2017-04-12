@@ -549,7 +549,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
   /**
    * Used to register a dynamic sub-resource with an existing resource type.
    */
-  public static interface TypeRegistration {
+  public interface TypeRegistration {
     /**
      * Allows the management controller to be set on the registration.
      * This is called as part of the registration process.
@@ -558,14 +558,14 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *
      * @param  controller  management controller
      */
-    public void setManagementController(AmbariManagementController controller);
+    void setManagementController(AmbariManagementController controller);
 
     /**
      * Get the type of the registering resource.
      *
      * @return type of the register resource
      */
-    public Resource.Type getType();
+    Resource.Type getType();
 
     /**
      * Full foreign key property name to use in the artifact resource.
@@ -575,7 +575,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *          For example: "Artifacts/cluster_name
      */
     //todo: use relative property names
-    public String getFKPropertyName();
+    String getFKPropertyName();
 
     /**
      * Shortened foreign key name that is written to the database.
@@ -584,7 +584,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *
      * @return short fk name.  For example: "cluster_name"
      */
-    public String getShortFKPropertyName();
+    String getShortFKPropertyName();
 
     /**
      * Convert the foreign key value to a value that is persisted to the database.
@@ -604,7 +604,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *
      * @throws AmbariException if unable to convert the value
      */
-    public String toPersistId(String value) throws AmbariException;
+    String toPersistId(String value) throws AmbariException;
 
     /**
      * Convert the persist id form of the foreign key which is written to the database
@@ -624,7 +624,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *
      * @throws AmbariException if unable to convert the value
      */
-    public String fromPersistId(String value) throws AmbariException;
+    String fromPersistId(String value) throws AmbariException;
 
     /**
      * Get a map of ancestor type to foreign key.
@@ -636,7 +636,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      * @return map of ancestor type to foreign key
      */
     //todo: look at the need to use the same name as specified by ancestors
-    public Map<Resource.Type, String> getForeignKeyInfo();
+    Map<Resource.Type, String> getForeignKeyInfo();
 
     /**
      * Determine if the instance identified by the provided properties exists.
@@ -648,8 +648,8 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      *
      * @throws AmbariException  an exception occurs trying to determine if the instance exists
      */
-    public boolean instanceExists(Map<Resource.Type, String> keyMap,
-                                  Map<String, Object> properties) throws AmbariException;
+    boolean instanceExists(Map<Resource.Type, String> keyMap,
+                           Map<String, Object> properties) throws AmbariException;
   }
 
 

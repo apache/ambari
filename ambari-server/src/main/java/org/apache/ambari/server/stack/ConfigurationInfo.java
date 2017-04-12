@@ -153,7 +153,7 @@ public class ConfigurationInfo implements Validable{
    * For example, Hadoop configuration types like 'core-site' and 'hdfs-site'
    * can support the ability to define certain configs as 'final'.
    */
-  public static enum Supports {
+  public enum Supports {
 
     FINAL("supports_final"),
     ADDING_FORBIDDEN("supports_adding_forbidden"),
@@ -164,11 +164,11 @@ public class ConfigurationInfo implements Validable{
     private String defaultValue;
     private String xmlAttributeName;
 
-    private Supports(String xmlAttributeName) {
+    Supports(String xmlAttributeName) {
       this(xmlAttributeName, Boolean.FALSE.toString());
     }
 
-    private Supports(String xmlAttributeName, String defaultValue) {
+    Supports(String xmlAttributeName, String defaultValue) {
       this.defaultValue = defaultValue;
       this.xmlAttributeName = xmlAttributeName;
     }

@@ -29,7 +29,7 @@ public interface LoggingRequestHelper {
    *
    * @return a LogQueryResponse, containing the results of the search
    */
-  public LogQueryResponse sendQueryRequest(Map<String, String> queryParameters);
+  LogQueryResponse sendQueryRequest(Map<String, String> queryParameters);
 
   /**
    * Sends a request to obtain the log file name for a given component, on
@@ -41,7 +41,7 @@ public interface LoggingRequestHelper {
    * @return a Set of Strings that include the log file names associated
    *         with this component/host combination
    */
-  public Set<String> sendGetLogFileNamesRequest(String componentName, String hostName);
+  Set<String> sendGetLogFileNamesRequest(String componentName, String hostName);
 
   /**
    * Sends a request to obtain the log level counts for a given component on
@@ -53,7 +53,7 @@ public interface LoggingRequestHelper {
    * @return a LogLevelQueryResponse, containing the log level counts for this
    *         component/host combination
    */
-  public LogLevelQueryResponse sendLogLevelQueryRequest(String componentName, String hostName);
+  LogLevelQueryResponse sendLogLevelQueryRequest(String componentName, String hostName);
 
   /**
    * Appends the required LogSearch query parameters to a base URI
@@ -68,6 +68,6 @@ public interface LoggingRequestHelper {
    *         the log file associated with this component/host
    *         combination
    */
-  public String createLogFileTailURI(String baseURI, String componentName, String hostName);
+  String createLogFileTailURI(String baseURI, String componentName, String hostName);
 
 }

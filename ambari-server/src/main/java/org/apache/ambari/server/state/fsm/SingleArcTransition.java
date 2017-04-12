@@ -30,6 +30,6 @@ public interface SingleArcTransition<OPERAND, EVENT> {
    *                state may change.
    * @param event causal event
    */
-  public void transition(OPERAND operand, EVENT event);
+  void transition(OPERAND operand, EVENT event);
 
 }
