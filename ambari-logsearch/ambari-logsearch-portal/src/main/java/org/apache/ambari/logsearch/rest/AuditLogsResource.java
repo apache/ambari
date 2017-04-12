@@ -44,6 +44,8 @@ import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.manager.AuditLogsManager;
 import org.springframework.context.annotation.Scope;
 
+import java.util.List;
+
 import static org.apache.ambari.logsearch.doc.DocConstants.AuditOperationDescriptions.*;
 
 @Api(value = "audit/logs", description = "Audit log operations")
@@ -115,6 +117,14 @@ public class AuditLogsResource {
   @ApiOperation(GET_SERVICE_LOAD_OD)
   public BarGraphDataListResponse getServiceLoad(@BeanParam AuditServiceLoadRequest request) {
     return auditLogsManager.getServiceLoad(request);
+  }
+
+  @GET
+  @Path("/clusters")
+  @Produces({"application/json"})
+  @ApiOperation(GET_AUDIT_CLUSTERS_OD)
+  public List<String> getClustersForServiceLog() {
+    return auditLogsManager.getClusters();
   }
 
 }
