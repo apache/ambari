@@ -993,4 +993,20 @@ public class HostRoleCommandDAO {
       return HostRoleCommandEntity_.getPredicateMapping().get(propertyId);
     }
   }
+
+  public List<Long> findTaskIdsByRequestStageIds(List<RequestDAO.StageEntityPK> requestStageIds) {
+    EntityManager entityManager = entityManagerProvider.get();
+    List<Long> taskIds = new ArrayList<Long>();
+    for (RequestDAO.StageEntityPK requestIds : requestStageIds) {
+      TypedQuery<Long> hostRoleCommandQuery =
+              entityManager.createNamedQuery("HostRoleCommandEntity.findTaskIdsByRequestStageIds", Long.class);
+
+      hostRoleCommandQuery.setParameter("requestId", requestIds.getRequestId());
+      hostRoleCommandQuery.setParameter("stageId", requestIds.getStageId());
+
+      taskIds.addAll(daoUtils.selectList(hostRoleCommandQuery));
+    }
+
+    return taskIds;
+  }
 }

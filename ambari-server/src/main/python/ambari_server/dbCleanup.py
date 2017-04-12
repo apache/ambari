@@ -42,25 +42,29 @@ def run_db_cleanup(options):
     if validate_args(options):
         return 1
 
-    db_title = get_db_type(get_ambari_properties()).title
-
-    confirmBackup = get_YN_input("Ambari Server configured for {0}. Confirm you have made a backup of the Ambari Server database [y/n]".format(
-            db_title), True)
-    if not confirmBackup:
-        print_info_msg("Ambari Server Database cleanup aborted")
-        return 0
-
     status, stateDesc = is_server_runing()
-    if status:
-        print_error_msg("The database cleanup cannot proceed while Ambari Server is running. Please shut down Ambari first.")
-        return 1
 
-    confirm = get_YN_input(
-        "Ambari server is using db type {0}. Cleanable database entries older than {1} will be cleaned up. Proceed [y/n]".format(
-            db_title, options.cleanup_from_date), True)
-    if not confirm:
-        print_info_msg("Ambari Server Database cleanup aborted")
-        return 0
+    if not options.silent:
+      db_title = get_db_type(get_ambari_properties()).title
+
+      confirmBackup = get_YN_input("Ambari Server configured for {0}. Confirm you have made a backup of the Ambari Server database [y/n]".format(
+              db_title), True)
+      if not confirmBackup:
+          print_info_msg("Ambari Server Database cleanup aborted")
+          return 0
+
+      if status:
+          print_error_msg("The database cleanup cannot proceed while Ambari Server is running. Please shut down Ambari first.")
+          return 1
+
+      confirm = get_YN_input(
+          "Ambari server is using db type {0}. Cleanable database entries older than {1} will be cleaned up. Proceed [y/n]".format(
+              db_title, options.cleanup_from_date), True)
+      if not confirm:
+          print_info_msg("Ambari Server Database cleanup aborted")
+          return 0
+
+
 
     jdk_path = get_java_exe_path()
     if jdk_path is None:
@@ -101,7 +105,6 @@ def run_db_cleanup(options):
 # Database cleanup
 #
 def db_cleanup(options):
-    logger.info("Database cleanup.")
     return run_db_cleanup(options)
 
 

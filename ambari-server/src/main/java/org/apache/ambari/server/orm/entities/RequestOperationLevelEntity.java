@@ -40,7 +40,9 @@ import javax.persistence.TableGenerator;
 @NamedQueries({
     @NamedQuery(name = "requestOperationLevelByHostId", query =
         "SELECT requestOperationLevel FROM RequestOperationLevelEntity requestOperationLevel " +
-            "WHERE requestOperationLevel.hostId=:hostId")
+            "WHERE requestOperationLevel.hostId=:hostId"),
+    @NamedQuery(name = "RequestOperationLevelEntity.removeByRequestIds",
+        query = "DELETE FROM RequestOperationLevelEntity requestOperationLevel WHERE requestOperationLevel.requestId IN :requestIds")
 })
 public class RequestOperationLevelEntity {
 
