@@ -267,7 +267,7 @@ prebuildWithoutPatch () {
     echo "Top-level trunk compilation is broken?"
     JIRA_COMMENT="$JIRA_COMMENT
 
-    {color:red}-1 patch{color}.  Top-level trunk compilation may be broken."
+    {color:red}-1 patch{color}.  Top-level [trunk compilation|$BUILD_URL/artifact/patch-work/trunkJavacWarnings.txt] may be broken."
     return 1
   fi
 
@@ -390,7 +390,7 @@ checkJavacWarnings () {
   if [[ $? != 0 ]] ; then
     JIRA_COMMENT="$JIRA_COMMENT
 
-    {color:red}-1 javac{color}.  The patch appears to cause the build to fail."
+    {color:red}-1 javac{color}.  The patch appears to cause the [build to fail|$BUILD_URL/artifact/patch-work/patchJavacWarnings.txt]."
     return 2
   fi
   ### Compare trunk and patch javac warning numbers
