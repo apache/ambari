@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,6 +178,7 @@ public class DatabaseConsistencyCheckHelper {
       checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
       checkServiceConfigs();
       checkTopologyTables();
+      checkForLargeTables();
       LOG.info("******************************* Check database completed *******************************");
       return checkResult;
     }
@@ -266,6 +268,115 @@ public class DatabaseConsistencyCheckHelper {
         }
       }
     }
+  }
+
+  /**
+   * This method checks if ambari database has tables with too big size (according to limit).
+   * First of all we are trying to get table size from schema information, but if it's not possible,
+   * we will get tables rows count and compare it with row count limit.
+   */
+  static void checkForLargeTables() {
+    LOG.info("Checking for tables with large physical size");
+
+    ensureConnection();
+
+    DBAccessor.DbType dbType = dbAccessor.getDbType();
+    String schemaName = dbAccessor.getDbSchema();
+
+    String GET_TABLE_SIZE_IN_BYTES_POSTGRESQL = "SELECT pg_total_relation_size('%s') \"Table Size\"";
+    String GET_TABLE_SIZE_IN_BYTES_MYSQL = "SELECT (data_length + index_length) \"Table Size\" FROM information_schema.TABLES WHERE table_schema = \"" + schemaName + "\" AND table_name =\"%s\"";
+    String GET_TABLE_SIZE_IN_BYTES_ORACLE = "SELECT bytes \"Table Size\" FROM user_segments WHERE segment_type='TABLE' AND segment_name='%s'";
+    String GET_ROW_COUNT_QUERY = "SELECT COUNT(*) FROM %s";
+
+    Map<DBAccessor.DbType, String> tableSizeQueryMap = new HashMap<>();
+    tableSizeQueryMap.put(DBAccessor.DbType.POSTGRES, GET_TABLE_SIZE_IN_BYTES_POSTGRESQL);
+    tableSizeQueryMap.put(DBAccessor.DbType.MYSQL, GET_TABLE_SIZE_IN_BYTES_MYSQL);
+    tableSizeQueryMap.put(DBAccessor.DbType.ORACLE, GET_TABLE_SIZE_IN_BYTES_ORACLE);
+
+    List<String> tablesToCheck = Arrays.asList("host_role_command", "execution_command", "stage", "request", "alert_history");
+
+    final double TABLE_SIZE_LIMIT_MB = 3000.0;
+    final int TABLE_ROW_COUNT_LIMIT = 3000000;
+
+    String findTableSizeQuery = tableSizeQueryMap.get(dbType);
+
+    if (dbType == DBAccessor.DbType.ORACLE) {
+      for (int i = 0;i < tablesToCheck.size(); i++) {
+        tablesToCheck.set(i, tablesToCheck.get(i).toUpperCase());
+      }
+    }
+
+    for (String tableName : tablesToCheck) {
+
+      ResultSet rs = null;
+      Statement statement = null;
+      Double tableSizeInMB = null;
+      Long tableSizeInBytes = null;
+      int tableRowCount = -1;
+
+      try {
+        statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        rs = statement.executeQuery(String.format(findTableSizeQuery, tableName));
+        if (rs != null) {
+          while (rs.next()) {
+            tableSizeInBytes = rs.getLong(1);
+            if (tableSizeInBytes != null) {
+              tableSizeInMB = tableSizeInBytes / 1024.0 / 1024.0;
+            }
+          }
+        }
+
+        if (tableSizeInMB != null && tableSizeInMB > TABLE_SIZE_LIMIT_MB) {
+          warning("The database table {} is currently {} MB (limit is {}) and may impact performance. It is recommended " +
+                  "that you reduce its size by executing \"ambari-server db-cleanup\".",
+                  tableName, tableSizeInMB, TABLE_SIZE_LIMIT_MB);
+        } else if (tableSizeInMB != null && tableSizeInMB < TABLE_SIZE_LIMIT_MB) {
+          LOG.info(String.format("The database table %s is currently %.3f MB and is within normal limits (%.3f)",
+                  tableName, tableSizeInMB, TABLE_SIZE_LIMIT_MB));
+        } else {
+          throw new Exception();
+        }
+      } catch (Exception e) {
+        LOG.error(String.format("Failed to get %s table size from database, will check row count: ", tableName), e);
+        try {
+          rs = statement.executeQuery(String.format(GET_ROW_COUNT_QUERY, tableName));
+          if (rs != null) {
+            while (rs.next()) {
+              tableRowCount = rs.getInt(1);
+            }
+          }
+
+          if (tableRowCount > TABLE_ROW_COUNT_LIMIT) {
+            warning("The database table {} currently has {} rows (limit is {}) and may impact performance. It is " +
+                    "recommended that you reduce its size by executing \"ambari-server db-cleanup\".",
+                    tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT);
+          } else if (tableRowCount != -1 && tableRowCount < TABLE_ROW_COUNT_LIMIT) {
+            LOG.info(String.format("The database table %s currently has %d rows and is within normal limits (%d)", tableName, tableRowCount, TABLE_ROW_COUNT_LIMIT));
+          } else {
+            throw new SQLException();
+          }
+        } catch (SQLException ex) {
+          LOG.error(String.format("Failed to get %s row count: ", tableName), e);
+        }
+      } finally {
+        if (rs != null) {
+          try {
+            rs.close();
+          } catch (SQLException e) {
+            LOG.error("Exception occurred during result set closing procedure: ", e);
+          }
+        }
+
+        if (statement != null) {
+          try {
+            statement.close();
+          } catch (SQLException e) {
+            LOG.error("Exception occurred during statement closing procedure: ", e);
+          }
+        }
+      }
+    }
+
   }
 
   /**

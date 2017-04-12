@@ -26,6 +26,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
@@ -36,6 +38,9 @@ import javax.persistence.TableGenerator;
   , pkColumnValue = "resourcefilter_id_seq"
   , initialValue = 1
 )
+@NamedQueries({
+  @NamedQuery(name = "RequestResourceFilterEntity.removeByRequestIds", query = "DELETE FROM RequestResourceFilterEntity filter WHERE filter.requestId IN :requestIds")
+})
 public class RequestResourceFilterEntity {
 
   @Id

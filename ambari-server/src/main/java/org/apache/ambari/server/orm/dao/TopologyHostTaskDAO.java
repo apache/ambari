@@ -52,6 +52,17 @@ public class TopologyHostTaskDAO {
   }
 
   @RequiresSession
+  public List<Long> findHostRequestIdsByHostTaskIds(List<Long> hostTaskIds) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<Long> topologyHostTaskQuery =
+            entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostRequestIdsByHostTaskIds", Long.class);
+
+    topologyHostTaskQuery.setParameter("hostTaskIds", hostTaskIds);
+
+    return daoUtils.selectList(topologyHostTaskQuery);
+  }
+
+  @RequiresSession
   public List<TopologyHostTaskEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), TopologyHostTaskEntity.class);
   }

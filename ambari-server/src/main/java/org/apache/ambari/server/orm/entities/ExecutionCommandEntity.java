@@ -18,11 +18,24 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
 import java.util.Arrays;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 @Table(name = "execution_command")
 @Entity
+@NamedQueries({
+    @NamedQuery(name = "ExecutionCommandEntity.removeByTaskIds", query = "DELETE FROM ExecutionCommandEntity command WHERE command.taskId IN :taskIds")
+})
 public class ExecutionCommandEntity {
 
   @Id

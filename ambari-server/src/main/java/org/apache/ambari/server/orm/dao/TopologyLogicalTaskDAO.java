@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Singleton
@@ -38,6 +39,17 @@ public class TopologyLogicalTaskDAO {
   @RequiresSession
   public TopologyLogicalTaskEntity findById(Long id) {
     return entityManagerProvider.get().find(TopologyLogicalTaskEntity.class, id);
+  }
+
+  @RequiresSession
+  public List<Long> findHostTaskIdsByPhysicalTaskIds(List<Long> physicalTaskIds) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<Long> topologyHostTaskQuery =
+            entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostTaskIdsByPhysicalTaskIds", Long.class);
+
+    topologyHostTaskQuery.setParameter("physicalTaskIds", physicalTaskIds);
+
+    return daoUtils.selectList(topologyHostTaskQuery);
   }
 
   @RequiresSession

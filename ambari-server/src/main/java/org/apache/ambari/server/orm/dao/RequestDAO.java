@@ -19,27 +19,54 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.cleanup.TimeBasedCleanupPolicy;
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
+import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
+import org.apache.ambari.server.state.Clusters;
 import org.eclipse.persistence.config.HintValues;
 import org.eclipse.persistence.config.QueryHints;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
 @Singleton
-public class RequestDAO {
+public class RequestDAO implements Cleanable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RequestDAO.class);
+
+
+  private static final int BATCH_SIZE = 999;
+
   /**
    * SQL template to retrieve all request IDs, sorted by the ID.
    */
@@ -63,6 +90,27 @@ public class RequestDAO {
 
   @Inject
   DaoUtils daoUtils;
+
+  @Inject
+  private Provider<Clusters> m_clusters;
+
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private StageDAO stageDAO;
+
+  @Inject
+  private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
+
+  @Inject
+  private TopologyHostTaskDAO topologyHostTaskDAO;
+
+  @Inject
+  private TopologyLogicalRequestDAO topologyLogicalRequestDAO;
+
+  @Inject
+  private TopologyRequestDAO topologyRequestDAO;
 
   @RequiresSession
   public RequestEntity findByPK(Long requestId) {
@@ -188,5 +236,215 @@ public class RequestDAO {
     query.setMaxResults(limit);
 
     return daoUtils.selectList(query);
+  }
+
+  public static final class StageEntityPK {
+    private Long requestId;
+    private Long stageId;
+
+    public StageEntityPK(Long requestId, Long stageId) {
+      this.requestId = requestId;
+      this.stageId = stageId;
+    }
+
+    public Long getStageId() {
+      return stageId;
+    }
+
+    public void setStageId(Long stageId) {
+      this.stageId = stageId;
+    }
+
+    public Long getRequestId() {
+      return requestId;
+    }
+
+    public void setRequestId(Long requestId) {
+      this.requestId = requestId;
+    }
+  }
+
+  /**
+   * Search for all request ids in Upgrade table
+   * @return the list of request ids
+   */
+  private List<Long> findAllRequestIdsFromUpgrade() {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<Long> upgradeQuery =
+            entityManager.createNamedQuery("UpgradeEntity.findAllRequestIds", Long.class);
+
+    return daoUtils.selectList(upgradeQuery);
+  }
+
+  /**
+   * Search for all request and stage ids in Request and Stage tables
+   * @return the list of request/stage ids
+   */
+  public List<StageEntityPK> findRequestAndStageIdsInClusterBeforeDate(Long clusterId, long  beforeDateMillis) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<StageEntityPK> requestQuery =
+            entityManager.createNamedQuery("RequestEntity.findRequestStageIdsInClusterBeforeDate", StageEntityPK.class);
+
+    requestQuery.setParameter("clusterId", clusterId);
+    requestQuery.setParameter("beforeDate", beforeDateMillis);
+
+    return daoUtils.selectList(requestQuery);
+  }
+
+  /**
+   * In this method we are removing entities using passed ids,
+   * To prevent issues we are using batch request to remove limited
+   * count of entities.
+   * @param ids              list of ids that we are using to remove rows from table
+   * @param paramName        name of parameter that we are using in sql query (taskIds, stageIds)
+   * @param entityName       name of entity which we will remove
+   * @param beforeDateMillis timestamp which was set by user (remove all entities that were created before),
+   *                         we are using it only for logging
+   * @param entityQuery      name of NamedQuery which we will use to remove needed entities
+   * @param type             type of entity class which we will use for casting query result
+   * @return                 rows count that were removed
+   */
+  @Transactional
+  protected <T> int cleanTableByIds(Set<Long> ids, String paramName, String entityName, Long beforeDateMillis,
+                                  String entityQuery, Class<T> type) {
+    LOG.info(String.format("Deleting %s entities before date %s", entityName, new Date(beforeDateMillis)));
+    EntityManager entityManager = entityManagerProvider.get();
+    int affectedRows = 0;
+    // Batch delete
+    TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
+    if (ids != null && !ids.isEmpty()) {
+      for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+        int endRow = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
+        List<Long> idsSubList = new ArrayList<>(ids).subList(i, endRow);
+        LOG.info("Deleting " + entityName + " entity batch with task ids: " +
+                idsSubList.get(0) + " - " + idsSubList.get(idsSubList.size() - 1));
+        query.setParameter(paramName, idsSubList);
+        affectedRows += query.executeUpdate();
+      }
+    }
+
+    return affectedRows;
+  }
+
+  /**
+   * In this method we are removing entities using passed few ids,
+   * To prevent issues we are using batch request to remove limited
+   * count of entities.
+   * @param ids              list of ids pairs that we are using to remove rows from table
+   * @param paramNames       list of two names of parameters that we are using in sql query (taskIds, stageIds)
+   * @param entityName       name of entity which we will remove
+   * @param beforeDateMillis timestamp which was set by user (remove all entities that were created before),
+   *                         we are using it only for logging
+   * @param entityQuery      name of NamedQuery which we will use to remove needed entities
+   * @param type             type of entity class which we will use for casting query result
+   * @return                 rows count that were removed
+   */
+  @Transactional
+  protected <T> int cleanTableByStageEntityPK(List<StageEntityPK> ids, LinkedList<String> paramNames, String entityName, Long beforeDateMillis,
+                                  String entityQuery, Class<T> type) {
+    LOG.info(String.format("Deleting %s entities before date %s", entityName, new Date(beforeDateMillis)));
+    EntityManager entityManager = entityManagerProvider.get();
+    int affectedRows = 0;
+    // Batch delete
+    TypedQuery<T> query = entityManager.createNamedQuery(entityQuery, type);
+    if (ids != null && !ids.isEmpty()) {
+      for (int i = 0; i < ids.size(); i += BATCH_SIZE) {
+        int endRow = (i + BATCH_SIZE) > ids.size() ? ids.size() : (i + BATCH_SIZE);
+        List<StageEntityPK> idsSubList = new ArrayList<>(ids).subList(i, endRow);
+        LOG.info("Deleting " + entityName + " entity batch with task ids: " +
+                idsSubList.get(0) + " - " + idsSubList.get(idsSubList.size() - 1));
+        for (StageEntityPK requestIds : idsSubList) {
+          query.setParameter(paramNames.get(0), requestIds.getStageId());
+          query.setParameter(paramNames.get(1), requestIds.getRequestId());
+          affectedRows += query.executeUpdate();
+        }
+      }
+    }
+
+    return affectedRows;
+  }
+
+  @Transactional
+  @Override
+  public long cleanup(TimeBasedCleanupPolicy policy) {
+    long affectedRows = 0;
+    Long clusterId = null;
+    try {
+      clusterId = m_clusters.get().getCluster(policy.getClusterName()).getClusterId();
+      // find request and stage ids that were created before date populated by user.
+      List<StageEntityPK> requestStageIds = findRequestAndStageIdsInClusterBeforeDate(clusterId, policy.getToDateInMillis());
+
+      // find request ids from Upgrade table and exclude these ids from
+      // request ids set that we already have. We don't want to make any changes for upgrade
+      Set<Long> requestIdsFromUpgrade = Sets.newHashSet(findAllRequestIdsFromUpgrade());
+      Iterator<StageEntityPK> requestStageIdsIterator =  requestStageIds.iterator();
+      while (requestStageIdsIterator.hasNext()) {
+        StageEntityPK nextRequestStageIds = requestStageIdsIterator.next();
+        if (requestIdsFromUpgrade.contains(nextRequestStageIds.getRequestId())) {
+          requestStageIdsIterator.remove();
+        }
+      }
+
+
+      Set<Long> requestIds = new HashSet<>();
+      for (StageEntityPK ids : requestStageIds) {
+        requestIds.add(ids.getRequestId());
+      }
+
+      // find task ids using request stage ids
+      Set<Long> taskIds = Sets.newHashSet(hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds));
+      LinkedList<String> params = new LinkedList<>();
+      params.add("stageId");
+      params.add("requestId");
+
+      // find host task ids, to find related host requests and also to remove needed host tasks
+      List<Long> hostTaskIds = new ArrayList<>();
+      if (taskIds != null && !taskIds.isEmpty()) {
+        hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(Lists.newArrayList(taskIds));
+      }
+
+      // find host request ids by host task ids to remove later needed host requests
+      List<Long> hostRequestIds = new ArrayList<>();
+      if (!hostTaskIds.isEmpty()) {
+        hostRequestIds = topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(hostTaskIds);
+      }
+
+      List<Long> topologyRequestIds = new ArrayList<>();
+      if (!hostRequestIds.isEmpty()) {
+        topologyRequestIds = topologyLogicalRequestDAO.findRequestIdsByIds(hostRequestIds);
+      }
+
+
+      //removing all entities one by one according to their relations using stage, task and request ids
+      affectedRows += cleanTableByIds(taskIds, "taskIds", "ExecutionCommand", policy.getToDateInMillis(),
+              "ExecutionCommandEntity.removeByTaskIds", ExecutionCommandEntity.class);
+      affectedRows += cleanTableByIds(taskIds, "taskIds", "TopologyLogicalTask", policy.getToDateInMillis(),
+              "TopologyLogicalTaskEntity.removeByPhysicalTaskIds", TopologyLogicalTaskEntity.class);
+      affectedRows += cleanTableByIds(Sets.newHashSet(hostTaskIds), "hostTaskIds", "TopologyHostTask", policy.getToDateInMillis(),
+              "TopologyHostTaskEntity.removeByTaskIds", TopologyHostTaskEntity.class);
+      affectedRows += cleanTableByIds(Sets.newHashSet(hostRequestIds), "hostRequestIds", "TopologyHostRequest", policy.getToDateInMillis(),
+              "TopologyHostRequestEntity.removeByIds", TopologyHostRequestEntity.class);
+      for (Long topologyRequestId : topologyRequestIds) {
+        topologyRequestDAO.removeByPK(topologyRequestId);
+      }
+      affectedRows += cleanTableByIds(taskIds, "taskIds", "HostRoleCommand", policy.getToDateInMillis(),
+              "HostRoleCommandEntity.removeByTaskIds", HostRoleCommandEntity.class);
+      affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "RoleSuccessCriteria", policy.getToDateInMillis(),
+              "RoleSuccessCriteriaEntity.removeByRequestStageIds", RoleSuccessCriteriaEntity.class);
+      affectedRows += cleanTableByStageEntityPK(requestStageIds, params, "Stage", policy.getToDateInMillis(),
+              "StageEntity.removeByRequestStageIds", StageEntity.class);
+      affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestResourceFilter", policy.getToDateInMillis(),
+              "RequestResourceFilterEntity.removeByRequestIds", RequestResourceFilterEntity.class);
+      affectedRows += cleanTableByIds(requestIds, "requestIds", "RequestOperationLevel", policy.getToDateInMillis(),
+              "RequestOperationLevelEntity.removeByRequestIds", RequestOperationLevelEntity.class);
+      affectedRows += cleanTableByIds(requestIds, "requestIds", "Request", policy.getToDateInMillis(),
+              "RequestEntity.removeByRequestIds", RequestEntity.class);
+
+    } catch (AmbariException e) {
+      LOG.error("Error while looking up cluster with name: {}", policy.getClusterName(), e);
+      throw new IllegalStateException(e);
+    }
+
+    return affectedRows;
   }
 }

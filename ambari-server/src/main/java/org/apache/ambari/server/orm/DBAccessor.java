@@ -663,6 +663,12 @@ public interface DBAccessor {
   DbType getDbType();
 
   /**
+   * Get database schema name
+   * @return @dbSchema
+   */
+  String getDbSchema();
+
+  /**
    * Capture column type
    */
   class DBColumnInfo {

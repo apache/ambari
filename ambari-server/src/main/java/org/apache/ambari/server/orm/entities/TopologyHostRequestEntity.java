@@ -25,6 +25,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -32,6 +34,9 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "topology_host_request")
+@NamedQueries({
+  @NamedQuery(name = "TopologyHostRequestEntity.removeByIds", query = "DELETE FROM TopologyHostRequestEntity topologyHostRequest WHERE topologyHostRequest.id IN :hostRequestIds")
+})
 public class TopologyHostRequestEntity {
   @Id
 //  @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_host_request_id_generator")

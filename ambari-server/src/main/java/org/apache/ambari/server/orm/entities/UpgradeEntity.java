@@ -65,6 +65,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
       query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
   @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
       query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId ORDER BY r.startTime DESC"),
+  @NamedQuery(name = "UpgradeEntity.findAllRequestIds",
+      query = "SELECT upgrade.requestId FROM UpgradeEntity upgrade")
 })
 public class UpgradeEntity {
 

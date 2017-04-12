@@ -40,7 +40,11 @@ import java.util.Collection;
   pkColumnValue = "topology_host_task_id_seq", initialValue = 0)
 @NamedQueries({
   @NamedQuery(name = "TopologyHostTaskEntity.findByHostRequest",
-      query = "SELECT req FROM TopologyHostTaskEntity req WHERE req.topologyHostRequestEntity.id = :hostRequestId")
+      query = "SELECT req FROM TopologyHostTaskEntity req WHERE req.topologyHostRequestEntity.id = :hostRequestId"),
+  @NamedQuery(name = "TopologyLogicalTaskEntity.findHostRequestIdsByHostTaskIds",
+      query = "SELECT tht.hostRequestId from TopologyHostTaskEntity tht WHERE tht.id IN :hostTaskIds"),
+  @NamedQuery(name = "TopologyHostTaskEntity.removeByTaskIds",
+      query = "DELETE FROM TopologyHostTaskEntity tht WHERE tht.id IN :hostTaskIds")
 })
 public class TopologyHostTaskEntity {
   @Id
@@ -50,6 +54,9 @@ public class TopologyHostTaskEntity {
 
   @Column(name = "type", length = 255, nullable = false)
   private String type;
+
+  @Column(name = "host_request_id", nullable = false, insertable = false, updatable = false)
+  private Long hostRequestId;
 
   @ManyToOne
   @JoinColumn(name = "host_request_id", referencedColumnName = "id", nullable = false)
@@ -67,7 +74,11 @@ public class TopologyHostTaskEntity {
   }
 
   public Long getHostRequestId() {
-    return topologyHostRequestEntity != null ? topologyHostRequestEntity.getId() : null;
+    return hostRequestId;
+  }
+
+  public void setHostRequestId(Long hostRequestId) {
+    this.hostRequestId = hostRequestId;
   }
 
   public String getType() {

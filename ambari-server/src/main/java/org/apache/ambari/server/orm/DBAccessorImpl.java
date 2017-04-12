@@ -233,6 +233,11 @@ public class DBAccessorImpl implements DBAccessor {
   }
 
   @Override
+  public String getDbSchema() {
+    return dbSchema;
+  }
+
+  @Override
   public boolean tableHasData(String tableName) throws SQLException {
     String query = "SELECT count(*) from " + tableName;
     Statement statement = getConnection().createStatement();

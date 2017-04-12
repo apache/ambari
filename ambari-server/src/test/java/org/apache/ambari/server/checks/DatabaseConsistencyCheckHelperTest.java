@@ -580,4 +580,70 @@ public class DatabaseConsistencyCheckHelperTest {
   }
 
 
+  @Test
+  public void testCheckForLargeTables() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+
+    final ResultSet hostRoleCommandResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet executionCommandResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet stageResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet requestResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet alertHistoryResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    expect(hostRoleCommandResultSet.next()).andReturn(true).once();
+    expect(executionCommandResultSet.next()).andReturn(true).once();
+    expect(stageResultSet.next()).andReturn(true).once();
+    expect(requestResultSet.next()).andReturn(true).once();
+    expect(alertHistoryResultSet.next()).andReturn(true).once();
+    expect(hostRoleCommandResultSet.getLong(1)).andReturn(2345L).atLeastOnce();
+    expect(executionCommandResultSet.getLong(1)).andReturn(12345L).atLeastOnce();
+    expect(stageResultSet.getLong(1)).andReturn(2321L).atLeastOnce();
+    expect(requestResultSet.getLong(1)).andReturn(1111L).atLeastOnce();
+    expect(alertHistoryResultSet.getLong(1)).andReturn(2223L).atLeastOnce();
+    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection);
+    expect(mockDBDbAccessor.getDbType()).andReturn(DBAccessor.DbType.MYSQL);
+    expect(mockDBDbAccessor.getDbSchema()).andReturn("test_schema");
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement).anyTimes();
+    expect(mockStatement.executeQuery("SELECT (data_length + index_length) \"Table Size\" " +
+            "FROM information_schema.TABLES WHERE table_schema = \"test_schema\" AND table_name =\"host_role_command\"")).andReturn(hostRoleCommandResultSet);
+    expect(mockStatement.executeQuery("SELECT (data_length + index_length) \"Table Size\" " +
+            "FROM information_schema.TABLES WHERE table_schema = \"test_schema\" AND table_name =\"execution_command\"")).andReturn(executionCommandResultSet);
+    expect(mockStatement.executeQuery("SELECT (data_length + index_length) \"Table Size\" " +
+            "FROM information_schema.TABLES WHERE table_schema = \"test_schema\" AND table_name =\"stage\"")).andReturn(stageResultSet);
+    expect(mockStatement.executeQuery("SELECT (data_length + index_length) \"Table Size\" " +
+            "FROM information_schema.TABLES WHERE table_schema = \"test_schema\" AND table_name =\"request\"")).andReturn(requestResultSet);
+    expect(mockStatement.executeQuery("SELECT (data_length + index_length) \"Table Size\" " +
+            "FROM information_schema.TABLES WHERE table_schema = \"test_schema\" AND table_name =\"alert_history\"")).andReturn(alertHistoryResultSet);
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    mockAmbariMetainfo.init();
+
+    DatabaseConsistencyCheckHelper.resetCheckResult();
+    DatabaseConsistencyCheckHelper.checkForLargeTables();
+
+    easyMockSupport.verifyAll();
+  }
 }
