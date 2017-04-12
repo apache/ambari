@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -131,11 +132,13 @@ public class UpgradeCatalog300Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method showHcatDeletedUserMessage = UpgradeCatalog300.class.getDeclaredMethod("showHcatDeletedUserMessage");
     Method setStatusOfStagesAndRequests = UpgradeCatalog300.class.getDeclaredMethod("setStatusOfStagesAndRequests");
+    Method updateLogSearchConfigs = UpgradeCatalog300.class.getDeclaredMethod("updateLogSearchConfigs");
 
    UpgradeCatalog300 upgradeCatalog300 = createMockBuilder(UpgradeCatalog300.class)
             .addMockedMethod(showHcatDeletedUserMessage)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(setStatusOfStagesAndRequests)
+            .addMockedMethod(updateLogSearchConfigs)
             .createMock();
 
 
@@ -143,6 +146,8 @@ public class UpgradeCatalog300Test {
     upgradeCatalog300.showHcatDeletedUserMessage();
     upgradeCatalog300.setStatusOfStagesAndRequests();
 
+    upgradeCatalog300.updateLogSearchConfigs();
+    expectLastCall().once();
 
     replay(upgradeCatalog300);
 
