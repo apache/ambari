@@ -121,7 +121,7 @@
   </div>
 </div>
 {{#if showingFileBrowser}}
-  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
+  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath hideUpload=true}}
 {{/if}}
 {{#if showingJobConfig}}
   {{job-config type='bundle' closeJobConfigs="closeBundleSubmitConfig" jobFilePath=bundleFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=bundleConfigs containsParameteriedPaths=containsParameteriedPaths jobConfigProperties=jobConfigProperties}}
