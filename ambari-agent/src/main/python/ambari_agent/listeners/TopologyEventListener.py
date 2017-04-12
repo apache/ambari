@@ -18,8 +18,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import logging
 import ambari_stomp
 
-class MyListener(ambari_stomp.ConnectionListener):
-  def on_message(self, headers, message):
-    print "Received {0}".format(message)
+from ambari_agent.listeners import EventListener
+from ambari_agent import Constants
+
+logger = logging.getLogger(__name__)
+
+class TopologyEventListener(EventListener):
+  """
+  Listener of Constants.TOPOLOGIES_TOPIC events from server.
+  """
+  def __init__(self, topology_cache):
+    self.topology_cache = topology_cache
+
+  def on_event(self, headers, message):
+    """
+    Is triggered when an event to Constants.TOPOLOGIES_TOPIC topic is received from server.
+
+    @param headers: headers dictionary
+    @param message: message payload dictionary
+    """
+    self.topology_cache.update_cache(message)
+
+  def get_handled_path(self):
+    return Constants.TOPOLOGIES_TOPIC

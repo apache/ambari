@@ -38,5 +38,5 @@ class ClusterMetadataCache(ClusterCache):
     """
     super(ClusterMetadataCache, self).__init__(cluster_cache_dir)
 
-  def get_file_name(self):
-    return 'metadata.json'
+  def get_cache_name(self):
+    return 'metadata'

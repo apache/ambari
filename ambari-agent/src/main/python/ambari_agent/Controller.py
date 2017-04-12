@@ -245,8 +245,8 @@ class Controller(threading.Thread):
           cluster_name = command['clusterName']
           configurations = command['configurations']
           topology = command['clusterHostInfo']
-          self.cluster_configuration_cache.update_cache(cluster_name, configurations)
-          self.cluster_topology_cache.update_cache(cluster_name, topology)
+          self.cluster_configuration_cache.update_cluster_cache(cluster_name, configurations)
+          self.cluster_topology_cache.update_cluster_cache(cluster_name, topology)
 
           # TODO: use this once server part is ready.
           self.cluster_topology_cache.get_md5_hashsum(cluster_name)
@@ -259,7 +259,7 @@ class Controller(threading.Thread):
         if 'clusterName' in command and 'configurations' in command:
           cluster_name = command['clusterName']
           configurations = command['configurations']
-          self.cluster_configuration_cache.update_cache(cluster_name, configurations)
+          self.cluster_configuration_cache.update_cluster_cache(cluster_name, configurations)
 
           # TODO: use this once server part is ready.
           self.cluster_configuration_cache.get_md5_hashsum(cluster_name)

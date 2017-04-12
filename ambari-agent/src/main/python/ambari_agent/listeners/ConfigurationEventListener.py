@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""
+'''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,27 +16,31 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
+'''
 
-from ambari_agent.ClusterCache import ClusterCache
 import logging
+import ambari_stomp
+
+from ambari_agent.listeners import EventListener
+from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
-class ClusterTopologyCache(ClusterCache):
+class ConfigurationEventListener(EventListener):
   """
-  Maintains an in-memory cache and disk cache of the topology for
-  every cluster. This is useful for having quick access to any of the
-  topology properties.
+  Listener of Constants.CONFIGURATIONS_TOPIC events from server.
   """
+  def __init__(self, configuration_cache):
+    self.topology_cache = configuration_cache
 
-  def __init__(self, cluster_cache_dir):
+  def on_event(self, headers, message):
     """
-    Initializes the topology cache.
-    :param cluster_cache_dir:
-    :return:
-    """
-    super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
+    Is triggered when an event to Constants.CONFIGURATIONS_TOPIC topic is received from server.
 
-  def get_cache_name(self):
-    return 'topology'
+    @param headers: headers dictionary
+    @param message: message payload dictionary
+    """
+    self.topology_cache.update_cache(message)
+
+  def get_handled_path(self):
+    return Constants.CONFIGURATIONS_TOPIC

@@ -112,11 +112,10 @@ class StompConnector:
       self._connection = self._create_new_connection()
     return self._connection
 
-  def _create_new_connection(self, listener):
+  def _create_new_connection(self):
     # Connection for unit tests. TODO STOMP: fix this
     hosts = [('127.0.0.1', 21613)]
     connection = ambari_stomp.Connection(host_and_ports=hosts)
-    connection.set_listener('my_listener', listener)
     connection.start()
     connection.connect(wait=True)
 
@@ -133,8 +132,7 @@ class StompConnector:
     self.conn = None
 
   def add_listener(self, listener):
-    pass
-    #self._get_connection().set_listener('my_listener', listener)
+    self._get_connection().set_listener(listener.__class__.__name__, listener)
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """

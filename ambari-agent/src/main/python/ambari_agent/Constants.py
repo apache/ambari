@@ -18,5 +18,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+
+COMMANDS_TOPIC = '/events/commands'
+CONFIGURATIONS_TOPIC = '/events/configurations'
+METADATA_TOPIC = '/events/metadata'
+TOPOLOGIES_TOPIC = '/events/topologies'
+SERVER_RESPONSES_TOPIC = '/user'
+
+TOPICS_TO_SUBSCRIBE = [SERVER_RESPONSES_TOPIC, COMMANDS_TOPIC, CONFIGURATIONS_TOPIC, METADATA_TOPIC, TOPOLOGIES_TOPIC]
+
+HEARTBEAT_ENDPOINT = '/agent/heartbeat'
+REGISTRATION_ENDPOINT = '/agent/registration'
+
 AGENT_TMP_DIR = "/var/lib/ambari-agent/tmp"
 CORRELATION_ID_STRING = 'correlationId'

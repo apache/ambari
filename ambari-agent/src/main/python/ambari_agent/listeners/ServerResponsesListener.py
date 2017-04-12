@@ -21,19 +21,32 @@ limitations under the License.
 import logging
 import ambari_stomp
 
+from ambari_agent.listeners import EventListener
 from ambari_agent import Utils
-from ambari_agent.Constants import CORRELATION_ID_STRING
+from ambari_agent import Constants
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-class ServerResponsesListener(ambari_stomp.ConnectionListener):
+class ServerResponsesListener(EventListener):
+  """
+  Listener of Constants.SERVER_RESPONSES_TOPIC events from server.
+  """
   def __init__(self):
     self.responses = Utils.BlockingDictionary()
 
-  def on_message(self, headers, message):
-    logging.debug("Received headers={0} ; message={1}".format(headers, message))
+  def on_event(self, headers, message):
+    """
+    Is triggered when an event to Constants.SERVER_RESPONSES_TOPIC topic is received from server.
+    This type of event is general response to the agent request and contains 'correlationId', which is an int value
+    of the request it responds to.
 
-    if CORRELATION_ID_STRING in headers:
-      self.responses.put(headers[CORRELATION_ID_STRING], message)
+    @param headers: headers dictionary
+    @param message: message payload dictionary
+    """
+    if Constants.CORRELATION_ID_STRING in headers:
+      self.responses.put(headers[Constants.CORRELATION_ID_STRING], message)
     else:
-      logging.warn("Received a message from server without a '{0}' header. Ignoring the message".format(CORRELATION_ID_STRING))
+      logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))\
+
+  def get_handled_path(self):
+    return Constants.SERVER_RESPONSES_TOPIC

@@ -38,8 +38,8 @@ class ClusterConfigurationCache(ClusterCache):
     """
     super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
 
-  def get_file_name(self):
-    return 'configurations.json'
+  def get_cache_name(self):
+    return 'configurations'
 
   def get_configuration_value(self, cluster_name, key):
     """

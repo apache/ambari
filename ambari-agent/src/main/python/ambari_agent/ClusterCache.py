@@ -44,7 +44,7 @@ class ClusterCache(dict):
 
     self.__file_lock = threading.RLock()
     self._cache_lock = threading.RLock()
-    self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_file_name())
+    self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
 
     # ensure that our cache directory exists
     if not os.path.exists(cluster_cache_dir):
@@ -58,7 +58,14 @@ class ClusterCache(dict):
 
     super(ClusterCache, self).__init__(cache_dict)
 
-  def update_cache(self, cluster_name, cache):
+  def get_cluster_names(self):
+    return self.keys()
+
+  def update_cache(self, cache):
+    for cluster_name, cluster_cache in cache['clusters'].iteritems():
+      self.update_cluster_cache(cluster_name, cluster_cache)
+
+  def update_cluster_cache(self, cluster_name, cache):
     """
     Thread-safe method for writing out the specified cluster cache
     and updating the in-memory representation.
@@ -99,3 +106,6 @@ class ClusterCache(dict):
     logger.info("Cache value for {0} is {1}".format(self.__class__.__name__, result))
 
     return result
+
+  def get_cache_name(self):
+    raise NotImplemented()
