@@ -111,7 +111,7 @@ public class UpgradeGroupEntity {
   }
 
   /**
-   * @param text the item text
+   * @param title the item text
    */
   public void setTitle(String title) {
     groupTitle = title;

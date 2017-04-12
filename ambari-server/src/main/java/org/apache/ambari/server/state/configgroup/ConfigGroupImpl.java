@@ -258,7 +258,6 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   /**
    * Helper method to recreate configs mapping
-   * @param configs
    */
   @Override
   public void setConfigurations(Map<String, Config> configurations) {
@@ -349,10 +348,6 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   /**
    * Replaces all existing host mappings with the new collection of hosts.
-   *
-   * @param the
-   *          new hosts
-   * @throws Exception
    */
   @Transactional
   void replaceHostMappings(Map<Long, Host> hosts) {
@@ -370,9 +365,6 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   /**
    * Adds the collection of hosts to the configuration group.
-   *
-   * @param hostEntity
-   * @param configGroupEntity
    */
   @Transactional
   ConfigGroupEntity persistHostMapping(Collection<Host> hosts,

@@ -209,8 +209,7 @@ public class ExtensionLinkDAO {
    * {@link ExtensionLinkEntity#getLinkId()} in order to determine whether the entity
    * should be created or merged.
    *
-   * @param extension
-   *          the link to create or update (not {@code null}).
+   * @param link the link to create or update (not {@code null}).
    */
   public void createOrUpdate(ExtensionLinkEntity link)
       throws AmbariException {

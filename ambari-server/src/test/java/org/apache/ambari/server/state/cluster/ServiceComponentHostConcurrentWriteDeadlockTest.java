@@ -181,10 +181,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
   private static final class ServiceComponentHostDeadlockWriter extends Thread {
     private List<ServiceComponentHost> serviceComponentHosts;
 
-    /**
-     * @param nameNodeSCH
-     *          the nameNodeSCH to set
-     */
     public void setServiceComponentHosts(List<ServiceComponentHost> serviceComponentHosts) {
       this.serviceComponentHosts = serviceComponentHosts;
     }

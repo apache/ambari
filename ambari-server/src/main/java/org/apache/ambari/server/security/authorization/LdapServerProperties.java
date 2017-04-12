@@ -148,8 +148,8 @@ public class LdapServerProperties {
   /**
    * Returns the LDAP filter to search users by.
    * @param useAlternateUserSearchFilter if true than return LDAP filter that expects user name in
-   *                                  User Principal Name format to filter users constructed from {@value org.apache.ambari.server.configuration.Configuration#LDAP_ALT_USER_SEARCH_FILTER_KEY}.
-   *                                  Otherwise the filter is constructed from {@value org.apache.ambari.server.configuration.Configuration#LDAP_USER_SEARCH_FILTER_KEY}
+   *                                  User Principal Name format to filter users constructed from {@link org.apache.ambari.server.configuration.Configuration#LDAP_ALT_USER_SEARCH_FILTER}.
+   *                                  Otherwise the filter is constructed from {@link org.apache.ambari.server.configuration.Configuration#LDAP_USER_SEARCH_FILTER}
    * @return the LDAP filter string
    */
   public String getUserSearchFilter(boolean useAlternateUserSearchFilter) {

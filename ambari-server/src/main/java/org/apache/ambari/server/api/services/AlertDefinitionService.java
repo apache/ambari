@@ -99,9 +99,6 @@ public class AlertDefinitionService extends BaseService {
 
   /**
    * Create a request schedule resource instance
-   * @param clusterName
-   * @param requestScheduleId
-   * @return
    */
   private ResourceInstance createResourceInstance(String clusterName,
       Long definitionId) {

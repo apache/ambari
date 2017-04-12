@@ -570,7 +570,7 @@ public class Configuration {
       "security.server.key_name", "ca.key");
 
   /**
-   * The name of the keystore file, located in {@link SRVR_KSTR_DIR}.
+   * The name of the keystore file, located in {@link #SRVR_KSTR_DIR}.
    */
   @Markdown(description = "The name of the keystore file, located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> KSTR_NAME = new ConfigurationProperty<>(
@@ -588,7 +588,7 @@ public class Configuration {
 
   /**
    * The name of the truststore file ambari uses to store trusted certificates.
-   * Located in {@link SRVR_KSTR_DIR}.
+   * Located in {@link #SRVR_KSTR_DIR}.
    */
   @Markdown(description = "The name of the truststore file ambari uses to store trusted certificates. Located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> TSTR_NAME = new ConfigurationProperty<>(
@@ -1652,7 +1652,7 @@ public class Configuration {
       "ssl.trustStore.password", null);
 
   /**
-   * The type of truststore used by the {@link JAVAX_SSL_TRUSTSTORE_TYPE} property.
+   * The type of truststore used by the {@link #JAVAX_SSL_TRUSTSTORE_TYPE} property.
    */
   @Markdown(description = "The type of truststore used by the `javax.net.ssl.trustStoreType` property.")
   public static final ConfigurationProperty<String> SSL_TRUSTSTORE_TYPE = new ConfigurationProperty<>(
@@ -4411,7 +4411,7 @@ public class Configuration {
    * Caching of host role command status summary can be enabled/disabled
    * through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED} config property.
    * This method returns the value of {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED}
-   * config property. If this config property is not defined than returns the default defined by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED_DEFAULT}.
+   * config property.
    * @return true if caching is to be enabled otherwise false.
    */
   public boolean getHostRoleCommandStatusSummaryCacheEnabled() {
@@ -4433,8 +4433,7 @@ public class Configuration {
    * In order to avoid the cache storing host role command status summary objects exhaust
    * memory we set a max record number allowed for the cache. This limit can be configured
    * through {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE} config property. The method returns
-   * the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE_DEFAULT} is returned.
+   * the value of this config property.
    * @return the upper limit for the number of cached host role command summaries.
    */
   public long getHostRoleCommandStatusSummaryCacheSize() {
@@ -4455,8 +4454,7 @@ public class Configuration {
   /**
    * As a safety measure the cache storing host role command status summaries should auto expire after a while.
    * The expiry duration is specified through the {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION} config property
-   * expressed in minutes. The method returns the value of this config property. If this config property is not defined than
-   * the default value specified by {@link #SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_DEFAULT}
+   * expressed in minutes. The method returns the value of this config property.
    * @return the cache expiry duration in minutes
    */
   public long getHostRoleCommandStatusSummaryCacheExpiryDuration() {
@@ -4757,7 +4755,7 @@ public class Configuration {
 
   /**
    * Get property-providers' timeout value in milliseconds for waiting on the
-   * completion of submitted {@link Callable}s. This will return {@value 5000}
+   * completion of submitted {@link Callable}s. This will return 5000
    * if not specified.
    *
    * @return the property-providers' completion srevice timeout, in millis.
@@ -5007,8 +5005,6 @@ public class Configuration {
   /**
    * Gets the minimum number of connections that should always exist in the
    * connection pool.
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_MIN_SIZE}
    */
   public int getConnectionPoolMinimumSize() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MIN_SIZE));
@@ -5017,8 +5013,6 @@ public class Configuration {
   /**
    * Gets the maximum number of connections that should even exist in the
    * connection pool.
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_MAX_SIZE}
    */
   public int getConnectionPoolMaximumSize() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MAX_SIZE));
@@ -5028,8 +5022,6 @@ public class Configuration {
    * Gets the maximum amount of time in seconds any connection, whether its been
    * idle or active, should even be in the pool. This will terminate the
    * connection after the expiration age and force new connections to be opened.
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_MAX_AGE}
    */
   public int getConnectionPoolMaximumAge() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MAX_AGE));
@@ -5039,8 +5031,6 @@ public class Configuration {
    * Gets the maximum amount of time in seconds that an idle connection can
    * remain in the pool. This should always be greater than the value returned
    * from {@link #getConnectionPoolMaximumExcessIdle()}
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME}
    */
   public int getConnectionPoolMaximumIdle() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME));
@@ -5050,9 +5040,6 @@ public class Configuration {
    * Gets the maximum amount of time in seconds that connections beyond the
    * minimum pool size should remain in the pool. This should always be less
    * than than the value returned from {@link #getConnectionPoolMaximumIdle()}
-   *
-   * @return default of
-   *         {@value #SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS}
    */
   public int getConnectionPoolMaximumExcessIdle() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS));
@@ -5062,8 +5049,6 @@ public class Configuration {
    * Gets the number of connections that should be retrieved when the pool size
    * must increase. It's wise to set this higher than 1 since the assumption is
    * that a pool that needs to grow should probably grow by more than 1.
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE}
    */
   public int getConnectionPoolAcquisitionSize() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE));
@@ -5072,9 +5057,6 @@ public class Configuration {
   /**
    * Gets the number of times connections should be retried to be acquired from
    * the database before giving up.
-   *
-   * @return default of
-   *         {@value #SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS}
    */
   public int getConnectionPoolAcquisitionRetryAttempts() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS));
@@ -5082,8 +5064,6 @@ public class Configuration {
 
   /**
    * Gets the delay in milliseconds between connection acquire attempts.
-   *
-   * @return default of {@value #DEFAULT_JDBC_POOL_ACQUISITION_RETRY_DELAY}
    */
   public int getConnectionPoolAcquisitionRetryDelay() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY));
@@ -5093,8 +5073,6 @@ public class Configuration {
   /**
    * Gets the number of seconds in between testing each idle connection in the
    * connection pool for validity.
-   *
-   * @return default of {@value #SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL}
    */
   public int getConnectionPoolIdleTestInternval() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL));
@@ -5279,9 +5257,6 @@ public class Configuration {
   /**
    * Gets the interval at which cached alert data is written out to the
    * database, if enabled.
-   *
-   * @return the cache flush interval, or
-   *         {@value #ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT} if not set.
    */
   @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
   public int getAlertCacheFlushInterval() {
@@ -5290,9 +5265,6 @@ public class Configuration {
 
   /**
    * Gets the size of the alerts cache, if enabled.
-   *
-   * @return the cache flush interval, or {@value #ALERTS_CACHE_SIZE_DEFAULT} if
-   *         not set.
    */
   @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
   public int getAlertCacheSize() {
@@ -5435,10 +5407,6 @@ public class Configuration {
 
   /**
    * Gets the core pool size used for the {@link MetricsRetrievalService}.
-   *
-   * @return the core pool size or
-   *         {@value #PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT} if not
-   *         specified.
    */
   public int getMetricsServiceThreadPoolCoreSize() {
     return Integer.parseInt(getProperty(METRIC_RETRIEVAL_SERVICE_THREADPOOL_CORE_SIZE));
@@ -5447,11 +5415,7 @@ public class Configuration {
   /**
    * Gets the max pool size used for the {@link MetricsRetrievalService}.
    * Threads will only be increased up to this value of the worker queue is
-   * exhauseted and rejects the new task.
-   *
-   * @return the max pool size, or
-   *         {@value PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT} if not
-   *         specified.
+   * exhausted and rejects the new task.
    * @see #getMetricsServiceWorkerQueueSize()
    */
   public int getMetricsServiceThreadPoolMaxSize() {

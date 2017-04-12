@@ -589,7 +589,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
    * @param id            the definition id
    * @param xml           the version definition xml
    * @param requestedIds  the requested ids
-   * @param fromAvailable if the resource should include the {@link #SHOW_AVAILABLE} property
    * @return the resource
    * @throws SystemException
    */

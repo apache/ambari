@@ -1638,7 +1638,7 @@ public class ClusterTest {
    * Tests that hosts can be correctly transitioned into the "INSTALLING" state.
    * This method also tests that hosts in MM will not be transitioned, as per
    * the contract of
-   * {@link Cluster#transitionHostsToInstalling(ClusterVersionEntity)}.
+   * {@link Cluster#transitionHosts(ClusterVersionEntity, RepositoryVersionState)}.
    *
    * @throws Exception
    */

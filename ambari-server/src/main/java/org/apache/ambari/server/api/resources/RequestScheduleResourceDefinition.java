@@ -25,11 +25,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 
 public class RequestScheduleResourceDefinition extends BaseResourceDefinition {
-  /**
-   * Constructor.
-   *
-   * @param resourceType resource type
-   */
+
   public RequestScheduleResourceDefinition() {
     super(Resource.Type.RequestSchedule);
   }

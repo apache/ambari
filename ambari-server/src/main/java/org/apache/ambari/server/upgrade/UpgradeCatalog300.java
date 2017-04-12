@@ -208,7 +208,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * <ul>
    * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_COLUMN} to
    * {@link #CLUSTER_CONFIG_TABLE}.
-   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_TIMESTAMP} to
+   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN} to
    * {@link #CLUSTER_CONFIG_TABLE}.
    * </ul>
    */

@@ -3151,7 +3151,7 @@ public class ClusterImpl implements Cluster {
    * should make sure the cluster global write lock is acquired.
    *
    * @param stackId
-   * @see Cluster#getClusterGlobalLock()
+   * @see #clusterGlobalLock
    */
   @Transactional
   void removeAllConfigsForStack(StackId stackId) {

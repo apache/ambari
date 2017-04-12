@@ -138,9 +138,6 @@ public class HeartBeatResponse {
   /**
    * Gets the alert definition commands that contain the alert definitions for
    * each cluster that the host is a member of.
-   *
-   * @param commands
-   *          the commands, or {@code null} for none.
    */
   public List<AlertDefinitionCommand> getAlertDefinitionCommands() {
     return alertDefinitionCommands;
