@@ -25,30 +25,32 @@
           </div>
       </div>
       <div class="panel-default panel-files">
-        <div class="panel-heading">
-          <div class="row">
-             <div class="col-xs-12">
-                <div class="pull-right">
-                  <!-- <span class="">
-                      <button type="button" class="btn btn-default" {{action "createFolder"}} disabled={{isFilePathInvalid}}>Create Folder</button>
-                  </span> -->
-                  {{#unless uploadSelected}}
-                    <span>
-                      <button type="button" class="btn btn-default" {{action "uploadSelect"}} disabled={{isFilePathInvalid}}>Upload File</button>
-                    </span>
-                  {{/unless}}
-                  {{#if uploadSelected}}
-                  <span class="">
-                      <span class="file-upload-control">
-                        {{file-upload url="/upload" selectedPath=selectedPath uploadFailure="uploadFailure" uploadSuccess="uploadSuccess" uploadValidation="uploadValidation"}}
+        {{#unless hideUpload}}
+          <div class="panel-heading">
+            <div class="row">
+               <div class="col-xs-12">
+                  <div class="pull-right">
+                    <!-- <span class="">
+                        <button type="button" class="btn btn-default" {{action "createFolder"}} disabled={{isFilePathInvalid}}>Create Folder</button>
+                    </span> -->
+                    {{#unless uploadSelected}}
+                      <span>
+                        <button type="button" class="btn btn-default" {{action "uploadSelect"}} disabled={{isFilePathInvalid}}>Upload File</button>
                       </span>
-                      <button type="button" class="close-icon" {{action "closeUpload"}}>x</button>
-                  </span>
-                  {{/if}}
+                    {{/unless}}
+                    {{#if uploadSelected}}
+                    <span class="">
+                        <span class="file-upload-control">
+                          {{file-upload url="/upload" selectedPath=selectedPath uploadFailure="uploadFailure" uploadSuccess="uploadSuccess" uploadValidation="uploadValidation"}}
+                        </span>
+                        <button type="button" class="close-icon" {{action "closeUpload"}}>x</button>
+                    </span>
+                    {{/if}}
+                  </div>
                 </div>
-              </div>
+            </div>
           </div>
-        </div>
+        {{/unless}}
         <div class="panel-body">
           <div>
             {{#if showUploadSuccess}}
