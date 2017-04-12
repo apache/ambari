@@ -20,17 +20,17 @@
     {
       "type":"logsearch_app",
       "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch.json"
+      "path":"{{default('/configurations/logsearch-env/logsearch_log_dir', '/var/log/ambari-logsearch-portal')}}/logsearch.json"
     },
     {
       "type":"logsearch_feeder",
       "rowtype":"service",
-      "path":"{{logfeeder_log_dir}}/logsearch-logfeeder.json"
+      "path":"{{default('/configurations/logfeeder-env/logfeeder_log_dir', '/var/log/ambari-logsearch-logfeeder')}}/logsearch-logfeeder.json"
     },
     {
       "type":"logsearch_perf",
       "rowtype":"service",
-      "path":"{{logsearch_log_dir}}/logsearch-performance.json"
+      "path":"{{default('/configurations/logfeeder-env/logfeeder_log_dir', '/var/log/ambari-logsearch-logfeeder')}}/logsearch-performance.json"
     }
   ],
   "filter":[

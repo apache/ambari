@@ -19,9 +19,13 @@ limitations under the License.
 import os
 
 import ambari_simplejson as json
+from ambari_jinja2 import Environment as JinjaEnvironment
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
@@ -71,6 +75,19 @@ def setup_config():
               owner=params.hdfs_user,
               group=params.user_group,
               only_if=format("ls {hadoop_conf_dir}"))
+
+  Directory(params.logsearch_logfeeder_conf,
+            mode=0755,
+            cd_access='a',
+            create_parents=True
+            )
+
+  if params.logsearch_config_file_exists:
+    File(format("{logsearch_logfeeder_conf}/" + params.logsearch_config_file_name),
+         content=Template(params.logsearch_config_file_path,extra_imports=[default])
+         )
+  else:
+    Logger.warning('No logsearch configuration exists at ' + params.logsearch_config_file_path)
 
 
 def load_version(struct_out_file):

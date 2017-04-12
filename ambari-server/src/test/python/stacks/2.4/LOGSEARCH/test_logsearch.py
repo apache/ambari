@@ -96,6 +96,7 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.collection.history.replication.factor': '1',
                                             'logsearch.collection.service.logs.numshards': '10',
                                             'logsearch.collection.service.logs.replication.factor': '1',
+                                            'logsearch.config.zk_connect_string': 'c6401.ambari.apache.org:2181',
                                             'logsearch.login.credentials.file': 'logsearch-admin.json',
                                             'logsearch.protocol': 'http',
                                             'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR',

@@ -24,7 +24,7 @@ import org.apache.ambari.logsearch.dao.UserConfigSolrDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogfeederFilterConfigurer implements SolrConfigurer {
+public class LogfeederFilterConfigurer implements Configurer {
 
   private static final Logger LOG = LoggerFactory.getLogger(LogfeederFilterConfigurer.class);
 

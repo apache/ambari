@@ -81,7 +81,6 @@ cluster_name = str(config['clusterName'])
 configurations = config['configurations'] # need reference inside logfeeder jinja templates
 logserch_meta_configs = get_logsearch_meta_configs(configurations)
 logsearch_metadata = get_logsearch_metadata(logserch_meta_configs)
-logfeeder_metadata = get_logfeeder_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
@@ -256,14 +255,6 @@ logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 
-logsearch_acls = ''
-if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
-  acl_infra_solr_principal = get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'])
-  acl_logsearch_principal = get_name_from_principal(config['configurations']['logsearch-env']['logsearch_kerberos_principal'])
-  logsearch_acls = format('world:anyone:r,sasl:{acl_infra_solr_principal}:cdrwa,sasl:{acl_logsearch_principal}:cdrwa')
-  logsearch_properties['logsearch.solr.zk.acls'] = logsearch_acls
-  logsearch_properties['logsearch.solr.audit.logs.zk.acls'] = logsearch_acls
-
 # load config values
 
 logsearch_properties = dict(logsearch_properties.items() + dict(config['configurations']['logsearch-properties']).items())
@@ -278,6 +269,9 @@ del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
 logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
 logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
 logsearch_properties['logsearch.spnego.kerberos.host'] = logsearch_spnego_host
+
+if not('logsearch.config.zk_connect_string' in logsearch_properties):
+  logsearch_properties['logsearch.config.zk_connect_string'] = logsearch_solr_zk_quorum
 
 if logsearch_solr_kerberos_enabled:
   logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
@@ -330,17 +324,7 @@ logfeeder_env_jceks_file = os.path.join(logsearch_logfeeder_conf, 'logfeeder.jce
 logfeeder_ambari_config_content = config['configurations']['logfeeder-ambari-config']['content']
 logfeeder_output_config_content = config['configurations']['logfeeder-output-config']['content']
 
-logfeeder_default_services = ['logsearch']
-logfeeder_default_config_file_names = ['global.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_default_services]
-logfeeder_custom_config_file_names = ['input.config-%s.json' % (tag.replace('-logsearch-conf', ''))
-                                      for tag, content in logfeeder_metadata.iteritems() if any(logfeeder_metadata)]
-
-if logfeeder_system_log_enabled:
-  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names
-                                  + ['input.config-system_messages.json', 'input.config-secure_log.json'])
-else:
-  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names)
-
+default_config_files = ','.join(['output.config.json','global.config.json'])
 
 logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
 if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
@@ -367,13 +351,18 @@ logfeeder_properties = dict(logfeeder_properties.items() + dict(config['configur
 
 # load derivated values
 
-logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])
+logfeeder_properties['cluster.name'] = cluster_name
+logfeeder_properties['logfeeder.config.dir'] = logsearch_logfeeder_conf
 logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
 logfeeder_properties['logfeeder.solr.zk_connect_string'] = logsearch_solr_zk_quorum + logsearch_solr_zk_znode
 
+logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])
 logfeeder_properties['logfeeder.metrics.collector.protocol'] = metrics_collector_protocol
 logfeeder_properties['logfeeder.metrics.collector.port'] = metrics_collector_port
 logfeeder_properties['logfeeder.metrics.collector.path'] = '/ws/v1/timeline/metrics'
+
+if not('logsearch.config.zk_connect_string' in logfeeder_properties):
+  logfeeder_properties['logsearch.config.zk_connect_string'] = logsearch_solr_zk_quorum
 
 if logsearch_solr_kerberos_enabled:
   if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
@@ -386,6 +375,19 @@ logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder'
 # check if logfeeder uses ssl in any way
 
 logfeeder_use_ssl = logsearch_solr_ssl_enabled or metrics_collector_protocol == 'https'
+
+
+logsearch_acls = ''
+if 'infra-solr-env' in config['configurations'] and security_enabled and not logsearch_use_external_solr:
+  acl_infra_solr_principal = get_name_from_principal(config['configurations']['infra-solr-env']['infra_solr_kerberos_principal'])
+  acl_logsearch_principal = get_name_from_principal(config['configurations']['logsearch-env']['logsearch_kerberos_principal'])
+  logsearch_acls = format('world:anyone:r,sasl:{acl_infra_solr_principal}:cdrwa,sasl:{acl_logsearch_principal}:cdrwa')
+  logsearch_properties['logsearch.solr.zk.acls'] = logsearch_acls
+  logsearch_properties['logsearch.solr.audit.logs.zk.acls'] = logsearch_acls
+  if not('logsearch.config.zk_acls' in logsearch_properties):
+    logsearch_properties['logsearch.config.zk_acls'] = logsearch_acls
+  if not('logsearch.config.zk_acls' in logfeeder_properties):
+    logfeeder_properties['logsearch.config.zk_acls'] = logsearch_acls
 
 #####################################
 # Smoke command

@@ -21,7 +21,7 @@ package org.apache.ambari.logfeeder.output;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.ambari.logfeeder.LogFeeder;
+import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.InputMarker;
@@ -133,7 +133,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
 
 
   private Map<String, Object> getGlobalConfig() {
-    Map<String, Object> globalConfig = LogFeeder.globalConfigs;
+    Map<String, Object> globalConfig = ConfigHandler.globalConfigs;
     if (globalConfig == null) {
       globalConfig = new HashMap<>();
     }

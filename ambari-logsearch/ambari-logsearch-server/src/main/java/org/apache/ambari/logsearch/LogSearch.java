@@ -82,6 +82,7 @@ public class LogSearch {
   public void run(String[] argv) throws Exception {
     SSLUtil.ensureStorePasswords();
     SSLUtil.loadKeystore();
+    
     Server server = buildSever(argv);
     HandlerList handlers = new HandlerList();
     handlers.addHandler(createSwaggerContext());

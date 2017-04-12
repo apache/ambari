@@ -42,45 +42,19 @@ public class InputManagerTest {
     replay(input1, input2, input3, input4);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.removeInput(input3);
     manager.removeInput(input4);
     
     verify(input1, input2, input3, input4);
     
-    List<Input> inputList = manager.getInputList();
+    List<Input> inputList = manager.getInputList("serviceName");
     assertEquals(inputList.size(), 2);
     assertEquals(inputList.get(0), input1);
     assertEquals(inputList.get(1), input2);
-  }
-
-  @Test
-  public void testInputManager_init() throws Exception {
-    Input input1 = strictMock(Input.class);
-    Input input2 = strictMock(Input.class);
-    Input input3 = strictMock(Input.class);
-    
-    input1.init(); expectLastCall();
-    input2.init(); expectLastCall();
-    input3.init(); expectLastCall();
-    
-    expect(input1.isTail()).andReturn(false);
-    expect(input2.isTail()).andReturn(false);
-    expect(input3.isTail()).andReturn(false);
-    
-    replay(input1, input2, input3);
-    
-    InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
-    
-    manager.init();
-    
-    verify(input1, input2, input3);
   }
 
   @Test
@@ -88,6 +62,10 @@ public class InputManagerTest {
     Input input1 = strictMock(Input.class);
     Input input2 = strictMock(Input.class);
     Input input3 = strictMock(Input.class);
+    
+    input1.init(); expectLastCall();
+    input2.init(); expectLastCall();
+    input3.init(); expectLastCall();
     
     expect(input1.isReady()).andReturn(true);
     expect(input2.isReady()).andReturn(true);
@@ -101,11 +79,11 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
-    manager.monitor();
+    manager.startInputs("serviceName");
     
     verify(input1, input2, input3);
   }
@@ -130,9 +108,9 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.addMetricsContainers(metrics);
     
@@ -156,9 +134,9 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.logStats();
     
@@ -182,9 +160,9 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.waitOnAllInputs();
     
@@ -204,9 +182,9 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.checkInAll();
     
@@ -230,9 +208,9 @@ public class InputManagerTest {
     replay(input1, input2, input3);
     
     InputManager manager = new InputManager();
-    manager.add(input1);
-    manager.add(input2);
-    manager.add(input3);
+    manager.add("serviceName", input1);
+    manager.add("serviceName", input2);
+    manager.add("serviceName", input3);
     
     manager.close();
     

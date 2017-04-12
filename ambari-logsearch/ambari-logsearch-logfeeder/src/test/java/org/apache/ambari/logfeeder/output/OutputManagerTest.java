@@ -37,25 +37,22 @@ import org.junit.Test;
 public class OutputManagerTest {
 
   @Test
-  public void testOutputManager_addAndRemoveOutputs() {
+  public void testOutputManager_addOutputs() {
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
-    Output output4 = strictMock(Output.class);
     
-    replay(output1, output2, output3, output4);
+    replay(output1, output2, output3);
     
     OutputManager manager = new OutputManager();
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);
     
-    manager.retainUsedOutputs(Arrays.asList(output1, output2, output4));
-    
-    verify(output1, output2, output3, output4);
+    verify(output1, output2, output3);
     
     List<Output> outputs = manager.getOutputs();
-    assertEquals(outputs.size(), 2);
+    assertEquals(outputs.size(), 3);
     assertEquals(outputs.get(0), output1);
     assertEquals(outputs.get(1), output2);
   }

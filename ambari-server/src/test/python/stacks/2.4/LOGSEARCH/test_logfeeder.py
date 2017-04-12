@@ -67,15 +67,18 @@ class TestLogFeeder(RMFTestCase):
                               action = ['delete']
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              properties={'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks',
+                              properties={'cluster.name': 'c1',
+                                          'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-logfeeder/conf/logfeeder.jceks',
                                           'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
-                                          'logfeeder.config.files': 'output.config.json,input.config-ambari.json,global.config.json,input.config-logsearch.json,input.config-zookeeper.json',
+                                          'logfeeder.config.dir': '/etc/ambari-logsearch-logfeeder/conf',
+                                          'logfeeder.config.files': 'output.config.json,global.config.json',
                                           'logfeeder.metrics.collector.hosts': '',
                                           'logfeeder.metrics.collector.path': '/ws/v1/timeline/metrics',
                                           'logfeeder.metrics.collector.port': '',
                                           'logfeeder.metrics.collector.protocol': '',
                                           'logfeeder.solr.core.config.name': 'history',
-                                          'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
+                                          'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
+                                          'logsearch.config.zk_connect_string': 'c6401.ambari.apache.org:2181'
                                          }
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh',
@@ -89,6 +92,9 @@ class TestLogFeeder(RMFTestCase):
                               content=InlineTemplate('GP'),
                               encoding='utf-8'
                               )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/global.config.json',
+                              content=Template('global.config.json.j2')
+                              )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-ambari.json',
                               content=InlineTemplate('ambari-grok-filter'),
                               encoding='utf-8'
@@ -96,22 +102,6 @@ class TestLogFeeder(RMFTestCase):
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/output.config.json',
                               content=InlineTemplate('output-grok-filter'),
                               encoding='utf-8'
-                              )
-
-    logfeeder_supported_services = ['logsearch']
-
-    logfeeder_config_file_names = ['global.config.json'] + \
-                                  ['input.config-%s.json' % (tag) for tag in logfeeder_supported_services]
-
-    for file_name in logfeeder_config_file_names:
-      self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
-                                content=Template(file_name + ".j2")
-                                )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-logfeeder-custom.json',
-                              action=['delete']
-                              )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-zookeeper.json',
-                              content=InlineTemplate("pattern content")
                               )
 
   def test_configure_default(self):

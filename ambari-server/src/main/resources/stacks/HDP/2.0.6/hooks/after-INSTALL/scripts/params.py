@@ -27,6 +27,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.version import format_stack_version
+from string import lower
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -43,6 +44,19 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)
+
+# service name
+service_name = config['serviceName']
+
+# logsearch configuration
+logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
+
+agent_cache_dir = config['hostLevelParams']['agentCacheDir']
+service_package_folder = config['commandParams']['service_package_folder']
+logsearch_service_name = service_name.lower().replace("_", "-")
+logsearch_config_file_name = 'input.config-' + logsearch_service_name + ".json"
+logsearch_config_file_path = agent_cache_dir + "/" + service_package_folder + "/templates/" + logsearch_config_file_name + ".j2"
+logsearch_config_file_exists = os.path.exists(logsearch_config_file_path)
 
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"

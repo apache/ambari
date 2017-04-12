@@ -20,6 +20,7 @@ package org.apache.ambari.logfeeder.input;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -180,7 +181,7 @@ public class InputFileTest {
 
   private File createFile(String filename) throws IOException {
     File newFile = new File(FileUtils.getTempDirectoryPath() + TEST_DIR_NAME + filename);
-    FileUtils.writeStringToFile(newFile, TEST_LOG_FILE_CONTENT);
+    FileUtils.writeStringToFile(newFile, TEST_LOG_FILE_CONTENT, Charset.defaultCharset());
     return newFile;
   }
 

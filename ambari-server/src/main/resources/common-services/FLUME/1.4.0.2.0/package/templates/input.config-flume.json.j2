@@ -1,0 +1,53 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{# flume.conf: Add your flume configuration here and start flume
+#             Note if you are using the Windows srvice or Unix service
+#             provided by the HDP distribution, they will assume the
+#             agent's name in this file to be 'a1'
+#}
+{
+  "input":[
+    {
+      "type":"flume_handler",
+      "rowtype":"service",
+      "path":"{{default('/configurations/flume-env/flume_log_dir', '/var/log/flume')}}/flume.log"
+    }
+  ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "flume_handler"
+          ]
+        }
+      },
+      "log4j_format":"",
+      "multiline_pattern":"^(%{USER_SYNC_DATE:logtime})",
+      "message_pattern":"(?m)^%{USER_SYNC_DATE:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}\\(%{JAVACLASS:class}\\.%{JAVAMETHOD:method}:%{INT:line_number}\\)%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"dd MMM yyyy HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}
