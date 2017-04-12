@@ -86,7 +86,6 @@
     <name>hive_ambari_database</name>
     <value>MySQL</value>
     <description>Database type.</description>
-    <deleted>true</true>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
