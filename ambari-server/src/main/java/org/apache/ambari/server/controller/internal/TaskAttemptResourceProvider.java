@@ -182,7 +182,7 @@ public class TaskAttemptResourceProvider extends
   /**
    * Simple interface for fetching task attempts from db.
    */
-  public static interface TaskAttemptFetcher {
+  public interface TaskAttemptFetcher {
     /**
      * Fetch task attempt resources
      * 
@@ -198,9 +198,9 @@ public class TaskAttemptResourceProvider extends
      *          the task attempt id
      * @return a set of task attempt resources
      */
-    public Set<Resource> fetchTaskAttemptDetails(Set<String> requestedIds,
-        String clusterName, String workflowId, String jobId,
-        String taskAttemptId);
+    Set<Resource> fetchTaskAttemptDetails(Set<String> requestedIds,
+                                          String clusterName, String workflowId, String jobId,
+                                          String taskAttemptId);
   }
 
   /**
@@ -318,7 +318,7 @@ public class TaskAttemptResourceProvider extends
   /**
    * Enumeration of db fields for the task attempt table.
    */
-  static enum TaskAttemptFields {
+  enum TaskAttemptFields {
     JOBID,
     TASKATTEMPTID,
     TASKTYPE,

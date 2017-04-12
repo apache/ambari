@@ -31,21 +31,21 @@ public interface QueryResponse {
    *
    * @return the set of resources
    */
-  public Set<Resource> getResources();
+  Set<Resource> getResources();
 
   /**
    * Determine whether or not the response is sorted.
    *
    * @return {@code true} if the response is sorted
    */
-  public boolean isSortedResponse();
+  boolean isSortedResponse();
 
   /**
    * Determine whether or not the response is paginated.
    *
    * @return {@code true} if the response is paginated
    */
-  public boolean isPagedResponse();
+  boolean isPagedResponse();
 
   /**
    * Get the the total number of resources for the query result.
@@ -54,5 +54,5 @@ public interface QueryResponse {
    *
    * @return total the total number of resources in the query result
    */
-  public int getTotalResourceCount();
+  int getTotalResourceCount();
 }

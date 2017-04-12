@@ -45,7 +45,7 @@ public interface PersistenceManager {
    * @throws NoSuchParentResourceException
    * @throws SystemException
    */
-  public RequestStatus create(ResourceInstance resource, RequestBody requestBody)
+  RequestStatus create(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException,
              ResourceAlreadyExistsException,
              NoSuchParentResourceException,
@@ -62,7 +62,7 @@ public interface PersistenceManager {
    * @throws NoSuchParentResourceException
    * @throws NoSuchResourceException
    */
-  public RequestStatus update(ResourceInstance resource, RequestBody requestBody)
+  RequestStatus update(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException;
 
   /**
@@ -76,6 +76,6 @@ public interface PersistenceManager {
    * @throws NoSuchParentResourceException
    * @throws NoSuchResourceException
    */
-  public RequestStatus delete(ResourceInstance resource, RequestBody requestBody)
+  RequestStatus delete(ResourceInstance resource, RequestBody requestBody)
       throws UnsupportedPropertyException, SystemException, NoSuchParentResourceException, NoSuchResourceException;
 }

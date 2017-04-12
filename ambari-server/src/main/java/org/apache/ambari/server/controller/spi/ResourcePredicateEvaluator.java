@@ -26,5 +26,5 @@ public interface ResourcePredicateEvaluator {
    *
    * @return true if the predicate evaluates to true for the resource
    */
-  public boolean evaluate(Predicate predicate, Resource resource);
+  boolean evaluate(Predicate predicate, Resource resource);
 }

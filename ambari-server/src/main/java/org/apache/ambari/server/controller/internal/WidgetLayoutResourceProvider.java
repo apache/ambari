@@ -70,7 +70,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   public static final String WIDGETLAYOUT_WIDGETS_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "widgets");
   public static final String WIDGETLAYOUT_USERNAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "user_name");
   public static final String WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "display_name");
-  public static enum SCOPE {
+  public enum SCOPE {
     CLUSTER,
     USER
   }

@@ -29,7 +29,7 @@ public class MetricsPaddingMethod {
   private final PADDING_STRATEGY strategy;
   public static final String ZERO_PADDING_PARAM = "params/padding";
   private static final long MINIMUM_STEP_INTERVAL = 999l; // ~ 1 second
-  public static enum PADDING_STRATEGY {
+  public enum PADDING_STRATEGY {
     ZEROS,
     NULLS,
     NONE

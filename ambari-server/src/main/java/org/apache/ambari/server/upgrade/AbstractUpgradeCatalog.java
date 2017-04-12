@@ -695,7 +695,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     private final String description;
 
 
-    private ConfigUpdateType(String description) {
+    ConfigUpdateType(String description) {
       this.description = description;
     }
 

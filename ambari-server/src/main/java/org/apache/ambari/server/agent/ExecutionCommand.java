@@ -398,7 +398,7 @@ public class ExecutionCommand extends AgentCommand {
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
-  public static interface KeyNames {
+  public interface KeyNames {
     String COMMAND_TIMEOUT = "command_timeout";
     String SCRIPT = "script";
     String SCRIPT_TYPE = "script_type";

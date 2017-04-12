@@ -33,12 +33,12 @@ public interface SectionDDL {
    * @param dbAccessor
    * @throws SQLException
    */
-  public void execute(DBAccessor dbAccessor) throws SQLException;
+  void execute(DBAccessor dbAccessor) throws SQLException;
 
   /**
    * Retrieve the capture groups and make assertions about tables/columns created.
    * @param dbAccessor
    * @throws SQLException
    */
-  public void verify(DBAccessor dbAccessor) throws SQLException;
+  void verify(DBAccessor dbAccessor) throws SQLException;
 }

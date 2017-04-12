@@ -32,5 +32,5 @@ public interface ConnectionFactory {
    *
    * @throws SQLException thrown if the connection cannot be obtained
    */
-  public Connection getConnection() throws SQLException;
+  Connection getConnection() throws SQLException;
 }

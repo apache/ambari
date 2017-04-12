@@ -32,12 +32,12 @@ public interface ViewInstanceHandlerList {
    *
    * @throws SystemException if a handler the view instance can not be added
    */
-  public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException;
+  void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException;
 
   /**
    * Remove the handler for the given view instance.
    *
    * @param viewInstanceDefinition  the view instance
    */
-  public void removeViewInstance(ViewInstanceEntity viewInstanceDefinition);
+  void removeViewInstance(ViewInstanceEntity viewInstanceDefinition);
 }

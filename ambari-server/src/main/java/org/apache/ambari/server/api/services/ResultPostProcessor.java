@@ -29,5 +29,5 @@ public interface ResultPostProcessor {
    *
    * @param result the result to process.
    */
-  public void process(Result result);
+  void process(Result result);
 }

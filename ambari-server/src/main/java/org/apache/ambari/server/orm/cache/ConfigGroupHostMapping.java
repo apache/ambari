@@ -23,13 +23,13 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 
 public interface ConfigGroupHostMapping {
   
-  public Long getConfigGroupId();
-  public Long getHostId();
-  public Host getHost();
-  public ConfigGroup getConfigGroup();
+  Long getConfigGroupId();
+  Long getHostId();
+  Host getHost();
+  ConfigGroup getConfigGroup();
   
-  public void setConfigGroupId(Long configGroupId);
-  public void setHostId(Long setHostId);
-  public void setHost(Host host);
-  public void setConfigGroup(ConfigGroup configGroup);
+  void setConfigGroupId(Long configGroupId);
+  void setHostId(Long setHostId);
+  void setHost(Host host);
+  void setConfigGroup(ConfigGroup configGroup);
 }

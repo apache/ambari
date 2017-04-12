@@ -57,7 +57,7 @@ public class CommandScriptDefinition {
     return timeout;
   }
 
-  public static enum Type {
+  public enum Type {
     PYTHON
   }
 

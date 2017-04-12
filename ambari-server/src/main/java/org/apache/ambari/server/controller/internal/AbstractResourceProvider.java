@@ -500,6 +500,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
      *
      * @throws AmbariException thrown if a problem occurred during invocation
      */
-    public T invoke() throws AmbariException, AuthorizationException;
+    T invoke() throws AmbariException, AuthorizationException;
   }
 }

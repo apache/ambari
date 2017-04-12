@@ -2945,7 +2945,7 @@ public class BlueprintConfigurationProcessor {
    * if a given property should be included in an external
    * collection of properties.
    */
-  private static interface PropertyFilter {
+  private interface PropertyFilter {
 
     /**
      * Query to determine if a given property should be included in a collection of

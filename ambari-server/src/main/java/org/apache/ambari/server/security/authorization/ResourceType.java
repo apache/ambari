@@ -37,7 +37,7 @@ public enum ResourceType {
    *
    * @param id the ID value for this ResourceType
    */
-  private ResourceType(int id) {
+  ResourceType(int id) {
     this.id = id;
   }
 

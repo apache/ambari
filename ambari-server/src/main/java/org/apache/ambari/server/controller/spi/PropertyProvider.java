@@ -40,7 +40,7 @@ public interface PropertyProvider {
    *
    * @throws SystemException thrown if resources cannot be populated
    */
-  public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
+  Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException;
 
   /**
@@ -51,5 +51,5 @@ public interface PropertyProvider {
    *         supported by this resource provider.  An empty return set indicates
    *         that all of the given property ids are supported.
    */
-  public Set<String> checkPropertyIds(Set<String> propertyIds);
+  Set<String> checkPropertyIds(Set<String> propertyIds);
 }

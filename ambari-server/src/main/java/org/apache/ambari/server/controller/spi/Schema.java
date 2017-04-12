@@ -39,7 +39,7 @@ public interface Schema {
    * @param type the resource type
    * @return the key property id for the given resource type
    */
-  public String getKeyPropertyId(Resource.Type type);
+  String getKeyPropertyId(Resource.Type type);
 
   /**
    * Get the set of resource types used in the key that uniquely identifies
@@ -52,5 +52,5 @@ public interface Schema {
    * @return the set of resource types used in the key that uniquely identifies
    *         the resource type described by this schema.
    */
-  public Set<Resource.Type> getKeyTypes();
+  Set<Resource.Type> getKeyTypes();
   }

@@ -19,27 +19,27 @@ package org.apache.ambari.server.orm.cache;
 
 public interface HostConfigMapping {
   
-  public Long getClusterId();
-  public void setClusterId(Long clusterId);
+  Long getClusterId();
+  void setClusterId(Long clusterId);
 
-  public Long getHostId();
-  public void setHostId(Long hostId);
+  Long getHostId();
+  void setHostId(Long hostId);
   
-  public String getType();
-  public void setType(String type);
+  String getType();
+  void setType(String type);
   
-  public Long getCreateTimestamp();
-  public void setCreateTimestamp(Long createTimestamp);
+  Long getCreateTimestamp();
+  void setCreateTimestamp(Long createTimestamp);
   
-  public String getVersion();
-  public void setVersion(String version);
+  String getVersion();
+  void setVersion(String version);
   
-  public String getServiceName();
-  public void setServiceName(String serviceName);
+  String getServiceName();
+  void setServiceName(String serviceName);
   
-  public String getUser();
-  public void setUser(String user);
+  String getUser();
+  void setUser(String user);
   
-  public Integer getSelected();
-  public void setSelected(Integer selected);
+  Integer getSelected();
+  void setSelected(Integer selected);
 }
