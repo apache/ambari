@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
@@ -60,5 +61,16 @@ public class TopologyLogicalRequestDAO {
   @Transactional
   public void remove(TopologyLogicalRequestEntity requestEntity) {
     entityManagerProvider.get().remove(requestEntity);
+  }
+
+  @RequiresSession
+  public List<Long> findRequestIdsByIds(List<Long> ids) {
+    EntityManager entityManager = entityManagerProvider.get();
+    TypedQuery<Long> topologyLogicalRequestQuery =
+            entityManager.createNamedQuery("TopologyLogicalRequestEntity.findRequestIds", Long.class);
+
+    topologyLogicalRequestQuery.setParameter("ids", ids);
+
+    return daoUtils.selectList(topologyLogicalRequestQuery);
   }
 }
