@@ -176,11 +176,7 @@ public class StackAdvisorBlueprintProcessor {
     Preconditions.checkArgument(response.getRecommendations().getBlueprint().getConfigurations() != null,
       "Configurations are missing from the recommendation blueprint response.");
 
-    Map<String, Map<String, String>> userProvidedProperties = existingConfigurations;
-    if (topology.getConfigRecommendationStrategy() == ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY) {
-      userProvidedProperties = getUserProvidedProperties(topology, existingConfigurations);
-    }
-
+    Map<String, Map<String, String>> userProvidedProperties = getUserProvidedProperties(topology, existingConfigurations);
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
@@ -188,7 +184,7 @@ public class StackAdvisorBlueprintProcessor {
       BlueprintConfigurations blueprintConfig = filterBlueprintConfig(configType, configEntry.getValue(),
         userProvidedProperties, topology);
       topology.getAdvisedConfigurations().put(configType, new AdvisedConfiguration(
-              blueprintConfig.getProperties(), blueprintConfig.getPropertyAttributes()));
+        blueprintConfig.getProperties(), blueprintConfig.getPropertyAttributes()));
     }
   }
 
