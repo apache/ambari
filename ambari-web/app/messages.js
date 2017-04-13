@@ -1892,6 +1892,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.details.hide': "hide details",
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",
   'admin.stackUpgrade.dialog.prepareUpgrade.header': "Preparing the Upgrade...",
+  'admin.stackUpgrade.dialog.skipped.failures':'There were automatically skipped failed steps.  Please resolve each failure before continuing with the upgrade.',
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
