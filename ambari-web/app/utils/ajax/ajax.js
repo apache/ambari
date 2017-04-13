@@ -304,7 +304,7 @@ var urls = {
         data: JSON.stringify({
           RequestInfo: {
             query: data.query
-          },
+          }
         })
       }
     }
@@ -1706,6 +1706,7 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
+        timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
             "repository_version": data.value,
