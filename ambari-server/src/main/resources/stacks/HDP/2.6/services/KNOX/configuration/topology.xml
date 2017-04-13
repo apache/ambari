@@ -100,7 +100,7 @@
 
             &lt;service&gt;
                 &lt;role&gt;WEBHBASE&lt;/role&gt;
-                &lt;url&gt;http://{{hbase_rest_server}}:{{hbase_rest_port}}&lt;/url&gt;
+                &lt;url&gt;http://{{hbase_master_host}}:{{hbase_master_port}}&lt;/url&gt;
             &lt;/service&gt;
 
             &lt;service&gt;
