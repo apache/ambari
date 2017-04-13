@@ -41,10 +41,41 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
-        "KAFKA": self.recommendKAFKAConfigurations
+        "KAFKA": self.recommendKAFKAConfigurations,
+        "BEACON": self.recommendBEACONConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
+
+  def recommendBEACONConfigurations(self, configurations, clusterData, services, hosts):
+    beaconEnvProperties = self.getSiteProperties(services['configurations'], 'beacon-env')
+    putbeaconEnvProperty = self.putProperty(configurations, "beacon-env", services)
+
+    # database URL and driver class recommendations
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_driver') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      putbeaconEnvProperty('beacon_store_driver', self.getDBDriver(beaconEnvProperties['beacon_database']))
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_db_name', 'beacon_store_url') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      beaconServerHost = self.getHostWithComponent('BEACON', 'BEACON_SERVER', services, hosts)
+      beaconDBConnectionURL = beaconEnvProperties['beacon_store_url']
+      protocol = self.getProtocol(beaconEnvProperties['beacon_database'])
+      oldSchemaName = self.getOldValue(services, "beacon-env", "beacon_store_db_name")
+      oldDBType = self.getOldValue(services, "beacon-env", "beacon_database")
+      # under these if constructions we are checking if beacon server hostname available,
+      # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
+      # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
+      if beaconServerHost is not None:
+        if (beaconDBConnectionURL and "//localhost" in beaconDBConnectionURL) or oldSchemaName or oldDBType or (protocol and beaconDBConnectionURL and not beaconDBConnectionURL.startswith(protocol)):
+          dbConnection = self.getDBConnectionStringBeacon(beaconEnvProperties['beacon_database']).format(beaconServerHost['Hosts']['host_name'], beaconEnvProperties['beacon_store_db_name'])
+          putbeaconEnvProperty('beacon_store_url', dbConnection)
+
+  def getDBConnectionStringBeacon(self, databaseType):
+    driverDict = {
+      'NEW DERBY DATABASE': 'jdbc:derby:${{beacon.data.dir}}/${{beacon.store.db.name}}-db;create=true',
+      'EXISTING MYSQL DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING ORACLE DATABASE': 'jdbc:oracle:thin:@//{0}:1521/{1}'
+    }
+    return driverDict.get(databaseType.upper())
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
