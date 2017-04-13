@@ -324,6 +324,9 @@ public class AmbariCustomCommandExecutionHelper {
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
         stackId.getStackName(), stackId.getStackVersion(), serviceName);
+    ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+            stackId.getStackName(), stackId.getStackVersion(),
+            serviceName, componentName);
     StackInfo stackInfo = ambariMetaInfo.getStack
        (stackId.getStackName(), stackId.getStackVersion());
 
@@ -430,6 +433,7 @@ public class AmbariCustomCommandExecutionHelper {
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
       execCmd.setHostLevelParams(hostLevelParams);
+      execCmd.setVersionAdvertised(componentInfo.isVersionAdvertised());
 
       Map<String, String> commandParams = new TreeMap<>();
       if (additionalCommandParams != null) {
@@ -440,10 +444,6 @@ public class AmbariCustomCommandExecutionHelper {
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
       String commandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
-
-      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-          stackId.getStackName(), stackId.getStackVersion(),
-          serviceName, componentName);
 
       if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
         // Service check command is not custom command
