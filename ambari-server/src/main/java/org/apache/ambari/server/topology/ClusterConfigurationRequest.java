@@ -137,17 +137,19 @@ public class ClusterConfigurationRequest {
     // this will update the topo cluster config and all host group configs in the cluster topology
     Set<String> updatedConfigTypes = new HashSet<>();
 
-    Configuration clusterConfiguration = clusterTopology.getConfiguration();
-    Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
+    Map<String, Map<String, String>> userProvidedConfigurations = clusterTopology.getConfiguration().getFullProperties(1);
 
     try {
       if (configureSecurity) {
+        Configuration clusterConfiguration = clusterTopology.getConfiguration();
+        Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
         updatedConfigTypes.addAll(configureKerberos(clusterConfiguration, existingConfigurations));
       }
 
       // obtain recommended configurations before config updates
       if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
-        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, existingConfigurations);
+        // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
+        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }
 
       updatedConfigTypes.addAll(configurationProcessor.doUpdateForClusterCreate());
