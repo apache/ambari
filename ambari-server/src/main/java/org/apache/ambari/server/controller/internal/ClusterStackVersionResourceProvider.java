@@ -610,6 +610,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         osFamily, repoVersion.getVersion(), stackId));
     }
 
+    if (repoInfo.isEmpty()){
+      LOG.error(String.format("Repository list is empty. Ambari may not be managing the repositories for %s", osFamily));
+    }
 
     // determine packages for all services that are installed on host
     List<ServiceOsSpecific.Package> packages = new ArrayList<>();
