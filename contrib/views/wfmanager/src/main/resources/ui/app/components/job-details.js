@@ -327,7 +327,18 @@ export default Ember.Component.extend({
                   return "none";
                 }
               },
-              'target-arrow-color': 'data(borderColor)'
+              'target-arrow-color': 'data(borderColor)',
+              'color': '#262626',
+              'font-size': 12,
+              label: function(target) {
+                if (!target.data().transition || !target.data().transition.condition) {
+                  return "";
+                }else if (target.data().transition.condition.length>5){
+                  return target.data().transition.condition.slice(0, 5)+"...";
+                }else{
+                  return target.data().transition.condition;
+                }
+              }
             }
           }
         ],
@@ -354,6 +365,23 @@ export default Ember.Component.extend({
         var node = event.cyTarget;
         this.showActionNodeDetail(node, xmlString);
       }.bind(this));
+
+      cy.on('mousemove', 'edge', function(event) {
+        this.get("context").$(".overlay-transition-content, .decision-condition-label").hide();
+        if (event.cyTarget.data().transition && event.cyTarget.data().transition.condition) {
+          this.get("context").$(".decision-condition-body").html(event.cyTarget.data().transition.condition);
+          this.get("context").$(".overlay-transition-content").css({
+            top: event.originalEvent.offsetY + 10,
+            left: event.originalEvent.offsetX + 15
+          });
+          this.get("context").$(".overlay-transition-content, .decision-condition-label").show();
+        }
+      }.bind(this));
+
+      cy.on('mouseout', 'edge',function(event) {
+        this.get("context").$(".overlay-transition-content").hide();
+      }.bind(this));
+
       this.set("model.inProgress", false);
     },
     importSampleWorkflow (){
