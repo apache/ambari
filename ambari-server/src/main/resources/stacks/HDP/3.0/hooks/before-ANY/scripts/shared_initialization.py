@@ -109,8 +109,8 @@ def create_users_and_groups(user_and_groups):
   if len(parts) == 1:
     parts.append("")
 
-  users_list = parts[0].split(",") if parts[0] else []
-  groups_list = parts[1].split(",") if parts[1] else []
+  users_list = parts[0].strip(",").split(",") if parts[0] else []
+  groups_list = parts[1].strip(",").split(",") if parts[1] else []
 
   if users_list:
     User(users_list,
