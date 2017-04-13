@@ -305,6 +305,7 @@ public class AmbariServer {
     initDB();
     server = new Server();
     server.setSessionIdManager(sessionIdManager);
+    server.setSendServerVersion(false);
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
