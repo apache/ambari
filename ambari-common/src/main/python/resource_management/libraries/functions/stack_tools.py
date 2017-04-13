@@ -32,6 +32,7 @@ from resource_management.core.utils import pad
 STACK_SELECTOR_NAME = "stack_selector"
 CONF_SELECTOR_NAME = "conf_selector"
 
+
 def get_stack_tool(name):
   """
   Give a tool selector name get the stack-specific tool name, tool path, tool package
@@ -41,8 +42,17 @@ def get_stack_tool(name):
   from resource_management.libraries.functions.default import default
   stack_tools = None
   stack_tools_config = default("/configurations/cluster-env/stack_tools", None)
+  stack_name = default("/hostLevelParams/stack_name", None)
+  service_name = default("/serviceName", None)
+
+  #Get version Advertised tag to decide whether or not to call the selector tools
+  is_version_advertised = default("/versionAdvertised", True)
   if stack_tools_config:
     stack_tools = json.loads(stack_tools_config)
+  if service_name is not None:
+    if not is_version_advertised:
+      Logger.warning(format("No \"stack selector tool\" returned as the component does not advertise a version"))
+      return (None, None, None)
 
   if not stack_tools or not name or name.lower() not in stack_tools:
     Logger.warning("Cannot find config for {0} stack tool in {1}".format(str(name), str(stack_tools)))
