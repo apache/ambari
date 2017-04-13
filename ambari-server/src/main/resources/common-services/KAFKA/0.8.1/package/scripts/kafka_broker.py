@@ -77,6 +77,12 @@ class KafkaBroker(Script):
     import params
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
+
+    if params.security_enabled:
+      if params.version and check_stack_feature(StackFeature.KAFKA_KERBEROS, params.version):
+        kafka_kinit_cmd = format("{kinit_path_local} -kt {kafka_keytab_path} {kafka_jaas_principal};")
+        Execute(kafka_kinit_cmd, user=params.kafka_user)
+
     if params.is_supported_kafka_ranger:
       setup_ranger_kafka() #Ranger Kafka Plugin related call 
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_bin} start')
