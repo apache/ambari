@@ -25,6 +25,24 @@
     <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>apptimelineserver_heapsize</name>
+    <value>1024</value>
+    <display-name>AppTimelineServer Java heap size</display-name>
+    <description>Max heapsize for AppTimelineServer using a numerical value in the scale of MB</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <unit>MB</unit>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.timeline-service.entity-group-fs-store.app-cache-size</name>
+      </property>
+    </depends-on>
+  </property>
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>
