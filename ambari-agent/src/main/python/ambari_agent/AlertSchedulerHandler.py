@@ -72,11 +72,15 @@ class AlertSchedulerHandler():
       except:
         logger.critical("[AlertScheduler] Could not create the cache directory {0}".format(cachedir))
 
+    apscheduler_standalone = False
+
     self.APS_CONFIG = {
       'apscheduler.threadpool.core_threads': 3,
       'apscheduler.coalesce': True,
-      'apscheduler.standalone': False,
-      'apscheduler.misfire_grace_time': alert_grace_period
+      'apscheduler.standalone': apscheduler_standalone,
+      'apscheduler.misfire_grace_time': alert_grace_period,
+      'apscheduler.threadpool.context_injector': self._job_context_injector if not apscheduler_standalone else None,
+      'apscheduler.threadpool.agent_config': config
     }
 
     self._collector = AlertCollector()
@@ -87,6 +91,19 @@ class AlertSchedulerHandler():
 
     # register python exit handler
     ExitHelper().register(self.exit_handler)
+
+  def _job_context_injector(self, config):
+    """
+    apscheduler hack to inject monkey-patching, context and configuration to all jobs inside scheduler in case if scheduler running
+    in embedded mode
+
+    Please note, this function called in job context thus all injects should be time-running optimized
+
+    :type config AmbariConfig.AmbariConfig
+    """
+    if not config.use_system_proxy_setting():
+      from ambari_commons.network import reconfigure_urllib2_opener
+      reconfigure_urllib2_opener(ignore_system_proxy=True)
 
 
   def exit_handler(self):

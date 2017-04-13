@@ -537,7 +537,12 @@ class CustomServiceOrchestrator():
     command['public_hostname'] = public_fqdn
     # Add cache dir to make it visible for commands
     command["hostLevelParams"]["agentCacheDir"] = self.config.get('agent', 'cache_dir')
-    command["agentConfigParams"] = {"agent": {"parallel_execution": self.config.get_parallel_exec_option()}}
+    command["agentConfigParams"] = {
+      "agent": {
+        "parallel_execution": self.config.get_parallel_exec_option(),
+        "use_system_proxy_settings": self.config.use_system_proxy_setting()
+      }
+    }
     # Now, dump the json file
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency

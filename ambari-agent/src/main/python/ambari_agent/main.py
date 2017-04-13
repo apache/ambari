@@ -101,6 +101,7 @@ from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
+from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
@@ -117,6 +118,7 @@ agentPid = os.getpid()
 home_dir = ""
 
 config = AmbariConfig.AmbariConfig()
+
 # TODO AMBARI-18733, remove this global variable and calculate it based on home_dir once it is set.
 configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
@@ -408,6 +410,10 @@ def main(heartbeat_stop_callback=None):
   ping_port_listener.start()
 
   update_log_level(config)
+
+  if not config.use_system_proxy_setting():
+    logger.info('Agent is configured to ignore system proxy settings')
+    reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()

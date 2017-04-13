@@ -29,7 +29,7 @@ from ambari_agent.alerts.web_alert import WebAlert
 
 from AmbariConfig import AmbariConfig
 
-from mock.mock import Mock, MagicMock
+from mock.mock import Mock, MagicMock, patch
 from unittest import TestCase
 
 TEST_PATH = os.path.join('ambari_agent', 'dummy_files')
@@ -45,6 +45,22 @@ class TestAlertSchedulerHandler(TestCase):
     definitions = scheduler._AlertSchedulerHandler__load_definitions()
 
     self.assertEquals(len(definitions), 1)
+
+  @patch("ambari_commons.network.reconfigure_urllib2_opener")
+  def test_job_context_injector(self, reconfigure_urllib2_opener_mock):
+    self.config.use_system_proxy_setting = lambda: False
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    scheduler._job_context_injector(self.config)
+
+    self.assertTrue(reconfigure_urllib2_opener_mock.called)
+
+    reconfigure_urllib2_opener_mock.reset_mock()
+
+    self.config.use_system_proxy_setting = lambda: True
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
+    scheduler._job_context_injector(self.config)
+    self.assertFalse(reconfigure_urllib2_opener_mock.called)
+
 
   def test_json_to_callable_metric(self):
     scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)

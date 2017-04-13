@@ -34,6 +34,7 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
+from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -883,6 +884,12 @@ class Script(object):
   @staticmethod
   def get_instance():
     if Script.instance is None:
+
+      from resource_management.libraries.functions.default import default
+      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
+      if not use_proxy:
+        reconfigure_urllib2_opener(ignore_system_proxy=True)
+
       Script.instance = Script()
     return Script.instance
 
