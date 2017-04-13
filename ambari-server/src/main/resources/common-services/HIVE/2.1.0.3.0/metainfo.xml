@@ -424,6 +424,9 @@
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
+            <!--
+            TODO AMBARI-20753
+            Re-add after Hive has all of its packages using the correct RPM name.
             <package>
               <name>hive-${stack_version}</name>
             </package>
@@ -438,10 +441,11 @@
               <condition>should_install_hive_atlas</condition>
             </package>
             <package>
-              <name>hive2-${stack_version}</name>
-            </package>
-            <package>
               <name>tez-hive2-${stack_version}</name>
+            </package>
+            -->
+            <package>
+              <name>hive2-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -491,7 +495,10 @@
         <service>HDFS</service>
         <service>YARN</service>
         <service>TEZ</service>
+        <!-- TODO AMBARI-20753
+        Re-add after Pig service is being packaged.
         <service>PIG</service>
+        -->
         <service>SLIDER</service>
       </requiredServices>
 
