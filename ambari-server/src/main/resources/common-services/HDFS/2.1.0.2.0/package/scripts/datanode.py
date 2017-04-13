@@ -21,10 +21,12 @@ import datanode_upgrade
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 
 from hdfs_datanode import datanode
-from resource_management import *
+from resource_management import Script, Fail, shell, Logger
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
@@ -32,6 +34,7 @@ from hdfs import hdfs
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from utils import get_hdfs_binary
+from utils import get_dfsadmin_base_command
 
 class DataNode(Script):
 
@@ -75,11 +78,50 @@ class DataNode(Script):
         datanode(action="stop")
     else:
       datanode(action="stop")
+    # verify that the datanode is down
+    self.check_datanode_shutdown(hdfs_binary)
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
     datanode(action = "status")
+
+  @retry(times=24, sleep_time=5, err_class=Fail)
+  def check_datanode_shutdown(self, hdfs_binary):
+    """
+    Checks that a DataNode is down by running "hdfs dfsamin getDatanodeInfo"
+    several times, pausing in between runs. Once the DataNode stops responding
+    this method will return, otherwise it will raise a Fail(...) and retry
+    automatically.
+    The stack defaults for retrying for HDFS are also way too slow for this
+    command; they are set to wait about 45 seconds between client retries. As
+    a result, a single execution of dfsadmin will take 45 seconds to retry and
+    the DataNode may be marked as dead, causing problems with HBase.
+    https://issues.apache.org/jira/browse/HDFS-8510 tracks reducing the
+    times for ipc.client.connect.retry.interval. In the meantime, override them
+    here, but only for RU.
+    :param hdfs_binary: name/path of the HDFS binary to use
+    :return:
+    """
+    import params
+
+    # override stock retry timeouts since after 30 seconds, the datanode is
+    # marked as dead and can affect HBase during RU
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    command = format('{dfsadmin_base_command} -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
+
+    is_datanode_deregistered = False
+    try:
+      shell.checked_call(command, user=params.hdfs_user, tries=1)
+    except:
+      is_datanode_deregistered = True
+
+    if not is_datanode_deregistered:
+      Logger.info("DataNode has not yet deregistered from the NameNode...")
+      raise Fail('DataNode has not yet deregistered from the NameNode...')
+
+    Logger.info("DataNode has successfully shutdown.")
+    return True
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -175,3 +217,4 @@ class DataNodeWindows(DataNode):
 
 if __name__ == "__main__":
   DataNode().execute()
+
