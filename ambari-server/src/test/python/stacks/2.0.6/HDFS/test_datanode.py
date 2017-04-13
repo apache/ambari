@@ -22,6 +22,7 @@ import json
 from mock.mock import MagicMock, patch
 from resource_management.libraries.script.script import Script
 from resource_management.core import shell
+import itertools
 from resource_management.core.exceptions import Fail
 import resource_management.libraries.functions.mounted_dirs_helper
 
@@ -76,13 +77,21 @@ class TestDatanode(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch('time.sleep')
   @patch("os.path.exists", new = MagicMock(return_value=False))
-  def test_stop_default(self):
+  @patch("resource_management.core.shell.checked_call")
+  def test_stop_default(self, checked_call_mock, time_mock):
+    def side_effect(arg):
+      if '-D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo' in arg :
+        raise Fail()
+      return
+    checked_call_mock.side_effect = side_effect
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
+                       checked_call_mocks = side_effect,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode'",
@@ -221,13 +230,21 @@ class TestDatanode(RMFTestCase):
     )
     self.assertNoMoreResources()
 
+  @patch('time.sleep')
   @patch("os.path.exists", new = MagicMock(return_value=False))
-  def test_stop_secured(self):
+  @patch("resource_management.core.shell.checked_call")
+  def test_stop_secured(self, checked_call_mock, time_mock):
+    def side_effect(arg):
+      if '-D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo' in arg :
+        raise Fail()
+      return
+    checked_call_mock.side_effect = side_effect
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "stop",
                        config_file = "secured.json",
                        stack_version = self.STACK_VERSION,
+                       checked_call_mocks = side_effect,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop datanode',
@@ -237,9 +254,15 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid', action = ['delete'])
     self.assertNoMoreResources()
 
-
+  @patch('time.sleep')
   @patch("os.path.exists", new = MagicMock(return_value=False))
-  def test_stop_secured_HDP22_root(self):
+  @patch("resource_management.core.shell.checked_call")
+  def test_stop_secured_HDP22_root(self, checked_call_mock, time_mock):
+    def side_effect(arg):
+      if '-D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo' in arg :
+        raise Fail()
+      return
+    checked_call_mock.side_effect = side_effect
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
@@ -251,6 +274,7 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_dict = secured_json,
                        stack_version = self.STACK_VERSION,
+                       checked_call_mocks = side_effect,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop datanode',
@@ -260,8 +284,15 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid', action = ['delete'])
     self.assertNoMoreResources()
 
+  @patch('time.sleep')
   @patch("os.path.exists", new = MagicMock(return_value=False))
-  def test_stop_secured_HDP22_non_root_https_only(self):
+  @patch("resource_management.core.shell.checked_call")
+  def test_stop_secured_HDP22_non_root_https_only(self, checked_call_mock, time_mock):
+    def side_effect(arg):
+      if '-D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo' in arg :
+        raise Fail()
+      return
+    checked_call_mock.side_effect = side_effect
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
@@ -276,6 +307,7 @@ class TestDatanode(RMFTestCase):
                        command = "stop",
                        config_dict = secured_json,
                        stack_version = self.STACK_VERSION,
+                       checked_call_mocks = side_effect,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/hdp/current/hadoop-client/sbin/hadoop-daemon.sh --config /usr/hdp/current/hadoop-client/conf stop datanode'",
@@ -564,7 +596,7 @@ class TestDatanode(RMFTestCase):
 
   @patch("resource_management.core.shell.call")
   @patch('time.sleep')
-  def test_stop_during_upgrade(self, time_mock, call_mock):
+  def test_stop_during_upgrade_not_shutdown(self, time_mock, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     call_mock_side_effects = [(0, ""), ]
     call_mock.side_effects = call_mock_side_effects
@@ -573,7 +605,7 @@ class TestDatanode(RMFTestCase):
 
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
-
+    mocks_dict={}
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
         classname = "DataNode",
@@ -582,19 +614,23 @@ class TestDatanode(RMFTestCase):
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES,
         call_mocks = call_mock_side_effects,
+        checked_call_mocks=itertools.cycle([(0, "OK.")]),
+        mocks_dict = mocks_dict,
         command_args=["rolling"])
 
       raise Fail("Expected a fail since datanode didn't report a shutdown")
     except Exception, err:
-      expected_message = "DataNode has not shutdown."
+      expected_message = "DataNode has not yet deregistered from the NameNode..."
       if str(err.message) != expected_message:
         self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
 
-    self.assertResourceCalled("Execute", "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010", tries=1, user="hdfs")
+    self.assertEquals(
+      ('hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010'),
+      mocks_dict['checked_call'].call_args_list[0][0][0])
 
   @patch("resource_management.core.shell.call")
   @patch('time.sleep')
-  def test_stop_during_upgrade(self, time_mock, call_mock):
+  def test_stop_during_upgrade_not_shutdown_ha(self, time_mock, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
     call_mock_side_effects = [(0, ""), ]
     call_mock.side_effects = call_mock_side_effects
@@ -603,7 +639,7 @@ class TestDatanode(RMFTestCase):
 
     version = '2.2.1.0-3242'
     json_content['commandParams']['version'] = version
-
+    mocks_dict={}
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
@@ -612,15 +648,19 @@ class TestDatanode(RMFTestCase):
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
                          call_mocks = call_mock_side_effects,
+                         checked_call_mocks=itertools.cycle([(0, "OK.")]),
+                         mocks_dict = mocks_dict,
                          command_args=["rolling"])
 
       raise Fail("Expected a fail since datanode didn't report a shutdown")
     except Exception, err:
-      expected_message = "DataNode has not shutdown."
+      expected_message = "DataNode has not yet deregistered from the NameNode..."
       if str(err.message) != expected_message:
         self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
 
-    self.assertResourceCalled("Execute", "hdfs dfsadmin -fs hdfs://ns1 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010", tries=1, user="hdfs")
+    self.assertEquals(
+      ('hdfs dfsadmin -fs hdfs://ns1 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010'),
+      mocks_dict['checked_call'].call_args_list[0][0][0])
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

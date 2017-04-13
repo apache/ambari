@@ -48,10 +48,7 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
   command = format('{dfsadmin_base_command} -shutdownDatanode {dfs_dn_ipc_address} upgrade')
 
   code, output = shell.call(command, user=params.hdfs_user)
-  if code == 0:
-    # verify that the datanode is down
-    _check_datanode_shutdown(hdfs_binary)
-  else:
+  if code != 0:
     # Due to bug HDFS-7533, DataNode may not always shutdown during stack upgrade, and it is necessary to kill it.
     if output is not None and re.search("Shutdown already in progress", output):
       Logger.error("Due to a known issue in DataNode, the command {0} did not work, so will need to shutdown the datanode forcefully.".format(command))
@@ -83,39 +80,6 @@ def is_datanode_process_running():
     return True
   except ComponentIsNotRunning:
     return False
-
-@retry(times=24, sleep_time=5, err_class=Fail)
-def _check_datanode_shutdown(hdfs_binary):
-  """
-  Checks that a DataNode is down by running "hdfs dfsamin getDatanodeInfo"
-  several times, pausing in between runs. Once the DataNode stops responding
-  this method will return, otherwise it will raise a Fail(...) and retry
-  automatically.
-  The stack defaults for retrying for HDFS are also way too slow for this
-  command; they are set to wait about 45 seconds between client retries. As
-  a result, a single execution of dfsadmin will take 45 seconds to retry and
-  the DataNode may be marked as dead, causing problems with HBase.
-  https://issues.apache.org/jira/browse/HDFS-8510 tracks reducing the
-  times for ipc.client.connect.retry.interval. In the meantime, override them
-  here, but only for RU.
-  :param hdfs_binary: name/path of the HDFS binary to use
-  :return:
-  """
-  import params
-
-  # override stock retry timeouts since after 30 seconds, the datanode is
-  # marked as dead and can affect HBase during RU
-  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  command = format('{dfsadmin_base_command} -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
-
-  try:
-    Execute(command, user=params.hdfs_user, tries=1)
-  except:
-    Logger.info("DataNode has successfully shutdown for upgrade.")
-    return
-
-  Logger.info("DataNode has not shutdown.")
-  raise Fail('DataNode has not shutdown.')
 
 
 @retry(times=30, sleep_time=30, err_class=Fail) # keep trying for 15 mins

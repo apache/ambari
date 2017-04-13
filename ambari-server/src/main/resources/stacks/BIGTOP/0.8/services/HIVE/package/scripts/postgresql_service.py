@@ -26,7 +26,10 @@ def postgresql_service(postgresql_daemon_name=None, action='start'):
   cmd = format('service {postgresql_daemon_name} {action}')
 
   if action == 'status':
-    Execute(status_cmd)
+    try:
+      Execute(status_cmd)
+    except:
+      raise ComponentIsNotRunning()
   elif action == 'stop':
     Execute(cmd,
             logoutput = True,
