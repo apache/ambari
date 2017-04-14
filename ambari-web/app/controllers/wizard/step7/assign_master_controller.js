@@ -65,7 +65,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     
     switch (action) {
       case 'ADD':
-        if (hostComponent.componentName == "HIVE_SERVER_INTERACTIVE") {
+        if (hostComponent.componentName === "HIVE_SERVER_INTERACTIVE") {
           this.getPendingBatchRequests(hostComponent);  
         } else {
           this.showPopup(hostComponent);
@@ -94,9 +94,9 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
   pendingBatchRequestsAjaxError: function(data) {
     var error = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error');
-    if(data && data.responseText){
+    if (data && data.responseText) {
       try {
-        var json = $.parseJSON(data.responseText);
+        var json = JSON.parse(data.responseText);
         error += json.message;
       } catch (err) {}
     }
@@ -105,21 +105,11 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
   pendingBatchRequestsAjaxSuccess : function(data, opt, params) {
     var self = this;
-    var showAlert = false;
-    if (data.hasOwnProperty('items') && data.items.length > 0) {
-      data.items.forEach( function(_item) {
-        _item.RequestSchedule.batch.batch_requests.forEach( function(batchRequest) {
-          // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
-          if (batchRequest.request_type == "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
-            showAlert = true;
-          }
-        });
-      });
-    }
-    if (showAlert) {
-      App.showAlertPopup(Em.I18n.t('services.service.actions.hsi.alertPopup.header'), Em.I18n.t('services.service.actions.hsi.alertPopup.body'), function() {
+    if (this.shouldShowAlertOnBatchRequest(data)) {
+      App.showAlertPopup(Em.I18n.t('services.service.actions.hsi.alertPopup.header'),
+        Em.I18n.t('services.service.actions.hsi.alertPopup.body'), function() {
         var configWidgetContext = self.get('configWidgetContext');
-        var config = self.get('configWidgetContext.config');
+        var config = configWidgetContext.get('config');
         configWidgetContext.toggleProperty('controller.forceUpdateBoundaries');
         var value = config.get('initialValue');
         config.set('value', value);
@@ -130,6 +120,21 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     } else {
       this.showPopup(params.hostComponent);
     }
+  },
+
+  shouldShowAlertOnBatchRequest: function(data) {
+    var showAlert = false;
+    if (data.hasOwnProperty('items') && data.items.length > 0) {
+      data.items.forEach( function(_item) {
+        _item.RequestSchedule.batch.batch_requests.forEach( function(batchRequest) {
+          // Check if a DELETE request on HIVE_SERVER_INTERACTIVE is in progress
+          if (batchRequest.request_type === "DELETE" && batchRequest.request_uri.indexOf("HIVE_SERVER_INTERACTIVE") > -1) {
+            showAlert = true;
+          }
+        });
+      });
+    }
+    return showAlert;
   },
   
   showPopup: function(hostComponent) {
@@ -461,7 +466,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       var configActionComponent = self.get('configActionComponent');
       var componentHostName = self.getSelectedHostName(configActionComponent.componentName);
       var config = self.get('configWidgetContext.config');
-      var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
 
       // TODO remove after stack advisor is able to handle this case
       // workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive from Install Wizard
@@ -484,114 +488,159 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       configActionComponent.hostName = componentHostName;
       config.set('configActionComponent', configActionComponent);
       /* TODO uncomment after stack advisor is able to handle this case
-      context.get('controller').loadConfigRecommendations([{
+       var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
+       context.get('controller').loadConfigRecommendations([{
         type: App.config.getConfigTagFromFileName(config.get('fileName')),
         name: config.get('name'),
         old_value: config.get(oldValueKey)
       }]);
       */
+      self.resolveDependencies(dependencies, serviceConfigs, context);
+    });
+  },
 
-      // TODO remove after stack advisor is able to handle this case
-      // workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive
-      if (dependencies) {
-        var foreignKeys = {};
-        if (dependencies.foreignKeys) {
-          dependencies.foreignKeys.forEach(function (dependency) {
-            var matchingProperty = serviceConfigs.find(function (property) {
-              return property.get('filename') === App.config.getOriginalFileName(dependency.fileName) && property.get('name') === dependency.propertyName;
+  /**
+   * TODO remove after stack advisor is able to handle this case
+   * workaround for hadoop.proxyuser.{{hiveUser}}.hosts after adding Hive Server Interactive
+   * @param {object} dependencies
+   * @param {array} serviceConfigs
+   * @param {Em.Object} context
+   */
+  resolveDependencies: function(dependencies, serviceConfigs, context) {
+    if (dependencies) {
+      var foreignKeys = this.getDependenciesForeignKeys(dependencies, serviceConfigs);
+
+      if (dependencies.properties && dependencies.initializer) {
+        var initializer = App.get(dependencies.initializer.name);
+        var setup = Em.getProperties(foreignKeys, dependencies.initializer.setupKeys);
+        initializer.setup(setup);
+        var blueprintObject = {};
+        dependencies.properties.forEach(function (property) {
+          var propertyObject = Em.getProperties(property, ['name', 'fileName']);
+          if (property.nameTemplate) {
+            var name = property.nameTemplate;
+            Em.keys(foreignKeys).forEach(function (key) {
+              name = name.replace('{{' + key + '}}', foreignKeys[key]);
             });
-            if (matchingProperty) {
-              foreignKeys[dependency.key] = matchingProperty.get('value');
-            }
+            propertyObject.name = name;
+          }
+          if (!blueprintObject[property.fileName]) {
+            blueprintObject[property.fileName] = {
+              properties: {}
+            };
+          }
+          var result = initializer.initialValue(propertyObject, {
+            masterComponentHosts: this.getMasterComponents(dependencies, context)
           });
-        }
-        if (dependencies.properties && dependencies.initializer) {
-          var initializer = App.get(dependencies.initializer.name);
-          var setup = Em.getProperties(foreignKeys, dependencies.initializer.setupKeys);
-          initializer.setup(setup);
-          var blueprintObject = {};
-          dependencies.properties.forEach(function (property) {
-            var propertyObject = Em.getProperties(property, ['name', 'fileName']);
-            if (property.nameTemplate) {
-              var name = property.nameTemplate;
-              Em.keys(foreignKeys).forEach(function (key) {
-                name = name.replace('{{' + key + '}}', foreignKeys[key]);
+
+          var propertiesMap = blueprintObject[propertyObject.fileName].properties;
+          propertiesMap[propertyObject.name] = result.value;
+
+          if (property.isHostsList) {
+            var service = App.config.get('serviceByConfigTypeMap')[propertyObject.fileName];
+            if (service) {
+              var serviceName = service.get('serviceName');
+              var configs = serviceName === context.get('controller.selectedService.serviceName') ? serviceConfigs :
+                context.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
+              var originalFileName = App.config.getOriginalFileName(propertyObject.fileName);
+              var currentProperty = configs.find(function (configProperty) {
+                return configProperty.get('filename') === originalFileName && configProperty.get('name') === propertyObject.name;
               });
-              propertyObject.name = name;
-            }
-            if (!blueprintObject[property.fileName]) {
-              blueprintObject[property.fileName] = {
-                properties: {}
-              };
-            }
-            var masterComponents = [];
-            if (self.get('content.controllerName')) {
-              var savedMasterComponents = context.get('controller.content.masterComponentHosts').filter(function (componentObject) {
-                return dependencies.initializer.componentNames.contains(componentObject.component);
-              });
-              masterComponents = savedMasterComponents.map(function (componentObject) {
-                var masterComponent = Em.getProperties(componentObject, ['component', 'hostName']);
-                masterComponent.isInstalled = true;
-                return masterComponent;
-              });
-            } else {
-              var hostsMap = blueprintUtils.getComponentForHosts();
-              Em.keys(hostsMap).forEach(function (hostName) {
-                hostsMap[hostName].forEach(function (componentName) {
-                  if (dependencies.initializer.componentNames.contains(componentName)) {
-                    masterComponents.push({
-                      component: componentName,
-                      hostName: hostName,
-                      isInstalled: true
-                    });
-                  }
-                });
-              });
-            }
-            var result = initializer.initialValue(propertyObject, {
-              masterComponentHosts: masterComponents
-            });
-            var propertiesMap = blueprintObject[propertyObject.fileName].properties;
-            propertiesMap[propertyObject.name] = result.value;
-            if (property.isHostsList) {
-              var service = App.config.get('serviceByConfigTypeMap')[propertyObject.fileName];
-              if (service) {
-                var serviceName = service.get('serviceName');
-                var configs = serviceName === context.get('controller.selectedService.serviceName') ? serviceConfigs :
-                  context.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
-                var originalFileName = App.config.getOriginalFileName(propertyObject.fileName);
-                var currentProperty = configs.find(function (configProperty) {
-                  return configProperty.get('filename') === originalFileName && configProperty.get('name') === propertyObject.name;
-                });
-                if (currentProperty) {
-                  propertiesMap[propertyObject.name] = currentProperty.get('value');
-                  App.config.updateHostsListValue(propertiesMap, propertyObject.fileName, propertyObject.name, propertyObject.value, property.isHostsArray);
-                }
+              if (currentProperty) {
+                propertiesMap[propertyObject.name] = currentProperty.get('value');
+                App.config.updateHostsListValue(propertiesMap, propertyObject.fileName, propertyObject.name, propertyObject.value, property.isHostsArray);
               }
             }
-            context.get('controller').loadRecommendationsSuccess({
-              resources: [
-                {
-                  recommendations: {
-                    blueprint: {
-                      configurations: blueprintObject
-                    }
-                  }
-                }
-              ]
-            }, null, {
-              dataToSend: {
-                changed_configurations: [{
-                  type: App.config.getConfigTagFromFileName(config.get('fileName')),
-                  name: config.get('name'),
-                  old_value: config.get(oldValueKey)
-                }]
-              }
-            });
-            initializer.cleanup();
-          });
+          }
+          this.saveRecommendations(context, blueprintObject);
+          initializer.cleanup();
+        }, this);
+      }
+    }
+  },
+
+  /**
+   *
+   * @param {Em.Object} context
+   * @param {object} blueprintObject
+   */
+  saveRecommendations: function(context, blueprintObject) {
+    var oldValueKey = context.get('controller.wizardController.name') === 'installerController' ? 'initialValue' : 'savedValue';
+    var config = this.get('configWidgetContext.config');
+
+    context.get('controller').loadRecommendationsSuccess({
+      resources: [
+        {
+          recommendations: {
+            blueprint: {
+              configurations: blueprintObject
+            }
+          }
         }
+      ]
+    }, null, {
+      dataToSend: {
+        changed_configurations: [{
+          type: App.config.getConfigTagFromFileName(config.get('fileName')),
+          name: config.get('name'),
+          old_value: config.get(oldValueKey)
+        }]
       }
     });
+  },
+
+  /**
+   *
+   * @param dependencies
+   * @param serviceConfigs
+   * @returns {{}}
+   */
+  getDependenciesForeignKeys: function(dependencies, serviceConfigs) {
+    var foreignKeys = {};
+    if (dependencies.foreignKeys) {
+      dependencies.foreignKeys.forEach(function (dependency) {
+        var matchingProperty = serviceConfigs.find(function (property) {
+          return property.get('filename') === App.config.getOriginalFileName(dependency.fileName) && property.get('name') === dependency.propertyName;
+        });
+        if (matchingProperty) {
+          foreignKeys[dependency.key] = matchingProperty.get('value');
+        }
+      });
+    }
+    return foreignKeys;
+  },
+
+  /**
+   *
+   * @param dependencies
+   * @param context
+   * @returns {Array}
+   */
+  getMasterComponents: function(dependencies, context) {
+    var masterComponents = [];
+    if (this.get('content.controllerName')) {
+      var savedMasterComponents = context.get('controller.content.masterComponentHosts').filter(function (componentObject) {
+        return dependencies.initializer.componentNames.contains(componentObject.component);
+      });
+      masterComponents = savedMasterComponents.map(function (componentObject) {
+        var masterComponent = Em.getProperties(componentObject, ['component', 'hostName']);
+        masterComponent.isInstalled = true;
+        return masterComponent;
+      });
+    } else {
+      var hostsMap = blueprintUtils.getComponentForHosts();
+      Em.keys(hostsMap).forEach(function (hostName) {
+        hostsMap[hostName].forEach(function (componentName) {
+          if (dependencies.initializer.componentNames.contains(componentName)) {
+            masterComponents.push({
+              component: componentName,
+              hostName: hostName,
+              isInstalled: true
+            });
+          }
+        });
+      });
+    }
+    return masterComponents;
   }
 });
