@@ -19,6 +19,8 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 var numberUtils = require('utils/number_utils');
+var blueprintUtils = require('utils/blueprint');
+var testHelpers = require('test/helpers');
 require('models/stack_service_component');
 
 describe('App.AssignMasterOnStep7Controller', function () {
@@ -50,58 +52,51 @@ describe('App.AssignMasterOnStep7Controller', function () {
   describe("#execute()", function () {
     var context = Em.Object.create({
       controller: {
-        content: Em.Object.create({
-          controllerName: ""
-        })
+        content: {}
       }
     });
 
     beforeEach(function() {
-      this.mock = sinon.stub(view, 'getAllMissingDependentServices');
-      sinon.stub(view, 'showInstallServicesPopup');
-      sinon.stub(view, 'showAssignComponentPopup');
+      sinon.stub(view, 'showPopup');
       sinon.stub(view, 'removeMasterComponent');
-      view.reopen({
-        content: Em.Object.create()
-      });
-    });
+      sinon.stub(view, 'getPendingBatchRequests');
+     });
 
     afterEach(function() {
-      this.mock.restore();
-      view.showInstallServicesPopup.restore();
-      view.showAssignComponentPopup.restore();
+      view.getPendingBatchRequests.restore();
+      view.showPopup.restore();
       view.removeMasterComponent.restore();
     });
 
-    it("ADD action, controllerName is empty", function() {
-      this.mock.returns([{}]);
+    it("should set configWidgetContext", function() {
       view.execute(context, 'ADD', {componentName: 'C1'});
-      expect(view.showInstallServicesPopup.calledOnce).to.be.true;
+      expect(view.get('configWidgetContext')).to.be.eql(context);
     });
 
-    it("ADD action, controllerName is set", function() {
-      context = Em.Object.create({
-        controller: {
-          content: Em.Object.create({
-            controllerName: "ctrl1"
-          })
-        }
-      });
-      this.mock.returns([{}]);
+    it("should set content", function() {
       view.execute(context, 'ADD', {componentName: 'C1'});
-      expect(view.showAssignComponentPopup.calledOnce).to.be.true;
+      expect(view.get('content')).to.be.eql({});
     });
 
-    it("ADD action, no dependent services", function() {
-      this.mock.returns([]);
+    it("should set configActionComponent", function() {
       view.execute(context, 'ADD', {componentName: 'C1'});
-      expect(view.showAssignComponentPopup.calledOnce).to.be.true;
+      expect(view.get('configActionComponent')).to.be.eql({componentName: 'C1'});
     });
 
-    it("DELETE action", function() {
-      this.mock.returns([{}]);
+    it("should call showPopup when action is ADD", function() {
+      view.execute(context, 'ADD', {componentName: 'C1'});
+      expect(view.showPopup.calledWith({componentName: 'C1'})).to.be.true;
+    });
+
+    it("should call getPendingBatchRequests when action is ADD and HIVE_SERVER_INTERACTIVE", function() {
+      view.execute(context, 'ADD', {componentName: 'HIVE_SERVER_INTERACTIVE'});
+      expect(view.getPendingBatchRequests.calledWith({componentName: 'HIVE_SERVER_INTERACTIVE'})).to.be.true;
+    });
+
+    it("should call removeMasterComponent when action is DELETE", function() {
       view.execute(context, 'DELETE', {componentName: 'C1'});
       expect(view.removeMasterComponent.calledOnce).to.be.true;
+      expect(view.get('mastersToCreate')).to.be.eql(['C1']);
     });
   });
 
@@ -186,11 +181,20 @@ describe('App.AssignMasterOnStep7Controller', function () {
     beforeEach(function() {
       sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(mock, 'setDBProperty');
+      sinon.stub(view, 'clearComponentsToBeAdded');
+      sinon.stub(App.HostComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'C1',
+          hostName: 'host1'
+        })
+      ]);
     });
 
     afterEach(function() {
       App.router.get.restore();
       mock.setDBProperty.restore();
+      view.clearComponentsToBeAdded.restore();
+      App.HostComponent.find.restore();
     });
 
     it("should set masterComponentHosts", function() {
@@ -215,6 +219,22 @@ describe('App.AssignMasterOnStep7Controller', function () {
       view.removeMasterComponent();
       expect(view.get('content.masterComponentHosts')).to.be.eql([{component: 'C1'}]);
       expect(view.get('content.recommendationsHostGroups').blueprint).to.be.eql({host_groups: [{name: 'host-group-1', components: [{name: 'C1'}]}]});
+    });
+
+    it("should call clearComponentsToBeAdded when controllerName is null", function() {
+      view.setProperties({
+        content: Em.Object.create(),
+        mastersToCreate: ['C1'],
+        configWidgetContext: {
+          config: Em.Object.create()
+        }
+      });
+      view.removeMasterComponent();
+      expect(view.clearComponentsToBeAdded.calledWith('C1')).to.be.true;
+      expect(App.get('componentToBeDeleted')).to.be.eql(Em.Object.create({
+        componentName: 'C1',
+        hostName: 'host1'
+      }));
     });
   });
 
@@ -318,101 +338,657 @@ describe('App.AssignMasterOnStep7Controller', function () {
     });
   });
 
-  describe("#submit()", function () {
-    var popup = {
-      hide: Em.K
-      },
-      mock = {
-        saveMasterComponentHosts: Em.K,
-        loadMasterComponentHosts: Em.K,
-        setDBProperty: Em.K
-      },
-      config = Em.Object.create({
-        filename: 'file1',
-        name: 'conf1'
+  describe('#getPendingBatchRequests', function() {
+
+    it('App.ajax.send should be called', function() {
+      view.getPendingBatchRequests({componentName: 'C1'});
+      var args = testHelpers.findAjaxRequest('name', 'request_schedule.get.pending');
+      expect(args[0]).to.be.eql({
+        name : 'request_schedule.get.pending',
+        sender: view,
+        error : 'pendingBatchRequestsAjaxError',
+        success: 'pendingBatchRequestsAjaxSuccess',
+        data: {
+          hostComponent: {componentName: 'C1'}
+        }
       });
+    });
+  });
+
+  describe('#pendingBatchRequestsAjaxError', function() {
+    beforeEach(function() {
+      sinon.stub(App, 'showAlertPopup');
+    });
+    afterEach(function() {
+      App.showAlertPopup.restore();
+    });
+
+    it('should call showAlertPopup, invalid JSON', function() {
+      view.pendingBatchRequestsAjaxError({responseText: null});
+      expect(App.showAlertPopup.calledWith(
+        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'),
+        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'),
+        null
+      )).to.be.true;
+    });
+
+    it('should call showAlertPopup, valid JSON', function() {
+      view.pendingBatchRequestsAjaxError({responseText: '{"message":"foo"}'});
+      expect(App.showAlertPopup.calledWith(
+        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'),
+        Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error') + 'foo',
+        null
+      )).to.be.true;
+    });
+  });
+
+  describe('#pendingBatchRequestsAjaxSuccess', function() {
+    var configWidgetContext = Em.Object.create({
+      config: Em.Object.create({
+        initialValue: 'iv1',
+        value: 'v1'
+      }),
+      controller: {
+        forceUpdateBoundaries: false
+      },
+      setValue: sinon.spy(),
+      sendRequestRorDependentConfigs: sinon.spy()
+    });
+    beforeEach(function() {
+      this.mock = sinon.stub(view, 'shouldShowAlertOnBatchRequest');
+      sinon.stub(App, 'showAlertPopup', function() {
+        arguments[2].apply({hide: Em.K});
+      });
+      sinon.stub(view, 'showPopup');
+      view.set('configWidgetContext', configWidgetContext);
+    });
+    afterEach(function() {
+      this.mock.restore();
+      App.showAlertPopup.restore();
+      view.showPopup.restore();
+    });
+
+    it('showPopup should be called', function() {
+      this.mock.returns(false);
+      view.pendingBatchRequestsAjaxSuccess({}, {}, {hostComponent: {componentName: 'C1'}});
+      expect(view.showPopup.calledWith({componentName: 'C1'})).to.be.true;
+    });
+
+    it('showAlertPopup should be called', function() {
+      this.mock.returns(true);
+      view.pendingBatchRequestsAjaxSuccess({}, {}, {hostComponent: {componentName: 'C1'}});
+      expect(App.showAlertPopup.calledWith(
+        Em.I18n.t('services.service.actions.hsi.alertPopup.header'),
+        Em.I18n.t('services.service.actions.hsi.alertPopup.body')
+      )).to.be.true;
+      expect(configWidgetContext.get('config.value')).to.be.equal('iv1');
+      expect(configWidgetContext.get('controller.forceUpdateBoundaries')).to.be.true;
+      expect(configWidgetContext.setValue.calledWith('iv1')).to.be.true;
+      expect(configWidgetContext.sendRequestRorDependentConfigs.calledWith(
+        configWidgetContext.get('config')
+      )).to.be.true;
+    });
+  });
+
+  describe('#shouldShowAlertOnBatchRequest', function() {
+    var testCases = [
+      {
+        input: {},
+        expected: false
+      },
+      {
+        input: {
+          items: []
+        },
+        expected: false
+      },
+      {
+        input: {
+          items: [
+            {
+              RequestSchedule: {
+                batch: {
+                  batch_requests: [
+                    {
+                      request_type: 'ADD',
+                      request_uri: ''
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        expected: false
+      },
+      {
+        input: {
+          items: [
+            {
+              RequestSchedule: {
+                batch: {
+                  batch_requests: [
+                    {
+                      request_type: 'DELETE',
+                      request_uri: 'HIVE_SERVER_INTERACTIVE'
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        expected: true
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it('should return ' + test.expected + ' when data = ' + JSON.stringify(test.input), function() {
+        expect(view.shouldShowAlertOnBatchRequest(test.input)).to.be.equal(test.expected);
+      });
+    });
+  });
+
+  describe('#updateComponent and showAddControl should be false for component', function() {
 
     beforeEach(function() {
-      sinon.stub(popup, 'hide');
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.stub(mock, 'saveMasterComponentHosts');
-      sinon.stub(mock, 'loadMasterComponentHosts');
-      sinon.stub(mock, 'setDBProperty');
-      sinon.stub(App.config, 'getConfigTagFromFileName', function (value) {
-        return value;
-      });
-      view.reopen({
-        content: Em.Object.create({
-          controllerName: 'ctrl1',
-          componentsFromConfigs: []
-        }),
-        selectedServicesMasters: [
-          {
-            component_name: 'C1',
-            selectedHost: 'host1'
-          }
-        ],
-        popup: popup,
-        configActionComponent: {
-          componentName: 'C1'
-        },
-        configWidgetContext: Em.Object.create({
-          config: Em.Object.create({
-            fileName: 'file1',
-            name: 'conf1',
-            serviceName: 'S1',
-            savedValue: 'val1',
-            toggleProperty: Em.K
-          }),
-          controller: Em.Object.create({
-            selectedService: {
-              serviceName: 'S1'
-            },
-            wizardController: {
-              name: 'ctrl'
-            },
-            stepConfigs: [
-              Em.Object.create({
-                serviceName: 'S1',
-                configs: [
-                  config
-                ]
-              }),
-              Em.Object.create({
-                serviceName: 'MISC',
-                configs: [
-                  config
-                ]
-              })
-            ]
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'C1',
+          stackService: Em.Object.create({
+            isInstalled: false
           })
         })
+      ]);
+    });
+    afterEach(function() {
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('showRemoveControl ', function() {
+      var component = Em.Object.create({
+        component_name: 'C1',
+        showAddControl: true,
+        showRemoveControl: true
+      });
+      view.setProperties({
+        mastersToCreate: [],
+        selectedServicesMasters: [ component, {component_name: 'C2'} ]
+      });
+      view.updateComponent('C1');
+      expect(component.get('showAddControl')).to.be.false;
+      expect(component.get('showRemoveControl')).to.be.false;
+    });
+  });
+
+  describe('#saveRecommendationsHostGroups', function() {
+    beforeEach(function() {
+      sinon.stub(view, 'getSelectedHostName').returns('host1');
+    });
+    afterEach(function() {
+      view.getSelectedHostName.restore();
+    });
+
+    it('should add component to recommendations', function() {
+      var recommendationsHostGroups = {
+        blueprint_cluster_binding: {
+          host_groups: [
+            {
+              name: 'g1',
+              hosts: [
+                {
+                  fqdn: 'host1'
+                }
+              ]
+            }
+          ]
+        },
+        blueprint: {
+          host_groups: [
+            {
+              name: 'g1',
+              components: []
+            }
+          ]
+        }
+      };
+      view.reopen({
+        mastersToCreate: ['C1'],
+        content: Em.Object.create({
+          recommendationsHostGroups: recommendationsHostGroups
+        })
+      });
+      view.saveRecommendationsHostGroups();
+      expect(view.get('content.recommendationsHostGroups')).to.be.eql(Object.assign(recommendationsHostGroups, {
+        blueprint: {
+          host_groups: [
+            {
+              name: 'g1',
+              components: [{name: 'C1'}]
+            }
+          ]
+        }
+      }));
+    });
+  });
+
+  describe('#setGlobalComponentToBeAdded', function() {
+
+    it('should set componentToBeAdded', function() {
+      view.setGlobalComponentToBeAdded('C1', 'host1');
+      expect(App.get('componentToBeAdded')).to.be.eql(Em.Object.create({
+        componentName: 'C1',
+        hostNames: ['host1']
+      }));
+    });
+  });
+
+  describe('#clearComponentsToBeDeleted', function() {
+
+    it('should clear componentToBeDeleted', function() {
+      App.set('componentToBeDeleted', Em.Object.create({
+        componentName: 'C1'
+      }));
+      view.clearComponentsToBeDeleted('C1');
+      expect(App.get('componentToBeDeleted')).to.be.empty;
+    });
+  });
+
+  describe('#clearComponentsToBeAdded', function() {
+
+    it('should clear componentToBeAdded', function() {
+      App.set('componentToBeAdded', Em.Object.create({
+        componentName: 'C1'
+      }));
+      view.clearComponentsToBeAdded('C1');
+      expect(App.get('componentToBeAdded')).to.be.empty;
+    });
+  });
+
+  describe('#showPopup', function() {
+    beforeEach(function() {
+      this.mock = sinon.stub(view, 'getAllMissingDependentServices');
+      sinon.stub(view, 'showInstallServicesPopup');
+      sinon.stub(view, 'showAssignComponentPopup');
+    });
+    afterEach(function() {
+      this.mock.restore();
+      view.showInstallServicesPopup.restore();
+      view.showAssignComponentPopup.restore();
+    });
+
+    it('showAssignComponentPopup should be called', function() {
+      this.mock.returns([]);
+      view.showPopup({componentName: 'C1'});
+      expect(view.get('mastersToCreate')).to.be.eql(['C1']);
+      expect(view.showAssignComponentPopup.calledOnce).to.be.true;
+    });
+
+    it('showInstallServicesPopup should be called', function() {
+      this.mock.returns([{}]);
+      view.reopen({
+        content: Em.Object.create()
+      });
+      view.showPopup({componentName: 'C1'});
+      expect(view.showInstallServicesPopup.calledWith([{}])).to.be.true;
+    });
+  });
+
+  describe('#submit', function() {
+    var configWidgetContext = Em.Object.create({
+      controller: {
+        forceUpdateBoundaries: false,
+        stepConfigs: [
+          Em.Object.create({
+            serviceName: 'S1',
+            configs: []
+          }),
+          Em.Object.create({
+            serviceName: 'MISC',
+            configs: []
+          })
+        ],
+        selectedService: {
+          serviceName: 'S1'
+        }
+      },
+      config: Em.Object.create({
+        configAction: {
+          dependencies: []
+        }
+      })
+    });
+    beforeEach(function() {
+      sinon.stub(view, 'resolveDependencies');
+      sinon.stub(view, 'saveMasterComponentHosts');
+      sinon.stub(view, 'saveRecommendationsHostGroups');
+      sinon.stub(view, 'setGlobalComponentToBeAdded');
+      sinon.stub(view, 'clearComponentsToBeDeleted');
+      sinon.stub(App, 'get').returns({
+        getKDCSessionState: Em.clb
+      });
+      sinon.stub(view, 'getSelectedHostName').returns('host1');
+      view.setProperties({
+        configWidgetContext: configWidgetContext,
+        configActionComponent: { componentName: 'C1'},
+        popup: {
+          hide: sinon.spy()
+        }
+      });
+    });
+    afterEach(function() {
+      App.get.restore();
+      view.resolveDependencies.restore();
+      view.clearComponentsToBeDeleted.restore();
+      view.setGlobalComponentToBeAdded.restore();
+      view.saveRecommendationsHostGroups.restore();
+      view.saveMasterComponentHosts.restore();
+      view.getSelectedHostName.restore();
+    });
+
+    it('saveMasterComponentHosts should be called when controllerName defined', function() {
+      view.reopen({
+        content: {
+          controllerName: 'ctrl1'
+        }
       });
       view.submit();
+      expect(view.saveMasterComponentHosts.calledOnce).to.be.true;
     });
-
-    afterEach(function() {
-      App.router.get.restore();
-      popup.hide.restore();
-      mock.saveMasterComponentHosts.restore();
-      mock.loadMasterComponentHosts.restore();
-      mock.setDBProperty.restore();
-      App.config.getConfigTagFromFileName.restore();
+    it('saveRecommendationsHostGroups should be called when controllerName defined', function() {
+      view.reopen({
+        content: {
+          controllerName: 'ctrl1'
+        }
+      });
+      view.submit();
+      expect(view.saveRecommendationsHostGroups.calledOnce).to.be.true;
     });
-
-    it("saveMasterComponentHosts should be called", function() {
-      expect(mock.saveMasterComponentHosts.calledOnce).to.be.true;
+    it('setGlobalComponentToBeAdded should be called when controllerName undefined', function() {
+      view.reopen({
+        content: {
+          controllerName: undefined
+        }
+      });
+      view.submit();
+      expect(view.setGlobalComponentToBeAdded.calledWith('C1', 'host1')).to.be.true;
     });
-
-    it("loadMasterComponentHosts                           should be called", function() {
-      expect(mock.loadMasterComponentHosts.calledOnce).to.be.true;
+    it('clearComponentsToBeDeleted should be called when controllerName undefined', function() {
+      view.reopen({
+        content: {
+          controllerName: undefined
+        }
+      });
+      view.submit();
+      expect(view.clearComponentsToBeDeleted.calledWith('C1')).to.be.true;
     });
-
-    it("configActionComponent should be set", function() {
+    it('resolveDependencies should be called', function() {
+      view.submit();
+      expect(view.resolveDependencies.calledWith([], [])).to.be.true;
+    });
+    it('hide should be called', function() {
+      view.submit();
+      expect(view.get('popup').hide.calledOnce).to.be.true;
+    });
+    it('configActionComponent should be set', function() {
+      view.submit();
       expect(view.get('configWidgetContext.config.configActionComponent')).to.be.eql({
         componentName: 'C1',
         hostName: 'host1'
       });
+    });
+  });
+
+  describe('#resolveDependencies', function() {
+    var initializer = {
+      setup: sinon.spy(),
+      initialValue: sinon.stub().returns({value: 'val1'}),
+      cleanup: sinon.spy()
+    };
+    var dependencies = {
+      properties: [
+        {
+          name: 'p1',
+          fileName: 'file1.xml',
+          nameTemplate: '{{bar}}',
+          isHostsList: true,
+          isHostsArray: false
+        }
+      ],
+      initializer: {
+        name: 'i1',
+        setupKeys: ['bar']
+      }
+    };
+    var context = Em.Object.create({
+      controller: {
+        selectedService: {
+          serviceName: 'S1'
+        }
+      }
+    });
+    var serviceConfigs = [
+      Em.Object.create({
+        name: 'foo',
+        filename: 'file1.xml',
+        value: 'val1'
+      })
+    ];
+
+    beforeEach(function() {
+      sinon.stub(view, 'getDependenciesForeignKeys').returns({
+        bar: 'foo'
+      });
+      sinon.stub(App, 'get').returns(initializer);
+      sinon.stub(view, 'getMasterComponents');
+      sinon.stub(view, 'saveRecommendations');
+      sinon.stub(App.config, 'updateHostsListValue');
+      sinon.stub(App.config, 'get').returns({
+        'file1.xml': Em.Object.create({
+          serviceName: 'S1'
+        })
+      });
+      view.resolveDependencies(dependencies, serviceConfigs, context);
+    });
+    afterEach(function() {
+      App.config.get.restore();
+      view.getDependenciesForeignKeys.restore();
+      App.get.restore();
+      view.getMasterComponents.restore();
+      view.saveRecommendations.restore();
+      App.config.updateHostsListValue.restore();
+    });
+
+    it('initializer.setup should be called', function() {
+      expect(initializer.setup.calledWith({bar: 'foo'})).to.be.true;
+    });
+    it('initializer.setup initialValue be called', function() {
+      expect(initializer.initialValue.calledWith({
+        name: 'foo',
+        fileName: 'file1.xml'
+      })).to.be.true;
+    });
+    it('initializer.cleanup should be called', function() {
+      expect(initializer.cleanup.called).to.be.true;
+    });
+    it('saveRecommendations should be called', function() {
+      expect(view.saveRecommendations.calledWith(context)).to.be.true;
+    });
+    it('App.config.updateHostsListValue should be called', function() {
+      expect(App.config.updateHostsListValue.getCall(0).args).to.be.eql([
+        {
+          foo: 'val1'
+        },
+        'file1.xml',
+        'foo',
+        undefined,
+        false
+      ]);
+    });
+  });
+
+  describe('#saveMasterComponentHosts', function() {
+    var mockCtrl = {
+      saveMasterComponentHosts: sinon.spy(),
+      loadMasterComponentHosts: sinon.spy()
+    };
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mockCtrl);
+      view.reopen({
+        content: Em.Object.create({
+          componentsFromConfigs: []
+        })
+      });
+      view.set('mastersToCreate', [
+        {}
+      ]);
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it('saveMasterComponentHosts should be called', function() {
+      view.saveMasterComponentHosts();
+      expect(mockCtrl.saveMasterComponentHosts.calledWith(view, true)).to.be.true;
+    });
+    it('loadMasterComponentHosts should be called', function() {
+      view.saveMasterComponentHosts();
+      expect(mockCtrl.loadMasterComponentHosts.calledWith(true)).to.be.true;
+    });
+    it('componentsFromConfigs should be set', function() {
+      view.saveMasterComponentHosts();
+      expect(view.get('content.componentsFromConfigs')).to.be.eql([{}]);
+    });
+  });
+
+  describe('#getSelectedHostName', function() {
+
+    it('should return host of component', function() {
+      view.set('selectedServicesMasters', [
+        {
+          component_name: 'C1',
+          selectedHost: 'host1'
+        }
+      ]);
+      expect(view.getSelectedHostName('C1')).to.be.equal('host1');
+    });
+  });
+
+  describe('#saveRecommendations', function() {
+    var mockCtrl = {
+      loadRecommendationsSuccess: sinon.spy(),
+      wizardController: {
+        name: 'installerController'
+      }
+    };
+    var context = Em.Object.create({
+      controller: mockCtrl
+    });
+    it('loadRecommendationsSuccess should be called', function() {
+      view.set('configWidgetContext', {
+        config: Em.Object.create({
+          fileName: 'foo.xml',
+          name: 'bar',
+          initialValue: 'iv1'
+        })
+      });
+      view.saveRecommendations(context, {});
+      expect(mockCtrl.loadRecommendationsSuccess.getCall(0).args).to.be.eql([
+        {
+          resources: [
+            {
+              recommendations: {
+                blueprint: {
+                  configurations: {}
+                }
+              }
+            }
+          ]
+        }, null, {
+          dataToSend: {
+            changed_configurations: [{
+              type: 'foo',
+              name: 'bar',
+              old_value: 'iv1'
+            }]
+          }
+        }
+      ]);
+    });
+  });
+
+  describe('#getDependenciesForeignKeys', function() {
+    var dependencies = {
+      foreignKeys: [
+        {
+          fileName: 'foo.xml',
+          propertyName: 'c1',
+          key: 'k1'
+        }
+      ]
+    };
+    var serviceConfigs = [
+      Em.Object.create({
+        filename: 'foo.xml',
+        name: 'c1',
+        value: 'val1'
+      })
+    ];
+
+    it('should return foreignKeys map', function() {
+      expect(view.getDependenciesForeignKeys(dependencies, serviceConfigs)).to.be.eql({
+        k1: 'val1'
+      });
+    });
+  });
+
+  describe('#getMasterComponents', function() {
+    var dependencies = {
+      initializer: {
+        componentNames: ['C1']
+      }
+    };
+    var context = Em.Object.create({
+      controller: {
+        content: {
+          masterComponentHosts: [
+            {
+              component: 'C1',
+              hostName: 'host2'
+            }
+          ]
+        }
+      }
+    });
+    beforeEach(function() {
+      sinon.stub(blueprintUtils, 'getComponentForHosts').returns({
+        host1: ['C1']
+      });
+    });
+    afterEach(function() {
+      blueprintUtils.getComponentForHosts.restore();
+    });
+
+    it('should return master components when controllerName undefined', function() {
+      view.set('content.controllerName', undefined);
+      expect(view.getMasterComponents(dependencies, context)).to.be.eql([
+        {
+          component: 'C1',
+          hostName: 'host1',
+          isInstalled: true
+        }
+      ]);
+    });
+
+    it('should return master components when controllerName valid', function() {
+      view.set('content.controllerName', 'ctrl1');
+      expect(view.getMasterComponents(dependencies, context)).to.be.eql([
+        {
+          component: 'C1',
+          hostName: 'host2',
+          isInstalled: true
+        }
+      ]);
     });
   });
 });
