@@ -370,7 +370,7 @@ class Script(object):
       
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
-  def post_start(self):
+  def post_start(self, env):
     pid_files = self.get_pid_files()
     if pid_files == []:
       Logger.logger.warning("Pid files for current script are not defined")
