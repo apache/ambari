@@ -124,6 +124,7 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -141,6 +142,7 @@ import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
@@ -1172,99 +1174,115 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public void transitionHosts(ClusterVersionEntity sourceClusterVersion,
-      RepositoryVersionState state) throws AmbariException {
+  @Transactional
+  public List<Host> transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion,
+      RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
+      boolean forceInstalled) throws AmbariException {
 
     if (sourceClusterVersion == null) {
       throw new AmbariException("Could not find current stack version of cluster " + getClusterName());
     }
 
-    if (state != sourceClusterVersion.getState()) {
-      throw new AmbariException("Unable to transition cluster hosts into " + state
+    if (RepositoryVersionState.INSTALLING != sourceClusterVersion.getState()) {
+      throw new AmbariException(
+          "Unable to transition cluster hosts into " + RepositoryVersionState.INSTALLING
           + ". The only valid state is " + sourceClusterVersion.getState());
     }
 
-    Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
-    Set<String> existingHostsWithClusterStackAndVersion = new HashSet<>();
-    HashMap<String, HostVersionEntity> existingHostStackVersions = new HashMap<>();
+    // the hosts to return so that INSTALL commands can be generated for them
+    final List<Host> hostsRequiringInstallation;
 
     clusterGlobalLock.writeLock().lock();
     try {
-      StackEntity repoVersionStackEntity = sourceClusterVersion.getRepositoryVersion().getStack();
-      StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
-      List<HostVersionEntity> existingHostVersionEntities = hostVersionDAO.findByClusterStackAndVersion(
-          getClusterName(), repoVersionStackId,
-          sourceClusterVersion.getRepositoryVersion().getVersion());
+      // get this once for easy lookup later
+      Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
+      hostsRequiringInstallation = new ArrayList<>(hosts.size());
 
-      // for each host that already has a stack and version, keep track of them
-      for (HostVersionEntity entity : existingHostVersionEntities) {
-        String hostName = entity.getHostName();
-        existingHostsWithClusterStackAndVersion.add(hostName);
-        existingHostStackVersions.put(hostName, entity);
+      // for every host, either create or update the host version to the right
+      // state - starting with STATE
+      Collection<HostEntity> hostEntities = getClusterEntity().getHostEntities();
+
+      for (HostEntity hostEntity : hostEntities) {
+        // start with INSTALLING
+        RepositoryVersionState state = RepositoryVersionState.INSTALLING;
+        if (forceInstalled) {
+          state = RepositoryVersionState.INSTALLED;
+        }
+
+        // is this host version not required b/c of versionable components
+        Host host = hosts.get(hostEntity.getHostName());
+        if (!host.hasComponentsAdvertisingVersions(desiredStackVersion)) {
+          state = RepositoryVersionState.NOT_REQUIRED;
+        }
+
+        // if the repository is still required, check against the repo type
+        if (state != RepositoryVersionState.NOT_REQUIRED) {
+          if (repoVersionEntity.getType() != RepositoryType.STANDARD) {
+            // does the host gets a different repo state based on VDF and repo
+            // type
+            boolean hostRequiresRepository = false;
+            Set<String> servicesInRepository = versionDefinitionXml.getAvailableServiceNames();
+
+            List<ServiceComponentHost> schs = getServiceComponentHosts(hostEntity.getHostName());
+            for (ServiceComponentHost serviceComponentHost : schs) {
+              String serviceName = serviceComponentHost.getServiceName();
+              if (servicesInRepository.contains(serviceName)) {
+                hostRequiresRepository = true;
+                break;
+              }
+            }
+
+            // if not required, then move onto the next host
+            if (!hostRequiresRepository) {
+              state = RepositoryVersionState.NOT_REQUIRED;
+            }
+          }
+        }
+
+        // last check if it's still required - check for MM
+        if (state != RepositoryVersionState.NOT_REQUIRED) {
+          if (host.getMaintenanceState(clusterId) != MaintenanceState.OFF) {
+            state = RepositoryVersionState.OUT_OF_SYNC;
+          }
+        }
+
+        // now that the correct state is determdined for the host version,
+        // either update or create it
+        HostVersionEntity hostVersionEntity = null;
+        Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
+        for (HostVersionEntity existingHostVersion : hostVersions) {
+          if (existingHostVersion.getRepositoryVersion().getId() == repoVersionEntity.getId()) {
+            hostVersionEntity = existingHostVersion;
+            break;
+          }
+        }
+
+        if (null == hostVersionEntity) {
+          hostVersionEntity = new HostVersionEntity(hostEntity, repoVersionEntity, state);
+          hostVersionDAO.create(hostVersionEntity);
+
+          // bi-directional association update
+          hostVersions.add(hostVersionEntity);
+          hostDAO.merge(hostEntity);
+        } else {
+          hostVersionEntity.setState(state);
+          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
+        }
+
+        LOG.info("Created host version for {}, state={}, repository version={} (repo_id={})",
+            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
+            repoVersionEntity.getVersion(), repoVersionEntity.getId());
+
+        if (state == RepositoryVersionState.INSTALLING) {
+          hostsRequiringInstallation.add(host);
+        }
       }
-
-      // find any hosts that do not have the stack/repo version already
-      Sets.SetView<String> hostsMissingRepoVersion = Sets.difference(
-        hosts.keySet(), existingHostsWithClusterStackAndVersion);
-
-      createOrUpdateHostVersionToState(sourceClusterVersion, hosts,
-          existingHostStackVersions, hostsMissingRepoVersion, state);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-  }
 
-  /**
-   * Moved out to a separate method due to performance reasons
-   * Iterates over all hosts and creates or transitions existing host versions
-   * to a given state. If host version for desired stack/version does not exist,
-   * host version is created and initialized to a given state. Otherwise, existing
-   * host version state is updated
-   * Hosts in maintenance mode are auto skipped.
-   *
-   * @param sourceClusterVersion cluster version to be queried for a stack
-   *                             name/version info when creating a new host version
-   * @param hosts list of all hosts
-   * @param existingHostStackVersions map of existing host versions to be updated
-   * @param hostsMissingRepoVersion set of hostnames of hosts that have no desired host version
-   * @param newState target host version state for transition
-   */
-  @Transactional
-  void createOrUpdateHostVersionToState(ClusterVersionEntity sourceClusterVersion,
-      Map<String, Host> hosts, HashMap<String, HostVersionEntity> existingHostStackVersions,
-      Sets.SetView<String> hostsMissingRepoVersion, RepositoryVersionState newState) {
-
-    for (String hostname : hosts.keySet()) {
-      // start off with the requested new state for each host
-      RepositoryVersionState repositoryVersionState = newState;
-
-      // if the host is in maintenance mode, that's an explicit marker which
-      // indicates that it should not be transitioned to INSTALLING; instead
-      // they will be transitioned to OUT_OF_SYNC
-      Host host = hosts.get(hostname);
-      if (host.getMaintenanceState(getClusterId()) != MaintenanceState.OFF) {
-        repositoryVersionState = RepositoryVersionState.OUT_OF_SYNC;
-      }
-
-      if (hostsMissingRepoVersion.contains(hostname)) {
-        // Create new host stack version
-        HostEntity hostEntity = hostDAO.findByName(hostname);
-        HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
-            sourceClusterVersion.getRepositoryVersion(), repositoryVersionState);
-
-        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
-            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
-            hostVersionEntity.getRepositoryVersion().getVersion(), hostVersionEntity.getRepositoryVersion().getId());
-
-        hostVersionDAO.create(hostVersionEntity);
-      } else {
-        // Update existing host stack version
-        HostVersionEntity hostVersionEntity = existingHostStackVersions.get(hostname);
-        hostVersionEntity.setState(repositoryVersionState);
-        hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-      }
-    }
+    return hostsRequiringInstallation;
   }
 
   /**
@@ -1597,11 +1615,11 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void createClusterVersion(StackId stackId, String version,
+  public ClusterVersionEntity createClusterVersion(StackId stackId, String version,
       String userName, RepositoryVersionState state) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
-      createClusterVersionInternal(stackId, version, userName, state);
+      return createClusterVersionInternal(stackId, version, userName, state);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -1612,7 +1630,7 @@ public class ClusterImpl implements Cluster {
    *
    * This method is intended to be called only when cluster lock is already acquired.
    */
-  private void createClusterVersionInternal(StackId stackId, String version,
+  private ClusterVersionEntity createClusterVersionInternal(StackId stackId, String version,
       String userName, RepositoryVersionState state) throws AmbariException {
     if (!ALLOWED_REPOSITORY_STATES.contains(state)) {
       throw new AmbariException("The allowed state for a new cluster version must be within " + ALLOWED_REPOSITORY_STATES);
@@ -1630,9 +1648,8 @@ public class ClusterImpl implements Cluster {
     RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findByStackAndVersion(
       stackId, version);
     if (repositoryVersionEntity == null) {
-      LOG.warn("Could not find repository version for stack=" + stackId
-          + ", version=" + version);
-      return;
+      throw new AmbariException(
+          "Unable to find repository version for stack " + stackId + " and version " + version);
     }
 
     ClusterEntity clusterEntity = getClusterEntity();
@@ -1642,6 +1659,8 @@ public class ClusterImpl implements Cluster {
     clusterVersionDAO.create(clusterVersionEntity);
     clusterEntity.getClusterVersionEntities().add(clusterVersionEntity);
     clusterEntity = clusterDAO.merge(clusterEntity);
+
+    return clusterVersionEntity;
   }
 
   /**

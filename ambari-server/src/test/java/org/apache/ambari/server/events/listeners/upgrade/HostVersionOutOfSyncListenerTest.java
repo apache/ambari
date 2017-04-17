@@ -71,6 +71,8 @@ public class HostVersionOutOfSyncListenerTest {
   private final String stackId = "HDP-2.2.0";
   private final String yetAnotherStackId = "HDP-2.1.1";
 
+  private final String CURRENT_VERSION = "2.2.0-2086";
+
   private Injector injector;
 
   @Inject
@@ -122,9 +124,6 @@ public class HostVersionOutOfSyncListenerTest {
    * @throws AmbariException
    */
   private void createClusterAndHosts(String INSTALLED_VERSION, StackId stackId) throws AmbariException {
-    // Configuring 3-node cluster with 2 repo versions
-    String CURRENT_VERSION = "2.2.0-2086";
-
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
 
@@ -132,6 +131,10 @@ public class HostVersionOutOfSyncListenerTest {
     clusters.mapHostToCluster("h2", "c1");
     addHost("h3");
     clusters.mapHostToCluster("h3", "c1");
+
+    // create the new repo version
+    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
+        INSTALLED_VERSION);
 
     c1.createClusterVersion(stackId, INSTALLED_VERSION, "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
@@ -151,13 +154,14 @@ public class HostVersionOutOfSyncListenerTest {
     zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<>(zkServerHosts));
     addService(c1, hostList, zkTopology, "ZOOKEEPER");
 
-    // Register and install new version
-    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
-        INSTALLED_VERSION);
+    // install new version
     helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
+    helper.createHostVersion("h2", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
+    helper.createHostVersion("h3", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
+
     c1.recalculateAllClusterVersionStates();
-    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,
-        RepositoryVersionState.INSTALLED);
+
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION, RepositoryVersionState.INSTALLED);
     assertRepoVersionState(stackId.getStackId(), CURRENT_VERSION, RepositoryVersionState.CURRENT);
 
     // Add new host and verify that it has all host versions present
@@ -210,9 +214,15 @@ public class HostVersionOutOfSyncListenerTest {
     StackId stackId = new StackId(this.stackId);
     StackId yaStackId = new StackId(yetAnotherStackId);
 
+    // get new hosts installed with the first repo
     createClusterAndHosts(INSTALLED_VERSION, stackId);
+
+    // register the new repo
     addRepoVersion(INSTALLED_VERSION_2, yaStackId);
 
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,RepositoryVersionState.INSTALLED);
+    assertRepoVersionState(yaStackId.getStackId(), INSTALLED_VERSION_2,RepositoryVersionState.INSTALLED);
+    assertRepoVersionState(yaStackId.getStackId(), CURRENT_VERSION, RepositoryVersionState.CURRENT);
 
     //Add HDFS service
     List<String> hostList = new ArrayList<>();
@@ -233,10 +243,6 @@ public class HostVersionOutOfSyncListenerTest {
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
 
-    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,
-        RepositoryVersionState.INSTALLED);
-    assertRepoVersionState(yaStackId.getStackId(), INSTALLED_VERSION_2,
-        RepositoryVersionState.INSTALLED);
     for (HostVersionEntity hostVersionEntity : hostVersions) {
       if (hostVersionEntity.getRepositoryVersion().getVersion().equals(INSTALLED_VERSION) ||
               hostVersionEntity.getRepositoryVersion().getVersion().equals(INSTALLED_VERSION_2)) {
@@ -247,6 +253,11 @@ public class HostVersionOutOfSyncListenerTest {
         }
       }
     }
+
+
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,RepositoryVersionState.OUT_OF_SYNC);
+    assertRepoVersionState(yaStackId.getStackId(), INSTALLED_VERSION_2,RepositoryVersionState.OUT_OF_SYNC);
+    assertRepoVersionState(yaStackId.getStackId(), CURRENT_VERSION, RepositoryVersionState.CURRENT);
   }
 
 
@@ -306,6 +317,9 @@ public class HostVersionOutOfSyncListenerTest {
     createClusterAndHosts(INSTALLED_VERSION, stackId);
     addRepoVersion(INSTALLED_VERSION_2, yaStackId);
 
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION, RepositoryVersionState.INSTALLED);
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION_2, RepositoryVersionState.INSTALLED);
+    
     //Add ZOOKEEPER_CLIENT component
     List<String> hostList = new ArrayList<>();
     hostList.add("h1");
@@ -319,8 +333,8 @@ public class HostVersionOutOfSyncListenerTest {
     changedHosts.add("h2");
     changedHosts.add("h3");
 
-    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,
-        RepositoryVersionState.INSTALLED);
+    assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,RepositoryVersionState.OUT_OF_SYNC);
+    
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
 
     for (HostVersionEntity hostVersionEntity : hostVersions) {

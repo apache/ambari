@@ -36,9 +36,9 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -291,7 +291,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     // the cluster configuration mapping table
     dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
   }
-  
+
   /**
    * Updates Log Search configs.
    *
@@ -311,12 +311,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             if (!configType.endsWith("-logsearch-conf")) {
               continue;
             }
-            
+
             Set<String> removeProperties = new HashSet<>();
             removeProperties.add("service_name");
             removeProperties.add("component_mappings");
             removeProperties.add("content");
-            
+
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
         }
