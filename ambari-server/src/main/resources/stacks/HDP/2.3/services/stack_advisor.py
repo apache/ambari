@@ -349,10 +349,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       ranger_kafka_plugin_enabled = services["configurations"]["ranger-env"]["properties"]["ranger-kafka-plugin-enabled"]
       putKafkaRangerPluginProperty("ranger-kafka-plugin-enabled", ranger_kafka_plugin_enabled)
 
-    # Determine if the Ranger/Kafka Plugin is enabled
-    ranger_plugin_enabled = "RANGER" in servicesList
+
+    ranger_plugin_enabled = False
     # Only if the RANGER service is installed....
-    if ranger_plugin_enabled:
+    if "RANGER" in servicesList:
       # If ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled,
       # determine if the Ranger/Kafka plug-in enabled enabled or not
       if 'ranger-kafka-plugin-properties' in configurations and \

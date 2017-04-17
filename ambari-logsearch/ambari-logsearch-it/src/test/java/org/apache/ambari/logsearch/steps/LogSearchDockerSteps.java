@@ -81,14 +81,16 @@ public class LogSearchDockerSteps {
       Volume testConfigVolume = new Volume("/root/test-config");
       Volume ambariVolume = new Volume("/root/ambari");
       Volume logfeederClassesVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes");
-      Volume logsearchClassesVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes");
-      Volume logsearchWebappVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package/classes/webapps/app");
+      Volume logsearchClassesVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes");
+      Volume logsearchWebappVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app");
+      Volume logsearchWebappLibsVolume = new Volume("/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app/libs/bower");
       Bind testLogsBind = new Bind(ambariFolder +"/ambari-logsearch/docker/test-logs", testLogsVolume);
       Bind testConfigBind = new Bind(ambariFolder +"/ambari-logsearch/docker/test-config", testConfigVolume);
       Bind ambariRootBind = new Bind(ambariFolder, ambariVolume);
       Bind logfeederClassesBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-logfeeder/target/classes", logfeederClassesVolume);
-      Bind logsearchClassesBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-portal/target/classes", logsearchClassesVolume);
-      Bind logsearchWebappBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-portal/src/main/webapp", logsearchWebappVolume);
+      Bind logsearchClassesBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-server/target/classes", logsearchClassesVolume);
+      Bind logsearchWebappBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-web/src/main/webapp", logsearchWebappVolume);
+      Bind logsearchWebappLibsBind = new Bind(ambariFolder + "/ambari-logsearch/ambari-logsearch-web/target/libs", logsearchWebappLibsVolume);
 
       // port bindings
       Ports ports = new Ports();
@@ -102,8 +104,8 @@ public class LogSearchDockerSteps {
       CreateContainerResponse createResponse = dockerClient.createContainerCmd("ambari-logsearch:v1.0")
         .withHostName("logsearch.apache.org")
         .withName("logsearch")
-        .withVolumes(testLogsVolume, testConfigVolume, ambariVolume, logfeederClassesVolume, logsearchClassesVolume, logsearchWebappVolume)
-        .withBinds(testLogsBind, testConfigBind, ambariRootBind, logfeederClassesBind, logsearchClassesBind, logsearchWebappBind)
+        .withVolumes(testLogsVolume, testConfigVolume, ambariVolume, logfeederClassesVolume, logsearchClassesVolume, logsearchWebappVolume, logsearchWebappLibsVolume)
+        .withBinds(testLogsBind, testConfigBind, ambariRootBind, logfeederClassesBind, logsearchClassesBind, logsearchWebappBind, logsearchWebappLibsBind)
         .withExposedPorts(
           new ExposedPort(StoryDataRegistry.INSTANCE.getLogsearchPort()),
           new ExposedPort(5005),

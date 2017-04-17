@@ -1352,16 +1352,16 @@ input.radio:checked + label:after {
 .accordion .panel-group .panel,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel {
   border-radius: 0px;
-  border: 1px solid;
-  border-color: #ccc transparent;
-  border-bottom: none;
+  border: none;
   margin-top: 0px;
 }
 .accordion .panel-group .panel .panel-heading,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading {
   height: 50px;
   padding: 15px 10px;
-  border: 1px solid transparent;
+  border: 1px solid;
+  border-color: #ddd transparent;
+  border-top: none;
   background: #fff;
 }
 .accordion .panel-group .panel .panel-heading .panel-title,
@@ -1371,29 +1371,25 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  color: #1491c1;
 }
 .accordion .panel-group .panel .panel-heading .panel-title > a,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > a {
   font-size: 18px;
+  color: #333;
 }
 .accordion .panel-group .panel .panel-heading .panel-title > i,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > i {
   font-size: 20px;
+  color: #1491c1;
 }
 .accordion .panel-group .panel .panel-heading:hover,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading:hover {
   background: #f3faff;
-  border: 1px solid #a7dff2;
   cursor: pointer;
 }
 .accordion .panel-group .panel .panel-body,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-body {
-  padding: 30px 20px;
-}
-.accordion .panel-group:last-child .panel,
-.wizard .wizard-body .wizard-content .accordion .panel-group:last-child .panel {
-  border-bottom: 1px solid #ccc;
+  padding: 15px 10px 20px 20px;
 }
 h1,
 h2,

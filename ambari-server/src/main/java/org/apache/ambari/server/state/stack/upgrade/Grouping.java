@@ -129,6 +129,7 @@ public class Grouping {
       for (TaskBucket bucket : buckets) {
         // The TaskWrappers take into account if a task is meant to run on all, any, or master.
         // A TaskWrapper may contain multiple tasks, but typically only one, and they all run on the same set of hosts.
+        // Generate a task wrapper for every task in the bucket
         List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
         List<List<TaskWrapper>> organizedTasks = organizeTaskWrappersBySyncRules(preTasks);
         for (List<TaskWrapper> tasks : organizedTasks) {
@@ -219,7 +220,6 @@ public class Grouping {
         int batchNum = 0;
         for (Set<String> hostSubset : hostSets) {
           batchNum++;
-          TaskWrapper expandedTW = new TaskWrapper(tw.getService(), tw.getComponent(), hostSubset, tw.getParams(), tw.getTasks());
 
           String stageText = getStageText(verb, ctx.getComponentDisplay(service, pc.name), hostSubset, batchNum, numBatchesNeeded);
 

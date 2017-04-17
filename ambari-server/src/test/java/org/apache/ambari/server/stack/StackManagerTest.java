@@ -1025,4 +1025,16 @@ public class StackManagerTest {
     assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + infraSolrRoleCommand, logsearchLogfeederBlockers.contains(infraSolrRoleCommand));
     assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchServerRoleCommand, logsearchLogfeederBlockers.contains(logsearchServerRoleCommand));
   }
+
+  @Test
+  public void testVersionDefinitionStackRepoUpdateLinkExists(){
+    // Get the base sqoop service
+    StackInfo stack = stackManager.getStack("HDP", "2.1.1");
+    String latestUri = stack.getRepositoryXml().getLatestURI();
+    assertTrue(latestUri != null);
+
+    stack = stackManager.getStack("HDP", "2.0.8");
+    latestUri = stack.getRepositoryXml().getLatestURI();
+    assertTrue(latestUri == null);
+  }
 }

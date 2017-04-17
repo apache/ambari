@@ -101,9 +101,13 @@
         {{#if view.plainManualItem}}
           <div class="panel panel-default details-box">
             <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
-            {{#each message in view.manualItem.messages}}
-              <p class="manual-steps-content">{{message}}</p>
-            {{/each}}
+            {{#if view.manualItem.messages.length}}
+              {{#each message in view.manualItem.messages}}
+                <p class="manual-steps-content">{{message}}</p>
+              {{/each}}
+            {{else}}
+              <p class="manual-steps-content">{{t admin.stackUpgrade.dialog.skipped.failures}}</p>
+            {{/if}}
             <label class="message">
               {{view App.CheckboxView checkedBinding="view.isManualDone" labelTranslate="admin.stackUpgrade.dialog.manualDone"}}
             </label>

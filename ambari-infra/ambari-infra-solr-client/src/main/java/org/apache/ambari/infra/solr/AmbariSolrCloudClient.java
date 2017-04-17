@@ -110,7 +110,7 @@ public class AmbariSolrCloudClient {
     List<String> collections = listCollections();
     if (!collections.contains(getCollection())) {
       String collection = new CreateCollectionCommand(getRetryTimes(), getInterval()).run(this);
-      LOG.info("Collection '{}' created.", collection);
+      LOG.info("Collection '{}' creation request sent.", collection);
     } else {
       LOG.info("Collection '{}' already exits.", getCollection());
       if (this.isSplitting()) {
@@ -234,7 +234,7 @@ public class AmbariSolrCloudClient {
       for (String shardName : shardList) {
         if (!existingShards.contains(shardName)) {
           new CreateShardCommand(shardName, getRetryTimes(), getInterval()).run(this);
-          LOG.info("New shard added to collection '{}': {}", getCollection(), shardName);
+          LOG.info("Adding new shard to collection request sent ('{}': {})", getCollection(), shardName);
           existingShards.add(shardName);
         }
       }

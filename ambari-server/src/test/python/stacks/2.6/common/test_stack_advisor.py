@@ -989,7 +989,26 @@ class TestHDP26StackAdvisor(TestCase):
       "yarnMinContainerSize": 256
     }
 
-    hosts = {}
+    hosts = {
+      "items": [
+      {
+        "Hosts": {
+          "cpu_count": 6,
+          "total_mem": 50331648,
+          "disk_info": [
+            {"mountpoint": "/"},
+            {"mountpoint": "/dev/shm"},
+            {"mountpoint": "/vagrant"},
+            {"mountpoint": "/"},
+            {"mountpoint": "/dev/shm"},
+            {"mountpoint": "/vagrant"}
+          ],
+          "public_host_name": "c6401.ambari.apache.org",
+          "host_name": "c6401.ambari.apache.org"
+        },
+      }
+      ]
+    }
 
     services = {
       "services":
@@ -1007,6 +1026,8 @@ class TestHDP26StackAdvisor(TestCase):
         "stack_name" : "HDP",
         "stack_version": "2.6"
       },
+      "changed-configurations": [
+      ],
       "configurations": configurations,
       "ambari-server-properties": {"ambari-server.user":"ambari_user"}
     }
@@ -1016,6 +1037,7 @@ class TestHDP26StackAdvisor(TestCase):
       'yarn-env': {
         'properties': {
           'min_user_id': '500',
+          'apptimelineserver_heapsize': '8072',
           'service_check.queue.name': 'default'
         }
       },
@@ -1131,11 +1153,16 @@ class TestHDP26StackAdvisor(TestCase):
           'yarn.scheduler.minimum-allocation-vcores': '1',
           'yarn.scheduler.maximum-allocation-vcores': '4',
           'yarn.nodemanager.resource.memory-mb': '768',
+          'yarn.nodemanager.local-dirs': '/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local',
+          'yarn.nodemanager.log-dirs': '/hadoop/yarn/log,/dev/shm/hadoop/yarn/log,/vagrant/hadoop/yarn/log',
+          'yarn.timeline-service.entity-group-fs-store.app-cache-size': '10',
           'yarn.scheduler.minimum-allocation-mb': '256',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
           'yarn.nodemanager.resource.cpu-vcores': '4',
           'yarn.scheduler.maximum-allocation-mb': '768',
-          'yarn.nodemanager.linux-container-executor.group': 'hadoop'
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+          'yarn.timeline-service.leveldb-state-store.path': '/hadoop/yarn/timeline',
+          'yarn.timeline-service.leveldb-timeline-store.path': '/hadoop/yarn/timeline'
         },
         'property_attributes': {
           'yarn.authorization-provider': {
@@ -1267,6 +1294,8 @@ class TestHDP26StackAdvisor(TestCase):
         "components": []
       }
       ],
+      "changed-configurations": [
+      ],
       "configurations": configurations
     }
 
@@ -1282,7 +1311,8 @@ class TestHDP26StackAdvisor(TestCase):
         'properties': {
           'yarn_user': 'custom_yarn',
           'service_check.queue.name': 'default',
-          'min_user_id': '500'
+          'min_user_id': '500',
+          'apptimelineserver_heapsize': '2048'
         }
       },
       'ranger-yarn-plugin-properties': {
@@ -1304,18 +1334,428 @@ class TestHDP26StackAdvisor(TestCase):
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
           'yarn.nodemanager.resource.cpu-vcores': '4',
           'yarn.scheduler.maximum-allocation-mb': '1280',
-          'yarn.nodemanager.linux-container-executor.group': 'hadoop'
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+          'yarn.nodemanager.local-dirs': '/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local',
+          'yarn.nodemanager.log-dirs': '/hadoop/yarn/log,/dev/shm/hadoop/yarn/log,/vagrant/hadoop/yarn/log',
+          'yarn.timeline-service.entity-group-fs-store.app-cache-size': '7',
+          'yarn.timeline-service.leveldb-state-store.path': '/hadoop/yarn/timeline',
+          'yarn.timeline-service.leveldb-timeline-store.path': '/hadoop/yarn/timeline'
+
         }
       }
     }
 
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 4096,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
     configurations['yarn-env']['properties']['yarn_user'] = 'yarn'
     expected['yarn-env']['properties']['yarn_user'] = 'yarn'
     expected['ranger-yarn-plugin-properties']['properties']['REPOSITORY_CONFIG_USERNAME'] = 'yarn'
-    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+
+
+  def test_recommendYARNConfigurations_for_ats_heapsize_and_cache(self):
+    configurations = {
+      "yarn-env": {
+        "properties": {
+          "yarn_user" : "custom_yarn"
+        }
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"yarn"
+        }
+      }
+    }
+    services = {
+      "services" : [{
+        "StackServices": {
+          "service_name" : "YARN",
+          "service_version" : "2.7.3.2.6"
+        },
+        "components": []
+      }
+      ],
+      "changed-configurations": [
+      ],
+      "configurations": configurations
+    }
+
+
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "yarnMinContainerSize": 256
+    }
+    expected = {
+      'yarn-env': {
+        'properties': {
+          'yarn_user': 'custom_yarn',
+          'service_check.queue.name': 'default',
+          'min_user_id': '500',
+          'apptimelineserver_heapsize': '1024'
+        }
+      },
+      'ranger-yarn-plugin-properties': {
+        'properties': {
+          'ranger-yarn-plugin-enabled': 'Yes',
+          'REPOSITORY_CONFIG_USERNAME': 'custom_yarn'
+        }
+      },
+      'yarn-site': {
+        'properties': {
+          'hadoop.registry.rm.enabled': 'false',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes': '',
+          'yarn.authorization-provider': 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer',
+          'yarn.acl.enable': 'true',
+          'yarn.scheduler.minimum-allocation-vcores': '1',
+          'yarn.scheduler.maximum-allocation-vcores': '4',
+          'yarn.nodemanager.resource.memory-mb': '1280',
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.nodemanager.resource.cpu-vcores': '4',
+          'yarn.scheduler.maximum-allocation-mb': '1280',
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+          'yarn.nodemanager.local-dirs': '/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local',
+          'yarn.nodemanager.log-dirs': '/hadoop/yarn/log,/dev/shm/hadoop/yarn/log,/vagrant/hadoop/yarn/log',
+          'yarn.timeline-service.entity-group-fs-store.app-cache-size': '3',
+          'yarn.timeline-service.leveldb-state-store.path': '/hadoop/yarn/timeline',
+          'yarn.timeline-service.leveldb-timeline-store.path': '/hadoop/yarn/timeline'
+
+        }
+      }
+    }
+
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 2048,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+
+
+
+    '''
+    Test 1 :
+    I/P:
+       - 'changed-configurations' is empty (doesnt have 'yarn.timeline-service.entity-group-fs-store.app-cache-size')
+       - 'host_mem' = 2048
+    O/P :
+       -  Config value recommended for:
+           - yarn.timeline-service.entity-group-fs-store.app-cache-size = 3
+           - apptimelineserver_heapsize = 1024
+    '''
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+
+
+    '''
+    Test 2 :
+    I/P:
+       - 'changed-configurations' is empty (doesnt have 'yarn.timeline-service.entity-group-fs-store.app-cache-size')
+       - 'host_mem' = 4096
+    O/P :
+       -  Config value recommended for:
+           - yarn.timeline-service.entity-group-fs-store.app-cache-size = 7
+           - apptimelineserver_heapsize = 2048
+    '''
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 4096,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+    expected['yarn-env']['properties']['apptimelineserver_heapsize'] = '2048'
+    expected['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.app-cache-size'] = '7'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+
+
+    '''
+    Test 3 :
+    I/P:
+       - 'changed-configurations' is empty (doesnt have 'yarn.timeline-service.entity-group-fs-store.app-cache-size')
+       - 'host_mem' = 8192
+    O/P :
+       -  Config value recommended for:
+           - yarn.timeline-service.entity-group-fs-store.app-cache-size = 10
+           - apptimelineserver_heapsize = 4096
+    '''
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 8192,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+    expected['yarn-env']['properties']['apptimelineserver_heapsize'] = '4096'
+    expected['yarn-site']['properties']['yarn.timeline-service.entity-group-fs-store.app-cache-size'] = '10'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+
+
+    '''
+    Test 4 :
+    I/P:
+       - 'changed-configurations' has 'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+       - 'host_mem' = 2048
+    O/P :
+       -  Config value recommended for:
+           - apptimelineserver_heapsize = 4096
+    '''
+
+    services["changed-configurations"] = [
+      {
+        u'old_value': u'10',
+        u'type': u'yarn-site',
+        u'name': u'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+      }
+    ]
+
+    services["configurations"] = {
+      "yarn-env": {
+        "properties": {
+          "yarn_user" : "custom_yarn",
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.timeline-service.entity-group-fs-store.app-cache-size" : "7"
+        }
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"yarn"
+        }
+      }
+    }
+
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 4096,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+
+
+    '''
+    Test 5 :
+    I/P:
+       - 'changed-configurations' has 'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+       - 'host_mem' = 4096
+    O/P :
+       -  Config value recommended for:
+           - apptimelineserver_heapsize = 2048
+    '''
+
+    services["changed-configurations"] = [
+      {
+        u'old_value': u'10',
+        u'type': u'yarn-site',
+        u'name': u'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+      }
+    ]
+
+    services["configurations"] = {
+      "yarn-env": {
+        "properties": {
+          "yarn_user" : "custom_yarn",
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.timeline-service.entity-group-fs-store.app-cache-size" : "7"
+        }
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"yarn"
+        }
+      }
+    }
+
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 4096,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+
+    expected['yarn-env']['properties']['apptimelineserver_heapsize'] = '2048'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+
+
+    '''
+    Test 6 :
+    I/P:
+       - 'changed-configurations' has 'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+       - 'host_mem' = 8196
+    O/P :
+       -  Config value recommended for:
+           - Shouldn't have yarn.timeline-service.entity-group-fs-store.app-cache-size
+           - apptimelineserver_heapsize = 4572
+    '''
+
+    services["changed-configurations"] = [
+      {
+        u'old_value': u'10',
+        u'type': u'yarn-site',
+        u'name': u'yarn.timeline-service.entity-group-fs-store.app-cache-size'
+      }
+    ]
+
+    services["configurations"] = {
+      "yarn-env": {
+        "properties": {
+          "yarn_user" : "custom_yarn",
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.timeline-service.entity-group-fs-store.app-cache-size" : "3"
+        }
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled" : "Yes",
+          "REPOSITORY_CONFIG_USERNAME":"yarn"
+        }
+      }
+    }
+
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 16392,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
+
+    expected['yarn-env']['properties']['apptimelineserver_heapsize'] = '4572'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
 
   def test_recommendKAFKAConfigurations(self):
     configurations = {

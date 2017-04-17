@@ -332,7 +332,7 @@
 </div>
 </div>
 {{#if showingFileBrowser}}
-{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
+{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath hideUpload=true}}
 {{/if}}
 {{#if showingJobConfig}}
   {{job-config type='coord' closeJobConfigs="closeCoordSubmitConfig"

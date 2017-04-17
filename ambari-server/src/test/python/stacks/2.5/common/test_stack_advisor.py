@@ -926,6 +926,8 @@ class TestHDP25StackAdvisor(TestCase):
         ]
       }
       ],
+      "changed-configurations": [
+      ],
       "configurations": {
         "capacity-scheduler": {
           "properties": {
@@ -4918,6 +4920,9 @@ class TestHDP25StackAdvisor(TestCase):
                                   "capacity-scheduler":{"properties":{
                                     "capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue,leaf\n" +
                                                           "yarn.scheduler.capacity.root.ndfqueue.queues=ndfqueue1,ndfqueue2\n"}}}
+    services["changed-configurations"]= []
+
+
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     expectedItems = [
@@ -4948,6 +4953,8 @@ class TestHDP25StackAdvisor(TestCase):
           "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
         }
       },
+      "changed-configurations": [
+      ],
       "configurations": configurations,
       "services": [],
       "ambari-server-properties": {}}

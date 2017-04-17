@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionAction;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +54,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final AmbariContext ambariContext;
+  private final String defaultPassword;
 
   private final static Logger LOG = LoggerFactory.getLogger(ClusterTopologyImpl.class);
 
@@ -65,26 +66,16 @@ public class ClusterTopologyImpl implements ClusterTopology {
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
     this.configuration = topologyRequest.getConfiguration();
+    if (topologyRequest instanceof ProvisionClusterRequest) {
+      this.defaultPassword = ((ProvisionClusterRequest) topologyRequest).getDefaultPassword();
+    } else {
+      this.defaultPassword = null;
+    }
 
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
 
-    validateTopology(topologyRequest.getTopologyValidators());
-    this.ambariContext = ambariContext;
-  }
-
-  //todo: only used in tests, remove.  Validators not invoked when this constructor is used.
-  public ClusterTopologyImpl(AmbariContext ambariContext,
-                             Long clusterId,
-                             Blueprint blueprint,
-                             Configuration configuration,
-                             Map<String, HostGroupInfo> hostGroupInfo)
-                                throws InvalidTopologyException {
-
-    this.clusterId = clusterId;
-    this.blueprint = blueprint;
-    this.configuration = configuration;
-
-    registerHostGroupInfo(hostGroupInfo);
+    // todo extract validation to specialized service
+    validateTopology();
     this.ambariContext = ambariContext;
   }
 
@@ -213,12 +204,9 @@ public class ClusterTopologyImpl implements ClusterTopology {
       && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
   }
 
-  private void validateTopology(List<TopologyValidator> validators)
+  private void validateTopology()
       throws InvalidTopologyException {
 
-    for (TopologyValidator validator : validators) {
-      validator.validate(this);
-    }
     if(isNameNodeHAEnabled()){
         Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
         if (nnHosts.size() != 2) {
@@ -318,6 +306,11 @@ public class ClusterTopologyImpl implements ClusterTopology {
     for(Map.Entry<String,HostGroupInfo> entry : hostGroupInfoMap.entrySet()) {
       entry.getValue().removeHost(hostname);
     }
+  }
+
+  @Override
+  public String getDefaultPassword() {
+    return defaultPassword;
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> requestedHostGroupInfoMap) throws InvalidTopologyException {

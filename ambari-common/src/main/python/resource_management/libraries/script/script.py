@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+import time
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
@@ -308,21 +309,36 @@ class Script(object):
       method = self.choose_method_to_execute(self.command_name)
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
-        
-        if self.command_name == "start" and not self.is_hook():
-          self.pre_start()
+
+        if not self.is_hook():
+          self.execute_prefix_function(self.command_name, 'pre', env)
         
         method(env)
 
-        if self.command_name == "start" and not self.is_hook():
-          self.post_start()
+        if not self.is_hook():
+          self.execute_prefix_function(self.command_name, 'post', env)
+
     except Fail as ex:
       ex.pre_raise()
       raise
     finally:
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out()
-        
+
+  def execute_prefix_function(self, command_name, afix, env):
+    """
+    Execute action afix (prefix or suffix) based on command_name and afix type
+    example: command_name=start, afix=pre will result in execution of self.pre_start(env) if exists
+    """
+    self_methods = dir(self)
+    method_name = "{0}_{1}".format(afix, command_name)
+    if not method_name in self_methods:
+      Logger.logger.debug("Action afix '{0}' not present".format(method_name))
+      return
+    Logger.logger.debug("Execute action afix: {0}".format(method_name))
+    method = getattr(self, method_name)
+    method(env)
+
   def is_hook(self):
     from resource_management.libraries.script.hook import Hook
     return (Hook in self.__class__.__bases__)
@@ -335,8 +351,11 @@ class Script(object):
 
   def get_pid_files(self):
     return []
-        
-  def pre_start(self):
+
+  def pre_start(self, env=None):
+    """
+    Executed before any start method. Posts contents of relevant *.out files to command execution log.
+    """
     if self.log_out_files:
       log_folder = self.get_log_folder()
       user = self.get_user()
@@ -351,7 +370,7 @@ class Script(object):
       
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
-  def post_start(self):
+  def post_start(self, env):
     pid_files = self.get_pid_files()
     if pid_files == []:
       Logger.logger.warning("Pid files for current script are not defined")
@@ -365,6 +384,32 @@ class Script(object):
       pids.append(sudo.read_file(pid_file).strip())
 
     Logger.info("Component has started with pid(s): {0}".format(', '.join(pids)))
+
+  def post_stop(self, env):
+    """
+    Executed after completion of every stop method. Waits until component is actually stopped (check is performed using
+     components status() method.
+    """
+    self_methods = dir(self)
+
+    if not 'status' in self_methods:
+      pass
+    status_method = getattr(self, 'status')
+    component_is_stopped = False
+    counter = 0
+    while not component_is_stopped :
+      try:
+        if counter % 100 == 0:
+          Logger.logger.info("Waiting for actual component stop")
+        status_method(env)
+        time.sleep(0.1)
+        counter += 1
+      except ComponentIsNotRunning, e:
+        Logger.logger.debug("'status' reports ComponentIsNotRunning")
+        component_is_stopped = True
+      except ClientComponentHasNoStatus, e:
+        Logger.logger.debug("Client component has no status")
+        component_is_stopped = True
 
   def choose_method_to_execute(self, command_name):
     """

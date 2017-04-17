@@ -22,6 +22,7 @@ import os
 from resource_management.libraries.functions import stack_tools
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.core.resources.packaging import Package
+from resource_management.core.logger import Logger
 
 def install_packages():
   import params
@@ -31,7 +32,9 @@ def install_packages():
   packages = ['unzip', 'curl']
   if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
     stack_selector_package = stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME)
-    packages.append(stack_selector_package)
+    if stack_selector_package:
+      packages.append(stack_selector_package)
+
   Package(packages,
           retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
           retry_count=params.agent_stack_retry_count)

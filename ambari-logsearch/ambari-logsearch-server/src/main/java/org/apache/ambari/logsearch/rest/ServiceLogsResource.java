@@ -58,6 +58,8 @@ import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.manager.ServiceLogsManager;
 import org.springframework.context.annotation.Scope;
 
+import java.util.List;
+
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceOperationDescriptions.*;
 
 @Api(value = "service/logs", description = "Service log operations")
@@ -219,4 +221,13 @@ public class ServiceLogsResource {
   public HostLogFilesResponse getHostLogFiles(@Valid @BeanParam HostLogFilesRequest request) {
     return serviceLogsManager.getHostLogFileData(request);
   }
+
+  @GET
+  @Path("/clusters")
+  @Produces({"application/json"})
+  @ApiOperation(GET_SERVICE_CLUSTERS_OD)
+  public List<String> getClustersForServiceLog() {
+    return serviceLogsManager.getClusters();
+  }
+
 }

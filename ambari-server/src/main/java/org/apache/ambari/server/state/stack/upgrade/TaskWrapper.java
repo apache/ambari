@@ -19,9 +19,12 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.google.common.base.Objects;
 
@@ -34,7 +37,9 @@ public class TaskWrapper {
   private String component;
   private Set<String> hosts; // all the hosts that all the tasks must run
   private Map<String, String> params;
+  /* FIXME a TaskWrapper really should be wrapping ONLY ONE task */
   private List<Task> tasks; // all the tasks defined for the hostcomponent
+  private Set<String> timeoutKeys = new HashSet<>();
 
   /**
    * @param s the service name for the tasks
@@ -42,9 +47,10 @@ public class TaskWrapper {
    * @param hosts the set of hosts that the tasks are for
    * @param tasks an array of tasks as a convenience
    */
-  public TaskWrapper(String s, String c, Set<String> hosts, Task... tasks) {
-    this(s, c, hosts, null, Arrays.asList(tasks));
+  public TaskWrapper(String s, String c, Set<String> hosts, Task task) {
+    this(s, c, hosts, null, task);
   }
+
 
   /**
    * @param s the service name for the tasks
@@ -71,6 +77,13 @@ public class TaskWrapper {
     this.hosts = hosts;
     this.params = (params == null) ? new HashMap<String, String>() : params;
     this.tasks = tasks;
+
+    // !!! FIXME there should only be one task
+    for (Task task : tasks) {
+      if (StringUtils.isNotBlank(task.timeoutConfig)) {
+        timeoutKeys.add(task.timeoutConfig);
+      }
+    }
   }
 
   /**
@@ -131,6 +144,14 @@ public class TaskWrapper {
     }
 
     return false;
+  }
+
+
+  /**
+   * @return the timeout keys for all the tasks in this wrapper.
+   */
+  public Set<String> getTimeoutKeys() {
+    return timeoutKeys;
   }
 
 }

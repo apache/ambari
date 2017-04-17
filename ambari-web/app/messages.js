@@ -1892,6 +1892,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.details.hide': "hide details",
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",
   'admin.stackUpgrade.dialog.prepareUpgrade.header': "Preparing the Upgrade...",
+  'admin.stackUpgrade.dialog.skipped.failures':'There were automatically skipped failed steps.  Please resolve each failure before continuing with the upgrade.',
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
@@ -2547,6 +2548,7 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.confirmDeleteBody':'Are you sure you want to delete {0} notification?',
   'alerts.actions.manage_alert_notifications_popup.error.name.empty': 'Notification name is required',
   'alerts.actions.manage_alert_notifications_popup.error.name.existed': 'Notification name already exists',
+  'alerts.actions.manage_alert_notifications_popup.scriptDispatchProperty':'Script Dispatch Property',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',

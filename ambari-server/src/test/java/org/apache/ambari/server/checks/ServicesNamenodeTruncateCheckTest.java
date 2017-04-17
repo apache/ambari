@@ -53,7 +53,6 @@ public class ServicesNamenodeTruncateCheckTest {
 
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
   private ServicesNamenodeTruncateCheck m_check = new ServicesNamenodeTruncateCheck();
-  private final Map<String, String> m_configMap = new HashMap<String, String>();
   private RepositoryVersionDAO m_repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
   private final Map<String, String> m_configMap = new HashMap<>();
 

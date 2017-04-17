@@ -16,6 +16,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import math
+
 import json
 import re
 from resource_management.libraries.functions import format
@@ -38,10 +40,41 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         "HIVE": self.recommendHIVEConfigurations,
         "HBASE": self.recommendHBASEConfigurations,
         "YARN": self.recommendYARNConfigurations,
-        "KAFKA": self.recommendKAFKAConfigurations
+        "KAFKA": self.recommendKAFKAConfigurations,
+        "BEACON": self.recommendBEACONConfigurations
       }
       parentRecommendConfDict.update(childRecommendConfDict)
       return parentRecommendConfDict
+
+  def recommendBEACONConfigurations(self, configurations, clusterData, services, hosts):
+    beaconEnvProperties = self.getSiteProperties(services['configurations'], 'beacon-env')
+    putbeaconEnvProperty = self.putProperty(configurations, "beacon-env", services)
+
+    # database URL and driver class recommendations
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_driver') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      putbeaconEnvProperty('beacon_store_driver', self.getDBDriver(beaconEnvProperties['beacon_database']))
+    if beaconEnvProperties and self.checkSiteProperties(beaconEnvProperties, 'beacon_store_db_name', 'beacon_store_url') and self.checkSiteProperties(beaconEnvProperties, 'beacon_database'):
+      beaconServerHost = self.getHostWithComponent('BEACON', 'BEACON_SERVER', services, hosts)
+      beaconDBConnectionURL = beaconEnvProperties['beacon_store_url']
+      protocol = self.getProtocol(beaconEnvProperties['beacon_database'])
+      oldSchemaName = self.getOldValue(services, "beacon-env", "beacon_store_db_name")
+      oldDBType = self.getOldValue(services, "beacon-env", "beacon_database")
+      # under these if constructions we are checking if beacon server hostname available,
+      # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
+      # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
+      if beaconServerHost is not None:
+        if (beaconDBConnectionURL and "//localhost" in beaconDBConnectionURL) or oldSchemaName or oldDBType or (protocol and beaconDBConnectionURL and not beaconDBConnectionURL.startswith(protocol)):
+          dbConnection = self.getDBConnectionStringBeacon(beaconEnvProperties['beacon_database']).format(beaconServerHost['Hosts']['host_name'], beaconEnvProperties['beacon_store_db_name'])
+          putbeaconEnvProperty('beacon_store_url', dbConnection)
+
+  def getDBConnectionStringBeacon(self, databaseType):
+    driverDict = {
+      'NEW DERBY DATABASE': 'jdbc:derby:${{beacon.data.dir}}/${{beacon.store.db.name}}-db;create=true',
+      'EXISTING MYSQL DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql://{0}/{1}',
+      'EXISTING ORACLE DATABASE': 'jdbc:oracle:thin:@//{0}:1521/{1}'
+    }
+    return driverDict.get(databaseType.upper())
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendAtlasConfigurations(configurations, clusterData, services, hosts)
@@ -146,6 +179,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP26StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
 
     if "yarn-site" in services["configurations"] and \
                     "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
@@ -185,6 +219,83 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       putRangerYarnPluginProperty("REPOSITORY_CONFIG_USERNAME",yarn_user)
     else:
       self.logger.info("Not setting Yarn Repo user for Ranger.")
+
+
+    yarn_timeline_app_cache_size = None
+    host_mem = None
+    for host in hosts["items"]:
+      host_mem = host["Hosts"]["total_mem"]
+      break
+    # Check if 'yarn.timeline-service.entity-group-fs-store.app-cache-size' in changed configs.
+    changed_configs_has_ats_cache_size = self.isConfigPropertiesChanged(
+      services, "yarn-site", ['yarn.timeline-service.entity-group-fs-store.app-cache-size'], False)
+    # Check if it's : 1. 'apptimelineserver_heapsize' changed detected in changed-configurations)
+    # OR 2. cluster initialization (services['changed-configurations'] should be empty in this case)
+    if changed_configs_has_ats_cache_size:
+      yarn_timeline_app_cache_size = self.read_yarn_apptimelineserver_cache_size(services)
+    elif 0 == len(services['changed-configurations']):
+      # Fetch host memory from 1st host, to be used for ATS config calculations below.
+      if host_mem is not None:
+        yarn_timeline_app_cache_size = self.calculate_yarn_apptimelineserver_cache_size(host_mem)
+        putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.app-cache-size', yarn_timeline_app_cache_size)
+        self.logger.info("Updated YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size' as : {0}, "
+                    "using 'host_mem' = {1}".format(yarn_timeline_app_cache_size, host_mem))
+      else:
+        self.logger.info("Couldn't update YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size' as "
+                    "'host_mem' read = {0}".format(host_mem))
+
+    if yarn_timeline_app_cache_size is not None:
+      # Calculation for 'ats_heapsize' is in MB.
+      ats_heapsize = self.calculate_yarn_apptimelineserver_heapsize(host_mem, yarn_timeline_app_cache_size)
+      putYarnEnvProperty('apptimelineserver_heapsize', ats_heapsize) # Value in MB
+      self.logger.info("Updated YARN config 'apptimelineserver_heapsize' as : {0}, ".format(ats_heapsize))
+
+  """
+  Calculate YARN config 'apptimelineserver_heapsize' in MB.
+  """
+  def calculate_yarn_apptimelineserver_heapsize(self, host_mem, yarn_timeline_app_cache_size):
+    ats_heapsize = None
+    if host_mem < 4096:
+      ats_heapsize = 1024
+    else:
+      ats_heapsize = long(min(math.floor(host_mem/2), long(yarn_timeline_app_cache_size) * 500 + 3072))
+    return ats_heapsize
+
+  """
+  Calculates for YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size', based on YARN's NodeManager size.
+  """
+  def calculate_yarn_apptimelineserver_cache_size(self, host_mem):
+    yarn_timeline_app_cache_size = None
+    if host_mem < 4096:
+      yarn_timeline_app_cache_size = 3
+    elif host_mem >= 4096 and host_mem < 8192:
+      yarn_timeline_app_cache_size = 7
+    elif host_mem >= 8192:
+      yarn_timeline_app_cache_size = 10
+    self.logger.info("Calculated and returning 'yarn_timeline_app_cache_size' : {0}".format(yarn_timeline_app_cache_size))
+    return yarn_timeline_app_cache_size
+
+
+  """
+  Reads YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size'.
+  """
+  def read_yarn_apptimelineserver_cache_size(self, services):
+    """
+    :type services dict
+    :rtype str
+    """
+    yarn_ats_app_cache_size = None
+    yarn_ats_app_cache_size_config = "yarn.timeline-service.entity-group-fs-store.app-cache-size"
+    yarn_site_in_services = self.getServicesSiteProperties(services, "yarn-site")
+
+    if yarn_site_in_services and yarn_ats_app_cache_size_config in yarn_site_in_services:
+      yarn_ats_app_cache_size = yarn_site_in_services[yarn_ats_app_cache_size_config]
+      self.logger.info("'yarn.scheduler.minimum-allocation-mb' read from services as : {0}".format(yarn_ats_app_cache_size))
+
+    if not yarn_ats_app_cache_size:
+      self.logger.error("'{0}' was not found in the services".format(yarn_ats_app_cache_size_config))
+
+    return yarn_ats_app_cache_size
 
   def getMetadataConnectionString(self, database_type):
       driverDict = {

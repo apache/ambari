@@ -619,7 +619,7 @@
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
