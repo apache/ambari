@@ -157,6 +157,15 @@
     <value>10</value>
     <description>The frequency in minutes that the log cleaner checks whether any log segment is eligible for deletion to meet the retention policies.
     </description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>log.retention.check.interval.ms</name>
+    <value>600000</value>
+    <description>
+      The frequency in milliseconds that the log cleaner checks whether any log segment is eligible for deletion to meet the retention policies.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
