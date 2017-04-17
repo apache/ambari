@@ -23,7 +23,7 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
 
-def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled):
+def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabled, last_retry=True):
   try:
     if security_enabled:
       cmd = ['curl', '--negotiate', '-u', ':', '-s']
@@ -41,5 +41,6 @@ def get_value_from_jmx(qry, property, security_enabled, run_user, is_https_enabl
       data_dict = json.loads(data)
       return data_dict["beans"][0][property]
   except:
-    Logger.logger.exception("Getting jmx metrics from NN failed. URL: " + str(qry))
+    if last_retry:
+      Logger.logger.exception("Getting jmx metrics from NN failed. URL: " + str(qry))
     return None
