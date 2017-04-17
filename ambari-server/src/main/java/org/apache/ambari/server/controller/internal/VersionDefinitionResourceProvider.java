@@ -102,6 +102,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   protected static final String VERSION_DEF_AVAILABLE_SERVICES       = "VersionDefinition/services";
   protected static final String VERSION_DEF_STACK_SERVICES           = "VersionDefinition/stack_services";
   protected static final String VERSION_DEF_STACK_DEFAULT            = "VersionDefinition/stack_default";
+  protected static final String VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS = "VersionDefinition/stack_repo_update_link_exists";
   protected static final String VERSION_DEF_DISPLAY_NAME             = "VersionDefinition/display_name";
   protected static final String VERSION_DEF_VALIDATION               = "VersionDefinition/validation";
   protected static final String SHOW_AVAILABLE                       = "VersionDefinition/show_available";
@@ -157,6 +158,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       VERSION_DEF_AVAILABLE_SERVICES,
       VERSION_DEF_STACK_SERVICES,
       VERSION_DEF_STACK_DEFAULT,
+      VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS,
       VERSION_DEF_DISPLAY_NAME,
       VERSION_DEF_VALIDATION,
       VERSION_DEF_MIN_JDK,
@@ -617,6 +619,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     setResourceProperty(resource, VERSION_DEF_RELEASE_NOTES, xml.release.releaseNotes, requestedIds);
     setResourceProperty(resource, VERSION_DEF_RELEASE_VERSION, xml.release.version, requestedIds);
     setResourceProperty(resource, VERSION_DEF_STACK_DEFAULT, xml.isStackDefault(), requestedIds);
+    setResourceProperty(resource, VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS, (stack.getRepositoryXml().getLatestURI() != null), requestedIds);
     setResourceProperty(resource, VERSION_DEF_DISPLAY_NAME, xml.release.display, requestedIds);
 
     if (null != validations) {
@@ -686,6 +689,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, VERSION_DEF_STACK_SERVICES, xml.getStackServices(stack), requestedIds);
       setResourceProperty(resource, VERSION_DEF_MIN_JDK, stack.getMinJdk(), requestedIds);
       setResourceProperty(resource, VERSION_DEF_MAX_JDK, stack.getMaxJdk(), requestedIds);
+      setResourceProperty(resource, VERSION_DEF_STACK_REPO_UPDATE_LINK_EXISTS, (stack.getRepositoryXml().getLatestURI() != null), requestedIds);
     }
 
     return resource;
