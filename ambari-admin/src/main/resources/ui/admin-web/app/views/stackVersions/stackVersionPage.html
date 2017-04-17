@@ -115,8 +115,7 @@
   </div>
 
   <div id="upload-definition-file-panel" ng-if="createController">
-
-    <div class="col-sm-12 big-radio clearfix" ng-class="{'disabled' : networkLost || useRedhatSatellite}">
+    <div class="col-sm-12 big-radio clearfix hide-soft" ng-class="{'disabled' : networkLost || useRedhatSatellite,'visible':stackRepoUpdateLinkExists}">
       <input type="radio" ng-model="selectedOption.index" value="1" ng-change="togglePublicLocalOptionSelect()" ng-disabled="networkLost || useRedhatSatellite">
       <span>{{'versions.usePublic' | translate}}</span>
       <a id="public-disabled-link" href="javascript:void(0);" ng-if="networkLost" ng-click="showPublicRepoDisabledDialog()">{{'versions.networkIssues.networkLost'| translate}}</a>
