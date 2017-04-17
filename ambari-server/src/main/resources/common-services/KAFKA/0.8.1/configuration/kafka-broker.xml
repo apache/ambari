@@ -50,8 +50,7 @@
       Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
       This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
      string in the form hostname1:port1,hostname2:port2,hostname3:port3/chroot/path which would put all this cluster's data under the
-      path /chroot/path. Note that you must create this path yourself prior to starting the broker and consumers must use the
-      same connection string.
+      path /chroot/path. Note that consumers must use the same connection string.
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
