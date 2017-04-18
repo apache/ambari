@@ -1,5 +1,4 @@
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,132 +17,172 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import javax.naming.NamingEnumeration;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.LdapName;
+
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.directory.server.annotations.CreateLdapServer;
-import org.apache.directory.server.annotations.CreateTransport;
-import org.apache.directory.server.core.annotations.ApplyLdifFiles;
-import org.apache.directory.server.core.annotations.ContextEntry;
-import org.apache.directory.server.core.annotations.CreateDS;
-import org.apache.directory.server.core.annotations.CreatePartition;
-import org.apache.directory.server.core.integ.FrameworkRunner;
-import org.easymock.EasyMockRule;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.junit.Before;
-import org.junit.Rule;
+import org.apache.commons.lang.StringUtils;
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
-import org.springframework.security.ldap.search.LdapUserSearch;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+public class AmbariLdapBindAuthenticatorTest extends EasyMockSupport {
 
-@RunWith(FrameworkRunner.class)
-@CreateDS(allowAnonAccess = true,
-  name = "Test",
-  partitions = {
-    @CreatePartition(name = "Root",
-      suffix = "dc=apache,dc=org",
-      contextEntry = @ContextEntry(
-        entryLdif =
-          "dn: dc=apache,dc=org\n" +
-            "dc: apache\n" +
-            "objectClass: top\n" +
-            "objectClass: domain\n\n" +
-            "dn: dc=ambari,dc=apache,dc=org\n" +
-            "dc: ambari\n" +
-            "objectClass: top\n" +
-            "objectClass: domain\n\n"))
-  })
-@CreateLdapServer(allowAnonymousAccess = true,
-  transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
-@ApplyLdifFiles("users.ldif")
-public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationProviderBaseTest {
+  @Test
+  public void testAuthenticateWithoutLogin() throws Exception {
+    testAuthenticate("username", "username", false);
+  }
 
-  @Rule
-  public EasyMockRule mocks = new EasyMockRule(this);
-
-  @Mock(type = MockType.NICE)
-  private ServletRequestAttributes servletRequestAttributes;
-
-  @Before
-  public void setUp() {
-    resetAll();
+  @Test
+  public void testAuthenticateWithNullLDAPUsername() throws Exception {
+    testAuthenticate("username", null, false);
   }
 
   @Test
   public void testAuthenticateWithLoginAliasDefault() throws Exception {
-    testAuthenticateWithLoginAlias(false);
+    testAuthenticate("username", "ldapUsername", false);
   }
 
   @Test
   public void testAuthenticateWithLoginAliasForceToLower() throws Exception {
-    testAuthenticateWithLoginAlias(true);
+    testAuthenticate("username", "ldapUsername", true);
   }
 
-  private void testAuthenticateWithLoginAlias(boolean forceUsernameToLower) throws Exception {
-    // Given
+  @Test
+  public void testAuthenticateBadPassword() throws Exception {
+    String basePathString = "dc=apache,dc=org";
+    String ldapUserRelativeDNString = String.format("uid=%s,ou=people,ou=dev", "ldapUsername");
+    LdapName ldapUserRelativeDN = new LdapName(ldapUserRelativeDNString);
+    String ldapUserDNString = String.format("%s,%s", ldapUserRelativeDNString, basePathString);
+    DistinguishedName basePath = new DistinguishedName(basePathString);
 
-    LdapContextSource ldapCtxSource = new LdapContextSource();
-    ldapCtxSource.setUrls(new String[] {"ldap://localhost:33389"});
-    ldapCtxSource.setBase("dc=ambari,dc=apache,dc=org");
-    ldapCtxSource.afterPropertiesSet();
+    LdapContextSource ldapCtxSource = createMock(LdapContextSource.class);
+    expect(ldapCtxSource.getBaseLdapPath())
+        .andReturn(basePath)
+        .atLeastOnce();
+    expect(ldapCtxSource.getContext(ldapUserDNString, "password"))
+        .andThrow(new org.springframework.ldap.AuthenticationException(null))
+        .once();
 
-    Properties properties = new Properties();
-    properties.setProperty(Configuration.CLIENT_SECURITY_KEY, "ldap");
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
-    properties.setProperty(Configuration.LDAP_BASE_DN_KEY, "dc=ambari,dc=apache,dc=org");
+    DirContextOperations searchedUserContext = createMock(DirContextOperations.class);
+    expect(searchedUserContext.getDn())
+        .andReturn(ldapUserRelativeDN)
+        .atLeastOnce();
 
-    if(forceUsernameToLower) {
-      properties.setProperty(Configuration.LDAP_USERNAME_FORCE_LOWERCASE_KEY, "true");
-    }
-
-    Configuration configuration = new Configuration(properties);
-
-    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
-
-    LdapUserSearch userSearch = new FilterBasedLdapUserSearch("", "(&(cn={0})(objectClass=person))", ldapCtxSource);
-    bindAuthenticator.setUserSearch(userSearch);
-
-    // JohnSmith is a login alias for deniedUser username
-    String loginAlias = "JohnSmith";
-    String userName = "deniedUser";
-
-    Authentication authentication = new UsernamePasswordAuthenticationToken(loginAlias, "password");
-
-    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
-
-    servletRequestAttributes.setAttribute(eq(loginAlias), eq(forceUsernameToLower ? userName.toLowerCase(): userName), eq(RequestAttributes.SCOPE_SESSION));
-    expectLastCall().once();
+    FilterBasedLdapUserSearch userSearch = createMock(FilterBasedLdapUserSearch.class);
+    expect(userSearch.searchForUser(anyString())).andReturn(searchedUserContext).once();
 
     replayAll();
 
-    // When
+    Configuration configuration = new Configuration();
 
-    DirContextOperations user = bindAuthenticator.authenticate(authentication);
+    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
+    bindAuthenticator.setUserSearch(userSearch);
 
-    // Then
+    try {
+      bindAuthenticator.authenticate(new UsernamePasswordAuthenticationToken("username", "password"));
+      fail("Expected thrown exception: org.springframework.security.authentication.BadCredentialsException");
+    } catch (org.springframework.security.authentication.BadCredentialsException e) {
+      // expected
+    } catch (Throwable t) {
+      fail("Expected thrown exception: org.springframework.security.authentication.BadCredentialsException\nEncountered thrown exception " + t.getClass().getName());
+    }
+
+    verifyAll();
+  }
+
+  private void testAuthenticate(String ambariUsername, String ldapUsername, boolean forceUsernameToLower) throws Exception {
+    String basePathString = "dc=apache,dc=org";
+    String ldapUserRelativeDNString = String.format("uid=%s,ou=people,ou=dev", ldapUsername);
+    LdapName ldapUserRelativeDN = new LdapName(ldapUserRelativeDNString);
+    String ldapUserDNString = String.format("%s,%s", ldapUserRelativeDNString, basePathString);
+    DistinguishedName basePath = new DistinguishedName(basePathString);
+
+    @SuppressWarnings("unchecked")
+    NamingEnumeration<SearchResult> adminGroups = createMock(NamingEnumeration.class);
+    expect(adminGroups.hasMore())
+        .andReturn(false)
+        .atLeastOnce();
+    adminGroups.close();
+    expectLastCall().atLeastOnce();
+
+    DirContextOperations boundUserContext = createMock(DirContextOperations.class);
+    expect(boundUserContext.search(eq("ou=groups"), eq("(&(member=" + ldapUserDNString + ")(objectclass=group)(|(cn=Ambari Administrators)))"), anyObject(SearchControls.class)))
+        .andReturn(adminGroups)
+        .atLeastOnce();
+    boundUserContext.close();
+    expectLastCall().atLeastOnce();
+
+
+    LdapContextSource ldapCtxSource = createMock(LdapContextSource.class);
+    expect(ldapCtxSource.getBaseLdapPath())
+        .andReturn(basePath)
+        .atLeastOnce();
+    expect(ldapCtxSource.getContext(ldapUserDNString, "password"))
+        .andReturn(boundUserContext)
+        .once();
+    expect(ldapCtxSource.getReadOnlyContext())
+        .andReturn(boundUserContext)
+        .once();
+
+    Attributes searchedAttributes = new BasicAttributes("uid", ldapUsername);
+
+    DirContextOperations searchedUserContext = createMock(DirContextOperations.class);
+    expect(searchedUserContext.getDn())
+        .andReturn(ldapUserRelativeDN)
+        .atLeastOnce();
+    expect(searchedUserContext.getAttributes())
+        .andReturn(searchedAttributes)
+        .atLeastOnce();
+
+    FilterBasedLdapUserSearch userSearch = createMock(FilterBasedLdapUserSearch.class);
+    expect(userSearch.searchForUser(ambariUsername)).andReturn(searchedUserContext).once();
+
+    ServletRequestAttributes servletRequestAttributes = createMock(ServletRequestAttributes.class);
+
+    if (!StringUtils.isEmpty(ldapUsername) && !ambariUsername.equals(ldapUsername)) {
+      servletRequestAttributes.setAttribute(eq(ambariUsername), eq(forceUsernameToLower ? ldapUsername.toLowerCase() : ldapUsername), eq(RequestAttributes.SCOPE_SESSION));
+      expectLastCall().once();
+    }
+
+    replayAll();
+
+    RequestContextHolder.setRequestAttributes(servletRequestAttributes);
+
+    Properties properties = new Properties();
+    if (forceUsernameToLower) {
+      properties.setProperty(Configuration.LDAP_USERNAME_FORCE_LOWERCASE_KEY, "true");
+    }
+    Configuration configuration = new Configuration(properties);
+
+    AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
+    bindAuthenticator.setUserSearch(userSearch);
+    DirContextOperations user = bindAuthenticator.authenticate(new UsernamePasswordAuthenticationToken(ambariUsername, "password"));
 
     verifyAll();
 
     String ldapUserNameAttribute = configuration.getLdapServerProperties().getUsernameAttribute();
-
-    assertEquals(userName, user.getStringAttribute(ldapUserNameAttribute));
+    assertEquals(ldapUsername, user.getStringAttribute(ldapUserNameAttribute));
   }
 }
