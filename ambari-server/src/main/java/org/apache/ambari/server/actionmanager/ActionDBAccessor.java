@@ -86,6 +86,19 @@ public interface ActionDBAccessor {
   public List<Stage> getStagesInProgress();
 
   /**
+   * Returns all the pending stages in a request, including queued and not-queued. A stage is
+   * considered in progress if it is in progress for any host.
+   * <p/>
+   * The results will be sorted by stage ID making this call
+   * expensive in some scenarios. Use {@link #getCommandsInProgressCount()} in
+   * order to determine if there are stages that are in progress before getting
+   * the stages from this method.
+   *
+   * @see HostRoleStatus#IN_PROGRESS_STATUSES
+   */
+  public List<Stage> getStagesInProgressForRequest(Long requestId);
+
+  /**
    * Gets the number of commands in progress.
    *
    * @return the number of commands in progress.

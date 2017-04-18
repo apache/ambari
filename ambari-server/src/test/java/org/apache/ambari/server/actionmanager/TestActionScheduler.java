@@ -2203,10 +2203,9 @@ public class TestActionScheduler {
     hosts.put(hostname, sch);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
-    long requestId = 1;
-
-    // create 3 stages, each with a single task - the first stage will be completed and should not
+    // Create a single request with 3 stages, each with a single task - the first stage will be completed and should not
     // be included when cancelling the unfinished tasks of the request
+    long requestId = 1;
     final List<Stage> allStages = new ArrayList<Stage>();
     final List<Stage> stagesInProgress = new ArrayList<Stage>();
     final List<HostRoleCommand> tasksInProgress = new ArrayList<>();
@@ -2218,7 +2217,7 @@ public class TestActionScheduler {
 
     Stage stageWithTask = getStageWithSingleTask(
         hostname, "cluster1", Role.SECONDARY_NAMENODE, RoleCommand.START,
-        Service.Type.HDFS, secondaryNamenodeCmdTaskId, 1, (int)requestId);
+        Service.Type.HDFS, secondaryNamenodeCmdTaskId, 1, (int) requestId);
 
     // complete the first stage
     stageWithTask.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.COMPLETED);
@@ -2226,7 +2225,7 @@ public class TestActionScheduler {
 
     stageWithTask = getStageWithSingleTask(
         hostname, "cluster1", Role.NAMENODE, RoleCommand.START,
-        Service.Type.HDFS, namenodeCmdTaskId, 2, (int)requestId);
+        Service.Type.HDFS, namenodeCmdTaskId, 2, (int) requestId);
 
     tasksInProgress.addAll(stageWithTask.getOrderedHostRoleCommands());
     stagesInProgress.add(stageWithTask);
@@ -2234,7 +2233,7 @@ public class TestActionScheduler {
 
     stageWithTask = getStageWithSingleTask(
         hostname, "cluster1", Role.DATANODE, RoleCommand.START,
-        Service.Type.HDFS, datanodeCmdTaskId, 3, (int)requestId);
+        Service.Type.HDFS, datanodeCmdTaskId, 3, (int) requestId);
 
     tasksInProgress.addAll(stageWithTask.getOrderedHostRoleCommands());
     stagesInProgress.add(stageWithTask);
@@ -2270,6 +2269,7 @@ public class TestActionScheduler {
 
     when(db.getCommandsInProgressCount()).thenReturn(stagesInProgress.size());
     when(db.getStagesInProgress()).thenReturn(stagesInProgress);
+    when(db.getStagesInProgressForRequest(requestId)).thenReturn(stagesInProgress);
     when(db.getAllStages(anyLong())).thenReturn(allStages);
 
     List<HostRoleCommand> requestTasks = new ArrayList<HostRoleCommand>();

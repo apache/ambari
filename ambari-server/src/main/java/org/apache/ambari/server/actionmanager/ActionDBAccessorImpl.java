@@ -270,10 +270,24 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
+  public List<Stage> getStagesInProgressForRequest(Long requestId) {
+    List<StageEntity> stageEntities = stageDAO.findByRequestIdAndCommandStatuses(requestId, HostRoleStatus.IN_PROGRESS_STATUSES);
+    return getStagesForEntities(stageEntities);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public List<Stage> getStagesInProgress() {
     List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(
       HostRoleStatus.IN_PROGRESS_STATUSES);
+    return getStagesForEntities(stageEntities);
+  }
 
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
+  private List<Stage> getStagesForEntities(List<StageEntity> stageEntities) {
     // experimentally enable parallel stage processing
     @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
     boolean useConcurrentStageProcessing = configuration.isExperimentalConcurrentStageProcessingEnabled();

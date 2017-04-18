@@ -1139,10 +1139,10 @@ class ActionScheduler implements Runnable {
           cancelHostRoleCommands(tasksToDequeue, reason);
         }
 
-        // abort any stages in progress; don't execute this for all stages since
+        // abort any stages in progress that belong to this request; don't execute this for all stages since
         // that could lead to OOM errors on large requests, like those for
         // upgrades
-        List<Stage> stagesInProgress = db.getStagesInProgress();
+        List<Stage> stagesInProgress = db.getStagesInProgressForRequest(requestId);
         for (Stage stageInProgress : stagesInProgress) {
           abortOperationsForStage(stageInProgress);
         }
