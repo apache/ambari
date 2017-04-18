@@ -477,7 +477,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       'sender': this,
       'success': 'startStopPopupSuccessCallback',
       'error': 'startStopPopupErrorCallback',
-      'data': data
+      'data': data,
+      'showLoadingPopup': true
     });
   },
 
@@ -533,7 +534,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         forceRefreshConfigTags : "capacity-scheduler"
       },
       success : 'refreshYarnQueuesSuccessCallback',
-      error : 'refreshYarnQueuesErrorCallback'
+      error : 'refreshYarnQueuesErrorCallback',
+      showLoadingPopup: true
     });
     });
   },
@@ -578,7 +580,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           componentName: "KNOX_GATEWAY"
         },
         success: 'startStopLdapKnoxSuccessCallback',
-        error: 'startStopLdapKnoxErrorCallback'
+        error: 'startStopLdapKnoxErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -625,7 +628,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         componentName: "HIVE_SERVER_INTERACTIVE"
       },
       success: 'requestSuccessCallback',
-      error: 'requestErrorCallback'
+      error: 'requestErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -670,7 +674,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         batches: batches
       },
       success: 'requestSuccessCallback',
-      error: 'requestErrorCallback'
+      error: 'requestErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -722,7 +727,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
             threshold: this.get('inputValue')
           },
           success : 'rebalanceHdfsNodesSuccessCallback',
-          error : 'rebalanceHdfsNodesErrorCallback'
+          error : 'rebalanceHdfsNodesErrorCallback',
+          showLoadingPopup: true
         });
         this.hide();
       },
@@ -847,7 +853,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       'sender': this,
       'success':'runSmokeTestSuccessCallBack',
       'error':'runSmokeTestErrorCallBack',
-      'data': requestData
+      'data': requestData,
+      showLoadingPopup: true
     });
   },
 
@@ -1108,7 +1115,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           componentName : context.component
         },
         success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
+        error : 'executeCustomCommandErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -1132,7 +1140,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           forceRefreshConfigTags : "capacity-scheduler"
         },
         success : 'executeCustomCommandSuccessCallback',
-        error : 'executeCustomCommandErrorCallback'
+        error : 'executeCustomCommandErrorCallback',
+        showLoadingPopup: true
       });
     });
   },
@@ -1556,7 +1565,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         servicesToDeleteNext: servicesToDeleteNext
       },
       success : 'deleteServiceCallSuccessCallback',
-      error: 'deleteServiceCallErrorCallback'
+      error: 'deleteServiceCallErrorCallback',
+      showLoadingPopup: true
     });
   },
 

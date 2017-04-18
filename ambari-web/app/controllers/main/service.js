@@ -160,7 +160,8 @@ App.MainServiceController = Em.ArrayController.extend({
         query: query
       },
       success: 'allServicesCallSuccessCallback',
-      error: 'allServicesCallErrorCallback'
+      error: 'allServicesCallErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -185,7 +186,8 @@ App.MainServiceController = Em.ArrayController.extend({
           state: 'INSTALLED'
         }
       },
-      success: 'silentStopSuccess'
+      success: 'silentStopSuccess',
+      showLoadingPopup: true
     });
   },
 
@@ -235,7 +237,8 @@ App.MainServiceController = Em.ArrayController.extend({
             state: 'STARTED'
           }
         },
-        success: 'silentCallSuccessCallback'
+        success: 'silentCallSuccessCallback',
+        showLoadingPopup: true
       });
     }
   }.observes('shouldStart', 'controllers.backgroundOperationsController.allOperationsCount'),
@@ -369,7 +372,8 @@ App.MainServiceController = Em.ArrayController.extend({
           tolerateSize: 0,
           batches: batches
         },
-        success: 'restartAllRequiredSuccessCallback'
+        success: 'restartAllRequiredSuccessCallback',
+        showLoadingPopup: true
       });
     } else {
       App.ajax.send({
@@ -378,7 +382,8 @@ App.MainServiceController = Em.ArrayController.extend({
         data: {
           data: ajaxData
         },
-        success: 'restartAllRequiredSuccessCallback'
+        success: 'restartAllRequiredSuccessCallback',
+        showLoadingPopup: true
       });
     }
   },

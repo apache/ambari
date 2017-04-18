@@ -154,7 +154,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       sender: this,
       data: data,
       success: 'sendComponentCommandSuccessCallback',
-      error: 'ajaxErrorCallback'
+      error: 'ajaxErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -390,7 +391,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         hostName: this.get('content.hostName')
       },
       success: '_doDeleteHostComponentSuccessCallback',
-      error: '_doDeleteHostComponentErrorCallback'
+      error: '_doDeleteHostComponentErrorCallback',
+      showLoadingPopup: true
     }).then(callback, callback);
   },
 
@@ -1221,7 +1223,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         resource_filters: resource_filters,
         context: context
       },
-      success: 'refreshComponentConfigsSuccessCallback'
+      success: 'refreshComponentConfigsSuccessCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -1468,7 +1471,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
                 }
               },
               success: 'installComponentSuccessCallback',
-              error: 'ajaxErrorCallback'
+              error: 'ajaxErrorCallback',
+              showLoadingPopup: true
             });
           })
         });
@@ -1574,7 +1578,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         slaveType: slaveType
       },
       success: 'decommissionSuccessCallback',
-      error: 'decommissionErrorCallback'
+      error: 'decommissionErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -1757,7 +1762,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         batches: batches
       },
       success: 'decommissionSuccessCallback',
-      error: 'decommissionErrorCallback'
+      error: 'decommissionErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -1864,7 +1870,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         batches: batches
       },
       success: 'decommissionSuccessCallback',
-      error: 'decommissionErrorCallback'
+      error: 'decommissionErrorCallback',
+      showLoadingPopup: true
     });
   },
 
@@ -2263,7 +2270,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           callback: completeCallback,
           success: 'deleteHostSuccessCallback',
-          error: 'deleteHostErrorCallback'
+          error: 'deleteHostErrorCallback',
+          showLoadingPopup: true
         });
       }
       else {

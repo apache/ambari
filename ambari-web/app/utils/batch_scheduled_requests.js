@@ -285,7 +285,8 @@ module.exports = {
             query: query
           },
           success: 'successCallback',
-          error: 'errorCallback'
+          error: 'errorCallback',
+          showLoadingPopup: true
         });
       } else {
         App.ajax.send({
@@ -301,7 +302,8 @@ module.exports = {
             operation_level: operation_level
           },
           success: 'successCallback',
-          error: 'errorCallback'
+          error: 'errorCallback',
+          showLoadingPopup: true
         });
       }
     }
@@ -376,7 +378,8 @@ module.exports = {
         batches: this.getBatchesForRollingRestartRequest(restartHostComponents, batchSize)
       },
       success: 'successCallback',
-      error: 'errorCallback'
+      error: 'errorCallback',
+      showLoadingPopup: true
     });
   },
 
