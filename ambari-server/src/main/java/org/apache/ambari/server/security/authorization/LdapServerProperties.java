@@ -50,6 +50,7 @@ public class LdapServerProperties {
   private String userBase;
   private String userObjectClass;
   private String usernameAttribute;
+  private boolean forceUsernameToLowercase = false;
   private String userSearchBase = "";
 
   private String syncGroupMemberReplacePattern = "";
@@ -163,6 +164,28 @@ public class LdapServerProperties {
 
   public void setUsernameAttribute(String usernameAttribute) {
     this.usernameAttribute = usernameAttribute;
+  }
+
+  /**
+   * Sets whether the username retrieved from the LDAP server during authentication is to be forced
+   * to all lowercase characters before assigning to the authenticated user.
+   *
+   * @param forceUsernameToLowercase true to force the username to be lowercase; false to leave as
+   *                                 it was when retrieved from the LDAP server
+   */
+  public void setForceUsernameToLowercase(boolean forceUsernameToLowercase) {
+    this.forceUsernameToLowercase = forceUsernameToLowercase;
+  }
+
+  /**
+   * Gets whether the username retrieved from the LDAP server during authentication is to be forced
+   * to all lowercase characters before assigning to the authenticated user.
+   *
+   * @return true to force the username to be lowercase; false to leave as it was when retrieved from
+   * the LDAP server
+   */
+  public boolean isForceUsernameToLowercase() {
+    return forceUsernameToLowercase;
   }
 
   public String getGroupBase() {
@@ -331,6 +354,8 @@ public class LdapServerProperties {
       return false;
     if (usernameAttribute != null ? !usernameAttribute.equals(that.usernameAttribute) : that.usernameAttribute != null)
       return false;
+    if (forceUsernameToLowercase != that.forceUsernameToLowercase)
+      return false;
     if (groupBase != null ? !groupBase.equals(that.groupBase) :
         that.groupBase != null) return false;
     if (groupObjectClass != null ? !groupObjectClass.equals(that.groupObjectClass) :
@@ -379,6 +404,7 @@ public class LdapServerProperties {
     result = 31 * result + (userBase != null ? userBase.hashCode() : 0);
     result = 31 * result + (userObjectClass != null ? userObjectClass.hashCode() : 0);
     result = 31 * result + (usernameAttribute != null ? usernameAttribute.hashCode() : 0);
+    result = 31 * result + (forceUsernameToLowercase ? 1 : 0);
     result = 31 * result + (groupBase != null ? groupBase.hashCode() : 0);
     result = 31 * result + (groupObjectClass != null ? groupObjectClass.hashCode() : 0);
     result = 31 * result + (groupMembershipAttr != null ? groupMembershipAttr.hashCode() : 0);

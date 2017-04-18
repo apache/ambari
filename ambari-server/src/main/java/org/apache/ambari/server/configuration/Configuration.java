@@ -189,6 +189,7 @@ public class Configuration {
   public static final String LDAP_MANAGER_PASSWORD_KEY = "authentication.ldap.managerPassword";
   public static final String LDAP_DN_ATTRIBUTE_KEY = "authentication.ldap.dnAttribute";
   public static final String LDAP_USERNAME_ATTRIBUTE_KEY = "authentication.ldap.usernameAttribute";
+  public static final String LDAP_USERNAME_FORCE_LOWERCASE_KEY = "authentication.ldap.username.forceLowercase";
   public static final String LDAP_USER_BASE_KEY = "authentication.ldap.userBase";
   public static final String LDAP_USER_OBJECT_CLASS_KEY = "authentication.ldap.userObjectClass";
   public static final String LDAP_GROUP_BASE_KEY = "authentication.ldap.groupBase";
@@ -517,6 +518,7 @@ public class Configuration {
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
   private static final String LDAP_BASE_DN_DEFAULT = "dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USERNAME_ATTRIBUTE_DEFAULT = "uid";
+  private static final String LDAP_USERNAME_FORCE_LOWERCASE_DEFAULT = "false";
   private static final String LDAP_DN_ATTRIBUTE_DEFAULT = "dn";
   private static final String LDAP_USER_BASE_DEFAULT = "ou=people,dc=ambari,dc=apache,dc=org";
   private static final String LDAP_USER_OBJECT_CLASS_DEFAULT = "person";
@@ -1889,6 +1891,8 @@ public class Configuration {
       (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
     ldapServerProperties.setUsernameAttribute(properties.
       getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
+    ldapServerProperties.setForceUsernameToLowercase("true".equalsIgnoreCase(properties.
+      getProperty(LDAP_USERNAME_FORCE_LOWERCASE_KEY, LDAP_USERNAME_FORCE_LOWERCASE_DEFAULT)));
 
     ldapServerProperties.setUserBase(properties.getProperty(
       LDAP_USER_BASE_KEY, LDAP_USER_BASE_DEFAULT));
