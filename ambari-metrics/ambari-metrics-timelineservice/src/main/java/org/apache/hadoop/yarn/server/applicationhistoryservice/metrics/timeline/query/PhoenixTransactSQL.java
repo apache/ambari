@@ -148,6 +148,12 @@ public class PhoenixTransactSQL {
       "CONSTRAINT pk PRIMARY KEY (HOSTNAME))" +
       "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
 
+  public static final String CREATE_INSTANCE_HOST_TABLE_SQL =
+    "CREATE TABLE IF NOT EXISTS INSTANCE_HOST_METADATA " +
+      "(INSTANCE_ID VARCHAR, HOSTNAME VARCHAR, " +
+      "CONSTRAINT pk PRIMARY KEY (INSTANCE_ID, HOSTNAME))" +
+      "DATA_BLOCK_ENCODING='%s', COMPRESSION='%s'";
+
   public static final String ALTER_METRICS_METADATA_TABLE =
     "ALTER TABLE METRICS_METADATA ADD IF NOT EXISTS IS_WHITELISTED BOOLEAN";
 
@@ -230,6 +236,9 @@ public class PhoenixTransactSQL {
   public static final String UPSERT_HOSTED_APPS_METADATA_SQL =
     "UPSERT INTO HOSTED_APPS_METADATA (HOSTNAME, APP_IDS) VALUES (?, ?)";
 
+  public static final String UPSERT_INSTANCE_HOST_METADATA_SQL =
+    "UPSERT INTO INSTANCE_HOST_METADATA (INSTANCE_ID, HOSTNAME) VALUES (?, ?)";
+
   /**
    * Retrieve a set of rows from metrics records table.
    */
@@ -308,6 +317,9 @@ public class PhoenixTransactSQL {
 
   public static final String GET_HOSTED_APPS_METADATA_SQL = "SELECT " +
     "HOSTNAME, APP_IDS FROM HOSTED_APPS_METADATA";
+
+  public static final String GET_INSTANCE_HOST_METADATA_SQL = "SELECT " +
+    "INSTANCE_ID, HOSTNAME FROM INSTANCE_HOST_METADATA";
 
   /**
    * Aggregate host metrics using a GROUP BY clause to take advantage of
