@@ -390,6 +390,11 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   }
 
   @Override
+  public Map<String, Set<String>> getInstanceHostsMetadata() throws SQLException, IOException {
+    return metricMetadataManager.getHostedInstanceCache();
+  }
+
+  @Override
   public List<String> getLiveInstances() {
 
     List<String> instances = null;

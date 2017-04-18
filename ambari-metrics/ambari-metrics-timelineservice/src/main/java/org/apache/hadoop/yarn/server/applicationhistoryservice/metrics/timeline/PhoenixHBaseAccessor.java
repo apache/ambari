@@ -113,6 +113,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_INSTANCE_HOST_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
@@ -122,6 +123,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_TABLE_COMPRESSION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_HOSTED_APPS_METADATA_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_DAILY_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_HOURLY_TABLE_NAME;
@@ -136,6 +138,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CLUSTER_AGGREGATE_TIME_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_HOSTED_APPS_METADATA_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_INSTANCE_HOST_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METADATA_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_CONTAINER_METRICS_SQL;
@@ -417,6 +420,11 @@ public class PhoenixHBaseAccessor {
       String hostedAppSql = String.format(CREATE_HOSTED_APPS_METADATA_TABLE_SQL,
         encoding, compression);
       stmt.executeUpdate(hostedAppSql);
+
+      //Host Instances table
+      String hostedInstancesSql = String.format(CREATE_INSTANCE_HOST_TABLE_SQL,
+        encoding, compression);
+      stmt.executeUpdate(hostedInstancesSql);
 
       // Container Metrics
       stmt.executeUpdate( String.format(CREATE_CONTAINER_METRICS_TABLE_SQL,
@@ -766,6 +774,8 @@ public class PhoenixHBaseAccessor {
 
         metadataManager.putIfModifiedHostedAppsMetadata(
                 tm.getHostName(), tm.getAppId());
+
+        metadataManager.putIfModifiedHostedInstanceMetadata(tm.getInstanceId(), tm.getHostName());
       }
       if (!acceptMetric) {
         iterator.remove();
@@ -1484,6 +1494,55 @@ public class PhoenixHBaseAccessor {
     }
   }
 
+  public void saveInstanceHostsMetadata(Map<String, Set<String>> instanceHostsMap) throws SQLException {
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    try {
+      stmt = conn.prepareStatement(UPSERT_INSTANCE_HOST_METADATA_SQL);
+      int rowCount = 0;
+
+      for (Map.Entry<String, Set<String>> hostInstancesEntry : instanceHostsMap.entrySet()) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Host Instances Entry: " + hostInstancesEntry);
+        }
+
+        String instanceId = hostInstancesEntry.getKey();
+
+        for(String hostname : hostInstancesEntry.getValue()) {
+          stmt.clearParameters();
+          stmt.setString(1, instanceId);
+          stmt.setString(2, hostname);
+          try {
+            stmt.executeUpdate();
+            rowCount++;
+          } catch (SQLException sql) {
+            LOG.error("Error saving host instances metadata.", sql);
+          }
+        }
+
+      }
+
+      conn.commit();
+      LOG.info("Saved " + rowCount + " host instances metadata records.");
+
+    } finally {
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+  }
+
   /**
    * Save metdata on updates.
    * @param metricMetadata @Collection<@TimelineMetricMetadata>
@@ -1588,6 +1647,53 @@ public class PhoenixHBaseAccessor {
     }
 
     return hostedAppMap;
+  }
+
+  public Map<String, Set<String>> getInstanceHostsMetdata() throws SQLException {
+    Map<String, Set<String>> instanceHostsMap = new HashMap<>();
+    Connection conn = getConnection();
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+
+    try {
+      stmt = conn.prepareStatement(GET_INSTANCE_HOST_METADATA_SQL);
+      rs = stmt.executeQuery();
+
+      while (rs.next()) {
+        String instanceId = rs.getString("INSTANCE_ID");
+        String hostname = rs.getString("HOSTNAME");
+
+        if (!instanceHostsMap.containsKey(instanceId)) {
+          instanceHostsMap.put(instanceId, new HashSet<String>());
+        }
+        instanceHostsMap.get(instanceId).add(hostname);
+      }
+
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (stmt != null) {
+        try {
+          stmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
+
+    return instanceHostsMap;
   }
 
   // No filter criteria support for now.

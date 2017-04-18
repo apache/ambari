@@ -130,6 +130,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.addOrderByColumn("METRIC_NAME");
     condition.addOrderByColumn("HOSTNAME");
     condition.addOrderByColumn("APP_ID");
+    condition.addOrderByColumn("INSTANCE_ID");
     condition.addOrderByColumn("SERVER_TIME");
     return condition;
   }

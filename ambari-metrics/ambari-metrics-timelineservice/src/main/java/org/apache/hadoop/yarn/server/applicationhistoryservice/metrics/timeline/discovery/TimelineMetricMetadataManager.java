@@ -53,8 +53,10 @@ public class TimelineMetricMetadataManager {
   private final Map<TimelineMetricMetadataKey, TimelineMetricMetadata> METADATA_CACHE = new ConcurrentHashMap<>();
   // Map to lookup apps on a host
   private final Map<String, Set<String>> HOSTED_APPS_MAP = new ConcurrentHashMap<>();
+  private final Map<String, Set<String>> INSTANCE_HOST_MAP = new ConcurrentHashMap<>();
   // Sync only when needed
   AtomicBoolean SYNC_HOSTED_APPS_METADATA = new AtomicBoolean(false);
+  AtomicBoolean SYNC_HOSTED_INSTANCES_METADATA = new AtomicBoolean(false);
 
   // Single thread to sync back new writes to the store
   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -121,14 +123,25 @@ public class TimelineMetricMetadataManager {
     return HOSTED_APPS_MAP;
   }
 
+  public Map<String, Set<String>> getHostedInstanceCache() {
+    return INSTANCE_HOST_MAP;
+  }
+
   public boolean syncHostedAppsMetadata() {
     return SYNC_HOSTED_APPS_METADATA.get();
+  }
+
+  public boolean syncHostedInstanceMetadata() {
+    return SYNC_HOSTED_INSTANCES_METADATA.get();
   }
 
   public void markSuccessOnSyncHostedAppsMetadata() {
     SYNC_HOSTED_APPS_METADATA.set(false);
   }
 
+  public void markSuccessOnSyncHostedInstanceMetadata() {
+    SYNC_HOSTED_INSTANCES_METADATA.set(false);
+  }
   /**
    * Test metric name for valid patterns and return true/false
    */
@@ -188,12 +201,33 @@ public class TimelineMetricMetadataManager {
     }
   }
 
+  public void putIfModifiedHostedInstanceMetadata(String instanceId, String hostname) {
+    if (StringUtils.isEmpty(instanceId)) {
+      return;
+    }
+
+    Set<String> hosts = INSTANCE_HOST_MAP.get(instanceId);
+    if (hosts == null) {
+      hosts = new HashSet<>();
+      INSTANCE_HOST_MAP.put(instanceId, hosts);
+    }
+
+    if (!hosts.contains(hostname)) {
+      hosts.add(hostname);
+      SYNC_HOSTED_INSTANCES_METADATA.set(true);
+    }
+  }
+
   public void persistMetadata(Collection<TimelineMetricMetadata> metadata) throws SQLException {
     hBaseAccessor.saveMetricMetadata(metadata);
   }
 
   public void persistHostedAppsMetadata(Map<String, Set<String>> hostedApps) throws SQLException {
     hBaseAccessor.saveHostAppsMetadata(hostedApps);
+  }
+
+  public void persistHostedInstanceMetadata(Map<String, Set<String>> hostedInstancesMetadata) throws SQLException {
+    hBaseAccessor.saveInstanceHostsMetadata(hostedInstancesMetadata);
   }
 
   public TimelineMetricMetadata getTimelineMetricMetadata(TimelineMetric timelineMetric, boolean isWhitelisted) {
@@ -230,6 +264,10 @@ public class TimelineMetricMetadataManager {
    */
   Map<String, Set<String>> getHostedAppsFromStore() throws SQLException {
     return hBaseAccessor.getHostedAppsMetadata();
+  }
+
+  Map<String, Set<String>> getHostedInstancesFromStore() throws SQLException {
+    return hBaseAccessor.getInstanceHostsMetdata();
   }
 
   private boolean supportAggregates(TimelineMetric metric) {
