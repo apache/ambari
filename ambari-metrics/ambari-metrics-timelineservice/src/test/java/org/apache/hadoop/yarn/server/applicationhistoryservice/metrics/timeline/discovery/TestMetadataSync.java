@@ -56,9 +56,15 @@ public class TestMetadataSync {
       put("h2", new HashSet<>(Arrays.asList("a1", "a2")));
     }};
 
+    Map<String, Set<String>> hostedInstances = new HashMap<String, Set<String>>() {{
+      put("i1", new HashSet<>(Arrays.asList("h1")));
+      put("i2", new HashSet<>(Arrays.asList("h1", "h2")));
+    }};
+
     expect(configuration.get("timeline.metrics.service.operation.mode", "")).andReturn("distributed");
     expect(hBaseAccessor.getTimelineMetricMetadata()).andReturn(metadata);
     expect(hBaseAccessor.getHostedAppsMetadata()).andReturn(hostedApps);
+    expect(hBaseAccessor.getInstanceHostsMetdata()).andReturn(hostedInstances);
 
     replay(configuration, hBaseAccessor);
 
@@ -80,6 +86,12 @@ public class TestMetadataSync {
     Assert.assertEquals(2, hostedApps.size());
     Assert.assertEquals(1, hostedApps.get("h1").size());
     Assert.assertEquals(2, hostedApps.get("h2").size());
+
+    hostedInstances = metadataManager.getHostedInstanceCache();
+    Assert.assertEquals(2, hostedInstances.size());
+    Assert.assertEquals(1, hostedInstances.get("i1").size());
+    Assert.assertEquals(2, hostedInstances.get("i2").size());
+
   }
 
   @Test
