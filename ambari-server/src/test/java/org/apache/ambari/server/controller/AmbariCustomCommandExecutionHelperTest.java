@@ -225,7 +225,6 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(command.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals("{\"zookeeperUser\":[\"zookeeperGroup\"]}", command.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
     Assert.assertEquals(true, command.getForceRefreshConfigTagsBeforeExecution());
-    Assert.assertFalse(command.getVersionAdvertised());
   }
 
   @Test

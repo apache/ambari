@@ -97,9 +97,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("serviceName")
   private String serviceName;
 
-  @SerializedName("versionAdvertised")
-  private boolean versionAdvertised;
-
   @SerializedName("serviceType")
   private String serviceType;
 
@@ -328,14 +325,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-
-  public boolean getVersionAdvertised() {
-    return versionAdvertised;
-  }
-
-  public void setVersionAdvertised(boolean versionAdvertised) {
-    this.versionAdvertised = versionAdvertised;
   }
 
   public String getServiceType() {
