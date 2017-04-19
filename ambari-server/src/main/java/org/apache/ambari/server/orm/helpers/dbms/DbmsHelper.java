@@ -66,7 +66,6 @@ public interface DbmsHelper {
    *
    * @param indexName
    * @param tableName
-   * @param columnNames
    * @return
    */
   String getDropIndexStatement(String indexName, String tableName);

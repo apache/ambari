@@ -374,7 +374,6 @@ public class VersionDefinitionXml {
 
   /**
    * Builds a Version Definition that is the default for the stack
-   * @param stack
    * @return the version definition
    */
   public static VersionDefinitionXml build(StackInfo stackInfo) {

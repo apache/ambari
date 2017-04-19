@@ -713,8 +713,7 @@ public interface Cluster {
    * Gets whether there is an upgrade which has been suspended and not yet
    * finalized.
    *
-   * @return {@code true} if the last upgrade is in the
-   *         {@link UpgradeState#SUSPENDED}.
+   * @return {@code true} if the last upgrade is suspended
    */
   boolean isUpgradeSuspended();
 

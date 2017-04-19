@@ -300,9 +300,6 @@ public class AlertEventPublisherTest {
         source.getAlertName()));
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install.
-   */
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName);

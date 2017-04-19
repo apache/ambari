@@ -531,9 +531,8 @@ public interface DBAccessor {
    *          the name of the table (not {@code null}).
    * @param columnName
    *          the name of the column to retrieve type for (not {@code null}).
-   * @return the integer representation of the column type from {@link Types}.
+   * @return the integer representation of the column type
    * @throws SQLException
-   * @see {@link Types}
    */
   int getColumnType(String tableName, String columnName)
       throws SQLException;

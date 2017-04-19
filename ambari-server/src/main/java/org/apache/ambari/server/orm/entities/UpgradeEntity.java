@@ -176,9 +176,6 @@ public class UpgradeEntity {
     return requestId;
   }
 
-  /**
-   * @param id the request id
-   */
   public void setRequestEntity(RequestEntity requestEntity) {
     this.requestEntity = requestEntity;
     requestId = requestEntity.getRequestId();

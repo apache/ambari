@@ -915,7 +915,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * @param clusterName
    *          the cluster name
    * @param configType
-   *          the configuration type (for example {@value hdfs-site}).
+   *          the configuration type (for example <code>hdfs-site</code>).
    * @return
    */
   private String getDesiredConfigVersion(String clusterName,

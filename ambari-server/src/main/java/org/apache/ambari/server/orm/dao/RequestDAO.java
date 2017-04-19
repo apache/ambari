@@ -223,8 +223,8 @@ public class RequestDAO implements Cleanable {
    * Retrieves from the database for a cluster, or specifically for non-cluster requests.
    * This method should be considered temporary until Request/Stage/Task cleanup is achieved.
    *
-   * @param maxResults  the max number to return
-   * @param ascOrder    {@code true} to sort by requestId ascending, {@code false} for descending
+   * @param limit the max number to return
+   * @param sortAscending {@code true} to sort by requestId ascending, {@code false} for descending
    * @param clusterId   the cluster to find, or {@code null} to search for requests without cluster
    */
   @RequiresSession

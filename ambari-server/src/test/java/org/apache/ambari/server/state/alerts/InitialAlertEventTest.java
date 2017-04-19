@@ -173,9 +173,6 @@ public class InitialAlertEventTest {
         m_listener.getAlertEventReceivedCount(InitialAlertEvent.class));
   }
 
-  /**
-   * Calls {@link Service#persist()} to mock a service install.
-   */
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);
