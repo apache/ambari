@@ -481,6 +481,16 @@
             <transfer operation="delete" delete-key="atlas.cluster.name"/>
           </definition>
 
+          <definition xsi:type="configure" id="llap_append_stack_size_java_opts" summary="Update JVM stack size for LLAP">
+            <type>hive-interactive-env</type>
+            <insert key="llap_java_opts" value="-Xss512k" insert-type="append" newline-before="false" newline-after="false" />
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_shuffle_parallel_copies" summary="Update tez shuffle parallel copies for LLAP">
+            <type>hive-interactive-site</type>
+            <set key="tez.runtime.shuffle.parallel.copies" value="8"/>
+          </definition>
+
         </changes>
 
       </component>
