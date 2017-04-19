@@ -273,7 +273,6 @@ public class AmbariManagementControllerTest {
     hostDAO = injector.getInstance(HostDAO.class);
     topologyHostInfoDAO = injector.getInstance(TopologyHostInfoDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-
     stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
@@ -1270,6 +1269,8 @@ public class AmbariManagementControllerTest {
     crReq.setDesiredConfig(Collections.singletonList(cr3));
     controller.updateClusters(Collections.singleton(crReq), null);
 
+
+
     // Install
     installService(cluster1, serviceName, false, false);
     ExecutionCommand ec =
@@ -1309,7 +1310,6 @@ public class AmbariManagementControllerTest {
     assertEquals("[\"myhdfsgroup\"]", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.GROUP_LIST));
     assertTrue(ec.getHostLevelParams().containsKey(ExecutionCommand.KeyNames.USER_GROUPS));
     assertEquals("{\"myhdfsuser\":[\"myhdfsgroup\"]}", ec.getHostLevelParams().get(ExecutionCommand.KeyNames.USER_GROUPS));
-    assertEquals(ec.getVersionAdvertised(), false);
   }
 
   @Test

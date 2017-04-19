@@ -2457,7 +2457,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (unlimitedKeyJCEPolicyRequired) ? "true" : "false");
 
     execCmd.setHostLevelParams(hostParams);
-    execCmd.setVersionAdvertised(componentInfo.isVersionAdvertised());
 
     Map<String, String> roleParams = new TreeMap<>();
 

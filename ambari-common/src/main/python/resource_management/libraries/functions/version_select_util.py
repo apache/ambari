@@ -78,48 +78,6 @@ def get_component_version(stack_name, component_name):
   return version
 
 
-def get_component_version_with_stack_selector(stack_selector_path, component_name):
-  """
-   For specific cases where we deal with HDP add on services from a management pack, the version
-   needs to be determined by using the specific stack selector itself.
-   :param stack_selector_path: /usr/bin/hdf-select
-   Comes from the service which calls for this function.
-   :param component_name: Component name as a string necessary to get the version
-   :return: Returns a string if found, e.g., 2.2.1.0-2175, otherwise, returns None
-   This function can be called by custom services, hence should not be removed
-  """
-  version = None
-  out = None
-  code = -1
-  if not stack_selector_path:
-    Logger.error("Stack selector path not provided")
-  elif not os.path.exists(stack_selector_path):
-    Logger.error("Stack selector path does not exist")
-  elif not component_name:
-    Logger.error("Component name not provided")
-  else:
-    tmpfile = tempfile.NamedTemporaryFile()
-
-    get_stack_comp_version_cmd = ""
-    try:
-      # This is necessary because Ubuntu returns "stdin: is not a tty", see AMBARI-8088
-      with open(tmpfile.name, 'r') as file:
-        get_stack_comp_version_cmd = '{0} status {1} > {2}' .format(stack_selector_path, component_name, tmpfile.name)
-        code, stdoutdata = shell.call(get_stack_comp_version_cmd, quiet=True)
-        out = file.read()
-
-      if code != 0 or out is None:
-        raise Exception("Code is nonzero or output is empty")
-
-      Logger.debug("Command: %s\nOutput: %s" % (get_stack_comp_version_cmd, str(out)))
-      matches = re.findall(r"([\d\.]+\-\d+)", out)
-      version = matches[0] if matches and len(matches) > 0 else None
-    except Exception, e:
-      Logger.error("Could not determine stack version for component %s by calling '%s'. Return Code: %s, Output: %s." %
-                   (component_name, get_stack_comp_version_cmd, str(code), str(out)))
-  return version
-
-
 def get_versions_from_stack_root(stack_root):
   """
   Given a stack install root, returns a list of stack versions currently installed.
