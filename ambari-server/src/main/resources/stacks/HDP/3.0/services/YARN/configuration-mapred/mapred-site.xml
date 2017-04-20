@@ -25,7 +25,7 @@
       CLASSPATH for MR applications. A comma-separated list of CLASSPATH
       entries.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- These configs were inherited from HDP 2.2 -->
@@ -37,13 +37,13 @@
       This is not an additive property. You must preserve the original value if
       you want your map and reduce tasks to have access to native libraries (compression, etc)
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.application.framework.path</name>
     <value>/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
@@ -61,18 +61,18 @@
       of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
       mapreduce.reduce.env config settings.
     </description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

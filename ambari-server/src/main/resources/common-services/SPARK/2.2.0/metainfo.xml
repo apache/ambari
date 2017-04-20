@@ -240,18 +240,19 @@
         <service>HIVE</service>
       </requiredServices>
 
+      <!-- TODO, change these to "spark" and "livy" after RPM switches the name. -->
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>spark_${stack_version}</name>
+              <name>spark2_${stack_version}</name>
             </package>
             <package>
-              <name>spark_${stack_version}-python</name>
+              <name>spark2_${stack_version}-python</name>
             </package>
             <package>
-              <name>livy_${stack_version}</name>
+              <name>livy2_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -259,13 +260,13 @@
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
-              <name>spark-${stack_version}</name>
+              <name>spark2-${stack_version}</name>
             </package>
             <package>
-              <name>spark-${stack_version}-python</name>
+              <name>spark2-${stack_version}-python</name>
             </package>
             <package>
-              <name>livy-${stack_version}</name>
+              <name>livy2-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

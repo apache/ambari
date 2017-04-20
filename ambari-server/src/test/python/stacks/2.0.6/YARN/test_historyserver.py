@@ -197,7 +197,55 @@ class TestHistoryServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      ignore_failures = True,
+      cd_access = 'a',
+    )
     self.assertResourceCalled('HdfsResource', '/app-logs',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = False,
@@ -309,55 +357,6 @@ class TestHistoryServer(RMFTestCase):
       cd_access = 'a',
       recursive_ownership = True,
     )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      ignore_failures = True,
-      cd_access = 'a',
-    )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
@@ -464,6 +463,56 @@ class TestHistoryServer(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      ignore_failures = True,
+      cd_access = 'a',
+    )
+
     self.assertResourceCalled('HdfsResource', '/app-logs',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
@@ -574,55 +623,6 @@ class TestHistoryServer(RMFTestCase):
       create_parents = True,
       cd_access = 'a',
       recursive_ownership = True,
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      ignore_failures = True,
-      cd_access = 'a',
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',

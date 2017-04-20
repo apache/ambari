@@ -165,6 +165,6 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

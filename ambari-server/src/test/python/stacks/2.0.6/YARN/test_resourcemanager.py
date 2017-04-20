@@ -178,19 +178,6 @@ class TestResourceManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        mode = 0755,
-        create_parents = True,
-        cd_access = 'a',
-    )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-        owner = 'yarn',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
-      owner = 'yarn',
-      group = 'hadoop',
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -239,6 +226,19 @@ class TestResourceManager(RMFTestCase):
       create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
+      owner = 'yarn',
+      group = 'hadoop',
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
@@ -346,19 +346,6 @@ class TestResourceManager(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        mode = 0755,
-        create_parents = True,
-        cd_access = 'a',
-    )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-        owner = 'yarn',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
-      owner = 'yarn',
-      group = 'hadoop',
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -407,6 +394,19 @@ class TestResourceManager(RMFTestCase):
       create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
+      owner = 'yarn',
+      group = 'hadoop',
     )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',

@@ -370,7 +370,7 @@ class Script(object):
       
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
-  def post_start(self, env):
+  def post_start(self, env=None):
     pid_files = self.get_pid_files()
     if pid_files == []:
       Logger.logger.warning("Pid files for current script are not defined")
@@ -827,7 +827,7 @@ class Script(object):
 
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      self.pre_start()
+      self.pre_start(env)
       if "upgrade_type" in inspect.getargspec(self.start).args:
         self.start(env, upgrade_type=upgrade_type)
       else:
@@ -835,7 +835,7 @@ class Script(object):
           self.start(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.start(env)
-      self.post_start()
+      self.post_start(env)
 
       if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using
