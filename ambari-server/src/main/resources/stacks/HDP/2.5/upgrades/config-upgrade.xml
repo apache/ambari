@@ -153,115 +153,121 @@
       </component>
     </service>
 
-   <service name="OOZIE">
-    <component name="OOZIE_SERVER">
-      <changes>
-        <!-- Oozie Rolling properties for log4j need to be parameterized. -->
-        <definition xsi:type="configure" id="oozie_log4j_parameterize" summary="Parameterizing Oozie Log4J Properties">
-          <type>oozie-log4j</type>
-          <set key="oozie_log_maxhistory" value="720"/>
-          <regex-replace key="content" find="^log4j.appender.oozie.RollingPolicy.MaxHistory=([0-9]+)" replace-with="log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
-  <service name="YARN">
-    <component name="RESOURCEMANAGER">
-      <changes>
-        <!-- Yarn Rolling properties for log4j need to be parameterized. -->
-        <definition xsi:type="configure" id="yarn_log4j_parameterize" summary="Parameterizing Yarn Log4J Properties">
-          <type>yarn-log4j</type>
-          <set key="yarn_rm_summary_log_max_backup_size" value="256"/>
-          <set key="yarn_rm_summary_log_number_of_backup_files" value="20"/>
-          <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
-          <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
-        </definition>
-        <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
-          <type>yarn-env</type>
-          <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
-        </definition>
-        <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption">
-          <type>yarn-site</type>
-          <transfer operation="copy"
-                    from-key="yarn.resourcemanager.scheduler.monitor.enable"
-                    to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
-                    default-value="false"/>
-        </definition>
-        <definition xsi:type="configure" id="yarn_site_retained_log_count" summary="Updating Yarn retained file count for continuous Log Aggregation">
-          <type>yarn-site</type>
-          <set key="yarn.nodemanager.log-aggregation.num-log-files-per-app"
-               value="336" />
-        </definition>
-        <definition xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name">
-          <type>yarn-env</type>
-          <set key="service_check.queue.name" value="default" if-type="yarn-env" if-key="service_check.queue.name" if-key-state="absent"/>
-        </definition>
-        <definition xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
-          <type>yarn-site</type>
-          <set key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" value="15"
-               if-type="yarn-site" if-key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" if-value="60"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
+     <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <!-- Oozie Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="oozie_log4j_parameterize" summary="Parameterizing Oozie Log4J Properties">
+            <type>oozie-log4j</type>
+            <set key="oozie_log_maxhistory" value="720"/>
+            <regex-replace key="content" find="^log4j.appender.oozie.RollingPolicy.MaxHistory=([0-9]+)" replace-with="log4j.appender.oozie.RollingPolicy.MaxHistory={{oozie_log_maxhistory}}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="YARN">
+      <component name="RESOURCEMANAGER">
+        <changes>
+          <!-- Yarn Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="yarn_log4j_parameterize" summary="Parameterizing Yarn Log4J Properties">
+            <type>yarn-log4j</type>
+            <set key="yarn_rm_summary_log_max_backup_size" value="256"/>
+            <set key="yarn_rm_summary_log_number_of_backup_files" value="20"/>
+            <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RMSUMMARY.MaxFileSize={{yarn_rm_summary_log_max_backup_size}}MB"/>
+            <regex-replace key="content" find="^log4j.appender.RMSUMMARY.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RMSUMMARY.MaxBackupIndex={{yarn_rm_summary_log_number_of_backup_files}}"/>
+          </definition>
+          <definition xsi:type="configure" id="yarn_env_security_opts" summary="Adding YARN Security ACLs">
+            <type>yarn-env</type>
+            <insert key="content" value="{% if rm_security_opts is defined %} YARN_OPTS=&quot;{{rm_security_opts}} $YARN_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_priority_utilization_underutilized_preemption">
+            <type>yarn-site</type>
+            <transfer operation="copy"
+                      from-key="yarn.resourcemanager.scheduler.monitor.enable"
+                      to-key="yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled"
+                      default-value="false"/>
+          </definition>
+          <definition xsi:type="configure" id="yarn_site_retained_log_count" summary="Updating Yarn retained file count for continuous Log Aggregation">
+            <type>yarn-site</type>
+            <set key="yarn.nodemanager.log-aggregation.num-log-files-per-app"
+                 value="336" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_service_check_queue_name">
+            <type>yarn-env</type>
+            <set key="service_check.queue.name" value="default" if-type="yarn-env" if-key="service_check.queue.name" if-key-state="absent"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_ats_scan_interval_default">
+            <type>yarn-site</type>
+            <set key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" value="15"
+                 if-type="yarn-site" if-key="yarn.timeline-service.entity-group-fs-store.scan-interval-seconds" if-value="60"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-  <service name="MAPREDUCE2">
-    <component name="MAPREDUCE2_CLIENT">
-      <changes>
-        <definition xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
-          <type>mapred-site</type>
-          <set key="mapreduce.job.queuename" value="default" if-type="mapred-site" if-key="mapreduce.job.queuename" if-key-state="absent"/>
-        </definition>
-      </changes>
-    </component>
-  </service>
+    <service name="MAPREDUCE2">
+      <component name="MAPREDUCE2_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
+            <type>mapred-site</type>
+            <set key="mapreduce.job.queuename" value="default" if-type="mapred-site" if-key="mapreduce.job.queuename" if-key-state="absent"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
 
-  <service name="HDFS">
-    <component name="NAMENODE">
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <!-- HDFS Rolling properties for log4j need to be parameterized. -->
+          <definition xsi:type="configure" id="hdfs_log4j_parameterize" summary="Parameterizing Hdfs Log4J Properties">
+            <type>hdfs-log4j</type>
+            <set key="hadoop_log_max_backup_size" value="256"/>
+            <set key="hadoop_log_number_of_backup_files" value="10"/>
+            <set key="hadoop_security_log_max_backup_size" value="256"/>
+            <set key="hadoop_security_log_number_of_backup_files" value="20"/>
+            <regex-replace  key="content" find="log4j.appender.RFA.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RFA.MaxFileSize={{hadoop_log_max_backup_size}}MB"/>
+            <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
+            <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
+            <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
+          </definition>
+          <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
+            <type>hadoop-env</type>
+            <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
+          </definition>
+          <definition xsi:type="configure" id="hdfs_securitylogger_additivity" summary="Set additivity of SecurityLogger to false">
+            <type>hdfs-log4j</type>
+            <regex-replace  key="content" find="hadoop.security.log.file=SecurityAuth.audit" replace-with="hadoop.security.log.file=SecurityAuth.audit&#10;log4j.additivity.SecurityLogger=false"/>
+            <regex-replace  key="content" find="log4j.additivity.SecurityLogger=true" replace-with="log4j.additivity.SecurityLogger=false"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics" summary="Prevent Garbage Collection Heuristics">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+PrintGCDateStamps -Xms{{namenode_heapsize}}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}}"/>
+            <replace  key="content" find="-XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE}"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+    <service name="HBASE">
+      <component name="HBASE_MASTER">
       <changes>
-        <!-- HDFS Rolling properties for log4j need to be parameterized. -->
-        <definition xsi:type="configure" id="hdfs_log4j_parameterize" summary="Parameterizing Hdfs Log4J Properties">
-          <type>hdfs-log4j</type>
-          <set key="hadoop_log_max_backup_size" value="256"/>
-          <set key="hadoop_log_number_of_backup_files" value="10"/>
-          <set key="hadoop_security_log_max_backup_size" value="256"/>
-          <set key="hadoop_security_log_number_of_backup_files" value="20"/>
-          <regex-replace  key="content" find="log4j.appender.RFA.MaxFileSize=([0-9]+)MB" replace-with="log4j.appender.RFA.MaxFileSize={{hadoop_log_max_backup_size}}MB"/>
-          <regex-replace  key="content" find="log4j.appender.RFA.MaxBackupIndex=([0-9]+)" replace-with="log4j.appender.RFA.MaxBackupIndex={{hadoop_log_number_of_backup_files}}"/>
-          <regex-replace  key="content" find="hadoop.security.log.maxfilesize=([0-9]+)MB" replace-with="hadoop.security.log.maxfilesize={{hadoop_security_log_max_backup_size}}MB"/>
-          <regex-replace  key="content" find="hadoop.security.log.maxbackupindex=([0-9]+)" replace-with="hadoop.security.log.maxbackupindex={{hadoop_security_log_number_of_backup_files}}"/>
-        </definition>
-        <definition xsi:type="configure" id="hadoop_env_zkfc_security_opts" summary="Adding HDFS ZKFC Security ACLs">
-          <type>hadoop-env</type>
-          <insert key="content" value="{% if hadoop_zkfc_opts is defined %} export HADOOP_ZKFC_OPTS=&quot;{{hadoop_zkfc_opts}} $HADOOP_ZKFC_OPTS&quot; {% endif %}" insert-type="append" newline-before="true" newline-after="true" />
-        </definition>
-        <definition xsi:type="configure" id="hdfs_securitylogger_additivity" summary="Set additivity of SecurityLogger to false">
-          <type>hdfs-log4j</type>
-          <regex-replace  key="content" find="hadoop.security.log.file=SecurityAuth.audit" replace-with="hadoop.security.log.file=SecurityAuth.audit&#10;log4j.additivity.SecurityLogger=false"/>
-          <regex-replace  key="content" find="log4j.additivity.SecurityLogger=true" replace-with="log4j.additivity.SecurityLogger=false"/>
+      <!-- HBase Rolling properties for log4j need to be parameterized. -->
+        <definition xsi:type="configure" id="hbase_log4j_parameterize" summary="Parameterizing HBase Log4J Properties">
+            <type>hbase-log4j</type>
+            <set key="hbase_log_maxfilesize" value="256"/>
+            <set key="hbase_log_maxbackupindex" value="20"/>
+            <set key="hbase_security_log_maxfilesize" value="256"/>
+            <set key="hbase_security_log_maxbackupindex" value="20"/>
+            <regex-replace key="content" find="hbase.log.maxfilesize=([0-9]+)MB" replace-with="hbase.log.maxfilesize={{hbase_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="hbase.log.maxbackupindex=([0-9]+)" replace-with="hbase.log.maxbackupindex={{hbase_log_maxbackupindex}}"/>
+            <regex-replace key="content" find="hbase.security.log.maxfilesize=([0-9]+)MB" replace-with="hbase.security.log.maxfilesize={{hbase_security_log_maxfilesize}}MB"/>
+            <regex-replace key="content" find="hbase.security.log.maxbackupindex=([0-9]+)" replace-with="hbase.security.log.maxbackupindex={{hbase_security_log_maxbackupindex}}"/>
         </definition>
       </changes>
-    </component>
-  </service>
-  <service name="HBASE">
-    <component name="HBASE_MASTER">
-    <changes>
-    <!-- HBase Rolling properties for log4j need to be parameterized. -->
-      <definition xsi:type="configure" id="hbase_log4j_parameterize" summary="Parameterizing HBase Log4J Properties">
-          <type>hbase-log4j</type>
-          <set key="hbase_log_maxfilesize" value="256"/>
-          <set key="hbase_log_maxbackupindex" value="20"/>
-          <set key="hbase_security_log_maxfilesize" value="256"/>
-          <set key="hbase_security_log_maxbackupindex" value="20"/>
-          <regex-replace key="content" find="hbase.log.maxfilesize=([0-9]+)MB" replace-with="hbase.log.maxfilesize={{hbase_log_maxfilesize}}MB"/>
-          <regex-replace key="content" find="hbase.log.maxbackupindex=([0-9]+)" replace-with="hbase.log.maxbackupindex={{hbase_log_maxbackupindex}}"/>
-          <regex-replace key="content" find="hbase.security.log.maxfilesize=([0-9]+)MB" replace-with="hbase.security.log.maxfilesize={{hbase_security_log_maxfilesize}}MB"/>
-          <regex-replace key="content" find="hbase.security.log.maxbackupindex=([0-9]+)" replace-with="hbase.security.log.maxbackupindex={{hbase_security_log_maxbackupindex}}"/>
-      </definition>
-    </changes>
-    </component>
-  </service>
-  <service name="FALCON">
+      </component>
+    </service>
+    <service name="FALCON">
       <component name="FALCON_SERVER">
         <changes>
           <definition xsi:type="configure" id="falcon_log4j_parameterize" summary="Parameterizing Falcon Log4J Properties">
@@ -365,24 +371,24 @@
     </component>
     </service>
     <service name="KNOX">
-    <component name="KNOX_GATEWAY">
-    <changes>
-      <definition xsi:type="configure" id="knox_gateway_log4j_parameterize" summary="Parameterizing Knox Gateway Log4J Properties">
-        <type>gateway-log4j</type>
-        <set key="knox_gateway_log_maxfilesize" value="256"/>
-        <set key="knox_gateway_log_maxbackupindex" value="20"/>
-        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}"/>
-        </definition>
-      <definition xsi:type="configure" id="knox_ldap_log4j_parameterize" summary="Parameterizing Knox Ldap Log4J Properties">
-        <type>ldap-log4j</type>
-        <set key="knox_ldap_log_maxfilesize" value="256"/>
-        <set key="knox_ldap_log_maxbackupindex" value="20"/>
-        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_ldap_log_maxfilesize}}MB"/>
-        <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_ldap_log_maxbackupindex}}"/>
-      </definition>
-    </changes>
-    </component>
+      <component name="KNOX_GATEWAY">
+        <changes>
+          <definition xsi:type="configure" id="knox_gateway_log4j_parameterize" summary="Parameterizing Knox Gateway Log4J Properties">
+            <type>gateway-log4j</type>
+            <set key="knox_gateway_log_maxfilesize" value="256"/>
+            <set key="knox_gateway_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_gateway_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_gateway_log_maxbackupindex}}"/>
+            </definition>
+          <definition xsi:type="configure" id="knox_ldap_log4j_parameterize" summary="Parameterizing Knox Ldap Log4J Properties">
+            <type>ldap-log4j</type>
+            <set key="knox_ldap_log_maxfilesize" value="256"/>
+            <set key="knox_ldap_log_maxbackupindex" value="20"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxFileSize = {{knox_ldap_log_maxfilesize}}MB"/>
+            <replace key="content" find="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender" replace-with="log4j.appender.drfa=org.apache.log4j.DailyRollingFileAppender&#xA;log4j.appender.drfa.MaxBackupIndex = {{knox_ldap_log_maxbackupindex}}"/>
+          </definition>
+        </changes>
+      </component>
     </service>
 
     <service name="PIG">

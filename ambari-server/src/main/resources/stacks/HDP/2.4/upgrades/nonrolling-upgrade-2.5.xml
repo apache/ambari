@@ -379,6 +379,10 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+      </execute-stage>
+
       <!-- SQOOP -->
       <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop to remove Atlas Configs">
         <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
