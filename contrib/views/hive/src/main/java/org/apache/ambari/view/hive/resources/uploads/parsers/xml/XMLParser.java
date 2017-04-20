@@ -63,6 +63,8 @@ public class XMLParser extends Parser {
     super(reader, parseOptions);
     XMLInputFactory factory = XMLInputFactory.newInstance();
     try {
+      factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+      factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
       this.xmlReader = factory.createXMLEventReader(reader);
     } catch (XMLStreamException e) {
       LOG.error("error occurred while creating xml reader : ", e);
