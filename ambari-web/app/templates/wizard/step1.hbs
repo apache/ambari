@@ -81,8 +81,10 @@
               {{! Public Repository radio }}
               <div {{bindAttr class=":col-sm-4 :radio :big-radio :public-radio :wizard-plain-text"}}>
                 {{view view.usePublicRepoRadioButton classNames="display-inline-block" labelIdentifier="use-public-repo"}}
-                {{#if networkIssuesExist}}
-                  <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
+                {{#if stackRepoUpdateLinkExists}}
+                  {{#if networkIssuesExist}}
+                    <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
+                  {{/if}}
                 {{/if}}
               </div>
               {{!--Local repo radio--}}
