@@ -271,6 +271,12 @@
             <regex-replace  key="content" find="hadoop.security.log.file=SecurityAuth.audit" replace-with="hadoop.security.log.file=SecurityAuth.audit&#10;log4j.additivity.SecurityLogger=false"/>
             <regex-replace  key="content" find="log4j.additivity.SecurityLogger=true" replace-with="log4j.additivity.SecurityLogger=false"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics" summary="Prevent Garbage Collection Heuristics">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+PrintGCDateStamps -Xms{{namenode_heapsize}}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}}"/>
+            <replace  key="content" find="-XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE}"/>
+          </definition>
         </changes>
       </component>
     </service>

@@ -294,6 +294,10 @@
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Ranger Hive plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_hive_plugin_cluster_name"/>
