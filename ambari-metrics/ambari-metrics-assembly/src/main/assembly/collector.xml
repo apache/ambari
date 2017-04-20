@@ -58,6 +58,7 @@
 
   <dependencySets>
     <dependencySet>
+      <fileMode>755</fileMode>
       <unpack>false</unpack>
       <outputDirectory>hbase/lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -67,6 +68,7 @@
       </includes>
     </dependencySet>
     <dependencySet>
+      <fileMode>755</fileMode>
       <unpack>false</unpack>
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
