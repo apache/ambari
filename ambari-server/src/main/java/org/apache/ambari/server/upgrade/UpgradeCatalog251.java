@@ -22,6 +22,9 @@ import java.sql.SQLException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
 /**
  * The {@link UpgradeCatalog251} upgrades Ambari from 2.5.0 to 2.5.1.
  */
@@ -29,6 +32,16 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
 
   static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   static final String HRC_IS_BACKGROUND_COLUMN = "is_background";
+
+  /**
+   * Constructor.
+   *
+   * @param injector
+   */
+  @Inject
+  public UpgradeCatalog251(Injector injector) {
+    super(injector);
+  }
 
   /**
    * {@inheritDoc}

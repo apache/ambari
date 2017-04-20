@@ -52,8 +52,6 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -69,6 +67,7 @@ import org.easymock.MockType;
 import org.easymock.TestSubject;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -114,15 +113,11 @@ public class UpgradeCatalog212Test {
   private ResultSet resultSet;
 
   @TestSubject
-  private UpgradeCatalog212 testSubject = new UpgradeCatalog212();
+  private UpgradeCatalog212 testSubject = new UpgradeCatalog212(
+      EasyMock.createNiceMock(Injector.class));
 
-
-  private UpgradeCatalogHelper upgradeCatalogHelper;
-  private StackEntity desiredStackEntity;
-
-
-  // This method to be called only when an IOC is needed - typically by functional tests
-  public void setupIoCContext() {
+  @Before
+  public void setUp() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
@@ -130,12 +125,8 @@ public class UpgradeCatalog212Test {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
     // inject AmbariMetaInfo to ensure that stacks get populated in the DB
     injector.getInstance(AmbariMetaInfo.class);
-    // load the stack entity
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
   @After
@@ -148,7 +139,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testFinilizeTopologyDDL() throws Exception {
-    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     dbAccessor.dropColumn(eq("topology_request"), eq("cluster_name"));
     dbAccessor.setColumnNullable(eq("topology_request"), eq("cluster_id"), eq(false));
@@ -173,7 +163,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Connection connection = createNiceMock(Connection.class);
@@ -211,7 +200,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
-    setupIoCContext();
     Method addMissingConfigs = UpgradeCatalog212.class.getDeclaredMethod("addMissingConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
@@ -235,7 +223,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -302,7 +289,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigsTrue() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -355,7 +341,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigsNoHBaseEnv() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -397,7 +382,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigsNoOverrideHBaseUID() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -415,9 +399,6 @@ public class UpgradeCatalog212Test {
     expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).once();
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>() {{
-      put("hbase_user", "hbase");
-    }};
     final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
       put("override_uid", "false");
     }};
@@ -451,17 +432,14 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
       put("hive.heapsize", "512");
       put("hive.server2.custom.authentication.class", "");
@@ -498,7 +476,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateOozieConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -539,7 +516,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveEnvContent() throws Exception {
-    setupIoCContext();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
