@@ -397,7 +397,7 @@ if 'infra-solr-env' in config['configurations'] and security_enabled and not log
 # Smoke command
 #####################################
 
-logsearch_server_hosts = default('/configurations/clusterHostInfo/logsearch_server_hosts', None)
+logsearch_server_hosts = default('/clusterHostInfo/logsearch_server_hosts', None)
 logsearch_server_host = ""
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]
