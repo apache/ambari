@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 import os
+import hashlib
 
 from resource_management import Package
 from resource_management import StackFeature
@@ -31,11 +32,13 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
 
 
 def metadata(type='server'):
     import params
-    
+
     # Needed by both Server and Client
     Directory(params.conf_dir,
               mode=0755,
@@ -97,7 +100,14 @@ def metadata(type='server'):
            mode=0755,
            content=InlineTemplate(params.metadata_env_content)
       )
- 
+
+      if not is_empty(params.atlas_admin_username) and not is_empty(params.atlas_admin_password):
+        psswd_output = hashlib.sha256(params.atlas_admin_password).hexdigest()
+        ModifyPropertiesFile(format("{conf_dir}/users-credentials.properties"),
+            properties = {format('{atlas_admin_username}') : format('ROLE_ADMIN::{psswd_output}')},
+            owner = params.metadata_user
+        )
+
       files_to_chown = [format("{conf_dir}/policy-store.txt"), format("{conf_dir}/users-credentials.properties")]
       for file in files_to_chown:
         if os.path.exists(file):
