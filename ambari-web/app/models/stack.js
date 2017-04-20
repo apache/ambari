@@ -23,6 +23,7 @@ App.Stack = DS.Model.extend({
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   stackDefault: DS.attr('boolean'),
+  stackRepoUpdateLinkExists: DS.attr('boolean'),
   minJdkVersion: DS.attr('string'),
   maxJdkVersion: DS.attr('string'),
   repositoryVersion: DS.attr('string'),
