@@ -616,6 +616,7 @@
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
           <task xsi:type="configure" id="hadoop_env_zkfc_security_opts" />
           <task xsi:type="configure" id="hdfs_securitylogger_additivity" />
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

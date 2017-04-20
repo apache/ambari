@@ -523,6 +523,12 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+        </pre-upgrade>
+
+        <pre-downgrade/>
+
         <upgrade>
           <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
