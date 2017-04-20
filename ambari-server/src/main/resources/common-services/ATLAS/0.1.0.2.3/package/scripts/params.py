@@ -410,3 +410,6 @@ if stack_supports_atlas_ranger_plugin and enable_ranger_atlas:
     'type': 'atlas',
     }
 # ranger atlas plugin section end
+# atlas admin login username password
+atlas_admin_username = config['configurations']['atlas-env']['atlas.admin.username']
+atlas_admin_password = config['configurations']['atlas-env']['atlas.admin.password']
