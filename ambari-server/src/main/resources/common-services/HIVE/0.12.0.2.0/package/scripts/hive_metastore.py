@@ -35,6 +35,7 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
+from setup_ranger_hive import setup_ranger_hive_metastore_service
 
 from hive import create_metastore_schema, hive, jdbc_connector
 from hive_service import hive_service
@@ -61,6 +62,8 @@ class HiveMetastore(Script):
 
     hive_service('metastore', action='start', upgrade_type=upgrade_type)
 
+    # below function call is used for cluster depolyed in cloud env to create ranger hive service in ranger admin.
+    setup_ranger_hive_metastore_service()
 
   def stop(self, env, upgrade_type=None):
     import params

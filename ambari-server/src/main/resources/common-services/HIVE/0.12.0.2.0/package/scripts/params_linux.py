@@ -823,3 +823,10 @@ if enable_ranger_hive:
     xa_audit_db_is_enabled = False
 
 # ranger hive plugin section end
+
+# below property is used for cluster deployed in cloud env to create ranger hive service in ranger admin
+# need to add it as custom property
+ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-properties/ranger.service.config.param.enable.hive.metastore.lookup', False)
+
+if security_enabled:
+  hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())
