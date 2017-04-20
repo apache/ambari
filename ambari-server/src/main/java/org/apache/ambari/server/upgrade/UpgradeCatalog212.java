@@ -86,9 +86,6 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     daoUtils = injector.getInstance(DaoUtils.class);
   }
 
-  protected UpgradeCatalog212() {
-  }
-
   // ----- UpgradeCatalog ----------------------------------------------------
 
   /**

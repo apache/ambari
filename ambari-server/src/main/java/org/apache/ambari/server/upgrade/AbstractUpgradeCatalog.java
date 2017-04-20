@@ -150,9 +150,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     registerCatalog(this);
   }
 
-  protected AbstractUpgradeCatalog() {
-  }
-
   /**
    * Every subclass needs to register itself
    */
