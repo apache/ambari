@@ -55,9 +55,6 @@
             <package>
               <name>hadoop_${stack_version}-libhdfs</name>
             </package>
-            <package>
-              <name>libtirpc-devel</name>
-            </package>
           </packages>
         </osSpecific>
 
