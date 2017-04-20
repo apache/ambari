@@ -39,13 +39,15 @@
     {{#if view.isLoaded}}
       <div>
         <div class="row">
-          {{#if isDowngrade}}
-            <button
-              class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
-          {{else}}
-            <button
-              class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
-          {{/if}}
+          {{#unless App.upgradeSuspended}}
+              {{#if isDowngrade}}
+                <button
+                  class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+              {{else}}
+                <button
+                  class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+              {{/if}}
+          {{/unless}}
         </div>
         {{#if view.runningItem}}
           <div class="box details-box">
