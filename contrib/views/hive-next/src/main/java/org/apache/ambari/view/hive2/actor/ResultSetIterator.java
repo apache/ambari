@@ -116,7 +116,8 @@ public class ResultSetIterator extends HiveActor {
     }
     int index = 0;
     try {
-      while (resultSet.next() && index < batchSize) {
+      // check batchsize first becaue resultSet.next() fetches the new row as well before returning true/false.
+      while (index < batchSize && resultSet.next()) {
         index++;
         rows.add(getRowFromResultSet(resultSet));
       }
