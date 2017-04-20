@@ -1,0 +1,774 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+  <!-- Inherited from HBase in HDP 2.0.6 -->
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://localhost:8020/apps/hbase/data</value>
+    <description>The directory shared by region servers and into
+    which HBase persists.  The URL should be 'fully-qualified'
+    to include the filesystem scheme.  For example, to specify the
+    HDFS directory '/hbase' where the HDFS instance's namenode is
+    running at namenode.example.org on port 9000, set this value to:
+    hdfs://namenode.example.org:9000/hbase.  By default HBase writes
+    into /tmp.  Change this configuration else all data will be lost
+    on machine restart.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+    <description>The mode the cluster will be in. Possible values are
+      false for standalone mode and true for distributed mode.  If
+      false, startup will run all HBase and ZooKeeper daemons together
+      in the one JVM.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.master.port</name>
+    <value>16000</value>
+    <display-name>HBase Master Port</display-name>
+    <description>The port the HBase Master should bind to.</description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.tmp.dir</name>
+    <value>/tmp/hbase-${user.name}</value>
+    <display-name>HBase tmp directory</display-name>
+    <description>Temporary directory on the local filesystem.
+    Change this setting to point to a location more permanent
+    than '/tmp' (The '/tmp' directory is often cleared on
+    machine restart).
+    </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.local.dir</name>
+    <value>${hbase.tmp.dir}/local</value>
+    <description>Directory on the local filesystem to be used as a local storage
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.master.info.bindAddress</name>
+    <value>0.0.0.0</value>
+    <description>The bind address for the HBase Master web UI
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.master.info.port</name>
+    <value>16010</value>
+    <description>The port for the HBase Master web UI.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value>16030</value>
+    <description>The port for the HBase RegionServer web UI.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.handler.count</name>
+    <value>30</value>
+    <description>
+      Count of RPC Listener instances spun up on RegionServers.
+      Same property is used by the Master for count of master handlers.
+    </description>
+    <display-name>Number of Handlers per RegionServer</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>5</minimum>
+      <maximum>240</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction</name>
+    <value>604800000</value>
+    <description>Time between major compactions, expressed in milliseconds. Set to 0 to disable
+      time-based automatic major compactions. User-requested and size-based major compactions will
+      still run. This value is multiplied by hbase.hregion.majorcompaction.jitter to cause
+      compaction to start at a somewhat-random time during a given window of time. The default value
+      is 7 days, expressed in milliseconds. If major compactions are causing disruption in your
+      environment, you can configure them to run at off-peak times for your deployment, or disable
+      time-based major compactions by setting this parameter to 0, and run major compactions in a
+      cron job or by another external mechanism.</description>
+    <display-name>Major Compaction Interval</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2592000000</maximum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.block.multiplier</name>
+    <value>4</value>
+    <description>
+      Block updates if memstore has hbase.hregion.memstore.block.multiplier
+      times hbase.hregion.memstore.flush.size bytes.  Useful preventing
+      runaway memstore during spikes in update traffic.  Without an
+      upper-bound, memstore fills such that when it flushes the
+      resultant flush files take a long time to compact or split, or
+      worse, we OOME.
+    </description>
+    <display-name>HBase Region Block Multiplier</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+        <entry>
+          <value>8</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.flush.size</name>
+    <value>134217728</value>
+    <description>
+      The size of an individual memstore. Each column familiy within each region is allocated its own memstore.
+    </description>
+    <display-name>Memstore Flush Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>33554432</minimum>
+      <maximum>268435456</maximum>
+      <increment-step>1048576</increment-step>
+      <unit>B</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.mslab.enabled</name>
+    <value>true</value>
+    <description>
+      Enables the MemStore-Local Allocation Buffer,
+      a feature which works to prevent heap fragmentation under
+      heavy write loads. This can reduce the frequency of stop-the-world
+      GC pauses on large heaps.
+    </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.max.filesize</name>
+    <value>10737418240</value>
+    <description>
+      Maximum HFile size. If the sum of the sizes of a region's HFiles has grown to exceed this
+      value, the region is split in two.
+    </description>
+    <display-name>Maximum Region File Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1073741824</minimum>
+      <maximum>107374182400</maximum>
+      <unit>B</unit>
+      <increment-step>1073741824</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.client.scanner.caching</name>
+    <value>100</value>
+    <description>Number of rows that will be fetched when calling next
+    on a scanner if it is not served from (local, client) memory. Higher
+    caching values will enable faster scanners but will eat up more memory
+    and some calls of next may take longer and longer times when the cache is empty.
+    Do not set this value such that the time between invocations is greater
+    than the scanner timeout; i.e. hbase.regionserver.lease.period
+    </description>
+    <display-name>Number of Fetched Rows when Scanning from Disk</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>100</minimum>
+      <maximum>10000</maximum>
+      <increment-step>100</increment-step>
+      <unit>rows</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zookeeper.session.timeout</name>
+    <value>90000</value>
+    <description>ZooKeeper session timeout.
+      ZooKeeper session timeout in milliseconds. It is used in two different ways.
+      First, this value is used in the ZK client that HBase uses to connect to the ensemble.
+      It is also used by HBase when it starts a ZK server and it is passed as the 'maxSessionTimeout'. See
+      http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions.
+      For example, if a HBase region server connects to a ZK ensemble that's also managed by HBase, then the
+      session timeout will be the one specified by this configuration. But, a region server that connects
+      to an ensemble managed with a different configuration will be subjected that ensemble's maxSessionTimeout. So,
+      even though HBase might propose using 90 seconds, the ensemble can have a max timeout lower than this and
+      it will take precedence.
+    </description>
+    <display-name>Zookeeper Session Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>10000</minimum>
+      <maximum>180000</maximum>
+      <unit>milliseconds</unit>
+      <increment-step>10000</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.client.keyvalue.maxsize</name>
+    <value>1048576</value>
+    <description>
+      Specifies the combined maximum allowed size of a KeyValue
+      instance. This is to set an upper boundary for a single entry saved in a
+      storage file. Since they cannot be split it helps avoiding that a region
+      cannot be split any further because the data is too large. It seems wise
+      to set this to a fraction of the maximum region size. Setting it to zero
+      or less disables the check.
+    </description>
+    <display-name>Maximum Record Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1048576</minimum>
+      <maximum>31457280</maximum>
+      <unit>B</unit>
+      <increment-step>262144</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hstore.compactionThreshold</name>
+    <value>3</value>
+    <description>
+      The maximum number of StoreFiles which will be selected for a single minor
+      compaction, regardless of the number of eligible StoreFiles. Effectively, the value of
+      hbase.hstore.compaction.max controls the length of time it takes a single compaction to
+      complete. Setting it larger means that more StoreFiles are included in a compaction. For most
+      cases, the default value is appropriate.
+    </description>
+    <display-name>Maximum Store Files before Minor Compaction</display-name>
+    <value-attributes>
+      <type>int</type>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>3</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hstore.blockingStoreFiles</name>
+    <display-name>hstore blocking storefiles</display-name>
+    <value>10</value>
+    <description>
+    If more than this number of StoreFiles in any one Store
+    (one StoreFile is written per flush of MemStore) then updates are
+    blocked for this HRegion until a compaction is completed, or
+    until hbase.hstore.blockingWaitTime has been exceeded.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hfile.block.cache.size</name>
+    <value>0.40</value>
+    <description>Percentage of RegionServer memory to allocate to read buffers.</description>
+    <display-name>% of RegionServer Allocated to Read Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- Additional configuration specific to HBase security -->
+  <property>
+    <name>hbase.superuser</name>
+    <value>hbase</value>
+    <description>List of users or groups (comma-separated), who are allowed
+    full privileges, regardless of stored ACLs, across the cluster.
+    Only used when HBase security is enabled.
+    </description>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>hbase_user</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.security.authentication</name>
+    <value>simple</value>
+    <description>
+      Select Simple or Kerberos authentication. Note: Kerberos must be set up before the Kerberos option will take effect.
+    </description>
+    <display-name>Enable Authentication</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <label>Simple</label>
+          <value>simple</value>
+        </entry>
+        <entry>
+          <label>Kerberos</label>
+          <value>kerberos</value>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.security.authorization</name>
+    <value>false</value>
+    <description> Set Authorization Method.</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Native</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.region.classes</name>
+    <value>org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint</value>
+    <description>A comma-separated list of Coprocessors that are loaded by
+      default on all tables. For any override coprocessor method, these classes
+      will be called in order. After implementing your own Coprocessor, just put
+      it in HBase's classpath and add the fully qualified class name here.
+      A coprocessor can also be loaded on demand by setting HTableDescriptor.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authentication</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.master.classes</name>
+    <value/>
+    <description>A comma-separated list of
+      org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
+      loaded by default on the active HMaster process. For any implemented
+      coprocessor methods, the listed classes will be called in order. After
+      implementing your own MasterObserver, just put it in HBase's classpath
+      and add the fully qualified class name here.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.clientPort</name>
+    <value>2181</value>
+    <description>Property from ZooKeeper's config zoo.cfg.
+    The port at which the clients will connect.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!--
+  The following three properties are used together to create the list of
+  host:peer_port:leader_port quorum servers for ZooKeeper.
+  -->
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>localhost</value>
+    <description>Comma separated list of servers in the ZooKeeper Quorum.
+    For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
+    By default this is set to localhost for local and pseudo-distributed modes
+    of operation. For a fully-distributed setup, this should be set to a full
+    list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
+    this is the list of servers which we will start/stop ZooKeeper on.
+    </description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
+  <property>
+    <name>hbase.zookeeper.useMulti</name>
+    <value>true</value>
+    <description>Instructs HBase to make use of ZooKeeper's multi-update functionality.
+    This allows certain ZooKeeper operations to complete more quickly and prevents some issues
+    with rare Replication failure scenarios (see the release note of HBASE-2611 for an example).&#xB7;
+    IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+
+    and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will
+    not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value>/hbase-unsecure</value>
+    <description>Root ZNode for HBase in ZooKeeper. All of HBase's ZooKeeper
+      files that are configured with a relative path will go under this node.
+      By default, all of HBase's ZooKeeper file path are configured with a
+      relative path, so they will all go under this directory unless changed.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.client.retries.number</name>
+    <value>35</value>
+    <description>Maximum retries.  Used as maximum for all retryable
+    operations such as the getting of a cell's value, starting a row update,
+    etc.  Retry interval is a rough function based on hbase.client.pause.  At
+    first we retry at this interval but then with backoff, we pretty quickly reach
+    retrying every ten seconds.  See HConstants#RETRY_BACKOFF for how the backup
+    ramps up.  Change this setting and hbase.client.pause to suit your workload.</description>
+    <display-name>Maximum Client Retries</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>5</minimum>
+      <maximum>50</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.rpc.timeout</name>
+    <value>90000</value>
+    <description>
+      This is for the RPC layer to define how long HBase client applications
+      take for a remote call to time out. It uses pings to check connections
+      but will eventually throw a TimeoutException.
+    </description>
+    <display-name>HBase RPC Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>10000</minimum>
+      <maximum>180000</maximum>
+      <unit>milliseconds</unit>
+      <increment-step>10000</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.defaults.for.version.skip</name>
+    <value>true</value>
+    <description>Disables version verification.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>phoenix.query.timeoutMs</name>
+    <value>60000</value>
+    <description>Number of milliseconds after which a Phoenix query will timeout on the client.</description>
+    <display-name>Phoenix Query Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>30000</minimum>
+      <maximum>180000</maximum>
+      <unit>milliseconds</unit>
+      <increment-step>10000</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/lib/hadoop-hdfs/dn_socket</value>
+    <description>Path to domain socket.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.rpc.protection</name>
+    <value>authentication</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Inherited from HBase in HDP 2.2 -->
+  <property>
+    <name>hbase.bulkload.staging.dir</name>
+    <value>/apps/hbase/staging</value>
+    <description>A staging directory in default file system (HDFS)
+      for bulk loading.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction.jitter</name>
+    <value>0.50</value>
+    <description>A multiplier applied to hbase.hregion.majorcompaction to cause compaction to occur
+      a given amount of time either side of hbase.hregion.majorcompaction. The smaller the number,
+      the closer the compactions will happen to the hbase.hregion.majorcompaction
+      interval.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.ioengine</name>
+    <value/>
+    <description>Where to store the contents of the bucketcache. One of: onheap,
+      offheap, or file. If a file, set it to file:PATH_TO_FILE.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.size</name>
+    <value/>
+    <description>The size of the buckets for the bucketcache if you only use a single size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.percentage.in.combinedcache</name>
+    <value/>
+    <description>Value to be set between 0.0 and 1.0</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.wal.codec</name>
+    <display-name>RegionServer WAL Codec</display-name>
+    <value>org.apache.hadoop.hbase.regionserver.wal.WALCellCodec</value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.region.server.rpc.scheduler.factory.class</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.rpc.controllerfactory.class</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>phoenix.functions.allowUserDefinedFunctions</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.regionserver.classes</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.max</name>
+    <value>10</value>
+    <description>The maximum number of StoreFiles which will be selected for a single minor
+      compaction, regardless of the number of eligible StoreFiles. Effectively, the value of
+      hbase.hstore.compaction.max controls the length of time it takes a single compaction to
+      complete. Setting it larger means that more StoreFiles are included in a compaction. For most
+      cases, the default value is appropriate.
+    </description>
+    <display-name>Maximum Files for Compaction</display-name>
+    <value-attributes>
+      <type>int</type>
+      <entries>
+        <entry>
+          <value>8</value>
+        </entry>
+        <entry>
+          <value>9</value>
+        </entry>
+        <entry>
+          <value>10</value>
+        </entry>
+        <entry>
+          <value>11</value>
+        </entry>
+        <entry>
+          <value>12</value>
+        </entry>
+        <entry>
+          <value>13</value>
+        </entry>
+        <entry>
+          <value>14</value>
+        </entry>
+        <entry>
+          <value>15</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.size</name>
+    <value>0.4</value>
+    <description>Percentage of RegionServer memory to allocate to write buffers.
+      Each column family within each region is allocated a smaller pool (the memstore) within this shared write pool.
+      If this buffer is full, updates are blocked and data is flushed from memstores until a global low watermark
+      (hbase.regionserver.global.memstore.size.lower.limit) is reached.
+    </description>
+    <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Inherited from HBase in HDP 2.3 -->
+  <property>
+    <name>hbase.regionserver.port</name>
+    <value>16020</value>
+    <description>The port the HBase RegionServer binds to.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Inherited from HBase in HDP 2.5 -->
+  <property>
+    <name>hbase.master.ui.readonly</name>
+    <value>false</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>zookeeper.recovery.retry</name>
+    <value>6</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Inherited from HBase in HDP 2.6 -->
+  <property>
+    <name>hbase.regionserver.executor.openregion.threads</name>
+    <value>20</value>
+    <description>The number of threads region server uses to open regions
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.master.namespace.init.timeout</name>
+    <value>2400000</value>
+    <description>The number of milliseconds master waits for hbase:namespace table to be initialized
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.master.wait.on.regionservers.timeout</name>
+    <value>30000</value>
+    <description>The number of milliseconds master waits for region servers to report in
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>
