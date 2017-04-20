@@ -45,6 +45,39 @@ def yarn(name=None, config_dir=None):
   """
   import params
 
+  if config_dir is None:
+    config_dir = params.hadoop_conf_dir
+
+  if params.yarn_nodemanager_recovery_dir:
+    Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
+              owner=params.yarn_user,
+              group=params.user_group,
+              create_parents=True,
+              mode=0755,
+              cd_access='a',
+    )
+
+  Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
+            owner=params.yarn_user,
+            group=params.user_group,
+            create_parents=True,
+            cd_access='a',
+  )
+  Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
+            owner=params.mapred_user,
+            group=params.user_group,
+            create_parents=True,
+            cd_access='a',
+  )
+  Directory([params.yarn_log_dir_prefix],
+            owner=params.yarn_user,
+            group=params.user_group,
+            create_parents=True,
+            ignore_failures=True,
+            cd_access='a',
+  )
+
+  # Some of these function calls depend on the directories above being created first.
   if name == 'resourcemanager':
     setup_resourcemanager()
   elif name == 'nodemanager':
@@ -53,40 +86,7 @@ def yarn(name=None, config_dir=None):
     setup_ats()
   elif name == 'historyserver':
     setup_historyserver()
-
-  if config_dir is None:
-    config_dir = params.hadoop_conf_dir
-
-  if params.yarn_nodemanager_recovery_dir:
-    Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
-              owner=params.yarn_user,
-              group=params.user_group,
-              create_parents = True,
-              mode=0755,
-              cd_access = 'a',
-    )
-
-  Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
-            owner=params.yarn_user,
-            group=params.user_group,
-            create_parents = True,
-            cd_access = 'a',
-  )
-
-  Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
-            owner=params.mapred_user,
-            group=params.user_group,
-            create_parents = True,
-            cd_access = 'a',
-  )
-  Directory([params.yarn_log_dir_prefix],
-            owner=params.yarn_user,
-            group=params.user_group,
-            create_parents = True,
-            ignore_failures=True,
-            cd_access = 'a',
-  )
-
+  
   XmlConfig("core-site.xml",
             conf_dir=config_dir,
             configurations=params.config['configurations']['core-site'],

@@ -92,26 +92,6 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              create_parents = True,
-                              cd_access='a'
-                              )
-    self.assertResourceCalled('HdfsResource', None,
-                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
-                              security_enabled = False,
-                              hadoop_bin_dir = '/usr/bin',
-                              keytab = UnknownConfigurationMock(),
-                              default_fs = 'hdfs://c6401.ambari.apache.org:8020',
-                              dfs_type = '',
-                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
-                              kinit_path_local = '/usr/bin/kinit',
-                              principal_name = UnknownConfigurationMock(),
-                              user = 'hdfs',
-                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
-                              hadoop_conf_dir = '/etc/hadoop/conf',
-                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
                               owner = 'yarn',
                               group = 'hadoop',
@@ -160,6 +140,26 @@ class TestAppTimelineServer(RMFTestCase):
                               create_parents = True,
                               ignore_failures = True,
                               cd_access = 'a',
+                              )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/timeline',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              create_parents = True,
+                              cd_access='a'
+                              )
+    self.assertResourceCalled('HdfsResource', None,
+                              immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
+                              security_enabled = False,
+                              hadoop_bin_dir = '/usr/bin',
+                              keytab = UnknownConfigurationMock(),
+                              default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                              dfs_type = '',
+                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                              kinit_path_local = '/usr/bin/kinit',
+                              principal_name = UnknownConfigurationMock(),
+                              user = 'hdfs',
+                              action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
+                              hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
                               owner = 'hdfs',

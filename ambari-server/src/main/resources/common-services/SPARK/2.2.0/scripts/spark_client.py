@@ -44,7 +44,8 @@ class SparkClient(Script):
     raise ClientComponentHasNoStatus()
   
   def get_component_name(self):
-    return "spark-client"
+    # TODO, change to "spark" after RPM switches the name
+    return "spark2-client"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -52,8 +53,9 @@ class SparkClient(Script):
     env.set_params(params)
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Client Stack Upgrade pre-restart")
-      conf_select.select(params.stack_name, "spark", params.version)
-      stack_select.select("spark-client", params.version)
+      # TODO, change to "spark" after RPM switches the name
+      conf_select.select(params.stack_name, "spark2", params.version)
+      stack_select.select("spark2-client", params.version)
 
 if __name__ == "__main__":
   SparkClient().execute()

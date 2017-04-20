@@ -35,12 +35,13 @@ from resource_management.libraries.script.script import Script
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
+# TODO, change to "spark" and "livy" after RPM switches the name
 SERVER_ROLE_DIRECTORY_MAP = {
-  'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
-  'SPARK_CLIENT' : 'spark-client',
-  'SPARK_THRIFTSERVER' : 'spark-thriftserver',
-  'LIVY_SERVER' : 'livy-server',
-  'LIVY_CLIENT' : 'livy-client'
+  'SPARK_JOBHISTORYSERVER' : 'spark2-historyserver',
+  'SPARK_CLIENT' : 'spark2-client',
+  'SPARK_THRIFTSERVER' : 'spark2-thriftserver',
+  'LIVY_SERVER' : 'livy2-server',
+  'LIVY_CLIENT' : 'livy2-client'
 
 }
 
@@ -59,7 +60,8 @@ sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 
-spark_conf = '/etc/spark/conf'
+# TODO, change to "spark" after RPM switches the name
+spark_conf = '/etc/spark2/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 
@@ -139,7 +141,7 @@ has_spark_thriftserver = not len(spark_thriftserver_hosts) == 0
 
 # hive-site params
 spark_hive_properties = {
-  'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
+  'hive.metastore.uris': default('/configurations/hive-site/hive.metastore.uris', '')
 }
 
 # security settings
@@ -195,7 +197,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 
 # livy related config
 
-# livy for spark is only supported from HDP 2.6
+# livy for spark2 is only supported from HDP 2.6
 has_livyserver = False
 
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
