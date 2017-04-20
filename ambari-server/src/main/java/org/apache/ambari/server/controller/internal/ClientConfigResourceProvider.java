@@ -383,8 +383,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       jsonContent.put("clusterName", cluster.getClusterName());
       jsonConfigurations = gson.toJson(jsonContent);
 
-      File jsonFileName = new File(TMP_PATH + File.separator + componentName + "-configuration.json");
-      File tmpDirectory = new File(jsonFileName.getParent());
+      File tmpDirectory = new File(TMP_PATH);
       if (!tmpDirectory.exists()) {
         try {
           tmpDirectory.mkdirs();
@@ -394,6 +393,18 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           throw new SystemException("Failed to get temporary directory to store configurations", se);
         }
       }
+
+      File jsonFileName;
+      try {
+        jsonFileName = File.createTempFile(componentName, "-configuration.json", tmpDirectory);
+        jsonFileName.setWritable(true, true);
+        jsonFileName.setReadable(true, true);
+      } catch (SecurityException e) {
+        throw new SystemException("Failed to set permission", e);
+      } catch (IOException e) {
+        throw new SystemException("Controller error ", e);
+      }
+
       PrintWriter printWriter = null;
       try {
         printWriter = new PrintWriter(jsonFileName.getAbsolutePath());
@@ -417,6 +428,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       } catch (ExecutionException e) {
         LOG.error(e.getMessage(),e);
         throw new SystemException(e.getMessage() + " " + e.getCause());
+      } finally {
+        jsonFileName.delete();
       }
 
     } catch (AmbariException e) {

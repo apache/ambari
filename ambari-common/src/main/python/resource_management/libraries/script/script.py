@@ -806,6 +806,7 @@ class Script(object):
     Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
+    os.chmod(conf_tmp_dir, 0700)
     output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])
 
     try:
@@ -813,22 +814,23 @@ class Script(object):
         for filename, dict in file_dict.iteritems():
           XmlConfig(filename,
                     conf_dir=conf_tmp_dir,
-                    mode=0644,
+                    mode=0600,
                     **self.generate_configs_get_xml_file_content(filename, dict)
           )
       for file_dict in env_configs_list:
         for filename,dicts in file_dict.iteritems():
           File(os.path.join(conf_tmp_dir, filename),
-               mode=0644,
+               mode=0600,
                content=InlineTemplate(self.generate_configs_get_template_file_content(filename, dicts)))
 
       for file_dict in properties_configs_list:
         for filename, dict in file_dict.iteritems():
           PropertiesFile(os.path.join(conf_tmp_dir, filename),
-                         mode=0644,
+                         mode=0600,
                          properties=self.generate_configs_get_xml_file_dict(filename, dict)
           )
       with closing(tarfile.open(output_filename, "w:gz")) as tar:
+        os.chmod(output_filename, 0600)
         try:
           tar.add(conf_tmp_dir, arcname=os.path.basename("."))
         finally:

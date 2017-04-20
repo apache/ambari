@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -327,8 +328,9 @@ public class ClientConfigResourceProviderTest {
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
+    PowerMock.mockStatic(File.class);
+    expect(File.createTempFile(anyString(), anyString(), anyObject(File.class))).andReturn(mockFile);
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
-    expect(mockFile.getParent()).andReturn("");
     PowerMock.mockStatic(Runtime.class);
     expect(mockFile.exists()).andReturn(true);
     String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs null " +
@@ -531,8 +533,9 @@ public class ClientConfigResourceProviderTest {
     userSet.add("hdfs");
     expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.USER, cluster, desiredConfigMap)).andReturn(userSet);
     PowerMock.expectNew(File.class, new Class<?>[]{String.class}, anyObject(String.class)).andReturn(mockFile).anyTimes();
+    PowerMock.mockStatic(File.class);
+    expect(File.createTempFile(anyString(), anyString(), anyObject(File.class))).andReturn(mockFile);
     PowerMock.createNiceMockAndExpectNew(PrintWriter.class, anyObject());
-    expect(mockFile.getParent()).andReturn("");
     PowerMock.mockStatic(Runtime.class);
     expect(mockFile.exists()).andReturn(true);
     String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
