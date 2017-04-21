@@ -138,12 +138,13 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
-    if self.is_secured_cluster(services):
-      putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+    if "HDFS" in servicesList or "YARN" in servicesList:
+      if self.is_secured_cluster(services):
+        putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
 
-      meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
-      if "hostnames" in meta:
-        self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
+        meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
+        if "hostnames" in meta:
+          self.put_proxyuser_value("HTTP", meta["hostnames"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")

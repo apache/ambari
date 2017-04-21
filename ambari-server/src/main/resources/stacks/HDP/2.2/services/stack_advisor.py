@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+# Python Imports
 import math
 from math import floor
 from urlparse import urlparse
@@ -369,36 +370,37 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     container_size = "512"
 
-    if not "yarn-site" in configurations:
-      self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    #properties below should be always present as they are provided in HDP206 stack advisor at least
-    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
-    #duplicate tez task resource calc logic, direct dependency doesn't look good here (in case of Hive without Tez)
-    container_size = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
-    container_size = min(clusterData['containers'] * clusterData['ramPerContainer'], container_size, yarnMaxAllocationSize)
+    if "YARN" in servicesList:
+      if not "yarn-site" in configurations:
+        self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+      #properties below should be always present as they are provided in HDP206 stack advisor at least
+      yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+      #duplicate tez task resource calc logic, direct dependency doesn't look good here (in case of Hive without Tez)
+      container_size = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
+      container_size = min(clusterData['containers'] * clusterData['ramPerContainer'], container_size, yarnMaxAllocationSize)
 
-    putHiveSiteProperty("hive.tez.container.size", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), container_size))
+      putHiveSiteProperty("hive.tez.container.size", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), container_size))
 
-    putHiveSitePropertyAttribute("hive.tez.container.size", "minimum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
-    putHiveSitePropertyAttribute("hive.tez.container.size", "maximum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+      putHiveSitePropertyAttribute("hive.tez.container.size", "minimum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+      putHiveSitePropertyAttribute("hive.tez.container.size", "maximum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
 
-    if "yarn-site" in services["configurations"]:
-      if "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"]:
-        putHiveSitePropertyAttribute("hive.tez.container.size", "minimum", int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
-      if "yarn.scheduler.maximum-allocation-mb" in services["configurations"]["yarn-site"]["properties"]:
-        putHiveSitePropertyAttribute("hive.tez.container.size", "maximum", int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+      if "yarn-site" in services["configurations"]:
+        if "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"]:
+          putHiveSitePropertyAttribute("hive.tez.container.size", "minimum", int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+        if "yarn.scheduler.maximum-allocation-mb" in services["configurations"]["yarn-site"]["properties"]:
+          putHiveSitePropertyAttribute("hive.tez.container.size", "maximum", int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
 
-    putHiveSiteProperty("hive.prewarm.enabled", "false")
-    putHiveSiteProperty("hive.prewarm.numcontainers", "3")
-    putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
-    putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
+      putHiveSiteProperty("hive.prewarm.enabled", "false")
+      putHiveSiteProperty("hive.prewarm.numcontainers", "3")
+      putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
+      putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
 
-    container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
-    container_size_bytes = int(int(container_size)*0.8*1024*1024) # Xmx == 80% of container
-    # Memory
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(round(container_size_bytes/3)))
-    putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
-    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
+      container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
+      container_size_bytes = int(int(container_size)*0.8*1024*1024) # Xmx == 80% of container
+      # Memory
+      putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(round(container_size_bytes/3)))
+      putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
+      putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # CBO
     if "hive-site" in services["configurations"] and "hive.cbo.enable" in services["configurations"]["hive-site"]["properties"]:

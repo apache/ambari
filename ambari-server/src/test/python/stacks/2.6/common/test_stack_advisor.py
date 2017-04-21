@@ -1012,7 +1012,11 @@ class TestHDP26StackAdvisor(TestCase):
 
     services = {
       "services":
-        [
+        [{
+           "StackServices": {
+             "service_name": "YARN"
+           }, "components": []
+         },
          {
             "StackServices": {
               "service_name" : "HIVE",

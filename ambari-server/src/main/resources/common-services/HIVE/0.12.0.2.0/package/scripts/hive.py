@@ -309,6 +309,16 @@ def hive(name=None):
          mode=0755,
          content=StaticFile('startMetastore.sh')
     )
+
+    if not is_empty(params.hive_exec_scratchdir):
+       dirPathStr = urlparse(params.hive_exec_scratchdir).path
+       pathComponents = dirPathStr.split("/")
+       if dirPathStr.startswith("/tmp") and len(pathComponents) > 2:   
+         Directory (params.hive_exec_scratchdir, 
+                           owner = params.hive_user,
+                           create_parents = True,
+                           mode=0777)
+
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
          mode=0755,
@@ -388,14 +398,15 @@ def fill_conf_dir(component_conf_dir):
             mode=mode_identified_for_dir
   )
 
-  XmlConfig("mapred-site.xml",
-            conf_dir=component_conf_dir,
-            configurations=params.config['configurations']['mapred-site'],
-            configuration_attributes=params.config['configuration_attributes']['mapred-site'],
-            owner=params.hive_user,
-            group=params.user_group,
-            mode=mode_identified_for_file)
 
+  if 'mapred-site' in params.config['configurations']:
+    XmlConfig("mapred-site.xml",
+              conf_dir=component_conf_dir,
+              configurations=params.config['configurations']['mapred-site'],
+              configuration_attributes=params.config['configuration_attributes']['mapred-site'],
+              owner=params.hive_user,
+              group=params.user_group,
+              mode=mode_identified_for_file)
 
   File(format("{component_conf_dir}/hive-default.xml.template"),
        owner=params.hive_user,

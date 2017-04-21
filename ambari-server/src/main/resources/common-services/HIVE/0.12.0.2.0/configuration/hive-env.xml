@@ -213,6 +213,7 @@
     <display-name>hive-env template</display-name>
     <description>This is the jinja template for hive-env.sh file</description>
     <value>
+ export JAVA_HOME={{java64_home}}
  if [ "$SERVICE" = "cli" ]; then
    if [ -z "$DEBUG" ]; then
      export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseParNewGC -XX:-UseGCOverheadLimit"
