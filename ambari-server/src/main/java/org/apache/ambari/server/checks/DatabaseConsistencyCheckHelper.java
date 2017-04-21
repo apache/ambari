@@ -527,12 +527,9 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
-      List<String> types = new ArrayList<>();
-      String type = clusterConfigEntity.getType();
-      types.add(type);
-      LOG.error("Removing cluster config mapping of type {} that is not mapped to any service", type);
-      clusterDAO.removeClusterConfigMappingEntityByTypes(clusterConfigEntity.getClusterId(),types);
-      LOG.error("Removing config that is not mapped to any service", clusterConfigEntity);
+      LOG.info("Removing cluster config mapping of clusterConfigEntity {} that is not mapped to any service", clusterConfigEntity);
+      clusterDAO.removeClusterConfigMappingEntityByConfig(clusterConfigEntity);
+      LOG.info("Removing config that is not mapped to any service {}", clusterConfigEntity);
       clusterDAO.removeConfig(clusterConfigEntity);
     }
   }
