@@ -190,6 +190,11 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       else:
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
 
+    # calculate total_preemption_per_round
+    total_preemption_per_round = str(round(max(float(1)/len(hosts['items']), 0.1),2))
+    putYarnSiteProperty('yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round', total_preemption_per_round)
+
+
     if 'yarn-env' in services['configurations'] and 'yarn_user' in services['configurations']['yarn-env']['properties']:
       yarn_user = services['configurations']['yarn-env']['properties']['yarn_user']
     else:
