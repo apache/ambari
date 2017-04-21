@@ -119,56 +119,6 @@ class AccumuloScript(Script):
 
     # some accumulo components depend on the client, so update that too
     stack_select.select("accumulo-client", params.version)
-
-
-  def security_status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-
-    props_value_check = {}
-    props_empty_check = ['general.kerberos.keytab',
-                         'general.kerberos.principal']
-    props_read_check = ['general.kerberos.keytab']
-    accumulo_site_expectations = build_expectations('accumulo-site',
-      props_value_check, props_empty_check, props_read_check)
-
-    accumulo_expectations = {}
-    accumulo_expectations.update(accumulo_site_expectations)
-
-    security_params = get_params_from_filesystem(status_params.conf_dir,
-      {'accumulo-site.xml': FILE_TYPE_XML})
-
-    result_issues = validate_security_config_properties(security_params, accumulo_expectations)
-    if not result_issues:  # If all validations passed successfully
-      try:
-        # Double check the dict before calling execute
-        if ( 'accumulo-site' not in security_params
-             or 'general.kerberos.keytab' not in security_params['accumulo-site']
-             or 'general.kerberos.principal' not in security_params['accumulo-site']):
-          self.put_structured_out({"securityState": "UNSECURED"})
-          self.put_structured_out(
-            {"securityIssuesFound": "Keytab file or principal are not set property."})
-          return
-
-        cached_kinit_executor(status_params.kinit_path_local,
-          status_params.accumulo_user,
-          security_params['accumulo-site']['general.kerberos.keytab'],
-          security_params['accumulo-site']['general.kerberos.principal'],
-          status_params.hostname,
-          status_params.tmp_dir,
-          30)
-
-        self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-      except Exception as e:
-        self.put_structured_out({"securityState": "ERROR"})
-        self.put_structured_out({"securityStateErrorInfo": str(e)})
-    else:
-      issues = []
-      for cf in result_issues:
-        issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-      self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-      self.put_structured_out({"securityState": "UNSECURED"})
       
   def get_log_folder(self):
     import params
