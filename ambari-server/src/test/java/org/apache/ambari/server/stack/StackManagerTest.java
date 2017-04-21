@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -712,7 +713,7 @@ public class StackManagerTest {
   }
 
   /**
-   * Tests that {@link UpgradePack} instances are correctly initialized
+   * Tests that {@link UpgradePack} and {@link ConfigUpgradePack} instances are correctly initialized
    * post-unmarshalling.
    *
    * @throws Exception
@@ -729,6 +730,9 @@ public class StackManagerTest {
       // reference equality (make sure it's the same list)
       assertTrue(upgradePack.getTasks() == upgradePack.getTasks());
     }
+    ConfigUpgradePack configUpgradePack = stack.getConfigUpgradePack();
+    assertNotNull(configUpgradePack);
+    assertNotNull(configUpgradePack.services);
   }
 
   @Test
