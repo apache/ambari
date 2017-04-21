@@ -329,6 +329,10 @@ ams_grafana_env_sh_template = config['configurations']['ams-grafana-env']['conte
 ams_grafana_ini_template = config['configurations']['ams-grafana-ini']['content']
 
 hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
+skip_create_hbase_root_dir = default("/configurations/ams-site/timeline.metrics.skip.create.hbase.root.dir", False)
+hbase_wal_dir = default("/configurations/ams-hbase-site/hbase.wal.dir", None)
+if hbase_wal_dir and re.search("^file://|/", hbase_wal_dir): #If wal dir is on local file system, create it.
+  hbase_wal_dir = re.sub("^file://|/", "", hbase_wal_dir, count=1)
 
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']

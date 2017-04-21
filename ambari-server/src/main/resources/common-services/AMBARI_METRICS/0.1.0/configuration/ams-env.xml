@@ -112,6 +112,15 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>ams_classpath_additional</name>
+    <value/>
+    <description>Additional directory or jars in classpath for Metrics Collector.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-env template</display-name>
     <value>
@@ -157,6 +166,8 @@ export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS"
 # Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
 export AMS_FAILOVER_STRATEGY_BLACKLISTED_INTERVAL={{failover_strategy_blacklisted_interval}}
 
+# Extra Java CLASSPATH elements for Metrics Collector. Optional.
+export COLLECTOR_ADDITIONAL_CLASSPATH={{ams_classpath_additional}}
     </value>
     <value-attributes>
       <type>content</type>
