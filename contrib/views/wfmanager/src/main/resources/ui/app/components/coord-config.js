@@ -51,6 +51,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
   workspaceManager : Ember.inject.service('workspace-manager'),
   showErrorMessage: Ember.computed.alias('saveAttempted'),
   jobConfigProperties: Ember.A([]),
+  isDefaultNameForCoordinatorEnabled : false,
   datasetsForInputs : Ember.computed('coordinator.datasets.[]','coordinator.dataOutputs.[]',function(){
     var datasetsForInputs = Ember.copy(this.get('coordinator.datasets'));
     this.get('coordinator.dataOutputs').forEach((dataOutput)=>{
@@ -145,7 +146,7 @@ export default Ember.Component.extend(Validations, Ember.Evented, {
       {'name':'throttle', 'displayName':'Throttle', 'value':''}
     ]);
     this.set('timezoneList', Ember.copy(Constants.timezoneList));
-    if(Ember.isBlank(this.get('coordinator.name'))){
+    if(Ember.isBlank(this.get('coordinator.name')) && this.get('isDefaultNameForCoordinatorEnabled')){
       this.set('coordinator.name', Ember.copy(this.get('tabInfo.name')));
     }
     this.schedulePersistWorkInProgress();
