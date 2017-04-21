@@ -123,11 +123,6 @@ def select_all(version_to_select):
   """
   stack_root = Script.get_stack_root()
   (stack_selector_name, stack_selector_path, stack_selector_package) = stack_tools.get_stack_tool(stack_tools.STACK_SELECTOR_NAME)
-  if stack_selector_path is None:
-    Logger.warning(format("Skipping executing \"stack select all\ as stack selector path is None"))
-    return
-
-
   # it's an error, but it shouldn't really stop anything from working
   if version_to_select is None:
     Logger.error(format("Unable to execute {stack_selector_name} after installing because there was no version specified"))

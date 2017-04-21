@@ -257,7 +257,9 @@ logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 
 # load config values
 
-logsearch_properties = dict(logsearch_properties.items() + dict(config['configurations']['logsearch-properties']).items())
+logsearch_properties = dict(logsearch_properties.items() +\
+                       dict(config['configurations']['logsearch-common-properties']).items() +\
+                       dict(config['configurations']['logsearch-properties']).items())
 
 # load derivated values
 
@@ -347,7 +349,9 @@ logfeeder_properties['logfeeder.solr.core.config.name'] = 'history'
 
 # load config values
 
-logfeeder_properties = dict(logfeeder_properties.items() + dict(config['configurations']['logfeeder-properties']).items())
+logfeeder_properties = dict(logfeeder_properties.items() +\
+                       dict(config['configurations']['logsearch-common-properties']).items() +\
+                       dict(config['configurations']['logfeeder-properties']).items())
 
 # load derivated values
 
@@ -393,7 +397,7 @@ if 'infra-solr-env' in config['configurations'] and security_enabled and not log
 # Smoke command
 #####################################
 
-logsearch_server_hosts = default('/configurations/clusterHostInfo/logsearch_server_hosts', None)
+logsearch_server_hosts = default('/clusterHostInfo/logsearch_server_hosts', None)
 logsearch_server_host = ""
 if logsearch_server_hosts is not None and len(logsearch_server_hosts) > 0:
   logsearch_server_host = logsearch_server_hosts[0]

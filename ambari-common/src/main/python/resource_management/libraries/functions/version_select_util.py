@@ -78,7 +78,6 @@ def get_component_version(stack_name, component_name):
 
   return version
 
-
 def get_component_version_with_stack_selector(stack_selector_path, component_name):
   """
    For specific cases where we deal with HDP add on services from a management pack, the version
@@ -119,7 +118,6 @@ def get_component_version_with_stack_selector(stack_selector_path, component_nam
       Logger.error("Could not determine stack version for component %s by calling '%s'. Return Code: %s, Output: %s." %
                    (component_name, get_stack_comp_version_cmd, str(code), str(out)))
   return version
-
 
 def get_versions_from_stack_root(stack_root):
   """

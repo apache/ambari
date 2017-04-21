@@ -1042,12 +1042,9 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_checks");
     assertNotNull(upgrade);
 
-    Cluster c = makeCluster();
     // HBASE and PIG have service checks, but not TEZ.
     Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); add("AMBARI_METRICS"); }};
-    for(String service : additionalServices) {
-      c.addService(service);
-    }
+    Cluster c = makeCluster(true, additionalServices);
 
     int numServiceChecksExpected = 0;
     Collection<Service> services = c.getServices().values();
@@ -1074,9 +1071,9 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(7, groups.size());
+    assertEquals(8, groups.size());
 
-    UpgradeGroupHolder holder = groups.get(3);
+    UpgradeGroupHolder holder = groups.get(4);
     assertEquals(holder.name, "SERVICE_CHECK_1");
     assertEquals(7, holder.items.size());
     int numServiceChecksActual = 0;
@@ -1103,6 +1100,13 @@ public class UpgradeHelperTest {
     assertEquals(
         "This is a manual task with a placeholder of placeholder-rendered-properly",
         manualTask.messages.get(0));
+
+    UpgradeGroupHolder clusterGroup = groups.get(3);
+    assertEquals(clusterGroup.name, "HBASE");
+    assertEquals(clusterGroup.title, "Update HBase Configuration");
+    assertEquals(1, clusterGroup.items.size());
+    StageWrapper stage = clusterGroup.items.get(0);
+    assertEquals(stage.getText(), "Update HBase Configuration");
   }
 
   @Test
@@ -1228,6 +1232,14 @@ public class UpgradeHelperTest {
    * @throws AmbariException
    */
   private Cluster makeCluster(boolean clean) throws AmbariException, AuthorizationException {
+    return makeCluster(clean, new HashSet<String>());
+  }
+
+  /**
+   * Create an HA cluster
+   * @throws AmbariException
+   */
+  private Cluster makeCluster(boolean clean, Set<String> additionalServices) throws AmbariException, AuthorizationException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
 
@@ -1371,6 +1383,15 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_CLIENT")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
+
+    for(String service : additionalServices) {
+      c.addService(service);
+      if (service.equals("HBASE")) {
+        type = new HostsType();
+        type.hosts.addAll(Arrays.asList("h1", "h2"));
+        expect(m_masterHostResolver.getMasterAndHosts("HBASE", "HBASE_MASTER")).andReturn(type).anyTimes();
+      }
+    }
 
     replay(m_masterHostResolver);
 

@@ -130,7 +130,7 @@
       </service>
     </group>
 
-    <group name="HBASE" title="Update HBase Configuration">
+    <group xsi:type="cluster" name="HBASE" title="Update HBase Configuration">
       <skippable>true</skippable>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
@@ -574,6 +574,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
         </pre-upgrade>
         
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->

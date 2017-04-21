@@ -127,7 +127,7 @@
 </div>
 <div class="wizard-footer col-md-12">
     <div class="btn-area">
-      <button class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
+      <button class="btn btn-success pull-right" {{QAAttr "wizard-next"}} {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}} {{QAAttr "wizard-next"}}>
         {{#if App.router.nextBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
         {{/if}}

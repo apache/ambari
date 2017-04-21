@@ -27,9 +27,12 @@ class LogSearchServiceCheck(Script):
     env.set_params(params)
 
     try:
-      Execute(params.smoke_logsearch_cmd, user=params.logsearch_user,
-              tries=15, try_sleep=5, timeout=10)
-      Logger.info('Log Search Server up and running')
+      if params.logsearch_server_host:
+        Execute(params.smoke_logsearch_cmd, user=params.logsearch_user,
+                tries=15, try_sleep=5, timeout=10)
+        Logger.info('Log Search Server up and running')
+      else:
+        Logger.info('No portal is installed on the cluster thus no service check is required')
     except:
       Logger.error('Log Search Server not running')
       raise

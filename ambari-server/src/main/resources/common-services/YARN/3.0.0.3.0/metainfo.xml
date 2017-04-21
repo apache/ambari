@@ -267,8 +267,7 @@
             <enabled>true</enabled>
             <co-locate>YARN/RESOURCEMANAGER</co-locate>
           </auto-deploy>
-
-          <!-- TODO HDP 3.0, add later after UI is fixed,
+          
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -292,7 +291,6 @@
               </auto-deploy>
             </dependency>
           </dependencies>
-          -->
 
           <commandScript>
             <script>scripts/historyserver.py</script>

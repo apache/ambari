@@ -435,18 +435,20 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
       </execute-stage>
 
-      <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Parameterizing Hdfs Log4J Properties">
         <task xsi:type="configure" id="hdfs_log4j_parameterize">
           <summary>Updating the Hdfs Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
 
-      <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Adding HDFS ZKFC Security ACLs">
         <task xsi:type="configure" id="hadoop_env_zkfc_security_opts">
           <summary>Adding HDFS ZKFC Security ACLs</summary>
         </task>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
       </execute-stage>
 
       <!--SPARK-->

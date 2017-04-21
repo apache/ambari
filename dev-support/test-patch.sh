@@ -665,6 +665,7 @@ runTests () {
     done
 
     test_logfile=$PATCH_DIR/testrun_${module_suffix}.txt
+    test_logfile_url=$BUILD_URL/artifact/patch-work/testrun_${module_suffix}.txt
     echo "  Running tests in $module"
 
     # Skip java tests if this module did not have changes to java files
@@ -691,7 +692,7 @@ $module_test_timeouts"
 ${module_failed_tests}"
     fi
     if [[ $test_build_result != 0 && -z "$module_failed_tests" && -z "$module_test_timeouts" ]] ; then
-      failed_test_builds="$module $failed_test_builds"
+      failed_test_builds="[$module|$test_logfile_url] $failed_test_builds"
     fi
     cd -
   done
@@ -995,8 +996,6 @@ if [[ $JENKINS == "true" || $RUN_TESTS == "true" ]] ; then
 fi
 checkInjectSystemFaults
 (( RESULT = RESULT + $? ))
-JIRA_COMMENT_FOOTER="Test results: $BUILD_URL/testReport/
-$JIRA_COMMENT_FOOTER"
 
 submitJiraComment $RESULT
 cleanupAndExit $RESULT

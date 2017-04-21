@@ -1707,6 +1707,7 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
+        timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
             "repository_version": data.value,
@@ -2240,7 +2241,7 @@ var urls = {
   },
 
   'wizard.stacks_versions_definitions': {
-    'real': '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+    'real': '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
       '&VersionDefinition/show_available=true&VersionDefinition/stack_name={stackName}',
     'mock': '/data/wizard/stack/{stackName}_version_definitions.json'
   },

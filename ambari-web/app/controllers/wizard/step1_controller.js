@@ -63,6 +63,13 @@ App.WizardStep1Controller = Em.Controller.extend({
    */
   networkIssuesExist: Em.computed.everyBy('content.stacks', 'stackDefault', true),
 
+  /**
+   * No stacks have repo update URL section (aka "latest") defined in repoinfo.xml
+   *
+   * @type {boolean}
+   */
+  stackRepoUpdateLinkExists: Em.computed.someBy('content.stacks', 'stackRepoUpdateLinkExists', true),
+
   optionsToSelect: {
     'usePublicRepo': {
       index: 0,
