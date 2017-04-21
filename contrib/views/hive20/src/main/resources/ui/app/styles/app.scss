@@ -977,3 +977,10 @@ rect.operator__box {
 .CodeMirror-scroll {
   padding-bottom: 20px;
 }
+
+.ellipsis-node {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100px;
+}
