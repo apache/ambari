@@ -247,6 +247,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();

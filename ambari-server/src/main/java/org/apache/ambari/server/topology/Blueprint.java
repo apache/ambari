@@ -154,6 +154,14 @@ public interface Blueprint {
   public void validateRequiredProperties() throws InvalidTopologyException;
 
   /**
+   *
+   * A config type is valid if there are services related to except cluster-env and global.
+   * @param configType
+   * @return
+   */
+  boolean isValidConfigType(String configType);
+
+  /**
    * Obtain the blueprint as an entity.
    *
    * @return entity representation of the blueprint
