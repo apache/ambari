@@ -159,7 +159,7 @@ function getRenderer(type, isSingleReducer) {
             <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
           </div>
           <div class='operator-body' style='margin-left: 10px;'>
-            <div>${getOperatorLabel(d, isSingleReducer)}</div>
+            <div class="ellipsis-node" title=${getOperatorLabel(d, isSingleReducer)}>${getOperatorLabel(d, isSingleReducer)}</div>
             ${(d['limit:'] && d['limit:'] > -1) ? '<div><span style="font-weight: lighter;">Limit:</span> ' + d['limit:'] + ' </div>' : ''}
           </div>
         </div>
@@ -175,7 +175,7 @@ function getRenderer(type, isSingleReducer) {
           <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
         </div>
         <div class='operator-body' style='margin-left: 10px;'>
-          <div>${getOperatorLabel(d, isSingleReducer)}</div>
+          <div class="ellipsis-node" title=${getOperatorLabel(d, isSingleReducer)}>${getOperatorLabel(d, isSingleReducer)}</div>
           ${stats}
         </div>
       </div>
