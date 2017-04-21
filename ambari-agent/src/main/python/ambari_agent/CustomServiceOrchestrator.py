@@ -47,7 +47,6 @@ class CustomServiceOrchestrator():
   SCRIPT_TYPE_PYTHON = "PYTHON"
   COMMAND_TYPE = "commandType"
   COMMAND_NAME_STATUS = "STATUS"
-  COMMAND_NAME_SECURITY_STATUS = "SECURITY_STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
   CUSTOM_COMMAND_COMMAND = 'CUSTOM_COMMAND'
 
@@ -63,7 +62,7 @@ class CustomServiceOrchestrator():
   AMBARI_SERVER_PORT = "ambari_server_port"
   AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl"
 
-  FREQUENT_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS]
+  FREQUENT_COMMANDS = [COMMAND_NAME_STATUS]
   DONT_DEBUG_FAILURES_FOR_COMMANDS = FREQUENT_COMMANDS
   REFLECTIVELY_RUN_COMMANDS = FREQUENT_COMMANDS # -- commands which run a lot and often (this increases their speed)
   DONT_BACKUP_LOGS_FOR_COMMANDS = FREQUENT_COMMANDS
@@ -470,36 +469,6 @@ class CustomServiceOrchestrator():
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
                           override_output_files=override_output_files)
     return res
-
-  def requestComponentSecurityState(self, command):
-    """
-     Determines the current security state of the component
-     A command will be issued to trigger the security_status check and the result of this check will
-     returned to the caller. If the component lifecycle script has no security_status method the
-     check will return non zero exit code and "UNKNOWN" will be returned.
-    """
-    override_output_files=True # by default, we override status command output
-    if logger.level == logging.DEBUG:
-      override_output_files = False
-    security_check_res = self.runCommand(command, self.status_commands_stdout,
-                                         self.status_commands_stderr, self.COMMAND_NAME_SECURITY_STATUS,
-                                         override_output_files=override_output_files)
-    result = 'UNKNOWN'
-
-    if security_check_res is None:
-      logger.warn("The return value of the security_status check was empty, the security status is unknown")
-    elif 'exitcode' not in security_check_res:
-      logger.warn("Missing 'exitcode' value from the security_status check result, the security status is unknown")
-    elif security_check_res['exitcode'] != 0:
-      logger.debug("The 'exitcode' value from the security_status check result indicated the check routine failed to properly execute, the security status is unknown")
-    elif 'structuredOut' not in security_check_res:
-      logger.warn("Missing 'structuredOut' value from the security_status check result, the security status is unknown")
-    elif 'securityState' not in security_check_res['structuredOut']:
-      logger.warn("Missing 'securityState' value from the security_status check structuredOut data set, the security status is unknown")
-    else:
-      result = security_check_res['structuredOut']['securityState']
-
-    return result
 
   def resolve_script_path(self, base_dir, script):
     """

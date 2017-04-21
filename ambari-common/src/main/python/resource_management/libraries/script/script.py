@@ -843,22 +843,6 @@ class Script(object):
     """
     self.fail_with_error('configure method isn\'t implemented')
 
-  def security_status(self, env):
-    """
-    To be overridden by subclasses to provide the current security state of the component.
-    Implementations are required to set the "securityState" property of the structured out data set
-    to one of the following values:
-
-      UNSECURED        - If the component is not configured for any security protocol such as
-                         Kerberos
-      SECURED_KERBEROS - If the component is configured for Kerberos
-      UNKNOWN          - If the security state cannot be determined
-      ERROR            - If the component is supposed to be secured, but there are issues with the
-                         configuration.  For example, if the component is configured for Kerberos
-                         but the configured principal and keytab file fail to kinit
-    """
-    self.put_structured_out({"securityState": "UNKNOWN"})
-
   def generate_configs_get_template_file_content(self, filename, dicts):
     config = self.get_config()
     content = ''

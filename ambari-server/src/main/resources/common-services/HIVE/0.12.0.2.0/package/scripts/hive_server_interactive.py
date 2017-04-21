@@ -153,67 +153,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       # Recursively check all existing gmetad pid files
       check_process_status(pid_file)
 
-    def security_status(self, env):
-      import status_params
-      env.set_params(status_params)
-
-      if status_params.security_enabled:
-        props_value_check = {"hive.server2.authentication": "KERBEROS",
-                             "hive.metastore.sasl.enabled": "true",
-                             "hive.security.authorization.enabled": "true"}
-        props_empty_check = ["hive.server2.authentication.kerberos.keytab",
-                             "hive.server2.authentication.kerberos.principal",
-                             "hive.server2.authentication.spnego.principal",
-                             "hive.server2.authentication.spnego.keytab"]
-
-        props_read_check = ["hive.server2.authentication.kerberos.keytab",
-                            "hive.server2.authentication.spnego.keytab"]
-        hive_site_props = build_expectations('hive-site', props_value_check, props_empty_check,
-                                             props_read_check)
-
-        hive_expectations ={}
-        hive_expectations.update(hive_site_props)
-
-        security_params = get_params_from_filesystem(status_params.hive_server_interactive_conf_dir,
-                                                     {'hive-site.xml': FILE_TYPE_XML})
-        result_issues = validate_security_config_properties(security_params, hive_expectations)
-        if not result_issues: # If all validations passed successfully
-          try:
-            # Double check the dict before calling execute
-            if 'hive-site' not in security_params \
-              or 'hive.server2.authentication.kerberos.keytab' not in security_params['hive-site'] \
-              or 'hive.server2.authentication.kerberos.principal' not in security_params['hive-site'] \
-              or 'hive.server2.authentication.spnego.keytab' not in security_params['hive-site'] \
-              or 'hive.server2.authentication.spnego.principal' not in security_params['hive-site']:
-              self.put_structured_out({"securityState": "UNSECURED"})
-              self.put_structured_out({"securityIssuesFound": "Keytab file or principal are not set property."})
-              return
-
-            cached_kinit_executor(status_params.kinit_path_local,
-                                  status_params.hive_user,
-                                  security_params['hive-site']['hive.server2.authentication.kerberos.keytab'],
-                                  security_params['hive-site']['hive.server2.authentication.kerberos.principal'],
-                                  status_params.hostname,
-                                  status_params.tmp_dir)
-            cached_kinit_executor(status_params.kinit_path_local,
-                                  status_params.hive_user,
-                                  security_params['hive-site']['hive.server2.authentication.spnego.keytab'],
-                                  security_params['hive-site']['hive.server2.authentication.spnego.principal'],
-                                  status_params.hostname,
-                                  status_params.tmp_dir)
-            self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-          except Exception as e:
-            self.put_structured_out({"securityState": "ERROR"})
-            self.put_structured_out({"securityStateErrorInfo": str(e)})
-        else:
-          issues = []
-          for cf in result_issues:
-            issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-          self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-          self.put_structured_out({"securityState": "UNSECURED"})
-      else:
-        self.put_structured_out({"securityState": "UNSECURED"})
-
     def restart_llap(self, env):
       """
       Custom command to Restart LLAP

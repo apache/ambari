@@ -120,59 +120,6 @@ class UiServerDefault(UiServer):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.pid_ui)
-
-  def security_status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-
-    if status_params.security_enabled:
-      # Expect the following files to be available in status_params.config_dir:
-      #   storm_jaas.conf
-
-      try:
-        props_value_check = None
-        props_empty_check = ['storm_ui_principal_name', 'storm_ui_keytab']
-        props_read_check = ['storm_ui_keytab']
-        storm_env_expectations = build_expectations('storm_ui', props_value_check, props_empty_check,
-                                                 props_read_check)
-
-        storm_expectations = {}
-        storm_expectations.update(storm_env_expectations)
-
-        security_params = {}
-        security_params['storm_ui'] = {}
-        security_params['storm_ui']['storm_ui_principal_name'] = status_params.storm_ui_principal
-        security_params['storm_ui']['storm_ui_keytab'] = status_params.storm_ui_keytab
-
-        result_issues = validate_security_config_properties(security_params, storm_expectations)
-        if not result_issues:  # If all validations passed successfully
-          # Double check the dict before calling execute
-          if ( 'storm_ui' not in security_params
-               or 'storm_ui_principal_name' not in security_params['storm_ui']
-               or 'storm_ui_keytab' not in security_params['storm_ui']):
-            self.put_structured_out({"securityState": "ERROR"})
-            self.put_structured_out({"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.storm_user,
-                                security_params['storm_ui']['storm_ui_keytab'],
-                                security_params['storm_ui']['storm_ui_principal_name'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        else:
-          issues = []
-          for cf in result_issues:
-            issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-          self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-          self.put_structured_out({"securityState": "UNSECURED"})
-      except Exception as e:
-        self.put_structured_out({"securityState": "ERROR"})
-        self.put_structured_out({"securityStateErrorInfo": str(e)})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
       
   def get_log_folder(self):
     import params
