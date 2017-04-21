@@ -104,6 +104,17 @@
             <set key="ranger.plugin.yarn.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-yarn-plugin-properties" if-key="ranger-yarn-plugin-enabled" if-key-state="present"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_yarn_preemption" summary="Resource Manager Preemption Settings">
+            <type>yarn-site</type>
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round" value="0.1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round"
+              if-key-state="absent" />
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor" value="1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor"
+              if-key-state="absent" />
+          </definition>
         </changes>
       </component>
     </service>
