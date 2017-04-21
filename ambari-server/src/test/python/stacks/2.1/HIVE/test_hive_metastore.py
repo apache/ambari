@@ -688,6 +688,13 @@ class TestHiveMetastore(RMFTestCase):
         content = StaticFile('startMetastore.sh'),
         mode = 0755,
     )
+
+    self.assertResourceCalled('Directory', '/tmp/hive',
+                              owner = 'hive',
+                              create_parents = True,
+                              mode=0777
+                              )
+
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
      '/usr/share/java/mysql-connector-java.jar',
