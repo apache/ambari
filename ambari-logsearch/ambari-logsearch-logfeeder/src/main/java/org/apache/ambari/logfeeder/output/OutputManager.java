@@ -78,7 +78,7 @@ public class OutputManager {
 
     // Update the block with the context fields
     for (Map.Entry<String, String> entry : input.getContextFields().entrySet()) {
-      if (jsonObj.get(entry.getKey()) == null) {
+      if (jsonObj.get(entry.getKey()) == null || entry.getKey().equals("cluster") && "null".equals(jsonObj.get(entry.getKey()))) {
         jsonObj.put(entry.getKey(), entry.getValue());
       }
     }
