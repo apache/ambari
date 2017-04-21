@@ -122,10 +122,10 @@
          <div><label>{{deleteMsg}}</label></div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         {{#unless deleteMsg}}
           <button type="button" class="btn btn-primary" {{action "deleteWorkflow"}}>Delete</button>
         {{/unless}}
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
