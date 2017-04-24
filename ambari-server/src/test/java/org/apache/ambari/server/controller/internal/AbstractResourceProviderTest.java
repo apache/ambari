@@ -468,7 +468,7 @@ public class AbstractResourceProviderTest {
     private final HostRequest hostRequest;
 
     public HostRequestSetMatcher(String hostname, String clusterName, Map<String, String> hostAttributes) {
-      hostRequest = new HostRequest(hostname, clusterName, hostAttributes);
+      hostRequest = new HostRequest(hostname, clusterName);
       add(hostRequest);
     }
 
@@ -488,8 +488,7 @@ public class AbstractResourceProviderTest {
 
       return request instanceof HostRequest &&
           eq(((HostRequest) request).getClusterName(), hostRequest.getClusterName()) &&
-          eq(((HostRequest) request).getHostname(), hostRequest.getHostname()) &&
-          eq(((HostRequest) request).getHostAttributes(), hostRequest.getHostAttributes());
+          eq(((HostRequest) request).getHostname(), hostRequest.getHostname());
     }
 
     @Override

@@ -341,8 +341,8 @@ public class ScaleClusterRequestTest {
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_NO_CATEGORY_PROPERTY_ID, HOST1_NAME);
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST1_NAME);
 
     return properties;
   }
@@ -352,7 +352,7 @@ public class ScaleClusterRequestTest {
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, GROUP2_NAME);
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP2_NAME);
     properties.put(HostResourceProvider.HOST_COUNT_PROPERTY_ID, 1);
 
     return properties;
@@ -363,7 +363,7 @@ public class ScaleClusterRequestTest {
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, GROUP3_NAME);
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP3_NAME);
     properties.put(HostResourceProvider.HOST_COUNT_PROPERTY_ID, 1);
     properties.put(HostResourceProvider.HOST_PREDICATE_PROPERTY_ID, PREDICATE);
 
@@ -375,7 +375,7 @@ public class ScaleClusterRequestTest {
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, GROUP3_NAME);
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP3_NAME);
     properties.put(HostResourceProvider.HOST_COUNT_PROPERTY_ID, 2);
 
     return properties;
@@ -386,8 +386,8 @@ public class ScaleClusterRequestTest {
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, GROUP1_NAME);
-    properties.put(HostResourceProvider.HOST_NAME_NO_CATEGORY_PROPERTY_ID, HOST2_NAME);
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, GROUP1_NAME);
+    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, HOST2_NAME);
 
     return properties;
   }

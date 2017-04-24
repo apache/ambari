@@ -223,7 +223,7 @@ public class RootServiceResponseFactory extends
             RUNNING_STATE, getComponentVersion(component.getComponentName(), host), component.getProperties()));
         else
           response.add(new RootServiceHostComponentResponse(host.getHostname(), component.getComponentName(),
-            host.getHostState(), getComponentVersion(component.getComponentName(), host), component.getProperties()));
+            host.getHostState().toString(), getComponentVersion(component.getComponentName(), host), component.getProperties()));
       }
     }
     

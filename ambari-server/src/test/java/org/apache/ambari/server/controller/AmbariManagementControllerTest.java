@@ -1803,7 +1803,7 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> hostAttributes = null;
 
-    HostRequest r1 = new HostRequest(host1, null, hostAttributes);
+    HostRequest r1 = new HostRequest(host1, null);
     r1.toString();
 
     Set<HostRequest> requests = new HashSet<>();
@@ -1820,7 +1820,7 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
 
-    HostRequest request = new HostRequest(host2, "foo", new HashMap<String, String>());
+    HostRequest request = new HostRequest(host2, "foo");
     requests.add(request);
 
     try {
@@ -1874,9 +1874,9 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
     setOsFamily(clusters.getHost(host3), "redhat", "5.9");
 
-    HostRequest r1 = new HostRequest(host1, cluster1, null);
-    HostRequest r2 = new HostRequest(host2, cluster1, null);
-    HostRequest r3 = new HostRequest(host3, null, null);
+    HostRequest r1 = new HostRequest(host1, cluster1);
+    HostRequest r2 = new HostRequest(host2, cluster1);
+    HostRequest r3 = new HostRequest(host3, null);
 
     Set<HostRequest> set1 = new HashSet<>();
     set1.add(r1);
@@ -1902,7 +1902,7 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid =
-          new HostRequest(host1, null, null);
+          new HostRequest(host1, null);
       set1.add(rInvalid);
       HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid host");
@@ -1915,7 +1915,7 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       set1.add(rInvalid);
       HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid cluster");
@@ -1928,9 +1928,9 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid1 =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       HostRequest rInvalid2 =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       HostResourceProviderTest.createHosts(controller, set1);
@@ -3094,7 +3094,7 @@ public class AmbariManagementControllerTest {
     attrs.put("a2", "b2");
     clusters.getHost(host4).setHostAttributes(attrs);
 
-    HostRequest r = new HostRequest(null, null, null);
+    HostRequest r = new HostRequest(null, null);
 
     Set<HostResponse> resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
 
@@ -3127,7 +3127,7 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(4, foundHosts.size());
 
-    r = new HostRequest(host1, null, null);
+    r = new HostRequest(host1, null);
     resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
     HostResponse resp = resps.iterator().next();
@@ -8884,7 +8884,7 @@ public class AmbariManagementControllerTest {
     // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
-    requests.add(new HostRequest(host1, cluster1, null));
+    requests.add(new HostRequest(host1, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests, false, false);
       fail("Expect failure deleting hosts when components exist and have not been deleted.");
@@ -8993,7 +8993,7 @@ public class AmbariManagementControllerTest {
     // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
-    requests.add(new HostRequest(host1, cluster1, null));
+    requests.add(new HostRequest(host1, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       fail("Expect failure deleting hosts when components exist and have not been deleted.");
@@ -9020,7 +9020,7 @@ public class AmbariManagementControllerTest {
 
     // Deletion without specifying cluster should be successful
     requests.clear();
-    requests.add(new HostRequest(host1, null, null));
+    requests.add(new HostRequest(host1, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
     } catch (Exception e) {
@@ -9033,7 +9033,7 @@ public class AmbariManagementControllerTest {
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
-    requests.add(new HostRequest(host2, cluster1, null));
+    requests.add(new HostRequest(host2, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
     } catch (Exception e) {
@@ -9046,7 +9046,7 @@ public class AmbariManagementControllerTest {
 
     // Case 4: Attempt to delete a host that has already been deleted
     requests.clear();
-    requests.add(new HostRequest(host1, null, null));
+    requests.add(new HostRequest(host1, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       Assert.fail("Expected a HostNotFoundException trying to remove a host that was already deleted.");
@@ -9064,7 +9064,7 @@ public class AmbariManagementControllerTest {
 
     // Case 5: Attempt to delete a host that was never added to the cluster
     requests.clear();
-    requests.add(new HostRequest(host3, null, null));
+    requests.add(new HostRequest(host3, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       Assert.fail("Expected a HostNotFoundException trying to remove a host that was never added.");
@@ -9307,7 +9307,7 @@ public class AmbariManagementControllerTest {
 
     // add some hosts
     Set<HostRequest> hrs = new HashSet<>();
-    hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+    hrs.add(new HostRequest(HOST1, CLUSTER_NAME));
     HostResourceProviderTest.createHosts(amc, hrs);
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
@@ -9422,9 +9422,9 @@ public class AmbariManagementControllerTest {
     ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
     Set<HostRequest> hostRequests = new HashSet<>();
-    hostRequests.add(new HostRequest(host1, cluster1, null));
-    hostRequests.add(new HostRequest(host2, cluster1, null));
-    hostRequests.add(new HostRequest(host3, cluster1, null));
+    hostRequests.add(new HostRequest(host1, cluster1));
+    hostRequests.add(new HostRequest(host2, cluster1));
+    hostRequests.add(new HostRequest(host3, cluster1));
 
     HostResourceProviderTest.createHosts(amc, hostRequests);
 
@@ -9703,7 +9703,7 @@ public class AmbariManagementControllerTest {
     ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
     Set<HostRequest> hostRequests = new HashSet<>();
-    hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+    hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME));
 
     HostResourceProviderTest.createHosts(amc, hostRequests);
 
@@ -10232,7 +10232,7 @@ public class AmbariManagementControllerTest {
     }
 
     // passivate a host
-    HostRequest hr = new HostRequest(host1, cluster1, requestProperties);
+    HostRequest hr = new HostRequest(host1, cluster1);
     hr.setMaintenanceState(MaintenanceState.ON.name());
     HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr)
     );
@@ -10274,9 +10274,9 @@ public class AmbariManagementControllerTest {
     }
 
     // passivate several hosts
-    HostRequest hr1 = new HostRequest(host1, cluster1, requestProperties);
+    HostRequest hr1 = new HostRequest(host1, cluster1);
     hr1.setMaintenanceState(MaintenanceState.ON.name());
-    HostRequest hr2 = new HostRequest(host2, cluster1, requestProperties);
+    HostRequest hr2 = new HostRequest(host2, cluster1);
     hr2.setMaintenanceState(MaintenanceState.ON.name());
     Set<HostRequest> set = new HashSet<>();
     set.add(hr1);
@@ -10292,9 +10292,9 @@ public class AmbariManagementControllerTest {
         host.getMaintenanceState(cluster.getClusterId()));
 
     // reset
-    hr1 = new HostRequest(host1, cluster1, requestProperties);
+    hr1 = new HostRequest(host1, cluster1);
     hr1.setMaintenanceState(MaintenanceState.OFF.name());
-    hr2 = new HostRequest(host2, cluster1, requestProperties);
+    hr2 = new HostRequest(host2, cluster1);
     hr2.setMaintenanceState(MaintenanceState.OFF.name());
     set = new HashSet<>();
     set.add(hr1);

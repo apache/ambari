@@ -534,8 +534,8 @@ public class TopologyManagerTest {
   public void testScaleHosts__alreadyExistingHost() throws InvalidTopologyTemplateException, InvalidTopologyException, AmbariException, NoSuchStackException {
     HashSet<Map<String, Object>> propertySet = new HashSet<>();
     Map<String,Object> properties = new TreeMap<>();
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "host1");
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, "group1");
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "host1");
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, "group1");
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, BLUEPRINT_NAME);
     propertySet.add(properties);

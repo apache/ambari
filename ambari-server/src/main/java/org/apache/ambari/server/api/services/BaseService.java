@@ -49,6 +49,32 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseService {
   public final static MediaType MEDIA_TYPE_TEXT_CSV_TYPE = new MediaType("text", "csv");
 
+  static final String SUCCESSFUL_OPERATION = "Successful operation";
+  static final String REQUEST_ACCEPTED = "Request is accepted, but not completely processed yet";
+  static final String INVALID_ARGUMENTS = "Invalid arguments";
+  static final String CLUSTER_NOT_FOUND = "Cluster not found";
+  static final String CLUSTER_OR_HOST_NOT_FOUND = "Cluster or host not found";
+  static final String NOT_AUTHENTICATED = "Not authenticated";
+  static final String PERMISSION_DENIED = "Not permitted to perform the operation";
+  static final String SERVER_ERROR = "Internal server error";
+
+  static final String QUERY_FIELDS = "fields";
+  static final String QUERY_FILTER_DESCRIPTION = "Filter fields in the response (identifier fields are mandatory)";
+  static final String QUERY_SORT = "sortBy";
+  static final String QUERY_SORT_DESCRIPTION = "Sort resources in result by (asc | desc)";
+  static final String QUERY_PAGE_SIZE = "page_size";
+  static final String QUERY_PAGE_SIZE_DESCRIPTION = "The number of resources to be returned for the paged response.";
+  static final String DEFAULT_PAGE_SIZE = "10";
+  static final String QUERY_FROM = "from";
+  static final String QUERY_FROM_DESCRIPTION = "The starting page resource (inclusive).  \"start\" is also accepted.";
+  static final String QUERY_FROM_TYPE = "integer";
+  static final String QUERY_FROM_VALUES = "range[0, infinity]";
+  static final String DEFAULT_FROM = "0";
+  static final String QUERY_TO = "to";
+  static final String QUERY_TO_DESCRIPTION = "The ending page resource (inclusive).  \"end\" is also accepted.";
+  static final String QUERY_TO_TYPE = "integer";
+  static final String QUERY_TO_VALUES = "range[1, infinity]";
+
   /**
    * Logger instance.
    */

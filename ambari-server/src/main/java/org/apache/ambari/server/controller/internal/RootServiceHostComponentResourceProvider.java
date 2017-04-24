@@ -163,7 +163,7 @@ public class RootServiceHostComponentResourceProvider extends
     AmbariManagementController controller = getManagementController();
     //Get all hosts of all clusters
     Set<HostResponse> hosts = HostResourceProvider.getHosts(controller,
-        new HostRequest(request.getHostName(), null, null));
+        new HostRequest(request.getHostName(), null), null);
 
     return controller.getRootServiceResponseFactory().getRootServiceHostComponent(request, hosts);
   }

@@ -264,7 +264,7 @@ public class AmbariContext {
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, hostName);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, hostName);
     properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, host.getRackInfo());
 
     try {
