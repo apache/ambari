@@ -14,14 +14,19 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<div class="selectDateRange col-md-12">
-    <div class="col-md-7 col-sm-8 leftPad_0">
-        <i class="glyphicon glyphicon-calendar fa fa-calendar iStyle"></i>&nbsp;
-        <input id="dateRange" class="col-md-4 form-control pull-left" readonly style="cursor:pointer;" />
-    </div>
-    <div class="col-md-5 col-sm-4">
-        <button class="goBtn btn btn-success" type="button">Go</button>
-        <!-- <button class="cancelBtn btn btn-xs btn-default" type="button">Cancel</button> -->
-        <span data-id="dateRangeTitle" class="dateRangeTitle"></span>
-    </div>
+<div class="button-group col-md-9 col-sm-9">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Select Cluster <span
+      class="caret"></span></button>
+  <ul class="dropdown-menu">
+    <li><a href="#" tabIndex="-1"><label><input type="checkbox" checked/> All Clusters</label></a></li>
+    <li class="divider"></li>
+    {{#each clusterNames}}
+      <li>
+        <a href="#" tabIndex="-1">
+          <label><input class="cluster-checkbox" type="checkbox" checked/> {{./this}}</label>
+        </a>
+      </li>
+    {{/each}}
+  </ul>
 </div>
+<button class="btn btn-success apply-button col-md-3 col-sm-3" type="button">Apply</button>

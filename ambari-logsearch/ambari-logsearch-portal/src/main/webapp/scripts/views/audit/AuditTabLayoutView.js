@@ -18,6 +18,7 @@
 
 define(['require',
   'backbone',
+  'App',
   'utils/Globals',
   'utils/Utils',
   'utils/ViewUtils',
@@ -26,7 +27,7 @@ define(['require',
   'models/VAuditLog',
   'hbs!tmpl/audit/AuditTabLayoutView_tmpl',
   'moment'
-], function (require, Backbone, Globals, Utils, ViewUtils, VGroupList, VAuditLogList, VAuditLog, AuditTabLayoutViewTmpl, moment) {
+], function (require, Backbone, App, Globals, Utils, ViewUtils, VGroupList, VAuditLogList, VAuditLog, AuditTabLayoutViewTmpl, moment) {
 
   'use strict';
 
@@ -133,7 +134,9 @@ define(['require',
             params: that.defaultParams,
             viewType: Globals.graphType.MULTILINE.value,
             showDatePicker: true,
-            futureDate: false
+            futureDate: false,
+            showSelectClustersDropdown: true,
+            loadClustersUrl: App.baseUrl + 'audit/logs/clusters'
           }));
         })
       },

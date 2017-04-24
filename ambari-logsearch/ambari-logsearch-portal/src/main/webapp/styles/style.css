@@ -849,7 +849,7 @@ div.columnmanager-visibilitycontrol {
 }
 
 .selectDateRange input {
-  width: 99%;
+  width: 97%;
   position: relative;
   padding-left: 36px;
   height: 35px;
@@ -1057,7 +1057,6 @@ svg.nvd3-svg {
   margin-top: 7px;
   /*margin-left: 20px;*/
   font-size: 9px;
-  float: left;
   font-weight: 300;
   border-radius: 3px;
   color: #000;
@@ -2961,4 +2960,19 @@ button.defaultCancelBtn{
 }
 .levelBox:last-of-type{
   clear : right;
+}
+
+/*------------Select Cluster dropdown CSS--------------*/
+.select-cluster-dropdown ul.dropdown-menu {
+  margin-top: 0;
+}
+
+.select-cluster-dropdown .dropdown-toggle {
+  width: 100%;
+}
+.select-cluster-dropdown label {
+  font-weight: normal;
+}
+.select-cluster-dropdown .divider {
+  margin: 0;
 }

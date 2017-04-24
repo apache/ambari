@@ -17,6 +17,7 @@
  */
 define(['require',
   'backbone',
+  'App',
   'utils/Globals',
   'utils/Utils',
   'moment',
@@ -24,7 +25,7 @@ define(['require',
   'collections/VLogList',
   'collections/VGroupList',
   'hbs!tmpl/tabs/HierarchyTabLayoutView_tmpl'
-], function (require, Backbone, Globals, Utils, moment, ViewUtils, VLogList, VGroupList, HierarchyTabLayoutViewTmpl) {
+], function (require, Backbone, App, Globals, Utils, moment, ViewUtils, VLogList, VGroupList, HierarchyTabLayoutViewTmpl) {
   'use strict';
 
   return Backbone.Marionette.Layout.extend(
@@ -46,7 +47,8 @@ define(['require',
         RVisualSearchExCol: "#r_vsSearchExCol",
         RDatePicker: "#r_DatePicker",
         RLogSnapShot: "#r_LogSnapShot",
-        RAdvanceSearch: "#r_AdvanceSearch"
+        RAdvanceSearch: "#r_AdvanceSearch",
+        RSelectClusterDropdown: "#r_SelectClusterDropdown"
       },
 
       /** ui selector cache */
@@ -142,6 +144,7 @@ define(['require',
         this.renderHistogram();
         this.renderDatePicker();
         this.renderLogSnapShot();
+        this.renderSelectClusterDropdown();
         this.componentsList.fetch({reset: true});
       },
       onShow: function () {
@@ -315,6 +318,16 @@ define(['require',
             vent: that.vent,
             globalVent: that.globalVent,
             params: that.defaultParams
+          }));
+        });
+      },
+      renderSelectClusterDropdown: function () {
+        var that = this;
+        require(['views/common/SelectClusterDropdown'], function (SelectClusterDropdownView) {
+          that.RSelectClusterDropdown.show(new SelectClusterDropdownView({
+            vent: that.vent,
+            globalVent: that.globalVent,
+            clustersUrl: App.baseUrl + 'service/logs/clusters'
           }));
         });
       },
