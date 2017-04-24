@@ -17,4 +17,4 @@
 JVM="java"
 sdir="`dirname \"$0\"`"
 
-PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir:$sdir/libs/*" org.apache.ambari.logsearch.solr.AmbariSolrCloudCLI ${1+"$@"}
+PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "$sdir:$sdir/libs/*" org.apache.ambari.infra.solr.AmbariSolrCloudCLI ${1+"$@"}
