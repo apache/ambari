@@ -27,7 +27,7 @@
         <ul class="dropdown-menu dropdown-menu-right">
           <li>{{#link-to "databases.database.tables.table.edit" class="text-uppercase"}}{{fa-icon "edit"}} Edit{{/link-to}}</li>
           <li>{{#link-to "databases.database.tables.table.rename" class="text-uppercase"}}{{fa-icon "edit"}} Rename{{/link-to}}</li>
-          <li><a href="#" class="text-uppercase" {{action "deleteTable" model}}>{{fa-icon "trash"}} Delete</a></li>
+          <li><a href="#" class="text-uppercase" {{action "deleteTableWarning" }}>{{fa-icon "trash"}} Delete</a></li>
         </ul>
       </div>
     </div>
@@ -46,6 +46,23 @@
       </div><!-- /.modal-content -->
     {{/modal-dialog}}
   {{/if}}
+
+  {{#if showDeleteTableWarningModal}}
+    {{confirm-dialog
+    title="Confirm"
+    label="Do You want to delete the Table?"
+    titleIcon="minus"
+    labelIcon="save"
+    rejectIcon="times"
+    confirmIcon="check"
+    closable=false
+    confirmClass="success"
+    confirm="deleteTable"
+    reject="cancelDeleteTableWarning"
+    }}
+  {{/if}}
+
+
   <div class="table-body">
     {{#tabs-pane tabs=tabs inverse= true as |tab|}}
       {{tabs-item tab=tab tabs=tabs}}
