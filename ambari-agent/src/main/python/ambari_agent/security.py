@@ -30,6 +30,7 @@ import traceback
 import hostname
 import platform
 import ambari_stomp
+from ambari_stomp.adapter.websocket import WsConnection
 
 logger = logging.getLogger(__name__)
 
@@ -100,39 +101,17 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
     return sock
 
-# TODO STOMP: When server part is ready re-write this class by extending WsConnection.
-class StompConnector:
-  def __init__(self):
+class AmbariStompConnection(WsConnection):
+  def __init__(self, url):
     self.correlation_id = -1
-    self._connection = None
-
-  # TODO STOMP: re-init this on_disconnect
-  def _get_connection(self):
-    if not self._connection:
-      self._connection = self._create_new_connection()
-    return self._connection
-
-  def _create_new_connection(self):
-    # Connection for unit tests. TODO STOMP: fix this
-    hosts = [('127.0.0.1', 21613)]
-    connection = ambari_stomp.Connection(host_and_ports=hosts)
-    connection.start()
-    connection.connect(wait=True)
-
-    return connection
+    WsConnection.__init__(self, url)
 
   def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
     self.correlation_id += 1
-    self._get_connection().send(destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
-
-  def subscribe(self, *args, **kwargs):
-    self._get_connection().subscribe(*args, **kwargs)
-
-  def untrack_connection(self):
-    self.conn = None
+    WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
 
   def add_listener(self, listener):
-    self._get_connection().set_listener(listener.__class__.__name__, listener)
+    self.set_listener(listener.__class__.__name__, listener)
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """

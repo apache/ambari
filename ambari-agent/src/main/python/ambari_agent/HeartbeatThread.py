@@ -27,9 +27,7 @@ import security
 from collections import defaultdict
 
 from ambari_agent import Constants
-from ambari_agent.ClusterConfigurationCache import  ClusterConfigurationCache
-from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
-from ambari_agent.ClusterMetadataCache import ClusterMetadataCache
+from ambari_agent.InitializerModule import initializer_module
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
@@ -45,25 +43,17 @@ class HeartbeatThread(threading.Thread):
   """
   def __init__(self):
     threading.Thread.__init__(self)
-    self.stomp_connector = security.StompConnector()
     self.is_registered = False
     self.heartbeat_interval = HEARTBEAT_INTERVAL
     self._stop = threading.Event()
 
-    # TODO STOMP: change this once is integrated with ambari config
-    cluster_cache_dir = '/tmp'
-
-    # caches
-    self.metadata_cache = ClusterMetadataCache(cluster_cache_dir)
-    self.topology_cache = ClusterTopologyCache(cluster_cache_dir)
-    self.configurations_cache = ClusterConfigurationCache(cluster_cache_dir)
-    self.caches = [self.metadata_cache, self.topology_cache, self.configurations_cache]
+    self.caches = [initializer_module.metadata_cache, initializer_module.topology_cache, initializer_module.configurations_cache]
 
     # listeners
     self.server_responses_listener = ServerResponsesListener()
-    self.metadata_events_listener = MetadataEventListener(self.metadata_cache)
-    self.topology_events_listener = TopologyEventListener(self.topology_cache)
-    self.configuration_events_listener = ConfigurationEventListener(self.configurations_cache)
+    self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache)
+    self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
+    self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
     self.listeners = [self.server_responses_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener]
 
   def run(self):
@@ -97,7 +87,7 @@ class HeartbeatThread(threading.Thread):
     self.subscribe_and_listen()
 
     registration_request = self.get_registration_request()
-    logger.info("Registration request received")
+    logger.info("Sending registration request")
     logger.debug("Registration request is {0}".format(registration_request))
 
     response = self.blocking_request(registration_request, Constants.REGISTRATION_ENDPOINT)
@@ -132,14 +122,14 @@ class HeartbeatThread(threading.Thread):
     Subscribe to topics and set listener classes.
     """
     for listener in self.listeners:
-      self.stomp_connector.add_listener(listener)
+      initializer_module.connection.add_listener(listener)
 
     for topic_name in Constants.TOPICS_TO_SUBSCRIBE:
-      self.stomp_connector.subscribe(destination=topic_name, id='sub', ack='client-individual')
+      initializer_module.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
 
   def blocking_request(self, body, destination):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
-    self.stomp_connector.send(body=json.dumps(body), destination=destination)
-    return self.server_responses_listener.responses.blocking_pop(str(self.stomp_connector.correlation_id))
+    initializer_module.connection.send(body=json.dumps(body), destination=destination)
+    return self.server_responses_listener.responses.blocking_pop(str(initializer_module.connection.correlation_id))

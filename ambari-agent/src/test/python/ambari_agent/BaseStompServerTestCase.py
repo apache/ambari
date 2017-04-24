@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import ambari_stomp
 import os
 import sys
 import time
@@ -42,85 +43,85 @@ from coilmq.scheduler import FavorReliableSubscriberScheduler, RandomQueueSchedu
 from coilmq.protocol import STOMP10
 
 class BaseStompServerTestCase(unittest.TestCase):
+  """
+  Base class for test cases provides the fixtures for setting up the multi-threaded
+  unit test infrastructure.
+  We use a combination of C{threading.Event} and C{Queue.Queue} objects to faciliate
+  inter-thread communication and lock-stepping the assertions.
+  """
+
+  def setUp(self):
+
+    self.clients = []
+    self.server = None  # This gets set in the server thread.
+    self.server_address = None  # This gets set in the server thread.
+    self.ready_event = threading.Event()
+
+    addr_bound = threading.Event()
+
+    def start_server():
+      self.server = TestStompServer(('127.0.0.1', 21613),
+                                    ready_event=self.ready_event,
+                                    authenticator=None,
+                                    queue_manager=self._queuemanager(),
+                                    topic_manager=self._topicmanager())
+      self.server_address = self.server.socket.getsockname()
+      addr_bound.set()
+      self.server.serve_forever()
+
+    self.server_thread = threading.Thread(
+        target=start_server, name='server')
+    self.server_thread.start()
+    self.ready_event.wait()
+    addr_bound.wait()
+
+  def _queuemanager(self):
     """
-    Base class for test cases provides the fixtures for setting up the multi-threaded
-    unit test infrastructure.
-    We use a combination of C{threading.Event} and C{Queue.Queue} objects to faciliate
-    inter-thread communication and lock-stepping the assertions. 
+    Returns the configured L{QueueManager} instance to use.
+    Can be overridden by subclasses that wish to change out any queue mgr parameters.
+    @rtype: L{QueueManager}
     """
+    return QueueManager(store=MemoryQueue(),
+                        subscriber_scheduler=FavorReliableSubscriberScheduler(),
+                        queue_scheduler=RandomQueueScheduler())
 
-    def setUp(self):
+  def _topicmanager(self):
+    """
+    Returns the configured L{TopicManager} instance to use.
+    Can be overridden by subclasses that wish to change out any topic mgr parameters.
+    @rtype: L{TopicManager}
+    """
+    return TopicManager()
 
-        self.clients = []
-        self.server = None  # This gets set in the server thread.
-        self.server_address = None  # This gets set in the server thread.
-        self.ready_event = threading.Event()
+  def tearDown(self):
+    for c in self.clients:
+      c.close()
+    self.server.shutdown() # server_close takes too much time
+    self.server_thread.join()
+    self.ready_event.clear()
+    del self.server_thread
 
-        addr_bound = threading.Event()
+  def _new_client(self, connect=True):
+    """
+    Get a new L{TestStompClient} connected to our test server.
+    The client will also be registered for close in the tearDown method.
+    @param connect: Whether to issue the CONNECT command.
+    @type connect: C{bool}
+    @rtype: L{TestStompClient}
+    """
+    client = TestStompClient(self.server_address)
+    self.clients.append(client)
+    if connect:
+      client.connect()
+      res = client.received_frames.get(timeout=1)
+      self.assertEqual(res.cmd, frames.CONNECTED)
+    return client
 
-        def start_server():
-            self.server = TestStompServer(('127.0.0.1', 21613),
-                                          ready_event=self.ready_event,
-                                          authenticator=None,
-                                          queue_manager=self._queuemanager(),
-                                          topic_manager=self._topicmanager())
-            self.server_address = self.server.socket.getsockname()
-            addr_bound.set()
-            self.server.serve_forever()
+  def get_json(self, filename):
+    filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dummy_files", "stomp", filename)
 
-        self.server_thread = threading.Thread(
-            target=start_server, name='server')
-        self.server_thread.start()
-        self.ready_event.wait()
-        addr_bound.wait()
-
-    def _queuemanager(self):
-        """
-        Returns the configured L{QueueManager} instance to use.
-        Can be overridden by subclasses that wish to change out any queue mgr parameters.
-        @rtype: L{QueueManager}
-        """
-        return QueueManager(store=MemoryQueue(),
-                            subscriber_scheduler=FavorReliableSubscriberScheduler(),
-                            queue_scheduler=RandomQueueScheduler())
-
-    def _topicmanager(self):
-        """
-        Returns the configured L{TopicManager} instance to use.
-        Can be overridden by subclasses that wish to change out any topic mgr parameters.
-        @rtype: L{TopicManager}
-        """
-        return TopicManager()
-
-    def tearDown(self):
-        for c in self.clients:
-            c.close()
-        self.server.shutdown() # server_close takes too much time
-        self.server_thread.join()
-        self.ready_event.clear()
-        del self.server_thread
-
-    def _new_client(self, connect=True):
-        """
-        Get a new L{TestStompClient} connected to our test server. 
-        The client will also be registered for close in the tearDown method.
-        @param connect: Whether to issue the CONNECT command.
-        @type connect: C{bool}
-        @rtype: L{TestStompClient}
-        """
-        client = TestStompClient(self.server_address)
-        self.clients.append(client)
-        if connect:
-            client.connect()
-            res = client.received_frames.get(timeout=1)
-            self.assertEqual(res.cmd, frames.CONNECTED)
-        return client
-
-    def get_json(self, filename):
-      filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dummy_files", "stomp", filename)
-
-      with open(filepath) as f:
-        return f.read()
+    with open(filepath) as f:
+      return f.read()
 
 
 class TestStompServer(ThreadedStompServer):
@@ -151,7 +152,7 @@ class TestStompServer(ThreadedStompServer):
 class TestStompClient(object):
     """
     A stomp client for use in testing.
-    This client spawns a listener thread and pushes anything that comes in onto the 
+    This client spawns a listener thread and pushes anything that comes in onto the
     read_frames queue.
     @ivar received_frames: A queue of Frame instances that have been received.
     @type received_frames: C{Queue.Queue} containing any received C{stompclient.frame.Frame}
@@ -228,3 +229,18 @@ class TestStompClient(object):
         self.connected = False
         self.read_stopped.wait(timeout=0.5)
         self.sock.close()
+
+class TestCaseTcpConnection(ambari_stomp.Connection):
+  def __init__(self, url):
+    self.correlation_id = -1
+    ambari_stomp.Connection.__init__(self, host_and_ports=[('127.0.0.1', 21613)])
+
+  def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+    self.correlation_id += 1
+    ambari_stomp.Connection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
+
+  def add_listener(self, listener):
+    self.set_listener(listener.__class__.__name__, listener)
+
+from ambari_agent import security
+security.AmbariStompConnection = TestCaseTcpConnection

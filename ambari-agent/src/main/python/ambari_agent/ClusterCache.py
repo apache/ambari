@@ -46,10 +46,6 @@ class ClusterCache(dict):
     self._cache_lock = threading.RLock()
     self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
 
-    # ensure that our cache directory exists
-    if not os.path.exists(cluster_cache_dir):
-      os.makedirs(cluster_cache_dir)
-
     # if the file exists, then load it
     cache_dict = {}
     if os.path.isfile(self.__current_cache_json_file):
@@ -84,6 +80,10 @@ class ClusterCache(dict):
 
 
     with self.__file_lock:
+      # ensure that our cache directory exists
+      if not os.path.exists(self.cluster_cache_dir):
+        os.makedirs(self.cluster_cache_dir)
+
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self, f, indent=2)
 

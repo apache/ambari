@@ -95,7 +95,7 @@ class WsTransport(Transport):
     Transport.stop(self)
 
 class WsConnection(BaseConnection, Protocol12):
-  def __init__(self, url, wait_on_receipt=False):
+  def __init__(self, url):
     self.transport = WsTransport(url)
     self.transport.set_listener('ws-listener', self)
     self.transactions = {}

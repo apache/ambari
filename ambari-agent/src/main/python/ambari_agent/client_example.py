@@ -29,7 +29,6 @@ def get_headers():
   global correlationId
   correlationId += 1
   headers = {
-    "content-type": "text/plain",
     "correlationId": correlationId
   }
   return headers
@@ -50,8 +49,9 @@ class MyStatsListener(ambari_stomp.StatsListener):
 
 read_messages = []
 
-conn = websocket.WsConnection('ws://gc6401:8080/api/stomp/v1')
-conn.transport.ws.extra_headers = [("Authorization", "Basic " + base64.b64encode('admin:admin'))]
+#conn = websocket.WsConnection('ws://gc6401:8080/api/stomp/v1')
+#conn.transport.ws.extra_headers = [("Authorization", "Basic " + base64.b64encode('admin:admin'))]
+conn = websocket.WsConnection('wss://gc6401:8441/agent/stomp/v1')
 conn.set_listener('my_listener', MyListener())
 conn.set_listener('stats_listener', MyStatsListener())
 conn.start()
@@ -61,7 +61,7 @@ conn.connect(wait=True, headers=get_headers())
 conn.subscribe(destination='/user/', id='sub-0', ack='client-individual')
 
 #conn.send(body="", destination='/test/time', headers=get_headers())
-conn.send(body="some message", destination='/test/echo', headers=get_headers())
+conn.send(body="{}", destination='/register', headers=get_headers())
 time.sleep(1)
 for message in read_messages:
   conn.ack(message['id'], message['subscription'])

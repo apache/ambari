@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import threading
+from functools import wraps
 
 class BlockingDictionary():
   """
@@ -87,3 +88,22 @@ ImmutableDictionary.__delitem__ = raise_immutable_error
 ImmutableDictionary.clear = raise_immutable_error
 ImmutableDictionary.pop = raise_immutable_error
 ImmutableDictionary.update = raise_immutable_error
+
+
+def lazy_property(undecorated):
+  """
+  Only run the function decorated once. Next time return cached value.
+  """
+  name = '_' + undecorated.__name__
+
+  @property
+  @wraps(undecorated)
+  def decorated(self):
+    try:
+      return getattr(self, name)
+    except AttributeError:
+      v = undecorated(self)
+      setattr(self, name, v)
+      return v
+
+  return decorated
