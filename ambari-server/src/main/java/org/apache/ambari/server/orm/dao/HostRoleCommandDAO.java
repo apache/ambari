@@ -676,7 +676,7 @@ public class HostRoleCommandDAO {
   @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
   public void remove(HostRoleCommandEntity entity) {
     EntityManager entityManager = entityManagerProvider.get();
-    entityManager.remove(merge(entity));
+    entityManager.remove(entity);
     invalidateHostRoleCommandStatusSummaryCache(entity);
   }
 
