@@ -208,7 +208,7 @@ public class AmbariUserAuthenticationFilterTest {
     PrincipalEntity principalEntity = new PrincipalEntity();
     UserEntity userEntity = new UserEntity();
     userEntity.setUserId(TEST_USER_ID);
-    userEntity.setUserName(TEST_USER_NAME);
+    userEntity.setUserName(UserName.fromString(TEST_USER_NAME));
     userEntity.setUserType(UserType.LOCAL);
     userEntity.setPrincipal(principalEntity);
     User user = new User(userEntity);

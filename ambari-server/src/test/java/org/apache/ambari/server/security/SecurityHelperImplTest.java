@@ -22,7 +22,7 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthentication;
 import org.apache.ambari.server.security.authorization.User;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.security.authorization.UserName;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,7 +44,7 @@ public class SecurityHelperImplTest {
     SecurityContext ctx = SecurityContextHolder.getContext();
     UserEntity userEntity = new UserEntity();
     userEntity.setPrincipal(new PrincipalEntity());
-    userEntity.setUserName("userName");
+    userEntity.setUserName(UserName.fromString("userName"));
     userEntity.setUserId(1);
     User user = new User(userEntity);
     Authentication auth = new AmbariUserAuthentication(null, user, null);
