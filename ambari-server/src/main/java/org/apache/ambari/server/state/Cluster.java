@@ -675,10 +675,10 @@ public interface Cluster {
    * Gets an {@link UpgradeEntity} if there is an upgrade in progress or an
    * upgrade that has been suspended. This will return the associated
    * {@link UpgradeEntity} if it exists.
-   * 
+   *
    * @return an upgrade which will either be in progress or suspended, or
    *         {@code null} if none.
-   * 
+   *
    */
   UpgradeEntity getUpgradeInProgress();
 
@@ -754,4 +754,11 @@ public interface Cluster {
    */
   void addSuspendedUpgradeParameters(Map<String, String> commandParams,
       Map<String, String> roleParams);
+
+  /**
+   * Invalidates any cached effective cluster versions for upgrades.
+   *
+   * @see #getEffectiveClusterVersion()
+   */
+  void invalidateUpgradeEffectiveVersion();
 }

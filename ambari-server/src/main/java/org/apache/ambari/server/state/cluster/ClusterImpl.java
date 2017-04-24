@@ -335,6 +335,13 @@ public class ClusterImpl implements Cluster {
    */
   private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
+  /**
+   * A simple cache of the effective cluster version during an upgrade. Since
+   * calculation of this during an upgrade is not very quick or clean, it's good
+   * to cache it.
+   */
+  private final Map<Long, String> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
+
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity, Injector injector,
       AmbariEventPublisher eventPublisher)
@@ -1027,22 +1034,31 @@ public class ClusterImpl implements Cluster {
       return getCurrentClusterVersion();
     }
 
-    String effectiveVersion = null;
-    switch (upgradeEntity.getUpgradeType()) {
-      case NON_ROLLING:
-        if (upgradeEntity.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
-          effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion() : upgradeEntity.getFromVersion();
-        } else {
-          // Should be the lower value during a Downgrade.
+    // see if this is in the cache first, and only walk the upgrade if it's not
+    Long upgradeId = upgradeEntity.getId();
+    String effectiveVersion = upgradeEffectiveVersionCache.get(upgradeId);
+    if (null == effectiveVersion) {
+      switch (upgradeEntity.getUpgradeType()) {
+        case NON_ROLLING:
+          if (upgradeEntity.getDirection() == Direction.UPGRADE) {
+            boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
+            effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion()
+                : upgradeEntity.getFromVersion();
+          } else {
+            // Should be the lower value during a Downgrade.
+            effectiveVersion = upgradeEntity.getToVersion();
+          }
+          break;
+        case ROLLING:
+        default:
+          // Version will be higher on upgrade and lower on downgrade
+          // directions.
           effectiveVersion = upgradeEntity.getToVersion();
-        }
-        break;
-      case ROLLING:
-      default:
-        // Version will be higher on upgrade and lower on downgrade directions.
-        effectiveVersion = upgradeEntity.getToVersion();
-        break;
+          break;
+      }
+
+      // cache for later use
+      upgradeEffectiveVersionCache.put(upgradeId, effectiveVersion);
     }
 
     if (effectiveVersion == null) {
@@ -1083,6 +1099,14 @@ public class ClusterImpl implements Cluster {
       }
     }
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void invalidateUpgradeEffectiveVersion() {
+    upgradeEffectiveVersionCache.clear();
   }
 
   /**

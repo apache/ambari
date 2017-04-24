@@ -118,13 +118,18 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
       LOG.warn(String.format("Did not receive role parameter %s, will save configs using anonymous username %s", ServerAction.ACTION_USER_NAME, userName));
     }
 
-    return updateDesiredStack(clusterName, originalStackId, targetStackId, version, direction, upgradePack, userName);
+    // invalidate any cached effective ID
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.invalidateUpgradeEffectiveVersion();
+
+    return updateDesiredStack(cluster, originalStackId, targetStackId, version, direction,
+        upgradePack, userName);
   }
 
   /**
    * Set the cluster's Desired Stack Id during an upgrade.
    *
-   * @param clusterName the name of the cluster the action is meant for
+   * @param cluster the cluster
    * @param originalStackId the stack Id of the cluster before the upgrade.
    * @param targetStackId the stack Id that was desired for this upgrade.
    * @param direction direction, either upgrade or downgrade
@@ -133,14 +138,15 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
    * @return the command report to return
    */
   private CommandReport updateDesiredStack(
-      String clusterName, StackId originalStackId, StackId targetStackId,
+      Cluster cluster, StackId originalStackId, StackId targetStackId,
       String version, Direction direction, UpgradePack upgradePack, String userName)
       throws AmbariException, InterruptedException {
+
+    String clusterName = cluster.getClusterName();
     StringBuilder out = new StringBuilder();
     StringBuilder err = new StringBuilder();
 
     try {
-      Cluster cluster = clusters.getCluster(clusterName);
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
       out.append(String.format("Params: %s %s %s %s %s %s\n",
           clusterName, originalStackId.getStackId(), targetStackId.getStackId(), version, direction.getText(false), upgradePack.getName()));
