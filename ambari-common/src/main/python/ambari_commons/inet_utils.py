@@ -181,3 +181,24 @@ def resolve_address(address):
     if address == '0.0.0.0':
       return '127.0.0.1'
   return address
+
+def ensure_ssl_using_protocol(protocol):
+  """
+  Monkey patching ssl module to force it use tls_v1. Do this in common module to avoid problems with
+  PythonReflectiveExecutor.
+  :param protocol: one of ("PROTOCOL_SSLv2", "PROTOCOL_SSLv3", "PROTOCOL_SSLv23", "PROTOCOL_TLSv1", "PROTOCOL_TLSv1_1", "PROTOCOL_TLSv1_2")
+  :return:
+  """
+  from functools import wraps
+  import ssl
+  if hasattr(ssl.wrap_socket, "_ambari_patched"):
+    return # do not create chain of wrappers, patch only once
+  def sslwrap(func):
+    @wraps(func)
+    def bar(*args, **kw):
+      import ssl
+      kw['ssl_version'] = getattr(ssl, protocol)
+      return func(*args, **kw)
+    bar._ambari_patched = True
+    return bar
+  ssl.wrap_socket = sslwrap(ssl.wrap_socket)

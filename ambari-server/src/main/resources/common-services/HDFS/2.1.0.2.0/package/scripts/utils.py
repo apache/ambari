@@ -35,9 +35,11 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.show_logs import show_logs
+from ambari_commons.inet_utils import ensure_ssl_using_protocol
 
 from zkfc_slave import ZkfcSlaveDefault
 
+ensure_ssl_using_protocol(Script.get_force_https_protocol())
 def safe_zkfc_op(action, env):
   """
   Idempotent operation on the zkfc process to either start or stop it.
