@@ -93,6 +93,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AlertFirmness;
@@ -2579,7 +2580,7 @@ public class UpgradeCatalog240Test {
     expect(requestScheduleDAO.findAll()).andReturn(Collections.singletonList(requestScheduleEntity)).once();
 
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName("createdUser");
+    userEntity.setUserName(UserName.fromString("createdUser"));
     userEntity.setUserId(1);
     userEntity.setPrincipal(new PrincipalEntity());
     User user = new User(userEntity);

@@ -42,6 +42,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.UserType;
 
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "user_type"})})
@@ -117,8 +118,8 @@ public class UserEntity {
     return userName;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
+  public void setUserName(UserName userName) {
+    this.userName = userName.toString();
   }
 
   public Boolean getLdapUser() {
