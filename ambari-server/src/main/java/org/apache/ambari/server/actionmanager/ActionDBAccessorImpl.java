@@ -377,6 +377,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageDAO.create(stageEntity);
 
       List<HostRoleCommand> orderedHostRoleCommands = stage.getOrderedHostRoleCommands();
+      List<HostRoleCommandEntity> hostRoleCommandEntities = new ArrayList<>();
 
       for (HostRoleCommand hostRoleCommand : orderedHostRoleCommands) {
         hostRoleCommand.setRequestId(requestId);
@@ -384,8 +385,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
         hostRoleCommandEntity.setStage(stageEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);
+        hostRoleCommandEntities.add(hostRoleCommandEntity);
 
-        assert hostRoleCommandEntity.getTaskId() != null;
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
 
         String prefix = "";
@@ -442,6 +443,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
 
+      stageEntity.setHostRoleCommands(hostRoleCommandEntities);
       stageEntity = stageDAO.merge(stageEntity);
     }
 
@@ -516,6 +518,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     long now = System.currentTimeMillis();
 
     List<Long> requestsToCheck = new ArrayList<>();
+    List<Long> abortedCommandUpdates = new ArrayList<>();
 
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     List<HostRoleCommandEntity> commandEntitiesToMerge = new ArrayList<>();

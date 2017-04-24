@@ -158,6 +158,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -173,8 +174,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import junit.framework.Assert;
 
 public class AmbariManagementControllerTest {
 
@@ -9018,6 +9017,8 @@ public class AmbariManagementControllerTest {
 
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
 
+    Long firstHostId = clusters.getHost(host1).getHostId();
+
     // Deletion without specifying cluster should be successful
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
@@ -9030,6 +9031,10 @@ public class AmbariManagementControllerTest {
     Assert.assertFalse(clusters.getHostsForCluster(cluster1).containsKey(host1));
     Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
+
+    // verify there are no host role commands for the host
+    List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByHostId(firstHostId);
+    assertEquals(0, tasks.size());
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
