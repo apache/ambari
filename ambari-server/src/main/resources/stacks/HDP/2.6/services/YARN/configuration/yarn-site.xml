@@ -42,6 +42,18 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round</name>
+    <value>0.1</value>
+    <description>This option controls the pace at which containers-marked-for-preemption are actually preempted in each period.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor</name>
+    <value>1</value>
+    <description>Similar to total_preemption_per_round, we can apply this factor to slowdown resource preemption after preemption-target is computed for each queue.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>yarn.timeline-service.entity-group-fs-store.app-cache-size</name>
     <value>10</value>
     <description>

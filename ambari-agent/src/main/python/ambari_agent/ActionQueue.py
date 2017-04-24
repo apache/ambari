@@ -498,16 +498,14 @@ class ActionQueue(threading.Thread):
 
   def execute_status_command_and_security_status(self, command):
     component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
-    component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
-
-    return command, component_status_result, component_security_status_result
+    return command, component_status_result
 
   def process_status_command_result(self, result):
     '''
     Executes commands of type STATUS_COMMAND
     '''
     try:
-      command, component_status_result, component_security_status_result = result
+      command, component_status_result = result
       cluster = command['clusterName']
       service = command['serviceName']
       component = command['componentName']
@@ -547,9 +545,6 @@ class ActionQueue(threading.Thread):
       result = livestatus.build(component_status=component_status)
       if self.controller.recovery_manager.enabled():
         result['sendExecCmdDet'] = str(request_execution_cmd)
-
-      # Add security state to the result
-      result['securityState'] = component_security_status_result
 
       if component_extra is not None and len(component_extra) != 0:
         if component_extra.has_key('alerts'):

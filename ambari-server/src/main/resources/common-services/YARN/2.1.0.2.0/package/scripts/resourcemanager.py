@@ -132,66 +132,6 @@ class ResourcemanagerDefault(Resourcemanager):
     check_process_status(status_params.resourcemanager_pid_file)
     pass
 
-  def security_status(self, env):
-    import status_params
-    env.set_params(status_params)
-    if status_params.security_enabled:
-      props_value_check = {"yarn.timeline-service.http-authentication.type": "kerberos",
-                           "yarn.acl.enable": "true"}
-      props_empty_check = ["yarn.resourcemanager.principal",
-                           "yarn.resourcemanager.keytab",
-                           "yarn.resourcemanager.webapp.spnego-principal",
-                           "yarn.resourcemanager.webapp.spnego-keytab-file"]
-
-      props_read_check = ["yarn.resourcemanager.keytab",
-                          "yarn.resourcemanager.webapp.spnego-keytab-file"]
-      yarn_site_props = build_expectations('yarn-site', props_value_check, props_empty_check,
-                                           props_read_check)
-
-      yarn_expectations ={}
-      yarn_expectations.update(yarn_site_props)
-
-      security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
-                                                   {'yarn-site.xml': FILE_TYPE_XML})
-      result_issues = validate_security_config_properties(security_params, yarn_site_props)
-      if not result_issues: # If all validations passed successfully
-        try:
-          # Double check the dict before calling execute
-          if ( 'yarn-site' not in security_params
-               or 'yarn.resourcemanager.keytab' not in security_params['yarn-site']
-               or 'yarn.resourcemanager.principal' not in security_params['yarn-site']) \
-            or 'yarn.resourcemanager.webapp.spnego-keytab-file' not in security_params['yarn-site'] \
-            or 'yarn.resourcemanager.webapp.spnego-principal' not in security_params['yarn-site']:
-            self.put_structured_out({"securityState": "UNSECURED"})
-            self.put_structured_out(
-              {"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.yarn_user,
-                                security_params['yarn-site']['yarn.resourcemanager.keytab'],
-                                security_params['yarn-site']['yarn.resourcemanager.principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.yarn_user,
-                                security_params['yarn-site']['yarn.resourcemanager.webapp.spnego-keytab-file'],
-                                security_params['yarn-site']['yarn.resourcemanager.webapp.spnego-principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        except Exception as e:
-          self.put_structured_out({"securityState": "ERROR"})
-          self.put_structured_out({"securityStateErrorInfo": str(e)})
-      else:
-        issues = []
-        for cf in result_issues:
-          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-        self.put_structured_out({"securityState": "UNSECURED"})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
-
   def refreshqueues(self, env):
     import params
 

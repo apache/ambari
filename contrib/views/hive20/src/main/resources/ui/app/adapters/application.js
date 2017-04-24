@@ -57,7 +57,7 @@ export default DS.RESTAdapter.extend({
       // In development mode when the UI is served using ember serve the xhr requests are proxied to ambari server
       // by setting the proxyurl parameter in ember serve and for ambari to authenticate the requests, it needs this
       // basic authorization. This is for default admin/admin username/password combination.
-      //headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
+      headers['Authorization'] = 'Basic YWRtaW46YWRtaW4=';
       //headers['Authorization'] = 'Basic aGl2ZTpoaXZl';
       //headers['Authorization'] = 'Basic ZGlwYXlhbjpkaXBheWFu';
     }

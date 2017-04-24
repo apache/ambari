@@ -1012,7 +1012,11 @@ class TestHDP26StackAdvisor(TestCase):
 
     services = {
       "services":
-        [
+        [{
+           "StackServices": {
+             "service_name": "YARN"
+           }, "components": []
+         },
          {
             "StackServices": {
               "service_name" : "HIVE",
@@ -1158,6 +1162,7 @@ class TestHDP26StackAdvisor(TestCase):
           'yarn.timeline-service.entity-group-fs-store.app-cache-size': '10',
           'yarn.scheduler.minimum-allocation-mb': '256',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round': '1.0',
           'yarn.nodemanager.resource.cpu-vcores': '4',
           'yarn.scheduler.maximum-allocation-mb': '768',
           'yarn.nodemanager.linux-container-executor.group': 'hadoop',
@@ -1332,6 +1337,7 @@ class TestHDP26StackAdvisor(TestCase):
           'yarn.nodemanager.resource.memory-mb': '1280',
           'yarn.scheduler.minimum-allocation-mb': '256',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round': '1.0',
           'yarn.nodemanager.resource.cpu-vcores': '4',
           'yarn.scheduler.maximum-allocation-mb': '1280',
           'yarn.nodemanager.linux-container-executor.group': 'hadoop',
@@ -1438,6 +1444,7 @@ class TestHDP26StackAdvisor(TestCase):
           'yarn.nodemanager.resource.memory-mb': '1280',
           'yarn.scheduler.minimum-allocation-mb': '256',
           'yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath': '',
+          'yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round': '1.0',
           'yarn.nodemanager.resource.cpu-vcores': '4',
           'yarn.scheduler.maximum-allocation-mb': '1280',
           'yarn.nodemanager.linux-container-executor.group': 'hadoop',
