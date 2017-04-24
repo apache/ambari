@@ -90,7 +90,7 @@ public class AmbariAuthorizationProviderDisableUserTest {
     UserEntity activeUser = new UserEntity();
     activeUser.setUserId(1);
     activeUser.setActive(isActive);
-    activeUser.setUserName(login);
+    activeUser.setUserName(UserName.fromString(login));
     activeUser.setUserPassword(encoder.encode("pwd"));
     activeUser.setPrincipal(principalEntity);
     Mockito.when(userDAO.findLocalUserByName(login)).thenReturn(activeUser);
