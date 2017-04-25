@@ -34,7 +34,7 @@
         placeholder="{{'users.userName' | translate}}"
         ng-model="user.user_name"
         ng-required="true"
-        ng-pattern="/^\w*$/"
+        ng-pattern="/^[^<>&`|\\]+$/"
         ng-maxlength="80"
         tooltip="{{'users.userNameTip' | translate}}"
         autocomplete="off"
