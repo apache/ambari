@@ -21,7 +21,6 @@ limitations under the License.
 
 import os
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from logsearch_config_aggregator import get_logfeeder_metadata, get_logsearch_metadata, get_logsearch_meta_configs
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
@@ -79,8 +78,6 @@ java64_home = config['hostLevelParams']['java_home']
 cluster_name = str(config['clusterName'])
 
 configurations = config['configurations'] # need reference inside logfeeder jinja templates
-logserch_meta_configs = get_logsearch_meta_configs(configurations)
-logsearch_metadata = get_logsearch_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:

@@ -19,6 +19,8 @@
 package org.apache.ambari.logsearch.conf;
 
 import com.google.common.collect.Lists;
+
+import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
@@ -26,6 +28,7 @@ import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandle
 import org.apache.ambari.logsearch.web.filters.LogsearchAuditLogsStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint;
 import org.apache.ambari.logsearch.web.filters.LogsearchCorsFilter;
+import org.apache.ambari.logsearch.web.filters.LogSearchConfigStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
@@ -82,6 +85,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Named("solrUserConfigState")
   private SolrCollectionState solrUserConfigState;
 
+  @Inject
+  private LogSearchConfigState logSearchConfigState;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
@@ -108,6 +114,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterAfter(logsearchUserConfigFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchServiceLogFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterAfter(logSearchConfigStateFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterBefore(corsFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
@@ -175,6 +182,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public LogsearchUserConfigStateFilter logsearchUserConfigFilter() {
     return new LogsearchUserConfigStateFilter(userConfigRequestMatcher(), solrUserConfigState, solrUserPropsConfig);
   }
+  
+  public LogSearchConfigStateFilter logSearchConfigStateFilter() {
+    return new LogSearchConfigStateFilter(logsearchConfigRequestMatcher(), logSearchConfigState);
+  }
 
   @Bean
   public RequestMatcher requestMatcher() {
@@ -204,6 +215,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   public RequestMatcher userConfigRequestMatcher() {
     return new AntPathRequestMatcher("/api/v1/userconfig/**");
+  }
+
+  public RequestMatcher logsearchConfigRequestMatcher() {
+    return new AntPathRequestMatcher("/api/v1/shipper/**");
   }
 
 }

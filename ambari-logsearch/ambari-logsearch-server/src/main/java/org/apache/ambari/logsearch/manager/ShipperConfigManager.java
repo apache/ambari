@@ -21,7 +21,6 @@ package org.apache.ambari.logsearch.manager;
 
 import java.util.List;
 
-import org.apache.ambari.logsearch.conf.global.LogSearchConfigState;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
 import org.apache.log4j.Logger;
 
@@ -34,9 +33,6 @@ import javax.ws.rs.core.Response;
 public class ShipperConfigManager extends JsonManagerBase {
 
   private static final Logger logger = Logger.getLogger(ShipperConfigManager.class);
-  
-  @Inject
-  private LogSearchConfigState logSearchConfigState;
 
   @Inject
   private LogSearchConfigConfigurer logSearchConfigConfigurer;
@@ -47,29 +43,14 @@ public class ShipperConfigManager extends JsonManagerBase {
   }
   
   public List<String> getServices(String clusterName) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return null;
-    }
-    
     return LogSearchConfigConfigurer.getConfig().getServices(clusterName);
   }
 
   public String getInputConfig(String clusterName, String serviceName) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return null;
-    }
-    
     return LogSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
   }
 
   public Response setInputConfig(String clusterName, String serviceName, String inputConfig) {
-    if (!logSearchConfigState.isLogSearchConfigAvailable()) {
-      logger.warn("Log Search Config not available yet");
-      return Response.serverError().build();
-    }
-    
     try {
       LogSearchConfigConfigurer.getConfig().setInputConfig(clusterName, serviceName, inputConfig);
       return Response.ok().build();
