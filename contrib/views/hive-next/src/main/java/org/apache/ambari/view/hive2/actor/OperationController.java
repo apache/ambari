@@ -63,7 +63,7 @@ import java.util.UUID;
  */
 public class OperationController extends HiveActor {
 
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(OperationController.class);
 
   private final ActorSystem system;
   private final ActorRef deathWatch;
