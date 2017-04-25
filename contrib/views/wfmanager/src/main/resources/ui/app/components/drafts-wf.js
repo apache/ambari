@@ -124,7 +124,7 @@ export default Ember.Component.extend({
         rec.destroyRecord().then(function () {
           self.get('recentFiles', self.get('store').peekAll("wfproject"));
           self.set("deleteInProgress", false);
-          self.set("deleteMsg", "Workflow successfully deleted.");
+          self.set("deleteMsg", "Successfully removed the item from history");
           self.get('store').unloadRecord(rec);
           self.set('filteredModels', self.get('store').peekAll("wfproject"));
           Ember.run.later(()=>{
