@@ -383,6 +383,7 @@ CREATE TABLE host_role_command (
   command_detail VARCHAR(255),
   custom_command_name VARCHAR(255),
   is_background SMALLINT DEFAULT 0 NOT NULL,
+  ops_display_name VARCHAR(255),
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id));

@@ -694,10 +694,14 @@ App.format = {
    * @param {string} request_inputs
    * @return {string}
    */
-  commandDetail: function (command_detail, request_inputs) {
+  commandDetail: function (command_detail, request_inputs, ops_display_name) {
     var detailArr = command_detail.split(' ');
     var self = this;
     var result = '';
+    //if an optional operation display name has been specified in the service metainfo.xml
+    if (ops_display_name != null && ops_display_name.length > 0) {
+      result = result + ' ' + ops_display_name;
+    } else {
     detailArr.forEach( function(item) {
       // if the item has the pattern SERVICE/COMPONENT, drop the SERVICE part
       if (item.contains('/')) {
@@ -715,6 +719,7 @@ App.format = {
         result = result + ' ' + self.role(item, false);
       }
     });
+    }
 
     if (result.indexOf('Decommission:') > -1 || result.indexOf('Recommission:') > -1) {
       // for Decommission command, make sure the hostname is in lower case

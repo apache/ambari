@@ -384,6 +384,7 @@ CREATE TABLE host_role_command (
   structured_out BLOB NULL,
   command_detail VARCHAR2(255) NULL,
   custom_command_name VARCHAR2(255) NULL,
+  ops_display_name VARCHAR2(255),
   is_background SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),

@@ -125,6 +125,7 @@ public class TaskResourceProviderTest {
     hostRoleCommandEntity.setRole(Role.DATANODE);
     hostRoleCommandEntity.setCustomCommandName("customCommandName");
     hostRoleCommandEntity.setCommandDetail("commandDetail");
+    hostRoleCommandEntity.setOpsDisplayName("opsDisplayName");
     entities.add(hostRoleCommandEntity);
 
     // set expectations
@@ -139,6 +140,7 @@ public class TaskResourceProviderTest {
     propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_COMMAND_DET_PROPERTY_ID);
+    propertyIds.add(TaskResourceProvider.TASK_COMMAND_OPS_DISPLAY_NAME);
 
     Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("100").
                           and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
@@ -153,6 +155,8 @@ public class TaskResourceProviderTest {
           .TASK_CUST_CMD_NAME_PROPERTY_ID));
       Assert.assertEquals("commandDetail", resource.getPropertyValue(TaskResourceProvider
           .TASK_COMMAND_DET_PROPERTY_ID));
+      Assert.assertEquals("opsDisplayName",resource.getPropertyValue(TaskResourceProvider
+          .TASK_COMMAND_OPS_DISPLAY_NAME));
     }
 
     // verify
@@ -188,6 +192,7 @@ public class TaskResourceProviderTest {
     hostRoleCommandEntity.setRole(Role.DATANODE);
     hostRoleCommandEntity.setCustomCommandName("customCommandName");
     hostRoleCommandEntity.setCommandDetail("commandDetail");
+    hostRoleCommandEntity.setOpsDisplayName("opsDisplayName");
     commands.add(new HostRoleCommand(hostRoleCommandEntity, hostDAO, executionCommandDAO, ecwFactory));
 
     // set expectations
@@ -203,6 +208,7 @@ public class TaskResourceProviderTest {
     propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
     propertyIds.add(TaskResourceProvider.TASK_COMMAND_DET_PROPERTY_ID);
+    propertyIds.add(TaskResourceProvider.TASK_COMMAND_OPS_DISPLAY_NAME);
 
     Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("100").
       and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
@@ -218,6 +224,8 @@ public class TaskResourceProviderTest {
         .TASK_CUST_CMD_NAME_PROPERTY_ID));
       Assert.assertEquals("commandDetail", resource.getPropertyValue(TaskResourceProvider
         .TASK_COMMAND_DET_PROPERTY_ID));
+      Assert.assertEquals("opsDisplayName",resource.getPropertyValue(TaskResourceProvider
+          .TASK_COMMAND_OPS_DISPLAY_NAME));
     }
 
     // verify

@@ -256,12 +256,17 @@ describe('utils/helper', function() {
     describe('#App.format', function(){
       describe('#commandDetail()', function() {
         var command = "GANGLIA_MONITOR STOP";
+        var custom_command_detail = "Remove_Logical_Mycomponent Mycomponent";
+        var ops_display_name = "Remove Logical Mycomponent";
         var ignored = "DECOMMISSION, NAMENODE";
         var removeString = "SERVICE/HDFS STOP";
         var nagiosState = "nagios_update_ignore ACTIONEXECUTE";
         var installRepo = "install_packages ACTIONEXECUTE";
         it('should convert command to readable info', function() {
           expect(App.format.commandDetail(command)).to.be.equal(' Ganglia Monitor Stop');
+        });
+        it('should use display name for operations if specified', function() {
+          expect(App.format.commandDetail(custom_command_detail, null, ops_display_name)).to.be.equal(' Remove Logical Mycomponent');
         });
         it('should ignore decommission command', function(){
           expect(App.format.commandDetail(ignored)).to.be.equal('  NameNode');

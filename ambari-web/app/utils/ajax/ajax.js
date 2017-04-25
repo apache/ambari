@@ -231,7 +231,7 @@ var urls = {
   },
 
   'common.request.polling': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
 
@@ -544,7 +544,7 @@ var urls = {
     'testInProduction': true
   },
   'background_operations.get_by_request': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/background_operations/task_by_request{requestId}.json',
     'testInProduction': true
   },
@@ -1684,7 +1684,7 @@ var urls = {
     'mock': '/data/stack_versions/upgrade_item.json'
   },
   'admin.upgrade.service_checks': {
-    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true'
   },
   'admin.upgrade.update.options': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
@@ -1969,7 +1969,7 @@ var urls = {
     'mock': '/data/wizard/deploy/5_hosts/get_host_state.json'
   },
   'wizard.step9.load_log': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
     'format': function () {
       return {

@@ -181,6 +181,11 @@ public class HostRoleCommandEntity {
   @Basic
   private String commandDetail;
 
+  // An optional property that can be used for setting the displayName for operations window
+  @Column(name = "ops_display_name")
+  @Basic
+  private String opsDisplayName;
+
   // When command type id CUSTOM_COMMAND and CUSTOM_ACTION this is the name
   @Column(name = "custom_command_name")
   @Basic
@@ -377,6 +382,16 @@ public class HostRoleCommandEntity {
   public void setCustomCommandName(String customCommandName) {
     this.customCommandName = customCommandName;
   }
+
+  public String getOpsDisplayName() {
+    return opsDisplayName;
+  }
+
+  public void setOpsDisplayName(String opsDisplayName) {
+    this.opsDisplayName = opsDisplayName;
+  }
+
+  
 
   /**
    * Determine whether this task should hold for retry when an error occurs.
