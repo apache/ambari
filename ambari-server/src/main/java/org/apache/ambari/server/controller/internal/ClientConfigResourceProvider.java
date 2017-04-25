@@ -586,28 +586,27 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     throws SystemException {
     processExecutor.shutdown();
     try {
-      if (!processExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS)) {
-        processExecutor.shutdownNow();
-        for (CommandLineThreadWrapper commandLineThreadWrapper: pythonCmdThreads) {
-          CommandLineThread commandLineThread = commandLineThreadWrapper.getCommandLineThread();
-          try {
-            Integer returnCode = commandLineThread.getReturnCode();
-            if (returnCode == null) {
-              throw new TimeoutException();
-            } else if (returnCode != 0) {
-              throw new ExecutionException(String.format("Execution of \"%s\" returned %d.", commandLineThreadWrapper.getCommandLine(), returnCode),
-                new Throwable(commandLineThreadWrapper.getLogStream().getOutput()));
-            }
-          } catch (TimeoutException e) {
-            LOG.error("Generate client configs script was killed due to timeout ", e);
-            throw new SystemException("Generate client configs script was killed due to timeout ", e);
-          } catch (ExecutionException e) {
-            LOG.error(e.getMessage(), e);
-            throw new SystemException(e.getMessage() + " " + e.getCause());
-          } finally {
-            commandLineThreadWrapper.getProcess().destroy();
+      processExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+      processExecutor.shutdownNow();
+      for (CommandLineThreadWrapper commandLineThreadWrapper: pythonCmdThreads) {
+        CommandLineThread commandLineThread = commandLineThreadWrapper.getCommandLineThread();
+        try {
+          Integer returnCode = commandLineThread.getReturnCode();
+          if (returnCode == null) {
+            throw new TimeoutException();
+          } else if (returnCode != 0) {
+            throw new ExecutionException(String.format("Execution of \"%s\" returned %d.", commandLineThreadWrapper.getCommandLine(), returnCode),
+              new Throwable(commandLineThreadWrapper.getLogStream().getOutput()));
           }
-        }  
+        } catch (TimeoutException e) {
+          LOG.error("Generate client configs script was killed due to timeout ", e);
+          throw new SystemException("Generate client configs script was killed due to timeout ", e);
+        } catch (ExecutionException e) {
+          LOG.error(e.getMessage(), e);
+          throw new SystemException(e.getMessage() + " " + e.getCause());
+        } finally {
+          commandLineThreadWrapper.getProcess().destroy();
+        }
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
