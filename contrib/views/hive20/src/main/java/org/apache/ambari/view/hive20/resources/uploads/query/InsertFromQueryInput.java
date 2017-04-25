@@ -28,28 +28,38 @@ public class InsertFromQueryInput {
   private String fromTable;
   private String toDatabase;
   private String toTable;
-  private List<ColumnInfo> header;
+  private List<ColumnInfo> partitionedColumns;
+  private List<ColumnInfo> normalColumns;
   private Boolean unhexInsert = Boolean.FALSE;
 
   public InsertFromQueryInput() {
   }
 
   public InsertFromQueryInput(String fromDatabase, String fromTable, String toDatabase, String toTable,
-                              List<ColumnInfo> header, Boolean unhexInsert) {
+                              List<ColumnInfo> partitionedColumns, List<ColumnInfo> normalColumns, Boolean unhexInsert) {
     this.fromDatabase = fromDatabase;
     this.fromTable = fromTable;
     this.toDatabase = toDatabase;
     this.toTable = toTable;
-    this.header = header;
+    this.partitionedColumns = partitionedColumns;
+    this.normalColumns = normalColumns;
     this.unhexInsert = unhexInsert;
   }
 
-  public List<ColumnInfo> getHeader() {
-    return header;
+  public List<ColumnInfo> getPartitionedColumns() {
+    return partitionedColumns;
   }
 
-  public void setHeader(List<ColumnInfo> header) {
-    this.header = header;
+  public void setPartitionedColumns(List<ColumnInfo> partitionedColumns) {
+    this.partitionedColumns = partitionedColumns;
+  }
+
+  public List<ColumnInfo> getNormalColumns() {
+    return normalColumns;
+  }
+
+  public void setNormalColumns(List<ColumnInfo> normalColumns) {
+    this.normalColumns = normalColumns;
   }
 
   public Boolean getUnhexInsert() {
