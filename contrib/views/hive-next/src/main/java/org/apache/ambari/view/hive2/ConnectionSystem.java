@@ -23,6 +23,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Inbox;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
@@ -49,8 +51,9 @@ public class ConnectionSystem {
   private static Map<String, String> credentialsMap = new ConcurrentHashMap<>();
 
   private ConnectionSystem() {
-    this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);
-    ;
+    ClassLoader classLoader = getClass().getClassLoader();
+    Config config = ConfigFactory.load(classLoader);
+    this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME, config, classLoader);
   }
 
   public static ConnectionSystem getInstance() {
@@ -86,12 +89,12 @@ public class ConnectionSystem {
     String instanceName = context.getInstanceName();
     ActorRef ref = null;
     Map<String, ActorRef> stringActorRefMap = operationControllerMap.get(instanceName);
-    if(stringActorRefMap != null) {
+    if (stringActorRefMap != null) {
       ref = stringActorRefMap.get(context.getUsername());
     }
     if (ref == null) {
       ref = createOperationController(context);
-      if(stringActorRefMap == null) {
+      if (stringActorRefMap == null) {
         stringActorRefMap = new HashMap<>();
         stringActorRefMap.put(context.getUsername(), ref);
         operationControllerMap.put(instanceName, stringActorRefMap);
@@ -116,9 +119,11 @@ public class ConnectionSystem {
 
   public void removeOperationControllerFromCache(String viewInstanceName) {
     Map<String, ActorRef> refs = operationControllerMap.remove(viewInstanceName);
-    for (ActorRef ref : refs.values()) {
-      Inbox inbox = Inbox.create(getActorSystem());
-      inbox.send(ref, PoisonPill.getInstance());
+    if (refs != null) {
+      for (ActorRef ref : refs.values()) {
+        Inbox inbox = Inbox.create(getActorSystem());
+        inbox.send(ref, PoisonPill.getInstance());
+      }
     }
   }
 
