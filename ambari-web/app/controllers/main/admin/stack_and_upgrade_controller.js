@@ -63,6 +63,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * @type {boolean}
+   */
+  showPauseButton: Em.computed.and('!App.upgradeSuspended', '!App.upgradeCompleted'),
+
+  /**
+   * @type {boolean}
    * @default true
    */
   downgradeAllowed: true,

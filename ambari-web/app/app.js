@@ -71,6 +71,12 @@ module.exports = Em.Application.create({
   upgradeInProgress: Em.computed.equal('upgradeState', 'IN_PROGRESS'),
 
   /**
+   * Checks if update process is completed
+   * @type {boolean}
+   */
+  upgradeCompleted: Em.computed.equal('upgradeState', 'COMPLETED'),
+
+  /**
    * flag is true when upgrade process is waiting for user action
    * to proceed, retry, perform manual steps etc.
    * @returns {boolean}
