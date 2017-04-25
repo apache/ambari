@@ -99,6 +99,8 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static final int DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS = 5000;
 
+  private static final String LOGSEARCH_CLUSTERS_QUERY_PARAMETER_NAME = "clusters";
+
   private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final String hostName;
@@ -381,6 +383,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
   private URI createLogSearchQueryURI(String scheme, Map<String, String> queryParameters) throws URISyntaxException {
     URIBuilder uriBuilder = createBasicURI(scheme);
     uriBuilder.setPath(LOGSEARCH_QUERY_PATH);
+
+    // set the current cluster name, in case this LogSearch service supports data
+    // for multiple clusters
+    uriBuilder.addParameter(LOGSEARCH_CLUSTERS_QUERY_PARAMETER_NAME, cluster.getClusterName());
 
     // add any query strings specified
     for (String key : queryParameters.keySet()) {
