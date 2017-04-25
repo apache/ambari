@@ -27,8 +27,6 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.eclipse.persistence.config.HintValues;
-import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -90,10 +88,10 @@ public class UpgradeDAO {
 
   @RequiresSession
   public UpgradeEntity findUpgradeByRequestId(Long requestId) {
-    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT p FROM UpgradeEntity p WHERE p.requestId = :requestId", UpgradeEntity.class);
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findUpgradeByRequestId", UpgradeEntity.class);
+
     query.setParameter("requestId", requestId);
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
@@ -131,25 +129,9 @@ public class UpgradeDAO {
     TypedQuery<UpgradeGroupEntity> query = entityManagerProvider.get().createQuery(
         "SELECT p FROM UpgradeGroupEntity p WHERE p.upgradeGroupId = :groupId", UpgradeGroupEntity.class);
     query.setParameter("groupId", groupId);
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
-
-  /**
-   * @param itemId the item id
-   * @return the upgrade item entity, or {@code null} if not found
-   */
-  @RequiresSession
-  public UpgradeItemEntity findUpgradeItem(long itemId) {
-    TypedQuery<UpgradeItemEntity> query = entityManagerProvider.get().createQuery(
-        "SELECT p FROM UpgradeItemEntity p WHERE p.upgradeItemId = :itemId", UpgradeItemEntity.class);
-    query.setParameter("itemId", Long.valueOf(itemId));
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
-
-    return daoUtils.selectSingle(query);
-  }
-
 
   /**
    * @param requestId the request id
@@ -163,8 +145,6 @@ public class UpgradeDAO {
         UpgradeItemEntity.class);
     query.setParameter("requestId", requestId);
     query.setParameter("stageId", stageId);
-
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
@@ -184,8 +164,6 @@ public class UpgradeDAO {
     query.setParameter("clusterId", clusterId);
     query.setParameter("direction", direction);
 
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
-
     return daoUtils.selectSingle(query);
   }
 
@@ -199,8 +177,6 @@ public class UpgradeDAO {
         "UpgradeEntity.findLatestForCluster", UpgradeEntity.class);
     query.setMaxResults(1);
     query.setParameter("clusterId", clusterId);
-
-    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectSingle(query);
   }
