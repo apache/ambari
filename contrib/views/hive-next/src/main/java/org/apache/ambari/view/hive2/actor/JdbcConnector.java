@@ -77,7 +77,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class JdbcConnector extends HiveActor {
 
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(JdbcConnector.class);
 
   public static final String SUFFIX = "validating the login";
 
@@ -527,12 +527,6 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void checkTerminationInactivity() {
-    if (!isAsync()) {
-      // Should not terminate if job is sync. Will terminate after the job is finished.
-      stopTerminateInactivityScheduler();
-      return;
-    }
-
     LOG.debug("Termination check, executing status: {}", executing);
     if (executing) {
       keepAlive();
