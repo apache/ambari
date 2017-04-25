@@ -106,6 +106,18 @@
             }
           ]
         }
+      },
+      {
+        "name": "ambari_server_component_version",
+        "label": "Component Version",
+        "description": "This alert is triggered if the server detects that there is a problem with the expected and reported version of a component. The alert is suppressed automatically during an upgrade.",
+        "interval": 5,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.ComponentVersionAlertRunnable"
+        }
       }
     ],
     "AMBARI_AGENT" : [
