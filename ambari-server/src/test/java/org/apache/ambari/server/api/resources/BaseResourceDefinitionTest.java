@@ -140,7 +140,7 @@ public class BaseResourceDefinitionTest {
       resource.getRenderer("foo");
       fail("Should have thrown an exception due to invalid renderer type");
     } catch (IllegalArgumentException e) {
-      // expected
+      assertEquals("Invalid renderer name for resource of type Service", e.getMessage());
     }
   }
 
