@@ -43,6 +43,7 @@
     <module>ambari-infra-assembly</module>
     <module>ambari-infra-solr-client</module>
     <module>ambari-infra-solr-plugin</module>
+    <module>ambari-infra-manager</module>
   </modules>
 
   <build>
