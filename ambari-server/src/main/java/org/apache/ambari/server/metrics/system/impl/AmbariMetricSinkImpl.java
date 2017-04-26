@@ -20,6 +20,7 @@ package org.apache.ambari.server.metrics.system.impl;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -71,6 +72,8 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
   private AmbariManagementController ambariManagementController;
   private TimelineMetricsCache timelineMetricsCache;
   private boolean isInitialized = false;
+  private boolean setInstanceId = false;
+  private String instanceId;
 
   public AmbariMetricSinkImpl(AmbariManagementController amc) {
     this.ambariManagementController = amc;
@@ -98,28 +101,30 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
 
     for (Map.Entry<String, Cluster> kv : clusters.getClusters().entrySet()) {
       String clusterName = kv.getKey();
+      instanceId = clusterName;
       Cluster c = kv.getValue();
       Resource.Type type = Resource.Type.ServiceConfigVersion;
 
       //If Metrics Collector VIP settings are configured, use that.
-      boolean vipHostConfigPresent = false;
-      boolean vipPortConfigPresent = false;
+      boolean externalHostConfigPresent = false;
+      boolean externalPortConfigPresent = false;
       Config clusterEnv = c.getDesiredConfigByType(ConfigHelper.CLUSTER_ENV);
       if (clusterEnv != null) {
         Map<String, String> configs = clusterEnv.getProperties();
 
-        String metricsCollectorVipHost = configs.get("metrics_collector_vip_host");
-        if (StringUtils.isNotEmpty(metricsCollectorVipHost)) {
-          LOG.info("Setting Metrics Collector Vip Host : " + metricsCollectorVipHost);
-          collectorHosts.add(metricsCollectorVipHost);
-          vipHostConfigPresent = true;
+        String metricsCollectorExternalHosts = configs.get("metrics_collector_external_hosts");
+        if (StringUtils.isNotEmpty(metricsCollectorExternalHosts)) {
+          LOG.info("Setting Metrics Collector External Host : " + metricsCollectorExternalHosts);
+          collectorHosts.addAll(Arrays.asList(metricsCollectorExternalHosts.split(",")));
+          externalHostConfigPresent = true;
+          setInstanceId = true;
         }
 
-        String metricsCollectorVipPort = configs.get("metrics_collector_vip_port");
-        if (StringUtils.isNotEmpty(metricsCollectorVipPort)) {
-          LOG.info("Setting Metrics Collector Vip Port : " + metricsCollectorVipPort);
-          port = metricsCollectorVipPort;
-          vipPortConfigPresent = true;
+        String metricsCollectorExternalPort = configs.get("metrics_collector_external_port");
+        if (StringUtils.isNotEmpty(metricsCollectorExternalPort)) {
+          LOG.info("Setting Metrics Collector External Port : " + metricsCollectorExternalPort);
+          port = metricsCollectorExternalPort;
+          externalPortConfigPresent = true;
         }
       }
 
@@ -140,7 +145,7 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
         ambariManagementController);
 
       try {
-        if ( !vipHostConfigPresent ) {
+        if ( !externalHostConfigPresent ) {
           //get collector host(s)
           Service service = c.getService(ambariMetricsServiceName);
           if (service != null) {
@@ -166,7 +171,7 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
               if (config != null && config.get("type").equals("ams-site")) {
                 TreeMap<Object, Object> properties = (TreeMap<Object, Object>) config.get("properties");
                 String timelineWebappAddress = (String) properties.get("timeline.metrics.service.webapp.address");
-                if (!vipPortConfigPresent && StringUtils.isNotEmpty(timelineWebappAddress) && timelineWebappAddress.contains(":")) {
+                if (!externalPortConfigPresent && StringUtils.isNotEmpty(timelineWebappAddress) && timelineWebappAddress.contains(":")) {
                   port = timelineWebappAddress.split(":")[1];
                 }
                 String httpPolicy = (String) properties.get("timeline.metrics.service.http.policy");
@@ -318,6 +323,9 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);
+    if (setInstanceId) {
+      timelineMetric.setInstanceId(instanceId);
+    }
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
 

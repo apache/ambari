@@ -240,8 +240,14 @@ class Configuration:
   def is_server_https_enabled(self):
     return "true" == str(self.get("collector", "https_enabled")).lower()
 
+  def is_set_instanceid(self):
+    return "true" == str(self.get("default", "set.instanceId", 'false')).lower()
+
   def get_server_host(self):
     return self.get("collector", "host")
+
+  def get_instanceid(self):
+    return self.get("default", "instanceid")
 
   def get_server_port(self):
     try:

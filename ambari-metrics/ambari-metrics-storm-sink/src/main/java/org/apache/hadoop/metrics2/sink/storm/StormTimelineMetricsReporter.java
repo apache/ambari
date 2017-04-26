@@ -48,6 +48,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
+  private boolean setInstanceId;
+  private String instanceId;
 
   public StormTimelineMetricsReporter() {
 
@@ -115,7 +117,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         Integer.parseInt(conf.getProperty(METRICS_POST_TIMEOUT_SECONDS).toString()) :
         DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = conf.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
-
+      setInstanceId = Boolean.valueOf(conf.getProperty(SET_INSTANCE_ID_PROPERTY));
+      instanceId = conf.getProperty(INSTANCE_ID_PROPERTY);
       if (protocol.contains("https")) {
         String trustStorePath = conf.getProperty(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
         String trustStoreType = conf.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
@@ -229,6 +232,9 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostname);
+    if (setInstanceId) {
+      timelineMetric.setInstanceId(instanceId);
+    }
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
     timelineMetric.setType(ClassUtils.getShortCanonicalName(attributeValue, "Number"));

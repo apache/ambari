@@ -61,6 +61,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private final static String COUNTER_METRICS_PROPERTY = "counters";
   private final Set<String> counterMetrics = new HashSet<String>();
   private int timeoutSeconds = 10;
+  private boolean setInstanceId;
+  private String instanceId;
 
   @Override
   public void start() {
@@ -104,6 +106,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     zookeeperQuorum = configuration.getProperty("zookeeper.quorum");
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
+    setInstanceId = Boolean.valueOf(configuration.getProperty(SET_INSTANCE_ID_PROPERTY, "false"));
+    instanceId = configuration.getProperty(INSTANCE_ID_PROPERTY, "");
     // Initialize the collector write strategy
     super.init();
 
@@ -225,7 +229,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       TimelineMetric timelineMetric = new TimelineMetric();
       timelineMetric.setMetricName(attributeName);
       timelineMetric.setHostName(hostname);
-      timelineMetric.setInstanceId(component);
+      if (setInstanceId) {
+        timelineMetric.setInstanceId(instanceId + component);
+      } else {
+        timelineMetric.setInstanceId(component);
+      }
       timelineMetric.setAppId("FLUME_HANDLER");
       timelineMetric.setStartTime(currentTimeMillis);
       timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));

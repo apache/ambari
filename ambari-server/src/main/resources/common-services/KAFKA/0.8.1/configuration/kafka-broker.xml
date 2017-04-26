@@ -399,6 +399,16 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>kafka.timeline.metrics.instanceId</name>
+    <value>{{cluster_name}}</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.set.instanceId</name>
+    <value>{{set_instanceId}}</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>kafka.timeline.metrics.maxRowCacheSize</name>
     <value>10000</value>
     <description>Timeline metrics reporter send interval</description>

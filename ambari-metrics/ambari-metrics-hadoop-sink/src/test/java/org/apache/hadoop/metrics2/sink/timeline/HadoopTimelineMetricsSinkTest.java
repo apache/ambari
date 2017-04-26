@@ -51,12 +51,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PORT;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_HOSTS_PROPERTY;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PROTOCOL;
+import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.INSTANCE_ID_PROPERTY;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.MAX_METRIC_ROW_CACHE_SIZE;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.METRICS_SEND_INTERVAL;
+import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.SET_INSTANCE_ID_PROPERTY;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -82,13 +85,17 @@ public class HadoopTimelineMetricsSinkTest {
   }
 
   @Test
-  @PrepareForTest({URL.class, OutputStream.class, AbstractTimelineMetricsSink.class, HttpURLConnection.class})
+  @PrepareForTest({URL.class, OutputStream.class, AbstractTimelineMetricsSink.class, HttpURLConnection.class, TimelineMetric.class, HadoopTimelineMetricsSink.class})
   public void testPutMetrics() throws Exception {
     HadoopTimelineMetricsSink sink = new HadoopTimelineMetricsSink();
 
     HttpURLConnection connection = PowerMock.createNiceMock(HttpURLConnection.class);
     URL url = PowerMock.createNiceMock(URL.class);
     InputStream is = IOUtils.toInputStream(gson.toJson(Collections.singletonList("localhost")));
+    TimelineMetric timelineMetric = PowerMock.createNiceMock(TimelineMetric.class);
+    expectNew(TimelineMetric.class).andReturn(timelineMetric).times(2);
+    expect(timelineMetric.getMetricValues()).andReturn(new TreeMap<Long, Double>()).anyTimes();
+    expect(timelineMetric.getMetricName()).andReturn("metricName").anyTimes();
     expectNew(URL.class, anyString()).andReturn(url).anyTimes();
     expect(url.openConnection()).andReturn(connection).anyTimes();
     expect(connection.getInputStream()).andReturn(is).anyTimes();
@@ -107,6 +114,8 @@ public class HadoopTimelineMetricsSinkTest {
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(1000).anyTimes();
+    expect(conf.getBoolean(eq(SET_INSTANCE_ID_PROPERTY), eq(false))).andReturn(true).anyTimes();
+    expect(conf.getString(eq(INSTANCE_ID_PROPERTY))).andReturn("instanceId").anyTimes();
 
     conf.setListDelimiter(eq(','));
     expectLastCall().anyTimes();
@@ -145,6 +154,9 @@ public class HadoopTimelineMetricsSinkTest {
     }).anyTimes();
 
     expect(record.metrics()).andReturn(Arrays.asList(metric)).anyTimes();
+
+    timelineMetric.setInstanceId(eq("instanceId"));
+    EasyMock.expectLastCall();
 
     replay(conf, record, metric);
     replayAll();

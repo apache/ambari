@@ -23,6 +23,8 @@ metrics_servers = {{ams_collector_hosts}}
 enable_time_threshold = false
 enable_value_threshold = false
 skip_disk_patterns = {{skip_disk_metrics_patterns}}
+instanceId={{cluster_name}}
+set.instanceId={{set_instanceId}}
 
 [emitter]
 send_interval = {{metrics_report_interval}}

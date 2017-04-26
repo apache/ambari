@@ -52,6 +52,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
   private String instanceId = null;
+  private boolean setInstanceId;
   private String serviceName = "";
   private Collection<String> collectorHosts;
   private String collectorUri;
@@ -95,8 +96,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
 
     serviceName = getServiceName(conf);
-    String inst = conf.getString("instanceId", "");
-    instanceId = StringUtils.isEmpty(inst) ? null : inst;
+    instanceId = conf.getString(INSTANCE_ID_PROPERTY);
+    setInstanceId = conf.getBoolean(SET_INSTANCE_ID_PROPERTY, false);
 
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
     // Initialize the collector write strategy
@@ -322,7 +323,9 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setMetricName(name);
         timelineMetric.setHostName(hostName);
         timelineMetric.setAppId(serviceName);
-        timelineMetric.setInstanceId(instanceId);
+        if (setInstanceId) {
+          timelineMetric.setInstanceId(instanceId);
+        }
         timelineMetric.setStartTime(startTime);
         timelineMetric.setType(metric.type() != null ? metric.type().name() : null);
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
