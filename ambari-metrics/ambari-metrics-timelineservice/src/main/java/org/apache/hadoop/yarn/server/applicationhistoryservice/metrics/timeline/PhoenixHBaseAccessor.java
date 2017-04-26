@@ -787,7 +787,9 @@ public class PhoenixHBaseAccessor {
         metadataManager.putIfModifiedHostedAppsMetadata(
                 tm.getHostName(), tm.getAppId());
 
-        metadataManager.putIfModifiedHostedInstanceMetadata(tm.getInstanceId(), tm.getHostName());
+        if (!tm.getAppId().equals("FLUME_HANDLER")) {
+          metadataManager.putIfModifiedHostedInstanceMetadata(tm.getInstanceId(), tm.getHostName());
+        }
       }
       if (!acceptMetric) {
         iterator.remove();
