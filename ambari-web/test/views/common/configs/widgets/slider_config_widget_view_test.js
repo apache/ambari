@@ -137,7 +137,15 @@ describe('App.SliderConfigWidgetView', function () {
     });
   });
 
-  describe('#mirrorValueObs', function () {
+  describe('#mirrorValueObsOnce', function () {
+
+    beforeEach(function () {
+      sinon.stub(Em.run, 'once', Em.tryInvoke);
+    });
+
+    afterEach(function () {
+      Em.run.once.restore();
+    });
 
     describe('check int', function () {
 
