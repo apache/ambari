@@ -411,9 +411,10 @@
   </property>
 
   <!-- These configs were inherited from HDP 2.1 -->
+  <!-- TODO, temporarily disable timeline service since failing due to YARN-6534 -->
   <property>
     <name>yarn.timeline-service.enabled</name>
-    <value>true</value>
+    <value>false</value>
     <description>Indicate to clients whether timeline service is enabled or not.
       If enabled, clients will put entities and events to the timeline server.
     </description>
@@ -1033,11 +1034,9 @@ yarn.node-labels.manager-class
   </property>
 
   <!--ats v2.0 properties-->
-
-  <!-- TODO HDP 3.0, set version to 2.0 once ready. -->
   <property>
     <name>yarn.timeline-service.version</name>
-    <value>1.5</value>
+    <value>2.0</value>
     <description>Timeline service version we&#x2019;re currently using.</description>
     <on-ambari-upgrade add="false"/>
   </property>
