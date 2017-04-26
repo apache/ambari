@@ -28,17 +28,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 
 public class UploadConfigurationHandler extends AbstractSolrConfigHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(UploadConfigurationHandler.class);
 
   private static final String SOLR_CONFIG_FILE = "solrconfig.xml";
+  private static final String[] configFiles = {
+    "admin-extra.html", "admin-extra.menu-bottom.html", "admin-extra.menu-top.html",
+    "elevate.xml", "enumsConfig.xml", "managed-schema", "solrconfig.xml"
+  };
+  private boolean hasEnumConfig;
 
-  public UploadConfigurationHandler(File configSetFolder) {
+  public UploadConfigurationHandler(File configSetFolder, boolean hasEnumConfig) {
     super(configSetFolder);
+    this.hasEnumConfig = hasEnumConfig;
   }
 
   @Override
@@ -51,19 +59,7 @@ public class UploadConfigurationHandler extends AbstractSolrConfigHandler {
       zkConfigManager.uploadConfigDir(getConfigSetFolder().toPath(), solrPropsConfig.getConfigName());
       String filePath = String.format("%s%s%s", getConfigSetFolder(), separator, getConfigFileName());
       String configsPath = String.format("/%s/%s/%s", "configs", solrPropsConfig.getConfigName(), getConfigFileName());
-      InputStream is = new FileInputStream(filePath);
-      try {
-        if (zkClient.exists(configsPath, true)) {
-          zkClient.setData(configsPath, IOUtils.toByteArray(is), true);
-        } else {
-          zkClient.create(configsPath, IOUtils.toByteArray(is), CreateMode.PERSISTENT, true);
-        }
-      } catch (Exception e) {
-        throw new IllegalStateException(e);
-      }
-      finally {
-        IOUtils.closeQuietly(is);
-      }
+      uploadFileToZk(zkClient, filePath, configsPath);
       result = true;
     }
     return result;
@@ -81,5 +77,42 @@ public class UploadConfigurationHandler extends AbstractSolrConfigHandler {
   @Override
   public String getConfigFileName() {
     return SOLR_CONFIG_FILE;
+  }
+
+  @Override
+  public void uploadMissingConfigFiles(SolrZkClient zkClient, ZkConfigManager zkConfigManager, String configName) throws IOException {
+    LOG.info("Check any of the configs files are missing for config ({})", configName);
+    for (String configFile : configFiles) {
+      if ("enumsConfig.xml".equals(configFile) && !hasEnumConfig) {
+        LOG.info("Config file ({}) is not needed for {}", configFile, configName);
+        continue;
+      }
+      String zkPath = String.format("%s/%s", configName, configFile);
+      if (zkConfigManager.configExists(zkPath)) {
+        LOG.info("Config file ({}) has already uploaded properly.", configFile);
+      } else {
+        LOG.info("Config file ({}) is missing. Reupload...", configFile);
+        FileSystems.getDefault().getSeparator();
+        uploadFileToZk(zkClient,
+          String.format("%s%s%s", getConfigSetFolder(), FileSystems.getDefault().getSeparator(), configFile),
+          String.format("%s%s", "/configs/", zkPath));
+      }
+    }
+  }
+
+  private void uploadFileToZk(SolrZkClient zkClient, String filePath, String configsPath) throws FileNotFoundException {
+    InputStream is = new FileInputStream(filePath);
+    try {
+      if (zkClient.exists(configsPath, true)) {
+        zkClient.setData(configsPath, IOUtils.toByteArray(is), true);
+      } else {
+        zkClient.create(configsPath, IOUtils.toByteArray(is), CreateMode.PERSISTENT, true);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+    finally {
+      IOUtils.closeQuietly(is);
+    }
   }
 }

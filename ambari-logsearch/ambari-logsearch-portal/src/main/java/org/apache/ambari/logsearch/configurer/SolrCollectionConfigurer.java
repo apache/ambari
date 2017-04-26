@@ -54,9 +54,11 @@ public class SolrCollectionConfigurer implements SolrConfigurer {
   private static final int CONNECTION_TIMEOUT = 30000;
 
   private final SolrDaoBase solrDaoBase;
+  private final boolean hasEnumConfig; // enumConfig.xml for solr collection
 
-  public SolrCollectionConfigurer(final SolrDaoBase solrDaoBase) {
+  public SolrCollectionConfigurer(final SolrDaoBase solrDaoBase, final boolean hasEnumConfig) {
     this.solrDaoBase = solrDaoBase;
+    this.hasEnumConfig = hasEnumConfig;
   }
 
   @Override
@@ -100,7 +102,7 @@ public class SolrCollectionConfigurer implements SolrConfigurer {
   }
 
   private boolean uploadConfigurationsIfNeeded(CloudSolrClient cloudSolrClient, File configSetFolder, SolrCollectionState state, SolrPropsConfig solrPropsConfig) throws Exception {
-    boolean reloadCollectionNeeded = new UploadConfigurationHandler(configSetFolder).handle(cloudSolrClient, solrPropsConfig);
+    boolean reloadCollectionNeeded = new UploadConfigurationHandler(configSetFolder, hasEnumConfig).handle(cloudSolrClient, solrPropsConfig);
     if (!state.isConfigurationUploaded()) {
       state.setConfigurationUploaded(true);
     }

@@ -98,7 +98,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     String collection = solrUserConfig.getCollection();
 
     try {
-      new SolrCollectionConfigurer(this).start();
+      new SolrCollectionConfigurer(this, false).start();
       new LogfeederFilterConfigurer(this).start();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +

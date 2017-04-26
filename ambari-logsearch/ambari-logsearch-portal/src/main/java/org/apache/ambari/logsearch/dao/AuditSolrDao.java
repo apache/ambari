@@ -69,7 +69,7 @@ public class AuditSolrDao extends SolrDaoBase {
     String rangerAuditCollection = solrAuditLogPropsConfig.getRangerCollection();
 
     try {
-      new SolrCollectionConfigurer(this).start();
+      new SolrCollectionConfigurer(this, true).start();
       boolean createAlias = (aliasNameIn != null && StringUtils.isNotBlank(rangerAuditCollection));
       if (createAlias) {
         new SolrAuditAliasConfigurer(this).start();
