@@ -65,7 +65,7 @@ class TestShell(unittest.TestCase):
       test_process = subprocess.Popen(test_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
       time.sleep(0.3) # Delay to allow subprocess to start
       # Check if processes are running
-      ps_cmd = """ps aux """
+      ps_cmd = """ps auxww """
       ps_process = subprocess.Popen(ps_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
       (out, err) = ps_process.communicate()
       self.assertTrue(sleep_cmd in out)
