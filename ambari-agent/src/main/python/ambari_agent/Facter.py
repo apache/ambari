@@ -196,41 +196,57 @@ class Facter(object):
         log.info("'system_resource_dir' is not set - it won't be used for gathering system resources.")
     return systemResources
 
+  def getFqdn(self):
+    raise NotImplementedError()
+
+  def getNetmask(self):
+    raise NotImplementedError()
+
+  def getInterfaces(self):
+    raise NotImplementedError()
+
+  def getUptimeSeconds(self):
+    raise NotImplementedError()
+
+  def getMemorySize(self):
+    raise NotImplementedError()
+
+  def getMemoryFree(self):
+    raise NotImplementedError()
+
+  def getMemoryTotal(self):
+    raise NotImplementedError()
 
   def facterInfo(self):
-    facterInfo = {}
-    facterInfo['id'] = self.getId()
-    facterInfo['kernel'] = self.getKernel()
-    facterInfo['domain'] = self.getDomain()
-    facterInfo['fqdn'] = self.getFqdn()
-    facterInfo['hostname'] = self.getHostname()
-    facterInfo['macaddress'] = self.getMacAddress()
-    facterInfo['architecture'] = self.getArchitecture()
-    facterInfo['operatingsystem'] = self.getOperatingSystem()
-    facterInfo['operatingsystemrelease'] = self.getOperatingSystemRelease()
-    facterInfo['physicalprocessorcount'] = self.getProcessorcount()
-    facterInfo['processorcount'] = self.getProcessorcount()
-    facterInfo['timezone'] = self.getTimeZone()
-    facterInfo['hardwareisa'] = self.getArchitecture()
-    facterInfo['hardwaremodel'] = self.getArchitecture()
-    facterInfo['kernelrelease'] = self.getKernelRelease()
-    facterInfo['kernelversion'] = self.getKernelVersion()
-    facterInfo['osfamily'] = self.getOsFamily()
-    facterInfo['kernelmajversion'] = self.getKernelMajVersion()
-
-    facterInfo['ipaddress'] = self.getIpAddress()
-    facterInfo['netmask'] = self.getNetmask()
-    facterInfo['interfaces'] = self.getInterfaces()
-
-    facterInfo['uptime_seconds'] = str(self.getUptimeSeconds())
-    facterInfo['uptime_hours'] = str(self.getUptimeHours())
-    facterInfo['uptime_days'] = str(self.getUptimeDays())
-
-    facterInfo['memorysize'] = self.getMemorySize()
-    facterInfo['memoryfree'] = self.getMemoryFree()
-    facterInfo['memorytotal'] = self.getMemoryTotal()
-
-    return facterInfo
+    return {
+      'id': self.getId(),
+      'kernel': self.getKernel(),
+      'domain': self.getDomain(),
+      'fqdn': self.getFqdn(),
+      'hostname': self.getHostname(),
+      'macaddress': self.getMacAddress(),
+      'architecture': self.getArchitecture(),
+      'operatingsystem': self.getOperatingSystem(),
+      'operatingsystemrelease': self.getOperatingSystemRelease(),
+      'physicalprocessorcount': self.getProcessorcount(),
+      'processorcount': self.getProcessorcount(),
+      'timezone': self.getTimeZone(),
+      'hardwareisa': self.getArchitecture(),
+      'hardwaremodel': self.getArchitecture(),
+      'kernelrelease': self.getKernelRelease(),
+      'kernelversion': self.getKernelVersion(),
+      'osfamily': self.getOsFamily(),
+      'kernelmajversion': self.getKernelMajVersion(),
+      'ipaddress': self.getIpAddress(),
+      'netmask': self.getNetmask(),
+      'interfaces': self.getInterfaces(),
+      'uptime_seconds': str(self.getUptimeSeconds()),
+      'uptime_hours': str(self.getUptimeHours()),
+      'uptime_days': str(self.getUptimeDays()),
+      'memorysize': self.getMemorySize(),
+      'memoryfree': self.getMemoryFree(),
+      'memorytotal': self.getMemoryTotal()
+    }
 
   #Convert kB to GB
   @staticmethod

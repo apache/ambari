@@ -24,12 +24,30 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     childRecommendConfDict = {
       "OOZIE": self.recommendOozieConfigurations,
       "HIVE": self.recommendHiveConfigurations,
-      "TEZ": self.recommendTezConfigurations
+      "TEZ": self.recommendTezConfigurations,
+      "STORM": self.recommendStormConfigurations,
+      "FALCON": self.recommendFalconConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    storm_mounts = [
+      ("storm.local.dir", ["NODEMANAGER", "NIMBUS"], "/hadoop/storm", "single")
+    ]
+
+    self.updateMountProperties("storm-site", storm_mounts, configurations, services, hosts)
+
+  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+    falcon_mounts = [
+      ("*.falcon.graph.storage.directory", "FALCON_SERVER", "/hadoop/falcon/data/lineage/graphdb", "single")
+    ]
+
+    self.updateMountProperties("falcon-startup.properties", falcon_mounts, configurations, services, hosts)
+
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP21StackAdvisor, self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
+
     oozieSiteProperties = getSiteProperties(services['configurations'], 'oozie-site')
     oozieEnvProperties = getSiteProperties(services['configurations'], 'oozie-env')
     putOozieProperty = self.putProperty(configurations, "oozie-site", services)
