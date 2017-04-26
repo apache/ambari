@@ -71,6 +71,8 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_CONFIG_SELECTED_COLUMN = "selected";
   protected static final String CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
   protected static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
+  protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
 
   @Inject
   DaoUtils daoUtils;
@@ -118,6 +120,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     addServiceComponentColumn();
     updateStageTable();
     updateClusterConfigurationTable();
+    addOpsDisplayNameColumnToHostRoleCommand();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -290,6 +293,17 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     // if the above execution and committed the transaction, then we can remove
     // the cluster configuration mapping table
     dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
+  }
+
+  /**
+   * Adds the {@value #HRC_OPS_DISPLAY_NAME_COLUMN} column to the
+   * {@value #HOST_ROLE_COMMAND_TABLE} table.
+   *
+   * @throws SQLException
+   */
+  private void addOpsDisplayNameColumnToHostRoleCommand() throws SQLException {
+    dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
+        new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
   }
 
   /**

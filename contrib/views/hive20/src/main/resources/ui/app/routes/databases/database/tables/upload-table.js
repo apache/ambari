@@ -279,6 +279,7 @@ export default NewTable.extend(UILoggerMixin, {
         column.set("scale");
         column.set("precision");
       }
+      column.set("isPartitioned", false); // remove all partitioning information from temp table.
       return column;
     });
 
@@ -421,7 +422,17 @@ export default NewTable.extend(UILoggerMixin, {
     console.log("insertIntoTable");
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.startingToInsertRows'));
 
-    let headers = tableData.get("tableMeta").columns.map(function(column){
+    let partitionedColumns = tableData.get("tableMeta").columns.filter(function(column){
+      return column.isPartitioned;
+    }).map(function(column){
+        var header = JSON.parse(JSON.stringify(column));
+        header.type = column.type.label;
+        return header;
+    });
+
+    let normalColumns = tableData.get("tableMeta").columns.filter(function(column){
+      return !column.isPartitioned;
+    }).map(function(column){
         var header = JSON.parse(JSON.stringify(column));
         header.type = column.type.label;
         return header;
@@ -432,7 +443,8 @@ export default NewTable.extend(UILoggerMixin, {
       "fromTable": tableData.get("tempTableMeta").name,
       "toDatabase": tableData.get("database"),
       "toTable": tableData.get("tableMeta").name,
-      "header": headers,
+      "partitionedColumns": partitionedColumns,
+      "normalColumns": normalColumns,
       "unhexInsert": tableData.fileFormatInfo.containsEndlines
     });
   },

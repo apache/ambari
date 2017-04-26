@@ -251,12 +251,16 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
   },
 
+  mirrorValueObs: function () {
+    Em.run.once(this, 'mirrorValueObsOnce');
+  },
+
   /**
    * Check if <code>mirrorValue</code> was updated by user
    * Validate it. If value is correct, set it to slider and config.value
    * @method mirrorValueObs
    */
-  mirrorValueObs: function () {
+  mirrorValueObsOnce: function () {
     var mirrorValue = this.get('mirrorValue'),
       slider = this.get('slider'),
       min = this.get('minMirrorValue'),

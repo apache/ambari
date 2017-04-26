@@ -55,7 +55,7 @@ public class ShipperConfigResource {
   }
 
   @GET
-  @Path("/input/{clusterName}/{serviceName}")
+  @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
   @ApiOperation(GET_SHIPPER_CONFIG)
   public String getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName") String serviceName) {
@@ -63,7 +63,7 @@ public class ShipperConfigResource {
   }
 
   @PUT
-  @Path("/input/{clusterName}/{serviceName}")
+  @Path("/input/{clusterName}/services/{serviceName}")
   @Produces("text/plain")
   @ApiOperation(SET_SHIPPER_CONFIG)
   public Response setShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")

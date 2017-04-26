@@ -226,8 +226,10 @@ class TestHardware(TestCase):
   @patch.object(FacterLinux, "setMemInfoOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
-  def test_facterMemInfoOutput(self, get_os_version_mock, get_os_type_mock, facter_setMemInfoOutput_mock):
+  @patch.object(FacterLinux, "getSystemResourceOverrides")
+  def test_facterMemInfoOutput(self, getSystemResourceOverridesMock, get_os_version_mock, get_os_type_mock, facter_setMemInfoOutput_mock):
 
+    getSystemResourceOverridesMock.return_value = {}
     facter_setMemInfoOutput_mock.return_value = '''
 MemTotal:        1832392 kB
 MemFree:          868648 kB

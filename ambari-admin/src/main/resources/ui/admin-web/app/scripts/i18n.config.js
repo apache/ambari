@@ -307,7 +307,7 @@ angular.module('ambariAdminConsole')
     'users.showAll': 'Show all users',
     'users.showAdmin': 'Show only admin users',
     'users.groupMembership': 'Group Membership',
-    'users.userNameTip': 'Only alpha-numeric characters, up to 80 characters',
+    'users.userNameTip': 'Maximum length is 80 characters. \\, &, |, <, >, ` are not allowed.',
 
     'users.changeStatusConfirmation.title': 'Change Status',
     'users.changeStatusConfirmation.message': 'Are you sure you want to change status for user "{{userName}}" to {{status}}?',

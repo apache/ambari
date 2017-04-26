@@ -59,6 +59,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
       query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),
   @NamedQuery(name = "UpgradeEntity.findUpgrade",
       query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
+  @NamedQuery(name = "UpgradeEntity.findUpgradeByRequestId",
+      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),  
   @NamedQuery(name = "UpgradeEntity.findLatestForClusterInDirection",
       query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
   @NamedQuery(name = "UpgradeEntity.findLatestForCluster",

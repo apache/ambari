@@ -35,6 +35,7 @@
     <jbehave.version>4.0.5</jbehave.version>
     <jersey.version>2.23.1</jersey.version>
     <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
+    <forkCount>1</forkCount>
   </properties>
 
   <dependencies>
@@ -56,11 +57,6 @@
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.5</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.docker-java</groupId>
-      <artifactId>docker-java</artifactId>
-      <version>3.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -86,6 +82,21 @@
       <groupId>com.flipkart.zjsonpatch</groupId>
       <artifactId>zjsonpatch</artifactId>
       <version>0.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-web</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-logsearch-logfeeder</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

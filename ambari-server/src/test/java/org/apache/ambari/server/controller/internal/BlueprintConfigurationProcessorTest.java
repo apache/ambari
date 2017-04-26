@@ -5772,6 +5772,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
+    hgComponents1.add("DATANODE");
     hgComponents1.add("OOZIE_SERVER");
     hgComponents1.add("HIVE_SERVER");
     hgComponents1.add("HBASE_MASTER");
@@ -5818,6 +5819,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
+    hgComponents1.add("DATANODE");
     hgComponents1.add("OOZIE_SERVER");
     hgComponents1.add("FALCON_SERVER");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
@@ -5861,6 +5863,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
     Collection<String> hgComponents1 = new HashSet<>();
+    hgComponents1.add("DATANODE");
     hgComponents1.add("OOZIE_SERVER");
     hgComponents1.add("FALCON_SERVER");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
@@ -5903,6 +5906,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
 
     Collection<String> hgComponents1 = new HashSet<>();
+    hgComponents1.add("DATANODE");
     hgComponents1.add("OOZIE_SERVER");
     hgComponents1.add("FALCON_SERVER");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));

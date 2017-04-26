@@ -69,6 +69,7 @@ public class HostRoleCommand {
   private String customCommandName;
   private ExecutionCommandWrapper executionCommandWrapper;
   private boolean isBackgroundCommand = false;
+  private String opsDisplayName;
 
   @Inject
   private ExecutionCommandDAO executionCommandDAO;
@@ -179,6 +180,7 @@ public class HostRoleCommand {
     roleCommand = hostRoleCommandEntity.getRoleCommand();
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
+    opsDisplayName = hostRoleCommandEntity.getOpsDisplayName();
     customCommandName = hostRoleCommandEntity.getCustomCommandName();
     isBackgroundCommand = hostRoleCommandEntity.isBackgroundCommand();
   }
@@ -202,6 +204,7 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setAutoSkipOnFailure(autoSkipFailure);
     hostRoleCommandEntity.setRoleCommand(roleCommand);
     hostRoleCommandEntity.setCommandDetail(commandDetail);
+    hostRoleCommandEntity.setOpsDisplayName(opsDisplayName);
     hostRoleCommandEntity.setCustomCommandName(customCommandName);
     hostRoleCommandEntity.setBackgroundCommand(isBackgroundCommand);
 
@@ -294,6 +297,13 @@ public class HostRoleCommand {
     this.commandDetail = commandDetail;
   }
 
+  public String getOpsDisplayName() {
+    return opsDisplayName;
+  }
+
+  public void setOpsDisplayName(String opsDisplayName) {
+    this.opsDisplayName = opsDisplayName;
+  }
   public String getCustomCommandName() {
     return customCommandName;
   }

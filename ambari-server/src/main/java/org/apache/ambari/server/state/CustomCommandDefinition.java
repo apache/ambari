@@ -30,6 +30,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 public class CustomCommandDefinition {
 
   private String name;
+  private String opsDisplayName;
   private CommandScriptDefinition commandScript;
   private boolean background = false;
 
@@ -39,6 +40,10 @@ public class CustomCommandDefinition {
   
   public boolean isBackground() {
     return background;
+  }
+
+  public String getOpsDisplayName() {
+    return opsDisplayName;
   }
 
   public CommandScriptDefinition getCommandScript() {

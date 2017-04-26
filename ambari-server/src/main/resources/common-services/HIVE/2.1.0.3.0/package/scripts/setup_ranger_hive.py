@@ -18,6 +18,9 @@ limitations under the License.
 
 """
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
+from resource_management.libraries.functions.setup_ranger_plugin_xml import generate_ranger_service_config
 
 def setup_ranger_hive(upgrade_type = None):
   import params
@@ -96,3 +99,58 @@ def setup_ranger_hive(upgrade_type = None):
                         stack_version_override = stack_version, skip_if_rangeradmin_down= not params.retryAble)
   else:
     Logger.info('Ranger Hive plugin is not enabled')
+
+def setup_ranger_hive_metastore_service():
+  """
+  Creates ranger hive service in ranger admin installed in same cluster for cluster depolyed in cloud env.
+  """
+  import params
+
+  if params.has_ranger_admin and params.ranger_hive_metastore_lookup:
+
+    repo_name = str(params.config['clusterName']) + '_hive'
+    repo_name_value = params.config['configurations']['ranger-hive-security']['ranger.plugin.hive.service.name']
+    if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
+      repo_name = repo_name_value
+
+    hive_ranger_plugin_config = {
+      'username': params.config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
+      'password': params.config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'],
+      'jdbc.driverClassName': params.config['configurations']['ranger-hive-plugin-properties']['jdbc.driverClassName'],
+      'jdbc.url': 'none',
+      'commonNameForCertificate': params.config['configurations']['ranger-hive-plugin-properties']['common.name.for.certificate'],
+      'ambari.service.check.user': params.config['configurations']['ranger-hive-plugin-properties']['policy_user']
+    }
+
+    if params.security_enabled:
+      hive_ranger_plugin_config['policy.download.auth.users'] = params.hive_user
+      hive_ranger_plugin_config['tag.download.auth.users'] = params.hive_user
+      hive_ranger_plugin_config['policy.grantrevoke.auth.users'] = params.hive_user
+
+    custom_ranger_service_config = generate_ranger_service_config(params.config['configurations']['ranger-hive-plugin-properties'])
+    if len(custom_ranger_service_config) > 0:
+      hive_ranger_plugin_config.update(custom_ranger_service_config)
+
+    hive_ranger_plugin_repo = {
+      'isEnabled': 'true',
+      'configs': hive_ranger_plugin_config,
+      'description': 'Hive service',
+      'name': repo_name,
+      'type': 'hive'
+    }
+
+    ranger_admin_obj = RangeradminV2(url = params.config['configurations']['ranger-hive-security']['ranger.plugin.hive.policy.rest.url'], skip_if_rangeradmin_down = not params.retryAble)
+    ranger_admin_obj.create_ranger_repository(
+      component = 'hive',
+      repo_name = repo_name,
+      repo_properties = hive_ranger_plugin_repo,
+      ambari_ranger_admin = params.config['configurations']['ranger-env']['ranger_admin_username'],
+      ambari_ranger_password = params.config['configurations']['ranger-env']['ranger_admin_password'],
+      admin_uname = params.config['configurations']['ranger-env']['admin_username'],
+      admin_password = params.config['configurations']['ranger-env']['admin_password'],
+      policy_user = params.config['configurations']['ranger-hive-plugin-properties']['policy_user'],
+      is_security_enabled = params.security_enabled,
+      is_stack_supports_ranger_kerberos = params.stack_supports_ranger_kerberos,
+      component_user = params.hive_user,
+      component_user_principal = params.hive_metastore_principal_with_host if params.security_enabled else None,
+      component_user_keytab = params.hive_metastore_keytab_path if params.security_enabled else None)

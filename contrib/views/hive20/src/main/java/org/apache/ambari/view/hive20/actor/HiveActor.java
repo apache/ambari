@@ -25,26 +25,22 @@ import org.slf4j.LoggerFactory;
 
 public abstract class HiveActor extends UntypedActor {
 
-    private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(HiveActor.class);
 
-    @Override
-    final public void onReceive(Object message) throws Exception {
-        HiveMessage hiveMessage = new HiveMessage(message);
-        if(LOG.isDebugEnabled()){
-            LOG.debug("Received message: " + message.getClass().getName() + ", generated id: " + hiveMessage.getId() +
-                    " sent by: " + sender() + ", recieved by" + self());
-        }
-
-        handleMessage(hiveMessage);
-
-        if(LOG.isDebugEnabled()){
-            LOG.debug("Message submitted: " + hiveMessage.getId());
-
-        }
+  @Override
+  final public void onReceive(Object message) throws Exception {
+    HiveMessage hiveMessage = new HiveMessage(message);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received message: " + message.getClass().getName() + ", generated id: " + hiveMessage.getId() +
+          " sent by: " + sender() + ", recieved by" + self());
     }
 
-    public abstract void handleMessage(HiveMessage hiveMessage);
+    handleMessage(hiveMessage);
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Message submitted: " + hiveMessage.getId());
+    }
+  }
 
-
+  public abstract void handleMessage(HiveMessage hiveMessage);
 }

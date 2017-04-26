@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.internal.ConfigurationTopologyExcepti
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.HostGroup;
@@ -175,12 +176,17 @@ public class StackAdvisorBlueprintProcessor {
 
     Map<String, BlueprintConfigurations> recommendedConfigurations =
       response.getRecommendations().getBlueprint().getConfigurations();
+    Blueprint blueprint = topology.getBlueprint();
+
     for (Map.Entry<String, BlueprintConfigurations> configEntry : recommendedConfigurations.entrySet()) {
       String configType = configEntry.getKey();
-      BlueprintConfigurations blueprintConfig = filterBlueprintConfig(configType, configEntry.getValue(),
-              userProvidedConfigurations, topology);
-      topology.getAdvisedConfigurations().put(configType, new AdvisedConfiguration(
-        blueprintConfig.getProperties(), blueprintConfig.getPropertyAttributes()));
+      // add recommended config type only if related service is present in Blueprint
+      if (blueprint.isValidConfigType(configType)) {
+        BlueprintConfigurations blueprintConfig = filterBlueprintConfig(configType, configEntry.getValue(),
+                userProvidedConfigurations, topology);
+        topology.getAdvisedConfigurations().put(configType, new AdvisedConfiguration(
+                blueprintConfig.getProperties(), blueprintConfig.getPropertyAttributes()));
+      }
     }
   }
 

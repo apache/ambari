@@ -248,6 +248,8 @@ public class ClusterConfigurationRequestTest {
 
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(blueprint.isValidConfigType("testConfigType")).andReturn(true).anyTimes();
+
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
@@ -368,9 +370,12 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();
-    expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
-    expect(stack.getServiceForConfigType("admin-properties")).andReturn("RANGER").anyTimes();
-    expect(stack.getServiceForConfigType("yarn-site")).andReturn("YARN").anyTimes();
+
+    expect(blueprint.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(blueprint.isValidConfigType("admin-properties")).andReturn(true).anyTimes();
+    expect(blueprint.isValidConfigType("yarn-site")).andReturn(false).anyTimes();
+    expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
 
     EasyMock.replay(stack, blueprint, topology);
     // WHEN
@@ -409,9 +414,10 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getHostGroupInfo()).andReturn(hostGroupInfoMap);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.getServices()).andReturn(services).anyTimes();
-    expect(stack.getServiceForConfigType("hdfs-site")).andReturn("HDFS").anyTimes();
-    expect(stack.getServiceForConfigType("admin-properties")).andReturn("RANGER").anyTimes();
-    expect(stack.getServiceForConfigType("yarn-site")).andReturn("YARN").anyTimes();
+
+    expect(blueprint.isValidConfigType("hdfs-site")).andReturn(true).anyTimes();
+    expect(blueprint.isValidConfigType("cluster-env")).andReturn(true).anyTimes();
+    expect(blueprint.isValidConfigType("global")).andReturn(true).anyTimes();
 
     EasyMock.replay(stack, blueprint, topology);
 

@@ -169,6 +169,7 @@
         "Tasks/attempt_cnt",
         "Tasks/custom_command_name",
         "Tasks/command_detail",
+        "Tasks/ops_display_name",
         "_"
     ],
     "User":[

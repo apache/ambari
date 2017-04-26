@@ -654,7 +654,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     // retrieve the cluster desired configs once instead of per host
     Map<String, DesiredConfig> desiredConfigs = null;
     if (null != cluster) {
-      cluster.getDesiredConfigs();
+      desiredConfigs = cluster.getDesiredConfigs();
     }
 
     for (Host h : hosts) {
@@ -678,7 +678,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clustersForHost != null && clustersForHost.size() != 0) {
           Cluster clusterForHost = clustersForHost.iterator().next();
           r.setClusterName(clusterForHost.getClusterName());
-          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, desiredConfigs));
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, null));
           r.setMaintenanceState(h.getMaintenanceState(clusterForHost.getClusterId()));
         }
 

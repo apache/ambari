@@ -35,12 +35,12 @@ public class SolrSteps {
   @Then("the number of <component> docs is: <docSize>")
   public void numberOfDocsForComponent(@Named("component") String component, @Named("docSize") int docSize)
     throws IOException, SolrServerException, InterruptedException {
-    SolrClient solrClient = StoryDataRegistry.INSTANCE.getCloudSolrClient();
+    SolrClient solrClient = StoryDataRegistry.INSTANCE.getSolrClient();
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery(String.format("type:%s", component));
     solrQuery.setStart(0);
     solrQuery.setRows(20);
-    QueryResponse queryResponse = solrClient.query(StoryDataRegistry.INSTANCE.getServiceLogsCollection(), solrQuery);
+    QueryResponse queryResponse = solrClient.query(solrQuery);
     SolrDocumentList list = queryResponse.getResults();
     Assert.assertEquals(docSize, list.size());
   }

@@ -87,6 +87,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -121,6 +122,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -156,6 +158,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -189,6 +192,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();

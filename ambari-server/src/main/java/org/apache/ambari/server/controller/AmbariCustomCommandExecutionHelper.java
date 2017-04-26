@@ -374,6 +374,9 @@ public class AmbariCustomCommandExecutionHelper {
       if (cmd != null) {
         cmd.setCommandDetail(commandDetail);
         cmd.setCustomCommandName(commandName);
+        if (customCommandDefinition != null){
+          cmd.setOpsDisplayName(customCommandDefinition.getOpsDisplayName());
+        }
       }
 
       //set type background
