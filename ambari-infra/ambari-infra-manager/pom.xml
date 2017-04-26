@@ -38,7 +38,7 @@
     <spring-data-solr.version>2.0.2.RELEASE</spring-data-solr.version>
     <jjwt.version>0.6.0</jjwt.version>
     <spring-batch.version>3.0.7.RELEASE</spring-batch.version>
-    <jdk.version>1.8</jdk.version>
+    <jdk.version>1.7</jdk.version>
   </properties>
 
   <build>
