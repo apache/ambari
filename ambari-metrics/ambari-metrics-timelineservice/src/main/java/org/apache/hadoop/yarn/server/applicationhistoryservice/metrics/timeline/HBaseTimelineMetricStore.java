@@ -19,6 +19,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +52,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -390,8 +392,50 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   }
 
   @Override
-  public Map<String, Set<String>> getInstanceHostsMetadata() throws SQLException, IOException {
-    return metricMetadataManager.getHostedInstanceCache();
+  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId)
+          throws SQLException, IOException {
+
+    Map<String, Set<String>> hostedApps = metricMetadataManager.getHostedAppsCache();
+    Map<String, Set<String>> instanceHosts = metricMetadataManager.getHostedInstanceCache();
+    Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
+
+    if (MapUtils.isEmpty(instanceHosts)) {
+      Map<String, Set<String>> appHostMap = new HashMap<String, Set<String>>();
+      for (String host : hostedApps.keySet()) {
+        for (String app : hostedApps.get(host)) {
+          if (!appHostMap.containsKey(app)) {
+            appHostMap.put(app, new HashSet<String>());
+          }
+          appHostMap.get(app).add(host);
+        }
+      }
+      instanceAppHosts.put("", appHostMap);
+    } else {
+      for (String instance : instanceHosts.keySet()) {
+
+        if (StringUtils.isNotEmpty(instanceId) && !instance.equals(instanceId)) {
+          continue;
+        }
+        Map<String, Set<String>> appHostMap = new  HashMap<String, Set<String>>();
+        instanceAppHosts.put(instance, appHostMap);
+
+        Set<String> hostsWithInstance = instanceHosts.get(instance);
+        for (String host : hostsWithInstance) {
+          for (String app : hostedApps.get(host)) {
+            if (StringUtils.isNotEmpty(appId) && !app.equals(appId)) {
+              continue;
+            }
+
+            if (!appHostMap.containsKey(app)) {
+              appHostMap.put(app, new HashSet<String>());
+            }
+            appHostMap.get(app).add(host);
+          }
+        }
+      }
+    }
+
+    return instanceAppHosts;
   }
 
   @Override

@@ -415,14 +415,16 @@ public class TimelineWebServices {
   @GET
   @Path("/metrics/instances")
   @Produces({ MediaType.APPLICATION_JSON })
-  public Map<String, Set<String>> getClusterHostsMetadata(
+  public Map<String, Map<String, Set<String>>> getClusterHostsMetadata(
     @Context HttpServletRequest req,
-    @Context HttpServletResponse res
+    @Context HttpServletResponse res,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId
   ) {
     init(res);
 
     try {
-      return timelineMetricStore.getInstanceHostsMetadata();
+      return timelineMetricStore.getInstanceHostsMetadata(instanceId, appId);
     } catch (Exception e) {
       throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
