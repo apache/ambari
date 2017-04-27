@@ -66,7 +66,7 @@ class ApplicationMetricMap:
     del self.app_metric_map[ app_id ]
   pass
 
-  def flatten(self, application_id = None, clear_once_flattened = False):
+  def flatten(self, application_id = None, clear_once_flattened = False, set_instanceid = False, instanceid = None):
     """
     Return flatten dict to caller in json format.
     Json format:
@@ -89,11 +89,14 @@ class ApplicationMetricMap:
       for appId, metrics in local_metric_map.iteritems():
         for metricId, metricData in dict(metrics).iteritems():
           # Create a timeline metric object
+          result_instanceid = ""
+          if set_instanceid:
+            result_instanceid = instanceid
           timeline_metric = {
             "hostname" : self.hostname,
             "metricname" : metricId,
             "appid" : "HOST",
-            "instanceid" : "",
+            "instanceid" : result_instanceid,
             "starttime" : self.get_start_time(appId, metricId),
             "metrics" : metricData
           }

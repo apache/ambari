@@ -79,6 +79,8 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String SSL_KEYSTORE_TYPE_PROPERTY = "truststore.type";
   public static final String SSL_KEYSTORE_PASSWORD_PROPERTY = "truststore.password";
   public static final String COLLECTOR_LIVE_NODES_PATH = "/ws/v1/timeline/metrics/livenodes";
+  public static final String INSTANCE_ID_PROPERTY = "instanceId";
+  public static final String SET_INSTANCE_ID_PROPERTY = "set.instanceId";
 
   protected static final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
   public static int NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 100;

@@ -19,18 +19,23 @@
 <div class="pull-right">
     {{#link-to 'udfs.new' class="btn btn-sm btn-success"}}{{fa-icon "plus"}} NEW UDF{{/link-to}}
 </div>
+
+
+
 <div class="row jobs-table">
   <div class="col-md-12">
-    <table class="table table-striped">
-      <thead>
-      <tr>
-        <th width="20%">UDF Name</th>
-        <th width="20%">UDF Class Name</th>
-        <th width="40%">Owner</th>
-        <th width="20%" class="center">Action</th>
-      </tr>
-      </thead>
-      <tbody>
+
+    {{#if udflist.length}}
+      <table class="table table-striped">
+        <thead>
+        <tr>
+          <th width="20%">UDF Name</th>
+          <th width="20%">UDF Class Name</th>
+          <th width="40%">Owner</th>
+          <th width="20%">Action</th>
+        </tr>
+        </thead>
+        <tbody>
         {{#each udflist as |udf| }}
           {{udf-item
           udf=udf
@@ -38,8 +43,16 @@
           refreshUdfList='refreshUdfList'
           }}
         {{/each}}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    {{/if}}
+
+    {{#unless udflist.length}}
+      <div class="no-results">
+        <div>There is No UDF.</div>
+      </div>
+    {{/unless}}
+
   </div>
 </div>
 

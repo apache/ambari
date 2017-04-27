@@ -70,6 +70,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_PATH_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PATH_PROPERTY;
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_TYPE_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_TYPE_PROPERTY;
   private static final String TIMELINE_METRICS_SSL_KEYSTORE_PASSWORD_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SSL_KEYSTORE_PASSWORD_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_INSTANCE_ID_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + INSTANCE_ID_PROPERTY;
+  private static final String TIMELINE_METRICS_KAFKA_SET_INSTANCE_ID_PROPERTY = TIMELINE_METRICS_KAFKA_PREFIX + SET_INSTANCE_ID_PROPERTY;
   private static final String TIMELINE_DEFAULT_HOST = "localhost";
   private static final String TIMELINE_DEFAULT_PORT = "6188";
   private static final String TIMELINE_DEFAULT_PROTOCOL = "http";
@@ -87,6 +89,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private TimelineMetricsCache metricsCache;
   private int timeoutSeconds = 10;
   private String zookeeperQuorum = null;
+  private boolean setInstanceId;
+  private String instanceId;
 
   private String[] excludedMetricsPrefixes;
   private String[] includedMetricsPrefixes;
@@ -161,6 +165,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
         collectorHosts = parseHostsStringIntoCollection(props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST));
         metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
+
+        instanceId = props.getString(TIMELINE_METRICS_KAFKA_INSTANCE_ID_PROPERTY);
+        setInstanceId = props.getBoolean(TIMELINE_METRICS_KAFKA_SET_INSTANCE_ID_PROPERTY);
 
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
 
@@ -315,6 +322,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
       TimelineMetric timelineMetric = new TimelineMetric();
       timelineMetric.setMetricName(attributeName);
       timelineMetric.setHostName(hostname);
+      if (setInstanceId) {
+        timelineMetric.setInstanceId(instanceId);
+      }
       timelineMetric.setAppId(component);
       timelineMetric.setStartTime(currentTimeMillis);
       timelineMetric.setType(ClassUtils.getShortCanonicalName(attributeValue, "Number"));

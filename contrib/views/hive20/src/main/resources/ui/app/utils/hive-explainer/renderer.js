@@ -138,7 +138,8 @@ function recurseC(children, onRequestDetail, isSingleReducer) {
         .attr('height', d => d._operator === 'Fetch Operator' ? 150 : 55)
         .attr('width', 140)
           .append('xhtml:body')
-        .style('margin', 0)
+        .style('height', d => d._operator === 'Fetch Operator' ? '150px' : 'auto')
+        .style('margin', 0 )
           .html(d => getRenderer(d._operator, isSingleReducer)(d))
         .on('click', d => {
           const vertex = d3.select(Ember.$(d3.select(this).node()).closest('.vertex').get(0)).data()[0];

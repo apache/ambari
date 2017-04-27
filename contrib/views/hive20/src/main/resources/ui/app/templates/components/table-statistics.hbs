@@ -19,17 +19,15 @@
 {{#if showStats}}
 <div class="row">
   <div class="alert">
-    <p class="lead">
-      {{fa-icon "line-chart" size=2}}&nbsp;&nbsp;&nbsp;&nbsp; STATISTICS
-      <div class="pull-right">
+    <p >
+      <div class="pull-left">
         <button class="btn btn-success"
           {{action "analyseTable"}}>{{fa-icon "location-arrow"}} {{#if (not tableStatisticsEnabled)}}
           Compute {{else}} Recompute {{/if}}</button>
 
         <label>
           {{input type="checkbox" checked=analyseWithStatistics}}
-          <small>include columns</small>
-        </label>
+        </label>&nbsp;<span>INCLUDE COLUMNS</span>
       </div>
     </p>
 
@@ -44,7 +42,7 @@
       </div>
     {{/if}}
     <div class="stats-section">
-      <p><strong>TABLE STATISTICS</strong></p>
+      <p class="table-title"><strong>TABLE STATISTICS</strong></p>
       <table class="table table-bordered table-hover">
         <thead>
         <tr>
@@ -81,7 +79,7 @@
 </div>
 
 <div class="row stats-section">
-  <p><strong>COLUMNS STATISTICS</strong></p>
+  <p class="table-title"><strong>COLUMNS STATISTICS</strong></p>
   <table class="table table-bordered table-hover">
     <thead>
     <tr>

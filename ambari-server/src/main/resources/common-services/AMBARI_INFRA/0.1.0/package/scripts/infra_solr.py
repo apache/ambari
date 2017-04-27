@@ -59,15 +59,15 @@ class InfraSolr(Script):
       Execute(format('{solr_bindir}/solr stop -all >> {infra_solr_log}'),
               environment={'SOLR_INCLUDE': format('{infra_solr_conf}/infra-solr-env.sh')},
               user=params.infra_solr_user,
-              only_if=format("test -f {infra_solr_pidfile}")
+              only_if=format("test -f {prev_infra_solr_pidfile}")
               )
 
-      File(params.infra_solr_pidfile,
+      File(params.prev_infra_solr_pidfile,
            action="delete"
            )
     except:
       Logger.warning("Could not stop solr:" + str(sys.exc_info()[1]) + "\n Trying to kill it")
-      self.kill_process(params.infra_solr_pidfile, params.infra_solr_user, params.infra_solr_log_dir)
+      self.kill_process(params.prev_infra_solr_pidfile, params.infra_solr_user, params.infra_solr_log_dir)
 
   def status(self, env):
     import status_params

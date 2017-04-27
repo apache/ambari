@@ -50,6 +50,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
+  private boolean setInstanceId;
+  private String instanceId;
   private NimbusClient nimbusClient;
   private String applicationId;
   private int timeoutSeconds;
@@ -126,6 +128,8 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
           Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
           DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = cf.get(APP_ID).toString();
+      setInstanceId = Boolean.getBoolean(cf.get(SET_INSTANCE_ID_PROPERTY).toString());
+      instanceId = cf.get(INSTANCE_ID_PROPERTY).toString();
 
       collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
       if (protocol.contains("https")) {
@@ -196,6 +200,9 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostname);
+    if (setInstanceId) {
+      timelineMetric.setInstanceId(instanceId);
+    }
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
     timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
