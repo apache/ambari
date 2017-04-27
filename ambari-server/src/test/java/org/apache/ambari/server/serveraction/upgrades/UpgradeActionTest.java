@@ -40,6 +40,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
@@ -632,9 +633,6 @@ public class UpgradeActionTest {
     CommandReport report = finalizeUpgradeAction.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-
-    // Verify the metainfo url
-    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
   }
 
   /**
@@ -699,6 +697,7 @@ public class UpgradeActionTest {
   }
 
   private void verifyBaseRepoURL(AmbariCustomCommandExecutionHelper helper, Cluster cluster, Host host, String expectedRepoBaseURL) throws AmbariException {
+
     String repoInfo = helper.getRepoInfo(cluster, host);
     Gson gson = new Gson();
     JsonElement element = gson.fromJson(repoInfo, JsonElement.class);
@@ -709,6 +708,13 @@ public class UpgradeActionTest {
     JsonObject o = list.get(0).getAsJsonObject();
     assertTrue(o.has("baseUrl"));
     assertEquals(expectedRepoBaseURL, o.get("baseUrl").getAsString());
+
+    CommandRepository commandRepo = helper.getCommandRepository(cluster, host);
+
+    assertNotNull(commandRepo);
+    assertNotNull(commandRepo.getRepositories());
+    assertEquals(1, commandRepo.getRepositories().size());
+    assertEquals(expectedRepoBaseURL, commandRepo.getRepositories().iterator().next().getBaseUrl());
   }
 
   @Test
@@ -1018,9 +1024,6 @@ public class UpgradeActionTest {
     CommandReport report = finalizeUpgradeAction.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-
-    // Verify the metainfo url
-    verifyBaseRepoURL(helper, cluster, host, "http://foo1");
 
     // ensure that history now exists
     historyEntites = serviceComponentDesiredStateDAO.findHistory(cluster.getClusterId(),

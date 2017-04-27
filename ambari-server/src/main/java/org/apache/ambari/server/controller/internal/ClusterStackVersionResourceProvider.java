@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
@@ -41,7 +43,6 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -79,10 +80,9 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -91,7 +91,6 @@ import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Lists;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -126,7 +125,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_FORCE = "ClusterStackVersions/force";
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
-  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
+  protected static final String INSTALL_PACKAGES_FULL_NAME = "Install Version";
 
   /**
    * The default success factor that will be used when determining if a stage's
@@ -173,9 +172,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   private static HostRoleCommandFactory hostRoleCommandFactory;
 
   @Inject
-  private static Gson gson;
-
-  @Inject
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
 
   @Inject
@@ -192,6 +188,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static HostComponentStateDAO hostComponentStateDAO;
+
+  @Inject
+  private static RepositoryVersionHelper repoVersionHelper;
 
   /**
    * We have to include such a hack here, because if we
@@ -602,6 +601,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           throws SystemException {
     // Determine repositories for host
     String osFamily = host.getOsFamily();
+
     final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
     if (repoInfo == null) {
       throw new SystemException(String.format("Repositories for os type %s are " +
@@ -614,7 +614,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     // determine packages for all services that are installed on host
-    List<ServiceOsSpecific.Package> packages = new ArrayList<>();
     Set<String> servicesOnHost = new HashSet<>();
     List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
     for (ServiceComponentHost component : components) {
@@ -627,65 +626,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       return null;
     }
 
-    List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
-    for (String serviceName : servicesOnHost) {
-      try{
-        if(ami.isServiceRemovedInStack(stackId.getStackName(), stackId.getStackVersion(), serviceName)){
-          LOG.info(String.format("%s has been removed from stack %s-%s. Skip calculating its installation packages", stackId.getStackName(), stackId.getStackVersion(), serviceName));
-          continue; //No need to calculate install packages for removed services
-        }
-      } catch (AmbariException e1) {
-        throw new SystemException(String.format("Cannot obtain stack information for %s-%s", stackId.getStackName(), stackId.getStackVersion()), e1);
-      }
 
-      ServiceInfo info;
-      try {
-        info = ami.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
-      } catch (AmbariException e) {
-        throw new SystemException("Cannot enumerate services", e);
-      }
-
-      List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
-              new HashMap<String, String>(), // Contents are ignored
-        osFamily);
-      for (ServiceOsSpecific.Package aPackage : packagesForService) {
-        if (! aPackage.getSkipUpgrade()) {
-          boolean blacklisted = false;
-          for(String prefix : blacklistedPackagePrefixes) {
-            if (aPackage.getName().startsWith(prefix)) {
-              blacklisted = true;
-              break;
-            }
-          }
-          if (! blacklisted) {
-            packages.add(aPackage);
-          }
-        }
-      }
-    }
-
-    final String packageList = gson.toJson(packages);
-    final String repoList = gson.toJson(repoInfo);
-
-    Map<String, String> params = new HashMap<>();
-    params.put("stack_id", stackId.getStackId());
-    params.put("repository_version", repoVersion.getVersion());
-    params.put("base_urls", repoList);
-    params.put(KeyNames.PACKAGE_LIST, packageList);
-    params.put(KeyNames.REPO_VERSION_ID, repoVersion.getId().toString());
-
-    VersionDefinitionXml xml = null;
-    try {
-      xml = repoVersion.getRepositoryXml();
-    } catch (Exception e) {
-      throw new SystemException(String.format("Could not load xml from repo version %s",
-          repoVersion.getVersion()));
-    }
-
-    if (null != xml && StringUtils.isNotBlank(xml.getPackageVersion(osFamily))) {
-      params.put(KeyNames.PACKAGE_VERSION, xml.getPackageVersion(osFamily));
-    }
-
+    Map<String, String> roleParams = repoVersionHelper.buildRoleParams(managementController, repoVersion,
+        osFamily, servicesOnHost);
 
     // add host to this stage
     RequestResourceFilter filter = new RequestResourceFilter(null, null,
@@ -694,8 +637,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     ActionExecutionContext actionContext = new ActionExecutionContext(
             cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
             Collections.singletonList(filter),
-            params);
+            roleParams);
     actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+
+    repoVersionHelper.addCommandRepository(actionContext, osFamily, repoVersion, repoInfo);
 
     return actionContext;
 
@@ -733,29 +678,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
     return false;
   }
-
-
-  /**
-   *  Sets host versions states to not-required.
-   *
-   *  Transitioning host version to NOT_REQUIRED state manually is ok since
-   *  other completion handlers set success/fail states correctly during heartbeat.
-   *  The number of NOT_REQUIRED components for a cluster will be low.
-   */
-  private void transitionHostVersionToNotRequired(Host host, Cluster cluster, RepositoryVersionEntity repoVersion) {
-    LOG.info(String.format("Transitioning version %s on host %s directly to %s" +
-                    " without distributing bits to host since it has no versionable components.",
-            repoVersion.getVersion(), host.getHostName(), RepositoryVersionState.NOT_REQUIRED));
-
-    for (HostVersionEntity hve : host.getAllHostVersions()) {
-      if (hve.getRepositoryVersion().equals(repoVersion)) {
-        hve.setState(RepositoryVersionState.NOT_REQUIRED);
-        hostVersionDAO.merge(hve);
-      }
-    }
-
-  }
-
 
   private RequestStageContainer createRequest() {
     ActionManager actionManager = getManagementController().getActionManager();
@@ -876,6 +798,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         // !!! revisit for PU
         // If forcing to become CURRENT, get the Cluster Version whose state is CURRENT and make sure that
         // the Host Version records for the same Repo Version are also marked as CURRENT.
+        @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
         ClusterVersionEntity current = cluster.getCurrentClusterVersion();
 
         if (!current.getRepositoryVersion().equals(rve)) {

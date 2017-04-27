@@ -19,8 +19,6 @@
 
 package org.apache.ambari.server.bootstrap;
 
-import java.util.List;
-
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -34,12 +32,6 @@ public class DistributeRepositoriesStructuredOutput {
    */
   @SerializedName("installed_repository_version")
   private String installedRepositoryVersion;
-
-  /**
-   * All Ambari-managed repositories that are installed side by side on host
-   */
-  @SerializedName("ambari_repositories")
-  private List<String> ambariRepositories;
 
   /**
    * Either SUCCESS or FAIL
@@ -62,10 +54,6 @@ public class DistributeRepositoriesStructuredOutput {
   public String getInstalledRepositoryVersion() {
 
     return installedRepositoryVersion;
-  }
-
-  public List<String> getAmbariRepositories() {
-    return ambariRepositories;
   }
 
   public String getPackageInstallationResult() {

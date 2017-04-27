@@ -487,6 +487,8 @@ public class AmbariActionExecutionHelper {
           execCmd.getLocalComponents().add(sch.getServiceComponentName());
         }
       }
+
+      actionContext.visitAll(execCmd);
     }
   }
 

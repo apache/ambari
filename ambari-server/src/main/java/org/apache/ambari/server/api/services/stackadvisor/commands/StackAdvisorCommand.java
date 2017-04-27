@@ -348,13 +348,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         return file.isDirectory() && !FileUtils.isFileNewer(file, cutoffDate);
       }
     });
-    
+
     if(oldDirectories.length > 0) {
       LOG.info(String.format("Deleting old directories %s from %s", StringUtils.join(oldDirectories, ", "), recommendationsDir));
     }
-    
+
     for(String oldDirectory:oldDirectories) {
-      FileUtils.deleteDirectory(new File(recommendationsDir, oldDirectory));
+      FileUtils.deleteQuietly(new File(recommendationsDir, oldDirectory));
     }
   }
 

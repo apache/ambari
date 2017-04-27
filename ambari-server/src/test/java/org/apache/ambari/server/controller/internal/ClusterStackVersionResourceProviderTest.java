@@ -219,9 +219,14 @@ public class ClusterStackVersionResourceProviderTest {
     Map<String, String> hostLevelParams = new HashMap<>();
     StackId stackId = new StackId("HDP", "2.0.1");
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.1.1");
+
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
     repoVersion.setOperatingSystems(OS_JSON);
+    repoVersion.setStack(stackEntity);
 
     final String hostWithoutVersionableComponents = "host2";
 
@@ -647,12 +652,17 @@ public class ClusterStackVersionResourceProviderTest {
 
     File f = new File("src/test/resources/hbase_version_test.xml");
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.1.1");
+
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
     repoVersion.setOperatingSystems(OS_JSON);
     repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.STANDARD);
+    repoVersion.setStack(stackEntity);
 
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
@@ -890,12 +900,17 @@ public class ClusterStackVersionResourceProviderTest {
 
     File f = new File("src/test/resources/hbase_version_test.xml");
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.1.1");
+
     RepositoryVersionEntity repoVersion = new RepositoryVersionEntity();
     repoVersion.setId(1l);
     repoVersion.setOperatingSystems(os_json);
     repoVersion.setVersionXml(IOUtils.toString(new FileInputStream(f)));
     repoVersion.setVersionXsd("version_definition.xsd");
     repoVersion.setType(RepositoryType.STANDARD);
+    repoVersion.setStack(stackEntity);
 
     ambariMetaInfo.getComponent("HDP", "2.1.1", "HBASE", "HBASE_MASTER").setVersionAdvertised(true);
 
@@ -1096,8 +1111,8 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
 
     Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
-    Assert.assertTrue(executionCommand.getRoleParams().containsKey("base_urls"));
-    Assert.assertEquals("[]", executionCommand.getRoleParams().get("base_urls"));
+    Assert.assertNotNull(executionCommand.getRepositoryFile());
+    Assert.assertEquals(0, executionCommand.getRepositoryFile().getRepositories().size());
   }
 
    @Test

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -45,6 +46,7 @@ import org.junit.Test;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -97,8 +99,14 @@ public class UpdateActiveRepoVersionOnStartupTest {
     ClusterDAO clusterDao = mock(ClusterDAO.class);
     ClusterVersionDAO clusterVersionDAO = mock(ClusterVersionDAO.class);
     repositoryVersionDao = mock(RepositoryVersionDAO.class);
+
     final RepositoryVersionHelper repositoryVersionHelper = new RepositoryVersionHelper();
-    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    Field field = RepositoryVersionHelper.class.getDeclaredField("gson");
+    field.setAccessible(true);
+    field.set(repositoryVersionHelper, new Gson());
+
+
+    final AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
 
     StackManager stackManager = mock(StackManager.class);
     when(metaInfo.getStackManager()).thenReturn(stackManager);
@@ -123,15 +131,26 @@ public class UpdateActiveRepoVersionOnStartupTest {
     stackInfo.getRepositories().add(repositoryInfo);
     when(stackManager.getStack("HDP", "2.3")).thenReturn(stackInfo);
 
-    Provider<RepositoryVersionHelper> repositoryVersionHelperProvider = mock(Provider.class);
+    final Provider<RepositoryVersionHelper> repositoryVersionHelperProvider = mock(Provider.class);
     when(repositoryVersionHelperProvider.get()).thenReturn(repositoryVersionHelper);
+
+
+
     InMemoryDefaultTestModule testModule = new InMemoryDefaultTestModule() {
       @Override
       protected void configure() {
-        bind(RepositoryVersionHelper.class).toInstance(repositoryVersionHelper);
+        bind(RepositoryVersionHelper.class).toProvider(repositoryVersionHelperProvider);
+        bind(AmbariMetaInfo.class).toProvider(new Provider<AmbariMetaInfo>() {
+          @Override
+          public AmbariMetaInfo get() {
+            return metaInfo;
+          }
+        });
+
         requestStaticInjection(RepositoryVersionEntity.class);
       }
     };
+
     Injector injector = Guice.createInjector(testModule);
     if (addClusterVersion) {
       repoVersion = new RepositoryVersionEntity();

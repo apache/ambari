@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.StageUtils;
@@ -76,8 +78,7 @@ public class ExecutionCommand extends AgentCommand {
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  private Map<String, Set<String>> clusterHostInfo =
-    new HashMap<>();
+  private Map<String, Set<String>> clusterHostInfo = new HashMap<>();
 
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
@@ -143,6 +144,14 @@ public class ExecutionCommand extends AgentCommand {
    */
   @SerializedName("configuration_credentials")
   private Map<String, Map<String, String>> configurationCredentials;
+
+
+  /**
+   * Provides information regarding the content of repositories.  This structure replaces
+   * the deprecated use of {@link KeyNames#REPO_INFO}
+   */
+  @SerializedName("repositoryFile")
+  private CommandRepository commandRepository;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
@@ -395,6 +404,20 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * @return the repository file that is to be written.
+   */
+  public CommandRepository getRepositoryFile() {
+    return commandRepository;
+  }
+
+  /**
+   * @param repository  the command repository instance.
+   */
+  public void setRepositoryFile(CommandRepository repository) {
+    commandRepository = repository;
+  }
+
+  /**
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
@@ -420,6 +443,11 @@ public class ExecutionCommand extends AgentCommand {
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
+    /**
+     * Keep for backward compatibility.
+     */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
     String GLOBAL = "global";
