@@ -54,6 +54,7 @@ infra_solr_conf = "/etc/ambari-infra-solr/conf"
 infra_solr_port = status_params.infra_solr_port
 infra_solr_piddir = status_params.infra_solr_piddir
 infra_solr_pidfile = status_params.infra_solr_pidfile
+prev_infra_solr_pidfile = status_params.prev_infra_solr_pidfile
 
 user_group = config['configurations']['cluster-env']['user_group']
 fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]

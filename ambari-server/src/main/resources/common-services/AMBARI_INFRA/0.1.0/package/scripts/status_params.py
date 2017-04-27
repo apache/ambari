@@ -23,12 +23,18 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
+from os import listdir, path
 
 config = Script.get_config()
 
 infra_solr_port = default('configurations/infra-solr-env/infra_solr_port', '8886')
 infra_solr_piddir = default('configurations/infra-solr-env/infra_solr_pid_dir', '/var/run/ambari-infra-solr')
 infra_solr_pidfile = format("{infra_solr_piddir}/solr-{infra_solr_port}.pid")
+
+prev_infra_solr_pidfile = ''
+if path.isdir(infra_solr_piddir):
+  for file in listdir(infra_solr_piddir):
+    prev_infra_solr_pidfile = infra_solr_piddir + '/' + file
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
