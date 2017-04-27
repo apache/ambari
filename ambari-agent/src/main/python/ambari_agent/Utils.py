@@ -75,6 +75,18 @@ class ImmutableDictionary(dict):
 
     super(ImmutableDictionary, self).__init__(dictionary)
 
+  def __getattr__(self, name):
+    """
+    Access to self['attribute'] as self.attribute
+    """
+    if name in self:
+      return self[name]
+
+    try:
+      return self[name]
+    except KeyError:
+      raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+
 def raise_immutable_error(*args, **kwargs):
   """
   PLEASE MAKE SURE YOU NEVER UPDATE CACHE on agent side. The cache should contain exactly the data received from server.

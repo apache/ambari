@@ -19,15 +19,12 @@ limitations under the License.
 '''
 
 import json
-import time
 import logging
 import ambari_stomp
 import threading
-import security
 from collections import defaultdict
 
 from ambari_agent import Constants
-from ambari_agent.InitializerModule import initializer_module
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
@@ -41,12 +38,13 @@ class HeartbeatThread(threading.Thread):
   """
   This thread handles registration and heartbeating routine.
   """
-  def __init__(self):
+  def __init__(self, initializer_module):
     threading.Thread.__init__(self)
     self.is_registered = False
     self.heartbeat_interval = HEARTBEAT_INTERVAL
-    self._stop = threading.Event()
+    self.stop_event = initializer_module.stop_event
 
+    self.initializer_module = initializer_module
     self.caches = [initializer_module.metadata_cache, initializer_module.topology_cache, initializer_module.configurations_cache]
 
     # listeners
@@ -61,7 +59,7 @@ class HeartbeatThread(threading.Thread):
     Run an endless loop of hearbeat with registration upon init or exception in heartbeating.
     """
     # TODO STOMP: stop the thread on SIGTERM
-    while not self._stop.is_set():
+    while not self.stop_event.is_set():
       try:
         if not self.is_registered:
           self.register()
@@ -71,7 +69,7 @@ class HeartbeatThread(threading.Thread):
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
         logger.debug("Heartbeat response is {0}".format(response))
 
-        time.sleep(self.heartbeat_interval)
+        self.stop_event.wait(self.heartbeat_interval)
         # TODO STOMP: handle heartbeat reponse
       except:
         logger.exception("Exception in HeartbeatThread. Re-running the registration")
@@ -122,14 +120,14 @@ class HeartbeatThread(threading.Thread):
     Subscribe to topics and set listener classes.
     """
     for listener in self.listeners:
-      initializer_module.connection.add_listener(listener)
+      self.initializer_module.connection.add_listener(listener)
 
     for topic_name in Constants.TOPICS_TO_SUBSCRIBE:
-      initializer_module.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
+      self.initializer_module.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
 
   def blocking_request(self, body, destination):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
-    initializer_module.connection.send(body=json.dumps(body), destination=destination)
-    return self.server_responses_listener.responses.blocking_pop(str(initializer_module.connection.correlation_id))
+    self.initializer_module.connection.send(body=json.dumps(body), destination=destination)
+    return self.server_responses_listener.responses.blocking_pop(str(self.initializer_module.connection.correlation_id))

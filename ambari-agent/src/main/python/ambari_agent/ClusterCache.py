@@ -23,6 +23,8 @@ import logging
 import ambari_simplejson as json
 import os
 import threading
+from collections import defaultdict
+
 from ambari_agent.Utils import Utils
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,8 @@ class ClusterCache(dict):
   every cluster. This is useful for having quick access to any of the properties.
   """
 
+  file_locks = defaultdict(threading.RLock)
+
   def __init__(self, cluster_cache_dir):
     """
     Initializes the cache.
@@ -42,15 +46,21 @@ class ClusterCache(dict):
 
     self.cluster_cache_dir = cluster_cache_dir
 
-    self.__file_lock = threading.RLock()
-    self._cache_lock = threading.RLock()
     self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
+
+    self._cache_lock = threading.RLock()
+    self.__file_lock = ClusterCache.file_locks[self.__current_cache_json_file]
 
     # if the file exists, then load it
     cache_dict = {}
     if os.path.isfile(self.__current_cache_json_file):
-      with open(self.__current_cache_json_file, 'r') as fp:
-        cache_dict = json.load(fp)
+      with self.__file_lock:
+        with open(self.__current_cache_json_file, 'r') as fp:
+          cache_dict = json.load(fp)
+
+    for cluster_name, cache in cache_dict.iteritems():
+      immutable_cache = Utils.make_immutable(cache)
+      cache_dict[cluster_name] = immutable_cache
 
     super(ClusterCache, self).__init__(cache_dict)
 
@@ -79,11 +89,11 @@ class ClusterCache(dict):
       self[cluster_name] = immutable_cache
 
 
-    with self.__file_lock:
-      # ensure that our cache directory exists
-      if not os.path.exists(self.cluster_cache_dir):
-        os.makedirs(self.cluster_cache_dir)
+    # ensure that our cache directory exists
+    if not os.path.exists(self.cluster_cache_dir):
+      os.makedirs(self.cluster_cache_dir)
 
+    with self.__file_lock:
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self, f, indent=2)
 
@@ -109,3 +119,9 @@ class ClusterCache(dict):
 
   def get_cache_name(self):
     raise NotImplemented()
+
+  def __deepcopy__(self, memo):
+    return self.__class__(self.cluster_cache_dir)
+
+  def __copy__(self):
+    return self.__class__(self.cluster_cache_dir)

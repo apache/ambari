@@ -27,7 +27,8 @@ from coilmq.util.frames import Frame
 from BaseStompServerTestCase import BaseStompServerTestCase
 
 from ambari_agent import HeartbeatThread
-from ambari_agent.InitializerModule import initializer_module
+from ambari_agent.InitializerModule import InitializerModule
+from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 
 from mock.mock import MagicMock, patch
 
@@ -35,12 +36,10 @@ class TestAgentStompResponses(BaseStompServerTestCase):
   def test_mock_server_can_start(self):
     self.init_stdout_logger()
 
-    #initializer_module.server_hostname = 'gc6401'
-    #initializer_module.init()
-
     self.remove(['/tmp/configurations.json', '/tmp/metadata.json', '/tmp/topology.json'])
 
-    heartbeat_thread = HeartbeatThread.HeartbeatThread()
+    initializer_module = InitializerModule()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
     heartbeat_thread.heartbeat_interval = 0
     heartbeat_thread.start()
 
@@ -51,6 +50,11 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     metadata_subscribe_frame = self.server.frames_queue.get()
     topologies_subscribe_frame = self.server.frames_queue.get()
     registration_frame = self.server.frames_queue.get()
+
+    component_status_executor = ComponentStatusExecutor(initializer_module)
+    component_status_executor.start()
+
+    status_reports_frame = self.server.frames_queue.get()
 
     # server sends registration response
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '0'}, body=self.get_json("registration_response.json"))
@@ -69,12 +73,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.server.topic_manager.send(f)
 
     heartbeat_frame = self.server.frames_queue.get()
-    heartbeat_thread._stop.set()
+    initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body=json.dumps({'heartbeat-response':'true'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body=json.dumps({'heartbeat-response':'true'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
+    component_status_executor.join()
 
     self.assertEquals(initializer_module.topology_cache['cl1']['topology']['hosts'][0]['hostname'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['cl1']['metadata']['status_commands_to_run'], ('STATUS',))
@@ -85,10 +90,10 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     ============================================================================================
     """
 
-    delattr(initializer_module,'_connection')
+    initializer_module = InitializerModule()
     self.server.frames_queue.queue.clear()
 
-    heartbeat_thread = HeartbeatThread.HeartbeatThread()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
     heartbeat_thread.heartbeat_interval = 0
     heartbeat_thread.start()
 
@@ -101,6 +106,11 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     registration_frame_json = json.loads(self.server.frames_queue.get().body)
     clusters_hashes = registration_frame_json['clusters']['cl1']
 
+    component_status_executor = ComponentStatusExecutor(initializer_module)
+    component_status_executor.start()
+
+    status_reports_frame = self.server.frames_queue.get()
+
     self.assertEquals(clusters_hashes['metadata_hash'], '20089c8c8682cf03e361cdab3e668ed1')
     self.assertEquals(clusters_hashes['configurations_hash'], 'bc54fe976cade95c48eafbfdff188661')
     self.assertEquals(clusters_hashes['topology_hash'], 'd14ca943e4a69ad0dd640f32d713d2b9')
@@ -110,12 +120,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.server.topic_manager.send(f)
 
     heartbeat_frame = self.server.frames_queue.get()
-    heartbeat_thread._stop.set()
+    initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body=json.dumps({'heartbeat-response':'true'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body=json.dumps({'heartbeat-response':'true'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
+    component_status_executor.join()
 
   def remove(self, filepathes):
     for filepath in filepathes:

@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import threading
 import logging
 import os
 from ambari_agent.FileCache import FileCache
@@ -57,6 +58,8 @@ class InitializerModule:
     """
     Initialize properties
     """
+    self.stop_event = threading.Event()
+
     self.metadata_cache = ClusterMetadataCache(self.cluster_cache_dir)
     self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
@@ -76,5 +79,3 @@ class InitializerModule:
     conn.connect(wait=True)
 
     return conn
-
-initializer_module = InitializerModule()
