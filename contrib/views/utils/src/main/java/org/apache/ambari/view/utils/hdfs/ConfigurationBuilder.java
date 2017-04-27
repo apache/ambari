@@ -266,7 +266,8 @@ public class ConfigurationBuilder {
     String nameservice = uri.getHost();
     String namenodeIDs = getProperty(HDFS_SITE, String.format(HA_NAMENODES_CLUSTER_PROPERTY, nameservice),
       HA_NAMENODES_INSTANCE_PROPERTY);
-    return namenodeIDs != null;
+    LOG.debug("namenodeIDs " + namenodeIDs);
+    return !StringUtils.isEmpty(namenodeIDs);
   }
 
   private static boolean hasPort(String url) throws URISyntaxException {
