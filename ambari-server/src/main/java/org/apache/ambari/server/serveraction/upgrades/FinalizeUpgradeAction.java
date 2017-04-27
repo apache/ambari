@@ -49,9 +49,7 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
@@ -59,7 +57,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -69,34 +66,10 @@ import com.google.inject.Inject;
 /**
  * Action that represents finalizing the Upgrade by completing any database changes.
  */
-public class FinalizeUpgradeAction extends AbstractServerAction {
+public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
-  public static final String CLUSTER_NAME_KEY = "cluster_name";
-  public static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
-  public static final String VERSION_KEY = "version";
-  public static final String REQUEST_ID = "request_id";
   public static final String PREVIOUS_UPGRADE_NOT_COMPLETED_MSG = "It is possible that a previous upgrade was not finalized. " +
       "For this reason, Ambari will not remove any configs. Please ensure that all database records are correct.";
-
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   */
-  public static final String ORIGINAL_STACK_KEY = "original_stack";
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  public static final String TARGET_STACK_KEY = "target_stack";
-
-  /**
-   * The Cluster that this ServerAction implementation is executing on
-   */
-  @Inject
-  protected Clusters clusters;
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
@@ -169,7 +142,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
     try {
       outSB.append(MessageFormat.format("Begin finalizing the upgrade of cluster {0} to version {1}\n", clusterName, version));
 
-      Cluster cluster = clusters.getCluster(clusterName);
+      Cluster cluster = m_clusters.getCluster(clusterName);
       StackId clusterDesiredStackId = cluster.getDesiredStackVersion();
       StackId clusterCurrentStackId = cluster.getCurrentStackVersion();
 
@@ -359,7 +332,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
     StringBuilder err = new StringBuilder();
 
     try {
-      Cluster cluster = clusters.getCluster(clusterName);
+      Cluster cluster = m_clusters.getCluster(clusterName);
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
 
       // Safety check that the cluster's stack (from clusterstate's current_stack_id) is equivalent to the
@@ -484,7 +457,15 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
     ArrayList<InfoTuple> errors = new ArrayList<>();
 
+    Set<String> supportedServices = getSupportedServices();
+
     for (Service service : cluster.getServices().values()) {
+
+      // !!! if there are supported services for upgrade, and the cluster service is NOT in the list, skip
+      if (!supportedServices.isEmpty() && !supportedServices.contains(service.getName())) {
+        continue;
+      }
+
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
         for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),

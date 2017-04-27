@@ -143,6 +143,27 @@ public class VersionDefinitionXml {
   }
 
   /**
+   * Gets the set of services that are included in this XML
+   * @return an empty set for STANDARD repositories, or a non-empty set for PATCH type.
+   */
+  public Set<String> getAvailableServiceNames() {
+    if (availableServices.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      Set<String> serviceNames = new HashSet<>();
+
+      Map<String, ManifestService> manifest = buildManifest();
+
+      for (AvailableServiceReference ref : availableServices) {
+        ManifestService ms = manifest.get(ref.serviceIdReference);
+        serviceNames.add(ms.serviceName);
+      }
+
+      return serviceNames;
+    }
+  }
+
+  /**
    * Gets if the version definition was built as the default for a stack
    * @return {@code true} if default for a stack
    */

@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.google.common.collect.Sets;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -89,17 +89,18 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
   protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
   protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
+  protected static final String COMPONENT_DESIRED_VERSION             = "ServiceComponentInfo/desired_version";
+  protected static final String COMPONENT_REPOSITORY_STATE            = "ServiceComponentInfo/repository_state";
 
   private static final String TRUE = "true";
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
 
-  private static Set<String> pkPropertyIds =
-      new HashSet<>(Arrays.asList(new String[]{
+  private static Set<String> pkPropertyIds = Sets.newHashSet(
           COMPONENT_CLUSTER_NAME_PROPERTY_ID,
           COMPONENT_SERVICE_NAME_PROPERTY_ID,
-          COMPONENT_COMPONENT_NAME_PROPERTY_ID}));
+          COMPONENT_COMPONENT_NAME_PROPERTY_ID);
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -188,6 +189,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
+      setResourceProperty(resource, COMPONENT_DESIRED_VERSION, response.getDesiredVersion(), requestedIds);
+      setResourceProperty(resource, COMPONENT_REPOSITORY_STATE, response.getRepositoryState(), requestedIds);
 
       resources.add(resource);
     }

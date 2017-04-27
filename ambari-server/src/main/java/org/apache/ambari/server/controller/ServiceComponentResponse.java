@@ -21,27 +21,22 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
+
 public class ServiceComponentResponse {
 
   private Long clusterId; // REF
-
   private String clusterName; // REF
-
   private String serviceName;
-
   private String componentName;
-
   private String displayName;
-
   private String desiredStackVersion;
-
   private String desiredState;
-
   private String category;
-
-  Map<String, Integer> serviceComponentStateCount;
-
+  private Map<String, Integer> serviceComponentStateCount;
   private boolean recoveryEnabled;
+  private String desiredVersion;
+  private RepositoryVersionState repoState;
 
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
@@ -50,8 +45,9 @@ public class ServiceComponentResponse {
                                   String desiredState,
                                   Map<String, Integer> serviceComponentStateCount,
                                   boolean recoveryEnabled,
-                                  String displayName) {
-    super();
+                                  String displayName,
+                                  String desiredVersion,
+                                  RepositoryVersionState repoState) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -61,6 +57,8 @@ public class ServiceComponentResponse {
     this.desiredState = desiredState;
     this.serviceComponentStateCount = serviceComponentStateCount;
     this.recoveryEnabled = recoveryEnabled;
+    this.desiredVersion = desiredVersion;
+    this.repoState = repoState;
   }
 
   /**
@@ -195,6 +193,21 @@ public class ServiceComponentResponse {
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     this.recoveryEnabled = recoveryEnabled;
   }
+
+  /**
+   * @return the desired version of the component
+   */
+  public String getDesiredVersion() {
+    return desiredVersion;
+  }
+
+  /**
+   * @return the state of the repository against the desired version
+   */
+  public RepositoryVersionState getRepositoryState() {
+    return repoState;
+  }
+
 
   @Override
   public boolean equals(Object o) {

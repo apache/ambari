@@ -224,8 +224,12 @@ public class ClusterTest {
   }
 
   private void createDefaultCluster(Set<String> hostNames) throws Exception {
-    // TODO, use common function
     StackId stackId = new StackId("HDP", "0.1");
+    createDefaultCluster(hostNames, stackId);
+  }
+
+  private void createDefaultCluster(Set<String> hostNames, StackId stackId) throws Exception {
+    // TODO, use common function
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     org.junit.Assert.assertNotNull(stackEntity);
 
@@ -1638,19 +1642,20 @@ public class ClusterTest {
    * Tests that hosts can be correctly transitioned into the "INSTALLING" state.
    * This method also tests that hosts in MM will not be transitioned, as per
    * the contract of
-   * {@link Cluster#transitionHosts(ClusterVersionEntity, RepositoryVersionState)}.
+   * {@link Cluster#transitionHostsToInstalling(ClusterVersionEntity, RepositoryVersionEntity, org.apache.ambari.server.state.repository.VersionDefinitionXml, boolean)}.
    *
    * @throws Exception
    */
   @Test
-  public void testTransitionHostVersions() throws Exception {
-    createDefaultCluster();
+  public void testTransitionHostsToInstalling() throws Exception {
+    // this will create a cluster with a few hosts and no host components
+    StackId originalStackId = new StackId("HDP", "2.0.5");
+    createDefaultCluster(Sets.newHashSet("h1", "h2"), originalStackId);
 
-    StackId stackId = new StackId("HDP", "0.2");
+    StackId stackId = new StackId("HDP", "2.0.6");
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
-    c1.createClusterVersion(stackId, "0.2", "admin",
-        RepositoryVersionState.INSTALLING);
+    c1.createClusterVersion(stackId, "2.0.6", "admin", RepositoryVersionState.INSTALLING);
 
     ClusterVersionEntity entityHDP2 = null;
     for (ClusterVersionEntity entity : c1.getAllClusterVersions()) {
@@ -1658,7 +1663,7 @@ public class ClusterTest {
       StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
       if (repoVersionStackId.getStackName().equals("HDP")
-          && repoVersionStackId.getStackVersion().equals("0.2")) {
+          && repoVersionStackId.getStackVersion().equals("2.0.6")) {
         entityHDP2 = entity;
         break;
       }
@@ -1669,7 +1674,9 @@ public class ClusterTest {
     List<HostVersionEntity> hostVersionsH1Before = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(1, hostVersionsH1Before.size());
 
-    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
+    // this should move both to NOT_REQUIRED since they have no versionable
+    // components
+    c1.transitionHostsToInstalling(entityHDP2, entityHDP2.getRepositoryVersion(), null, false);
 
     List<HostVersionEntity> hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1678,8 +1685,8 @@ public class ClusterTest {
     for (HostVersionEntity entity : hostVersionsH1After) {
       StackEntity repoVersionStackEntity = entity.getRepositoryVersion().getStack();
       if (repoVersionStackEntity.getStackName().equals("HDP")
-          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
-        assertEquals(RepositoryVersionState.INSTALLING, entity.getState());
+          && repoVersionStackEntity.getStackVersion().equals("2.0.6")) {
+        assertEquals(RepositoryVersionState.NOT_REQUIRED, entity.getState());
         checked = true;
         break;
       }
@@ -1687,8 +1694,29 @@ public class ClusterTest {
 
     assertTrue(checked);
 
-    // Test for update of existing host stack version
-    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
+    // add some host components
+    Service hdfs = serviceFactory.createNew(c1, "HDFS");
+    c1.addService(hdfs);
+
+    // Add HDFS components
+    ServiceComponent datanode = serviceComponentFactory.createNew(hdfs, "NAMENODE");
+    ServiceComponent namenode = serviceComponentFactory.createNew(hdfs, "DATANODE");
+    hdfs.addServiceComponent(datanode);
+    hdfs.addServiceComponent(namenode);
+
+    // add to hosts
+    ServiceComponentHost namenodeHost1 = serviceComponentHostFactory.createNew(namenode, "h1");
+    ServiceComponentHost datanodeHost2 = serviceComponentHostFactory.createNew(datanode, "h2");
+
+    assertNotNull(namenodeHost1);
+    assertNotNull(datanodeHost2);
+
+    c1.transitionClusterVersion(stackId, entityHDP2.getRepositoryVersion().getVersion(),
+        RepositoryVersionState.INSTALLING);
+
+    // with hosts now having components which report versions, we should have
+    // two in the INSTALLING state
+    c1.transitionHostsToInstalling(entityHDP2, entityHDP2.getRepositoryVersion(), null, false);
 
     hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1697,7 +1725,7 @@ public class ClusterTest {
     for (HostVersionEntity entity : hostVersionsH1After) {
       StackEntity repoVersionStackEntity = entity.getRepositoryVersion().getStack();
       if (repoVersionStackEntity.getStackName().equals("HDP")
-          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
+          && repoVersionStackEntity.getStackVersion().equals("2.0.6")) {
         assertEquals(RepositoryVersionState.INSTALLING, entity.getState());
         checked = true;
         break;
@@ -1727,7 +1755,7 @@ public class ClusterTest {
     hostInMaintenanceMode.setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
 
     // transition host versions to INSTALLING
-    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
+    c1.transitionHostsToInstalling(entityHDP2, entityHDP2.getRepositoryVersion(), null, false);
 
     List<HostVersionEntity> hostInMaintModeVersions = hostVersionDAO.findByClusterAndHost("c1",
         hostInMaintenanceMode.getHostName());
@@ -1739,7 +1767,7 @@ public class ClusterTest {
     for (HostVersionEntity hostVersionEntity : hostInMaintModeVersions) {
       StackEntity repoVersionStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
       if (repoVersionStackEntity.getStackName().equals("HDP")
-          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
+          && repoVersionStackEntity.getStackVersion().equals("2.0.6")) {
         assertEquals(RepositoryVersionState.OUT_OF_SYNC, hostVersionEntity.getState());
       }
     }
@@ -1748,7 +1776,7 @@ public class ClusterTest {
     for (HostVersionEntity hostVersionEntity : otherHostVersions) {
       StackEntity repoVersionStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
       if (repoVersionStackEntity.getStackName().equals("HDP")
-          && repoVersionStackEntity.getStackVersion().equals("0.2")) {
+          && repoVersionStackEntity.getStackVersion().equals("2.0.6")) {
       assertEquals(RepositoryVersionState.INSTALLING, hostVersionEntity.getState());
       }
     }

@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -45,6 +46,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +76,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
   @Inject
   DaoUtils daoUtils;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -114,6 +117,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    addServiceComponentColumn();
     updateStageTable();
     updateClusterConfigurationTable();
     addOpsDisplayNameColumnToHostRoleCommand();
@@ -168,6 +172,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
   }
 
+  /**
+   * Updates the {@code servicecomponentdesiredstate} table.
+   *
+   * @throws SQLException
+   */
+  protected void addServiceComponentColumn() throws SQLException {
+    dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
+        new DBColumnInfo("repo_state", String.class, 255, RepositoryVersionState.INIT.name(), false));
+
+  }
   protected void setStatusOfStagesAndRequests() {
     executeInTransaction(new Runnable() {
       @Override
@@ -280,7 +294,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     // the cluster configuration mapping table
     dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
   }
-  
 
   /**
    * Adds the {@value #HRC_OPS_DISPLAY_NAME_COLUMN} column to the
@@ -312,12 +325,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             if (!configType.endsWith("-logsearch-conf")) {
               continue;
             }
-            
+
             Set<String> removeProperties = new HashSet<>();
             removeProperties.add("service_name");
             removeProperties.add("component_mappings");
             removeProperties.add("content");
-            
+
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
         }

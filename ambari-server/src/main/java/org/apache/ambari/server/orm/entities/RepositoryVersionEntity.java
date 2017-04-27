@@ -349,7 +349,7 @@ public class RepositoryVersionEntity {
    * @return the XSD name extracted from the XML.
    */
   public String getVersionXsd() {
-    return versionXml;
+    return versionXsd;
   }
 
   /**

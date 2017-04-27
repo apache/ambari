@@ -33,6 +33,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.events.listeners.upgrade.StackVersionListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -639,6 +640,77 @@ public class ServiceComponentTest {
     List<ServiceComponentVersionEntity> list = serviceComponentDesiredStateDAO.findVersions(cluster.getClusterId(), serviceName, componentName);
     assertEquals(0, list.size());
   }
+
+
+  @Test
+  public void testUpdateStates() throws Exception {
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
+        ServiceComponentDesiredStateDAO.class);
+
+    String componentName = "NAMENODE";
+
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    component.setDesiredStackVersion(new StackId("HDP-2.2.0"));
+    service.addServiceComponent(component);
+
+    ServiceComponent sc = service.getServiceComponent(componentName);
+    Assert.assertNotNull(sc);
+
+    ServiceComponentDesiredStateEntity entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+
+    helper.getOrCreateRepositoryVersion(component.getDesiredStackVersion(), "2.2.0.1");
+    helper.getOrCreateRepositoryVersion(component.getDesiredStackVersion(), "2.2.0.2");
+
+    addHostToCluster("h1", clusterName);
+    addHostToCluster("h2", clusterName);
+
+    sc.setDesiredState(State.INSTALLED);
+    Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
+
+    ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
+    ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
+
+    // !!! case 1: component desired is UNKNOWN, mix of h-c versions
+    sc.setDesiredVersion(StackVersionListener.UNKNOWN_VERSION);
+    sch1.setVersion("2.2.0.1");
+    sch2.setVersion("2.2.0.2");
+    sc.updateRepositoryState("2.2.0.2");
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+    assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
+
+    // !!! case 2: component desired is UNKNOWN, all h-c same version
+    sc.setDesiredVersion(StackVersionListener.UNKNOWN_VERSION);
+    sch1.setVersion("2.2.0.1");
+    sch2.setVersion("2.2.0.1");
+    sc.updateRepositoryState("2.2.0.1");
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+    assertEquals(RepositoryVersionState.CURRENT, entity.getRepositoryState());
+
+    // !!! case 3: component desired is known, any component reports different version
+    sc.setDesiredVersion("2.2.0.1");
+    sch1.setVersion("2.2.0.1");
+    sch2.setVersion("2.2.0.2");
+    sc.updateRepositoryState("2.2.0.2");
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+    assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
+
+    // !!! case 4: component desired is known, component reports same as desired, mix of h-c versions
+    sc.setDesiredVersion("2.2.0.1");
+    sch1.setVersion("2.2.0.1");
+    sch2.setVersion("2.2.0.2");
+    sc.updateRepositoryState("2.2.0.1");
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+    assertEquals(RepositoryVersionState.OUT_OF_SYNC, entity.getRepositoryState());
+
+    // !!! case 5: component desired is known, component reports same as desired, all h-c the same
+    sc.setDesiredVersion("2.2.0.1");
+    sch1.setVersion("2.2.0.1");
+    sch2.setVersion("2.2.0.1");
+    sc.updateRepositoryState("2.2.0.1");
+    entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
+    assertEquals(RepositoryVersionState.CURRENT, entity.getRepositoryState());
+  }
+
 
   /**
    * Creates an upgrade entity, asserting it was created correctly.

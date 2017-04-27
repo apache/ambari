@@ -91,6 +91,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -100,6 +101,7 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -219,6 +221,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
+  /**
+   * The list of supported services put on a command.
+   */
+  public static final String COMMAND_PARAM_SUPPORTED_SERVICES = "supported_services";
 
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
@@ -713,6 +719,36 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Set<String> supportedServices = new HashSet<>();
     UpgradeScope scope = UpgradeScope.COMPLETE;
 
+    switch (direction) {
+      case UPGRADE:
+        StackId sourceStackId = cluster.getCurrentStackVersion();
+
+        RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
+            sourceStackId.getStackName(), version);
+
+        // !!! Consult the version definition and add the service names to supportedServices
+        if (targetRepositoryVersion.getType() != RepositoryType.STANDARD) {
+          try {
+            VersionDefinitionXml vdf = targetRepositoryVersion.getRepositoryXml();
+            supportedServices.addAll(vdf.getAvailableServiceNames());
+
+            // !!! better not be, but just in case
+            if (!supportedServices.isEmpty()) {
+              scope = UpgradeScope.PARTIAL;
+            }
+
+          } catch (Exception e) {
+            String msg = String.format("Could not parse version definition for %s.  Upgrade will not proceed.", version);
+            LOG.error(msg, e);
+            throw new AmbariException(msg);
+          }
+        }
+
+        break;
+      case DOWNGRADE:
+        break;
+    }
+
     upgradeContext.setResolver(resolver);
     upgradeContext.setSupportedServices(supportedServices);
     upgradeContext.setScope(scope);
@@ -816,11 +852,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // from upgrade pack
     @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     Set<Service> services = new HashSet<>(cluster.getServices().values());
+
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     Map<Service, Set<ServiceComponent>> targetComponents = new HashMap<>();
     for (Service service: services) {
-      Set<ServiceComponent> serviceComponents =
-        new HashSet<>(service.getServiceComponents().values());
-      targetComponents.put(service, serviceComponents);
+      if (upgradeContext.isServiceSupported(service.getName())) {
+        Set<ServiceComponent> serviceComponents = new HashSet<>(service.getServiceComponents().values());
+        targetComponents.put(service, serviceComponents);
+      }
     }
 
     // !!! determine which stack to check for component isAdvertised
@@ -1521,6 +1560,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> commandParams = getNewParameterMap(request, context);
     commandParams.put(UpgradeContext.COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
+    commandParams.put(COMMAND_PARAM_SUPPORTED_SERVICES, StringUtils.join(context.getSupportedServices(), ','));
 
     // Notice that this does not apply any params because the input does not specify a stage.
     // All of the other actions do use additional params.

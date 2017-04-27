@@ -184,6 +184,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_version VARCHAR(255) DEFAULT 'UNKNOWN' NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
+  repo_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
   CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),

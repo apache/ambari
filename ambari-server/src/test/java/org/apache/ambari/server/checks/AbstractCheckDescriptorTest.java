@@ -20,8 +20,11 @@ package org.apache.ambari.server.checks;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,24 +32,29 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.inject.Provider;
-
-import junit.framework.Assert;
 
 /**
  * Unit tests for AbstractCheckDescriptor
  */
 public class AbstractCheckDescriptorTest {
   final private Clusters clusters = EasyMock.createNiceMock(Clusters.class);
+  private final RepositoryVersionDAO repositoryVersionDao = EasyMock.createNiceMock(RepositoryVersionDAO.class);
 
   @UpgradeCheck(
       group = UpgradeCheckGroup.DEFAULT,
@@ -63,6 +71,13 @@ public class AbstractCheckDescriptorTest {
         @Override
         public Clusters get() {
           return clusters;
+        }
+      };
+
+      repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+        @Override
+        public RepositoryVersionDAO get() {
+          return repositoryVersionDao;
         }
       };
     }
@@ -170,20 +185,14 @@ public class AbstractCheckDescriptorTest {
     AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.SERVICE);
     PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
 
-    List<String> oneServiceList = new ArrayList<String>() {{
-      add("SERVICE1");
-    }};
-    List<String> atLeastOneServiceList = new ArrayList<String>() {{
-      add("SERVICE1");
-      add("NON_EXISTED_SERVICE");
-    }};
-    List<String> allServicesList = new ArrayList<String>(){{
-      add("SERVICE1");
-      add("SERVICE2");
-    }};
-    List<String> nonExistedList = new ArrayList<String>(){{
-      add("NON_EXISTED_SERVICE");
-    }};
+    List<String> oneServiceList = Arrays.asList("SERVICE1");
+
+    List<String> atLeastOneServiceList = Arrays.asList("SERVICE1", "NON_EXISTED_SERVICE");
+
+    List<String> allServicesList = Arrays.asList("SERVICE1", "SERVICE2");
+
+    List<String> nonExistedList = Arrays.asList("NON_EXISTED_SERVICE");
+
 
     // case, where we need at least one service to be present
     Assert.assertEquals(true, check.isApplicable(request, oneServiceList, false));
@@ -200,6 +209,52 @@ public class AbstractCheckDescriptorTest {
     // Case with non existed services
     Assert.assertEquals(false, check.isApplicable(request, nonExistedList, false));
     Assert.assertEquals(false, check.isApplicable(request, nonExistedList, true));
+  }
+
+  @Test
+  public void testIsApplicableWithVDF() throws Exception{
+    final String clusterName = "c1";
+    final Cluster cluster = EasyMock.createMock(Cluster.class);
+
+    Map<String, Service> services = new HashMap<String, Service>(){{
+      put("SERVICE1", null);
+      put("SERVICE2", null);
+      put("SERVICE3", null);
+    }};
+
+    expect(clusters.getCluster(anyString())).andReturn(cluster).atLeastOnce();
+    expect(cluster.getServices()).andReturn(services).atLeastOnce();
+
+    RepositoryVersionEntity repoVersion = EasyMock.createMock(RepositoryVersionEntity.class);
+    VersionDefinitionXml repoXml = EasyMock.createMock(VersionDefinitionXml.class);
+    expect(repoVersion.getType()).andReturn(RepositoryType.PATCH).atLeastOnce();
+    expect(repoVersion.getRepositoryXml()).andReturn(repoXml).atLeastOnce();
+    expect(repoXml.getAvailableServiceNames()).andReturn(Collections.singleton("SERVICE2")).atLeastOnce();
+
+    expect(repositoryVersionDao.findByStackNameAndVersion(
+        anyString(), anyString())).andReturn(repoVersion).atLeastOnce();
+
+    replay(clusters, cluster, repositoryVersionDao, repoVersion, repoXml);
+
+    AbstractCheckDescriptor check = new TestCheckImpl(PrereqCheckType.SERVICE);
+    PrereqCheckRequest request = new PrereqCheckRequest(clusterName, UpgradeType.ROLLING);
+    request.setTargetStackId(new StackId("HDP-2.5"));
+
+    List<String> allServicesList = Arrays.asList("SERVICE1", "SERVICE2");
+
+    // SERVICE2 is the only thing in VDF
+    Assert.assertEquals(true, check.isApplicable(request, allServicesList, false));
+
+    List<String> oneServicesList = Arrays.asList("SERVICE1");
+
+    // SERVICE2 is the only thing in VDF, a check for only SERVICE1 fail
+    Assert.assertEquals(false, check.isApplicable(request, oneServicesList, false));
+
+    // a VDF without available services is technically invalid, so expect any passed services to return false
+    reset(repoXml);
+    expect(repoXml.getAvailableServiceNames()).andReturn(Collections.<String>emptySet()).atLeastOnce();
+    replay(repoXml);
+    Assert.assertEquals(false, check.isApplicable(request, allServicesList, false));
   }
 
   /**

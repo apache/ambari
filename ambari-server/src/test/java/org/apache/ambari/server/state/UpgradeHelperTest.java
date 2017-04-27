@@ -38,6 +38,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -267,6 +269,7 @@ public class UpgradeHelperTest {
     ambariMetaInfo.init();
   }
 
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   @Test
   public void testPartialUpgradeOrchestration() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("foo", "bar");

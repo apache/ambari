@@ -292,7 +292,6 @@ public class ComponentVersionCheckActionTest {
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
     assertEquals(0, report.getExitCode());
-
   }
 
   @Test
@@ -370,6 +369,74 @@ public class ComponentVersionCheckActionTest {
     assertNotNull(report);
     assertEquals(HostRoleStatus.FAILED.name(), report.getStatus());
     assertEquals(-1, report.getExitCode());
+  }
+
+  @Test
+  public void testMatchingPartialVersions() throws Exception {
+    StackId sourceStack = HDP_21_STACK;
+    StackId targetStack = HDP_21_STACK;
+    String sourceRepo = HDP_2_1_1_0;
+    String targetRepo = HDP_2_1_1_1;
+
+    makeUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
+
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+
+    Host host = clusters.getHost("h1");
+    Assert.assertNotNull(host);
+    host.setOsInfo("redhat6");
+
+    Cluster cluster = clusters.getCluster("c1");
+    clusters.mapHostToCluster("h1", "c1");
+
+    Service service = installService(cluster, "HDFS");
+    ServiceComponent sc = addServiceComponent(cluster, service, "NAMENODE");
+    sc.setDesiredVersion(HDP_2_1_1_0);
+
+    sc = addServiceComponent(cluster, service, "DATANODE");
+    sc.setDesiredVersion(HDP_2_1_1_0);
+
+    ServiceComponentHost sch = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
+    sch.setVersion(HDP_2_1_1_0);
+    sch = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
+    sch.setVersion(HDP_2_1_1_0);
+
+    service = installService(cluster, "ZOOKEEPER");
+    sc = addServiceComponent(cluster, service, "ZOOKEEPER_SERVER");
+    sc.setDesiredVersion(HDP_2_1_1_1);
+
+    sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
+    sch.setVersion(HDP_2_1_1_1);
+
+    // Verify the repo before calling Finalize
+    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
+
+    RepositoryInfo repo = metaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
+    assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
+
+    // Finalize the upgrade
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
+    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
+    commandParams.put(FinalizeUpgradeAction.SUPPORTED_SERVICES_KEY, "ZOOKEEPER");
+    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, "HDP-2.1.1");
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    ComponentVersionCheckAction action = m_injector.getInstance(ComponentVersionCheckAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+    assertEquals(0, report.getExitCode());
+
   }
 
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,

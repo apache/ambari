@@ -176,6 +176,10 @@ public class UpgradeCatalog300Test {
     dbAccessor.addColumn(eq(UpgradeCatalog300.CLUSTER_CONFIG_TABLE), capture(clusterConfigSelectedTimestampColumn));
     dbAccessor.addColumn(eq(UpgradeCatalog300.HOST_ROLE_COMMAND_TABLE), capture(hrcOpsDisplayNameColumn));
 
+    // component table
+    Capture<DBAccessor.DBColumnInfo> componentStateColumn = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog250.COMPONENT_TABLE), capture(componentStateColumn));
+
     replay(dbAccessor, configuration);
 
     Injector injector = Guice.createInjector(module);
@@ -191,6 +195,12 @@ public class UpgradeCatalog300Test {
     Assert.assertNotNull(capturedSelectedTimestampColumn);
     Assert.assertEquals(UpgradeCatalog300.CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN, capturedSelectedTimestampColumn.getName());
     Assert.assertEquals(Long.class, capturedSelectedTimestampColumn.getType());
+
+    // component table
+    DBAccessor.DBColumnInfo capturedStateColumn = componentStateColumn.getValue();
+    Assert.assertNotNull(componentStateColumn);
+    Assert.assertEquals("repo_state", capturedStateColumn.getName());
+    Assert.assertEquals(String.class, capturedStateColumn.getType());
 
     DBAccessor.DBColumnInfo capturedOpsDisplayNameColumn = hrcOpsDisplayNameColumn.getValue();
     Assert.assertEquals(UpgradeCatalog300.HRC_OPS_DISPLAY_NAME_COLUMN, capturedOpsDisplayNameColumn.getName());
