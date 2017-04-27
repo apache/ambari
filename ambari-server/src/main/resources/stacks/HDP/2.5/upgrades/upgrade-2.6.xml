@@ -1097,6 +1097,7 @@
           <task xsi:type="configure" id="atlas_log4j_parameterize" />
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
           <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
+          <task xsi:type="configure" id="atlas_env_gc_worker"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

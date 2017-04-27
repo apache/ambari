@@ -139,6 +139,10 @@
             <set key="ranger.plugin.atlas.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-atlas-plugin-properties" if-key="ranger-atlas-plugin-enabled" if-key-state="present"/>
           </definition>
+          <definition xsi:type="configure" id="atlas_env_gc_worker" summary="Updating Atlas Env gc-worker configuration">
+            <type>atlas-env</type>
+            <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
+          </definition>
         </changes>
       </component>
     </service>

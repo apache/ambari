@@ -323,6 +323,12 @@
           <summary>Updating Atlas zookeeper timeout values</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Env gc-worker configuration">
+        <task xsi:type="configure" id="atlas_env_gc_worker">
+          <summary>Updating Atlas Env gc-worker configuration</summary>
+        </task>
+      </execute-stage>
     </group>
 
     <!--
