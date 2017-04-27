@@ -119,6 +119,10 @@
             <set key="atlas.kafka.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.kafka.zookeeper.session.timeout.ms" if-key-state="present"/>
             <set key="atlas.audit.zookeeper.session.timeout.ms" value="60000" if-type="application-properties" if-key="atlas.audit.zookeeper.session.timeout.ms" if-key-state="present"/>
           </definition>
+          <definition xsi:type="configure" id="atlas_env_gc_worker" summary="Updating Atlas Env gc-worker configuration">
+            <type>atlas-env</type>
+            <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
+          </definition>
         </changes>
       </component>
       <component name="SPARK_CLIENT">
