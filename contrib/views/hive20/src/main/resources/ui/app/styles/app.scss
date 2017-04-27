@@ -42,6 +42,9 @@
 
 .top-application-header{
   background-color: #e1e1e0;
+  ul{
+    padding: 0 15px;
+  }
 }
 
 .fa-1-5{
@@ -737,6 +740,7 @@ pre {
 }
 
 .worksheet-nav {
+  padding: 0 9px;
   li{
     margin-left:5px;
     a {
@@ -948,7 +952,7 @@ rect.operator__box {
   overflow: auto;
 }
 
-.explain--error {
+.explain--error, .no-results {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -983,4 +987,21 @@ rect.operator__box {
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100px;
+}
+
+.progress {
+  margin-top: 15px;
+}
+
+.btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+  border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.middle-align {
+  vertical-align: middle;
+}
+
+.table-title {
+  padding: 0 15px;
 }

@@ -18,19 +18,26 @@
 
 <td colspan="4" style="padding: 0;">
   <div class="udf-container">
-  <form class="form-inline">
-    <table class="table" style="background-color: transparent">
-      <tr>
-        <td width="20%" >
-          <label>UDF Name</label><br />
-          {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Name" value=name }}
-        </td>
-        <td width="20%">
-          <label >UDF Class Name</label><br />
-          {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="UDF Class Name" value=classname }}
-        </td>
-        <td width="40%">
-          <label >File Resource</label><br />
+
+    <h4>Edit UDF</h4>
+
+    <form class="form-horizontal">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">UDF Name</label>
+        <div class="col-sm-10">
+          {{input type="text" class="form-control" placeholder="UDF Name" value=name }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">UDF Class Name</label>
+        <div class="col-sm-10">
+          {{input type="text" class="form-control" placeholder="UDF Class Name" value=classname }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label">File Resource</label>
+        <div class="col-sm-10">
           {{#unless isAddingNewFileResource}}
             {{#power-select
             options=fileResourceList
@@ -43,23 +50,34 @@
             {{/power-select}}
           {{/unless}}
           {{#if isAddingNewFileResource}}
-            <label class="sr-only">Resource name</label>
-            {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="File Resource Name" value=udfFileResourceName }}
 
-            <label class="sr-only">Resource Path</label>
-            {{input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" placeholder="File Resource path" value=udfFileResourcePath }}
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Resource name</label>
+              <div class="col-sm-10">
+                {{input type="text" class="form-control" placeholder="File Resource Name" value=udfFileResourceName }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Resource Path</label>
+              <div class="col-sm-10">
+                {{input type="text" class="form-control" placeholder="File Resource path" value=udfFileResourcePath }}
+              </div>
+            </div>
+
           {{/if}}
-        </td>
+        </div>
+      </div>
 
-        <td width="20%" align="center">
-          <br />
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
           <button class="btn btn-success" type="button" {{action 'saveUDf' name classname udfid udfFileResourceName udfFileResourcePath}}>Save UDF</button>
           <button class="btn btn-warning" type="button" {{action 'cancelEditUdf'}}>Cancel</button>
-        </td>
+        </div>
+      </div>
+    </form>
 
-      </tr>
-    </table>
-  </form>
+
   </div>
 </td>
 
