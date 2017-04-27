@@ -122,6 +122,7 @@ export default Ember.Component.extend(UILoggerMixin, {
 
     cancelEditUdf(){
       this.set('expandedEdit', false);
+      this.set('isAddingNewFileResource', false);
     },
 
     saveUDf(name, classname, udfid, udfFileResourceName, udfFileResourcePath){
