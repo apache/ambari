@@ -153,8 +153,7 @@
               <goal>yarn</goal>
             </goals>
             <configuration>
-              <arguments>install</arguments>
-              <arguments>--ignore-engines</arguments>
+              <arguments>install --ignore-engines --pure-lockfile</arguments>
             </configuration>
           </execution>
         </executions>
