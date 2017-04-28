@@ -177,6 +177,7 @@
       <excludes>
 	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
         <exclude>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
+        <exclude>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -186,6 +187,7 @@
       <includes>
 	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
         <include>/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
+        <include>/3.0/hooks/before-START/files/fast-hdfs-resource.jar</include>
 	  </includes>
     </fileSet>
     <fileSet>
