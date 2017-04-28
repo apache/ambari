@@ -26,9 +26,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
 
-import com.google.inject.Inject;;
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 /**
  * Abstract class that reads values from command params in a consistent way.
