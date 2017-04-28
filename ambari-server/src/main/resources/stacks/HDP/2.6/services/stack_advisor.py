@@ -58,8 +58,8 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       beaconServerHost = self.getHostWithComponent('BEACON', 'BEACON_SERVER', services, hosts)
       beaconDBConnectionURL = beaconEnvProperties['beacon_store_url']
       protocol = self.getProtocol(beaconEnvProperties['beacon_database'])
-      oldSchemaName = self.getOldValue(services, "beacon-env", "beacon_store_db_name")
-      oldDBType = self.getOldValue(services, "beacon-env", "beacon_database")
+      oldSchemaName = getOldValue(self, services, "beacon-env", "beacon_store_db_name")
+      oldDBType = getOldValue(self, services, "beacon-env", "beacon_database")
       # under these if constructions we are checking if beacon server hostname available,
       # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
       # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
