@@ -586,6 +586,11 @@
           <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Update Storm log directory">
+        <task xsi:type="configure" id="storm_worker_log4j_directory">
+          <summary>Update Storm log directory in storm worker log4j</summary>
+        </task>
+      </execute-stage>
 
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">

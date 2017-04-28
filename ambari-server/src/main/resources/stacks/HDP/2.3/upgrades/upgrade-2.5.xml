@@ -1096,6 +1096,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_worker_log4j_directory" />
         </pre-upgrade>
 
         <pre-downgrade>

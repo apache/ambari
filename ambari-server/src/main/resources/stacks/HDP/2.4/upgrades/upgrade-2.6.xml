@@ -1091,6 +1091,7 @@
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_worker_log4j_directory" />
         </pre-upgrade>
 
         <pre-downgrade>
