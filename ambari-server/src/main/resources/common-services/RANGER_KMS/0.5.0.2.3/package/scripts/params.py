@@ -29,6 +29,9 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.setup_ranger_plugin_xml import generate_ranger_service_config
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import get_kinit_path
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -297,3 +300,31 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 
 # need this to capture cluster name from where ranger kms plugin is enabled
 cluster_name = config['clusterName']
+
+has_namenode = len(namenode_host) > 0
+hdfs_user = default("/configurations/hadoop-env/hdfs_user", None)
+hdfs_user_keytab = default("/configurations/hadoop-env/hdfs_user_keytab", None)
+hdfs_principal_name = default("/configurations/hadoop-env/hdfs_principal_name", None)
+default_fs = default("/configurations/core-site/fs.defaultFS", None)
+hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
+hadoop_bin_dir = stack_select.get_hadoop_dir("bin") if has_namenode else None
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+import functools
+# create partial functions with common arguments for every HdfsResource call
+# to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
+)
+
+local_component_list = default("/localComponents", [])
+has_hdfs_client_on_node = 'HDFS_CLIENT' in local_component_list
