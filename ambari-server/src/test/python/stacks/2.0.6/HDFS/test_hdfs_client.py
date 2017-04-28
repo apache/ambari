@@ -50,25 +50,25 @@ class Test(RMFTestCase):
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               conf_dir = '/tmp/123',
-                              mode=0600,
+                              mode=0644,
                               configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'],
                               configurations = self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('File', '/tmp/123/hadoop-env.sh',
-                              mode=0600,
+                              mode=0644,
                               content = InlineTemplate(self.getConfig()['configurations']['hadoop-env']['content']),
                               )
     self.assertResourceCalled('File', '/tmp/123/log4j.properties',
-                              mode=0600,
+                              mode=0644,
                               content = InlineTemplate(self.getConfig()['configurations']['hdfs-log4j']['content']+
                                                        self.getConfig()['configurations']['yarn-log4j']['content']),
                               )
     self.assertResourceCalled('PropertiesFile', '/tmp/123/runtime.properties',
-                              mode=0600,
+                              mode=0644,
                               properties = UnknownConfigurationMock(),
     )
     self.assertResourceCalled('PropertiesFile', '/tmp/123/startup.properties',
-                              mode=0600,
+                              mode=0644,
                               properties = UnknownConfigurationMock(),
     )
     self.assertResourceCalled('Directory', '/tmp/123',
