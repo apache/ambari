@@ -115,6 +115,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String REQUEST_COMPLETED_TASK_CNT_ID = "Requests/completed_task_count";
   protected static final String REQUEST_QUEUED_TASK_CNT_ID = "Requests/queued_task_count";
   protected static final String REQUEST_PROGRESS_PERCENT_ID = "Requests/progress_percent";
+  protected static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = "Requests/remove_pending_host_requests";
+  protected static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = "Requests/pending_host_request_count";
+
   protected static final String COMMAND_ID = "command";
   protected static final String SERVICE_ID = "service_name";
   protected static final String COMPONENT_ID = "component_name";
@@ -152,7 +155,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_TIMED_OUT_TASK_CNT_ID,
     REQUEST_COMPLETED_TASK_CNT_ID,
     REQUEST_QUEUED_TASK_CNT_ID,
-    REQUEST_PROGRESS_PERCENT_ID);
+    REQUEST_PROGRESS_PERCENT_ID,
+    REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
+    REQUEST_PENDING_HOST_REQUEST_COUNT_ID);
 
   // ----- Constructors ----------------------------------------------------
 
@@ -297,6 +302,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public RequestStatus updateResources(Request requestInfo, Predicate predicate)
           throws SystemException, UnsupportedPropertyException,
           NoSuchResourceException, NoSuchParentResourceException {
+
     AmbariManagementController amc = getManagementController();
     final Set<RequestRequest> requests = new HashSet<RequestRequest>();
 
@@ -319,33 +325,48 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
       // There should be only one request with this id (or no request at all)
       org.apache.ambari.server.actionmanager.Request internalRequest = internalRequests.get(0);
-      // Validate update request (check constraints on state value and presence of abort reason)
-      if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
-        throw new IllegalArgumentException("Abort reason can not be empty.");
-      }
 
-      if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
-        throw new IllegalArgumentException(
-                String.format("%s is wrong value. The only allowed value " +
-                                "for updating request status is ABORTED",
-                        updateRequest.getStatus()));
-      }
-
-      HostRoleStatus internalRequestStatus =
-          CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
-
-      if (internalRequestStatus.isCompletedState()) {
-        // Ignore updates to completed requests to avoid throwing exception on race condition
+      if (updateRequest.isRemovePendingHostRequests()) {
+        if (internalRequest instanceof LogicalRequest) {
+          targets.add(internalRequest);
+        } else {
+          throw new IllegalArgumentException("Request with id: " + internalRequest.getRequestId() + "is not a Logical Request.");
+        }
       } else {
-        // Validation passed
-        targets.add(internalRequest);
+        // Validate update request (check constraints on state value and presence of abort reason)
+        if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
+          throw new IllegalArgumentException("Abort reason can not be empty.");
+        }
+
+        if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
+          throw new IllegalArgumentException(
+                  String.format("%s is wrong value. The only allowed value " +
+                                  "for updating request status is ABORTED",
+                          updateRequest.getStatus()));
+        }
+
+        HostRoleStatus internalRequestStatus =
+                CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
+
+        if (internalRequestStatus.isCompletedState()) {
+          // Ignore updates to completed requests to avoid throwing exception on race condition
+        } else {
+          // Validation passed
+          targets.add(internalRequest);
+        }
       }
+
     }
+
     // Perform update
     Iterator<RequestRequest> reqIterator = requests.iterator();
     for (org.apache.ambari.server.actionmanager.Request target : targets) {
-      String reason = reqIterator.next().getAbortReason();
-      amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      if (target instanceof LogicalRequest) {
+        topologyManager.removePendingHostRequests(target.getClusterName(), target.getRequestId());
+      } else {
+        String reason = reqIterator.next().getAbortReason();
+        amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      }
     }
     return getRequestStatus(null);
   }
@@ -363,9 +384,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       requestStatus = HostRoleStatus.valueOf(requestStatusStr);
     }
     String abortReason = (String) propertyMap.get(REQUEST_ABORT_REASON_PROPERTY_ID);
+    String removePendingHostRequests = (String) propertyMap.get(REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID);
+
     RequestRequest requestRequest = new RequestRequest(clusterNameStr, requestId);
     requestRequest.setStatus(requestStatus);
     requestRequest.setAbortReason(abortReason);
+    if (removePendingHostRequests != null) {
+      requestRequest.setRemovePendingHostRequests(Boolean.valueOf(removePendingHostRequests));
+    }
+
     return requestRequest;
 
   }
@@ -753,11 +780,19 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       // in this case, it appears that there are no tasks but this is a logical
       // topology request, so it's a matter of hosts simply not registering yet
       // for tasks to be created
-      status = CalculatedStatus.PENDING;
+      if (logicalRequest.hasPendingHostRequests()) {
+        status = CalculatedStatus.PENDING;
+      } else {
+        status = CalculatedStatus.COMPLETED;
+      }
     } else {
       // there are either tasks or this is not a logical request, so do normal
       // status calculations
       status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    }
+
+    if (null != logicalRequest) {
+      setResourceProperty(resource, REQUEST_PENDING_HOST_REQUEST_COUNT_ID, logicalRequest.getPendingHostRequestCount(), requestedPropertyIds);
     }
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);

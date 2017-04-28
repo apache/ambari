@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -1649,7 +1650,12 @@ public class RequestResourceProviderTest {
 
 
     ClusterTopology topology = createNiceMock(ClusterTopology.class);
+
+    HostGroup hostGroup = createNiceMock(HostGroup.class);
+    expect(hostGroup.getName()).andReturn("host_group_1").anyTimes();
+
     Blueprint blueprint = createNiceMock(Blueprint.class);
+    expect(blueprint.getHostGroup("host_group_1")).andReturn(hostGroup).anyTimes();
     expect(topology.getClusterId()).andReturn(2L).anyTimes();
 
     Long clusterId = 2L;
@@ -1666,8 +1672,13 @@ public class RequestResourceProviderTest {
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
       Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
 
+    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+    HostGroupInfo hostGroupInfo = new HostGroupInfo("host_group_1");
+    hostGroupInfo.setRequestedCount(1);
+    hostGroupInfoMap.put("host_group_1", hostGroupInfo);
+
     TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
-    expect(topologyRequest.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
+    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 
@@ -1677,24 +1688,28 @@ public class RequestResourceProviderTest {
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
 
     PowerMock.replayAll(
-      topologyRequest,
-      topology,
-      blueprint,
-      managementController,
-      clusters);
+            topologyRequest,
+            topology,
+            blueprint,
+            managementController,
+            clusters);
 
 
-    LogicalRequest logicalRequest = new LogicalRequest(200L, topologyRequest, topology);
+    LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
+    expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
 
     reset(topologyManager);
 
     expect(topologyManager.getRequest(100L)).andReturn(logicalRequest).anyTimes();
+
+
     expect(topologyManager.getRequests(eq(Collections.singletonList(100L)))).andReturn(
       Collections.singletonList(logicalRequest)).anyTimes();
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
       Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
 
-    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
@@ -1722,7 +1737,7 @@ public class RequestResourceProviderTest {
 
     // verify
     PowerMock.verifyAll();
-    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {

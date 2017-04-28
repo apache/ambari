@@ -434,7 +434,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+            "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
@@ -485,18 +485,53 @@ public class TopologyManager {
 
     final Long requestId = ambariContext.getNextRequestId();
     LogicalRequest logicalRequest = RetryHelper.executeWithRetry(new Callable<LogicalRequest>() {
-        @Override
-        public LogicalRequest call() throws Exception {
-          LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
+         @Override
+         public LogicalRequest call() throws Exception {
+           LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
 
-          return logicalRequest;
-        }
-      }
+           return logicalRequest;
+         }
+       }
     );
-
     processRequest(request, topology, logicalRequest);
-
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  public void removePendingHostRequests(String clusterName, long requestId) {
+    ensureInitialized();
+    LOG.info("TopologyManager.removePendingHostRequests: Entering");
+
+    long clusterId = 0;
+    try {
+      clusterId = ambariContext.getClusterId(clusterName);
+    } catch (AmbariException e) {
+      LOG.error("Unable to retrieve clusterId", e);
+      throw new IllegalArgumentException("Unable to retrieve clusterId");
+    }
+    ClusterTopology topology = clusterTopologyMap.get(clusterId);
+    if (topology == null) {
+      throw new IllegalArgumentException("Unable to retrieve cluster topology for cluster");
+    }
+
+    LogicalRequest logicalRequest = allRequests.get(requestId);
+    if (logicalRequest == null) {
+      throw new IllegalArgumentException("No Logical Request found for requestId: " + requestId);
+    }
+
+    Collection<HostRequest> pendingHostRequests = logicalRequest.removePendingHostRequests(null);
+
+    if (!logicalRequest.hasPendingHostRequests()) {
+      outstandingRequests.remove(logicalRequest);
+    }
+
+    persistedState.removeHostRequests(pendingHostRequests);
+
+    // set current host count to number of currently connected hosts
+    for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
+      currentHostGroupInfo.setRequestedCount(currentHostGroupInfo.getHostNames().size());
+    }
+
+    LOG.info("TopologyManager.removePendingHostRequests: Exit");
   }
 
   /**
@@ -937,7 +972,7 @@ public class TopologyManager {
 
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
-        if (!logicalRequest.hasCompleted()) {
+        if (logicalRequest.hasPendingHostRequests()) {
           outstandingRequests.add(logicalRequest);
           for (String reservedHost : logicalRequest.getReservedHosts()) {
             reservedHosts.put(reservedHost, logicalRequest);
@@ -968,6 +1003,7 @@ public class TopologyManager {
         }
       }
     }
+    LOG.info("TopologyManager.replayRequests: Exit");
   }
 
   /**

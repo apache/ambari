@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.topology;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -79,4 +80,10 @@ public interface PersistedState {
    * @return
    */
   LogicalRequest getProvisionRequest(long clusterId);
+
+  /**
+   *
+   * @param hostRequests
+   */
+  void removeHostRequests(Collection<HostRequest> hostRequests);
 }

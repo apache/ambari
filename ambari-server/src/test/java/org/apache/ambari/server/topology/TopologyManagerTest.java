@@ -396,7 +396,7 @@ public class TopologyManagerTest {
     Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
     List<LogicalRequest> requestList = new ArrayList<>();
     requestList.add(logicalRequest);
-    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(false).anyTimes();
     allRequests.put(clusterTopologyMock, requestList);
     expect(requestStatusResponse.getTasks()).andReturn(Collections.<ShortTaskStatus>emptyList()).anyTimes();
     expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
@@ -405,8 +405,8 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
-    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true);
-    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true);
+    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
+    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
 
     replayAll();
 
@@ -515,7 +515,8 @@ public class TopologyManagerTest {
     allRequests.put(clusterTopologyMock, logicalRequests);
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
-    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
+    expect(logicalRequest.getCompletedHostRequests()).andReturn(Collections.EMPTY_LIST).anyTimes();
     expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
     replayAll();
     EasyMock.replay(clusterTopologyMock);

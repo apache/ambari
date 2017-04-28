@@ -135,6 +135,8 @@
         "Requests/queued_task_count",
         "Requests/progress_percent",
         "Requests/abort_reason",
+        "Requests/remove_pending_host_requests",
+        "Requests/pending_host_request_count",
         "_"
     ],
     "RequestSchedule" : [

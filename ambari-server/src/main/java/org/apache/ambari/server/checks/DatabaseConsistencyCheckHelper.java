@@ -382,14 +382,14 @@ public class DatabaseConsistencyCheckHelper {
     String SELECT_REQUEST_COUNT_QUERY = "select count(tpr.id) from topology_request tpr";
 
     String SELECT_JOINED_COUNT_QUERY = "select count(DISTINCT tpr.id) from topology_request tpr join " +
-      "topology_logical_request tlr on tpr.id = tlr.request_id join topology_host_request thr on tlr.id = " +
-      "thr.logical_request_id join topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task " +
-      "tlt on tht.id = tlt.host_task_id";
+      "topology_logical_request tlr on tpr.id = tlr.request_id";
 
-    int topologyRequestCount = 0;
-    int topologyRequestTablesJoinedCount = 0;
+    String SELECT_HOST_REQUEST_COUNT_QUERY = "select count(thr.id) from topology_host_request thr";
 
-    ResultSet rs = null;
+    String SELECT_HOST_JOINED_COUNT_QUERY = "select count(DISTINCT thr.id) from topology_host_request thr join " +
+            "topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task " +
+            "tlt on tht.id = tlt.host_task_id";
+
     Statement statement = null;
 
     if (connection == null) {
@@ -402,38 +402,25 @@ public class DatabaseConsistencyCheckHelper {
     try {
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-      rs = statement.executeQuery(SELECT_REQUEST_COUNT_QUERY);
-      if (rs != null) {
-        while (rs.next()) {
-          topologyRequestCount = rs.getInt(1);
-        }
-      }
-
-      rs = statement.executeQuery(SELECT_JOINED_COUNT_QUERY);
-      if (rs != null) {
-        while (rs.next()) {
-          topologyRequestTablesJoinedCount = rs.getInt(1);
-        }
-      }
+      int topologyRequestCount = runQuery(statement, SELECT_REQUEST_COUNT_QUERY);
+      int topologyRequestTablesJoinedCount = runQuery(statement, SELECT_JOINED_COUNT_QUERY);
 
       if (topologyRequestCount != topologyRequestTablesJoinedCount) {
         error("Your topology request hierarchy is not complete for each row in topology_request should exist " +
-          "at least one raw in topology_logical_request, topology_host_request, topology_host_task, " +
-          "topology_logical_task.");
+          "at least one row in topology_logical_request");
       }
 
+      int topologyHostRequestCount = runQuery(statement, SELECT_HOST_REQUEST_COUNT_QUERY);
+      int topologyHostRequestTablesJoinedCount = runQuery(statement, SELECT_HOST_JOINED_COUNT_QUERY);
+
+      if (topologyHostRequestCount != topologyHostRequestTablesJoinedCount) {
+        error("Your topology request hierarchy is not complete for each row in topology_host_request should exist " +
+                "at least one row in topology_host_task, topology_logical_task.");
+      }
 
     } catch (SQLException e) {
       LOG.error("Exception occurred during topology request tables check: ", e);
     } finally {
-      if (rs != null) {
-        try {
-          rs.close();
-        } catch (SQLException e) {
-          LOG.error("Exception occurred during result set closing procedure: ", e);
-        }
-      }
-
       if (statement != null) {
         try {
           statement.close();
@@ -445,6 +432,31 @@ public class DatabaseConsistencyCheckHelper {
 
   }
 
+  private static int runQuery(Statement statement, String query) {
+    ResultSet rs = null;
+    int result = 0;
+    try {
+      rs = statement.executeQuery(query);
+
+      if (rs != null) {
+        while (rs.next()) {
+          result = rs.getInt(1);
+        }
+      }
+
+    } catch (SQLException e) {
+      LOG.error("Exception occurred during topology request tables check: ", e);
+    } finally {
+      if (rs != null) {
+        try {
+          rs.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+    }
+    return result;
+  }
 
 
   /**
