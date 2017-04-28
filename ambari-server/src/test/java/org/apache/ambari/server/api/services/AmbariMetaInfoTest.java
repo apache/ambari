@@ -60,6 +60,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
@@ -1911,6 +1912,9 @@ public class AmbariMetaInfoTest {
    */
   @Test
   public void testAlertDefinitionMerging() throws Exception {
+    final String stackVersion = "2.0.6";
+    final String repoVersion = "2.0.6-1234";
+
     Injector injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
@@ -1918,8 +1922,9 @@ public class AmbariMetaInfoTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(EntityManager.class);
-    long clusterId = injector.getInstance(OrmTestHelper.class).createCluster(
-        "cluster" + System.currentTimeMillis());
+
+    OrmTestHelper ormHelper = injector.getInstance(OrmTestHelper.class);
+    long clusterId = ormHelper.createCluster("cluster" + System.currentTimeMillis());
 
     Class<?> c = metaInfo.getClass().getSuperclass();
 
@@ -1934,9 +1939,12 @@ public class AmbariMetaInfoTest {
     Clusters clusters = injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getClusterById(clusterId);
     cluster.setDesiredStackVersion(
-        new StackId(STACK_NAME_HDP, "2.0.6"));
+        new StackId(STACK_NAME_HDP, stackVersion));
 
-    cluster.addService("HDFS");
+    RepositoryVersionEntity repositoryVersion = ormHelper.getOrCreateRepositoryVersion(
+        cluster.getCurrentStackVersion(), repoVersion);
+
+    cluster.addService("HDFS", repositoryVersion);
 
     metaInfo.reconcileAlertDefinitions(clusters);
 

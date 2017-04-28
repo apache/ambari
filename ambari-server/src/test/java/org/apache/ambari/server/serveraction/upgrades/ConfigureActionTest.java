@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -1695,7 +1696,6 @@ public class ConfigureActionTest {
 
     clusters.addCluster(clusterName, HDP_220_STACK);
 
-
     StackEntity stackEntity = stackDAO.find(HDP_220_STACK.getStackName(),
         HDP_220_STACK.getStackVersion());
 
@@ -1704,9 +1704,13 @@ public class ConfigureActionTest {
     Cluster c = clusters.getCluster(clusterName);
     c.setDesiredStackVersion(HDP_220_STACK);
 
+    // Creating starting repo
+    RepositoryVersionEntity repositoryVersionEntity = m_helper.getOrCreateRepositoryVersion(
+        HDP_220_STACK, HDP_2_2_0_0);
+
     // !!! very important, otherwise the loops that walk the list of installed
     // service properties will not run!
-    installService(c, "ZOOKEEPER");
+    installService(c, "ZOOKEEPER", repositoryVersionEntity);
 
     Config config = cf.createNew(c, "zoo.cfg", "version1", new HashMap<String, String>() {
       {
@@ -1726,8 +1730,6 @@ public class ConfigureActionTest {
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
 
-    // Creating starting repo
-    m_helper.getOrCreateRepositoryVersion(HDP_220_STACK, HDP_2_2_0_0);
     c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
 
@@ -1740,10 +1742,6 @@ public class ConfigureActionTest {
     c.createClusterVersion(HDP_220_STACK, HDP_2_2_0_1, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(HDP_220_STACK, HDP_2_2_0_1, RepositoryVersionState.INSTALLED);
     c.setCurrentStackVersion(HDP_220_STACK);
-
-    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
-        RepositoryVersionState.CURRENT);
-
 
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
@@ -1764,13 +1762,14 @@ public class ConfigureActionTest {
    * @return
    * @throws AmbariException
    */
-  private Service installService(Cluster cluster, String serviceName) throws AmbariException {
+  private Service installService(Cluster cluster, String serviceName,
+      RepositoryVersionEntity repositoryVersion) throws AmbariException {
     Service service = null;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName);
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

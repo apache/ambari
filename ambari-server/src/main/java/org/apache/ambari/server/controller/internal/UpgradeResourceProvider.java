@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -92,8 +90,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -704,7 +700,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradeType upgradeType = upgradeContext.getType();
 
     ConfigHelper configHelper = getManagementController().getConfigHelper();
-    String userName = getManagementController().getAuthName();
+
+    // the upgrade context calculated these for us based on direction
+    StackId sourceStackId = upgradeContext.getOriginalStackId();
 
     // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
     final String version = upgradeContext.getVersion();
@@ -721,20 +719,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     switch (direction) {
       case UPGRADE:
-        StackId sourceStackId = cluster.getCurrentStackVersion();
-
-        RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
-            sourceStackId.getStackName(), version);
+        RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
+        RepositoryType repositoryType = targetRepositoryVersion.getType();
 
         // !!! Consult the version definition and add the service names to supportedServices
-        if (targetRepositoryVersion.getType() != RepositoryType.STANDARD) {
+        if (repositoryType != RepositoryType.STANDARD) {
+          scope = UpgradeScope.PARTIAL;
+
           try {
             VersionDefinitionXml vdf = targetRepositoryVersion.getRepositoryXml();
             supportedServices.addAll(vdf.getAvailableServiceNames());
 
-            // !!! better not be, but just in case
-            if (!supportedServices.isEmpty()) {
-              scope = UpgradeScope.PARTIAL;
+            // if this is every true, then just stop the upgrade attempt and
+            // throw an exception
+            if (supportedServices.isEmpty()) {
+              String message = String.format(
+                  "When using a VDF of type %s, the available services must be defined in the VDF",
+                  targetRepositoryVersion.getType());
+              throw new AmbariException(message);
             }
 
           } catch (Exception e) {
@@ -820,10 +822,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<>();
     RequestStageContainer req = createRequest(direction, version);
 
-    // the upgrade context calculated these for us based on direction
-    StackId sourceStackId = upgradeContext.getOriginalStackId();
-    StackId targetStackId = upgradeContext.getTargetStackId();
-
     /**
     During a Rolling Upgrade, change the desired Stack Id if jumping across
     major stack versions (e.g., HDP 2.2 -> 2.3), and then set config changes
@@ -837,7 +835,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (pack.getType() == UpgradeType.ROLLING) {
       // Desired configs must be set before creating stages because the config tag
       // names are read and set on the command for filling in later
-      applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, pack, userName);
+      applyStackAndProcessConfigurations(upgradeContext);
+
+      // move component desired version and upgrade state
+      s_upgradeHelper.putComponentsToUpgradingState(upgradeContext);
     }
 
     // resolve or build a proper config upgrade pack - always start out with the config pack
@@ -847,26 +848,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
     ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack, sourceStackId);
 
-    // TODO: for now, all service components are transitioned to upgrading state
-    // TODO: When performing patch upgrade, we should only target supported services/components
-    // from upgrade pack
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    Set<Service> services = new HashSet<>(cluster.getServices().values());
-
-    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-    Map<Service, Set<ServiceComponent>> targetComponents = new HashMap<>();
-    for (Service service: services) {
-      if (upgradeContext.isServiceSupported(service.getName())) {
-        Set<ServiceComponent> serviceComponents = new HashSet<>(service.getServiceComponents().values());
-        targetComponents.put(service, serviceComponents);
-      }
-    }
-
-    // !!! determine which stack to check for component isAdvertised
-    StackId componentStack = upgradeContext.getDirection() == Direction.UPGRADE ?
-        upgradeContext.getTargetStackId() : upgradeContext.getOriginalStackId();
-    s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents, componentStack);
-
+    // create the upgrade and request
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;
       boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
@@ -1015,23 +997,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * fail due to missing configurations.</li>
    * </ul>
    *
-   *
-   * @param stackName Stack name such as HDP, HDPWIN, BIGTOP
-   * @param cluster
-   *          the cluster
-   * @param version
-   *          the version
-   * @param direction
-   *          upgrade or downgrade
-   * @param upgradePack
-   *          upgrade pack used for upgrade or downgrade. This is needed to determine
-   *          which services are effected.
-   * @param userName
-   *          username performing the action
+   * @param upgradeContext  the upgrade context (not {@code null}).
    * @throws AmbariException
    */
-  public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack, String userName)
+  public void applyStackAndProcessConfigurations(UpgradeContext upgradeContext)
     throws AmbariException {
+
+    Cluster cluster = upgradeContext.getCluster();
+    Direction direction = upgradeContext.getDirection();
+    UpgradePack upgradePack = upgradeContext.getUpgradePack();
+    String stackName = upgradeContext.getTargetStackId().getStackName();
+    String version = upgradeContext.getVersion();
+    String userName = getManagementController().getAuthName();
+
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs", version);
@@ -1255,7 +1233,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // !!! update the stack
     cluster.setDesiredStackVersion(
-        new StackId(targetStack.getStackName(), targetStack.getStackVersion()), true);
+        new StackId(targetStack.getStackName(), targetStack.getStackVersion()));
 
     // !!! configs must be created after setting the stack version
     if (null != newConfigurationsByType) {

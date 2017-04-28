@@ -167,8 +167,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
   public void testRecalculateHostVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsNotValid() throws AmbariException {
     expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
     expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
-    serviceComponent.setDesiredVersion(INVALID_NEW_VERSION);
-    expectLastCall().once();
     sch.setUpgradeState(UpgradeState.NONE);
     expectLastCall().once();
     sch.setVersion(INVALID_NEW_VERSION);
@@ -184,8 +182,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
   public void testRecalculateClusterVersionStateWhenComponentDesiredVersionIsUnknownAndNewVersionIsValid() throws AmbariException {
     expect(serviceComponent.getDesiredVersion()).andReturn(UNKNOWN_VERSION);
     expect(serviceComponent.isVersionAdvertised()).andReturn(Boolean.TRUE);
-    serviceComponent.setDesiredVersion(VALID_NEW_VERSION);
-    expectLastCall().once();
     sch.setUpgradeState(UpgradeState.NONE);
     expectLastCall().once();
     sch.setVersion(VALID_NEW_VERSION);

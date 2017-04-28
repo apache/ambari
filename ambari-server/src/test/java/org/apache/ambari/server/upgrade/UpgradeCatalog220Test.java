@@ -1211,7 +1211,6 @@ public class UpgradeCatalog220Test {
     DBAccessor mockedDbAccessor = mocksControl.createMock(DBAccessor.class);
     DaoUtils mockedDaoUtils = mocksControl.createMock(DaoUtils.class);
     Configuration mockedConfiguration = mocksControl.createMock(Configuration.class);
-    StackUpgradeUtil mockedStackUpgradeUtil = mocksControl.createMock(StackUpgradeUtil.class);
 
     Capture<String> capturedTableName = EasyMock.newCapture();
     Capture<String> capturedPKColumn = EasyMock.newCapture();
@@ -1255,7 +1254,6 @@ public class UpgradeCatalog220Test {
     EasyMockSupport.injectMocks(testSubject);
 
     //todo refactor the DI approach, don't directly access these members!!!
-    testSubject.stackUpgradeUtil = mockedStackUpgradeUtil;
     testSubject.dbAccessor = mockedDbAccessor;
     testSubject.configuration = mockedConfiguration;
 

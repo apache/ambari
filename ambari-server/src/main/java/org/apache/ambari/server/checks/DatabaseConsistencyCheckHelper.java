@@ -57,6 +57,7 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.State;
@@ -165,7 +166,7 @@ public class DatabaseConsistencyCheckHelper {
       LOG.error("Exception occurred during connection close procedure: ", e);
     }
   }
-  
+
   public static DatabaseConsistencyCheckResult runAllDBChecks(boolean fixIssues) throws Throwable {
     LOG.info("******************************* Check database started *******************************");
     try {
@@ -693,6 +694,8 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     for (HostComponentDesiredStateEntity hostComponentDesiredStateEntity : missedHostComponentDesiredStates) {
+      ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity();
+
       HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setClusterId(hostComponentDesiredStateEntity.getClusterId());
       stateEntity.setComponentName(hostComponentDesiredStateEntity.getComponentName());
@@ -701,7 +704,6 @@ public class DatabaseConsistencyCheckHelper {
       stateEntity.setHostEntity(hostComponentDesiredStateEntity.getHostEntity());
       stateEntity.setCurrentState(State.UNKNOWN);
       stateEntity.setUpgradeState(UpgradeState.NONE);
-      stateEntity.setCurrentStack(hostComponentDesiredStateEntity.getDesiredStack());
       stateEntity.setSecurityState(SecurityState.UNKNOWN);
       stateEntity.setServiceComponentDesiredStateEntity(hostComponentDesiredStateEntity.getServiceComponentDesiredStateEntity());
 
@@ -717,7 +719,6 @@ public class DatabaseConsistencyCheckHelper {
       stateEntity.setServiceName(missedHostComponentState.getServiceName());
       stateEntity.setHostEntity(missedHostComponentState.getHostEntity());
       stateEntity.setDesiredState(State.UNKNOWN);
-      stateEntity.setDesiredStack(missedHostComponentState.getCurrentStack());
       stateEntity.setServiceComponentDesiredStateEntity(missedHostComponentState.getServiceComponentDesiredStateEntity());
 
       LOG.error("Trying to add missing record in hostcomponentdesiredstate: {}", stateEntity);

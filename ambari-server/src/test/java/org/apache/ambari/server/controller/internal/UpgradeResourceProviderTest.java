@@ -95,6 +95,8 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -140,6 +142,11 @@ public class UpgradeResourceProviderTest {
   private TopologyManager topologyManager;
   private ConfigFactory configFactory;
   private HostRoleCommandDAO hrcDAO;
+  private UpgradeContextFactory upgradeContextFactory;
+
+  RepositoryVersionEntity repoVersionEntity2110;
+  RepositoryVersionEntity repoVersionEntity2111;
+  RepositoryVersionEntity repoVersionEntity2200;
 
   @Before
   public void before() throws Exception {
@@ -176,6 +183,7 @@ public class UpgradeResourceProviderTest {
     amc = injector.getInstance(AmbariManagementController.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     configFactory = injector.getInstance(ConfigFactory.class);
+    upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
 
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
@@ -199,26 +207,26 @@ public class UpgradeResourceProviderTest {
     StackId stack211 = new StackId("HDP-2.1.1");
     StackId stack220 = new StackId("HDP-2.2.0");
 
-    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 1");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity211);
-    repoVersionEntity.setVersion("2.1.1.0");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2110 = new RepositoryVersionEntity();
+    repoVersionEntity2110.setDisplayName("My New Version 1");
+    repoVersionEntity2110.setOperatingSystems("");
+    repoVersionEntity2110.setStack(stackEntity211);
+    repoVersionEntity2110.setVersion("2.1.1.0");
+    repoVersionDao.create(repoVersionEntity2110);
 
-    repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 2 for patch upgrade");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity211);
-    repoVersionEntity.setVersion("2.1.1.1");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2111 = new RepositoryVersionEntity();
+    repoVersionEntity2111.setDisplayName("My New Version 2 for patch upgrade");
+    repoVersionEntity2111.setOperatingSystems("");
+    repoVersionEntity2111.setStack(stackEntity211);
+    repoVersionEntity2111.setVersion("2.1.1.1");
+    repoVersionDao.create(repoVersionEntity2111);
 
-    repoVersionEntity = new RepositoryVersionEntity();
-    repoVersionEntity.setDisplayName("My New Version 3 for major upgrade");
-    repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack(stackEntity220);
-    repoVersionEntity.setVersion("2.2.0.0");
-    repoVersionDao.create(repoVersionEntity);
+    repoVersionEntity2200 = new RepositoryVersionEntity();
+    repoVersionEntity2200.setDisplayName("My New Version 3 for major upgrade");
+    repoVersionEntity2200.setOperatingSystems("");
+    repoVersionEntity2200.setStack(stackEntity220);
+    repoVersionEntity2200.setVersion("2.2.0.0");
+    repoVersionDao.create(repoVersionEntity2200);
 
     clusters = injector.getInstance(Clusters.class);
 
@@ -242,8 +250,7 @@ public class UpgradeResourceProviderTest {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZK server
-    Service service = cluster.addService("ZOOKEEPER");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("ZOOKEEPER", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -745,8 +752,7 @@ public class UpgradeResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
 
     // add additional service for the test
-    Service service = cluster.addService("HIVE");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("HIVE", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -796,7 +802,7 @@ public class UpgradeResourceProviderTest {
 
     // create downgrade with one upgraded service
     StackId stackId = new StackId("HDP", "2.2.0");
-    cluster.setDesiredStackVersion(stackId, true);
+    service.setDesiredRepositoryVersion(repoVersionEntity2200);
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
@@ -1057,7 +1063,7 @@ public class UpgradeResourceProviderTest {
         assertEquals(oldStack, sc.getDesiredStackVersion());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(oldStack, sch.getDesiredStackVersion());
+          assertEquals(oldStack.getStackVersion(), sch.getVersion());
         }
       }
     }
@@ -1103,7 +1109,7 @@ public class UpgradeResourceProviderTest {
         assertEquals(newStack, sc.getDesiredStackVersion());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(newStack, sch.getDesiredStackVersion());
+          assertEquals(newStack.getStackVersion(), sch.getVersion());
         }
       }
     }
@@ -1200,7 +1206,11 @@ public class UpgradeResourceProviderTest {
 
     Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     UpgradePack upgrade = upgradePacks.get("upgrade_to_new_stack");
-    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade, "admin");
+
+    UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade.getType(),
+        Direction.UPGRADE, "2.2.0.0", new HashMap<String, Object>());
+
+    upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
     Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
@@ -1511,8 +1521,7 @@ public class UpgradeResourceProviderTest {
   @Test
   public void testCreateUpgradeDowngradeCycleAdvertisingVersion() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
-    Service service = cluster.addService("STORM");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("STORM", repoVersionEntity2110);
 
     ServiceComponent component = service.addServiceComponent("DRPC_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

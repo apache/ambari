@@ -53,6 +53,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.SecurityType;
 import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
@@ -79,11 +80,11 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    replay(maintenanceStateHelper);
-    AbstractResourceProvider provider = new ServiceResourceProvider(
-            propertyIds,
-            keyPropertyIds,
-            managementController, maintenanceStateHelper);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    replay(maintenanceStateHelper, repositoryVersionDAO);
+
+    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
+        managementController, maintenanceStateHelper, repositoryVersionDAO);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -118,12 +119,11 @@ public class AbstractResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    replay(maintenanceStateHelper);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(
-            propertyIds,
-            keyPropertyIds,
-            managementController, maintenanceStateHelper);
+    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
+        managementController, maintenanceStateHelper, repositoryVersionDAO);
 
     Set<String> supportedPropertyIds = provider.getPropertyIds();
     Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));
@@ -135,12 +135,11 @@ public class AbstractResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    replay(maintenanceStateHelper);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(
-            propertyIds,
-            keyPropertyIds,
-            managementController, maintenanceStateHelper);
+    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
+        managementController, maintenanceStateHelper, repositoryVersionDAO);
 
     RequestStatus status = provider.getRequestStatus(null);
 
@@ -358,7 +357,7 @@ public class AbstractResourceProviderTest {
       EasyMock.reportMatcher(new StackConfigurationRequestSetMatcher(stackName, stackVersion, serviceName, propertyName));
       return null;
     }
-    
+
     public static Set<StackConfigurationDependencyRequest> getStackConfigurationDependencyRequestSet(String stackName, String stackVersion,
         String serviceName, String propertyName, String dependencyName)
     {

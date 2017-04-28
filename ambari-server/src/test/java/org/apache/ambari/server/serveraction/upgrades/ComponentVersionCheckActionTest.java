@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +45,15 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -64,6 +68,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Assert;
@@ -146,6 +151,9 @@ public class ComponentVersionCheckActionTest {
     clusters.addCluster(clusterName, sourceStack);
 
     StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+    RequestDAO requestDAO = m_injector.getInstance(RequestDAO.class);
+    UpgradeDAO upgradeDAO = m_injector.getInstance(UpgradeDAO.class);
+
     StackEntity stackEntitySource = stackDAO.find(sourceStack.getStackName(), sourceStack.getStackVersion());
     StackEntity stackEntityTarget = stackDAO.find(targetStack.getStackName(), targetStack.getStackVersion());
     assertNotNull(stackEntitySource);
@@ -180,9 +188,6 @@ public class ComponentVersionCheckActionTest {
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
     c.setCurrentStackVersion(targetStack);
 
-    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
-        RepositoryVersionState.CURRENT);
-
     HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
 
     HostVersionEntity entity = new HostVersionEntity();
@@ -190,6 +195,25 @@ public class ComponentVersionCheckActionTest {
     entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(targetStack, targetRepo));
     entity.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.create(entity);
+
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setClusterId(c.getClusterId());
+    requestEntity.setRequestId(1L);
+    requestEntity.setStartTime(System.currentTimeMillis());
+    requestEntity.setCreateTime(System.currentTimeMillis());
+    requestDAO.create(requestEntity);
+
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setId(1L);
+    upgradeEntity.setClusterId(c.getClusterId());
+    upgradeEntity.setRequestEntity(requestEntity);
+    upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setFromVersion(sourceRepo);
+    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeDAO.create(upgradeEntity);
+
+    c.setUpgradeEntity(upgradeEntity);
   }
 
   private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack,
@@ -199,6 +223,9 @@ public class ComponentVersionCheckActionTest {
     clusters.addCluster(clusterName, sourceStack);
 
     StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+    RequestDAO requestDAO = m_injector.getInstance(RequestDAO.class);
+    UpgradeDAO upgradeDAO = m_injector.getInstance(UpgradeDAO.class);
+
     StackEntity stackEntitySource = stackDAO.find(sourceStack.getStackName(), sourceStack.getStackVersion());
     StackEntity stackEntityTarget = stackDAO.find(targetStack.getStackName(), targetStack.getStackVersion());
 
@@ -225,6 +252,24 @@ public class ComponentVersionCheckActionTest {
     c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setClusterId(c.getClusterId());
+    requestEntity.setRequestId(1L);
+    requestEntity.setStartTime(System.currentTimeMillis());
+    requestEntity.setCreateTime(System.currentTimeMillis());
+    requestDAO.create(requestEntity);
+
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setId(1L);
+    upgradeEntity.setClusterId(c.getClusterId());
+    upgradeEntity.setRequestEntity(requestEntity);
+    upgradeEntity.setUpgradePackage("");
+    upgradeEntity.setFromVersion(sourceRepo);
+    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
+    upgradeDAO.create(upgradeEntity);
+
+    c.setUpgradeEntity(upgradeEntity);
   }
 
   private void createNewRepoVersion(StackId targetStack, String targetRepo, String clusterName,
@@ -244,9 +289,6 @@ public class ComponentVersionCheckActionTest {
     // Start upgrading the newer repo
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
     c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-
-    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
-        RepositoryVersionState.CURRENT);
 
     HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
 
@@ -389,12 +431,16 @@ public class ComponentVersionCheckActionTest {
     Cluster cluster = clusters.getCluster("c1");
     clusters.mapHostToCluster("h1", "c1");
 
-    Service service = installService(cluster, "HDFS");
-    ServiceComponent sc = addServiceComponent(cluster, service, "NAMENODE");
-    sc.setDesiredVersion(HDP_2_1_1_0);
+    RepositoryVersionEntity repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(
+        HDP_21_STACK, HDP_2_1_1_0);
 
+    RepositoryVersionEntity repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(
+        HDP_21_STACK, HDP_2_1_1_1);
+
+    Service service = installService(cluster, "HDFS");
+    service.setDesiredRepositoryVersion(repositoryVersion2110);
+    ServiceComponent sc = addServiceComponent(cluster, service, "NAMENODE");
     sc = addServiceComponent(cluster, service, "DATANODE");
-    sc.setDesiredVersion(HDP_2_1_1_0);
 
     ServiceComponentHost sch = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
     sch.setVersion(HDP_2_1_1_0);
@@ -402,8 +448,8 @@ public class ComponentVersionCheckActionTest {
     sch.setVersion(HDP_2_1_1_0);
 
     service = installService(cluster, "ZOOKEEPER");
+    service.setDesiredRepositoryVersion(repositoryVersion2111);
     sc = addServiceComponent(cluster, service, "ZOOKEEPER_SERVER");
-    sc.setDesiredVersion(HDP_2_1_1_1);
 
     sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
     sch.setVersion(HDP_2_1_1_1);
@@ -415,7 +461,7 @@ public class ComponentVersionCheckActionTest {
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
 
     // Finalize the upgrade
-    Map<String, String> commandParams = new HashMap<String, String>();
+    Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
     commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
     commandParams.put(FinalizeUpgradeAction.SUPPORTED_SERVICES_KEY, "ZOOKEEPER");
@@ -450,8 +496,6 @@ public class ComponentVersionCheckActionTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    sch.setStackVersion(cluster.getCurrentStackVersion());
 
     return sch;
   }
@@ -462,7 +506,8 @@ public class ComponentVersionCheckActionTest {
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName);
+      RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

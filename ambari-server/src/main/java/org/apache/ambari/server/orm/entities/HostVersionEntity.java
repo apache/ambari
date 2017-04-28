@@ -71,7 +71,12 @@ import org.apache.ambari.server.state.RepositoryVersionState;
     @NamedQuery(name = "hostVersionByClusterStackVersionAndHostId", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
         "WHERE hostVersion.hostId=:hostId AND clusters.clusterId=:clusterId AND hostVersion.repositoryVersion.stack.stackName=:stackName " +
-        "AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version")
+        "AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version"),
+
+    @NamedQuery(
+        name = "findHostVersionByClusterAndRepository",
+        query = "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters "
+            + "WHERE clusters.clusterId = :clusterId AND hostVersion.repositoryVersion = :repositoryVersion") 
 })
 public class HostVersionEntity {
 
@@ -115,9 +120,9 @@ public class HostVersionEntity {
    * This constructor is mainly used by the unit tests in order to construct an object without the id.
    */
   public HostVersionEntity(HostVersionEntity other) {
-    this.hostEntity = other.hostEntity;
-    this.repositoryVersion = other.repositoryVersion;
-    this.state = other.state;
+    hostEntity = other.hostEntity;
+    repositoryVersion = other.repositoryVersion;
+    state = other.state;
   }
 
   public Long getId() {
@@ -169,15 +174,29 @@ public class HostVersionEntity {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
 
     HostVersionEntity other = (HostVersionEntity) obj;
-    if (id != null ? id != other.id : other.id != null) return false;
-    if (hostEntity != null ? !hostEntity.equals(other.hostEntity) : other.hostEntity != null) return false;
-    if (repositoryVersion != null ? !repositoryVersion.equals(other.repositoryVersion) : other.repositoryVersion != null) return false;
-    if (state != other.state) return false;
+    if (id != null ? id != other.id : other.id != null) {
+      return false;
+    }
+    if (hostEntity != null ? !hostEntity.equals(other.hostEntity) : other.hostEntity != null) {
+      return false;
+    }
+    if (repositoryVersion != null ? !repositoryVersion.equals(other.repositoryVersion) : other.repositoryVersion != null) {
+      return false;
+    }
+    if (state != other.state) {
+      return false;
+    }
     return true;
   }
 

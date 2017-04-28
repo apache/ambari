@@ -157,7 +157,9 @@ public class UpgradeResourceProviderHDP22Test {
     clusters.addCluster("c1", stackId);
     Cluster cluster = clusters.getCluster("c1");
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
+
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
@@ -172,8 +174,7 @@ public class UpgradeResourceProviderHDP22Test {
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single HIVE server
-    Service service = cluster.addService("HIVE");
-    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    Service service = cluster.addService("HIVE", repositoryVersion);
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -215,7 +216,7 @@ public class UpgradeResourceProviderHDP22Test {
         assertEquals(oldStack, sc.getDesiredStackVersion());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(oldStack, sch.getDesiredStackVersion());
+          assertEquals("2.2.0.0", sch.getVersion());
         }
       }
     }
@@ -260,10 +261,6 @@ public class UpgradeResourceProviderHDP22Test {
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
         assertEquals(newStack, sc.getDesiredStackVersion());
-
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(newStack, sch.getDesiredStackVersion());
-        }
       }
     }
 

@@ -28,7 +28,6 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Alert;
@@ -36,9 +35,10 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -75,17 +75,6 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
    */
   private static final String MISMATCHED_VERSIONS_MSG = "The following components are reporting unexpected versions: ";
 
-  /**
-   * The message when there is no CURRENT cluster version, but the cluster is
-   * still being setup.
-   */
-  private static final String CLUSTER_PROVISIONING_MSG = "The cluster is currently being provisioned. This alert will be skipped.";
-
-  /**
-   * The message when there is no CURRENT cluster version.
-   */
-  private static final String CLUSTER_OUT_OF_SYNC_MSG = "The cluster's CURRENT version could not be determined.";
-
   @Inject
   private AmbariMetaInfo m_metaInfo;
 
@@ -102,7 +91,7 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
    * {@inheritDoc}
    */
   @Override
-  List<Alert> execute(Cluster cluster, AlertDefinitionEntity myDefinition) {
+  List<Alert> execute(Cluster cluster, AlertDefinitionEntity myDefinition) throws AmbariException {
     // if there is an upgrade in progress, then skip running this alert
     UpgradeEntity upgrade = cluster.getUpgradeInProgress();
     if (null != upgrade) {
@@ -115,27 +104,15 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
     TreeMap<Host, Set<ServiceComponentHost>> versionMismatches = new TreeMap<>();
     Collection<Host> hosts = cluster.getHosts();
 
-    // no cluster version is very bad ...
-    ClusterVersionEntity clusterVersionEntity = cluster.getCurrentClusterVersion();
-    if (null == clusterVersionEntity) {
-      if (cluster.getProvisioningState() == State.INIT
-          || cluster.getAllClusterVersions().size() == 1) {
-        return Collections.singletonList(
-            buildAlert(cluster, myDefinition, AlertState.SKIPPED, CLUSTER_PROVISIONING_MSG));
-      } else {
-        return Collections.singletonList(
-            buildAlert(cluster, myDefinition, AlertState.CRITICAL, CLUSTER_OUT_OF_SYNC_MSG));
-      }
-    }
-
-    RepositoryVersionEntity repositoryVersionEntity = clusterVersionEntity.getRepositoryVersion();
-    String clusterVersion = repositoryVersionEntity.getVersion();
-
     for (Host host : hosts) {
-      List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(
-          host.getHostName());
+      List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(host.getHostName());
       for (ServiceComponentHost hostComponent : hostComponents) {
-        StackId desiredStackId = hostComponent.getDesiredStackVersion();
+        Service service = cluster.getService(hostComponent.getServiceName());
+        ServiceComponent serviceComponent = service.getServiceComponent(hostComponent.getServiceComponentName());
+
+        RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
+        StackId desiredStackId = serviceComponent.getDesiredStackVersion();
+        String desiredVersion = desiredRepositoryVersion.getVersion();
 
         final ComponentInfo componentInfo;
         try {
@@ -157,7 +134,7 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
         }
 
         String version = hostComponent.getVersion();
-        if (!StringUtils.equals(version, clusterVersion)) {
+        if (!StringUtils.equals(version, desiredVersion)) {
           Set<ServiceComponentHost> mismatchedComponents = versionMismatches.get(host);
           if (null == mismatchedComponents) {
             mismatchedComponents = new HashSet<>();

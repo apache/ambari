@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityState;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -177,7 +178,8 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
           String serviceName = sch.getServiceName();
 
           if (!visitedServices.contains(serviceName)) {
-            StackId stackVersion = sch.getStackVersion();
+            ServiceComponent serviceComponent = sch.getServiceComponent();
+            StackId stackVersion = serviceComponent.getDesiredStackVersion();
 
             visitedServices.add(serviceName);
 

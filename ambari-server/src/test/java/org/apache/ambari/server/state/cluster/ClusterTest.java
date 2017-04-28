@@ -344,20 +344,26 @@ public class ClusterTest {
   }
 
   /**
-   * For Rolling Upgrades, create a cluster with the following components
-   * HDFS: NameNode, DataNode, HDFS Client
-   * ZK: Zookeeper Server, Zookeeper Monitor
+   * For Rolling Upgrades, create a cluster with the following components HDFS:
+   * NameNode, DataNode, HDFS Client ZK: Zookeeper Server, Zookeeper Monitor
    * Ganglia: Ganglia Server, Ganglia Monitor
    *
-   * Further, 3 hosts will be added.
-   * Finally, verify that only the Ganglia components do not need to advertise a version.
-   * @param clusterName Cluster Name
-   * @param stackId Stack to set for the cluster
-   * @param hostAttributes Host attributes to use for 3 hosts (h-1, h-2, h-3)
+   * Further, 3 hosts will be added. Finally, verify that only the Ganglia
+   * components do not need to advertise a version.
+   *
+   * @param clusterName
+   *          Cluster Name
+   * @param repositoryVersion
+   *          the repository to use for new services being installed in the
+   *          cluster
+   * @param hostAttributes
+   *          Host attributes to use for 3 hosts (h-1, h-2, h-3)
    * @throws Exception
    * @return Cluster that was created
    */
-  private Cluster createClusterForRU(String clusterName, StackId stackId, Map<String, String> hostAttributes) throws Exception {
+  private Cluster createClusterForRU(String clusterName, RepositoryVersionEntity repositoryVersion,
+      Map<String, String> hostAttributes) throws Exception {
+    StackId stackId = repositoryVersion.getStackId();
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertEquals(clusterName, cluster.getClusterName());
@@ -382,9 +388,9 @@ public class ClusterTest {
     }
 
     // Add Services
-    Service s1 = serviceFactory.createNew(cluster, "HDFS");
-    Service s2 = serviceFactory.createNew(cluster, "ZOOKEEPER");
-    Service s3 = serviceFactory.createNew(cluster, "GANGLIA");
+    Service s1 = serviceFactory.createNew(cluster, "HDFS", repositoryVersion);
+    Service s2 = serviceFactory.createNew(cluster, "ZOOKEEPER", repositoryVersion);
+    Service s3 = serviceFactory.createNew(cluster, "GANGLIA", repositoryVersion);
     cluster.addService(s1);
     cluster.addService(s2);
     cluster.addService(s3);
@@ -648,8 +654,10 @@ public class ClusterTest {
     // public Service getService(String serviceName) throws AmbariException;
     // public Map<String, Service> getServices();
 
-    Service s1 = serviceFactory.createNew(c1, "HDFS");
-    Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service s1 = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
+    Service s2 = serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
 
     Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);
@@ -676,7 +684,9 @@ public class ClusterTest {
     // TODO write unit tests
     // public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
-    Service s = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service s = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(s);
     ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(sc);
@@ -694,7 +704,7 @@ public class ClusterTest {
     try {
       while (iterator.hasNext()) {
         iterator.next();
-        Service s1 = serviceFactory.createNew(c1, "PIG");
+        Service s1 = serviceFactory.createNew(c1, "PIG", repositoryVersion);
         c1.addService(s1);
         ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
         s1.addServiceComponent(sc1);
@@ -713,7 +723,9 @@ public class ClusterTest {
   public void testGetServiceComponentHosts_ForService() throws Exception {
     createDefaultCluster();
 
-    Service s = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service s = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(s);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
@@ -741,7 +753,9 @@ public class ClusterTest {
   public void testGetServiceComponentHosts_ForServiceComponent() throws Exception {
     createDefaultCluster();
 
-    Service s = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service s = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(s);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
@@ -775,7 +789,9 @@ public class ClusterTest {
   public void testGetServiceComponentHostMap() throws Exception {
     createDefaultCluster();
 
-    Service s = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service s = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(s);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
@@ -807,10 +823,12 @@ public class ClusterTest {
   public void testGetServiceComponentHostMap_ForService() throws Exception {
     createDefaultCluster();
 
-    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(sfHDFS);
 
-    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
@@ -863,10 +881,12 @@ public class ClusterTest {
   public void testGetServiceComponentHostMap_ForHost() throws Exception {
     createDefaultCluster();
 
-    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(sfHDFS);
 
-    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
@@ -920,10 +940,12 @@ public class ClusterTest {
   public void testGetServiceComponentHostMap_ForHostAndService() throws Exception {
     createDefaultCluster();
 
-    Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service sfHDFS = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(sfHDFS);
 
-    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
+    Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE", repositoryVersion);
     c1.addService(sfMR);
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
@@ -1104,9 +1126,11 @@ public class ClusterTest {
   public void testDeleteService() throws Exception {
     createDefaultCluster();
 
-    c1.addService("MAPREDUCE");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
 
-    Service hdfs = c1.addService("HDFS");
+    c1.addService("MAPREDUCE", repositoryVersion);
+
+    Service hdfs = c1.addService("HDFS", repositoryVersion);
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
 
     assertEquals(2, c1.getServices().size());
@@ -1124,7 +1148,9 @@ public class ClusterTest {
   public void testDeleteServiceWithConfigHistory() throws Exception {
     createDefaultCluster();
 
-    c1.addService("HDFS");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    c1.addService("HDFS", repositoryVersion);
 
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
@@ -1694,8 +1720,10 @@ public class ClusterTest {
 
     assertTrue(checked);
 
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
     // add some host components
-    Service hdfs = serviceFactory.createNew(c1, "HDFS");
+    Service hdfs = serviceFactory.createNew(c1, "HDFS", repositoryVersion);
     c1.addService(hdfs);
 
     // Add HDFS components
@@ -1997,7 +2025,7 @@ public class ClusterTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
 
-    Cluster cluster = createClusterForRU(clusterName, stackId, hostAttributes);
+    Cluster cluster = createClusterForRU(clusterName, rv1, hostAttributes);
 
     // Begin install by starting to advertise versions
     // Set the version for the HostComponentState objects
@@ -2154,7 +2182,7 @@ public class ClusterTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
 
-    Cluster cluster = createClusterForRU(clusterName, stackId, hostAttributes);
+    Cluster cluster = createClusterForRU(clusterName, rv1, hostAttributes);
 
     // Make one host unhealthy
     Host deadHost = cluster.getHosts().iterator().next();
@@ -2233,10 +2261,8 @@ public class ClusterTest {
     String v1 = "2.0.5-1";
     String v2 = "2.0.5-2";
     c1.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId,
-        v1);
-    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId,
-        v2);
+    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId, v1);
+    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId, v2);
 
     c1.setCurrentStackVersion(stackId);
     c1.createClusterVersion(stackId, v1, "admin",
@@ -2248,12 +2274,14 @@ public class ClusterTest {
     clusters.mapHostToCluster("h-3", clusterName);
     ClusterVersionDAOMock.failOnCurrentVersionState = false;
 
-    Service service = c1.addService("ZOOKEEPER");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service service = c1.addService("ZOOKEEPER", repositoryVersion);
     ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
     sc.addServiceComponentHost("h-1");
     sc.addServiceComponentHost("h-2");
 
-    service = c1.addService("SQOOP");
+    service = c1.addService("SQOOP", repositoryVersion);
     sc = service.addServiceComponent("SQOOP");
     sc.addServiceComponentHost("h-3");
 
@@ -2317,7 +2345,9 @@ public class ClusterTest {
 
     ClusterVersionDAOMock.failOnCurrentVersionState = false;
 
-    Service service = c1.addService("ZOOKEEPER");
+    RepositoryVersionEntity repositoryVersion = c1.getCurrentClusterVersion().getRepositoryVersion();
+
+    Service service = c1.addService("ZOOKEEPER", repositoryVersion);
     ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
     sc.addServiceComponentHost("h-1");
     sc.addServiceComponentHost("h-2");

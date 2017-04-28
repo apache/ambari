@@ -681,7 +681,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           LOG.debug("Updating live stack version during INSTALL event"
               + ", new stack version=" + e.getStackId());
         }
-        impl.setStackVersion(new StackId(e.getStackId()));
       }
     }
   }
@@ -782,7 +781,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setHostEntity(hostEntity);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
     stateEntity.setUpgradeState(UpgradeState.NONE);
-    stateEntity.setCurrentStack(stackEntity);
 
     HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
@@ -790,7 +788,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredStateEntity.setServiceName(serviceComponent.getServiceName());
     desiredStateEntity.setHostEntity(hostEntity);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setDesiredStack(stackEntity);
 
     if(!serviceComponent.isMasterComponent() && !serviceComponent.isClientComponent()) {
       desiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
@@ -1120,36 +1117,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public StackId getStackVersion() {
-    HostComponentStateEntity schStateEntity = getStateEntity();
-    return getStackVersionFromSCHStateEntity(schStateEntity);
-  }
-
-  private StackId getStackVersionFromSCHStateEntity(HostComponentStateEntity schStateEntity) {
-    if (schStateEntity == null) {
-      return new StackId();
-    }
-
-    StackEntity currentStackEntity = schStateEntity.getCurrentStack();
-    return new StackId(currentStackEntity.getStackName(), currentStackEntity.getStackVersion());
-  }
-
-  @Override
-  public void setStackVersion(StackId stackId) {
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-
-    HostComponentStateEntity stateEntity = getStateEntity();
-    if (stateEntity != null) {
-      stateEntity.setCurrentStack(stackEntity);
-      stateEntity = hostComponentStateDAO.merge(stateEntity);
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
-          + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
   public State getDesiredState() {
     HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
     if (desiredStateEntity != null) {
@@ -1176,38 +1143,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
           + getServiceComponentName() + "hostName = " + getHostName());
-    }
-  }
-
-  @Override
-  public StackId getDesiredStackVersion() {
-    HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
-    return getDesiredStackVersionFromHostComponentDesiredStateEntity(desiredStateEntity);
-  }
-
-  private StackId getDesiredStackVersionFromHostComponentDesiredStateEntity(HostComponentDesiredStateEntity desiredStateEntity) {
-    if (desiredStateEntity != null) {
-      StackEntity desiredStackEntity = desiredStateEntity.getDesiredStack();
-      return new StackId(desiredStackEntity.getStackName(), desiredStackEntity.getStackVersion());
-    } else {
-      LOG.warn("Trying to fetch a member from an entity object that may "
-              + "have been previously deleted, serviceName = " + getServiceName() + ", "
-              + "componentName = " + getServiceComponentName() + ", " + "hostName = " + getHostName());
-    }
-    return null;
-  }
-
-  @Override
-  public void setDesiredStackVersion(StackId stackId) {
-    LOG.debug("Set DesiredStackVersion on serviceName = {} componentName = {} hostName = {} to {}",
-        getServiceName(), getServiceComponentName(), getHostName(), stackId);
-
-    HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
-    if (desiredStateEntity != null) {
-      StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-
-      desiredStateEntity.setDesiredStack(stackEntity);
-      hostComponentDesiredStateDAO.merge(desiredStateEntity);
     }
   }
 
@@ -1250,14 +1185,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs) {
     HostComponentStateEntity hostComponentStateEntity = getStateEntity();
     HostEntity hostEntity = hostComponentStateEntity.getHostEntity();
-    if (null == hostComponentStateEntity) {
-      LOG.warn(
-          "Could not convert ServiceComponentHostResponse to a response. It's possible that Host {} was deleted.",
-          getHostName());
-      return null;
-    }
 
-    StackId stackVersion = getStackVersionFromSCHStateEntity(hostComponentStateEntity);
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = getDesiredStateEntity();
 
     String clusterName = serviceComponent.getClusterName();
@@ -1266,14 +1194,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     String hostName = getHostName();
     String publicHostName = hostEntity.getPublicHostName();
     String state = getState().toString();
-    String stackId = stackVersion.getStackId();
     String desiredState = (hostComponentDesiredStateEntity == null) ? null : hostComponentDesiredStateEntity.getDesiredState().toString();
-    String desiredStackId = getDesiredStackVersionFromHostComponentDesiredStateEntity(hostComponentDesiredStateEntity).getStackId();
+    String desiredStackId = serviceComponent.getDesiredStackVersion().getStackId();
     HostComponentAdminState componentAdminState = getComponentAdminStateFromDesiredStateEntity(hostComponentDesiredStateEntity);
     UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
     String displayName = null;
     try {
+      StackId stackVersion = serviceComponent.getDesiredStackVersion();
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
               stackVersion.getStackVersion(), serviceName, serviceComponentName);
       displayName = compInfo.getDisplayName();
@@ -1281,9 +1209,15 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       displayName = serviceComponentName;
     }
 
+    String desiredRepositoryVersion = null;
+    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+    if (null != repositoryVersion) {
+      desiredRepositoryVersion = repositoryVersion.getVersion();
+    }
+
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterName, serviceName,
-        serviceComponentName, displayName, hostName, publicHostName, state, stackId, 
-        desiredState, desiredStackId, componentAdminState);
+        serviceComponentName, displayName, hostName, publicHostName, state, getVersion(),
+        desiredState, desiredStackId, desiredRepositoryVersion, componentAdminState);
 
     r.setActualConfigs(actualConfigs);
     r.setUpgradeState(upgradeState);
@@ -1312,11 +1246,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     .append(", serviceName=")
     .append(serviceComponent.getServiceName())
     .append(", desiredStackVersion=")
-    .append(getDesiredStackVersion())
+    .append(serviceComponent.getDesiredStackVersion())
     .append(", desiredState=")
     .append(getDesiredState())
-    .append(", stackVersion=")
-    .append(getStackVersion())
+    .append(", version=")
+    .append(getVersion())
     .append(", state=")
     .append(getState())
     .append(", securityState=")
@@ -1377,7 +1311,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     // completed, but only if it was persisted
     if (fireRemovalEvent) {
       long clusterId = getClusterId();
-      StackId stackId = getStackVersion();
+      StackId stackId = serviceComponent.getDesiredStackVersion();
       String stackVersion = stackId.getStackVersion();
       String stackName = stackId.getStackName();
       String serviceName = getServiceName();
@@ -1614,4 +1548,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     return hostComponentStateDAO.findById(hostComponentStateId);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceComponent getServiceComponent() {
+    return serviceComponent;
+  }
 }

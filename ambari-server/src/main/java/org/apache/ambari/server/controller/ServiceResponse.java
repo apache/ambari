@@ -25,25 +25,26 @@ public class ServiceResponse {
   private String clusterName;
   private String serviceName;
   private String desiredStackVersion;
+  private String desiredRepositoryVersion;
   private String desiredState;
   private String maintenanceState;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
 
-  public ServiceResponse(Long clusterId, String clusterName,
-                         String serviceName,
-                         String desiredStackVersion, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled) {
+  public ServiceResponse(Long clusterId, String clusterName, String serviceName,
+      String desiredStackVersion, String desiredRepositoryVersion, String desiredState,
+      boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.setDesiredStackVersion(desiredStackVersion);
-    this.setDesiredState(desiredState);
+    setDesiredStackVersion(desiredStackVersion);
+    setDesiredState(desiredState);
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
   }
-  
-  
+
+
 
   /**
    * @return the serviceName
@@ -115,10 +116,23 @@ public class ServiceResponse {
     this.desiredStackVersion = desiredStackVersion;
   }
 
+  /**
+   * Gets the desired repository version.
+   *
+   * @return the desired repository version.
+   */
+  public String getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceResponse that = (ServiceResponse) o;
 
@@ -137,11 +151,11 @@ public class ServiceResponse {
 
     return true;
   }
-  
+
   public void setMaintenanceState(String state) {
     maintenanceState = state;
   }
-  
+
   public String getMaintenanceState() {
     return maintenanceState;
   }

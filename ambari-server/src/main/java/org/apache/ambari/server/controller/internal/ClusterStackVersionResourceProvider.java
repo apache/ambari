@@ -35,14 +35,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -687,132 +683,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     requestStages.setRequestContext(String.format(INSTALL_PACKAGES_FULL_NAME));
 
     return requestStages;
-  }
-
-  /**
-   * The only appliance of this method is triggering Finalize during
-   * manual Stack Upgrade
-   */
-  @Override
-  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-      NoSuchResourceException, NoSuchParentResourceException {
-    try {
-      Iterator<Map<String, Object>> iterator = request.getProperties().iterator();
-      String clName;
-      final String desiredRepoVersion;
-      if (request.getProperties().size() != 1) {
-        throw new UnsupportedOperationException("Multiple requests cannot be executed at the same time.");
-      }
-      Map<String, Object> propertyMap = iterator.next();
-
-      Set<String> requiredProperties = new HashSet<>();
-      requiredProperties.add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      requiredProperties.add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      requiredProperties.add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-
-      for (String requiredProperty : requiredProperties) {
-        if (!propertyMap.containsKey(requiredProperty)) {
-          throw new IllegalArgumentException(
-                  String.format("The required property %s is not defined",
-                          requiredProperty));
-        }
-      }
-
-      clName = (String) propertyMap.get(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      String desiredDisplayRepoVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      RepositoryVersionEntity rve = repositoryVersionDAO.findByDisplayName(desiredDisplayRepoVersion);
-      if (rve == null) {
-        throw new IllegalArgumentException(
-                  String.format("Repository version with display name %s does not exist",
-                          desiredDisplayRepoVersion));
-      }
-      desiredRepoVersion = rve.getVersion();
-      String newStateStr = (String) propertyMap.get(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-
-      LOG.info("Initiating finalization for manual upgrade to version {} for cluster {}",
-              desiredRepoVersion, clName);
-
-      // First, set desired cluster stack version to enable cross-stack upgrade
-      StackId stackId = rve.getStackId();
-      Cluster cluster = getManagementController().getClusters().getCluster(clName);
-      cluster.setDesiredStackVersion(stackId);
-
-      String forceCurrent = (String) propertyMap.get(CLUSTER_STACK_VERSION_FORCE);
-      boolean force = false;
-      if (null != forceCurrent) {
-        force = Boolean.parseBoolean(forceCurrent);
-      }
-
-      if (!force) {
-        Map<String, String> args = new HashMap<>();
-        if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
-          // Finalize upgrade workflow
-          args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-        } else if (newStateStr.equals(RepositoryVersionState.INSTALLED.toString())) {
-          // Finalize downgrade workflow
-          args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-        } else {
-          throw new IllegalArgumentException(
-            String.format("Invalid desired state %s. Should be either CURRENT or INSTALLED",
-                    newStateStr));
-        }
-
-        // Get a host name to populate the hostrolecommand table's hostEntity.
-        String defaultHostName;
-        ArrayList<Host> hosts = new ArrayList<>(cluster.getHosts());
-        if (!hosts.isEmpty()) {
-          Collections.sort(hosts);
-          defaultHostName = hosts.get(0).getHostName();
-        } else {
-          throw new AmbariException("Could not find at least one host to set the command for");
-        }
-
-        args.put(FinalizeUpgradeAction.VERSION_KEY, desiredRepoVersion);
-        args.put(FinalizeUpgradeAction.CLUSTER_NAME_KEY, clName);
-
-        ExecutionCommand command = new ExecutionCommand();
-        command.setCommandParams(args);
-        command.setClusterName(clName);
-        finalizeUpgradeAction.setExecutionCommand(command);
-
-        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(defaultHostName,
-                Role.AMBARI_SERVER_ACTION, null, null);
-        finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
-
-        CommandReport report = finalizeUpgradeAction.execute(null);
-
-        LOG.info("Finalize output:");
-        LOG.info("STDOUT: {}", report.getStdOut());
-        LOG.info("STDERR: {}", report.getStdErr());
-
-        if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
-          return getRequestStatus(null);
-        } else {
-          String detailedOutput = "Finalization failed. More details: \n" +
-                  "STDOUT: " + report.getStdOut() + "\n" +
-                  "STDERR: " + report.getStdErr();
-          throw new SystemException(detailedOutput);
-        }
-      } else {
-        // !!! revisit for PU
-        // If forcing to become CURRENT, get the Cluster Version whose state is CURRENT and make sure that
-        // the Host Version records for the same Repo Version are also marked as CURRENT.
-        @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-        ClusterVersionEntity current = cluster.getCurrentClusterVersion();
-
-        if (!current.getRepositoryVersion().equals(rve)) {
-          updateVersionStates(current.getClusterId(), current.getRepositoryVersion(), rve);
-        }
-
-
-        return getRequestStatus(null);
-      }
-    } catch (AmbariException e) {
-      throw new SystemException("Cannot perform request", e);
-    } catch (InterruptedException e) {
-      throw new SystemException("Cannot perform request", e);
-    }
   }
 
   @Override

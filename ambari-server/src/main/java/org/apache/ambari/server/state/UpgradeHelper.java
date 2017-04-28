@@ -21,6 +21,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
@@ -722,20 +725,34 @@ public class UpgradeHelper {
    * the upgrade state individually, we wrap this method inside of a transaction
    * to prevent 1000's of transactions from being opened and committed.
    *
-   * @param version
-   *          desired version (like 2.2.1.0-1234) for upgrade
-   * @param targetServices
-   *          targets for upgrade
-   * @param targetStack
-   *          the target stack for the components.  Express and Rolling upgrades determine
-   *          the "correct" stack differently, so the component's desired stack id is not
-   *          a reliable indicator.
+   * @param upgradeContext
+   *          the upgrade context (not {@code null}).
    */
   @Transactional
-  public void putComponentsToUpgradingState(String version,
-      Map<Service, Set<ServiceComponent>> targetServices, StackId targetStack) throws AmbariException {
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
+  public void putComponentsToUpgradingState(UpgradeContext upgradeContext) throws AmbariException {
+
+    // determine which services/components will participate in the upgrade
+    Cluster cluster = upgradeContext.getCluster();
+    Set<Service> services = new HashSet<>(cluster.getServices().values());
+    Map<Service, Set<ServiceComponent>> targetServices = new HashMap<>();
+    for (Service service : services) {
+      if (upgradeContext.isServiceSupported(service.getName())) {
+        Set<ServiceComponent> serviceComponents = new HashSet<>(
+            service.getServiceComponents().values());
+
+        targetServices.put(service, serviceComponents);
+      }
+    }
+
+    RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
+    StackId targetStack = targetRepositoryVersion.getStackId();
 
     for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
+      // set service desired repo
+      Service service = entry.getKey();
+      service.setDesiredRepositoryVersion(targetRepositoryVersion);
+
       for (ServiceComponent serviceComponent: entry.getValue()) {
 
         boolean versionAdvertised = false;
@@ -751,25 +768,25 @@ public class UpgradeHelper {
               StackVersionListener.UNKNOWN_VERSION);
         }
 
-        UpgradeState upgradeState = UpgradeState.IN_PROGRESS;
-        String desiredVersion = version;
-
+        UpgradeState upgradeStateToSet = UpgradeState.IN_PROGRESS;
         if (!versionAdvertised) {
-          upgradeState = UpgradeState.NONE;
-          desiredVersion = StackVersionListener.UNKNOWN_VERSION;
+          upgradeStateToSet = UpgradeState.NONE;
         }
 
         for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
-          serviceComponentHost.setUpgradeState(upgradeState);
+          if (serviceComponentHost.getUpgradeState() != upgradeStateToSet) {
+            serviceComponentHost.setUpgradeState(upgradeStateToSet);
+          }
 
           // !!! if we aren't version advertised, but there IS a version, set it.
-          if (!versionAdvertised &&
-              !serviceComponentHost.getVersion().equals(StackVersionListener.UNKNOWN_VERSION)) {
+          if (!versionAdvertised && StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
+              serviceComponentHost.getVersion())) {
             serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
           }
         }
-        serviceComponent.setDesiredVersion(desiredVersion);
 
+        // set component desired repo
+        serviceComponent.setDesiredRepositoryVersion(targetRepositoryVersion);
       }
     }
   }

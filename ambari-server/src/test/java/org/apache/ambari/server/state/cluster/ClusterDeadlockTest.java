@@ -35,6 +35,7 @@ import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncLis
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -96,6 +97,7 @@ public class ClusterDeadlockTest {
   private OrmTestHelper helper;
 
   private StackId stackId = new StackId("HDP-0.1");
+  private String REPO_VERSION = "0.1-1234";
 
   /**
    * The cluster.
@@ -577,8 +579,6 @@ public class ClusterDeadlockTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(stackId);
-    sch.setStackVersion(stackId);
 
     return sch;
   }
@@ -586,10 +586,13 @@ public class ClusterDeadlockTest {
   private Service installService(String serviceName) throws AmbariException {
     Service service = null;
 
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
+        stackId, REPO_VERSION);
+
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName);
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 

@@ -38,7 +38,6 @@ import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -48,6 +47,8 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -140,6 +141,17 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(m_desidredStackId.getStackName()).andReturn("SOME-STACK").atLeastOnce();
     expect(m_desidredStackId.getStackVersion()).andReturn("STACK-VERSION").atLeastOnce();
 
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
+    expect(repositoryVersionEntity.getVersion()).andReturn(EXPECTED_VERSION).anyTimes();
+
+    // services
+    Service service = createNiceMock(Service.class);
+    expect(service.getDesiredRepositoryVersion()).andReturn(repositoryVersionEntity).atLeastOnce();
+
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    expect(serviceComponent.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
+    expect(service.getServiceComponent(EasyMock.anyString())).andReturn(serviceComponent).atLeastOnce();
+
     // components
     ServiceComponentHost sch1_1 = createNiceMock(ServiceComponentHost.class);
     ServiceComponentHost sch1_2 = createNiceMock(ServiceComponentHost.class);
@@ -149,19 +161,15 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(sch1_1.getServiceName()).andReturn("FOO").atLeastOnce();
     expect(sch1_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch1_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch1_1.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
     expect(sch1_2.getServiceName()).andReturn("BAR").atLeastOnce();
     expect(sch1_2.getServiceComponentName()).andReturn("BAR_COMPONENT").atLeastOnce();
     expect(sch1_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch1_2.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
     expect(sch2_1.getServiceName()).andReturn("FOO").atLeastOnce();
     expect(sch2_1.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch2_1.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_1.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
     expect(sch2_2.getServiceName()).andReturn("BAZ").atLeastOnce();
     expect(sch2_2.getServiceComponentName()).andReturn("BAZ_COMPONENT").atLeastOnce();
     expect(sch2_2.getVersion()).andReturn(EXPECTED_VERSION).atLeastOnce();
-    expect(sch2_2.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
 
     m_hostComponentMap.get(HOSTNAME_1).add(sch1_1);
     m_hostComponentMap.get(HOSTNAME_1).add(sch1_2);
@@ -179,14 +187,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(m_cluster.getClusterId()).andReturn(CLUSTER_ID).atLeastOnce();
     expect(m_cluster.getClusterName()).andReturn(CLUSTER_NAME).atLeastOnce();
     expect(m_cluster.getHosts()).andReturn(m_hosts).atLeastOnce();
-
-    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    expect(clusterVersionEntity.getRepositoryVersion()).andReturn(
-        repositoryVersionEntity).anyTimes();
-
-    expect(repositoryVersionEntity.getVersion()).andReturn(EXPECTED_VERSION).anyTimes();
-    expect(m_cluster.getCurrentClusterVersion()).andReturn(clusterVersionEntity).anyTimes();
+    expect(m_cluster.getService(EasyMock.anyString())).andReturn(service).atLeastOnce();
 
     // mock clusters
     expect(m_clusters.getClusters()).andReturn(clusterMap).atLeastOnce();
@@ -304,7 +305,6 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(sch.getServiceName()).andReturn("FOO").atLeastOnce();
     expect(sch.getServiceComponentName()).andReturn("FOO_COMPONENT").atLeastOnce();
     expect(sch.getVersion()).andReturn(WRONG_VERSION).atLeastOnce();
-    expect(sch.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
 
     replayAll();
 

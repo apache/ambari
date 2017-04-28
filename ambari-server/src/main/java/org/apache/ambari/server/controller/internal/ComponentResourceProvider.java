@@ -352,7 +352,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Cluster cluster = clusters.getCluster(request.getClusterName());
       Service s = cluster.getService(request.getServiceName());
       ServiceComponent sc = serviceComponentFactory.createNew(s, request.getComponentName());
-      sc.setDesiredStackVersion(s.getDesiredStackVersion());
+      sc.setDesiredRepositoryVersion(s.getDesiredRepositoryVersion());
 
       if (StringUtils.isNotEmpty(request.getDesiredState())) {
         State state = State.valueOf(request.getDesiredState());

@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public interface Service {
 
@@ -65,8 +66,6 @@ public interface Service {
   void setSecurityState(SecurityState securityState) throws AmbariException;
 
   StackId getDesiredStackVersion();
-
-  void setDesiredStackVersion(StackId stackVersion);
 
   ServiceResponse convertToResponse();
 
@@ -138,6 +137,16 @@ public interface Service {
    * @param credentialStoreEnabled - true or false
    */
   void setCredentialStoreEnabled(boolean credentialStoreEnabled);
+
+  /**
+   * @return
+   */
+  RepositoryVersionEntity getDesiredRepositoryVersion();
+
+  /**
+   * @param desiredRepositoryVersion
+   */
+  void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion);
 
   enum Type {
     HDFS,

@@ -123,7 +123,8 @@ public class HostVersionOutOfSyncListenerTest {
    * @param stackId Stack Id to use
    * @throws AmbariException
    */
-  private void createClusterAndHosts(String INSTALLED_VERSION, StackId stackId) throws AmbariException {
+  private RepositoryVersionEntity createClusterAndHosts(String INSTALLED_VERSION, StackId stackId)
+      throws AmbariException {
     Host h1 = clusters.getHost("h1");
     h1.setState(HostState.HEALTHY);
 
@@ -152,7 +153,7 @@ public class HostVersionOutOfSyncListenerTest {
     Map<String, List<Integer>> zkTopology = new HashMap<>();
     List<Integer> zkServerHosts = Arrays.asList(0, 1, 2);
     zkTopology.put("ZOOKEEPER_SERVER", new ArrayList<>(zkServerHosts));
-    addService(c1, hostList, zkTopology, "ZOOKEEPER");
+    addService(c1, hostList, zkTopology, "ZOOKEEPER", repositoryVersionEntity);
 
     // install new version
     helper.createHostVersion("h1", repositoryVersionEntity, RepositoryVersionState.INSTALLED);
@@ -173,6 +174,8 @@ public class HostVersionOutOfSyncListenerTest {
         assertEquals(hostVersionEntity.getState(), RepositoryVersionState.INSTALLED);
       }
     }
+
+    return repositoryVersionEntity;
   }
 
   /***
@@ -182,7 +185,7 @@ public class HostVersionOutOfSyncListenerTest {
    * @param stackId Stack Id to use
    * @throws AmbariException
    */
-  private void addRepoVersion(String INSTALLED_VERSION, StackId stackId) throws AmbariException {
+  private RepositoryVersionEntity addRepoVersion(String INSTALLED_VERSION, StackId stackId) throws AmbariException {
     // Register and install new version
     RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
             INSTALLED_VERSION);
@@ -200,6 +203,8 @@ public class HostVersionOutOfSyncListenerTest {
         assertEquals(hostVersionEntity.getState(), RepositoryVersionState.INSTALLED);
       }
     }
+
+    return repositoryVersionEntity;
   }
 
   /**
@@ -215,7 +220,7 @@ public class HostVersionOutOfSyncListenerTest {
     StackId yaStackId = new StackId(yetAnotherStackId);
 
     // get new hosts installed with the first repo
-    createClusterAndHosts(INSTALLED_VERSION, stackId);
+    RepositoryVersionEntity repositoryVersion = createClusterAndHosts(INSTALLED_VERSION, stackId);
 
     // register the new repo
     addRepoVersion(INSTALLED_VERSION_2, yaStackId);
@@ -234,7 +239,7 @@ public class HostVersionOutOfSyncListenerTest {
     hdfsTopology.put("SECONDARY_NAMENODE", Collections.singletonList(1));
     List<Integer> datanodeHosts = Arrays.asList(0, 1);
     hdfsTopology.put("DATANODE", new ArrayList<>(datanodeHosts));
-    addService(c1, hostList, hdfsTopology, "HDFS");
+    addService(c1, hostList, hdfsTopology, "HDFS", repositoryVersion);
 
     // Check result
     Set<String> changedHosts = new HashSet<>();
@@ -272,7 +277,7 @@ public class HostVersionOutOfSyncListenerTest {
     String INSTALLED_VERSION = "2.2.0-1000";
     StackId stackId = new StackId(this.stackId);
 
-    createClusterAndHosts(INSTALLED_VERSION, stackId);
+    RepositoryVersionEntity repositoryVersion = createClusterAndHosts(INSTALLED_VERSION, stackId);
 
     //Add Ganglia service
     List<String> hostList = new ArrayList<>();
@@ -283,7 +288,7 @@ public class HostVersionOutOfSyncListenerTest {
     hdfsTopology.put("GANGLIA_SERVER", Collections.singletonList(0));
     List<Integer> monitorHosts = Arrays.asList(0, 1);
     hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<>(monitorHosts));
-    addService(c1, hostList, hdfsTopology, "GANGLIA");
+    addService(c1, hostList, hdfsTopology, "GANGLIA", repositoryVersion);
 
     // Check result
     Set<String> changedHosts = new HashSet<>();
@@ -319,7 +324,7 @@ public class HostVersionOutOfSyncListenerTest {
 
     assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION, RepositoryVersionState.INSTALLED);
     assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION_2, RepositoryVersionState.INSTALLED);
-    
+
     //Add ZOOKEEPER_CLIENT component
     List<String> hostList = new ArrayList<>();
     hostList.add("h1");
@@ -334,7 +339,7 @@ public class HostVersionOutOfSyncListenerTest {
     changedHosts.add("h3");
 
     assertRepoVersionState(stackId.getStackId(), INSTALLED_VERSION,RepositoryVersionState.OUT_OF_SYNC);
-    
+
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
 
     for (HostVersionEntity hostVersionEntity : hostVersions) {
@@ -481,13 +486,13 @@ public class HostVersionOutOfSyncListenerTest {
         .put("NAMENODE", Lists.newArrayList(0))
         .put("DATANODE", Lists.newArrayList(1))
         .build();
-    addService(c1, allHosts, topology, "HDFS");
+    addService(c1, allHosts, topology, "HDFS", repo);
 
     topology = new ImmutableMap.Builder<String, List<Integer>>()
         .put("GANGLIA_SERVER", Lists.newArrayList(0))
         .put("GANGLIA_MONITOR", Lists.newArrayList(2))
         .build();
-    addService(c1, allHosts, topology, "GANGLIA");
+    addService(c1, allHosts, topology, "GANGLIA", repo);
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
     assertEquals(3, hostVersions.size());
@@ -552,12 +557,11 @@ public class HostVersionOutOfSyncListenerTest {
     host1.setHostAttributes(hostAttributes);
   }
 
-  private void addService(Cluster cl, List<String> hostList,
-                                Map<String, List<Integer>> topology, String serviceName
-                          ) throws AmbariException {
+  private void addService(Cluster cl, List<String> hostList, Map<String, List<Integer>> topology,
+      String serviceName, RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
     StackId stackIdObj = new StackId(stackId);
     cl.setDesiredStackVersion(stackIdObj);
-    cl.addService(serviceName);
+    cl.addService(serviceName, repositoryVersionEntity);
 
     for (Map.Entry<String, List<Integer>> component : topology.entrySet()) {
 

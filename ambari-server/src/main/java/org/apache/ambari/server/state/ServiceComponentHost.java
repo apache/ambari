@@ -91,10 +91,6 @@ public interface ServiceComponentHost {
 
   void setDesiredState(State state);
 
-  StackId getDesiredStackVersion();
-
-  void setDesiredStackVersion(StackId stackVersion);
-
   State getState();
 
   void setState(State state);
@@ -166,10 +162,6 @@ public interface ServiceComponentHost {
    * VERSION_MISMATCH - means that component reported unexpected version
    */
   UpgradeState getUpgradeState();
-
-  StackId getStackVersion();
-
-  void setStackVersion(StackId stackVersion);
 
   HostComponentAdminState getComponentAdminState();
 
@@ -250,5 +242,12 @@ public interface ServiceComponentHost {
   RepositoryVersionEntity recalculateHostVersionState() throws AmbariException;
 
   HostComponentDesiredStateEntity getDesiredStateEntity();
+
+  /**
+   * Gets the service component.
+   *
+   * @return the service component (never {@code null}).
+   */
+  ServiceComponent getServiceComponent();
 
 }

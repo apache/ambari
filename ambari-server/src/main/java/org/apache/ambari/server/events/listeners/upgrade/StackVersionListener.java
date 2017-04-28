@@ -184,7 +184,6 @@ public class StackVersionListener {
   private void processUnknownDesiredVersion(Cluster cluster, ServiceComponent sc,
                                             ServiceComponentHost sch,
                                             String newVersion) throws AmbariException {
-    sc.setDesiredVersion(newVersion);
     sch.setUpgradeState(UpgradeState.NONE);
     sch.setVersion(newVersion);
     bootstrapVersion(cluster, sch);
@@ -205,8 +204,8 @@ public class StackVersionListener {
     if (upgradeState == UpgradeState.IN_PROGRESS) {
       // Component status update is received during upgrade process
       if (desiredVersion.equals(newVersion)) {
-        sch.setUpgradeState(UpgradeState.COMPLETE);  // Component upgrade confirmed
-        sch.setStackVersion(cluster.getDesiredStackVersion());
+        // Component upgrade confirmed
+        sch.setUpgradeState(UpgradeState.COMPLETE);
       } else { // Unexpected (wrong) version received
         // Even during failed upgrade, we should not receive wrong version
         // That's why mark as VERSION_MISMATCH

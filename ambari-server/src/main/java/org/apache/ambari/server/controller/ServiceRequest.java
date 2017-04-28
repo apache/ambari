@@ -28,17 +28,23 @@ public class ServiceRequest {
   private String credentialStoreEnabled; // CREATE/UPDATE/GET
   private String credentialStoreSupported; //GET
 
-  public ServiceRequest(String clusterName, String serviceName,
-                        String desiredState) {
-    this(clusterName, serviceName, desiredState, null);
+  private String desiredStack;
+  private String desiredRepositoryVersion;
+
+  public ServiceRequest(String clusterName, String serviceName, String desiredStack,
+      String desiredRepositoryVersion, String desiredState) {
+    this(clusterName, serviceName, desiredStack, desiredRepositoryVersion, desiredState, null);
   }
 
-  public ServiceRequest(String clusterName, String serviceName,
-                        String desiredState,
-                        String credentialStoreEnabled) {
+  public ServiceRequest(String clusterName, String serviceName, String desiredStack,
+      String desiredRepositoryVersion, String desiredState, String credentialStoreEnabled) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.desiredState = desiredState;
+
+    this.desiredStack = desiredStack;
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
+
     this.credentialStoreEnabled = credentialStoreEnabled;
     // Credential store supported cannot be changed after
     // creation since it comes from the stack definition.
@@ -71,6 +77,14 @@ public class ServiceRequest {
    */
   public void setDesiredState(String desiredState) {
     this.desiredState = desiredState;
+  }
+
+  public String getDesiredStack() {
+    return desiredStack;
+  }
+
+  public String getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
   }
 
   /**
@@ -130,6 +144,7 @@ public class ServiceRequest {
     this.credentialStoreSupported = credentialStoreSupported;
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=").append(clusterName)

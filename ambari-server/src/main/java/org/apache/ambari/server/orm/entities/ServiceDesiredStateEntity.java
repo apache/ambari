@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,11 +27,13 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 @javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "servicedesiredstate")
@@ -52,13 +56,6 @@ public class ServiceDesiredStateEntity {
   @Basic
   private int desiredHostRoleMapping = 0;
 
-  /**
-   * Unidirectional one-to-one association to {@link StackEntity}
-   */
-  @OneToOne
-  @JoinColumn(name = "desired_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
-  private StackEntity desiredStack;
-
   @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
@@ -77,6 +74,13 @@ public class ServiceDesiredStateEntity {
           @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)
       })
   private ClusterServiceEntity clusterServiceEntity;
+
+  /**
+   * The desired repository that the service should be on.
+   */
+  @ManyToOne
+  @JoinColumn(name = "desired_repo_version_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private RepositoryVersionEntity desiredRepositoryVersion;
 
   public Long getClusterId() {
     return clusterId;
@@ -111,11 +115,7 @@ public class ServiceDesiredStateEntity {
   }
 
   public StackEntity getDesiredStack() {
-    return desiredStack;
-  }
-
-  public void setDesiredStack(StackEntity desiredStack) {
-    this.desiredStack = desiredStack;
+    return desiredRepositoryVersion.getStack();
   }
 
   public MaintenanceState getMaintenanceState() {
@@ -152,6 +152,9 @@ public class ServiceDesiredStateEntity {
     this.credentialStoreEnabled = (short)((credentialStoreEnabled == false) ? 0 : 1);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -163,37 +166,23 @@ public class ServiceDesiredStateEntity {
     }
 
     ServiceDesiredStateEntity that = (ServiceDesiredStateEntity) o;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(clusterId, that.clusterId);
+    equalsBuilder.append(desiredState, that.desiredState);
+    equalsBuilder.append(desiredHostRoleMapping, that.desiredHostRoleMapping);
+    equalsBuilder.append(serviceName, that.serviceName);
+    equalsBuilder.append(desiredRepositoryVersion, that.desiredRepositoryVersion);
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-
-    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
-      return false;
-    }
-
-    if (desiredHostRoleMapping != that.desiredHostRoleMapping) {
-      return false;
-    }
-
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
-      return false;
-    }
-
-    if (desiredStack != null ? !desiredStack.equals(that.desiredStack) : that.desiredStack != null) {
-      return false;
-    }
-    return true;
+    return equalsBuilder.isEquals();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
-    result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + desiredHostRoleMapping;
-    result = 31 * result + (desiredStack != null ? desiredStack.hashCode() : 0);
-    return result;
+    return Objects.hash(clusterId, serviceName, desiredState, desiredHostRoleMapping,
+        desiredRepositoryVersion);
   }
 
   public ClusterServiceEntity getClusterServiceEntity() {
@@ -203,4 +192,24 @@ public class ServiceDesiredStateEntity {
   public void setClusterServiceEntity(ClusterServiceEntity clusterServiceEntity) {
     this.clusterServiceEntity = clusterServiceEntity;
   }
+
+  /**
+   * Gets the desired repository version.
+   *
+   * @return the desired repository (never {@code null}).
+   */
+  public RepositoryVersionEntity getDesiredRepositoryVersion() {
+    return desiredRepositoryVersion;
+  }
+
+  /**
+   * Sets the desired repository for this service.
+   *
+   * @param desiredRepositoryVersion
+   *          the desired repository (not {@code null}).
+   */
+  public void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion) {
+    this.desiredRepositoryVersion = desiredRepositoryVersion;
+  }
+
 }

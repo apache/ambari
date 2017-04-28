@@ -62,6 +62,9 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
@@ -117,10 +120,17 @@ public class ServiceResourceProviderTest {
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
+    ClusterVersionEntity clusterVersion = createNiceMock(ClusterVersionEntity.class);
+    RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
+    expect(clusterVersion.getRepositoryVersion()).andReturn(repositoryVersion).atLeastOnce();
+
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(cluster.addService("Service100")).andReturn(service);
+    expect(cluster.getCurrentClusterVersion()).andReturn(clusterVersion).atLeastOnce();
+
+    expect(cluster.addService(eq("Service100"),
+        EasyMock.anyObject(RepositoryVersionEntity.class))).andReturn(service);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -135,7 +145,8 @@ public class ServiceResourceProviderTest {
     expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory, serviceInfo);
+    replay(managementController, clusters, cluster, clusterVersion, repositoryVersion, service,
+        ambariMetaInfo, stackId, serviceFactory, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -160,7 +171,8 @@ public class ServiceResourceProviderTest {
     provider.createResources(request);
 
     // verify
-    verify(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory, serviceInfo);
+    verify(managementController, clusters, cluster, clusterVersion, repositoryVersion, service,
+        ambariMetaInfo, stackId, serviceFactory, serviceInfo);
   }
 
   @Test
@@ -596,6 +608,7 @@ public class ServiceResourceProviderTest {
 
   private void testUpdateResources(Authentication authentication) throws Exception{
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -656,11 +669,13 @@ public class ServiceResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
-        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
+        repositoryVersionDAO, service0, serviceFactory, ambariMetaInfo, requestStages,
+        requestStatusResponse, stackId, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ServiceResourceProvider provider = getServiceProvider(managementController, maintenanceStateHelper);
+    ServiceResourceProvider provider = getServiceProvider(managementController,
+        maintenanceStateHelper, repositoryVersionDAO);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -697,6 +712,7 @@ public class ServiceResourceProviderTest {
 
   private void testReconfigureClientsFlag(Authentication authentication) throws Exception {
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     AmbariManagementController managementController1 = createMock(AmbariManagementController.class);
     AmbariManagementController managementController2 = createMock
         (AmbariManagementController.class);
@@ -787,14 +803,17 @@ public class ServiceResourceProviderTest {
     andReturn(Collections.<Service>emptySet()).anyTimes();
 
     // replay
-    replay(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco, maintenanceStateHelper, stackId, serviceInfo);
+    replay(managementController1, response1, managementController2, requestStages1, requestStages2,
+        response2, clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco,
+        maintenanceStateHelper, repositoryVersionDAO, stackId, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    ServiceResourceProvider provider1 = getServiceProvider(managementController1, maintenanceStateHelper);
+    ServiceResourceProvider provider1 = getServiceProvider(managementController1,
+        maintenanceStateHelper, repositoryVersionDAO);
 
-    ServiceResourceProvider provider2 = getServiceProvider(managementController2, maintenanceStateHelper);
+    ServiceResourceProvider provider2 = getServiceProvider(managementController2,
+        maintenanceStateHelper, repositoryVersionDAO);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -1122,9 +1141,11 @@ public class ServiceResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
-    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds,
-        keyPropertyIds,
-        managementController, maintenanceStateHelperMock);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+    replay(maintenanceStateHelperMock, repositoryVersionDAO);
+
+    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
+        managementController, maintenanceStateHelperMock, repositoryVersionDAO);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -1156,26 +1177,30 @@ public class ServiceResourceProviderTest {
    */
   public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) throws  AmbariException {
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(Service.class))).andReturn(true).anyTimes();
     expect(maintenanceStateHelperMock.isOperationAllowed(anyObject(Resource.Type.class), anyObject(ServiceComponentHost.class))).andReturn(true).anyTimes();
-    replay(maintenanceStateHelperMock);
-    return getServiceProvider(managementController, maintenanceStateHelperMock);
+    replay(maintenanceStateHelperMock, repositoryVersionDAO);
+    return getServiceProvider(managementController, maintenanceStateHelperMock, repositoryVersionDAO);
   }
 
   /**
    * This factory method allows to define custom MaintenanceStateHelper mock.
    */
-  public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController,
-                                                           MaintenanceStateHelper maintenanceStateHelper) {
+  public static ServiceResourceProvider getServiceProvider(
+      AmbariManagementController managementController,
+      MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
     Resource.Type type = Resource.Type.Service;
     return new ServiceResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController, maintenanceStateHelper);
+        managementController, maintenanceStateHelper, repositoryVersionDAO);
   }
 
-  public static void createServices(AmbariManagementController controller, Set<ServiceRequest> requests)
+  public static void createServices(AmbariManagementController controller,
+      RepositoryVersionDAO repositoryVersionDAO, Set<ServiceRequest> requests)
       throws AmbariException, AuthorizationException {
-    ServiceResourceProvider provider = getServiceProvider(controller);
+    MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
+    ServiceResourceProvider provider = getServiceProvider(controller, maintenanceStateHelperMock, repositoryVersionDAO);
     provider.createServices(requests);
   }
 
@@ -1205,7 +1230,7 @@ public class ServiceResourceProviderTest {
       throws AmbariException, AuthorizationException {
     ServiceResourceProvider provider;
     if (maintenanceStateHelper != null) {
-      provider = getServiceProvider(controller, maintenanceStateHelper);
+      provider = getServiceProvider(controller, maintenanceStateHelper, null);
     } else {
       provider = getServiceProvider(controller);
     }

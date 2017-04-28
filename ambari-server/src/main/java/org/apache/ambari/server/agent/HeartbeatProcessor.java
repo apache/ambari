@@ -375,8 +375,9 @@ public class HeartbeatProcessor extends AbstractService{
       }
 
       LOG.debug("Received command report: " + report);
+
+      // get this locally; don't touch the database
       Host host = clusterFsm.getHost(hostname);
-//      HostEntity hostEntity = hostDAO.findByName(hostname); //don't touch database
       if (host == null) {
         LOG.error("Received a command report and was unable to retrieve Host for hostname = " + hostname);
         continue;
@@ -473,7 +474,8 @@ public class HeartbeatProcessor extends AbstractService{
           if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
 
             // Reading component version if it is present
-            if (StringUtils.isNotBlank(report.getStructuredOut())) {
+            if (StringUtils.isNotBlank(report.getStructuredOut())
+                && !StringUtils.equals("{}", report.getStructuredOut())) {
               ComponentVersionStructuredOut structuredOutput = null;
               try {
                 structuredOutput = gson.fromJson(report.getStructuredOut(), ComponentVersionStructuredOut.class);
@@ -491,10 +493,7 @@ public class HeartbeatProcessor extends AbstractService{
               versionEventPublisher.publish(event);
             }
 
-            // Updating stack version, if needed (this is not actually for express/rolling upgrades!)
-            if (scHost.getState().equals(org.apache.ambari.server.state.State.UPGRADING)) {
-              scHost.setStackVersion(scHost.getDesiredStackVersion());
-            } else if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
+            if ((report.getRoleCommand().equals(RoleCommand.START.toString()) ||
                 (report.getRoleCommand().equals(RoleCommand.CUSTOM_COMMAND.toString()) &&
                     ("START".equals(report.getCustomCommand()) ||
                         "RESTART".equals(report.getCustomCommand()))))
@@ -614,10 +613,6 @@ public class HeartbeatProcessor extends AbstractService{
                       + " at host " + hostname
                       + " according to STATUS_COMMAND report");
                 }
-              }
-
-              if (null != status.getStackVersion() && !status.getStackVersion().isEmpty()) {
-                scHost.setStackVersion(gson.fromJson(status.getStackVersion(), StackId.class));
               }
 
               if (null != status.getConfigTags()) {

@@ -21,7 +21,9 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.MessageFormat;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -31,14 +33,15 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
-import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +53,7 @@ import com.google.inject.Inject;
  * actually changed half-way through calculating the Actions, and this serves to update the database to make it
  * evident to the user at which point it changed.
  */
-public class UpdateDesiredStackAction extends AbstractServerAction {
+public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
 
   /**
    * Logger.
@@ -91,22 +94,27 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
   @Inject
   private Configuration m_configuration;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
+
     Map<String, String> commandParams = getExecutionCommand().getCommandParams();
+    String clusterName = getExecutionCommand().getClusterName();
+    Cluster cluster = clusters.getCluster(clusterName);
+    UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
 
     StackId originalStackId = new StackId(commandParams.get(COMMAND_PARAM_ORIGINAL_STACK));
     StackId targetStackId = new StackId(commandParams.get(COMMAND_PARAM_TARGET_STACK));
-    Direction direction = Direction.UPGRADE;
-    if(commandParams.containsKey(COMMAND_PARAM_DIRECTION)
-        && "downgrade".equals(commandParams.get(COMMAND_PARAM_DIRECTION).toLowerCase())) {
-      direction = Direction.DOWNGRADE;
-    }
-    String version = commandParams.get(COMMAND_PARAM_VERSION);
-    String upgradePackName = commandParams.get(COMMAND_PARAM_UPGRADE_PACK);
-    String clusterName = getExecutionCommand().getClusterName();
-    UpgradePack upgradePack = ambariMetaInfo.getUpgradePacks(originalStackId.getStackName(), originalStackId.getStackVersion()).get(upgradePackName);
+
+    String upgradePackName = upgrade.getUpgradePackage();
+
+    UpgradePack upgradePack = ambariMetaInfo.getUpgradePacks(originalStackId.getStackName(),
+        originalStackId.getStackVersion()).get(upgradePackName);
 
     Map<String, String> roleParams = getExecutionCommand().getRoleParams();
 
@@ -120,74 +128,56 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
     }
 
     // invalidate any cached effective ID
-    Cluster cluster = clusters.getCluster(clusterName);
     cluster.invalidateUpgradeEffectiveVersion();
 
-    return updateDesiredStack(cluster, originalStackId, targetStackId, version, direction,
+    return updateDesiredRepositoryVersion(cluster, originalStackId, targetStackId, upgradeContext,
         upgradePack, userName);
   }
 
   /**
-   * Set the cluster's Desired Stack Id during an upgrade.
+   * Sets the desired repository version for services participating in the
+   * upgrade.
    *
-   * @param cluster the cluster
-   * @param originalStackId the stack Id of the cluster before the upgrade.
-   * @param targetStackId the stack Id that was desired for this upgrade.
-   * @param direction direction, either upgrade or downgrade
-   * @param upgradePack Upgrade Pack to use
-   * @param userName username performing the action
+   * @param cluster
+   *          the cluster
+   * @param originalStackId
+   *          the stack Id of the cluster before the upgrade.
+   * @param targetStackId
+   *          the stack Id that was desired for this upgrade.
+   * @param direction
+   *          direction, either upgrade or downgrade
+   * @param upgradePack
+   *          Upgrade Pack to use
+   * @param userName
+   *          username performing the action
    * @return the command report to return
    */
-  private CommandReport updateDesiredStack(
+  private CommandReport updateDesiredRepositoryVersion(
       Cluster cluster, StackId originalStackId, StackId targetStackId,
-      String version, Direction direction, UpgradePack upgradePack, String userName)
+      UpgradeContext upgradeContext, UpgradePack upgradePack, String userName)
       throws AmbariException, InterruptedException {
 
-    String clusterName = cluster.getClusterName();
     StringBuilder out = new StringBuilder();
     StringBuilder err = new StringBuilder();
 
     try {
-      StackId currentClusterStackId = cluster.getCurrentStackVersion();
-      out.append(String.format("Params: %s %s %s %s %s %s\n",
-          clusterName, originalStackId.getStackId(), targetStackId.getStackId(), version, direction.getText(false), upgradePack.getName()));
-
-      out.append(String.format("Checking if can update the Desired Stack Id to %s. The cluster's current Stack Id is %s\n", targetStackId.getStackId(), currentClusterStackId.getStackId()));
-
-      // Ensure that the target stack id exist
-      StackInfo desiredClusterStackInfo = ambariMetaInfo.getStack(targetStackId.getStackName(), targetStackId.getStackVersion());
-      if (null == desiredClusterStackInfo) {
-        String message = String.format("Parameter %s has an invalid value: %s. That Stack Id does not exist.\n",
-            COMMAND_PARAM_TARGET_STACK, targetStackId.getStackId());
-        err.append(message);
-        out.append(message);
-        return createCommandReport(-1, HostRoleStatus.FAILED, "{}", out.toString(), err.toString());
-      }
-
-      // Ensure that the current Stack Id coincides with the parameter that the user passed in.
-      if (!currentClusterStackId.equals(originalStackId)) {
-        String message = String.format("Parameter %s has invalid value: %s. " +
-            "The cluster is currently on stack %s, " + currentClusterStackId.getStackId() +
-            ", yet the parameter to this function indicates a different value.\n", COMMAND_PARAM_ORIGINAL_STACK, originalStackId.getStackId(), currentClusterStackId.getStackId());
-        err.append(message);
-        out.append(message);
-        return createCommandReport(-1, HostRoleStatus.FAILED, "{}", out.toString(), err.toString());
-      }
-
-      // Check for a no-op
-      if (currentClusterStackId.equals(targetStackId)) {
-        String message = String.format("Success! The cluster's Desired Stack Id was already set to %s\n", targetStackId.getStackId());
-        out.append(message);
-        return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());
-      }
-
-      // Create Create new configurations that are a merge between the current stack and the desired stack
-      // Also updates the desired stack version.
       UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(AmbariServer.getController());
-      upgradeResourceProvider.applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, upgradePack, userName);
-      String message = String.format("Success! Set cluster's %s Desired Stack Id to %s.\n", clusterName, targetStackId.getStackId());
-      out.append(message);
+      upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
+      m_upgradeHelper.putComponentsToUpgradingState(upgradeContext);
 
+      final String message;
+      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+      if (servicesInUpgrade.isEmpty()) {
+        message = MessageFormat.format(
+            "Updating the desired repository version to {0} for all cluster services.",
+            upgradeContext.getVersion());
+      } else {
+        message = MessageFormat.format(
+            "Updating the desired repository version to {0} for the following services: {1}",
+            upgradeContext.getVersion(), StringUtils.join(servicesInUpgrade, ','));
+      }
+
+      out.append(message);
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());
     } catch (Exception e) {
       StringWriter sw = new StringWriter();

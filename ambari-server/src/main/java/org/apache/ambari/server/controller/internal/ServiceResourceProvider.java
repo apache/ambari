@@ -56,6 +56,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.ServiceCalculatedStateFactory;
 import org.apache.ambari.server.controller.utilities.state.ServiceCalculatedState;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -99,6 +101,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId("Services", "attributes");
 
+  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_stack");
+  public static final String SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_repository_version");
+
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
     "params/run_smoke_test";
@@ -123,6 +128,11 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private KerberosHelper kerberosHelper;
 
+  /**
+   * Used to lookup the repository when creating services.
+   */
+  private final RepositoryVersionDAO repositoryVersionDAO;
+
   // ----- Constructors ----------------------------------------------------
 
   /**
@@ -134,11 +144,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    */
   @AssistedInject
   public ServiceResourceProvider(@Assisted Set<String> propertyIds,
-                          @Assisted Map<Resource.Type, String> keyPropertyIds,
-                          @Assisted AmbariManagementController managementController,
-                          MaintenanceStateHelper maintenanceStateHelper) {
+      @Assisted Map<Resource.Type, String> keyPropertyIds,
+      @Assisted AmbariManagementController managementController,
+      MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
     super(propertyIds, keyPropertyIds, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
+    this.repositoryVersionDAO = repositoryVersionDAO;
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
     setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);
@@ -206,6 +217,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           String.valueOf(response.isCredentialStoreSupported()), requestedIds);
       setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID,
           String.valueOf(response.isCredentialStoreEnabled()), requestedIds);
+
+      setResourceProperty(resource, SERVICE_DESIRED_STACK_PROPERTY_ID,
+          response.getDesiredStackVersion(), requestedIds);
+
+      setResourceProperty(resource, SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID,
+          response.getDesiredRepositoryVersion(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
@@ -328,9 +345,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
    * @return the service request object
    */
   private ServiceRequest getRequest(Map<String, Object> properties) {
+    String desiredStack = (String)properties.get(SERVICE_DESIRED_STACK_PROPERTY_ID);
+    String desiredRepositoryVersion = (String)properties.get(SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID);
+
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
+        desiredStack, desiredRepositoryVersion,
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
         (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
 
@@ -362,8 +383,20 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-      // Already checked that service does not exist
-      Service s = cluster.addService(request.getServiceName());
+
+      String desiredStack = request.getDesiredStack();
+      String desiredRepositoryVersion = request.getDesiredRepositoryVersion();
+      RepositoryVersionEntity repositoryVersion = null;
+      if( StringUtils.isNotBlank(desiredStack) && StringUtils.isNotBlank(desiredRepositoryVersion)){
+        repositoryVersion = repositoryVersionDAO.findByStackAndVersion(new StackId(desiredStack),
+            desiredRepositoryVersion);
+      }
+
+      if (null == repositoryVersion) {
+        repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+      }
+
+      Service s = cluster.addService(request.getServiceName(), repositoryVersion);
 
       /**
        * Get the credential_store_supported field only from the stack definition.

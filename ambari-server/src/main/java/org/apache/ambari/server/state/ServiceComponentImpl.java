@@ -120,17 +120,13 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
 
-    StackId stackId = service.getDesiredStackVersion();
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-
     ServiceComponentDesiredStateEntity desiredStateEntity = new ServiceComponentDesiredStateEntity();
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setDesiredVersion(State.UNKNOWN.toString());
     desiredStateEntity.setServiceName(service.getName());
     desiredStateEntity.setClusterId(service.getClusterId());
     desiredStateEntity.setRecoveryEnabled(false);
-    desiredStateEntity.setDesiredStack(stackEntity);
+    desiredStateEntity.setDesiredRepositoryVersion(service.getDesiredRepositoryVersion());
 
     updateComponentInfo();
 
@@ -394,27 +390,32 @@ public class ServiceComponentImpl implements ServiceComponent {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void setDesiredStackVersion(StackId stack) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredStackVersion of Service" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + getName() + ", oldDesiredStackVersion="
-          + getDesiredStackVersion() + ", newDesiredStackVersion=" + stack);
-    }
-
+  public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
     if (desiredStateEntity != null) {
-      StackEntity stackEntity = stackDAO.find(stack.getStackName(), stack.getStackVersion());
-      desiredStateEntity.setDesiredStack(stackEntity);
+      desiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
       desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RepositoryVersionEntity getDesiredRepositoryVersion() {
+    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
+        desiredStateEntityId);
+
+    return desiredStateEntity.getDesiredRepositoryVersion();
   }
 
   @Override
@@ -423,20 +424,6 @@ public class ServiceComponentImpl implements ServiceComponent {
         desiredStateEntityId);
 
     return desiredStateEntity.getDesiredVersion();
-  }
-
-  @Override
-  public void setDesiredVersion(String version) {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
-
-      if (desiredStateEntity != null) {
-        desiredStateEntity.setDesiredVersion(version);
-      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
-      } else {
-        LOG.warn("Setting a member on an entity object that may have been " +
-          "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
-      }
   }
 
   @Override
@@ -693,6 +680,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     if (MapUtils.isNotEmpty(map)) {
       String desiredVersion = component.getDesiredVersion();
+      RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
 
       List<HostComponentStateEntity> hostComponents = hostComponentDAO.findByServiceAndComponentAndNotVersion(
           component.getServiceName(), component.getComponentName(), reportedVersion);
@@ -705,7 +693,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       if (StackVersionListener.UNKNOWN_VERSION.equals(desiredVersion)) {
         if (CollectionUtils.isEmpty(hostComponents)) {
           // all host components are the same version as reported
-          component.setDesiredVersion(reportedVersion);
+          component.setDesiredRepositoryVersion(desiredRepositoryVersion);
           component.setRepositoryState(RepositoryVersionState.CURRENT);
         } else {
           // desired is UNKNOWN and there's a mix of versions in the host components

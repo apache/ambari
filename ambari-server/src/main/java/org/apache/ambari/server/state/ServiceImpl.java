@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +40,11 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
@@ -82,11 +83,6 @@ public class ServiceImpl implements Service {
   private final ServiceComponentFactory serviceComponentFactory;
 
   /**
-   * Data access object for retrieving stack instances.
-   */
-  private final StackDAO stackDAO;
-
-  /**
    * Used to publish events relating to service CRUD operations.
    */
   private final AmbariEventPublisher eventPublisher;
@@ -97,17 +93,16 @@ public class ServiceImpl implements Service {
   private final String serviceName;
 
   @AssistedInject
-  ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName, ClusterDAO clusterDAO,
+  ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
+      @Assisted RepositoryVersionEntity desiredRepositoryVersion, ClusterDAO clusterDAO,
       ClusterServiceDAO clusterServiceDAO, ServiceDesiredStateDAO serviceDesiredStateDAO,
-      ServiceComponentFactory serviceComponentFactory, StackDAO stackDAO,
-      AmbariMetaInfo ambariMetaInfo, AmbariEventPublisher eventPublisher)
-      throws AmbariException {
+      ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
+      AmbariEventPublisher eventPublisher) throws AmbariException {
     this.cluster = cluster;
     this.clusterDAO = clusterDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     this.serviceName = serviceName;
     this.ambariMetaInfo = ambariMetaInfo;
@@ -118,15 +113,14 @@ public class ServiceImpl implements Service {
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
     serviceDesiredStateEntity.setServiceName(serviceName);
     serviceDesiredStateEntity.setClusterId(cluster.getClusterId());
+    serviceDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
     serviceDesiredStateEntityPK = getServiceDesiredStateEntityPK(serviceDesiredStateEntity);
     serviceEntityPK = getServiceEntityPK(serviceEntity);
 
     serviceDesiredStateEntity.setClusterServiceEntity(serviceEntity);
     serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
 
-    StackId stackId = cluster.getDesiredStackVersion();
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
-    serviceDesiredStateEntity.setDesiredStack(stackEntity);
+    StackId stackId = desiredRepositoryVersion.getStackId();
 
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
@@ -143,15 +137,13 @@ public class ServiceImpl implements Service {
   ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity serviceEntity,
       ClusterDAO clusterDAO, ClusterServiceDAO clusterServiceDAO,
       ServiceDesiredStateDAO serviceDesiredStateDAO,
-      ServiceComponentFactory serviceComponentFactory, StackDAO stackDAO,
-      AmbariMetaInfo ambariMetaInfo, AmbariEventPublisher eventPublisher)
-      throws AmbariException {
+      ServiceComponentFactory serviceComponentFactory, AmbariMetaInfo ambariMetaInfo,
+      AmbariEventPublisher eventPublisher) throws AmbariException {
     this.cluster = cluster;
     this.clusterDAO = clusterDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceDesiredStateDAO = serviceDesiredStateDAO;
     this.serviceComponentFactory = serviceComponentFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     serviceName = serviceEntity.getServiceName();
     this.ambariMetaInfo = ambariMetaInfo;
@@ -309,37 +301,46 @@ public class ServiceImpl implements Service {
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public StackId getDesiredStackVersion() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
-    if( null != desiredStackEntity ) {
-      return new StackId(desiredStackEntity);
-    } else {
-      return null;
-    }
+    return new StackId(desiredStackEntity);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void setDesiredStackVersion(StackId stack) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredStackVersion of Service" + ", clusterName="
-          + cluster.getClusterName() + ", clusterId="
-          + cluster.getClusterId() + ", serviceName=" + getName()
-          + ", oldDesiredStackVersion=" + getDesiredStackVersion()
-          + ", newDesiredStackVersion=" + stack);
-    }
-
-    StackEntity stackEntity = stackDAO.find(stack.getStackName(), stack.getStackVersion());
+  public RepositoryVersionEntity getDesiredRepositoryVersion() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setDesiredStack(stackEntity);
+    return serviceDesiredStateEntity.getDesiredRepositoryVersion();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
+    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
+    serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
     serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
+
+    Collection<ServiceComponent> components = getServiceComponents().values();
+    for (ServiceComponent component : components) {
+      component.setDesiredRepositoryVersion(repositoryVersionEntity);
+    }
   }
 
   @Override
   public ServiceResponse convertToResponse() {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
-        getName(), getDesiredStackVersion().getStackId(), getDesiredState().toString(),
+        getName(), getDesiredStackVersion().getStackId(),
+        getDesiredRepositoryVersion().getVersion(), getDesiredState().toString(),
         isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setMaintenanceState(getMaintenanceState().name());
@@ -610,10 +611,6 @@ public class ServiceImpl implements Service {
   @Override
   public MaintenanceState getMaintenanceState() {
     return getServiceDesiredStateEntity().getMaintenanceState();
-  }
-
-  private ClusterServiceEntity getServiceEntity() {
-    return clusterServiceDAO.findByPK(serviceEntityPK);
   }
 
   private ClusterServiceEntityPK getServiceEntityPK(ClusterServiceEntity serviceEntity) {

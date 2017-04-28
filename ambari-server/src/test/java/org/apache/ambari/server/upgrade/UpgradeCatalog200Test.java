@@ -63,6 +63,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -107,6 +109,7 @@ public class UpgradeCatalog200Test {
   private final String HOST_NAME = "h1";
 
   private final StackId DESIRED_STACK = new StackId("HDP", "2.0.6");
+  private final String DESIRED_REPO_VERSION = "2.0.6-1234";
 
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
@@ -627,10 +630,14 @@ public class UpgradeCatalog200Test {
     assertNotNull(stackEntity);
 
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
-        injector, CLUSTER_NAME, stackEntity);
+        injector, CLUSTER_NAME, stackEntity, DESIRED_REPO_VERSION);
+
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        stackEntity, DESIRED_REPO_VERSION);
 
     final ClusterServiceEntity clusterServiceEntityNagios = upgradeCatalogHelper.addService(
-        injector, clusterEntity, "NAGIOS", stackEntity);
+        injector, clusterEntity, "NAGIOS", repositoryVersion);
 
     final HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, HOST_NAME);

@@ -113,8 +113,8 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
                   download_and_install_jdk, prompt_db_properties, setup, \
                   AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file
-                from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
-                  run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
+                from ambari_server.serverUpgrade import upgrade, change_objects_owner, \
+                  run_schema_upgrade, move_user_custom_actions
                 from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
                   generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
                   SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
@@ -4913,58 +4913,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual(shutil_move_mock.call_count, 2)
     pass
 
-
-  @patch("os.path.isdir", new = MagicMock(return_value=True))
-  @patch("os.access", new = MagicMock(return_value=True))
-  @patch("ambari_server.serverConfiguration.get_conf_dir")
-  @patch("ambari_server.serverUpgrade.run_os_command")
-  @patch("ambari_server.serverUpgrade.get_java_exe_path")
-  def test_run_stack_upgrade(self, java_exe_path_mock, run_os_command_mock,
-                             get_conf_dir_mock):
-    java_exe_path_mock.return_value = "/usr/lib/java/bin/java"
-    run_os_command_mock.return_value = (0, None, None)
-    get_conf_dir_mock.return_value = '/etc/conf'
-    stackIdMap = {'HDP' : '2.0', 'repo_url' : 'http://test.com'}
-
-    run_stack_upgrade(None, 'HDP', '2.0', 'http://test.com', None)
-
-    self.assertTrue(java_exe_path_mock.called)
-    self.assertTrue(get_conf_dir_mock.called)
-    self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp \'/etc/conf:/usr/lib/ambari-server/*\' '
-                                          'org.apache.ambari.server.upgrade.StackUpgradeHelper '
-                                          'updateStackId ' + "'" + json.dumps(stackIdMap) + "'" +
-                                          ' > ' + os.sep + 'var' + os.sep + 'log' + os.sep + 'ambari-server' + os.sep +
-                                          'ambari-server.out 2>&1')
-    pass
-
-  @patch("os.path.isdir", new = MagicMock(return_value=True))
-  @patch("os.access", new = MagicMock(return_value=True))
-  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell",
-                  new = MagicMock(return_value = '/etc/conf' + os.pathsep + 'test' + os.pathsep + 'path12'))
-  @patch("ambari_server.serverConfiguration.get_conf_dir")
-  @patch("ambari_server.serverUpgrade.run_os_command")
-  @patch("ambari_server.serverUpgrade.get_java_exe_path")
-  def test_run_stack_upgrade_with_url_os(self, java_exe_path_mock, run_os_command_mock,
-                             get_conf_dir_mock):
-    java_exe_path_mock.return_value = "/usr/lib/java/bin/java"
-    run_os_command_mock.return_value = (0, None, None)
-    get_conf_dir_mock.return_value = '/etc/conf'
-    stackIdMap = {'HDP' : '2.0', 'repo_url': 'http://test.com', 'repo_url_os': 'centos5,centos6'}
-
-    run_stack_upgrade(None, 'HDP', '2.0', 'http://test.com', 'centos5,centos6')
-
-    self.assertTrue(java_exe_path_mock.called)
-    self.assertTrue(get_conf_dir_mock.called)
-    self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java -cp /etc/conf' + os.pathsep + 'test:path12 '
-                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper '
-                                           'updateStackId ' + "'" + json.dumps(stackIdMap) + "'" +
-                                           ' > ' + os.sep + 'var' + os.sep + 'log' + os.sep + 'ambari-server' + os.sep +
-                                           'ambari-server.out 2>&1')
-    pass
-
-
   @patch("os.path.isdir", new = MagicMock(return_value=True))
   @patch("os.access", new = MagicMock(return_value=True))
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell",
@@ -5010,31 +4958,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(read_ambari_user_mock.called)
     self.assertTrue(run_os_command_mock.called)
     run_os_command_mock.assert_called_with(command, env=environ)
-
-  @patch("os.path.isdir", new = MagicMock(return_value=True))
-  @patch("os.access", new = MagicMock(return_value=True))
-  @patch("ambari_server.serverConfiguration.get_conf_dir")
-  @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
-  @patch("ambari_server.serverUpgrade.run_os_command")
-  @patch("ambari_server.serverUpgrade.get_java_exe_path")
-  def test_run_metainfo_upgrade(self, java_exe_path_mock, run_os_command_mock,
-                                get_conf_dir_mock):
-    java_exe_path_mock.return_value = "/usr/lib/java/bin/java"
-    run_os_command_mock.return_value = (0, None, None)
-    get_conf_dir_mock.return_value = '/etc/conf'
-
-    json_map = {'a': 'http://newurl'}
-    run_metainfo_upgrade(None, json_map)
-
-    self.assertTrue(java_exe_path_mock.called)
-    self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.assert_called_with('/usr/lib/java/bin/java '
-                                           '-cp test' + os.pathsep + 'path12 '
-                                           'org.apache.ambari.server.upgrade.StackUpgradeHelper updateMetaInfo ' +
-                                           "'" + json.dumps(json_map) + "'" +
-                                           ' > ' + os.sep + 'var' + os.sep + 'log' + os.sep + 'ambari-server' +
-                                           os.sep + 'ambari-server.out 2>&1')
-    pass
 
 
   @not_for_platform(PLATFORM_WINDOWS)
@@ -5224,14 +5147,13 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
   @patch("ambari_server.setupMpacks.get_replay_log_file")
   @patch("ambari_server.serverUpgrade.logger")
   @patch.object(PGConfig, "_change_db_files_owner", return_value=0)
-  def test_upgrade_from_161(self, change_db_files_owner_mock, logger_mock, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
+  def test_upgrade_from_161(self, change_db_files_owner_mock, logger_mock, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, get_ambari_properties_mock,
                             get_ambari_properties_2_mock, get_ambari_properties_3_mock, get_ambari_version_mock, write_property_mock,
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
@@ -5446,11 +5368,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
-  def test_upgrade(self, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions, upgrade_local_repo_mock,
+  def test_upgrade(self, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions,
                    get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
                    is_root_mock, get_ambari_version_mock, get_ambari_version_2_mock,
                    parse_properties_file_mock,
@@ -5516,7 +5437,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(print_warning_msg_mock.called)
     warning_args = print_warning_msg_mock.call_args[0][0]
     self.assertTrue("custom ambari user" in warning_args)
-    self.assertTrue(upgrade_local_repo_mock.called)
     self.assertTrue(move_user_custom_actions.called)
 
     args = reset_mocks()
@@ -5631,10 +5551,9 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.dbConfiguration.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.upgrade_local_repo")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
-  def test_upgrade(self, update_krb_jaas_login_properties_mock, move_user_custom_actions, upgrade_local_repo_mock,
+  def test_upgrade(self, update_krb_jaas_login_properties_mock, move_user_custom_actions,
                    get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
                    is_root_mock, get_ambari_version_mock, get_ambari_version_2_mock,
                    parse_properties_file_mock,
@@ -5701,7 +5620,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(print_warning_msg_mock.called)
     warning_args = print_warning_msg_mock.call_args[0][0]
     self.assertTrue("custom ambari user" in warning_args)
-    self.assertTrue(upgrade_local_repo_mock.called)
     self.assertTrue(move_user_custom_actions.called)
 
     args = reset_mocks()
@@ -8265,80 +8183,6 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_mock.assert_called_with("Enter keytab path for ambari server's kerberos principal: ",
                                                        '/etc/security/keytabs/ambari.keytab', '.*', False, False,
                                                        validatorFunction = is_valid_filepath, answer='/kerberos/admin.keytab')
-    pass
-
-  @patch("os.listdir")
-  @patch("os.path.exists")
-  @patch("ambari_server.serverUpgrade.load_stack_values")
-  @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.run_metainfo_upgrade")
-  def test_upgrade_local_repo(self,
-                           run_metainfo_upgrade_mock,
-                           get_ambari_properties_mock,
-                           load_stack_values_mock,
-                           os_path_exists_mock,
-                           os_listdir_mock):
-
-    from mock.mock import call
-    args = MagicMock()
-    args.persistence_type = "local"
-
-    def load_values_side_effect(*args, **kwargs):
-      res = {}
-      res['a'] = 'http://oldurl'
-      if -1 != args[1].find("HDPLocal"):
-        res['a'] = 'http://newurl'
-      return res
-
-    load_stack_values_mock.side_effect = load_values_side_effect
-
-    properties = Properties()
-    get_ambari_properties_mock.return_value = properties
-    os_path_exists_mock.return_value = 1
-    os_listdir_mock.return_value = ['1.1']
-
-    upgrade_local_repo(args)
-
-    self.assertTrue(get_ambari_properties_mock.called)
-    self.assertTrue(load_stack_values_mock.called)
-    self.assertTrue(run_metainfo_upgrade_mock.called)
-    run_metainfo_upgrade_mock.assert_called_with(args, {'a': 'http://newurl'})
-    pass
-
-  @patch("os.listdir")
-  @patch("os.path.exists")
-  @patch("ambari_server.serverUpgrade.load_stack_values")
-  @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.run_metainfo_upgrade")
-  def test_upgrade_local_repo_nochange(self,
-                         run_metainfo_upgrade_mock,
-                         get_ambari_properties_mock,
-                         load_stack_values_mock,
-                         os_path_exists_mock,
-                         os_listdir_mock):
-
-    from mock.mock import call
-    args = MagicMock()
-    args.persistence_type = "local"
-
-    def load_values_side_effect(*args, **kwargs):
-      res = {}
-      res['a'] = 'http://oldurl'
-      return res
-
-    load_stack_values_mock.side_effect = load_values_side_effect
-
-    properties = Properties()
-    get_ambari_properties_mock.return_value = properties
-    os_path_exists_mock.return_value = 1
-    os_listdir_mock.return_value = ['1.1']
-
-    upgrade_local_repo(args)
-
-    self.assertTrue(get_ambari_properties_mock.called)
-    self.assertTrue(load_stack_values_mock.called)
-    self.assertTrue(run_metainfo_upgrade_mock.called)
-    run_metainfo_upgrade_mock.assert_called_with(args, {})
     pass
 
   @patch("os.path.exists")

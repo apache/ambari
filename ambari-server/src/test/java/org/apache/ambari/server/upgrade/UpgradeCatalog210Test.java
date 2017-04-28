@@ -109,6 +109,7 @@ public class UpgradeCatalog210Test {
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
+  private String desiredRepositoryVersion = "2.2.0-1234";
 
   public void initData() {
     //reset(entityManagerProvider);
@@ -805,9 +806,11 @@ public class UpgradeCatalog210Test {
   public void testDeleteStormRestApiServiceComponent() throws Exception {
     initData();
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
-      "c1", desiredStackEntity);
+        "c1", desiredStackEntity, desiredRepositoryVersion);
+
     ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
         injector, clusterEntity, "STORM");
+
     HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, "h1");
 
@@ -827,7 +830,6 @@ public class UpgradeCatalog210Test {
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName("STORM_REST_API");
-    componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
     ServiceComponentDesiredStateDAO componentDesiredStateDAO =
       injector.getInstance(ServiceComponentDesiredStateDAO.class);
@@ -845,7 +847,6 @@ public class UpgradeCatalog210Test {
     hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
-    hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 

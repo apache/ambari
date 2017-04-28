@@ -179,22 +179,20 @@ CREATE TABLE servicecomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
-  desired_stack_id NUMBER(19) NOT NULL,
+  desired_repo_version_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
-  desired_version VARCHAR(255) DEFAULT 'UNKNOWN' NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
   repo_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
-  CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE hostcomponentdesiredstate (
   id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
-  desired_stack_id NUMBER(19) NULL,
   desired_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
@@ -205,7 +203,6 @@ CREATE TABLE hostcomponentdesiredstate (
   CONSTRAINT PK_hostcomponentdesiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_hcdesiredstate_name UNIQUE (component_name, service_name, host_id, cluster_id),
   CONSTRAINT FK_hcdesiredstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
-  CONSTRAINT FK_hcds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
 
 CREATE TABLE hostcomponentstate (
@@ -213,14 +210,12 @@ CREATE TABLE hostcomponentstate (
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
-  current_stack_id NUMBER(19) NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   CONSTRAINT pk_hostcomponentstate PRIMARY KEY (id),
-  CONSTRAINT FK_hcs_current_stack_id FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, service_name, cluster_id) REFERENCES servicecomponentdesiredstate (component_name, service_name, cluster_id));
 
@@ -250,14 +245,14 @@ CREATE TABLE host_version (
 CREATE TABLE servicedesiredstate (
   cluster_id NUMBER(19) NOT NULL,
   desired_host_role_mapping NUMBER(10) NOT NULL,
-  desired_stack_id NUMBER(19) NOT NULL,
+  desired_repo_version_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   credential_store_enabled SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
-  CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
+  CONSTRAINT FK_repo_version_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
 
 CREATE TABLE adminprincipaltype (

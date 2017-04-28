@@ -57,6 +57,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -399,9 +400,13 @@ public class ClustersTest {
 
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        stackId.getStackVersion());
+
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
+
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
 
@@ -422,7 +427,7 @@ public class ClustersTest {
     clusters.addHost(h2);
 
     Host host1 = clusters.getHost(h1);
-    Host host2 = clusters.getHost(h2);
+
     setOsFamily(clusters.getHost(h1), "centos", "5.9");
     setOsFamily(clusters.getHost(h2), "centos", "5.9");
 
@@ -435,7 +440,7 @@ public class ClustersTest {
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
 
-    Service hdfs = cluster.addService("HDFS");
+    Service hdfs = cluster.addService("HDFS", repositoryVersion);
 
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 

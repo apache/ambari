@@ -49,6 +49,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
@@ -1245,21 +1246,21 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String repositoryVersionString = "2.1.1-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     StackId stackId2 = new StackId("HDP-2.2.0");
 
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        repositoryVersionString);
 
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
 
     helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
+    c.createClusterVersion(stackId, repositoryVersionString, "admin",
         RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 4; i++) {
@@ -1277,11 +1278,11 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "HDFS"));
-    c.addService(serviceFactory.createNew(c, "YARN"));
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
-    c.addService(serviceFactory.createNew(c, "HIVE"));
-    c.addService(serviceFactory.createNew(c, "OOZIE"));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "YARN", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "HIVE", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "OOZIE", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1385,7 +1386,7 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
     for(String service : additionalServices) {
-      c.addService(service);
+      c.addService(service, repositoryVersion);
       if (service.equals("HBASE")) {
         type = new HostsType();
         type.hosts.addAll(Arrays.asList("h1", "h2"));
@@ -1477,16 +1478,14 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, version);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1503,7 +1502,7 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "HDFS"));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1557,16 +1556,15 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        version);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1583,7 +1581,7 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -1626,12 +1624,10 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        version);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1648,7 +1644,7 @@ public class UpgradeHelperTest {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS"));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1692,12 +1688,10 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        version);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1714,7 +1708,7 @@ public class UpgradeHelperTest {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS"));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1806,18 +1800,18 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     StackId stackId2 = new StackId("HDP-2.2.0");
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        version);
+
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1834,7 +1828,7 @@ public class UpgradeHelperTest {
     }
 
     // !!! add storm
-    c.addService(serviceFactory.createNew(c, "STORM"));
+    c.addService(serviceFactory.createNew(c, "STORM", repositoryVersion));
 
     Service s = c.getService("STORM");
     ServiceComponent sc = s.addServiceComponent("NIMBUS");
@@ -1904,22 +1898,21 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     StackId stackId2 = new StackId("HDP-2.2.0");
 
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+        version);
 
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
 
     helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1935,7 +1928,7 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
@@ -2094,18 +2087,17 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
+    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     StackId stackId2 = new StackId("HDP-2.2.0");
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion());
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, version);
+
     helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
 
-    c.createClusterVersion(stackId,
-        c.getDesiredStackVersion().getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     // create 2 hosts
     for (int i = 0; i < 2; i++) {
@@ -2124,8 +2116,8 @@ public class UpgradeHelperTest {
 
     // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
     // how the HOU breaks out dependencies into stages
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
-    c.addService(serviceFactory.createNew(c, "HBASE"));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "HBASE", repositoryVersion));
     Service zookeeper = c.getService("ZOOKEEPER");
     Service hbase = c.getService("HBASE");
     ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");

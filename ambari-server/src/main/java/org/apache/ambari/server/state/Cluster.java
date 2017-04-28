@@ -196,15 +196,6 @@ public interface Cluster {
   void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
-   * Sets the desired stack version, optionally setting all owned services,
-   * components, and host components
-   * @param stackId the stack id
-   * @param cascade {@code true} to cascade the desired version
-   */
-  void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
-
-
-  /**
    * Get current stack version
    * @return
    */
@@ -215,17 +206,6 @@ public interface Cluster {
    * @param stackVersion
    */
   void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
-
-  /**
-   * Create host versions for all of the hosts that don't already have the stack version.
-   * @param hostNames Collection of host names
-   * @param currentClusterVersion Entity that contains the cluster's current stack (with its name and version)
-   * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
-   * @throws AmbariException
-   */
-  void mapHostVersions(Set<String> hostNames,
-      ClusterVersionEntity currentClusterVersion,
-      RepositoryVersionState desiredState) throws AmbariException;
 
   /**
    * Creates or updates host versions for all of the hosts within a cluster
@@ -535,11 +515,17 @@ public interface Cluster {
 
   /**
    * Add service to the cluster
+   * 
    * @param serviceName
+   *          the name of the service to add (not {@code null}).
+   * @param repositoryVersion
+   *          the repository from which the service should be installed (not
+   *          {@code null}).
    * @return
    * @throws AmbariException
    */
-  Service addService(String serviceName) throws AmbariException;
+  Service addService(String serviceName, RepositoryVersionEntity repositoryVersion)
+      throws AmbariException;
 
   /**
    * Fetch desired configs for list of hosts in cluster

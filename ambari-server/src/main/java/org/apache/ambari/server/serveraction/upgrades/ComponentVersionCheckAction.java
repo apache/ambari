@@ -29,7 +29,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.JsonArray;
@@ -49,13 +49,12 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
 
     Map<String, String> commandParams = getExecutionCommand().getCommandParams();
 
-    String version = commandParams.get(VERSION_KEY);
-    StackId targetStackId = new StackId(commandParams.get(TARGET_STACK_KEY));
     String clusterName = getExecutionCommand().getClusterName();
 
     Cluster cluster = m_clusters.getCluster(clusterName);
 
-    List<InfoTuple> errors = checkHostComponentVersions(cluster, version, targetStackId);
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
+    List<InfoTuple> errors = getHostComponentsWhichDidNotUpgrade(upgradeContext);
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();

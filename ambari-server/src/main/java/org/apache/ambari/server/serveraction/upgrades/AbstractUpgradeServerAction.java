@@ -21,13 +21,18 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;;
 
 /**
@@ -60,15 +65,40 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
   protected Clusters m_clusters;
 
   /**
-   * @return the set of supported services
+   * Used to move desired repo versions forward.
    */
-  protected Set<String> getSupportedServices() {
+  @Inject
+  protected UpgradeHelper m_upgradeHelper;
+
+  /**
+   * Used to create instances of {@link UpgradeContext} with injected
+   * dependencies.
+   */
+  @Inject
+  private UpgradeContextFactory m_upgradeContextFactory;
+
+  /**
+   * Gets an initialized {@link UpgradeContext} for the in-progress upgrade.
+   */
+  protected UpgradeContext getUpgradeContext(Cluster cluster) {
+    UpgradeEntity upgrade = cluster.getUpgradeInProgress();
+    UpgradeContext upgradeContext = m_upgradeContextFactory.create(cluster, upgrade);
+
+    final UpgradeScope scope;
+    final Set<String> supportedServices;
     String services = getCommandParameterValue(SUPPORTED_SERVICES_KEY);
     if (StringUtils.isBlank(services)) {
-      return Collections.emptySet();
-    } else {
-      return Sets.newHashSet(StringUtils.split(services, ','));
-    }
-  }
+      scope = UpgradeScope.COMPLETE;
+      supportedServices = Collections.emptySet();
 
+    } else {
+      scope = UpgradeScope.PARTIAL;
+      supportedServices = Sets.newHashSet(StringUtils.split(services, ','));
+    }
+
+    upgradeContext.setSupportedServices(supportedServices);
+    upgradeContext.setScope(scope);
+
+    return upgradeContext;
+  }
 }

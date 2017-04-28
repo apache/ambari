@@ -102,8 +102,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected DBAccessor dbAccessor;
   @Inject
   protected Configuration configuration;
-  @Inject
-  protected StackUpgradeUtil stackUpgradeUtil;
 
   protected Injector injector;
 

@@ -965,14 +965,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     boolean identitiesManaged = (manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities);
 
-    final StackId stackVersion = createMock(StackId.class);
-
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(schKerberosClient.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(schKerberosClient.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(schKerberosClient.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(schKerberosClient.getHostName()).andReturn("host1").anyTimes();
     expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -981,7 +978,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
     expect(sch1.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
-    expect(sch1.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch1.getHostName()).andReturn("host1").anyTimes();
     expect(sch1.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -995,7 +991,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
     expect(sch2.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
-    expect(sch2.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch2.getHostName()).andReturn("host1").anyTimes();
     expect(sch2.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1156,14 +1151,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     boolean identitiesManaged = (manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities);
 
-    final StackId stackVersion = createMock(StackId.class);
-
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(schKerberosClient.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(schKerberosClient.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(schKerberosClient.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(schKerberosClient.getHostName()).andReturn("host1").anyTimes();
     expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1172,7 +1164,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
     expect(sch1.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(sch1.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch1.getHostName()).andReturn("host1").anyTimes();
     expect(sch1.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1186,7 +1177,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
     expect(sch2.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(sch2.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch2.getHostName()).andReturn("host1").anyTimes();
     expect(sch2.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1344,14 +1334,11 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final StackId stackVersion = createMock(StackId.class);
-
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(schKerberosClient.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(schKerberosClient.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(schKerberosClient.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(schKerberosClient.getHostName()).andReturn("host1").anyTimes();
     expect(schKerberosClient.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1360,7 +1347,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").once();
     expect(sch1.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
-    expect(sch1.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch1.getHostName()).andReturn("host1").anyTimes();
     expect(sch1.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1374,7 +1360,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
     expect(sch2.getSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
     expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.SECURED_KERBEROS).anyTimes();
-    expect(sch2.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch2.getHostName()).andReturn("host1").anyTimes();
     expect(sch2.getState()).andReturn(State.INSTALLED).anyTimes();
 
@@ -1536,8 +1521,6 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
-    final StackId stackVersion = createMock(StackId.class);
-
     final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
     expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
@@ -1549,7 +1532,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch1.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
     expect(sch1.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(sch1.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(sch1.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch1.getHostName()).andReturn("host1").anyTimes();
 
     final ServiceComponentHost sch2 = createMock(ServiceComponentHost.class);
@@ -1557,7 +1539,6 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(sch2.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
     expect(sch2.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
     expect(sch2.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-    expect(sch2.getStackVersion()).andReturn(stackVersion).anyTimes();
     expect(sch2.getHostName()).andReturn("host1").anyTimes();
 
     final Host host = createMockHost("host1");
@@ -1577,7 +1558,6 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(sch1a.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
       expect(sch1a.getSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
       expect(sch1a.getDesiredSecurityState()).andReturn(SecurityState.UNSECURED).anyTimes();
-      expect(sch1a.getStackVersion()).andReturn(stackVersion).anyTimes();
       expect(sch1a.getHostName()).andReturn("host2").anyTimes();
 
       hostInvalid = createMockHost("host1");

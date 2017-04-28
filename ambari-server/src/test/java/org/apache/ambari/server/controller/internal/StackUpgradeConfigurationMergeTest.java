@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -90,7 +91,6 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
   private static final StackId s_targetStackId = new StackId("HDP-2.5");
 
   private Injector m_injector;
-  private Clusters m_clustersMock;
   private AmbariMetaInfo m_ambariMetaInfoMock;
 
   /**
@@ -98,7 +98,6 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
    */
   @Before
   public void before() throws Exception {
-    m_clustersMock = createNiceMock(Clusters.class);
     m_ambariMetaInfoMock = createNiceMock(AmbariMetaInfo.class);
 
     MockModule mockModule = new MockModule();
@@ -158,6 +157,8 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
     StackEntity targetStack = createNiceMock(StackEntity.class);
 
+    String version = "2.5.0.0-1234";
+
     // mocks which were bound previously
     AmbariManagementController amc = m_injector.getInstance(AmbariManagementController.class);
     AmbariMetaInfo ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
@@ -173,7 +174,9 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     EasyMock.expect(targetStack.getStackVersion()).andReturn("2.5").anyTimes();
 
     EasyMock.expect(repositoryVersionEntity.getStack()).andReturn(targetStack);
-    EasyMock.expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "2.5.0.0-1234")).andReturn(repositoryVersionEntity);
+    EasyMock.expect(repositoryVersionEntity.getVersion()).andReturn(version);
+    EasyMock.expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", version)).andReturn(
+        repositoryVersionEntity);
 
     EasyMock.expect(upgradePack.getGroups(Direction.UPGRADE)).andReturn(new ArrayList<Grouping>());
 
@@ -236,13 +239,20 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     EasyMock.expectLastCall();
 
+    UpgradeContext upgradeContext = createNiceMock(UpgradeContext.class);
+    EasyMock.expect(upgradeContext.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
+    EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
+    EasyMock.expect(upgradeContext.getUpgradePack()).andReturn(upgradePack).anyTimes();
+    EasyMock.expect(upgradeContext.getTargetRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
+    EasyMock.expect(upgradeContext.getTargetStackId()).andReturn(new StackId("HDP-2.5")).anyTimes();
+    EasyMock.expect(upgradeContext.getVersion()).andReturn(version).anyTimes();
     replayAll();
 
     UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(amc);
     m_injector.injectMembers(upgradeResourceProvider);
 
-    upgradeResourceProvider.applyStackAndProcessConfigurations("HDP", cluster, "2.5.0.0-1234",
-        Direction.UPGRADE, upgradePack, "admin");
+    upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
 
     // assertion time!
     Map<String, Map<String, String>> mergedConfigurations = capturedArgument.getValue();

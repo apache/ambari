@@ -40,6 +40,8 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -60,12 +62,14 @@ public class ClusterImplTest {
 
   private static Injector injector;
   private static Clusters clusters;
+  private static OrmTestHelper ormTestHelper;
 
   @BeforeClass
   public static void setUpClass() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    ormTestHelper = injector.getInstance(OrmTestHelper.class);
   }
 
   @AfterClass
@@ -207,9 +211,14 @@ public class ClusterImplTest {
     String clusterName = "TEST_CLUSTER";
     String hostName1 = "HOST1", hostName2 = "HOST2";
 
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    String stackVersion = "HDP-2.1.1";
+    String repoVersion = "2.1.1-1234";
 
+    clusters.addCluster(clusterName, new StackId(stackVersion));
     Cluster cluster = clusters.getCluster(clusterName);
+
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
+        new StackId(stackVersion), repoVersion);
 
     clusters.addHost(hostName1);
     clusters.addHost(hostName2);
@@ -222,7 +231,7 @@ public class ClusterImplTest {
 
     clusters.mapAndPublishHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
-    Service hdfs = cluster.addService("HDFS");
+    Service hdfs = cluster.addService("HDFS", repositoryVersion);
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.addServiceComponentHost(hostName1);
@@ -235,7 +244,7 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName1);
     hdfsClient.addServiceComponentHost(hostName2);
 
-    Service tez = cluster.addService(serviceToDelete);
+    Service tez = cluster.addService(serviceToDelete, repositoryVersion);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);

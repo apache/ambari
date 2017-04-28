@@ -36,7 +36,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
       with patch.object(os_utils, "parse_log4j_file", return_value={'ambari.log.dir': '/var/log/ambari-server'}):
-        from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions, upgrade_stack
+        from ambari_server.serverUpgrade import set_current, SetCurrentVersionOptions
         import ambari_server
 
 os_utils.search_file = _search_file
@@ -154,39 +154,6 @@ class TestServerUpgrade(TestCase):
     self.assertEquals(request.origin_req_host, '127.0.0.1')
     self.assertEquals(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
 
-  @patch("ambari_server.serverUpgrade.run_os_command")
-  @patch("ambari_server.serverUpgrade.get_java_exe_path")
-  @patch("ambari_server.serverConfiguration.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.get_ambari_properties")
-  @patch("ambari_server.serverUpgrade.check_database_name_property")
-  @patch("ambari_server.serverUpgrade.is_root")
-  def test_upgrade_stack(self, is_root_mock, c_d_n_p_mock, up_g_a_p_mock, server_g_a_p_mock, java_path_mock, run_os_mock):
-
-    run_os_mock.return_value = 0, "", ""
-
-    java_path_mock.return_value = ""
-
-    is_root_mock.return_value = True
-
-    def do_nothing():
-      pass
-    c_d_n_p_mock.side_effect = do_nothing
-
-    p = ambari_server.properties.Properties()
-    p._props = {
-      ambari_server.serverConfiguration.JDBC_DATABASE_PROPERTY: "mysql",
-      ambari_server.serverConfiguration.JDBC_DATABASE_NAME_PROPERTY: "ambari"
-    }
-
-    up_g_a_p_mock.side_effect = [p, p]
-    server_g_a_p_mock.side_effect = [p]
-
-    args = ["upgrade_stack", "HDP-2.3"]
-    upgrade_stack(args)
-
-    self.assertTrue(run_os_mock.called)
-    command = run_os_mock.call_args_list[0][0][0]
-    self.assertTrue("StackUpgradeHelper" in command and "HDP" in command and "2.3" in command)
 
   def testCurrentVersionOptions(self):
     # Negative test cases

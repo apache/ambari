@@ -131,6 +131,13 @@ public class UpgradeContext {
    */
   private StackId m_targetStackId;
 
+  /**
+   * The target repository before the upgrade started. This is the same
+   * regardless of whether the current direction is {@link Direction#UPGRADE} or
+   * {@link Direction#DOWNGRADE}.
+   */
+  private RepositoryVersionEntity m_targetRepositoryVersion;
+
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
   private List<ServiceComponentHost> m_unhealthy = new ArrayList<>();
@@ -214,7 +221,7 @@ public class UpgradeContext {
     m_upgradeRequestMap = upgradeRequestMap;
 
     // sets the original/target stacks - requires direction and cluster
-    setSourceAndTargetStacks();
+    setSourceAndTargetVersions();
   }
 
   /**
@@ -239,7 +246,7 @@ public class UpgradeContext {
     m_version = upgradeEntity.getToVersion();
 
     // sets the original/target stacks - requires direction and cluster
-    setSourceAndTargetStacks();
+    setSourceAndTargetVersions();
 
     if (m_direction == Direction.DOWNGRADE) {
       m_downgradeFromVersion = upgradeEntity.getFromVersion();
@@ -248,16 +255,18 @@ public class UpgradeContext {
     // since this constructor is initialized from an entity, then this map is
     // not present
     m_upgradeRequestMap = Collections.emptyMap();
+
+    m_autoSkipComponentFailures = upgradeEntity.isComponentFailureAutoSkipped();
+    m_autoSkipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
   }
 
   /**
-   * Sets the source and target stack IDs. This will also set the effective
-   * stack ID based on the already-set {@link UpgradeType} and
-   * {@link Direction}.
+   * Sets the source and target versions. This will also set the effective stack
+   * ID based on the already-set {@link UpgradeType} and {@link Direction}.
    *
    * @see #getEffectiveStackId()
    */
-  private void setSourceAndTargetStacks() {
+  private void setSourceAndTargetVersions() {
     StackId sourceStackId = null;
 
     // taret stack will not always be what it is today - tagging as experimental
@@ -268,17 +277,20 @@ public class UpgradeContext {
       case UPGRADE:
         sourceStackId = m_cluster.getCurrentStackVersion();
 
-        RepositoryVersionEntity targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
+        m_targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), m_version);
 
         // !!! TODO check the repo_version for patch-ness and restrict the
         // context to those services that require it. Consult the version
         // definition and add the service names to supportedServices
-        targetStackId = targetRepositoryVersion.getStackId();
+        targetStackId = m_targetRepositoryVersion.getStackId();
         break;
       case DOWNGRADE:
         sourceStackId = m_cluster.getCurrentStackVersion();
         targetStackId = m_cluster.getDesiredStackVersion();
+
+        m_targetRepositoryVersion = m_repoVersionDAO.findByStackNameAndVersion(
+            targetStackId.getStackName(), m_version);
         break;
     }
 
@@ -436,11 +448,13 @@ public class UpgradeContext {
   }
 
   /**
-   * @param targetStackId
-   *          the targetStackId to set
+   * Gets the target repository version for this upgrade.
+   *
+   * @return the target repository version for this upgrade (never
+   *         {@code null}).
    */
-  public void setTargetStackId(StackId targetStackId) {
-    m_targetStackId = targetStackId;
+  public RepositoryVersionEntity getTargetRepositoryVersion() {
+    return m_targetRepositoryVersion;
   }
 
   /**

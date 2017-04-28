@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
@@ -88,25 +89,28 @@ public class BaseResourceDefinitionTest {
     TreeNode<Resource> serviceNode = new TreeNodeImpl<>(parentNode, service, "service1");
 
     parentNode.setProperty("isCollection", "true");
-    
+
     ResourceProviderFactory factory = createMock(ResourceProviderFactory.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
-        .getPropertyIds(Resource.Type.Service),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Service),
-        managementController, maintenanceStateHelper);
-    
+
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(
+        PropertyHelper.getPropertyIds(Resource.Type.Service),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Service), managementController,
+        maintenanceStateHelper, repositoryVersionDAO);
+
     expect(factory.getServiceResourceProvider(EasyMock.<Set<String>>anyObject(),
         EasyMock.<Map<Resource.Type, String>>anyObject(),
         anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
-    
+
     AbstractControllerResourceProvider.init(factory);
-    
+
     replay(factory, managementController, maintenanceStateHelper);
-    
+
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 
     String href = serviceNode.getStringProperty("href");

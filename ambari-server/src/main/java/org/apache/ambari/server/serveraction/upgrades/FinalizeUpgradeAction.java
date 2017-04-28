@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,13 +33,10 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.StackUpgradeFinishEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -56,7 +52,9 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -70,9 +68,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
   public static final String PREVIOUS_UPGRADE_NOT_COMPLETED_MSG = "It is possible that a previous upgrade was not finalized. " +
       "For this reason, Ambari will not remove any configs. Please ensure that all database records are correct.";
-
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
 
   @Inject
   private HostVersionDAO hostVersionDAO;
@@ -92,12 +87,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
   @Inject
   private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
-  /**
-   * Gets {@link UpgradeEntity} instances.
-   */
-  @Inject
-  private UpgradeDAO upgradeDAO;
-
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
@@ -108,21 +97,15 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
-    Map<String, String> commandParams = getExecutionCommand().getCommandParams();
-
-    boolean isDowngrade = commandParams.containsKey(UPGRADE_DIRECTION_KEY) &&
-        "downgrade".equals(commandParams.get(UPGRADE_DIRECTION_KEY).toLowerCase());
-
-    String version = commandParams.get(VERSION_KEY);
-    StackId originalStackId = new StackId(commandParams.get(ORIGINAL_STACK_KEY));
-    StackId targetStackId = new StackId(commandParams.get(TARGET_STACK_KEY));
-
     String clusterName = getExecutionCommand().getClusterName();
+    Cluster cluster = m_clusters.getCluster(clusterName);
 
-    if (isDowngrade) {
-      return finalizeDowngrade(clusterName, originalStackId, targetStackId, version);
+    UpgradeContext upgradeContext = getUpgradeContext(cluster);
+
+    if (upgradeContext.getDirection() == Direction.UPGRADE) {
+      return finalizeUpgrade(upgradeContext);
     } else {
-      return finalizeUpgrade(clusterName, version, commandParams);
+      return finalizeDowngrade(upgradeContext);
     }
   }
 
@@ -132,32 +115,36 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    * @param version     the target version of the upgrade
    * @return the command report
    */
-  private CommandReport finalizeUpgrade(String clusterName, String version,
-      Map<String, String> commandParams)
+  private CommandReport finalizeUpgrade(UpgradeContext upgradeContext)
     throws AmbariException, InterruptedException {
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
 
     try {
-      outSB.append(MessageFormat.format("Begin finalizing the upgrade of cluster {0} to version {1}\n", clusterName, version));
-
-      Cluster cluster = m_clusters.getCluster(clusterName);
-      StackId clusterDesiredStackId = cluster.getDesiredStackVersion();
-      StackId clusterCurrentStackId = cluster.getCurrentStackVersion();
-
-      ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
-          clusterName, clusterDesiredStackId, version);
-
-      if (upgradingClusterVersion == null) {
-        throw new AmbariException(MessageFormat.format(
-            "Cluster stack version {0} not found", version));
+      String message;
+      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+      if (servicesInUpgrade.isEmpty()) {
+        message = MessageFormat.format("Finalizing the upgrade to {0} for all cluster services.",
+            upgradeContext.getVersion());
+      } else {
+        message = MessageFormat.format(
+            "Finalizing the upgrade to {0} for the following services: {1}",
+            upgradeContext.getVersion(), StringUtils.join(servicesInUpgrade, ','));
       }
 
-      // Validate that all of the hosts with a version in the cluster have the
-      // version being upgraded to, and it is in an allowed state.
-      List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
-          clusterName, clusterDesiredStackId, version);
+      outSB.append(message).append(System.lineSeparator());
+
+      Cluster cluster = upgradeContext.getCluster();
+      StackId clusterDesiredStackId = cluster.getDesiredStackVersion();
+      StackId clusterCurrentStackId = cluster.getCurrentStackVersion();
+      String version = upgradeContext.getVersion();
+      RepositoryVersionEntity repositoryVersion = upgradeContext.getTargetRepositoryVersion();
+
+      // for all hosts participating in this upgrade, validate their repo
+      // versions
+      List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+          cluster.getClusterId(), repositoryVersion);
 
       // Will include hosts whose state is INSTALLED
       Set<HostVersionEntity> hostVersionsAllowed = new HashSet<>();
@@ -213,25 +200,26 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // throw an exception if there are hosts which are not not fully upgraded
       if (hostsWithoutCorrectVersionState.size() > 0) {
-        String message = String.format("The following %d host(s) have not been upgraded to version %s. " +
-                "Please install and upgrade the Stack Version on those hosts and try again.\nHosts: %s\n",
+        message = String.format("The following %d host(s) have not been upgraded to version %s. " +
+                "Please install and upgrade the Stack Version on those hosts and try again.\nHosts: %s",
             hostsWithoutCorrectVersionState.size(),
             version,
             StringUtils.join(hostsWithoutCorrectVersionState, ", "));
         outSB.append(message);
+        outSB.append(System.lineSeparator());
         throw new AmbariException(message);
       }
 
       // iterate through all host components and make sure that they are on the
       // correct version; if they are not, then this will throw an exception
-      List<InfoTuple> errors = checkHostComponentVersions(cluster, version, clusterDesiredStackId);
+      List<InfoTuple> errors = getHostComponentsWhichDidNotUpgrade(upgradeContext);
       if (! errors.isEmpty()) {
         StrBuilder messageBuff = new StrBuilder(
             String.format(
                 "The following %d host component(s) "
                     + "have not been upgraded to version %s. Please install and upgrade "
-                    + "the Stack Version on those hosts and try again.\nHost components:\n",
-                errors.size(), version));
+                    + "the Stack Version on those hosts and try again.\nHost components:",
+                errors.size(), version)).append(System.lineSeparator());
 
         for (InfoTuple error : errors) {
           messageBuff.append(String.format("%s on host %s\n", error.componentName, error.hostName));
@@ -240,29 +228,9 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
-
-      // we're guaranteed to be ready transition to upgraded now; ensure that
-      // the transition will be allowed if the cluster state is not upgraded
-      upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
-          clusterDesiredStackId, version);
-
-      if (RepositoryVersionState.INSTALLING == upgradingClusterVersion.getState()) {
-        cluster.transitionClusterVersion(clusterDesiredStackId, version, RepositoryVersionState.INSTALLED);
-
-        upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
-            clusterName, clusterDesiredStackId, version);
-      }
-
-      // we cannot finalize since the cluster was not ready to move into the
-      // upgraded state
-      if (RepositoryVersionState.INSTALLED != upgradingClusterVersion.getState()) {
-        throw new AmbariException(String.format("The cluster stack version state %s is not allowed to transition directly into %s",
-            upgradingClusterVersion.getState(), RepositoryVersionState.CURRENT.toString()));
-      }
-
       outSB.append(
-          String.format("Finalizing the upgraded state of host components in %d host(s).\n",
-              hostVersionsAllowed.size()));
+          String.format("Finalizing the upgrade state of %d host(s).",
+              hostVersionsAllowed.size())).append(System.lineSeparator());
 
       // Reset the upgrade state
       for (HostVersionEntity hostVersion : hostVersionsAllowed) {
@@ -275,37 +243,29 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
       // Impacts all hosts that have a version
       outSB.append(
-          String.format("Finalizing the version for %d host(s).\n", hostVersionsAllowed.size()));
-      cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
+          String.format("Finalizing the version for %d host(s).",
+              hostVersionsAllowed.size())).append(System.lineSeparator());
+
 
       versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
-      // Reset upgrade state
-      cluster.setUpgradeEntity(null);
 
       // transitioning the cluster into CURRENT will update the current/desired
       // stack values
-      outSB.append(String.format("Finalizing the version for cluster %s.\n", clusterName));
+      outSB.append(
+          String.format("Finalizing the version for cluster %s.", cluster.getClusterName())).append(
+              System.lineSeparator());
+
       cluster.transitionClusterVersion(clusterDesiredStackId, version,
           RepositoryVersionState.CURRENT);
 
-      if (commandParams.containsKey(REQUEST_ID)) {
-        String requestId = commandParams.get(REQUEST_ID);
-        UpgradeEntity upgradeEntity = upgradeDAO.findUpgradeByRequestId(Long.valueOf(requestId));
+      outSB.append("Creating upgrade history...").append(System.lineSeparator());
+      writeComponentHistory(upgradeContext);
 
-        if (null != upgradeEntity) {
-          outSB.append("Creating upgrade history.\n");
-          writeComponentHistory(cluster, upgradeEntity, clusterCurrentStackId,
-              clusterDesiredStackId);
-        } else {
-          String warning = String.format(
-              "Unable to create upgrade history because no upgrade could be found for request with ID %s\n",
-              requestId);
+      // Reset upgrade state
+      cluster.setUpgradeEntity(null);
 
-          outSB.append(warning);
-        }
-      }
-
-      outSB.append("Upgrade was successful!\n");
+      message = String.format("The upgrade to %s has completed.", upgradeContext.getVersion());
+      outSB.append(message).append(System.lineSeparator());
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } catch (Exception e) {
       errSB.append(e.getMessage());
@@ -316,107 +276,64 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
   /**
    * Execution path for downgrade.
    *
-   * @param clusterName
-   *          the name of the cluster the downgrade is for
-   * @paran originalStackId the stack ID of the cluster before the upgrade.
-   * @paran targetStackId the stack ID that was desired for this upgrade.
-   * @param version
-   *          the target version of the downgrade
+   * @param upgradeContext
+   *          the upgrade context (not {@code null}).
    * @return the command report
    */
-  private CommandReport finalizeDowngrade(String clusterName,
-      StackId originalStackId, StackId targetStackId, String version)
+  private CommandReport finalizeDowngrade(UpgradeContext upgradeContext)
       throws AmbariException, InterruptedException {
 
-    StringBuilder out = new StringBuilder();
-    StringBuilder err = new StringBuilder();
+    StringBuilder outSB = new StringBuilder();
+    StringBuilder errSB = new StringBuilder();
 
     try {
-      Cluster cluster = m_clusters.getCluster(clusterName);
+      Cluster cluster = upgradeContext.getCluster();
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
+      RepositoryVersionEntity repositoryVersion = upgradeContext.getTargetRepositoryVersion();
 
-      // Safety check that the cluster's stack (from clusterstate's current_stack_id) is equivalent to the
-      // cluster's CURRENT repo version's stack. This is to avoid deleting configs from the target stack if the customer
-      // ended up modifying their database manually after a stack upgrade and forgot to call "Save DB State".
-      ClusterVersionEntity currentClusterVersion = cluster.getCurrentClusterVersion();
-      RepositoryVersionEntity currentRepoVersion = currentClusterVersion.getRepositoryVersion();
-      StackId currentRepoStackId = currentRepoVersion.getStackId();
-      if (!currentRepoStackId.equals(originalStackId)) {
-        String msg = String.format("The stack of Cluster %s's CURRENT repo version is %s, yet the original stack id from " +
-            "the Stack Upgrade has a different value of %s. %s",
-            clusterName, currentRepoStackId.getStackId(), originalStackId.getStackId(), PREVIOUS_UPGRADE_NOT_COMPLETED_MSG);
-        out.append(msg);
-        err.append(msg);
-        throw new AmbariException("The source target stack doesn't match the cluster's CURRENT repo version's stack.");
-      }
-
-      // This was a cross-stack upgrade, meaning that configurations were created that now need to be removed.
-      if (!originalStackId.equals(targetStackId)) {
-        out.append(String.format("Will remove configs since the original stack %s differs from the target stack %s " +
-            "that Ambari just downgraded from.", originalStackId.getStackId(), targetStackId.getStackId()));
-        cluster.removeConfigurations(targetStackId);
-      }
-
-      // !!! find and make sure the cluster_version EXCEPT current are set back
-      out.append(String.format("Searching for current version for %s\n",
-          clusterName));
-
-      ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
-      if (null == clusterVersion) {
-        throw new AmbariException("Could not find current cluster version");
-      }
-
-      out.append(String.format("Comparing downgrade version %s to current cluster version %s\n",
-          version,
-          clusterVersion.getRepositoryVersion().getVersion()));
-
-      if (!version.equals(clusterVersion.getRepositoryVersion().getVersion())) {
-        throw new AmbariException(
-            String.format("Downgrade version %s is not the current cluster version of %s",
-                version, clusterVersion.getRepositoryVersion().getVersion()));
+      String message;
+      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+      if (servicesInUpgrade.isEmpty()) {
+        message = MessageFormat.format("Finalizing the downgrade to {0} for all cluster services.",
+            upgradeContext.getVersion());
       } else {
-        out.append(String.format("Downgrade version is the same as current.  Searching " +
-          "for cluster versions that do not match %s\n", version));
+        message = MessageFormat.format(
+            "Finalizing the downgrade to {0} for the following services: {1}",
+            upgradeContext.getVersion(), StringUtils.join(servicesInUpgrade, ','));
       }
 
-      Set<String> badVersions = new HashSet<>();
+      outSB.append(message).append(System.lineSeparator());
+      outSB.append(message).append(System.lineSeparator());
 
-      // update the cluster version
-      for (ClusterVersionEntity cve : clusterVersionDAO.findByCluster(clusterName)) {
-        switch (cve.getState()) {
-          case INSTALL_FAILED:
-          case INSTALLED:
-          case INSTALLING: {
-              badVersions.add(cve.getRepositoryVersion().getVersion());
-              cve.setState(RepositoryVersionState.INSTALLED);
-              clusterVersionDAO.merge(cve);
-              break;
-            }
-          default:
-            break;
+      // iterate through all host components and make sure that they are on the
+      // correct version; if they are not, then this will throw an exception
+      List<InfoTuple> errors = getHostComponentsWhichDidNotUpgrade(upgradeContext);
+      if (!errors.isEmpty()) {
+        StrBuilder messageBuff = new StrBuilder(String.format(
+            "The following %d host component(s) " + "have not been downgraded to version %s\n",
+            errors.size(), upgradeContext.getVersion())).append(System.lineSeparator());
+
+        for (InfoTuple error : errors) {
+          messageBuff.append(String.format("%s on host %s", error.componentName, error.hostName));
+          messageBuff.append(System.lineSeparator());
         }
+
+        throw new AmbariException(messageBuff.toString());
       }
 
-      out.append(String.format("Found %d other version(s) not matching downgrade: %s\n",
-          badVersions.size(), StringUtils.join(badVersions, ", ")));
+      // find host versions
+      List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
+          cluster.getClusterId(), repositoryVersion);
 
-      Set<String> badHosts = new HashSet<>();
-      for (String badVersion : badVersions) {
-        List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
-            clusterName, targetStackId, badVersion);
-
-        for (HostVersionEntity hostVersion : hostVersions) {
-          badHosts.add(hostVersion.getHostName());
+      for( HostVersionEntity hostVersion : hostVersions ){
+        if( hostVersion.getState() != RepositoryVersionState.INSTALLED ){
           hostVersion.setState(RepositoryVersionState.INSTALLED);
           hostVersionDAO.merge(hostVersion);
         }
-      }
 
-      out.append(String.format("Found %d hosts not matching downgrade version: %s\n",
-          badHosts.size(), version));
+        List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(
+            hostVersion.getHostName());
 
-      for (String badHost : badHosts) {
-        List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(badHost);
         for (HostComponentStateEntity hostComponentState : hostComponentStates) {
           hostComponentState.setUpgradeState(UpgradeState.NONE);
           hostComponentStateDAO.merge(hostComponentState);
@@ -427,37 +344,38 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       // original value
       cluster.setDesiredStackVersion(currentClusterStackId);
       versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
+
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
 
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          out.toString(), err.toString());
-
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } catch (Exception e) {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
-      err.append(sw.toString());
+      errSB.append(sw.toString());
 
-      return createCommandReport(-1, HostRoleStatus.FAILED, "{}",
-          out.toString(), err.toString());
+      return createCommandReport(-1, HostRoleStatus.FAILED, "{}", outSB.toString(), errSB.toString());
     }
   }
 
 
   /**
-   * Confirms that all host components that are able to provide hdp version,
-   * have been upgraded to the target version.
-   * @param cluster         the cluster the upgrade is for
-   * @param desiredVersion  the target version of the upgrade
-   * @param targetStackId     the target stack id for meta-info lookup
-   * @return the list of {@link InfoTuple} objects of host components in error
+   * Gets any host components which have not been propertly upgraded.
+   *
+   * @param upgradeContext
+   *          the upgrade context (not {@code null}).
+   * @return a list of {@link InfoTuple} representing components which should
+   *         have been upgraded but did not.
    */
-  protected List<InfoTuple> checkHostComponentVersions(Cluster cluster, String desiredVersion, StackId targetStackId)
+  protected List<InfoTuple> getHostComponentsWhichDidNotUpgrade(UpgradeContext upgradeContext)
           throws AmbariException {
 
     ArrayList<InfoTuple> errors = new ArrayList<>();
 
-    Set<String> supportedServices = getSupportedServices();
+    Cluster cluster = upgradeContext.getCluster();
+    Set<String> supportedServices = upgradeContext.getSupportedServices();
+    RepositoryVersionEntity repositoryVersionEntity = upgradeContext.getTargetRepositoryVersion();
+    StackId targetStackId = repositoryVersionEntity.getStackId();
 
     for (Service service : cluster.getServices().values()) {
 
@@ -471,17 +389,12 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
                   targetStackId.getStackVersion(), service.getName(), serviceComponent.getName());
 
-          if (!componentInfo.isVersionAdvertised()) {
-            StackId desired = serviceComponentHost.getDesiredStackVersion();
-            StackId actual = serviceComponentHost.getStackVersion();
-            if (!desired.equals(actual)) {
-              serviceComponentHost.setStackVersion(desired);
+          if (componentInfo.isVersionAdvertised()) {
+            if (!StringUtils.equals(upgradeContext.getVersion(),
+                serviceComponentHost.getVersion())) {
+              errors.add(new InfoTuple(service.getName(), serviceComponent.getName(),
+                  serviceComponentHost.getHostName(), serviceComponentHost.getVersion()));
             }
-          } else if (componentInfo.isVersionAdvertised()
-              && !serviceComponentHost.getVersion().equals(desiredVersion)) {
-            errors.add(new InfoTuple(
-                service.getName(), serviceComponent.getName(),
-                serviceComponentHost.getHostName(), serviceComponentHost.getVersion()));
           }
         }
       }
@@ -490,15 +403,36 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     return errors;
   }
 
-  private void writeComponentHistory(Cluster cluster, UpgradeEntity upgradeEntity,
-      StackId fromStackId, StackId toStackId) {
+  /**
+   * Writes the upgrade history for all components which participated in the
+   * upgrade.
+   *
+   * @param upgradeContext  the upgrade context (not {@code null}).
+   */
+  private void writeComponentHistory(UpgradeContext upgradeContext) throws AmbariException {
+    Cluster cluster = upgradeContext.getCluster();
+    UpgradeEntity upgradeEntity = cluster.getUpgradeInProgress();
+    Collection<Service> services = cluster.getServices().values();
+    RepositoryVersionEntity repositoryVersion = upgradeContext.getTargetRepositoryVersion();
+    StackId sourcceStackId = upgradeContext.getOriginalStackId();
+    StackId targetStackId = repositoryVersion.getStackId();
 
-    StackEntity fromStack = stackDAO.find(fromStackId.getStackName(), fromStackId.getStackVersion());
-    StackEntity toStack = stackDAO.find(toStackId.getStackName(), toStackId.getStackVersion());
+    StackEntity fromStack = stackDAO.find(sourcceStackId.getStackName(), sourcceStackId.getStackVersion());
+    StackEntity toStack = stackDAO.find(targetStackId.getStackName(), targetStackId.getStackVersion());
+
+
+    if (!upgradeContext.getSupportedServices().isEmpty()) {
+      services = new ArrayList<>();
+
+      Set<String> serviceNames = upgradeContext.getSupportedServices();
+      for (String serviceName : serviceNames) {
+        services.add(cluster.getService(serviceName));
+      }
+    }
 
     // for every service component, if it was included in the upgrade then
     // create a historical entry
-    for (Service service : cluster.getServices().values()) {
+    for (Service service : services) {
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
         if (serviceComponent.isVersionAdvertised()) {
           // create the historical entry

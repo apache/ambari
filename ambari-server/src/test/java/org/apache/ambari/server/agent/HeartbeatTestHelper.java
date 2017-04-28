@@ -21,6 +21,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluste
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyRepositoryVersion;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
 
@@ -151,13 +152,14 @@ public class HeartbeatTestHelper {
       add(DummyHostname1);
     }};
 
-    return getDummyCluster(DummyCluster, DummyStackId, configProperties, hostNames);
+    return getDummyCluster(DummyCluster, new StackId(DummyStackId), DummyRepositoryVersion,
+        configProperties, hostNames);
   }
 
-  public Cluster getDummyCluster(String clusterName, String desiredStackId,
-                                 Map<String, String> configProperties, Set<String> hostNames)
+  public Cluster getDummyCluster(String clusterName, StackId stackId, String repositoryVersion,
+      Map<String, String> configProperties, Set<String> hostNames)
       throws Exception {
-    StackEntity stackEntity = stackDAO.find(HDP_22_STACK.getStackName(), HDP_22_STACK.getStackVersion());
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     org.junit.Assert.assertNotNull(stackEntity);
 
     // Create the cluster
@@ -177,8 +179,6 @@ public class HeartbeatTestHelper {
 
     clusterDAO.create(clusterEntity);
 
-    StackId stackId = new StackId(desiredStackId);
-
     // because this test method goes around the Clusters business object, we
     // forcefully will refresh the internal state so that any tests which
     // incorrect use Clusters after calling this won't be affected
@@ -196,8 +196,8 @@ public class HeartbeatTestHelper {
     Config config = cf.createNew(cluster, "cluster-env", "version1", configProperties, new HashMap<String, Map<String, String>>());
     cluster.addDesiredConfig("user", Collections.singleton(config));
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+    helper.getOrCreateRepositoryVersion(stackId, repositoryVersion);
+    cluster.createClusterVersion(stackId, repositoryVersion, "admin",
         RepositoryVersionState.INSTALLING);
 
     Map<String, String> hostAttributes = new HashMap<>();

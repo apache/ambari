@@ -435,8 +435,11 @@ public class OrmTestHelper {
   public void installHdfsService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+
+    RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+
     String serviceName = "HDFS";
-    Service service = serviceFactory.createNew(cluster, serviceName);
+    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -450,8 +453,6 @@ public class OrmTestHelper {
     datanode.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
 
     ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
 
@@ -462,15 +463,16 @@ public class OrmTestHelper {
     namenode.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 
   public void installYarnService(Cluster cluster,
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
+
+    RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+
     String serviceName = "YARN";
-    Service service = serviceFactory.createNew(cluster, serviceName);
+    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
     service = cluster.getService(serviceName);
     assertNotNull(service);
 
@@ -485,8 +487,6 @@ public class OrmTestHelper {
     resourceManager.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
-    sch.setStackVersion(new StackId("HDP-2.0.6"));
   }
 
   /**

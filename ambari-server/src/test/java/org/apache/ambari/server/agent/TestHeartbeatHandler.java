@@ -75,6 +75,8 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -173,7 +175,7 @@ public class TestHeartbeatHandler {
     replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.addServiceComponent(NAMENODE);
     hdfs.addServiceComponent(SECONDARY_NAMENODE);
@@ -231,7 +233,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testStatusHeartbeatWithAnnotation() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.addServiceComponent(NAMENODE);
     hdfs.addServiceComponent(SECONDARY_NAMENODE);
@@ -282,7 +284,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testLiveStatusUpdateAfterStopFailed() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).
         addServiceComponentHost(DummyHostname1);
@@ -385,7 +387,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistrationRecoveryConfig() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE);
@@ -458,7 +460,7 @@ public class TestHeartbeatHandler {
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
             injector);
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
 
     /**
      * Add three service components enabled for auto start.
@@ -792,7 +794,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testTaskInProgressHandling() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -849,7 +851,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testOPFailedEventForAbortedTask() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -921,9 +923,9 @@ public class TestHeartbeatHandler {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testStatusHeartbeatWithVersion() throws Exception {
+  public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -938,15 +940,9 @@ public class TestHeartbeatHandler {
     ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
 
-    StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack120 = new StackId("HDP-1.2.0");
-
     serviceComponentHost1.setState(State.INSTALLED);
     serviceComponentHost2.setState(State.STARTED);
     serviceComponentHost3.setState(State.STARTED);
-    serviceComponentHost1.setStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack120);
-    serviceComponentHost3.setStackVersion(stack120);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -980,12 +976,6 @@ public class TestHeartbeatHandler {
     handler.handleHeartBeat(hb);
     heartbeatProcessor.processHeartbeat(hb);
 
-    assertEquals("Matching value " + serviceComponentHost1.getStackVersion(),
-        stack130, serviceComponentHost1.getStackVersion());
-    assertEquals("Matching value " + serviceComponentHost2.getStackVersion(),
-        stack120, serviceComponentHost2.getStackVersion());
-    assertEquals("Matching value " + serviceComponentHost3.getStackVersion(),
-        stack130, serviceComponentHost3.getStackVersion());
     assertTrue(hb.getAgentEnv().getHostHealth().getServerTimeStampAtReporting() >= hb.getTimestamp());
   }
 
@@ -998,7 +988,7 @@ public class TestHeartbeatHandler {
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Host hostObject = clusters.getHost(DummyHostname1);
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -1079,7 +1069,7 @@ public class TestHeartbeatHandler {
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Host hostObject = clusters.getHost(DummyHostname1);
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.addServiceComponent(NAMENODE);
@@ -1403,7 +1393,7 @@ public class TestHeartbeatHandler {
   @SuppressWarnings("unchecked")
   public void testCommandStatusProcesses_empty() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    Service hdfs = cluster.addService(HDFS);
+    Service hdfs = addService(cluster, HDFS);
     hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
@@ -1588,6 +1578,23 @@ public class TestHeartbeatHandler {
     bw.close();
 
     return dataDirectory;
+  }
+
+  /**
+   * Adds the service to the cluster using the current cluster version as the
+   * repository version for the service.
+   *
+   * @param cluster
+   *          the cluster.
+   * @param serviceName
+   *          the service name.
+   * @return the newly added service.
+   * @throws AmbariException
+   */
+  private Service addService(Cluster cluster, String serviceName) throws AmbariException {
+    ClusterVersionEntity clusterVersion = cluster.getCurrentClusterVersion();
+    RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
+    return cluster.addService(serviceName, repositoryVersion);
   }
 
 }

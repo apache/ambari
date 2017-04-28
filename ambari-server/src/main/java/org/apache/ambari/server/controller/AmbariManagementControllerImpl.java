@@ -697,8 +697,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         sch.setDesiredState(state);
       }
 
-      sch.setDesiredStackVersion(sc.getDesiredStackVersion());
-
       schMap.put(cluster, sch);
     }
 
@@ -2741,6 +2739,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (ServiceComponentHost scHost :
               changedScHosts.get(compName).get(newState)) {
 
+            Service service = cluster.getService(scHost.getServiceName());
+            ServiceComponent serviceComponent = service.getServiceComponent(compName);
+
             // Do not create role command for hosts that are not responding
             if (scHost.getHostState().equals(HostState.HEARTBEAT_LOST)) {
               LOG.info("Command is not created for servicecomponenthost "
@@ -2779,7 +2780,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     event = new ServiceComponentHostInstallEvent(
                         scHost.getServiceComponentName(), scHost.getHostName(),
                         nowTimestamp,
-                        scHost.getDesiredStackVersion().getStackId());
+                        serviceComponent.getDesiredStackVersion().getStackId());
                   }
                 } else if (oldSchState == State.STARTED
                       // TODO: oldSchState == State.INSTALLED is always false, looks like a bug
@@ -2793,7 +2794,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   roleCommand = RoleCommand.UPGRADE;
                   event = new ServiceComponentHostUpgradeEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp, scHost.getDesiredStackVersion().getStackId());
+                      nowTimestamp, serviceComponent.getDesiredStackVersion().getStackId());
                 } else {
                   throw new AmbariException("Invalid transition for"
                       + " servicecomponenthost"
@@ -2807,7 +2808,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 }
                 break;
               case STARTED:
-                StackId stackId = scHost.getDesiredStackVersion();
+                StackId stackId = serviceComponent.getDesiredStackVersion();
                 ComponentInfo compInfo = ambariMetaInfo.getComponent(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());

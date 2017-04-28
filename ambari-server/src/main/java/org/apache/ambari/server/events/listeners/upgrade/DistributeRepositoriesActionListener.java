@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,10 +119,11 @@ public class DistributeRepositoriesActionListener {
 
         // Handle the case in which the version to install did not contain the build number,
         // but the structured output does contain the build number.
-        if (null != structuredOutput.getActualVersion() && !structuredOutput.getActualVersion().isEmpty() &&
-            null != structuredOutput.getInstalledRepositoryVersion() && !structuredOutput.getInstalledRepositoryVersion().isEmpty() &&
-            null != structuredOutput.getStackId() && !structuredOutput.getStackId().isEmpty() &&
-            !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
+        if (!StringUtils.isEmpty(structuredOutput.getActualVersion())
+            && !StringUtils.isEmpty(structuredOutput.getInstalledRepositoryVersion())
+            && !StringUtils.isEmpty(structuredOutput.getStackId())
+            && !StringUtils.equals(structuredOutput.getActualVersion(),
+                structuredOutput.getInstalledRepositoryVersion())) {
 
           // !!! getInstalledRepositoryVersion() from the agent is the one
           // entered in the UI.  getActualVersion() is computed.

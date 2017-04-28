@@ -47,6 +47,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -131,7 +134,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
-    createClusterFixture("c1", "HDP-2.0.6", "c1");
+    createClusterFixture("c1", new StackId("HDP-2.0.6"), "2.0.6-1234", "c1");
 
     EasyMock.expect(hostRoleCommand.getTaskId()).andReturn(1L);
     EasyMock.expect(hostRoleCommand.getStageId()).andReturn(1L);
@@ -515,7 +518,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   public void testIsTopologyRefreshRequired() throws Exception {
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
-    createClusterFixture("c2", "HDP-2.1.1", "c2");
+    createClusterFixture("c2", new StackId("HDP-2.1.1"), "2.1.1.0-1234", "c2");
 
     Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "HDFS"));
     Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "HDFS"));
@@ -552,20 +555,27 @@ public class AmbariCustomCommandExecutionHelperTest {
     }
   }
 
-  private void createClusterFixture(String clusterName, String stackVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+  private void createClusterFixture(String clusterName, StackId stackId,
+      String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException {
     String hostC6401 = hostPrefix + "-c6401";
     String hostC6402 = hostPrefix + "-c6402";
 
-    createCluster(clusterName, stackVersion);
+    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(stackId,
+        respositoryVersion);
+
+    createCluster(clusterName, stackId.getStackId());
 
     addHost(hostC6401, clusterName);
     addHost(hostC6402, clusterName);
 
-    clusters.getCluster(clusterName);
-    createService(clusterName, "YARN", null);
-    createService(clusterName, "GANGLIA", null);
-    createService(clusterName, "ZOOKEEPER", null);
-    createService(clusterName, "FLUME", null);
+    Cluster cluster = clusters.getCluster(clusterName);
+    Assert.assertNotNull(cluster);
+
+    createService(clusterName, "YARN", repositoryVersion);
+    createService(clusterName, "GANGLIA", repositoryVersion);
+    createService(clusterName, "ZOOKEEPER", repositoryVersion);
+    createService(clusterName, "FLUME", repositoryVersion);
 
     createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
@@ -575,7 +585,6 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     // this component should be not installed on any host
     createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT);
-
 
     createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
@@ -609,17 +618,17 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariManagementController.createCluster(r);
   }
 
-  private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
-    String dStateStr = null;
-    if (desiredState != null) {
-      dStateStr = desiredState.toString();
-    }
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
+  private void createService(String clusterName, String serviceName,
+      RepositoryVersionEntity repositoryVersion) throws AmbariException, AuthorizationException {
+
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
+        repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(), null, "false");
+
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
 
-    ServiceResourceProviderTest.createServices(ambariManagementController, requests);
+    ServiceResourceProviderTest.createServices(ambariManagementController,
+        injector.getInstance(RepositoryVersionDAO.class), requests);
   }
 
   private void createServiceComponent(String clusterName,
