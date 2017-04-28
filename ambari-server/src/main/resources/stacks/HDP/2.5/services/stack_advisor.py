@@ -1152,7 +1152,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     Logger.info("DBG: Calculated 'llap_mem_daemon_size' : {0}, using following : llap_mem_for_tezAm_and_daemons : {1}, tez_am_memory_required : "
                   "{2}".format(llap_mem_daemon_size, llap_mem_for_tezAm_and_daemons, tez_am_memory_required))
 
+
     llap_daemon_mem_per_node = self._normalizeDown(llap_mem_daemon_size / num_llap_nodes_requested, yarn_min_container_size)
+    # This value takes into account total cluster capacity, and may not have left enough capcaity on each node to launch an AM.
     Logger.info("DBG: Calculated 'llap_daemon_mem_per_node' : {0}, using following : llap_mem_daemon_size : {1}, num_llap_nodes_requested : {2}, "
                   "yarn_min_container_size: {3}".format(llap_daemon_mem_per_node, llap_mem_daemon_size, num_llap_nodes_requested, yarn_min_container_size))
     if llap_daemon_mem_per_node == 0:
@@ -1171,6 +1173,31 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       # All good. We have a proper value for memoryPerNode.
       num_llap_nodes = num_llap_nodes_requested
       Logger.info("DBG: num_llap_nodes : {0}".format(num_llap_nodes))
+
+    # Make sure we have enough memory on each node to run AMs.
+    # If nodes vs nodes_requested is different - AM memory is already factored in.
+    # If llap_node_count < total_cluster_nodes - assuming AMs can run on a different node.
+    # Else factor in min_concurrency_per_node * tez_am_size, and slider_am_size
+    # Also needs to factor in whether num_llap_nodes = cluster_node_count
+    min_mem_reserved_per_node = 0
+    if num_llap_nodes == num_llap_nodes_requested and num_llap_nodes == node_manager_cnt:
+      min_mem_reserved_per_node = max(normalized_tez_am_container_size, slider_am_container_size)
+      tez_AMs_per_node = llap_concurrency / num_llap_nodes
+      tez_AMs_per_node_low = int(math.floor(tez_AMs_per_node))
+      tez_AMs_per_node_high = int(math.ceil(tez_AMs_per_node))
+      min_mem_reserved_per_node = int(max(tez_AMs_per_node_high * normalized_tez_am_container_size, tez_AMs_per_node_low * normalized_tez_am_container_size + slider_am_container_size))
+      Logger.info("DBG: Determined 'AM reservation per node': {0}, using following : concurrency: {1}, num_llap_nodes: {2}, AMsPerNode: {3}"
+        .format(min_mem_reserved_per_node, llap_concurrency, num_llap_nodes,  tez_AMs_per_node))
+
+    max_single_node_mem_available_for_daemon = self._normalizeDown(yarn_nm_mem_in_mb_normalized - min_mem_reserved_per_node, yarn_min_container_size)
+    if max_single_node_mem_available_for_daemon <=0 or max_single_node_mem_available_for_daemon < mem_per_thread_for_llap:
+      Logger.warning("Not enough capacity available per node for daemons after factoring in AM memory requirements. NM Mem: {0}, "
+      "minAMMemPerNode: {1}, available: {2}".format(yarn_nm_mem_in_mb_normalized, min_mem_reserved_per_node, max_single_node_mem_available_for_daemon))
+      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
+
+    llap_daemon_mem_per_node = min(max_single_node_mem_available_for_daemon, llap_daemon_mem_per_node)
+    Logger.info("DBG: Determined final memPerDaemon: {0}, using following: concurrency: {1}, numNMNodes: {2}, numLlapNodes: {3} "
+      .format(llap_daemon_mem_per_node, llap_concurrency, node_manager_cnt, num_llap_nodes))
 
     num_executors_per_node_max = self.get_max_executors_per_node(yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap)
     if num_executors_per_node_max < 1:
@@ -1192,6 +1219,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     # Now figure out how much of the memory will be used by the executors, and how much will be used by the cache.
     total_mem_for_executors_per_node = num_executors_per_node * mem_per_thread_for_llap
     cache_mem_per_node = llap_daemon_mem_per_node - total_mem_for_executors_per_node
+    Logger.info("DBG: Calculated 'Cache per node' : {0}, using following : llap_daemon_mem_per_node : {1}, total_mem_for_executors_per_node : {2}"
+                .format(cache_mem_per_node, llap_daemon_mem_per_node, total_mem_for_executors_per_node))
 
     tez_runtime_io_sort_mb = (long((0.8 * mem_per_thread_for_llap) / 3))
     tez_runtime_unordered_output_buffer_size = long(0.8 * 0.075 * mem_per_thread_for_llap)
