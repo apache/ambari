@@ -887,7 +887,6 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
-          <task xsi:type="configure" id="storm_worker_log4j_update_path" />
         </pre-upgrade>
         
         <pre-downgrade />
