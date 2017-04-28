@@ -751,7 +751,7 @@
             "hdfs_log_dir_prefix": "/var/log/hadoop", 
             "hdfs_user_nofile_limit": "128000", 
             "hdfs_user": "hdfs", 
-            "hdfs_principal_name": "hdfs-test_cluster01@EXAMPLE.COM", 
+            "hdfs_principal_name": "hdfs-cl1@EXAMPLE.COM",
             "keyserver_host": " ", 
             "namenode_opt_maxnewsize": "128m", 
             "hdfs_user_keytab": "/etc/security/keytabs/hdfs.headless.keytab", 
