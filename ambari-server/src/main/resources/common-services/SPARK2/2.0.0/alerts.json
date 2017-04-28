@@ -27,6 +27,30 @@
           }
         }
       }
+    ],
+    "LIVY2_SERVER": [
+      {
+        "name": "livy2_server_status",
+        "label": "Spark2 Livy Server",
+        "description": "This host-level alert is triggered if the Livy2 Server cannot be determined to be up.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "SCRIPT",
+          "path": "SPARK2/2.0.0/package/scripts/alerts/alert_spark2_livy_port.py",
+          "parameters": [
+            {
+              "name": "check.command.timeout",
+              "display_name": "Command Timeout",
+              "value": 60.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before check command will be killed by timeout",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
     ]
   }
 }
