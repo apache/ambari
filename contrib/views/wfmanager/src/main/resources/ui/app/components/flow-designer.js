@@ -22,7 +22,6 @@ import {WorkflowGenerator} from '../domain/workflow-xml-generator';
 import {WorkflowImporter} from '../domain/workflow-importer';
 import {WorkflowJsonImporter} from '../domain/workflow-json-importer';
 import {WorkflowContext} from '../domain/workflow-context';
-import {JSPlumbRenderer} from '../domain/jsplumb-flow-renderer';
 import {CytoscapeRenderer} from '../domain/cytoscape-flow-renderer';
 import {FindNodeMixin} from '../domain/findnode-mixin';
 import { validator, buildValidations } from 'ember-cp-validations';
