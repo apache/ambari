@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -119,7 +120,9 @@ public class RangerService {
     if (parsedResult instanceof JSONObject) {
       JSONObject obj = (JSONObject) parsedResult;
       LOG.error("Bad response from Ranger: {}", rangerResponse);
-      throw new RangerException((String)obj.get("msgDesc"), "RANGER_ERROR", ((Long)obj.get("statusCode")).intValue());
+      int status = ((Long) obj.get("statusCode")).intValue();
+      status = status == Response.Status.UNAUTHORIZED.getStatusCode() ? Response.Status.FORBIDDEN.getStatusCode() : status;
+      throw new RangerException((String) obj.get("msgDesc"), "RANGER_ERROR", status);
     }
     JSONArray jsonArray = (JSONArray) parsedResult;
     if (jsonArray.size() == 0) {
@@ -143,7 +146,7 @@ public class RangerService {
     JSONArray policyItems = (JSONArray) policyJson.get("policyItems");
     Policy policy = new Policy(name);
 
-    for(Object item: policyItems) {
+    for (Object item : policyItems) {
       PolicyCondition condition = new PolicyCondition();
       JSONObject policyItem = (JSONObject) item;
       JSONArray usersJson = (JSONArray) policyItem.get("users");
@@ -239,7 +242,7 @@ public class RangerService {
 
   private RangerCred getRangerCredFromConfig() {
     return new RangerCred(context.getProperties().get("hive.ranger.username"),
-        context.getProperties().get("hive.ranger.password"));
+      context.getProperties().get("hive.ranger.password"));
   }
 
   public String getRangerUrlFromAmbari() throws AmbariHttpException {
