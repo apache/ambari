@@ -21,10 +21,11 @@ import Ember from 'ember';
 
 export default function doRender(data, selector, onRequestDetail, draggable) {
 
-  const width = '1570', height = '800';
-
+  const width = '100%', height = '800';
+  var zoomInit = null;
   d3.select(selector).select('*').remove();
   var isSingleReducer = isSingleReducerAvailable(data);
+
   const svg =
     d3.select(selector)
       .append('svg')
@@ -32,27 +33,71 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
         .attr('height', height);
 
   const container = svg.append('g');
-  const zoom =
-    d3.behavior.zoom()
-      .scale(1/10)
-      .scaleExtent([1 / 10, 1])
-      .on('zoom', () => {
-        container.attr('transform', `translate(${d3.event.translate}) scale(${d3.event.scale})`);
-        draggable.set('zoom' , true);
-      });
+
+  d3.selectAll('button').on('click', function() {
+    if (this.id === 'zoom_in') {
+      transition(1.2); // increase on 0.2 each time
+    }
+    if (this.id === 'zoom_out') {
+      transition(0.8); // deacrease on 0.2 each time
+    }
+  });
+
+  function transition(zoomLevel) {
+
+    zoomInit = zoomInit || 1;
+    let newScale = parseFloat(zoomInit*zoomLevel).toFixed(5) ;
+
+    if(newScale < 0.2){
+      newScale = 0.2;
+    }else {
+      newScale = newScale;
+    }
+
+    zoomInit = newScale;
+
+    container.transition()
+      .duration(100)
+      .attr("transform", "translate(" + zoom.translate()[0] + "," + zoom.translate()[1] +")scale(" + newScale + ")");
+  }
+
+  const zoom = d3.behavior.zoom()
+      .scale(zoomInit)
+      .on('zoom', zoomed );
+
+  function zoomed() {
+    var presentScale = d3.transform(container[0][0].getAttribute('transform')).scale[0] || d3.event.scale ;
+    container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + presentScale + ')');
+    draggable.set('zoom' , true);
+  };
+
+  var currentTransform = null;
 
   const drag = d3.behavior.drag()
-    .on("dragstart", () => {
+    .on("dragstart", (event) => {
+      let evt = window.event || event;
+      currentTransform = d3.transform(evt.currentTarget.firstElementChild.getAttribute('transform'));
       draggable.set('dragstart', true);
       draggable.set('zoom',false);
+
     })
     .on("dragend", () => {
       draggable.set('dragend', true);
+
+      var latestTransformation = d3.transform(container[0][0].getAttribute('transform'));
+      container.transition()
+        .duration(100)
+        .attr("transform", "translate(" + latestTransformation.translate[0] + "," + latestTransformation.translate[1] +")scale(" + currentTransform.scale[0] + ")");
     });
 
     svg
       .call(zoom)
       .call(drag);
+
+    svg
+      .on("mousewheel.zoom", null)
+      .on("DOMMouseScroll.zoom", null) // disables older versions of Firefox
+      .on("wheel.zoom", null) // disables newer versions of Firefox
 
   const root =
     container

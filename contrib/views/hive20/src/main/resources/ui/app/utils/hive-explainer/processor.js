@@ -263,7 +263,6 @@ export function getEdgesWithCorrectedUnion(edges) {
 
 function findAllOutputOperators(vertices, outputOperatorsList, edges, patterns) {
     vertices.forEach(cEdge => {
-      console.log(cEdge);
       edges.push(cEdge);
       let outputOperator = cEdge["OutputOperators:"];
       if(outputOperator) {
