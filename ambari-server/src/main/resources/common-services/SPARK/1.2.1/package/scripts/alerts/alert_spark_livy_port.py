@@ -103,7 +103,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     # Get the configured Kerberos executable search paths, if any
     if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
         kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
-     else:
+    else:
         kerberos_executable_search_paths = None
 
     kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
