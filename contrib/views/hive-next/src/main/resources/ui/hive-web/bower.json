@@ -20,7 +20,8 @@
     "pretender": "0.1.0",
     "ember-uploader": "0.3.9",
     "polestar": "https://github.com/hortonworks/polestar.git#0.7.2",
-    "voyager": "https://github.com/hortonworks/voyager.git#0.7.2"
+    "voyager": "https://github.com/hortonworks/voyager.git#0.7.2",
+    "font-awesome": "^4.7.0"
   },
   "resolutions": {
     "ember": "1.10.0"
