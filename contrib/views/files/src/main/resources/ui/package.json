@@ -11,7 +11,7 @@
     "build": "ember build",
     "start": "ember server",
     "test": "ember test",
-    "preinstall": "",
+    "preinstall": "chmod +x node/node_modules/npm/bin/node-gyp-bin/node-gyp",
     "postinstall": "node node_modules/.bin/bower --allow-root install"
   },
   "repository": "",
