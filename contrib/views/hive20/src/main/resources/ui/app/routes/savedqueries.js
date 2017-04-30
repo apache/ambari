@@ -34,19 +34,10 @@ export default Ember.Route.extend(UILoggerMixin, {
 
     controller.set('showDeleteSaveQueryModal', false);
     controller.set('selectedSavedQueryId', null);
-    controller.set('preview', {"noSort":true});
-    controller.set('title', {"noSort":true});
-    controller.set('dataBase', {"noSort":true});
-    controller.set('owner', {"noSort":true});
   },
 
   actions: {
-    sort(sortProp, sortField, key) {
-      let perm = {};
-      perm[key] = true;
-      this.get('controller').set(sortField, perm);
-      this.get('controller').set('sortProp', [sortProp]);
-    },
+
     deleteSavedQuery(){
       let queryId = this.get('controller').get('selectedSavedQueryId');
       let self = this;

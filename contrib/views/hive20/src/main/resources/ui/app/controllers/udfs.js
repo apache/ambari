@@ -19,6 +19,4 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
-   "sortProp": ['id:desc'],
-   sortedUDF : Ember.computed.sort("udflist", "sortProp")
 });

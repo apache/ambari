@@ -54,46 +54,16 @@
     <table class="table table-striped">
       <thead>
         <tr>
-          <th width="10%">Job ID
-          <span class="sort-icon">
-            {{#if jobId.noSort}}<i class="fa fa-chevron-right" {{action "sort" "id" "jobId" "desc"}}></i>{{/if}}
-            {{#if jobId.desc}}<i class="fa fa-chevron-down" {{action "sort" "id:desc" "jobId" "asc"}}></i>{{/if}}
-            {{#if jobId.asc}}<i class="fa fa-chevron-up" {{action "sort" "''" "jobId" "noSort"}}></i>{{/if}}
-          </span>
-          </th>
-          <th width="30%">Title
-          <span class="sort-icon">
-            {{#if title.noSort}}<i class="fa fa-chevron-right" {{action "sort" "title" "title" "desc"}}></i>{{/if}}
-            {{#if title.desc}}<i class="fa fa-chevron-down" {{action "sort" "title:desc" "title" "asc"}}></i>{{/if}}
-            {{#if title.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "title" "noSort"}}></i>{{/if}}
-          </span>
-          </th>
-          <th width="10%">Status
-          <span class="sort-icon">
-            {{#if status.noSort}}<i class="fa fa-chevron-right" {{action "sort" "status" "status" "desc"}}></i>{{/if}}
-            {{#if status.desc}}<i class="fa fa-chevron-down" {{action "sort" "status:desc" "status" "asc"}}></i>{{/if}}
-            {{#if status.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "status" "noSort"}}></i>{{/if}}
-          </span>
-          </th>
-          <th width="25%">Start time
-          <span class="sort-icon">
-            {{#if dateSubmitted.noSort}}<i class="fa fa-chevron-right" {{action "sort" "dateSubmitted" "dateSubmitted" "desc"}}></i>{{/if}}
-            {{#if dateSubmitted.desc}}<i class="fa fa-chevron-down" {{action "sort" "dateSubmitted:desc" "dateSubmitted" "asc"}}></i>{{/if}}
-            {{#if dateSubmitted.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "dateSubmitted" "noSort"}}></i>{{/if}}
-          </span>
-          </th>
-          <th width="20%" >Duration(in seconds)
-          <span class="sort-icon">
-            {{#if duration.noSort}}<i class="fa fa-chevron-right" {{action "sort" "duration" "duration" "desc"}}></i>{{/if}}
-            {{#if duration.desc}}<i class="fa fa-chevron-down" {{action "sort" "duration:desc" "duration" "asc"}}></i>{{/if}}
-            {{#if duration.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "duration" "noSort"}}></i>{{/if}}
-          </span>
-          </th>
+          <th width="10%">Job ID</th>
+          <th width="30%">Title</th>
+          <th width="10%">Status</th>
+          <th width="25%">Start time</th>
+          <th width="20%" >Duration(in seconds)</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        {{#each filteredJobsSorted as |job| }}
+        {{#each filteredJobs as |job| }}
           {{job-item job=job}}
         {{/each}}
       </tbody>
