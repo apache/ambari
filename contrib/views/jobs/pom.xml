@@ -86,35 +86,29 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.3</version>
                 <configuration>
                     <nodeVersion>v4.5.0</nodeVersion>
-                    <yarnVersion>v0.23.2</yarnVersion>
+                    <npmVersion>2.15.0</npmVersion>
                     <workingDirectory>src/main/resources/ui</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
-                    <!-- setting npm_config_tmp environment variable is a workaround for 
-                       https://github.com/Medium/phantomjs/issues/673 -->
-                    <environmentVariables>
-                      <npm_config_tmp>/tmp/npm_config_tmp</npm_config_tmp>
-                    </environmentVariables>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>install node and yarn</id>
+                        <id>install node and npm</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>install-node-and-yarn</goal>
+                            <goal>install-node-and-npm</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>yarn install</id>
+                        <id>npm install</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>yarn</goal>
+                            <goal>npm</goal>
                         </goals>
                         <configuration>
                             <arguments>install --unsafe-perm</arguments>
-                            <arguments>--ignore-engines</arguments>
                         </configuration>
                     </execution>
                 </executions>
