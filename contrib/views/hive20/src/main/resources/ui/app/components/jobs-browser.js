@@ -24,7 +24,12 @@ export default Ember.Component.extend({
   maxEndTime: null,
   statusFilter: null,
   titleFilter: null,
-
+  jobId: {'asc':true},
+  title: {'noSort':true},
+  status: {'noSort':true},
+  dateSubmitted: {'noSort':true},
+  duration: {'noSort':true},
+  sortProp:['id:desc'],
   sortedJobs: Ember.computed.sort('jobs', function (m1, m2) {
     if (m1.get('dateSubmitted') < m2.get('dateSubmitted')) {
       return 1;
@@ -42,13 +47,15 @@ export default Ember.Component.extend({
     }
   }),
 
-  filteredJobs: Ember.computed('titleFilteredJobs', 'statusFilter', function () {
+  filteredJobs: Ember.computed('titleFilteredJobs', 'statusFilter', 'sortProp', function () {
     if (this.get('statusFilter')) {
       return  this.get('titleFilteredJobs').filter((entry) => entry.get('status').toLowerCase() === this.get('statusFilter'));
     } else {
       return this.get('titleFilteredJobs');
     }
   }),
+
+  filteredJobsSorted: Ember.computed.sort('filteredJobs', 'sortProp'),
 
   statusCounts: Ember.computed('titleFilteredJobs', function () {
     return this.get('titleFilteredJobs').reduce((acc, item, index) => {
@@ -64,6 +71,13 @@ export default Ember.Component.extend({
 
 
   actions: {
+    sort(sortProp, sortField, key) {
+      let perm = {};
+      perm[key] = true;
+      this.set(sortField, perm);
+      this.set('sortProp', [sortProp]);
+    },
+
     setDateRange(startDate, endDate) {
       this.sendAction('filterChanged', startDate, endDate);
     },
