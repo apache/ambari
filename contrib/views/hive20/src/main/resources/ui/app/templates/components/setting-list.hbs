@@ -19,17 +19,13 @@
 <table class="table table-bordered table-hover">
   <thead>
   <tr>
-    <th width="40%">KEY
-      {{#if settingsConf.noSort}}<i class="fa fa-chevron-right" {{action "sort" "key" "settingsConf" "desc"}}></i>{{/if}}
-      {{#if settingsConf.desc}}<i class="fa fa-chevron-down" {{action "sort" "key:desc" "settingsConf" "asc"}}></i>{{/if}}
-      {{#if settingsConf.asc}}<i class="fa fa-chevron-up" {{action "sort" "" "settingsConf" "noSort"}}></i>{{/if}}
-    </th>
+    <th width="40%">KEY</th>
     <th width="40%">VALUE</th>
     <th width="20%">ACTIONS</th>
   </tr>
   </thead>
   <tbody>
-  {{#each settingsSorted as |setting|}}
+  {{#each settings as |setting|}}
     {{yield setting}}
   {{/each}}
   <tr class="new-settings text-center">

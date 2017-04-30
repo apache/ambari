@@ -44,18 +44,10 @@ export default Ember.Route.extend({
       fileResourceList.push({'name':'Add New File Resource', 'action':'addNewFileResource'});
       controller.set('fileResourceList', fileResourceList);
     });
-    controller.set('name', {'noSort':true});
-    controller.set('classname', {'noSort':true});
-    controller.set('owner', {'noSort':true});
   },
 
   actions:{
-    sort(sortProp, sortField, key) {
-      let perm = {};
-      perm[key] = true;
-      this.get('controller').set(sortField, perm);
-      this.get('controller').set('sortProp', [sortProp]);
-    },
+
     refreshUdfList(){
       this.get('store').findAll('udf').then((data) => {
         let udfList = [];

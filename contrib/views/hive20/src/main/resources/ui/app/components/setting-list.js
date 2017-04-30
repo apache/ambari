@@ -20,16 +20,7 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
   settings: [],
-  settingsConf: {'noSort':true},
-  sortProp:['id:desc'],
-  settingsSorted: Ember.computed.sort('settings', 'sortProp'),
   actions: {
-    sort(sortProp, sortField, key) {
-      let perm = {};
-      perm[key] = true;
-      this.set(sortField, perm);
-      this.set('sortProp', [sortProp]);
-    },
     addNewSettings() {
       this.sendAction('newSettings');
     }
