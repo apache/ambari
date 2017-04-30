@@ -119,7 +119,16 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
     .enter()
       .insert('path', ':first-child')
     .attr('class', 'edge')
-    .attr('d', d => (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) ? getConnectionPathFF(d, svg, container) : getConnectionPath(d, svg, container));
+    .attr('d', d => (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) ? getConnectionPathFF(d, svg, container, data) : getConnectionPath(d, svg, container, data));
+  if(navigator.userAgent.toLowerCase().indexOf('firefox') === -1) {
+    root.selectAll('path.arrow')
+      .data(data.connections)
+      .enter()
+      .insert('path')
+      .attr('class', 'arrow')
+      .style("stroke-width", function(d) { return Math.sqrt(d.value); })
+      .attr('d', d => getConnectionPathArrow(d, svg, container, data));
+  }
 
   reset(zoom, svg, container);
 
@@ -349,7 +358,7 @@ function reset(zoom, svg, container) {
     .call( zoom.event );
 }
 
-function getConnectionPathFF(connector, svg, container) {
+function getConnectionPathFF(connector, svg, container, data) {
   const source = container.select(`#${connector._source._uuid}`).node();
   const target = container.select(`#${connector._target._uuid}`).node();
   const rSource = d3.select(source).data()[0];
@@ -358,14 +367,19 @@ function getConnectionPathFF(connector, svg, container) {
   const rTargetVertex = d3.select(Ember.$(target).closest('.vertex').get(0)).data()[0];
 
   const offsetBox = Ember.$(container.node()).children('.vertex').get(0).getBoundingClientRect();
+  let connectionComplexity, connection = data.nodes.find((item)=>item["filterExpr:"]);
 
-
+  if(connection){
+    connectionComplexity = 0;
+  } else {
+    connectionComplexity = data.connections.length;
+  }
   const pSource = {
-    x: offsetBox.left - 200 + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
     y: offsetBox.top + (rSourceVertex._Y + rSource._indexY) * 100 + 55 / 2,
   };
   const pTarget = {
-    x: offsetBox.left - 200 + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
     y: offsetBox.top + (rTargetVertex._Y + rTarget._indexY) * 100 + 55 / 2,
   };
   const path = [
@@ -392,8 +406,72 @@ function getConnectionPathFF(connector, svg, container) {
   }, '');
 }
 
+function getConnectionPathFFArrow(connector, svg, container, data) {
+  const source = container.select(`#${connector._source._uuid}`).node();
+  const target = container.select(`#${connector._target._uuid}`).node();
+  const rSource = d3.select(source).data()[0];
+  const rTarget = d3.select(target).data()[0];
+  const rSourceVertex = d3.select(Ember.$(source).closest('.vertex').get(0)).data()[0];
+  const rTargetVertex = d3.select(Ember.$(target).closest('.vertex').get(0)).data()[0];
 
-function getConnectionPath(connector, svg, container){
+  const offsetBox = Ember.$(container.node()).children('.vertex').get(0).getBoundingClientRect();
+
+  let connectionComplexity, connection = data.nodes.find((item)=>item["filterExpr:"]);
+  if(connection){
+    connectionComplexity = 0;
+  } else {
+    connectionComplexity = data.connections.length;
+  }
+  const pSource = {
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rSourceVertex._Y + rSource._indexY) * 100 + 55 / 2,
+  };
+  const pTarget = {
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rTargetVertex._Y + rTarget._indexY) * 100 + 55 / 2,
+  };
+  const path = [
+    pTarget
+  ];
+  const junctionXMultiplier = (pTarget.x - pSource.x < 0) ? +1 : -1;
+  if(pSource.y !== pTarget.y) {
+    path.push({
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pTarget.y
+    }, {
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pSource.y
+    });
+  }
+  path.push(pSource);
+  const offsetY = svg.node().getBoundingClientRect().top;
+  return path.reduce((accumulator, cPoint, index) => {
+    if(path.length === 2){
+      if(index === 0) {
+        if(cPoint.x > 0){
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+10} V 10, ${(cPoint.x+200)%(cPoint.x) === 0 ? 40:100}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-10} V 10, ${Math.ceil((cPoint.x))%Math.ceil((cPoint.x+200)) === -0 ? 40:100}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    } else {
+      if(index === 0) {
+        if(cPoint.x > 0) {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-10} V 10, ${40} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+10} V 10, ${40} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    }
+
+  }, '');
+}
+
+function getConnectionPath(connector, svg, container, data){
   const operators = container.selectAll('.operator');
   const source = container.select(`#${connector._source._uuid}`);
   const target = container.select(`#${connector._target._uuid}`);
@@ -429,6 +507,62 @@ function getConnectionPath(connector, svg, container){
       return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     }
   }, '');
+}
+
+function getConnectionPathArrow(connector, svg, container){
+
+  const operators = container.selectAll('.operator');
+  const source = container.select(`#${connector._source._uuid}`);
+  const target = container.select(`#${connector._target._uuid}`);
+  const rSource = source.node().getBoundingClientRect();
+  const rTarget = target.node().getBoundingClientRect();
+  const pSource = {
+    x: (rSource.left + rSource.right) / 2,
+    y: (rSource.top + rSource.bottom) / 2,
+  };
+  const pTarget = {
+    x: (rTarget.left + rTarget.right) / 2,
+    y: (rTarget.top + rTarget.bottom) / 2,
+  };
+  const path = [
+    pTarget
+  ];
+  const junctionXMultiplier = (pTarget.x - pSource.x < 0) ? +1 : -1;
+  if(pSource.y !== pTarget.y) {
+    path.push({
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pTarget.y
+    }, {
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pSource.y
+    });
+  }
+  path.push(pSource);
+  const offsetY = svg.node().getBoundingClientRect().top;
+  return path.reduce((accumulator, cPoint, index) => {
+    if(path.length === 2){
+      if(index === 0) {
+        if(cPoint.x > 0){
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    } else {
+      if(index === 0) {
+        if(cPoint.x > 0) {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+15} V 0, ${10*6} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    }
+  }, '');
+
 }
 
 function doClean(node) {
