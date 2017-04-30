@@ -46,7 +46,10 @@ import java.util.Map;
  */
 public class RangerService {
 
+  public static final String RANGER_HIVE_AUTHORIZER_FACTORY_CLASSNAME = "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory";
   private static final String RANGER_CONFIG_URL = "/api/v1/clusters/%s/configurations/service_config_versions?service_name=RANGER&is_current=true";
+  public static final String HIVESERVER2_SITE = "hiveserver2-site";
+  public static final String AUTHORIZATION_MANAGER_KEY = "hive.security.authorization.manager";
 
   protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
@@ -75,6 +78,12 @@ public class RangerService {
   }
 
   private List<Policy> getPoliciesFromAmbariCluster(String database, String table) {
+
+    if (!isHiveRangerPluginEnabled()) {
+      LOG.error("Ranger authorization is not enabled for Hive");
+      throw new RangerException("Ranger authorization is not enabled for Hive", "CONFIGURATION_ERROR", 500);
+    }
+
     String rangerUrl = null;
     try {
       rangerUrl = getRangerUrlFromAmbari();
@@ -271,6 +280,14 @@ public class RangerService {
 
   public String getRangerUrlFromConfig() {
     return context.getProperties().get("hive.ranger.url");
+  }
+
+  /**
+   * Check if the ranger plugin is enable for hive
+   */
+  private boolean isHiveRangerPluginEnabled() {
+    String authManagerConf = context.getCluster().getConfigurationValue(HIVESERVER2_SITE, AUTHORIZATION_MANAGER_KEY);
+    return !StringUtils.isEmpty(authManagerConf) && authManagerConf.equals(RANGER_HIVE_AUTHORIZER_FACTORY_CLASSNAME);
   }
 
   /**
