@@ -83,6 +83,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.utils.SecretReference;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -98,6 +99,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * RequestResourceProvider tests.
@@ -141,6 +144,10 @@ public class RequestResourceProviderTest {
     field = RequestResourceProvider.class.getDeclaredField("topologyManager");
     field.setAccessible(true);
     field.set(null, topologyManager);
+
+    field = SecretReference.class.getDeclaredField("gson");
+    field.setAccessible(true);
+    field.set(null, new Gson());
 
     AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
@@ -258,12 +265,38 @@ public class RequestResourceProviderTest {
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
+    String storedInputs = "{" +
+        " \"hosts\": \"host1\"," +
+        " \"check_execute_list\": \"last_agent_env_check,installed_packages,existing_repos,transparentHugePage\"," +
+        " \"jdk_location\": \"http://ambari_server.home:8080/resources/\"," +
+        " \"threshold\": \"20\"," +
+        " \"password\": \"for your eyes only\"," +
+        " \"foo_password\": \"for your eyes only\"," +
+        " \"passwd\": \"for your eyes only\"," +
+        " \"foo_passwd\": \"for your eyes only\"" +
+        " }";
+    String cleanedInputs = SecretReference.maskPasswordInPropertyMap(storedInputs);
+
+    // Make sure SecretReference.maskPasswordInPropertyMap properly masked the password fields in cleanedInputs...
+    Gson gson = new Gson();
+    Map<String, String> map = gson.fromJson(cleanedInputs, new TypeToken<Map<String, String>>() {}.getType());
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+      String name = entry.getKey();
+      if (name.contains("password") || name.contains("passwd")) {
+        Assert.assertEquals("SECRET", entry.getValue());
+      }
+      else {
+        Assert.assertFalse("SECRET".equals(entry.getValue()));
+      }
+    }
+
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     RequestEntity requestMock = createNiceMock(RequestEntity.class);
 
     expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+    expect(requestMock.getInputs()).andReturn(storedInputs).anyTimes();
 
     Capture<Collection<Long>> requestIdsCapture = newCapture();
 
@@ -287,6 +320,7 @@ public class RequestResourceProviderTest {
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_INPUTS_ID);
 
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
       toPredicate();
@@ -297,6 +331,7 @@ public class RequestResourceProviderTest {
     for (Resource resource : resources) {
       Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
       Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(cleanedInputs, resource.getPropertyValue(RequestResourceProvider.REQUEST_INPUTS_ID));
     }
 
     // verify
