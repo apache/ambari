@@ -455,7 +455,6 @@ public class AmbariServer {
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
       viewRegistry.readViewArchives();
-      viewDirectoryWatcher.start();
 
       //Check and load requestlog handler.
       loadRequestlogHandler(handlerList, serverForAgent, configsMap);
@@ -562,6 +561,11 @@ public class AmbariServer {
 
       serverForAgent.start();
       LOG.info("********* Started Server **********");
+
+      if( !configs.isViewDirectoryWatcherServiceDisabled()) {
+        LOG.info("Starting View Directory Watcher");
+        viewDirectoryWatcher.start();
+      }
 
       manager.start();
       LOG.info("********* Started ActionManager **********");
