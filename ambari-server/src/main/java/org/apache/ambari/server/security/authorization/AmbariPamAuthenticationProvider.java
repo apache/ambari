@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.security.Principal;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +39,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
 
@@ -125,17 +123,9 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
 
           final User user = users.getUser(userName, UserType.PAM);
 
-          Principal principal = new Principal() {
-            @Override
-            public String getName() {
-              return user.getUserName();
-            }
-          };
-
-          UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, null, userAuthorities);
-          SecurityContextHolder.getContext().setAuthentication(token);
-          return token;
-
+          Authentication authToken = new AmbariUserAuthentication(passwd, user, userAuthorities);
+          authToken.setAuthenticated(true);
+          return authToken;
         } catch (PAMException ex) {
           LOG.error("Unable to sign in. Invalid username/password combination - " + ex.getMessage());
           Throwable t = ex.getCause();

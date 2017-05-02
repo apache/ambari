@@ -17,17 +17,20 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -35,9 +38,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -52,7 +55,13 @@ public class AmbariPamAuthenticationProviderTest {
   @Inject
   private AmbariPamAuthenticationProvider authenticationProvider;
   @Inject
+  PasswordEncoder passwordEncoder;
+  @Inject
   Configuration configuration;
+
+  private static final String TEST_USER_NAME = "userName";
+  private static final String TEST_USER_PASS = "userPass";
+  private static final String TEST_USER_INCORRECT_PASS = "userIncorrectPass";
 
   @Before
   public void setUp() {
@@ -70,7 +79,10 @@ public class AmbariPamAuthenticationProviderTest {
 
   @Test(expected = AuthenticationException.class)
   public void testBadCredential() throws Exception {
-    Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
+    UserEntity userEntity = combineUserEntity();
+    User user = new User(userEntity);
+    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
+    Authentication authentication = new AmbariUserAuthentication("wrong", user, userAuthorities);
     authenticationProvider.authenticate(authentication);
   }
 
@@ -78,20 +90,40 @@ public class AmbariPamAuthenticationProviderTest {
   public void testAuthenticate() throws Exception {
     PAM pam = createNiceMock(PAM.class);
     UnixUser unixUser = createNiceMock(UnixUser.class);
+    UserEntity userEntity = combineUserEntity();
+    User user = new User(userEntity);
+    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
     expect(pam.authenticate(EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(unixUser).atLeastOnce();
     expect(unixUser.getGroups()).andReturn(new HashSet<String>(Arrays.asList("group"))).atLeastOnce();
     EasyMock.replay(unixUser);
     EasyMock.replay(pam);
-    Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
+    Authentication authentication = new AmbariUserAuthentication("userPass", user, userAuthorities);
     Authentication result = authenticationProvider.authenticateViaPam(pam,authentication);
-    assertEquals("allowedUser", result.getName());
+    Assert.assertNotNull(result);
+    Assert.assertEquals(true, result.isAuthenticated());
+    Assert.assertTrue(result instanceof AmbariUserAuthentication);
   }
 
   @Test
   public void testDisabled() throws Exception {
+    UserEntity userEntity = combineUserEntity();
+    User user = new User(userEntity);
+    Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
     configuration.setClientSecurityType(ClientSecurityType.LOCAL);
-    Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
+    Authentication authentication = new AmbariUserAuthentication("userPass", user, userAuthorities);
     Authentication auth = authenticationProvider.authenticate(authentication);
     Assert.assertTrue(auth == null);
   }
+
+  private UserEntity combineUserEntity() {
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserId(1);
+    userEntity.setUserName(UserName.fromString(TEST_USER_NAME));
+    userEntity.setUserPassword(passwordEncoder.encode(TEST_USER_PASS));
+    userEntity.setUserType(UserType.PAM);
+    userEntity.setPrincipal(principalEntity);
+    return userEntity;
+  }
+
 }
