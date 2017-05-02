@@ -75,11 +75,11 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
 
   const drag = d3.behavior.drag()
     .on("dragstart", (event) => {
-      let evt = window.event || event;
-      currentTransform = d3.transform(evt.currentTarget.firstElementChild.getAttribute('transform'));
       draggable.set('dragstart', true);
       draggable.set('zoom',false);
 
+      let evt = window.event || event;
+      currentTransform = d3.transform(evt.currentTarget.firstElementChild.getAttribute('transform'));
     })
     .on("dragend", () => {
       draggable.set('dragend', true);
