@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
@@ -741,7 +742,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_INPUTS_ID, entity.getInputs(), requestedPropertyIds);
+
+    // Mask any sensitive data fields in the inputs data structure
+    if (isPropertyRequested(REQUEST_INPUTS_ID, requestedPropertyIds)) {
+      String value = entity.getInputs();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(REQUEST_INPUTS_ID, value);
+    }
+
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,
         org.apache.ambari.server.actionmanager.Request.filtersFromEntity(entity),
         requestedPropertyIds);
