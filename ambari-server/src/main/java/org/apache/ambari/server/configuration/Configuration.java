@@ -360,6 +360,13 @@ public class Configuration {
       "views.validate", "false");
 
   /**
+   * Determines whether the view directory watcher service should be disabled.
+   */
+  @Markdown(description = "Determines whether the view directory watcher service should be disabled.")
+  public static final ConfigurationProperty<String> DISABLE_VIEW_DIRECTORY_WATCHER = new ConfigurationProperty<>(
+      "views.directory.watcher.disable", "false");
+
+  /**
    * Determines whether remove undeployed views from the Ambari database.
    */
   @Markdown(description = "Determines whether remove undeployed views from the Ambari database.")
@@ -3249,6 +3256,15 @@ public class Configuration {
    */
   public boolean isViewRemoveUndeployedEnabled() {
     return Boolean.parseBoolean(getProperty(VIEWS_REMOVE_UNDEPLOYED));
+  }
+
+  /**
+   * Determines whether the view directory watcher service should be disabled
+   *
+   * @return true view directory watcher service should be disabled
+   */
+  public boolean isViewDirectoryWatcherServiceDisabled() {
+    return Boolean.parseBoolean(getProperty(DISABLE_VIEW_DIRECTORY_WATCHER));
   }
 
   /**
