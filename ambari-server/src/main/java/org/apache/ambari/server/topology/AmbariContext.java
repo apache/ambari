@@ -212,8 +212,8 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, null, stackId.getStackId(),
-          repositoryVersion, credentialStoreEnabled));
+      serviceRequests.add(new ServiceRequest(clusterName, service, stackId.getStackId(),
+          repositoryVersion, null, credentialStoreEnabled));
 
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);

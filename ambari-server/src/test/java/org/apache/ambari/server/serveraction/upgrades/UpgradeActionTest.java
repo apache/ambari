@@ -39,10 +39,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
@@ -89,10 +87,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -320,7 +314,7 @@ public class UpgradeActionTest {
 
     // Create the new repo version
     String urlInfo = "[{'repositories':["
-            + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetStack.getStackId() + "'}"
+            + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetStack.getStackId() + "-1'}"
             + "], 'OperatingSystems/os_type':'redhat6'}]";
 
     repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
@@ -604,13 +598,8 @@ public class UpgradeActionTest {
 
     createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
 
-    // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    Host host = clusters.getHost("h1");
-
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
@@ -664,8 +653,6 @@ public class UpgradeActionTest {
     }
 
     // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster(clusterName);
 
     createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
@@ -673,7 +660,6 @@ public class UpgradeActionTest {
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(),
             sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
@@ -693,27 +679,6 @@ public class UpgradeActionTest {
     CommandReport report = finalizeUpgradeAction.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-  }
-
-  private void verifyBaseRepoURL(AmbariCustomCommandExecutionHelper helper, Cluster cluster, Host host, String expectedRepoBaseURL) throws AmbariException {
-
-    String repoInfo = helper.getRepoInfo(cluster, host);
-    Gson gson = new Gson();
-    JsonElement element = gson.fromJson(repoInfo, JsonElement.class);
-    assertTrue(element.isJsonArray());
-    JsonArray list = JsonArray.class.cast(element);
-    assertEquals(1, list.size());
-
-    JsonObject o = list.get(0).getAsJsonObject();
-    assertTrue(o.has("baseUrl"));
-    assertEquals(expectedRepoBaseURL, o.get("baseUrl").getAsString());
-
-    CommandRepository commandRepo = helper.getCommandRepository(cluster, host);
-
-    assertNotNull(commandRepo);
-    assertNotNull(commandRepo.getRepositories());
-    assertEquals(1, commandRepo.getRepositories().size());
-    assertEquals(expectedRepoBaseURL, commandRepo.getRepositories().iterator().next().getBaseUrl());
   }
 
   @Test
@@ -958,9 +923,6 @@ public class UpgradeActionTest {
 
     createUpgradeClusterAndSourceRepo(sourceStack, sourceRepo, hostName);
 
-    // Verify the repo before calling Finalize
-    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster(clusterName);
 
     // install HDFS with some components
@@ -989,7 +951,7 @@ public class UpgradeActionTest {
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-    verifyBaseRepoURL(helper, cluster, host, HDP_211_CENTOS6_REPO_URL);
+//    verifyBaseRepoURL(helper, cluster, null, host, HDP_211_CENTOS6_REPO_URL);
 
     // Finalize the upgrade, passing in the request ID so that history is
     // created

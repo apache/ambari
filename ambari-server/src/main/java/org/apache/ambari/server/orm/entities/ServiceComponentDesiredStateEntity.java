@@ -123,7 +123,7 @@ public class ServiceComponentDesiredStateEntity {
   private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
 
   @OneToMany(mappedBy = "m_serviceComponentDesiredStateEntity", cascade = { CascadeType.ALL })
-  private Collection<ServiceComponentVersionEntity> serviceComponentVersion;
+  private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
   public Long getId() {
     return id;
@@ -205,22 +205,22 @@ public class ServiceComponentDesiredStateEntity {
 
 
   /**
-   * @param versionEntry the version to add
+   * @param versionEntity the version to add
    */
-  public void addVersion(ServiceComponentVersionEntity versionEntry) {
-    if (null == serviceComponentVersion) {
-      serviceComponentVersion = new ArrayList<>();
+  public void addVersion(ServiceComponentVersionEntity versionEntity) {
+    if (null == serviceComponentVersions) {
+      serviceComponentVersions = new ArrayList<>();
     }
 
-    serviceComponentVersion.add(versionEntry);
-    versionEntry.setServiceComponentDesiredState(this);
+    serviceComponentVersions.add(versionEntity);
+    versionEntity.setServiceComponentDesiredState(this);
   }
 
   /**
    * @return the collection of versions for the component
    */
   public Collection<ServiceComponentVersionEntity> getVersions() {
-    return serviceComponentVersion;
+    return serviceComponentVersions;
   }
 
 

@@ -463,13 +463,21 @@ class Script(object):
     version is passed from the server, use that as an absolute truth.
     """
 
-    # two different command types put things in different objects.  WHY.
-    # package_version is the form W_X_Y_Z_nnnn
-    package_version = default("roleParams/package_version", None)
-    if not package_version:
-      package_version = default("hostLevelParams/package_version", None)
-
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+
+    # repositoryFile is the truth
+    # package_version should be made to the form W_X_Y_Z_nnnn
+    package_version = default("repositoryFile/repoVersion", None)
+    if package_version is not None:
+      package_version = package_version.replace('.', package_delimiter).replace('-', package_delimiter)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("roleParams/package_version", None)
+
+    # TODO remove legacy checks
+    if package_version is None:
+      package_version = default("hostLevelParams/package_version", None)
 
     # The cluster effective version comes down when the version is known after the initial
     # install.  In that case we should not be guessing which version when invoking INSTALL, but

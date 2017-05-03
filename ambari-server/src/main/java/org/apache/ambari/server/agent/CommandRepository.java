@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -164,6 +165,19 @@ public class CommandRepository {
 
     public String getBaseUrl() {
       return m_baseUrl;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return new ToStringBuilder(null)
+          .append("os", m_osType)
+          .append("name", m_repoName)
+          .append("id", m_repoId)
+          .append("baseUrl", m_baseUrl)
+          .toString();
     }
   }
 

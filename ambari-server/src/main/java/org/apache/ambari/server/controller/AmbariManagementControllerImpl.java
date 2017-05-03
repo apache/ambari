@@ -2232,6 +2232,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Service clusterService = cluster.getService(serviceName);
     execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
 
+    ServiceComponent component = clusterService.getServiceComponent(componentName);
+
     // Get the map of service config type to password properties for the service
     Map<String, Map<String, String>> configCredentials;
     configCredentials = configCredentialsForService.get(clusterService.getName());
@@ -2354,7 +2356,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
     }
 
-    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, host);
+    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent"
         + ", hostname=" + scHost.getHostName()
@@ -2470,7 +2472,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     execCmd.setCommandParams(commandParams);
 
     execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
-    execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, host));
+    execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",

@@ -37,6 +37,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
@@ -49,7 +50,12 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -60,6 +66,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -69,6 +76,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UserGroupInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
@@ -555,8 +563,72 @@ public class AmbariCustomCommandExecutionHelperTest {
     }
   }
 
+  @Test
+  public void testCommandRepository() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    Service serviceYARN = cluster.getService("YARN");
+    Service serviceZK = cluster.getService("ZOOKEEPER");
+    ServiceComponent componentRM = serviceYARN.getServiceComponent("RESOURCEMANAGER");
+    ServiceComponent componentZKC = serviceZK.getServiceComponent("ZOOKEEPER_CLIENT");
+    Host host = clusters.getHost("c1-c6401");
+
+    AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    RepositoryVersionDAO repoVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    ServiceComponentDesiredStateDAO componentDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    RepositoryVersionHelper repoVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
+
+    CommandRepository commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+
+    Assert.assertEquals(1, commandRepo.getRepositories().size());
+    CommandRepository.Repository repo = commandRepo.getRepositories().iterator().next();
+    Assert.assertEquals("http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0", repo.getBaseUrl());
+
+    RepositoryInfo ri = new RepositoryInfo();
+    ri.setBaseUrl("http://foo");
+    ri.setRepoName("HDP");
+    ri.setRepoId("new-id");
+    ri.setOsType("redhat6");
+    String operatingSystems = repoVersionHelper.serializeOperatingSystems(Collections.singletonList(ri));
+
+
+    StackEntity stackEntity = stackDAO.find(cluster.getDesiredStackVersion().getStackName(),
+        cluster.getDesiredStackVersion().getStackVersion());
+
+    RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity(stackEntity,
+        "2.1.1.1-1234", "2.1.1.1-1234", operatingSystems);
+    repositoryVersion = repoVersionDAO.merge(repositoryVersion);
+
+    // add a repo version associated with a component
+    ServiceComponentDesiredStateEntity componentEntity = componentDAO.findByName(cluster.getClusterId(),
+        serviceYARN.getName(), componentRM.getName());
+
+    ServiceComponentVersionEntity componentVersionEntity = new ServiceComponentVersionEntity();
+    componentVersionEntity.setRepositoryVersion(repositoryVersion);
+    componentVersionEntity.setUserName("admin");
+
+    componentEntity.setDesiredRepositoryVersion(repositoryVersion);
+    componentEntity.addVersion(componentVersionEntity);
+    componentEntity = componentDAO.merge(componentEntity);
+
+    // !!! make sure the override is set
+    commandRepo = helper.getCommandRepository(cluster, componentRM, host);
+
+    Assert.assertEquals(1, commandRepo.getRepositories().size());
+    repo = commandRepo.getRepositories().iterator().next();
+    Assert.assertEquals("http://foo", repo.getBaseUrl());
+
+    // verify that ZK is NOT overwritten
+    commandRepo = helper.getCommandRepository(cluster, componentZKC, host);
+
+    Assert.assertEquals(1, commandRepo.getRepositories().size());
+    repo = commandRepo.getRepositories().iterator().next();
+    Assert.assertEquals("http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0", repo.getBaseUrl());
+  }
+
   private void createClusterFixture(String clusterName, StackId stackId,
-      String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+    String respositoryVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+
     String hostC6401 = hostPrefix + "-c6401";
     String hostC6402 = hostPrefix + "-c6402";
 

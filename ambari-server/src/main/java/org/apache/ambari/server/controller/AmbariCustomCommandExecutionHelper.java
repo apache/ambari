@@ -78,6 +78,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
@@ -181,6 +182,10 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private ServiceComponentDesiredStateDAO serviceComponentDAO;
+
 
   private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
 
@@ -399,6 +404,11 @@ public class AmbariCustomCommandExecutionHelper {
       Service clusterService = cluster.getService(serviceName);
       execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
 
+      ServiceComponent component = null;
+      if (StringUtils.isNotBlank(componentName)) {
+        component = clusterService.getServiceComponent(componentName);
+      }
+
       // Get the map of service config type to password properties for the service
       Map<String, Map<String, String>> configCredentials;
       configCredentials = configCredentialsForService.get(clusterService.getName());
@@ -414,7 +424,7 @@ public class AmbariCustomCommandExecutionHelper {
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
 
       // Set parameters required for re-installing clients on restart
-      hostLevelParams.put(REPO_INFO, getRepoInfo(cluster, host));
+      hostLevelParams.put(REPO_INFO, getRepoInfo(cluster, component, host));
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
@@ -504,7 +514,7 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
 
-      execCmd.setRepositoryFile(getCommandRepository(cluster, host));
+      execCmd.setRepositoryFile(getCommandRepository(cluster, component, host));
 
       // perform any server side command related logic - eg - set desired states on restart
       applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);
@@ -1179,7 +1189,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException if the repository information can not be obtained
    */
   @Deprecated
-  public String getRepoInfo(Cluster cluster, Host host) throws AmbariException {
+  public String getRepoInfo(Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
 
     Function<List<RepositoryInfo>, JsonArray> function = new Function<List<RepositoryInfo>, JsonArray>() {
       @Override
@@ -1188,7 +1198,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     };
 
-    final JsonArray gsonList = getBaseUrls(cluster, host, function);
+    final JsonArray gsonList = getBaseUrls(cluster, component, host, function);
 
     if (null == gsonList) {
       return "";
@@ -1216,7 +1226,6 @@ public class AmbariCustomCommandExecutionHelper {
             if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
               for (RepositoryEntity re : ose.getRepositories()) {
                 if (re.getName().equals(repoName) &&
-                    re.getRepositoryId().equals(repoId) &&
                     !re.getBaseUrl().equals(baseUrl)) {
                   obj.addProperty("baseUrl", re.getBaseUrl());
                 }
@@ -1230,7 +1239,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     };
 
-    return updateBaseUrls(cluster, updater).toString();
+    return updateBaseUrls(cluster, component, updater).toString();
   }
 
   /**
@@ -1243,7 +1252,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException
    */
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  public CommandRepository getCommandRepository(final Cluster cluster, Host host) throws AmbariException {
+  public CommandRepository getCommandRepository(final Cluster cluster, ServiceComponent component, Host host) throws AmbariException {
 
     Function<List<RepositoryInfo>, List<RepositoryInfo>> function = new Function<List<RepositoryInfo>, List<RepositoryInfo>>() {
       @Override
@@ -1253,7 +1262,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     };
 
-    final List<RepositoryInfo> repoInfos = getBaseUrls(cluster, host, function);
+    final List<RepositoryInfo> repoInfos = getBaseUrls(cluster, component, host, function);
 
     if (null == repoInfos) {
       return null;
@@ -1275,7 +1284,6 @@ public class AmbariCustomCommandExecutionHelper {
 
         for (CommandRepository.Repository commandRepo : command.getRepositories()) {
           String osType = commandRepo.getOsType();
-          String repoId = commandRepo.getRepoId();
           String repoName = commandRepo.getRepoName();
           String baseUrl = commandRepo.getBaseUrl();
 
@@ -1283,7 +1291,6 @@ public class AmbariCustomCommandExecutionHelper {
             if (ose.getOsType().equals(osType) && ose.isAmbariManagedRepos()) {
               for (RepositoryEntity re : ose.getRepositories()) {
                 if (re.getName().equals(repoName) &&
-                    re.getRepositoryId().equals(repoId) &&
                     !re.getBaseUrl().equals(baseUrl)) {
                   commandRepo.setBaseUrl(re.getBaseUrl());
                 }
@@ -1296,7 +1303,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     };
 
-    updateBaseUrls(cluster, updater);
+    updateBaseUrls(cluster, component, updater);
 
     return command;
   }
@@ -1306,13 +1313,15 @@ public class AmbariCustomCommandExecutionHelper {
    * implemenation, this may be removed and called inline in {@link #getCommandRepository(Cluster, Host)}
    *
    * @param cluster   the cluster to isolate the stack
+   * @param component the component
    * @param host      used to resolve the family for the repositories
    * @param function  function that will transform the supplied repositories for specific use.
    * @return <T> the type as defined by the supplied {@code function}.
    * @throws AmbariException
    */
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  private <T> T getBaseUrls(Cluster cluster, Host host, Function<List<RepositoryInfo>, T> function) throws AmbariException {
+  private <T> T getBaseUrls(Cluster cluster, ServiceComponent component, Host host,
+      Function<List<RepositoryInfo>, T> function) throws AmbariException {
 
     String hostOsType = host.getOsType();
     String hostOsFamily = host.getOsFamily();
@@ -1354,31 +1363,51 @@ public class AmbariCustomCommandExecutionHelper {
    * @param <T> the result after appling the repository version, if found.
    */
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
-  private <T> T updateBaseUrls(Cluster cluster, BaseUrlUpdater<T> function) throws AmbariException {
-    ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+  private <T> T updateBaseUrls(Cluster cluster, ServiceComponent component, BaseUrlUpdater<T> function) throws AmbariException {
 
-    if (null == cve) {
-      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
-          RepositoryVersionState.INIT);
+    RepositoryVersionEntity repositoryEntity = null;
 
-      if (!list.isEmpty()) {
-        if (list.size() > 1) {
-          throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
-              list.size()));
-        } else {
-          cve = list.get(0);
+    // !!! try to find the component repo first
+    if (null != component) {
+      repositoryEntity = component.getDesiredRepositoryVersion();
+    }
+
+    if (null == component) {
+      LOG.info("Service component not passed in, attempt to resolve the repository for cluster {}",
+          cluster.getClusterName());
+    }
+
+    if (null == repositoryEntity) {
+
+      ClusterVersionEntity cve = cluster.getCurrentClusterVersion();
+
+      if (null == cve) {
+        List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
+            RepositoryVersionState.INIT);
+
+        if (!list.isEmpty()) {
+          if (list.size() > 1) {
+            throw new AmbariException(String.format("The cluster can only be initialized by one version: %s found",
+                list.size()));
+          } else {
+            cve = list.get(0);
+          }
         }
+      }
+
+      if (null != cve && null != cve.getRepositoryVersion()) {
+        repositoryEntity = cve.getRepositoryVersion();
+      } else {
+        LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
       }
     }
 
-    if (null == cve || null == cve.getRepositoryVersion()) {
+    if (null == repositoryEntity) {
       LOG.info("Cluster {} has no specific Repository Versions.  Using stack-defined values", cluster.getClusterName());
       return function.getDefault();
     }
 
-    RepositoryVersionEntity rve = cve.getRepositoryVersion();
-
-    return function.apply(rve);
+    return function.apply(repositoryEntity);
   }
 
 
