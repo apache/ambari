@@ -289,6 +289,13 @@ class Script(object):
     if OSCheck.is_windows_family():
       reload_windows_env()
 
+    # !!! status commands re-use structured output files; if the status command doesn't update the
+    # the file (because it doesn't have to) then we must ensure that the file is reset to prevent
+    # old, stale structured output from a prior status command from being used
+    if self.command_name == "status":
+      Script.structuredOut = {}
+      self.put_structured_out({})
+
     try:
       with open(self.command_data_file) as f:
         pass
