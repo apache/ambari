@@ -205,7 +205,7 @@ describe('App.QuickLinksView', function () {
       quickViewLinks.set('content.serviceName', 'YARN');
       mock.returns(quickLinksConfigYARN);
       quickViewLinks.loadQuickLinksConfigSuccessCallback({items: []});
-      expect(quickViewLinks.get('requiredSiteNames')).to.be.eql(["core-site", "hdfs-site", "hbase-site", "yarn-site"]);
+      expect(quickViewLinks.get('requiredSiteNames')).to.be.eql(["core-site", "hdfs-site", "admin-properties", "hbase-site", "yarn-site"]);
     });
   });
 

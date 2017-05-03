@@ -189,7 +189,7 @@ App.QuickLinksView = Em.View.extend({
     if (!Em.isNone(quickLinksConfig)) {
       var protocolConfig = Em.get(quickLinksConfig, 'protocol');
       var checks = Em.get(protocolConfig, 'checks');
-      var sites = ['core-site', 'hdfs-site'];
+      var sites = ['core-site', 'hdfs-site', 'admin-properties'];
       if (checks) {
         checks.forEach(function (check) {
           var protocolConfigSiteProp = Em.get(check, 'site');
@@ -360,6 +360,11 @@ App.QuickLinksView = Em.View.extend({
         if (!Em.isNone(hostObj)) {
           host = hostObj.Hosts.public_host_name;
         }
+      }
+    } else if (serviceName === 'RANGER') {
+      var siteConfigs = this.get('configProperties').findProperty('type', 'admin-properties').properties;
+      if (siteConfigs['policymgr_external_url']) {
+        host = siteConfigs['policymgr_external_url'].split('://')[1].split(':')[0];
       }
     }
 
