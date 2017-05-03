@@ -492,12 +492,12 @@ public class ServiceImpl implements Service {
   void deleteAllServiceConfigs() throws AmbariException {
     long clusterId = getClusterId();
     ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(clusterId, getName());
+
     // de-select every configuration from the service
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity serviceConfigEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
         LOG.info("Disabling configuration {}", serviceConfigEntity);
         serviceConfigEntity.setSelected(false);
-        serviceConfigEntity.setServiceDeleted(true);
         clusterDAO.merge(serviceConfigEntity);
       }
     }
