@@ -1,37 +1,33 @@
 {
-  "clusters":{
-    "cl1":{
-      "metadata":{
-        "status_commands_to_run":[
-          "STATUS"
-        ],
-        "status_commands_timeout":"900",
-        "hooks_folder":"HDP/2.0.6/hooks",
-        "credentialStoreEnabled":"false",
-        "availableServices":{
-          "SQOOP":"1.4.6.2.5",
-          "AMBARI_METRICS":"0.1.0",
-          "KERBEROS":"1.10.3-10",
-          "RANGER":"0.6.0.2.5",
-          "ZEPPELIN":"0.6.0.2.5",
-          "HDFS":"2.7.3.2.6",
-          "ZOOKEEPER":"3.4.6"
-        },
-        "agentConfigParams":{
-          "agent":{
-            "parallel_execution":0,
-            "use_system_proxy_settings":true
-          }
-        },
-        "recoveryConfig":{
-          "type":"DEFAULT|AUTO_START|AUTO_INSTALL_START|FULL",
-          "maxCount":10,
-          "windowInMinutes":60,
-          "retryGap":0,
-          "components":"ZOOKEEPER_CLIENT,ZOOKEEPER_SERVER",
-          "recoveryTimestamp":1458150424380
-        }
+  "0":{
+    "status_commands_to_run":[
+      "STATUS"
+    ],
+    "status_commands_timeout":"900",
+    "hooks_folder":"HDP/2.0.6/hooks",
+    "credentialStoreEnabled":"false",
+    "availableServices":{
+      "SQOOP":"1.4.6.2.5",
+      "AMBARI_METRICS":"0.1.0",
+      "KERBEROS":"1.10.3-10",
+      "RANGER":"0.6.0.2.5",
+      "ZEPPELIN":"0.6.0.2.5",
+      "HDFS":"2.7.3.2.6",
+      "ZOOKEEPER":"3.4.6"
+    },
+    "agentConfigParams":{
+      "agent":{
+        "parallel_execution":0,
+        "use_system_proxy_settings":true
       }
+    },
+    "recoveryConfig":{
+      "type":"DEFAULT|AUTO_START|AUTO_INSTALL_START|FULL",
+      "maxCount":10,
+      "windowInMinutes":60,
+      "retryGap":0,
+      "components":"ZOOKEEPER_CLIENT,ZOOKEEPER_SERVER",
+      "recoveryTimestamp":1458150424380
     }
   }
 }

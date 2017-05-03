@@ -45,11 +45,11 @@ class ComponentStatusExecutor(threading.Thread):
       try:
         cluster_reports = defaultdict(lambda:[])
 
-        for cluster_id in self.topology_cache.get_cluster_names():
+        for cluster_id in self.topology_cache.get_cluster_ids():
           # TODO: check if we can make clusters immutable too
           try:
-            cluster_cache = self.topology_cache[cluster_id]
-            cluster_metadata = self.metadata_cache[cluster_id]
+            topology_cache = self.topology_cache[cluster_id]
+            metadata_cache = self.metadata_cache[cluster_id]
           except KeyError:
             # multithreading: if cluster was deleted during iteration
             continue
@@ -62,17 +62,17 @@ class ComponentStatusExecutor(threading.Thread):
           # TODO STOMP: read this from metadata
           status_commands_to_run = ['STATUS', 'SECURITY_STATUS']
 
-          cluster_components = cluster_cache.topology.components
-          for component_name in cluster_components:
+          cluster_components = topology_cache.components
+          for component_dict in cluster_components:
             for command in status_commands_to_run:
 
               if self.stop_event.is_set():
                 break
 
-              component_info = cluster_components[component_name]
+              component_name = component_dict.componentName
 
               # TODO STOMP: run real command
-              logger.info("Running {0}/{1}".format(component_info.statusCommandsParams.service_package_folder, component_info.statusCommandsParams.script))
+              logger.info("Running {0}/{1}".format(component_dict.statusCommandsParams.service_package_folder, component_dict.statusCommandsParams.script))
               #self.customServiceOrchestrator.requestComponentStatus(command)
               status = random.choice(["INSTALLED","STARTED"])
               result = {

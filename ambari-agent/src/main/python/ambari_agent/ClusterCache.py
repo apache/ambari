@@ -58,35 +58,35 @@ class ClusterCache(dict):
         with open(self.__current_cache_json_file, 'r') as fp:
           cache_dict = json.load(fp)
 
-    for cluster_name, cache in cache_dict.iteritems():
+    for cluster_id, cache in cache_dict.iteritems():
       immutable_cache = Utils.make_immutable(cache)
-      cache_dict[cluster_name] = immutable_cache
+      cache_dict[cluster_id] = immutable_cache
 
     super(ClusterCache, self).__init__(cache_dict)
 
-  def get_cluster_names(self):
+  def get_cluster_ids(self):
     return self.keys()
 
   def update_cache(self, cache):
-    for cluster_name, cluster_cache in cache['clusters'].iteritems():
-      self.update_cluster_cache(cluster_name, cluster_cache)
+    for cluster_id, cluster_cache in cache.iteritems():
+      self.update_cluster_cache(cluster_id, cluster_cache)
 
-  def update_cluster_cache(self, cluster_name, cache):
+  def update_cluster_cache(self, cluster_id, cache):
     """
     Thread-safe method for writing out the specified cluster cache
     and updating the in-memory representation.
-    :param cluster_name:
+    :param cluster_id:
     :param cache:
     :return:
     """
-    logger.info("Updating cache {0} for cluster {1}".format(self.__class__.__name__, cluster_name))
+    logger.info("Updating cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
 
     # The cache should contain exactly the data received from server.
     # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
     # Also immutability can lead to multithreading issues.
     immutable_cache = Utils.make_immutable(cache)
     with self._cache_lock:
-      self[cluster_name] = immutable_cache
+      self[cluster_id] = immutable_cache
 
 
     # ensure that our cache directory exists
@@ -97,11 +97,11 @@ class ClusterCache(dict):
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self, f, indent=2)
 
-  def get_md5_hashsum(self, cluster_name):
+  def get_md5_hashsum(self, cluster_id):
     """
     Thread-safe method for writing out the specified cluster cache
     and updating the in-memory representation.
-    :param cluster_name:
+    :param cluster_id:
     :param cache:
     :return:
     """

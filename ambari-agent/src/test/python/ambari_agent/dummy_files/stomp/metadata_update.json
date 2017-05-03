@@ -1,10 +1,9 @@
 {
-  "clusters":{
-    "cl1":{
-      "metadata":{
-        "status_commands_to_run":["STATUS", "SECURITY_STATUS"],
-        "security_type":"kerberos"
-      }
-    }
+  "0":{
+    "status_commands_to_run":[
+      "STATUS",
+      "SECURITY_STATUS"
+    ],
+    "security_type":"kerberos"
   }
 }

@@ -19,10 +19,10 @@ limitations under the License.
 '''
 
 
-COMMANDS_TOPIC = '/events/commands'
-CONFIGURATIONS_TOPIC = '/events/configurations'
-METADATA_TOPIC = '/events/metadata'
-TOPOLOGIES_TOPIC = '/events/topologies'
+COMMANDS_TOPIC = '/user/commands'
+CONFIGURATIONS_TOPIC = '/user/configs'
+METADATA_TOPIC = '/user/metadata'
+TOPOLOGIES_TOPIC = '/user/topologies'
 SERVER_RESPONSES_TOPIC = '/user/'
 
 TOPICS_TO_SUBSCRIBE = [SERVER_RESPONSES_TOPIC, COMMANDS_TOPIC, CONFIGURATIONS_TOPIC, METADATA_TOPIC, TOPOLOGIES_TOPIC]

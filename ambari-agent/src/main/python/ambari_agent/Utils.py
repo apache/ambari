@@ -61,8 +61,9 @@ class Utils(object):
   def make_immutable(value):
     if isinstance(value, dict):
       return ImmutableDictionary(value)
-    if isinstance(value, list):
-      return tuple(value)
+    if isinstance(value, (list, tuple)):
+      return tuple([Utils.make_immutable(x) for x in value])
+
     return value
 
 class ImmutableDictionary(dict):

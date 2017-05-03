@@ -2,7 +2,7 @@
   "responseId":0,
   "exitstatus":0,
   "errorMessage":"",
-  "clusters_list":[
-    "c1"
+  "clustersList":[
+    "0"
   ]
 }

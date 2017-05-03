@@ -104,8 +104,8 @@ class HeartbeatThread(threading.Thread):
 
     for cache in self.caches:
       cache_key_name = cache.get_cache_name() + '_hash'
-      for cluster_name in cache.get_cluster_names():
-        request['clusters'][cluster_name][cache_key_name] = cache.get_md5_hashsum(cluster_name)
+      for cluster_id in cache.get_cluster_ids():
+        request['clusters'][cluster_id][cache_key_name] = cache.get_md5_hashsum(cluster_id)
 
     return request
 

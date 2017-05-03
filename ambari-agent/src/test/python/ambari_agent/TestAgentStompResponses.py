@@ -36,7 +36,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
   def test_mock_server_can_start(self):
     self.init_stdout_logger()
 
-    self.remove(['/tmp/configurations.json', '/tmp/metadata.json', '/tmp/topology.json'])
+    self.remove(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json'])
 
     initializer_module = InitializerModule()
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
@@ -60,16 +60,16 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '0'}, body=self.get_json("registration_response.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/configurations'}, body=self.get_json("configurations_update.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/configs'}, body=self.get_json("configurations_update.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/commands'}, body=self.get_json("execution_commands.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/commands'}, body=self.get_json("execution_commands.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/metadata'}, body=self.get_json("metadata_after_registration.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/metadata'}, body=self.get_json("metadata_after_registration.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_update.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/topologies'}, body=self.get_json("topology_update.json"))
     self.server.topic_manager.send(f)
 
     heartbeat_frame = self.server.frames_queue.get()
@@ -81,9 +81,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     heartbeat_thread.join()
     component_status_executor.join()
 
-    self.assertEquals(initializer_module.topology_cache['cl1']['topology']['hosts'][0]['hostname'], 'c6401.ambari.apache.org')
-    self.assertEquals(initializer_module.metadata_cache['cl1']['metadata']['status_commands_to_run'], ('STATUS',))
-    self.assertEquals(initializer_module.configurations_cache['cl1']['configurations']['zoo.cfg']['clientPort'], '2181')
+    self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostname'], 'c6401.ambari.apache.org')
+    self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
+    self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
 
     """
     ============================================================================================
@@ -104,16 +104,16 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     metadata_subscribe_frame = self.server.frames_queue.get()
     topologies_subscribe_frame = self.server.frames_queue.get()
     registration_frame_json = json.loads(self.server.frames_queue.get().body)
-    clusters_hashes = registration_frame_json['clusters']['cl1']
+    clusters_hashes = registration_frame_json['clusters']['0']
 
     component_status_executor = ComponentStatusExecutor(initializer_module)
     component_status_executor.start()
 
     status_reports_frame = self.server.frames_queue.get()
 
-    self.assertEquals(clusters_hashes['metadata_hash'], '20089c8c8682cf03e361cdab3e668ed1')
-    self.assertEquals(clusters_hashes['configurations_hash'], 'bc54fe976cade95c48eafbfdff188661')
-    self.assertEquals(clusters_hashes['topology_hash'], 'd14ca943e4a69ad0dd640f32d713d2b9')
+    self.assertEquals(clusters_hashes['metadata_hash'], '21724f6ffa7aff0fe91a0c0c5b765dba')
+    self.assertEquals(clusters_hashes['configurations_hash'], '04c968412ded7c8ffe7858036bae03ce')
+    self.assertEquals(clusters_hashes['topology_hash'], '0de1df56fd594873fe594cf02ea61f4b')
 
     # server sends registration response
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '0'}, body=self.get_json("registration_response.json"))

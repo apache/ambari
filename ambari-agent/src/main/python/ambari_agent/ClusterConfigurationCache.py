@@ -41,7 +41,7 @@ class ClusterConfigurationCache(ClusterCache):
   def get_cache_name(self):
     return 'configurations'
 
-  def get_configuration_value(self, cluster_name, key):
+  def get_configuration_value(self, cluster_id, key):
     """
     Gets a value from the cluster configuration map for the given cluster and
     key. The key is expected to be of the form 'foo-bar/baz' or
@@ -51,14 +51,14 @@ class ClusterConfigurationCache(ClusterCache):
     """
     self._cache_lock.acquire()
     try:
-      dictionary = self[cluster_name]
+      dictionary = self[cluster_id]
       for layer_key in key.split('/'):
         dictionary = dictionary[layer_key]
 
       return dictionary
 
     except KeyError:
-      logger.debug("Cache miss for configuration property {0} in cluster {1}".format(key, cluster_name))
+      logger.debug("Cache miss for configuration property {0} in cluster {1}".format(key, cluster_id))
       return None
     finally:
       self._cache_lock.release()

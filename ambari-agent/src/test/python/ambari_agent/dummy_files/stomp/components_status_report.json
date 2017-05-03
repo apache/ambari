@@ -1,24 +1,28 @@
 {
-  "clusters":{
-    "cl1":{
-      "componentStatuses":[
-        {
-          "componentName":"HDFS_CLIENT",
-          "command":"SECURITY_STATUS",
-          "stdout":"",
-          "stderr":"Python script killed due to timeout",
-          "structuredOutput":"{}",
-          "exitCode":-15
-        },
-        {
-          "componentName":"ZOOKEEPER_SERVER",
-          "command":"STATUS",
-          "stdout":"",
-          "stderr":"",
-          "structuredOutput":"{}",
-          "exitcode":0
-        }
-      ]
+  "0":[
+    {
+      "status":"INSTALLED",
+      "componentName":"ZOOKEEPER_SERVER",
+      "clusterId": 0,
+      "command":"STATUS"
+    },
+    {
+      "status":"STARTED",
+      "componentName":"ZOOKEEPER_SERVER",
+      "clusterId": 0,
+      "command":"SECURITY_STATUS"
+    },
+    {
+      "status":"INSTALLED",
+      "componentName":"ZOOKEEPER_CLIENT",
+      "clusterId": 0,
+      "command":"STATUS"
+    },
+    {
+      "status":"INSTALLED",
+      "componentName":"ZOOKEEPER_CLIENT",
+      "clusterId": 0,
+      "command":"SECURITY_STATUS"
     }
-  }
+  ]
 }
