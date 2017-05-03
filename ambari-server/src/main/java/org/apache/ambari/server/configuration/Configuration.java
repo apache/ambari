@@ -5095,6 +5095,11 @@ public class Configuration {
     return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_DISABLE));
   }
 
+  /** @see #AMBARISERVER_METRICS_DISABLE */
+  public boolean isMetricsServiceDisabled() {
+    return Boolean.parseBoolean(getProperty(AMBARISERVER_METRICS_DISABLE));
+  }
+
   /**
    * Constant fudge factor subtracted from the cache update requests to
    * account for unavailability of data on the trailing edge due to buffering.

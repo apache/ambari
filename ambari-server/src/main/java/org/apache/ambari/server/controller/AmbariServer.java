@@ -568,7 +568,7 @@ public class AmbariServer {
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
 
-      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+      if (!configs.isMetricsServiceDisabled()) {
         metricsService.start();
       } else {
         LOG.info("AmbariServer Metrics disabled.");
