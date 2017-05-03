@@ -68,9 +68,22 @@ class HostInfo(object):
     return 'unknown'
 
   def checkLiveServices(self, services, result):
+    is_redhat7_or_higher = False
+    is_redhat = False
+
+    if OSCheck.is_redhat_family():
+      is_redhat = True
+      if int(OSCheck.get_os_major_version()) >= 7:
+        is_redhat7_or_higher = True
+
     for service in services:
       svcCheckResult = {}
-      svcCheckResult['name'] = " or ".join(service)
+      if "ntpd" in service and is_redhat7_or_higher:
+        svcCheckResult['name'] = "chronyd"
+      elif "chronyd" in service and is_redhat:
+        svcCheckResult['name'] = "ntpd"
+      else:
+        svcCheckResult['name'] = " or ".join(service)
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
