@@ -630,6 +630,9 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
+      if (!clusterConfigEntity.isServiceDeleted()){
+        continue; // skip clusterConfigs that did not leave after service deletion
+      }
       List<String> types = new ArrayList<>();
       String type = clusterConfigEntity.getType();
       types.add(type);
@@ -662,9 +665,11 @@ public class DatabaseConsistencyCheckHelper {
 
     Set<String> nonMappedConfigs = new HashSet<>();
     for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
-      nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
+      if (!clusterConfigEntity.isServiceDeleted()){
+        nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
+      }
     }
-    if (!notMappedClasterConfigs.isEmpty()){
+    if (!nonMappedConfigs.isEmpty()){
       warning("You have config(s): {} that is(are) not mapped (in serviceconfigmapping table) to any service!", StringUtils.join(nonMappedConfigs, ","));
     }
   }
