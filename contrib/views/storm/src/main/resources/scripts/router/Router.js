@@ -22,7 +22,7 @@ define([
 	'react',
 	'react-dom',
 	'utils/Utils'
-], function(require, Backbone, React, ReactDOM, Utils) {	
+], function(require, Backbone, React, ReactDOM, Utils) {
 	'use strict';
 	var rRender;
 	var AppRouter = Backbone.Router.extend({
@@ -37,7 +37,7 @@ define([
 			'*actions'											: 'defaultAction'
 		},
 		initialize: function() {
-			App.baseURL = Utils.getStormHostDetails();
+                        App.baseURL = location.pathname+'proxy?url=';
 			this.showRegions();
 			this.listenTo(this, "route", this.postRouteExecute, this);
 		},
@@ -82,7 +82,7 @@ define([
 		/**
 		 * Define route handlers here
 		 */
-		
+
 		dashboardAction: function(){
 			require(['jsx!views/Dashboard'], function(DashboardView){
 				ReactDOM.render(React.createElement(DashboardView), App.Container);

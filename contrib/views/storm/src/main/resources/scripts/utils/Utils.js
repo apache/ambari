@@ -25,31 +25,6 @@ define(['require',
     'use strict';
     var Utils = {};
 
-    Utils.getStormHostDetails = function() {
-        var url = location.pathname+'proxy?url=';
-        var urlParts = location.pathname.split('/');
-        var apiUrl = '/api/v1/'+urlParts[1]+'/'+urlParts[2]+'/versions/'+urlParts[3]+'/instances/'+urlParts[4];
-        $.ajax({
-            url: apiUrl,
-            cache: false,
-            type: 'GET',
-            async: false,
-            dataType: 'json',
-            success: function(response){
-                var props = response.ViewInstanceInfo.properties;
-                if(props['storm.host'] && props['storm.port']){
-                    url += (props['storm.sslEnabled'] === "true" ? "https://" : "http://")+props['storm.host']+":"+props['storm.port'];
-                } else {
-                    Utils.notifyError("Failed to get storm hostname and port.");
-                }
-            },
-            error: function(error){
-                Utils.notifyError("Failed to get storm hostname and port.");
-            }
-        });
-        return url;
-    };
-
     Utils.ArrayToCollection = function(array, collection){
         if(array.length){
             array.map(function(obj){
