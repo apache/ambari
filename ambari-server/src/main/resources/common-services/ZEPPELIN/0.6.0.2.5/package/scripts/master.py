@@ -295,6 +295,12 @@ class Master(Script):
           interpreter['properties']['zeppelin.jdbc.auth.type'] = "KERBEROS"
           interpreter['properties']['zeppelin.jdbc.principal'] = params.zeppelin_kerberos_principal
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
+          if params.zookeeper_znode_parent \
+              and params.hbase_zookeeper_quorum \
+              and params.zookeeper_znode_parent not in interpreter['properties']['phoenix.url']:
+            interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
+                                                       params.hbase_zookeeper_quorum + ':' + \
+                                                       params.zookeeper_znode_parent
         else:
           interpreter['properties']['zeppelin.jdbc.auth.type'] = ""
           interpreter['properties']['zeppelin.jdbc.principal'] = ""
