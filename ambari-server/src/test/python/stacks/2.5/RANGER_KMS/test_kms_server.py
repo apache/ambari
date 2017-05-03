@@ -43,13 +43,22 @@ class TestRangerKMS(RMFTestCase):
     self.assertTrue(isfile_mock.called)
     self.assertNoMoreResources()
 
+  current_date = datetime.now()
+
+  class DTMOCK(object):
+    """
+    Mock datetime to avoid test failures when test run a little bit slower than usuall.
+    """
+    def now(self):
+      return TestRangerKMS.current_date
+
   @patch("resource_management.libraries.functions.ranger_functions.Rangeradmin.check_ranger_login_urllib2", new=MagicMock(return_value=200))
   @patch("resource_management.libraries.functions.ranger_functions.Rangeradmin.create_ambari_admin_user", new=MagicMock(return_value=200))
   @patch("kms.get_repo")
   @patch("kms.create_repo")
   @patch("os.path.isfile")
+  @patch("kms.datetime", new=DTMOCK())
   def test_start_default(self, get_repo_mock, create_repo_mock, isfile_mock):
-
     get_repo_mock.return_value = True
     create_repo_mock.return_value = True
 
@@ -64,7 +73,7 @@ class TestRangerKMS(RMFTestCase):
 
     # TODO confirm repo call
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_datetime = self.current_date.strftime("%Y-%m-%d %H:%M:%S")
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-security.xml',
       owner = 'kms',

@@ -179,7 +179,7 @@ class Script(object):
         json.dump(Script.structuredOut, fp)
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
-      
+
   def get_component_name(self):
     """
     To be overridden by subclasses.
@@ -217,7 +217,7 @@ class Script(object):
     """
     stack_name = Script.get_stack_name()
     component_name = self.get_component_name()
-    
+
     if component_name and stack_name:
       component_version = get_component_version(stack_name, component_name)
 
@@ -260,15 +260,15 @@ class Script(object):
     parser.add_option("-o", "--out-files-logging", dest="log_out_files", action="store_true",
                       help="use this option to enable outputting *.out files of the service pre-start")
     (self.options, args) = parser.parse_args()
-    
+
     self.log_out_files = self.options.log_out_files
-    
+
     # parse arguments
     if len(args) < 6:
      print "Script expects at least 6 arguments"
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
-     
+
     self.command_name = str.lower(sys.argv[1])
     self.command_data_file = sys.argv[2]
     self.basedir = sys.argv[3]
@@ -311,7 +311,7 @@ class Script(object):
 
         if not self.is_hook():
           self.execute_prefix_function(self.command_name, 'pre', env)
-        
+
         method(env)
 
         if not self.is_hook():
@@ -338,10 +338,10 @@ class Script(object):
   def is_hook(self):
     from resource_management.libraries.script.hook import Hook
     return (Hook in self.__class__.__bases__)
-        
+
   def get_log_folder(self):
     return ""
-  
+
   def get_user(self):
     return ""
 
@@ -353,15 +353,15 @@ class Script(object):
     if self.log_out_files:
       log_folder = self.get_log_folder()
       user = self.get_user()
-      
+
       if log_folder == "":
         Logger.logger.warn("Log folder for current script is not defined")
         return
-      
+
       if user == "":
         Logger.logger.warn("User for current script is not defined")
         return
-      
+
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
 
 
@@ -400,7 +400,7 @@ class Script(object):
       raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
     method = getattr(self, command_name)
     return method
-  
+
   def get_stack_version_before_packages_installed(self):
     """
     This works in a lazy way (calculates the version first time and stores it). 
@@ -417,7 +417,7 @@ class Script(object):
     if not Script.stack_version_from_distro_select and component_name:
       from resource_management.libraries.functions import stack_select
       Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(component_name)
-      
+
     # If <stack-selector-tool> has not yet been done (situations like first install),
     # we can use <stack-selector-tool> version itself.
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we should try to specify it.
@@ -428,7 +428,7 @@ class Script(object):
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
     return Script.stack_version_from_distro_select
-  
+
   def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
     """
@@ -465,7 +465,7 @@ class Script(object):
       stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
-    
+
     return package_name
 
   @staticmethod
@@ -490,8 +490,23 @@ class Script(object):
     return Script.tmp_dir
 
   @staticmethod
-  def get_force_https_protocol():
+  def get_force_https_protocol_name():
+    """
+    Get forced https protocol name.
+
+    :return: protocol name, PROTOCOL_TLSv1 by default
+    """
     return Script.force_https_protocol
+
+  @staticmethod
+  def get_force_https_protocol_value():
+    """
+    Get forced https protocol value that correspondents to ssl module variable.
+
+    :return: protocol value
+    """
+    import ssl
+    return getattr(ssl, Script.get_force_https_protocol_name())
 
   @staticmethod
   def get_component_from_role(role_directory_map, default_role):
@@ -664,13 +679,13 @@ class Script(object):
                           hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
-      
+
   def check_package_condition(self, package):
     condition = package['condition']
-    
+
     if not condition:
       return True
-    
+
     return self.should_install_package(package)
 
   def should_install_package(self, package):
@@ -860,7 +875,7 @@ class Script(object):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
             'configuration_attributes':config['configuration_attributes'][dict]}
-    
+
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()
     return config['configurations'][dict]
@@ -872,7 +887,7 @@ class Script(object):
     """
     import params
     env.set_params(params)
-    
+
     config = self.get_config()
 
     xml_configs_list = config['commandParams']['xml_configs_list']

@@ -55,7 +55,7 @@ DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
 
-ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol())
+ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol_name())
 
 class WebAlert(BaseAlert):
 

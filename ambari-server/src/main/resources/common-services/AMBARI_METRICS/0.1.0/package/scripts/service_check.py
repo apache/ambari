@@ -91,10 +91,13 @@ class AMSServiceCheck(Script):
                                                    params.metric_collector_port,
                                                    self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
       for i in xrange(0, self.AMS_READ_TRIES):
-        conn = network.get_http_connection(metric_collector_host,
-                                           int(params.metric_collector_port),
-                                           params.metric_collector_https_enabled,
-                                           ca_certs)
+        conn = network.get_http_connection(
+          metric_collector_host,
+          int(params.metric_collector_port),
+          params.metric_collector_https_enabled,
+          ca_certs,
+          ssl_version=Script.get_force_https_protocol_value()
+        )
         conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
         response = conn.getresponse()
         Logger.info("Http response for host %s : %s %s" % (metric_collector_host, response.status, response.reason))
@@ -164,10 +167,13 @@ def post_metrics_to_collector(ams_metrics_post_url, metric_collector_host, metri
       Logger.info("Connecting (POST) to %s:%s%s" % (metric_collector_host,
                                                     metric_collector_port,
                                                     ams_metrics_post_url))
-      conn = network.get_http_connection(metric_collector_host,
-                                         int(metric_collector_port),
-                                         metric_collector_https_enabled,
-                                         ca_certs)
+      conn = network.get_http_connection(
+        metric_collector_host,
+        int(metric_collector_port),
+        metric_collector_https_enabled,
+        ca_certs,
+        ssl_version=Script.get_force_https_protocol_value()
+      )
       conn.request("POST", ams_metrics_post_url, metric_json, headers)
 
       response = conn.getresponse()

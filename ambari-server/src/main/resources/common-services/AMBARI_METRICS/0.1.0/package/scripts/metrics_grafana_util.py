@@ -23,6 +23,7 @@ from ambari_commons.parallel_processing import PrallelProcessResult, execute_in_
 from service_check import post_metrics_to_collector
 from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
+from resource_management.libraries.script.script import Script
 from resource_management import Template
 from collections import namedtuple
 from urlparse import urlparse
@@ -54,9 +55,13 @@ def perform_grafana_get_call(url, server):
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
-      conn = network.get_http_connection(server.host,
-                                         int(server.port),
-                                         grafana_https_enabled, ca_certs)
+      conn = network.get_http_connection(
+        server.host,
+        int(server.port),
+        grafana_https_enabled,
+        ca_certs,
+        ssl_version=Script.get_force_https_protocol_value()
+      )
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }
@@ -94,7 +99,13 @@ def perform_grafana_put_call(url, id, payload, server):
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
-      conn = network.get_http_connection(server.host, int(server.port), grafana_https_enabled, ca_certs)
+      conn = network.get_http_connection(
+        server.host,
+        int(server.port),
+        grafana_https_enabled,
+        ca_certs,
+        ssl_version=Script.get_force_https_protocol_value()
+      )
       conn.request("PUT", url + "/" + str(id), payload, headers)
       response = conn.getresponse()
       data = response.read()
@@ -130,9 +141,12 @@ def perform_grafana_post_call(url, payload, server):
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
       Logger.info("Connecting (POST) to %s:%s%s" % (server.host, server.port, url))
-      conn = network.get_http_connection(server.host,
-                                         int(server.port),
-                                         grafana_https_enabled, ca_certs)
+      conn = network.get_http_connection(
+        server.host,
+        int(server.port),
+        grafana_https_enabled, ca_certs,
+        ssl_version=Script.get_force_https_protocol_value()
+      )
       
       conn.request("POST", url, payload, headers)
 
@@ -171,9 +185,12 @@ def perform_grafana_delete_call(url, server):
 
   for i in xrange(0, GRAFANA_CONNECT_TRIES):
     try:
-      conn = network.get_http_connection(server.host,
-                                         int(server.port),
-                                         grafana_https_enabled, ca_certs)
+      conn = network.get_http_connection(
+        server.host,
+        int(server.port),
+        grafana_https_enabled, ca_certs,
+        ssl_version=Script.get_force_https_protocol_value()
+      )
 
       userAndPass = b64encode('{0}:{1}'.format(server.user, server.password))
       headers = { 'Authorization' : 'Basic %s' %  userAndPass }

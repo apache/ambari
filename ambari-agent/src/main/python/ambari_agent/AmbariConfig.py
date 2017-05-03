@@ -316,8 +316,22 @@ class AmbariConfig:
         logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
 
-  def get_force_https_protocol(self):
+  def get_force_https_protocol_name(self):
+    """
+    Get forced https protocol name.
+
+    :return: protocol name, PROTOCOL_TLSv1 by default
+    """
     return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1")
+
+  def get_force_https_protocol_value(self):
+    """
+    Get forced https protocol value that correspondents to ssl module variable.
+
+    :return: protocol value
+    """
+    import ssl
+    return getattr(ssl, self.get_force_https_protocol_name())
 
 def isSameHostList(hostlist1, hostlist2):
   is_same = True

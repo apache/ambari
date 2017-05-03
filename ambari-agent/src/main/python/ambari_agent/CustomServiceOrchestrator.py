@@ -81,7 +81,7 @@ class CustomServiceOrchestrator():
   def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
-    self.force_https_protocol = config.get_force_https_protocol()
+    self.force_https_protocol = config.get_force_https_protocol_name()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR
     self.file_cache = FileCache(config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
