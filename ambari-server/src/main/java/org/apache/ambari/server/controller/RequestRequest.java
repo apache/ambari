@@ -37,6 +37,8 @@ public class RequestRequest {
 
   private String abortReason;
 
+  private boolean removePendingHostRequests = false;
+
 
   public HostRoleStatus getStatus() {
     return status;
@@ -70,6 +72,14 @@ public class RequestRequest {
     this.abortReason = abortReason;
   }
 
+  public boolean isRemovePendingHostRequests() {
+    return removePendingHostRequests;
+  }
+
+  public void setRemovePendingHostRequests(boolean removePendingHostRequests) {
+    this.removePendingHostRequests = removePendingHostRequests;
+  }
+
   @Override
   public String toString() {
     return "RequestRequest{" +
@@ -77,6 +87,7 @@ public class RequestRequest {
             ", requestId=" + requestId +
             ", status=" + status +
             ", abortReason='" + abortReason + '\'' +
+            ", removePendingHostRequests='" + removePendingHostRequests + '\'' +
             '}';
   }
 }

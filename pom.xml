@@ -399,6 +399,7 @@
             <exclude>ambari-metrics/**/.*/**</exclude>
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
+            <exclude>**/yarn.lock</exclude>
           </excludes>
         </configuration>
         <executions>

@@ -189,7 +189,10 @@ export default Ember.Component.extend(Ember.Evented,{
             this.sendAction('onSearch', { type: type, filter: filter });
         },
         onSearchClicked(){
-          this.$('#search-field').tagsinput('add', 'Name:'+this.$('.tt-input').val());
+          var searchValue=this.$('.tt-input').val();
+          if(!Ember.isBlank(searchValue)) {
+            this.$('#search-field').tagsinput('add', 'Name:'+searchValue);
+          }
         },
         refresh(){
           this.sendAction('onSearch', this.get('history').getSearchParams());

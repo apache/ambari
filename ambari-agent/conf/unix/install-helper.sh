@@ -70,6 +70,7 @@ do_install(){
   chmod a+x $AMBARI_AGENT_VAR
   
   chmod 1777 $AMBARI_AGENT_VAR/tmp
+  chmod 700 $AMBARI_AGENT_VAR/keys
   chmod 700 $AMBARI_AGENT_VAR/data
 
   #TODO we need this when upgrading from pre 2.4 versions to 2.4, remove this when upgrade from pre 2.4 versions will be

@@ -1811,7 +1811,7 @@ public class ViewRegistry {
   }
 
   // read a view archive
-  private void readViewArchive(ViewEntity viewDefinition,
+  private synchronized void readViewArchive(ViewEntity viewDefinition,
                                File archiveFile,
                                File extractedArchiveDirFile,
                                String serverVersion) {

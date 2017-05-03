@@ -16,9 +16,10 @@
 * limitations under the License.
 }}
 
-
-<div>
-  <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }} style="position: absolute;top: 10px; right: 10px;">{{fa-icon "expand"}}</button>
+<div class="pull-right button-container">
+  <button class="btn btn-default" type="button" id="zoom_in"> + </button>
+  <button class="btn btn-default" type="button" id="zoom_out"> - </button>
+  <button class="btn btn-default" title="Expand/Collspse" {{action "expandQueryResultPanel" }} >{{fa-icon "expand"}}</button>
 </div>
 
 {{#if isQueryRunning}}

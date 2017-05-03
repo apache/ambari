@@ -659,14 +659,14 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     while (rs.next()) {
       if ("disk_used".equals(rs.getString("METRIC_NAME"))) {
         assertEquals("APP_ID", "test_app", rs.getString("APP_ID"));
-        assertEquals("METRIC_SUM", 16.0, rs.getDouble("METRIC_SUM"));
-        assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+        assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
+        assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
         assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
         assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
       } else if ("disk_free".equals(rs.getString("METRIC_NAME"))) {
         assertEquals("APP_ID", "test_app", rs.getString("APP_ID"));
-        assertEquals("METRIC_SUM", 4.0, rs.getDouble("METRIC_SUM"));
-        assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+        assertEquals("METRIC_SUM", 1.0, rs.getDouble("METRIC_SUM"));
+        assertEquals("METRIC_COUNT", 2, rs.getLong("METRIC_COUNT"));
         assertEquals("METRIC_MAX", 1.0, rs.getDouble("METRIC_MAX"));
         assertEquals("METRIC_MIN", 1.0, rs.getDouble("METRIC_MIN"));
       }

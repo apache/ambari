@@ -33,7 +33,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;;
+import com.google.inject.Inject;
 
 /**
  * Abstract class that reads values from command params in a consistent way.

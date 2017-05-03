@@ -81,6 +81,18 @@
             </a>
         </li>
 
+        <li class="tight-form-item" style="width: 86px" ng-hide="dashboard.templating.list.length > 0">
+            Cluster
+        </li>
+        <li ng-hide="dashboard.templating.list.length > 0">
+            <input type="text" class="input-large tight-form-input" ng-model="target.cluster"
+                   spellcheck='false' bs-typeahead="suggestClusters" placeholder="cluster name" data-min-length=0 data-items=100
+                   ng-blur="targetBlur()">
+            </input>
+            <a bs-tooltip="target.errors.metric" style="color: rgb(229, 189, 28)" ng-show="target.errors.metric">
+                <i class="fa fa-warning"></i>
+            </a>
+        </li>
 
         <li class="tight-form-item" style="width: 86px" ng-hide="dashboard.templating.list.length > 0">
             Hosts
@@ -94,8 +106,6 @@
                 <i class="fa fa-warning"></i>
             </a>
         </li>
-
-
 
         <li class="tight-form-item">
             Aggregator

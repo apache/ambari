@@ -123,6 +123,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           var self = this;
           var dfd = $.Deferred();
           this.load('cluster');
+          this.set('content.additionalClients', []);
+          this.set('installClientQueueLength', 0);
+          this.set('installClietsQueue', App.ajaxQueue.create({abortOnError: false}));
           this.loadKerberosDescriptorConfigs().done(function() {
             self.loadServiceConfigGroups();
             self.loadConfigThemes().then(function() {

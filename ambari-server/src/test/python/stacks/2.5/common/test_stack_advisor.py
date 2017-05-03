@@ -140,6 +140,149 @@ class TestHDP25StackAdvisor(TestCase):
       ]
     }
 
+
+    # setup for 'test_recommendYARNConfigurations'
+    self.hosts_9_total = {
+      "items": [
+        {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6401.ambari.apache.org",
+            "host_name": "c6401.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6402.ambari.apache.org",
+            "host_name": "c6402.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6403.ambari.apache.org",
+            "host_name": "c6403.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6404.ambari.apache.org",
+            "host_name": "c6404.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6405.ambari.apache.org",
+            "host_name": "c6405.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6406.ambari.apache.org",
+            "host_name": "c6406.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6407.ambari.apache.org",
+            "host_name": "c6407.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6408.ambari.apache.org",
+            "host_name": "c6408.ambari.apache.org"
+          },
+        }, {
+          "Hosts": {
+            "cpu_count": 6,
+            "total_mem": 50331648,
+            "disk_info": [
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"},
+              {"mountpoint": "/"},
+              {"mountpoint": "/dev/shm"},
+              {"mountpoint": "/vagrant"}
+            ],
+            "public_host_name": "c6409.ambari.apache.org",
+            "host_name": "c6409.ambari.apache.org"
+          },
+        }
+      ]
+    }
+
     # Expected config outputs.
 
     # Expected capacity-scheduler with 'llap' (size:20) and 'default' queue at root level.
@@ -3669,6 +3812,271 @@ class TestHDP25StackAdvisor(TestCase):
                       {'maximum': '5', 'minimum': '1', 'read_only': 'true'})
 
     self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
+
+
+
+
+  ####################### 'Nine Node Managers' cluster - tests for calculating llap configs ################
+
+
+
+  # Test 16 (1). 'default' and 'llap' (State : RUNNING) queue exists at root level in capacity-scheduler, and
+  #          'capacity-scheduler' configs are passed-in as dictionary and
+  #          services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"] is set to value "null"  and
+  #          (2). enable_hive_interactive' is 'on' and (3). configuration change detected for 'hive.server2.tez.sessions.per.default.queue'
+  #         Expected : Configurations values recommended for llap related configs.
+  def test_recommendYARNConfigurations_nine_node_manager_llap_configs_updated_1(self):
+    # 9 node managers and yarn.nodemanager.resource.memory-mb": "204800"
+    services = {
+      "services": [{
+        "StackServices": {
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org",
+                            "c6404.ambari.apache.org", "c6405.ambari.apache.org", "c6406.ambari.apache.org",
+                            "c6407.ambari.apache.org", "c6408.ambari.apache.org", "c6409.ambari.apache.org"]
+            }
+          }
+        ]
+      }, {
+        "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE",
+        "StackServices": {
+          "service_name": "HIVE",
+          "service_version": "1.2.1.2.5",
+          "stack_name": "HDP",
+          "stack_version": "2.5"
+        },
+        "components": [
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.5/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "bulk_commands_display_name": "",
+              "bulk_commands_master_component_name": "",
+              "cardinality": "0-1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": ["RESTART_LLAP"],
+              "decommission_allowed": "false",
+              "display_name": "HiveServer2 Interactive",
+              "has_bulk_commands_definition": "false",
+              "is_client": "false",
+              "is_master": "true",
+              "reassign_allowed": "false",
+              "recovery_enabled": "false",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.5",
+              "hostnames": ["c6401.ambari.apache.org"]
+            },
+            "dependencies": []
+          },
+          {
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1+",
+              "component_category": "SLAVE",
+              "component_name": "NODEMANAGER",
+              "display_name": "NodeManager",
+              "is_client": "false",
+              "is_master": "false",
+              "hostnames": [
+                "c6401.ambari.apache.org"
+              ]
+            },
+            "dependencies": []
+          },
+        ]
+      }
+      ],
+      "changed-configurations": [
+        {
+          u'old_value': u'3',
+          u'type': u'hive-interactive-site',
+          u'name': u'hive.server2.tez.sessions.per.default.queue'
+        }
+      ],
+      "configurations": {
+        "capacity-scheduler" : {
+          "properties" : {
+            "capacity-scheduler" : "null",
+            "yarn.scheduler.capacity.root.accessible-node-labels" : "*",
+            "yarn.scheduler.capacity.maximum-am-resource-percent" : "1",
+            "yarn.scheduler.capacity.root.acl_administer_queue" : "*",
+            'yarn.scheduler.capacity.queue-mappings-override.enable' : 'false',
+            "yarn.scheduler.capacity.root.default.capacity" : "100",
+            "yarn.scheduler.capacity.root.default.user-limit-factor" : "1",
+            "yarn.scheduler.capacity.root.queues" : "default",
+            "yarn.scheduler.capacity.root.capacity" : "100",
+            "yarn.scheduler.capacity.root.default.acl_submit_applications" : "*",
+            "yarn.scheduler.capacity.root.default.maximum-capacity" : "100",
+            "yarn.scheduler.capacity.node-locality-delay" : "40",
+            "yarn.scheduler.capacity.maximum-applications" : "10000",
+            "yarn.scheduler.capacity.root.default.state" : "RUNNING"
+          }
+        },
+        "hive-interactive-env":
+          {
+            'properties': {
+              'enable_hive_interactive': 'true',
+              'llap_queue_capacity':'50'
+            }
+          },
+        "hive-interactive-site":
+          {
+            'properties': {
+              'hive.llap.daemon.queue.name': 'default',
+              'hive.server2.tez.sessions.per.default.queue': '4',
+              'hive.tez.container.size':'4096'
+            }
+          },
+        "hive-env":
+          {
+            'properties': {
+              'hive_user': 'hive'
+            }
+          },
+        "yarn-site": {
+          "properties": {
+            "yarn.scheduler.minimum-allocation-mb": "1024",
+            "yarn.nodemanager.resource.memory-mb": "212992",
+            "yarn.nodemanager.resource.cpu-vcores": '25'
+          }
+        },
+        "tez-interactive-site": {
+          "properties": {
+            "tez.am.resource.memory.mb": "4096"
+          }
+        },
+        "hive-site":
+          {
+            'properties': {
+              'hive.tez.container.size': '1024'
+            }
+          },
+      }
+    }
+
+    clusterData = {
+      "cpu": 4,
+      "mapMemory": 30000,
+      "amMemory": 20000,
+      "reduceMemory": 20560,
+      "containers": 3,
+      "ramPerContainer": 82240,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 328960 * 1024
+      },
+      "yarnMinContainerSize": 1024
+    }
+
+    configurations = {
+    }
+
+    # Tests based on concurrency (hive.server2.tez.sessions.per.default.queue)  config changes
+
+    ###################################################################
+    #  Test A: 'hive.server2.tez.sessions.per.default.queue' set to = 4
+    ###################################################################
+
+    # Test
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts_9_total)
+    self.assertTrue('capacity-scheduler' not in configurations)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '22'})
+
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '208896')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '25')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '25')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '106496')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '96256')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '2048')
+    self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'maximum': '9', 'minimum': '1', 'read_only': 'true'})
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '1024')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '1145044992')
+
+    self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'], {'entries': [{'value': 'default', 'label': 'default'}]})
+
+
+    ##################################################################
+    # Test B: 'hive.server2.tez.sessions.per.default.queue' set to = 9
+    ##################################################################
+    # Set the config
+    services['configurations']['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'] = 9
+
+    # Test
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts_9_total)
+    self.assertTrue('capacity-scheduler' not in configurations)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '22'})
+
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '207872')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '25')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '25')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '105472')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '96256')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '3600')
+    self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'maximum': '9', 'minimum': '1', 'read_only': 'true'})
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '1024')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '1145044992')
+
+    self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'], {'entries': [{'value': 'default', 'label': 'default'}]})
+
+
+    ###################################################################
+    # Test C: 'hive.server2.tez.sessions.per.default.queue' set to = 10
+    ###################################################################
+    # Set the config
+    services['configurations']['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'] = 10
+
+    # Test
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts_9_total)
+    self.assertTrue('capacity-scheduler' not in configurations)
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'maximum': '22'})
+
+    self.assertTrue(configurations['hive-interactive-env']['properties']['num_llap_nodes'], 3)
+    self.assertTrue('num_llap_nodes_for_llap_daemons' not in configurations['hive-interactive-env']['properties'])
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '25')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '25')
+
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '102400')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '96256')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['hive_heapsize'], '4000')
+    self.assertEqual(configurations['hive-interactive-env']['property_attributes']['num_llap_nodes'], {'maximum': '9', 'minimum': '1', 'read_only': 'true'})
+
+    self.assertEqual(configurations['hive-interactive-env']['properties']['slider_am_container_mb'], '1024')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.auto.convert.join.noconditionaltask.size'], '1145044992')
+
+    self.assertTrue('tez.am.resource.memory.mb' not in configurations['tez-interactive-site']['properties'])
+    self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.llap.daemon.queue.name'], {'entries': [{'value': 'default', 'label': 'default'}]})
 
 
 

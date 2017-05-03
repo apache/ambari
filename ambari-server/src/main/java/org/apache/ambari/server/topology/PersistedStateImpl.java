@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
@@ -116,6 +117,15 @@ public class PersistedStateImpl implements PersistedState {
     //logicalRequestDAO.create(entity);
 
     topologyRequestDAO.merge(topologyRequestEntity);
+  }
+
+  @Override
+  @Transactional
+  public void removeHostRequests(Collection<HostRequest> hostRequests) {
+    for(HostRequest hostRequest :  hostRequests) {
+      TopologyHostRequestEntity hostRequestEntity = hostRequestDAO.findById(hostRequest.getId());
+      hostRequestDAO.remove(hostRequestEntity);
+    }
   }
 
   @Override

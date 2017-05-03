@@ -247,8 +247,7 @@ public class ConfigUpgradeChangeDefinition {
         }
 
         }catch(Exception e){
-          String message = "";
-          message = "ConfigUpgradeChangeDefinition: getRegexReplacements : Error while fetching config properties ";
+          String message = "getRegexReplacements : Error while fetching config properties : key - " + regexReplaceObj.key + " find - " + regexReplaceObj.find;
           LOG.error(message, e);
 
         }
