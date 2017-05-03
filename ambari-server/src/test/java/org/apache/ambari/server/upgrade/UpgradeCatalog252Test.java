@@ -160,7 +160,7 @@ public class UpgradeCatalog252Test {
 
     DBColumnInfo captured = hrcBackgroundColumnCapture.getValue();
     Assert.assertEquals(UpgradeCatalog252.SERVICE_DELETED_COLUMN, captured.getName());
-    Assert.assertEquals(false, captured.getDefaultValue());
-    Assert.assertEquals(Boolean.class, captured.getType());
+    Assert.assertEquals(0, captured.getDefaultValue());
+    Assert.assertEquals(Short.class, captured.getType());
   }
 }
