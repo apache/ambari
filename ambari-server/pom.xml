@@ -669,6 +669,19 @@
               <goal>exec</goal>
             </goals>
           </execution>
+          <execution>
+            <configuration>
+              <executable>${project.basedir}/src/main/sh/azuredb_create_generator.sh</executable>
+              <arguments>
+                <argument>${project.basedir}</argument>
+              </arguments>
+            </configuration>
+            <id>azuredb-gen</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
       <plugin>
