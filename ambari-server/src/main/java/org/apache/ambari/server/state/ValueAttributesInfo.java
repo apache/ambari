@@ -306,7 +306,7 @@ public class ValueAttributesInfo {
       return false;
     if (overridable != null ? !overridable.equals(that.overridable) : that.overridable != null)
       return false;
-    if (hidden != null ? !hidden.equals(that.overridable) : that.hidden != null)
+    if (hidden != null ? !hidden.equals(that.hidden) : that.hidden != null)
       return false;
     if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
       return false;
