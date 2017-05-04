@@ -25,43 +25,47 @@ import fileinput
 import re
 from textwrap import dedent
 
+flags = re.DOTALL | re.IGNORECASE
+create_table_re = re.compile("CREATE TABLE ([^\s(]+).*", flags = flags)
+create_index_re = re.compile("CREATE(?: NONCLUSTERED)? INDEX ([^ (]+).*", flags = flags)
+add_fk_const_re = re.compile("ALTER TABLE \S+ ADD CONSTRAINT (\S+) FOREIGN KEY.*", flags = flags)
+
 input_sql = "".join(fileinput.input())
 input_statements = re.split(';', input_sql)
 statements = []
 for statement in input_statements:
   # wrap "CREATE TABLE" in IF for existence check
   statement = re.sub(
-    "CREATE TABLE ([^\s(]+).*",
+    create_table_re,
     dedent('''\
       IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('dbo.\g<1>') AND type = 'U')
       BEGIN
       \g<0>
       END
       '''),
-    statement,
-    flags = re.DOTALL | re.IGNORECASE)
+    statement)
 
   # wrap "CREATE INDEX" in IF for existence check
-  statement = re.sub("CREATE(?: NONCLUSTERED)? INDEX ([^ (]+).*",
+  statement = re.sub(
+    create_index_re,
     dedent('''\
       IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = '\g<1>')
       BEGIN
       \g<0>
       END
       '''),
-    statement,
-    flags = re.DOTALL | re.IGNORECASE)
+    statement)
 
   # wrap "ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY" in IF for existence check
-  statement = re.sub("ALTER TABLE \S+ ADD CONSTRAINT (\S+) FOREIGN KEY.*",
+  statement = re.sub(
+    add_fk_const_re,
     dedent('''\
       IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\g<1>') AND type = 'F')
       BEGIN
       \g<0>
       END
       '''),
-    statement,
-    flags = re.DOTALL | re.IGNORECASE)
+    statement)
 
   statements.append(statement)
 
