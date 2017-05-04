@@ -75,6 +75,13 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
       if(isPamEnabled()){
         PAM pam;
+        String userName = String.valueOf(authentication.getPrincipal());
+        UserEntity existingUser = userDAO.findUserByName(userName);
+        if ((existingUser != null) && (existingUser.getUserType() != UserType.PAM)) {
+          String errorMsg = String.format("%s user exists with the username %s. Cannot authenticate via PAM", existingUser.getUserType(), userName);
+          LOG.error(errorMsg);
+          return null;
+        }
         try{
           //Set PAM configuration file (found under /etc/pam.d)
           String pamConfig = configuration.getPamConfigurationFile();

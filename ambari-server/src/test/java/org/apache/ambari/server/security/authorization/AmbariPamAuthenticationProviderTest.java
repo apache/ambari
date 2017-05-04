@@ -29,6 +29,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
@@ -92,6 +93,7 @@ public class AmbariPamAuthenticationProviderTest {
     UnixUser unixUser = createNiceMock(UnixUser.class);
     UserEntity userEntity = combineUserEntity();
     User user = new User(userEntity);
+    UserDAO userDAO = createNiceMock(UserDAO.class);
     Collection<AmbariGrantedAuthority> userAuthorities = Collections.singletonList(createNiceMock(AmbariGrantedAuthority.class));
     expect(pam.authenticate(EasyMock.anyObject(String.class), EasyMock.anyObject(String.class))).andReturn(unixUser).atLeastOnce();
     expect(unixUser.getGroups()).andReturn(new HashSet<String>(Arrays.asList("group"))).atLeastOnce();
@@ -99,6 +101,7 @@ public class AmbariPamAuthenticationProviderTest {
     EasyMock.replay(pam);
     Authentication authentication = new AmbariUserAuthentication("userPass", user, userAuthorities);
     Authentication result = authenticationProvider.authenticateViaPam(pam,authentication);
+    expect(userDAO.findUserByName("userName")).andReturn(null).once();
     Assert.assertNotNull(result);
     Assert.assertEquals(true, result.isAuthenticated());
     Assert.assertTrue(result instanceof AmbariUserAuthentication);
