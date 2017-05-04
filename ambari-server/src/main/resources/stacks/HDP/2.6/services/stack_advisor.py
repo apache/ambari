@@ -466,8 +466,10 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
       and ranger_usersync_properties['ranger.usersync.ldap.deltasync'].lower() == 'true'
     group_sync_enabled = 'ranger.usersync.group.searchenabled' in ranger_usersync_properties \
       and ranger_usersync_properties['ranger.usersync.group.searchenabled'].lower() == 'true'
+    usersync_source_ldap_enabled = 'ranger.usersync.source.impl.class' in ranger_usersync_properties \
+      and ranger_usersync_properties['ranger.usersync.source.impl.class'] == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder'
 
-    if delta_sync_enabled and not group_sync_enabled:
+    if usersync_source_ldap_enabled and delta_sync_enabled and not group_sync_enabled:
       validationItems.append({"config-name": "ranger.usersync.group.searchenabled",
                             "item": self.getWarnItem(
                             "Need to set ranger.usersync.group.searchenabled as true, as ranger.usersync.ldap.deltasync is enabled")})
