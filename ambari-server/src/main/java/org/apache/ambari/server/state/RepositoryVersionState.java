@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.List;
+
 /**
  * There must be exactly one repository version that is in a CURRENT state for a particular cluster or host.
  * There may be 0 or more repository versions in an INSTALLED or INSTALLING state.
@@ -69,31 +71,71 @@ public enum RepositoryVersionState {
    * when creating a cluster using a specific version.  Transition occurs naturally as
    * hosts report CURRENT.
    */
-  INIT,
+  INIT(2),
 
   /**
    * Repository version is not required
    */
-  NOT_REQUIRED,
+  NOT_REQUIRED(1),
+
   /**
    * Repository version that is in the process of being installed.
    */
-  INSTALLING,
+  INSTALLING(3),
+
   /**
    * Repository version that is installed and supported but not the active version.
    */
-  INSTALLED,
+  INSTALLED(2),
+
   /**
    * Repository version that during the install process failed to install some components.
    */
-  INSTALL_FAILED,
+  INSTALL_FAILED(5),
+
   /**
    * Repository version that is installed for some components but not for all.
    */
-  OUT_OF_SYNC,
+  OUT_OF_SYNC(4),
+
   /**
    * Repository version that is installed and supported and is the active version.
    */
-  CURRENT,
+  CURRENT(0);
+
+  private final int weight;
+
+  /**
+   * Constructor.
+   *
+   * @param weight
+   *          the weight of the state.
+   */
+  private RepositoryVersionState(int weight) {
+    this.weight = weight;
+  }
+
+  /**
+   * Gets a single representation of the repository state based on the supplied
+   * states.
+   *
+   * @param states
+   *          the states to calculate the aggregate for.
+   * @return the "heaviest" state.
+   */
+  public static RepositoryVersionState getAggregateState(List<RepositoryVersionState> states) {
+    if (null == states || states.isEmpty()) {
+      return INIT;
+    }
+
+    RepositoryVersionState heaviestState = states.get(0);
+    for (RepositoryVersionState state : states) {
+      if (state.weight > heaviestState.weight) {
+        heaviestState = state;
+      }
+    }
+
+    return heaviestState;
+  }
 
 }

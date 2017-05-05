@@ -752,7 +752,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(serviceName, resp.getServiceName());
     Assert.assertEquals(cluster1, resp.getClusterName());
     Assert.assertEquals(State.INIT.toString(), resp.getDesiredState());
-    Assert.assertEquals("HDP-0.2", resp.getDesiredStackVersion());
+    Assert.assertEquals("HDP-0.2", resp.getDesiredStackId());
   }
 
   @Test
@@ -896,7 +896,7 @@ public class AmbariManagementControllerTest {
     for (ServiceResponse svc : response) {
       Assert.assertTrue(svc.getServiceName().equals(serviceName)
           || svc.getServiceName().equals(serviceName2));
-      Assert.assertEquals("HDP-0.2", svc.getDesiredStackVersion());
+      Assert.assertEquals("HDP-0.2", svc.getDesiredStackId());
       Assert.assertEquals(State.INIT.toString(), svc.getDesiredState());
     }
   }
@@ -2339,12 +2339,10 @@ public class AmbariManagementControllerTest {
     ServiceResponse resp1 = resp.iterator().next();
 
     Assert.assertEquals(s1.getClusterId(), resp1.getClusterId().longValue());
-    Assert.assertEquals(s1.getCluster().getClusterName(),
-        resp1.getClusterName());
+    Assert.assertEquals(s1.getCluster().getClusterName(), resp1.getClusterName());
     Assert.assertEquals(s1.getName(), resp1.getServiceName());
-    Assert.assertEquals("HDP-0.1", s1.getDesiredStackVersion().getStackId());
-    Assert.assertEquals(s1.getDesiredStackVersion().getStackId(),
-        resp1.getDesiredStackVersion());
+    Assert.assertEquals("HDP-0.1", s1.getDesiredStackId().getStackId());
+    Assert.assertEquals(s1.getDesiredStackId().getStackId(), resp1.getDesiredStackId());
     Assert.assertEquals(State.INSTALLED.toString(), resp1.getDesiredState());
 
   }
@@ -2458,7 +2456,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(c1.getClusterName(), resp.getClusterName());
     Assert.assertEquals(sc1.getName(), resp.getComponentName());
     Assert.assertEquals(s1.getName(), resp.getServiceName());
-    Assert.assertEquals("HDP-0.2", resp.getDesiredStackVersion());
+    Assert.assertEquals("HDP-0.2", resp.getDesiredStackId());
     Assert.assertEquals(sc1.getDesiredState().toString(),
         resp.getDesiredState());
     Assert.assertEquals(c1.getClusterId(), resp.getClusterId().longValue());
@@ -2628,7 +2626,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(sch1.getState().toString(),
         resp.getLiveState());
     Assert.assertEquals(repositoryVersion.getStackId(),
-        sch1.getServiceComponent().getDesiredStackVersion());
+        sch1.getServiceComponent().getDesiredStackId());
     Assert.assertNotNull(resp.getActualConfigs());
     Assert.assertEquals(1, resp.getActualConfigs().size());
   }

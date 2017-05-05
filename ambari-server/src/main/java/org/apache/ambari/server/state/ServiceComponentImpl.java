@@ -136,7 +136,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   public void updateComponentInfo() throws AmbariException {
-    StackId stackId = service.getDesiredStackVersion();
+    StackId stackId = service.getDesiredStackId();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
           stackId.getStackVersion(), service.getName(), componentName);
@@ -378,7 +378,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public StackId getDesiredStackVersion() {
+  public StackId getDesiredStackId() {
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
         desiredStateEntityId);
 
@@ -429,11 +429,15 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public ServiceComponentResponse convertToResponse() {
     Cluster cluster = service.getCluster();
+    RepositoryVersionEntity repositoryVersionEntity = getDesiredRepositoryVersion();
+    StackId desiredStackId = repositoryVersionEntity.getStackId();
+
     ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
         cluster.getClusterName(), service.getName(), getName(),
-        getDesiredStackVersion().getStackId(), getDesiredState().toString(),
+        desiredStackId, getDesiredState().toString(),
         getServiceComponentStateCount(), isRecoveryEnabled(), displayName,
-        getDesiredVersion(), getRepositoryState());
+        repositoryVersionEntity.getVersion(), getRepositoryState());
+
     return r;
   }
 
@@ -450,7 +454,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       .append(", clusterName=").append(service.getCluster().getClusterName())
       .append(", clusterId=").append(service.getCluster().getClusterId())
       .append(", serviceName=").append(service.getName())
-      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
       .append(", hostcomponents=[ ");
     boolean first = true;
@@ -656,7 +660,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
     if (null == componentVersion) {
       RepositoryVersionEntity repoVersion = repoVersionDAO.findByStackAndVersion(
-          getDesiredStackVersion(), reportedVersion);
+          getDesiredStackId(), reportedVersion);
 
       if (null != repoVersion) {
         componentVersion = new ServiceComponentVersionEntity();
@@ -674,7 +678,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
       } else {
         LOG.warn("There is no repository available for stack {}, version {}",
-            getDesiredStackVersion(), reportedVersion);
+            getDesiredStackId(), reportedVersion);
       }
     }
 

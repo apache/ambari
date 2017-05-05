@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -169,7 +170,7 @@ public class ServiceImpl implements Service {
       }
     }
 
-    StackId stackId = getDesiredStackVersion();
+    StackId stackId = getDesiredStackId();
     ServiceInfo sInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), getName());
     isClientOnlyService = sInfo.isClientOnlyService();
@@ -305,7 +306,7 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
-  public StackId getDesiredStackVersion() {
+  public StackId getDesiredStackId() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
     return new StackId(desiredStackEntity);
@@ -336,12 +337,31 @@ public class ServiceImpl implements Service {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RepositoryVersionState getRepositoryState() {
+    if (components.isEmpty()) {
+      return RepositoryVersionState.INIT;
+    }
+
+    List<RepositoryVersionState> states = new ArrayList<>();
+    for( ServiceComponent component : components.values() ){
+      states.add(component.getRepositoryState());
+    }
+
+    return RepositoryVersionState.getAggregateState(states);
+  }
+
   @Override
   public ServiceResponse convertToResponse() {
+    RepositoryVersionEntity desiredRespositoryVersion = getDesiredRepositoryVersion();
+    StackId desiredStackId = desiredRespositoryVersion.getStackId();
+
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
-        getName(), getDesiredStackVersion().getStackId(),
-        getDesiredRepositoryVersion().getVersion(), getDesiredState().toString(),
-        isCredentialStoreSupported(), isCredentialStoreEnabled());
+        getName(), desiredStackId, desiredRespositoryVersion.getVersion(), getRepositoryState(),
+        getDesiredState().toString(), isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
@@ -427,7 +447,7 @@ public class ServiceImpl implements Service {
     sb.append("Service={ serviceName=").append(getName())
       .append(", clusterName=").append(cluster.getClusterName())
       .append(", clusterId=").append(cluster.getClusterId())
-      .append(", desiredStackVersion=").append(getDesiredStackVersion())
+      .append(", desiredStackVersion=").append(getDesiredStackId())
       .append(", desiredState=").append(getDesiredState())
       .append(", components=[ ");
     boolean first = true;
@@ -589,12 +609,7 @@ public class ServiceImpl implements Service {
   @Transactional
   protected void removeEntities() throws AmbariException {
     serviceDesiredStateDAO.removeByPK(serviceDesiredStateEntityPK);
-
-    ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-    pk.setClusterId(getClusterId());
-    pk.setServiceName(getName());
-
-    clusterServiceDAO.removeByPK(pk);
+    clusterServiceDAO.removeByPK(serviceEntityPK);
   }
 
   @Override

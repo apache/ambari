@@ -12,23 +12,6 @@
         "Clusters/health_report",
         "_"
     ],
-    "Service":[
-        "ServiceInfo/service_name",
-        "ServiceInfo/cluster_name",
-        "ServiceInfo/desired_stack",
-        "ServiceInfo/desired_repository_version",
-        "ServiceInfo/state",
-        "ServiceInfo/maintenance_state",
-        "ServiceInfo/credential_store_supported",
-        "ServiceInfo/credential_store_enabled",
-        "Services/description",
-        "Services/display_name",
-        "Services/attributes",
-        "params/run_smoke_test",
-        "params/reconfigure_client",
-        "params/start_dependencies",
-        "_"
-    ],
     "Host":[
         "Hosts/cluster_name",
         "Hosts/host_name",
@@ -53,27 +36,6 @@
         "Hosts/desired_configs",
         "Hosts/recovery_report",
         "Hosts/recovery_summary",
-        "_"
-    ],
-    "Component":[
-        "ServiceComponentInfo/service_name",
-        "ServiceComponentInfo/component_name",
-        "ServiceComponentInfo/cluster_name",
-        "ServiceComponentInfo/display_name",
-        "ServiceComponentInfo/state",
-        "ServiceComponentInfo/display_name",
-        "ServiceComponentInfo/description",
-        "ServiceComponentInfo/category",
-        "ServiceComponentInfo/total_count",
-        "ServiceComponentInfo/started_count",
-        "ServiceComponentInfo/installed_count",
-        "ServiceComponentInfo/install_failed_count",
-        "ServiceComponentInfo/init_count",
-        "ServiceComponentInfo/unknown_count",
-        "ServiceComponentInfo/recovery_enabled",
-        "ServiceComponentInfo/desired_version",
-        "ServiceComponentInfo/repository_state",
-        "params/run_smoke_test",
         "_"
     ],
     "HostComponent":[

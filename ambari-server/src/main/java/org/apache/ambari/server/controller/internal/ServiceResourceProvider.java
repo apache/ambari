@@ -85,40 +85,76 @@ import com.google.inject.assistedinject.AssistedInject;
  * Resource provider for service resources.
  */
 public class ServiceResourceProvider extends AbstractControllerResourceProvider {
+  public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "cluster_name");
 
+  public static final String SERVICE_SERVICE_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "service_name");
 
-  // ----- Property ID constants ---------------------------------------------
+  public static final String SERVICE_SERVICE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "state");
 
-  // Services
-  public static final String SERVICE_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
-  public static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
-  public static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
-  public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
-  public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ServiceInfo", "credential_store_supported");
-  public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID =
-    PropertyHelper.getPropertyId("ServiceInfo", "credential_store_enabled");
+  public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "maintenance_state");
 
-  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId("Services", "attributes");
+  public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "credential_store_supported");
 
-  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_stack");
-  public static final String SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_repository_version");
+  public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "credential_store_enabled");
+
+  public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "Services", "attributes");
+
+  public static final String SERVICE_DESIRED_STACK_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "desired_stack");
+
+  public static final String SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "ServiceInfo", "desired_repository_version");
+
+  protected static final String SERVICE_REPOSITORY_STATE = "ServiceInfo/repository_state";
 
   //Parameters from the predicate
-  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
-    "params/run_smoke_test";
-
-  private static final String QUERY_PARAMETERS_RECONFIGURE_CLIENT =
-    "params/reconfigure_client";
-
-  private static final String QUERY_PARAMETERS_START_DEPENDENCIES =
-    "params/start_dependencies";
+  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
+  private static final String QUERY_PARAMETERS_RECONFIGURE_CLIENT = "params/reconfigure_client";
+  private static final String QUERY_PARAMETERS_START_DEPENDENCIES = "params/start_dependencies";
 
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       SERVICE_CLUSTER_NAME_PROPERTY_ID,
       SERVICE_SERVICE_NAME_PROPERTY_ID}));
 
+  /**
+   * The property ids for an service resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<>();
+
+  /**
+   * The key property ids for an service resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(SERVICE_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_SERVICE_STATE_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_ATTRIBUTES_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_DESIRED_STACK_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_REPOSITORY_STATE);
+
+    PROPERTY_IDS.add(QUERY_PARAMETERS_RUN_SMOKE_TEST_ID);
+    PROPERTY_IDS.add(QUERY_PARAMETERS_RECONFIGURE_CLIENT);
+    PROPERTY_IDS.add(QUERY_PARAMETERS_START_DEPENDENCIES);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Service, SERVICE_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster, SERVICE_CLUSTER_NAME_PROPERTY_ID);
+  }
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -138,16 +174,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
    * @param managementController  the management controller
    */
   @AssistedInject
-  public ServiceResourceProvider(@Assisted Set<String> propertyIds,
-      @Assisted Map<Resource.Type, String> keyPropertyIds,
+  public ServiceResourceProvider(
       @Assisted AmbariManagementController managementController,
       MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Service, PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
     this.repositoryVersionDAO = repositoryVersionDAO;
 
@@ -219,10 +252,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           String.valueOf(response.isCredentialStoreEnabled()), requestedIds);
 
       setResourceProperty(resource, SERVICE_DESIRED_STACK_PROPERTY_ID,
-          response.getDesiredStackVersion(), requestedIds);
+          response.getDesiredStackId(), requestedIds);
 
       setResourceProperty(resource, SERVICE_DESIRED_REPO_VERSION_PROPERTY_ID,
           response.getDesiredRepositoryVersion(), requestedIds);
+
+      setResourceProperty(resource, SERVICE_REPOSITORY_STATE,
+          response.getRepositoryVersionState(), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
@@ -548,8 +584,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
     // We don't expect batch requests for different clusters, that's why
     // nothing bad should happen if value is overwritten few times
-    String maintenanceCluster = null;
-
     for (ServiceRequest request : requests) {
       if (request.getClusterName() == null
           || request.getClusterName().isEmpty()
@@ -608,7 +642,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               "maintenance state to one of " + EnumSet.of(MaintenanceState.OFF, MaintenanceState.ON));
           } else {
             s.setMaintenanceState(newMaint);
-            maintenanceCluster = cluster.getClusterName();
           }
         }
       }

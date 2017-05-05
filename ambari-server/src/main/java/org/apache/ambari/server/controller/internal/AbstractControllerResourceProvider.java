@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 
 /**
@@ -55,6 +56,23 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
                                                AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds);
     this.managementController = managementController;
+  }
+
+  /**
+   * Create a new resource provider for the given management controller.
+   *
+   * @param propertyIds
+   *          the property ids
+   * @param keyPropertyIds
+   *          the key property ids
+   * @param managementController
+   *          the management controller
+   */
+  protected AbstractControllerResourceProvider(Resource.Type type, Set<String> propertyIds,
+      Map<Resource.Type, String> keyPropertyIds, AmbariManagementController managementController) {
+    this(propertyIds, keyPropertyIds, managementController);
+    PropertyHelper.setPropertyIds(type, propertyIds);
+    PropertyHelper.setKeyPropertyIds(type, keyPropertyIds);
   }
 
   public static void init(ResourceProviderFactory factory) {
@@ -130,9 +148,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
       case Cluster:
         return new ClusterResourceProvider(managementController);
       case Service:
-        return resourceProviderFactory.getServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getServiceResourceProvider(managementController);
       case Component:
-        return resourceProviderFactory.getComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return resourceProviderFactory.getComponentResourceProvider(managementController);
       case Host:
         return resourceProviderFactory.getHostResourceProvider(propertyIds, keyPropertyIds, managementController);
       case HostComponent:

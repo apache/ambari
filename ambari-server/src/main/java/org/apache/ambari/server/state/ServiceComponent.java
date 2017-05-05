@@ -59,7 +59,7 @@ public interface ServiceComponent {
    */
   RepositoryVersionEntity getDesiredRepositoryVersion();
 
-  StackId getDesiredStackVersion();
+  StackId getDesiredStackId();
 
   String getDesiredVersion();
 

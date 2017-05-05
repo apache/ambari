@@ -22,6 +22,7 @@ package org.apache.ambari.server.controller;
 import java.util.Map;
 
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 
 public class ServiceComponentResponse {
 
@@ -30,7 +31,7 @@ public class ServiceComponentResponse {
   private String serviceName;
   private String componentName;
   private String displayName;
-  private String desiredStackVersion;
+  private String desiredStackId;
   private String desiredState;
   private String category;
   private Map<String, Integer> serviceComponentStateCount;
@@ -38,22 +39,17 @@ public class ServiceComponentResponse {
   private String desiredVersion;
   private RepositoryVersionState repoState;
 
-  public ServiceComponentResponse(Long clusterId, String clusterName,
-                                  String serviceName,
-                                  String componentName,
-                                  String desiredStackVersion,
-                                  String desiredState,
-                                  Map<String, Integer> serviceComponentStateCount,
-                                  boolean recoveryEnabled,
-                                  String displayName,
-                                  String desiredVersion,
-                                  RepositoryVersionState repoState) {
+  public ServiceComponentResponse(Long clusterId, String clusterName, String serviceName,
+      String componentName, StackId desiredStackId, String desiredState,
+      Map<String, Integer> serviceComponentStateCount, boolean recoveryEnabled, String displayName,
+      String desiredVersion, RepositoryVersionState repoState) {
+
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.displayName = displayName;
-    this.desiredStackVersion = desiredStackVersion;
+    this.desiredStackId = desiredStackId.getStackId();
     this.desiredState = desiredState;
     this.serviceComponentStateCount = serviceComponentStateCount;
     this.recoveryEnabled = recoveryEnabled;
@@ -139,17 +135,12 @@ public class ServiceComponentResponse {
   }
 
   /**
+   * Gets the desired stack ID.
+   *
    * @return the desiredStackVersion
    */
-  public String getDesiredStackVersion() {
-    return desiredStackVersion;
-  }
-
-  /**
-   * @param desiredStackVersion the desiredStackVersion to set
-   */
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public String getDesiredStackId() {
+    return desiredStackId;
   }
 
   /**
@@ -211,8 +202,12 @@ public class ServiceComponentResponse {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceComponentResponse that =
         (ServiceComponentResponse) o;

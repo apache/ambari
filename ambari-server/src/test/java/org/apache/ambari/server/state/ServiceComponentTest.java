@@ -137,7 +137,7 @@ public class ServiceComponentTest {
         sc.getClusterName());
     Assert.assertEquals(State.INIT, sc.getDesiredState());
     Assert.assertFalse(
-        sc.getDesiredStackVersion().getStackId().isEmpty());
+        sc.getDesiredStackId().getStackId().isEmpty());
   }
 
 
@@ -160,7 +160,7 @@ public class ServiceComponentTest {
         newStackId.getStackVersion());
 
     sc.setDesiredRepositoryVersion(repositoryVersion);
-    Assert.assertEquals(newStackId.toString(), sc.getDesiredStackVersion().getStackId());
+    Assert.assertEquals(newStackId.toString(), sc.getDesiredStackId().getStackId());
 
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO =
         injector.getInstance(ServiceComponentDesiredStateDAO.class);
@@ -173,7 +173,7 @@ public class ServiceComponentTest {
     Assert.assertNotNull(sc1);
     Assert.assertEquals(State.INSTALLED, sc1.getDesiredState());
     Assert.assertEquals("HDP-1.2.0",
-        sc1.getDesiredStackVersion().getStackId());
+        sc1.getDesiredStackId().getStackId());
 
   }
 
@@ -302,10 +302,9 @@ public class ServiceComponentTest {
     Assert.assertEquals(sc.getClusterId(), r.getClusterId().longValue());
     Assert.assertEquals(sc.getName(), r.getComponentName());
     Assert.assertEquals(sc.getServiceName(), r.getServiceName());
-    Assert.assertEquals(sc.getDesiredStackVersion().getStackId(),
-        r.getDesiredStackVersion());
-    Assert.assertEquals(sc.getDesiredState().toString(),
-        r.getDesiredState());
+    Assert.assertEquals(sc.getDesiredStackId().getStackId(), r.getDesiredStackId());
+    Assert.assertEquals(sc.getDesiredState().toString(), r.getDesiredState());
+
     int totalCount = r.getServiceComponentStateCount().get("totalCount");
     int startedCount = r.getServiceComponentStateCount().get("startedCount");
     int installedCount = r.getServiceComponentStateCount().get("installedCount");
@@ -368,10 +367,10 @@ public class ServiceComponentTest {
 
     sc.setDesiredRepositoryVersion(repositoryVersion);
 
-    StackId stackId = sc.getDesiredStackVersion();
+    StackId stackId = sc.getDesiredStackId();
     Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
 
-    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackId().getStackId());
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         cluster.getClusterId(), serviceName, componentName);
@@ -490,10 +489,10 @@ public class ServiceComponentTest {
 
     sc.setDesiredRepositoryVersion(repositoryVersion);
 
-    StackId stackId = sc.getDesiredStackVersion();
+    StackId stackId = sc.getDesiredStackId();
     Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
 
-    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackId().getStackId());
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         cluster.getClusterId(), serviceName, componentName);
@@ -571,9 +570,9 @@ public class ServiceComponentTest {
 
     Assert.assertEquals(rve, sc.getDesiredRepositoryVersion());
 
-    Assert.assertEquals(new StackId("HDP", "2.2.0"), sc.getDesiredStackVersion());
+    Assert.assertEquals(new StackId("HDP", "2.2.0"), sc.getDesiredStackId());
 
-    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackId().getStackId());
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
@@ -624,10 +623,10 @@ public class ServiceComponentTest {
 
     sc.setDesiredRepositoryVersion(rve);
 
-    StackId stackId = sc.getDesiredStackVersion();
+    StackId stackId = sc.getDesiredStackId();
     Assert.assertEquals(new StackId("HDP", "2.2.0"), stackId);
 
-    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
+    Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackId().getStackId());
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
@@ -684,10 +683,10 @@ public class ServiceComponentTest {
     ServiceComponentDesiredStateEntity entity = serviceComponentDesiredStateDAO.findByName(cluster.getClusterId(), serviceName, componentName);
 
     RepositoryVersionEntity repoVersion2201 = helper.getOrCreateRepositoryVersion(
-        component.getDesiredStackVersion(), "2.2.0.1");
+        component.getDesiredStackId(), "2.2.0.1");
 
     RepositoryVersionEntity repoVersion2202 = helper.getOrCreateRepositoryVersion(
-        component.getDesiredStackVersion(), "2.2.0.2");
+        component.getDesiredStackId(), "2.2.0.2");
 
     addHostToCluster("h1", clusterName);
     addHostToCluster("h2", clusterName);

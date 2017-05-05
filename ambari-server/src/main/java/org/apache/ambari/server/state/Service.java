@@ -65,7 +65,7 @@ public interface Service {
    */
   void setSecurityState(SecurityState securityState) throws AmbariException;
 
-  StackId getDesiredStackVersion();
+  StackId getDesiredStackId();
 
   ServiceResponse convertToResponse();
 
@@ -147,6 +147,12 @@ public interface Service {
    * @param desiredRepositoryVersion
    */
   void setDesiredRepositoryVersion(RepositoryVersionEntity desiredRepositoryVersion);
+
+  /**
+   * Gets the repository for the desired version of this service by consulting
+   * the repository states of all known components.
+   */
+  RepositoryVersionState getRepositoryState();
 
   enum Type {
     HDFS,

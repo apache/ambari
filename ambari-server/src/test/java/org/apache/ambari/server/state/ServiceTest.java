@@ -139,7 +139,7 @@ public class ServiceTest {
         desiredStackId, desiredVersion);
 
     service.setDesiredRepositoryVersion(desiredRepositoryVersion);
-    Assert.assertEquals(desiredStackId, service.getDesiredStackVersion());
+    Assert.assertEquals(desiredStackId, service.getDesiredStackId());
 
     service.setDesiredState(State.INSTALLING);
     Assert.assertEquals(State.INSTALLING, service.getDesiredState());
@@ -166,7 +166,7 @@ public class ServiceTest {
     Assert.assertEquals(State.INIT, service.getDesiredState());
     Assert.assertEquals(SecurityState.UNSECURED, service.getSecurityState());
     Assert.assertFalse(
-            service.getDesiredStackVersion().getStackId().isEmpty());
+            service.getDesiredStackId().getStackId().isEmpty());
 
     Assert.assertTrue(s.getServiceComponents().isEmpty());
 
@@ -243,7 +243,7 @@ public class ServiceTest {
     ServiceResponse r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(), r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackVersion().getStackId(), r.getDesiredStackVersion());
+    Assert.assertEquals(s.getDesiredStackId().getStackId(), r.getDesiredStackId());
     Assert.assertEquals(s.getDesiredState().toString(), r.getDesiredState());
 
     StackId desiredStackId = new StackId("HDP-1.2.0");
@@ -257,7 +257,7 @@ public class ServiceTest {
     r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());
     Assert.assertEquals(s.getCluster().getClusterName(), r.getClusterName());
-    Assert.assertEquals(s.getDesiredStackVersion().getStackId(), r.getDesiredStackVersion());
+    Assert.assertEquals(s.getDesiredStackId().getStackId(), r.getDesiredStackId());
     Assert.assertEquals(s.getDesiredState().toString(), r.getDesiredState());
     // FIXME add checks for configs
 

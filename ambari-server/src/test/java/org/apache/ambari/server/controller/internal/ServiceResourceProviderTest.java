@@ -639,7 +639,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
     expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
-    expect(service0.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(service0.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service0.getName()).andReturn("Service102").anyTimes();
     expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
     expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
@@ -755,7 +755,7 @@ public class ServiceResourceProviderTest {
     expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
     expect(stackId.getStackName()).andReturn("HDP").anyTimes();
     expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
-    expect(service0.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(service0.getDesiredStackId()).andReturn(stackId).anyTimes();
     expect(service0.getName()).andReturn("Service102").anyTimes();
     expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
     expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
@@ -1127,48 +1127,34 @@ public class ServiceResourceProviderTest {
 
   @Test
   public void testCheckPropertyIds() throws Exception {
-    Set<String> propertyIds = new HashSet<>();
-    propertyIds.add("foo");
-    propertyIds.add("cat1/foo");
-    propertyIds.add("cat2/bar");
-    propertyIds.add("cat2/baz");
-    propertyIds.add("cat3/sub1/bam");
-    propertyIds.add("cat4/sub2/sub3/bat");
-    propertyIds.add("cat5/subcat5/map");
-
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     MaintenanceStateHelper maintenanceStateHelperMock = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     replay(maintenanceStateHelperMock, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
-        managementController, maintenanceStateHelperMock, repositoryVersionDAO);
+    AbstractResourceProvider provider = new ServiceResourceProvider(managementController,
+        maintenanceStateHelperMock, repositoryVersionDAO);
 
-    Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
+    Set<String> unsupported = provider.checkPropertyIds(
+        Collections.singleton(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID));
+
     Assert.assertTrue(unsupported.isEmpty());
 
     // note that key is not in the set of known property ids.  We allow it if its parent is a known property.
     // this allows for Map type properties where we want to treat the entries as individual properties
-    Assert.assertTrue(provider.checkPropertyIds(Collections.singleton("cat5/subcat5/map/key")).isEmpty());
+    String subKey = PropertyHelper.getPropertyId(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, "key");
+    unsupported = provider.checkPropertyIds(Collections.singleton(subKey));
+    Assert.assertTrue(unsupported.isEmpty());
 
     unsupported = provider.checkPropertyIds(Collections.singleton("bar"));
     Assert.assertEquals(1, unsupported.size());
     Assert.assertTrue(unsupported.contains("bar"));
 
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1/foo"));
-    Assert.assertTrue(unsupported.isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("cat1"));
-    Assert.assertTrue(unsupported.isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("config"));
-    Assert.assertTrue(unsupported.isEmpty());
-
-    unsupported = provider.checkPropertyIds(Collections.singleton("config/unknown_property"));
-    Assert.assertTrue(unsupported.isEmpty());
+    for (String propertyId : provider.getPKPropertyIds()) {
+      unsupported = provider.checkPropertyIds(Collections.singleton(propertyId));
+      Assert.assertTrue(unsupported.isEmpty());
+    }
   }
 
   /**
@@ -1191,9 +1177,7 @@ public class ServiceResourceProviderTest {
       AmbariManagementController managementController,
       MaintenanceStateHelper maintenanceStateHelper, RepositoryVersionDAO repositoryVersionDAO) {
     Resource.Type type = Resource.Type.Service;
-    return new ServiceResourceProvider(PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
-        managementController, maintenanceStateHelper, repositoryVersionDAO);
+    return new ServiceResourceProvider(managementController, maintenanceStateHelper, repositoryVersionDAO);
   }
 
   public static void createServices(AmbariManagementController controller,

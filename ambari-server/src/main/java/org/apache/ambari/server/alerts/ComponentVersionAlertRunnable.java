@@ -111,7 +111,7 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
         ServiceComponent serviceComponent = service.getServiceComponent(hostComponent.getServiceComponentName());
 
         RepositoryVersionEntity desiredRepositoryVersion = service.getDesiredRepositoryVersion();
-        StackId desiredStackId = serviceComponent.getDesiredStackVersion();
+        StackId desiredStackId = serviceComponent.getDesiredStackId();
         String desiredVersion = desiredRepositoryVersion.getVersion();
 
         final ComponentInfo componentInfo;

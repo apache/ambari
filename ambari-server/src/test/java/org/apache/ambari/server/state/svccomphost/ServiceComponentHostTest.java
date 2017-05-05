@@ -232,7 +232,7 @@ public class ServiceComponentHostTest {
       case HOST_SVCCOMP_INSTALL:
         return new ServiceComponentHostInstallEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp,
-            impl.getServiceComponent().getDesiredStackVersion().toString());
+            impl.getServiceComponent().getDesiredStackId().toString());
       case HOST_SVCCOMP_START:
         return new ServiceComponentHostStartEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
@@ -292,7 +292,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(inProgressState,
         impl.getState());
     if (checkStack) {
-      Assert.assertNotNull(impl.getServiceComponent().getDesiredStackVersion());
+      Assert.assertNotNull(impl.getServiceComponent().getDesiredStackId());
     }
 
     ServiceComponentHostEvent installEvent2 = createEvent(impl, ++timestamp,

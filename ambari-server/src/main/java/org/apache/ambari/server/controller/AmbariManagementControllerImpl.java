@@ -2070,7 +2070,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedComponentCount.get(serviceName).keySet()) {
         ServiceComponent sc = cluster.getService(serviceName).
           getServiceComponent(componentName);
-        StackId stackId = sc.getDesiredStackVersion();
+        StackId stackId = sc.getDesiredStackId();
         ComponentInfo compInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(), serviceName,
           componentName);
@@ -2782,7 +2782,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     event = new ServiceComponentHostInstallEvent(
                         scHost.getServiceComponentName(), scHost.getHostName(),
                         nowTimestamp,
-                        serviceComponent.getDesiredStackVersion().getStackId());
+                        serviceComponent.getDesiredStackId().getStackId());
                   }
                 } else if (oldSchState == State.STARTED
                       // TODO: oldSchState == State.INSTALLED is always false, looks like a bug
@@ -2796,7 +2796,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   roleCommand = RoleCommand.UPGRADE;
                   event = new ServiceComponentHostUpgradeEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp, serviceComponent.getDesiredStackVersion().getStackId());
+                      nowTimestamp, serviceComponent.getDesiredStackId().getStackId());
                 } else {
                   throw new AmbariException("Invalid transition for"
                       + " servicecomponenthost"
@@ -2810,7 +2810,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 }
                 break;
               case STARTED:
-                StackId stackId = serviceComponent.getDesiredStackVersion();
+                StackId stackId = serviceComponent.getDesiredStackId();
                 ComponentInfo compInfo = ambariMetaInfo.getComponent(
                     stackId.getStackName(), stackId.getStackVersion(), scHost.getServiceName(),
                     scHost.getServiceComponentName());
@@ -3865,7 +3865,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
      * that has client component is in maintenance state
      */
 
-    StackId stackId = service.getDesiredStackVersion();
+    StackId stackId = service.getDesiredStackId();
     ComponentInfo compInfo =
         ambariMetaInfo.getService(stackId.getStackName(),
             stackId.getStackVersion(), service.getName()).getClientComponent();

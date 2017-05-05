@@ -664,10 +664,8 @@ public class JMXHostProviderTest {
       replay(maintenanceStateHelper, injector);
     }
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Service),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Service), controller, maintenanceStateHelper,
-        repositoryVersionDAO);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
+        maintenanceStateHelper, repositoryVersionDAO);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource

@@ -769,7 +769,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       throw new RuntimeException(e);
     }
 
-    StackId stackId = serviceComponent.getDesiredStackVersion();
+    StackId stackId = serviceComponent.getDesiredStackId();
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
         stackId.getStackVersion());
 
@@ -1195,13 +1195,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     String publicHostName = hostEntity.getPublicHostName();
     String state = getState().toString();
     String desiredState = (hostComponentDesiredStateEntity == null) ? null : hostComponentDesiredStateEntity.getDesiredState().toString();
-    String desiredStackId = serviceComponent.getDesiredStackVersion().getStackId();
+    String desiredStackId = serviceComponent.getDesiredStackId().getStackId();
     HostComponentAdminState componentAdminState = getComponentAdminStateFromDesiredStateEntity(hostComponentDesiredStateEntity);
     UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
 
     String displayName = null;
     try {
-      StackId stackVersion = serviceComponent.getDesiredStackVersion();
+      StackId stackVersion = serviceComponent.getDesiredStackId();
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackVersion.getStackName(),
               stackVersion.getStackVersion(), serviceName, serviceComponentName);
       displayName = compInfo.getDisplayName();
@@ -1246,7 +1246,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     .append(", serviceName=")
     .append(serviceComponent.getServiceName())
     .append(", desiredStackVersion=")
-    .append(serviceComponent.getDesiredStackVersion())
+    .append(serviceComponent.getDesiredStackId())
     .append(", desiredState=")
     .append(getDesiredState())
     .append(", version=")
@@ -1311,7 +1311,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     // completed, but only if it was persisted
     if (fireRemovalEvent) {
       long clusterId = getClusterId();
-      StackId stackId = serviceComponent.getDesiredStackVersion();
+      StackId stackId = serviceComponent.getDesiredStackId();
       String stackVersion = stackId.getStackVersion();
       String stackName = stackId.getStackName();
       String serviceName = getServiceName();

@@ -343,7 +343,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(service.getName()).andReturn("service");
     expect(service.getServiceComponent("component")).andReturn(component);
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
 
@@ -377,7 +377,7 @@ public class AmbariManagementControllerImplTest {
     expect(service.getName()).andReturn("service");
     expect(service.getServiceComponent("component")).andThrow(
       new ServiceComponentNotFoundException("cluster", "service", "component"));
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
     Map<String, ServiceComponent> componentsMap = new HashMap<>();
@@ -415,7 +415,7 @@ public class AmbariManagementControllerImplTest {
     ServiceComponent component2 = createNiceMock(ServiceComponent.class);
 
     expect(service.getName()).andReturn("service");
-    expect(service.getDesiredStackVersion()).andReturn(stackId);
+    expect(service.getDesiredStackId()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
     Map<String, ServiceComponent> componentsMap = new HashMap<>();

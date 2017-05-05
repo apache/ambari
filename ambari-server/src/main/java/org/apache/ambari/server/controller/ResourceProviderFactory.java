@@ -41,14 +41,10 @@ public interface ResourceProviderFactory {
       AmbariManagementController managementController);
 
   @Named("service")
-  ResourceProvider getServiceResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController);
+  ResourceProvider getServiceResourceProvider(AmbariManagementController managementController);
 
   @Named("component")
-  ResourceProvider getComponentResourceProvider(Set<String> propertyIds,
-      Map<Type, String> keyPropertyIds,
-      AmbariManagementController managementController);
+  ResourceProvider getComponentResourceProvider(AmbariManagementController managementController);
 
   @Named("member")
   ResourceProvider getMemberResourceProvider(Set<String> propertyIds,

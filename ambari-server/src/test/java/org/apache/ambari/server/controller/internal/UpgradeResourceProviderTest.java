@@ -1057,10 +1057,10 @@ public class UpgradeResourceProviderTest {
     StackId oldStack = cluster.getDesiredStackVersion();
 
     for (Service s : cluster.getServices().values()) {
-      assertEquals(oldStack, s.getDesiredStackVersion());
+      assertEquals(oldStack, s.getDesiredStackId());
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        assertEquals(oldStack, sc.getDesiredStackVersion());
+        assertEquals(oldStack, sc.getDesiredStackId());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
           assertEquals(oldStack.getStackVersion(), sch.getVersion());
@@ -1103,10 +1103,10 @@ public class UpgradeResourceProviderTest {
     assertFalse(oldStack.equals(newStack));
 
     for (Service s : cluster.getServices().values()) {
-      assertEquals(newStack, s.getDesiredStackVersion());
+      assertEquals(newStack, s.getDesiredStackId());
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        assertEquals(newStack, sc.getDesiredStackVersion());
+        assertEquals(newStack, sc.getDesiredStackId());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
           assertEquals(newStack.getStackVersion(), sch.getVersion());

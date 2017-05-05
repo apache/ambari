@@ -79,12 +79,9 @@ public class AbstractResourceProviderTest {
     Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
-        managementController, maintenanceStateHelper, repositoryVersionDAO);
+    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(propertyIds,
+        keyPropertyIds, managementController);
 
     Set<String> unsupported = provider.checkPropertyIds(Collections.singleton("foo"));
     Assert.assertTrue(unsupported.isEmpty());
@@ -115,15 +112,13 @@ public class AbstractResourceProviderTest {
     propertyIds.add("cat3/sub1/bam");
     propertyIds.add("cat4/sub2/sub3/bat");
 
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
-
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
-        managementController, maintenanceStateHelper, repositoryVersionDAO);
+    AbstractResourceProvider provider = new HostComponentProcessResourceProvider(propertyIds,
+        keyPropertyIds, managementController);
 
     Set<String> supportedPropertyIds = provider.getPropertyIds();
     Assert.assertTrue(supportedPropertyIds.containsAll(propertyIds));
@@ -131,15 +126,13 @@ public class AbstractResourceProviderTest {
 
   @Test
   public void testGetRequestStatus() {
-    Set<String> propertyIds = new HashSet<>();
-    Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     replay(maintenanceStateHelper, repositoryVersionDAO);
 
-    AbstractResourceProvider provider = new ServiceResourceProvider(propertyIds, keyPropertyIds,
-        managementController, maintenanceStateHelper, repositoryVersionDAO);
+    AbstractResourceProvider provider = new ServiceResourceProvider(managementController,
+        maintenanceStateHelper, repositoryVersionDAO);
 
     RequestStatus status = provider.getRequestStatus(null);
 

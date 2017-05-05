@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.handlers.BaseManagementHandler;
@@ -50,12 +49,10 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,13 +95,11 @@ public class BaseResourceDefinitionTest {
     expect(maintenanceStateHelper.isOperationAllowed(anyObject(Resource.Type.class),
             anyObject(Service.class))).andReturn(true).anyTimes();
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Service),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Service), managementController,
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(managementController,
         maintenanceStateHelper, repositoryVersionDAO);
 
-    expect(factory.getServiceResourceProvider(EasyMock.<Set<String>>anyObject(),
-        EasyMock.<Map<Resource.Type, String>>anyObject(),
+    expect(
+        factory.getServiceResourceProvider(
         anyObject(AmbariManagementController.class))).andReturn(serviceResourceProvider);
 
     AbstractControllerResourceProvider.init(factory);

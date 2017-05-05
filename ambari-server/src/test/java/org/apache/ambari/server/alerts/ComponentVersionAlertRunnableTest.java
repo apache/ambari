@@ -149,7 +149,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
     expect(service.getDesiredRepositoryVersion()).andReturn(repositoryVersionEntity).atLeastOnce();
 
     ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    expect(serviceComponent.getDesiredStackVersion()).andReturn(m_desidredStackId).atLeastOnce();
+    expect(serviceComponent.getDesiredStackId()).andReturn(m_desidredStackId).atLeastOnce();
     expect(service.getServiceComponent(EasyMock.anyString())).andReturn(serviceComponent).atLeastOnce();
 
     // components

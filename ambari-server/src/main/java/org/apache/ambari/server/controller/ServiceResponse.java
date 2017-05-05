@@ -18,26 +18,31 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 
 public class ServiceResponse {
 
   private Long clusterId;
   private String clusterName;
   private String serviceName;
-  private String desiredStackVersion;
+  private StackId desiredStackId;
   private String desiredRepositoryVersion;
+  private RepositoryVersionState repositoryVersionState;
   private String desiredState;
   private String maintenanceState;
   private boolean credentialStoreSupported;
   private boolean credentialStoreEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
-      String desiredStackVersion, String desiredRepositoryVersion, String desiredState,
+      StackId desiredStackId, String desiredRepositoryVersion,
+      RepositoryVersionState repositoryVersionState, String desiredState,
       boolean credentialStoreSupported, boolean credentialStoreEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    setDesiredStackVersion(desiredStackVersion);
+    this.desiredStackId = desiredStackId;
+    this.repositoryVersionState = repositoryVersionState;
     setDesiredState(desiredState);
     this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
@@ -103,17 +108,10 @@ public class ServiceResponse {
   }
 
   /**
-   * @return the desiredStackVersion
+   * @return the desired stack ID.
    */
-  public String getDesiredStackVersion() {
-    return desiredStackVersion;
-  }
-
-  /**
-   * @param desiredStackVersion the desiredStackVersion to set
-   */
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public String getDesiredStackId() {
+    return desiredStackId.getStackId();
   }
 
   /**
@@ -123,6 +121,16 @@ public class ServiceResponse {
    */
   public String getDesiredRepositoryVersion() {
     return desiredRepositoryVersion;
+  }
+
+  /**
+   * Gets the calculated repository version state from the components of this
+   * service.
+   *
+   * @return the desired repository version state
+   */
+  public RepositoryVersionState getRepositoryVersionState() {
+    return repositoryVersionState;
   }
 
   @Override
