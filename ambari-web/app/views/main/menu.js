@@ -128,7 +128,7 @@ App.MainMenuView = Em.CollectionView.extend({
             disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
           });
         }
-        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+        if ((App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') && App.isAuthorized('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START')) || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
           if (App.supports.serviceAutoStart) {
             categories.push({
               name: 'serviceAutoStart',
