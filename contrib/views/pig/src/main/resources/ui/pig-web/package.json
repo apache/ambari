@@ -14,7 +14,7 @@
     "css-brunch": ">= 1.0 < 1.8",
     "uglify-js-brunch": ">= 1.0 < 1.8",
     "bower": ">= 1.2.0",
-    "ember-precompiler-brunch": ">= 1.5.0",
+    "ember-precompile-brunch": "^0.1.0",
     "less-brunch": "~1.7.1",
     "scaffolt": "^0.4.3"
   },

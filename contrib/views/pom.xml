@@ -108,6 +108,7 @@
             <exclude>**/assets/static/javascripts/**</exclude>
             <exclude>**/assets/static/stylesheets/**</exclude>
             <exclude>storm/src/main/resources/**</exclude>
+            <exclude>**/yarn.lock</exclude>
           </excludes>
         </configuration>
       </plugin>

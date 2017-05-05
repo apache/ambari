@@ -390,6 +390,7 @@
             <exclude>ambari-metrics/*/target/**</exclude>
             <!-- ignore .settings and .project  -->
             <exclude>ambari-metrics/**/.*/**</exclude>
+            <exclude>**/yarn.lock</exclude>
           </excludes>
         </configuration>
         <executions>
