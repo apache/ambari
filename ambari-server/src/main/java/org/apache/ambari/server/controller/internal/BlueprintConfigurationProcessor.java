@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -155,8 +157,10 @@ public class BlueprintConfigurationProcessor {
    * This will initially be used to filter out the Ranger Passwords, but
    * could be extended in the future for more generic purposes.
    */
-  private static final PropertyFilter[] exportPropertyFilters =
-    { new PasswordPropertyFilter(),
+  private PropertyFilter[] getExportPropertyFilters (Map<Long, Set<String>> authToLocalPerClusterMap)
+    {
+      return new PropertyFilter[] {
+      new PasswordPropertyFilter(),
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
@@ -168,8 +172,9 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("domains", "krb5-conf"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_active", "hadoop-env"),
       new SimplePropertyNameExportFilter("dfs_ha_initial_namenode_standby", "hadoop-env"),
-      new StackPropertyTypeFilter()
-    };
+      new StackPropertyTypeFilter(),
+      new KerberosAuthToLocalRulesFilter(authToLocalPerClusterMap)};
+    }
 
   /**
    * Statically-defined list of filters to apply on cluster config
@@ -518,6 +523,16 @@ public class BlueprintConfigurationProcessor {
    */
   private void doFilterPriorToExport(Configuration configuration) {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
+    Map<Long, Set<String>> authToLocalPerClusterMap = null;
+    try {
+      String clusterName = clusterTopology.getAmbariContext().getClusterName(clusterTopology.getClusterId());
+      Cluster cluster = clusterTopology.getAmbariContext().getController().getClusters().getCluster(clusterName);
+      authToLocalPerClusterMap = new HashMap<Long, Set<String>>();
+      authToLocalPerClusterMap.put(Long.valueOf(clusterTopology.getClusterId()), clusterTopology.getAmbariContext().getController().getKerberosHelper().getKerberosDescriptor(cluster).getAllAuthToLocalProperties());
+      } catch (AmbariException e) {
+        LOG.error("Error while getting authToLocal properties. ", e);
+    }
+    PropertyFilter [] exportPropertyFilters = getExportPropertyFilters(authToLocalPerClusterMap);
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
       String type = configEntry.getKey();
       try {
@@ -534,7 +549,7 @@ public class BlueprintConfigurationProcessor {
       for (Map.Entry<String, String> propertyEntry : typeProperties.entrySet()) {
         String propertyName = propertyEntry.getKey();
         String propertyValue = propertyEntry.getValue();
-        if (shouldPropertyBeExcludedForBlueprintExport(propertyName, propertyValue, type, clusterTopology)) {
+        if (shouldPropertyBeExcludedForBlueprintExport(propertyName, propertyValue, type, clusterTopology, exportPropertyFilters)) {
           configuration.removeProperty(type, propertyName);
         }
       }
@@ -1032,7 +1047,7 @@ public class BlueprintConfigurationProcessor {
    * @return true if the property should be excluded
    *         false if the property should not be excluded
    */
-  private static boolean shouldPropertyBeExcludedForBlueprintExport(String propertyName, String propertyValue, String propertyType, ClusterTopology topology) {
+  private boolean shouldPropertyBeExcludedForBlueprintExport(String propertyName, String propertyValue, String propertyType, ClusterTopology topology, PropertyFilter [] exportPropertyFilters ) {
     for(PropertyFilter filter : exportPropertyFilters) {
       if (!filter.isPropertyIncluded(propertyName, propertyValue, propertyType, topology)) {
         return true;
@@ -3019,6 +3034,35 @@ public class BlueprintConfigurationProcessor {
         final String serviceName = stack.getServiceForConfigType(configType);
         return !(stack.isPasswordProperty(serviceName, configType, propertyName) ||
                 stack.isKerberosPrincipalNameProperty(serviceName, configType, propertyName));
+    }
+  }
+
+  /**
+   * A Filter that excludes Kerberos auth_to_local rules properties.
+   */
+  private static class KerberosAuthToLocalRulesFilter implements PropertyFilter {
+
+    /**
+     * Query to determine if a given property should be included in a collection of
+     * properties.
+     *
+     * This implementation filters Kerberos auth_to_local rules properties.
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    Map<Long, Set<String>> authToLocalPerClusterMap = null;
+    KerberosAuthToLocalRulesFilter (Map<Long, Set<String>> authToLocalPerClusterMap) {
+      this.authToLocalPerClusterMap = authToLocalPerClusterMap;
+    }
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      return (authToLocalPerClusterMap == null || authToLocalPerClusterMap.get(topology.getClusterId()) == null || !authToLocalPerClusterMap.get(topology.getClusterId()).contains(String.format("%s/%s", configType, propertyName)));
     }
   }
 
