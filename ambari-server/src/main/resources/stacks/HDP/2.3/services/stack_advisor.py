@@ -232,8 +232,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     hive_hooks = [x for x in hive_hooks if x != ""]
     is_atlas_present_in_cluster = "ATLAS" in servicesList
 
+    enable_external_atlas_for_hive = False
     enable_atlas_hook = False
+
+    if 'hive-atlas-application.properties' in services['configurations'] and 'enable.external.atlas.for.hive' in services['configurations']['hive-atlas-application.properties']['properties']:
+      enable_external_atlas_for_hive = services['configurations']['hive-atlas-application.properties']['properties']['enable.external.atlas.for.hive'].lower() == "true"
+
     if is_atlas_present_in_cluster:
+      putHiveEnvProperty("hive.atlas.hook", "true")
+    elif enable_external_atlas_for_hive:
       putHiveEnvProperty("hive.atlas.hook", "true")
     else:
       putHiveEnvProperty("hive.atlas.hook", "false")
@@ -814,9 +821,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
     putSqoopEnvProperty = self.putProperty(configurations, "sqoop-env", services)
 
+    enable_external_atlas_for_sqoop = False
     enable_atlas_hook = False
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'sqoop-atlas-application.properties' in services['configurations'] and 'enable.external.atlas.for.sqoop' in services['configurations']['sqoop-atlas-application.properties']['properties']:
+      enable_external_atlas_for_sqoop = services['configurations']['sqoop-atlas-application.properties']['properties']['enable.external.atlas.for.sqoop'].lower() == "true"
+
     if "ATLAS" in servicesList:
+      putSqoopEnvProperty("sqoop.atlas.hook", "true")
+    elif enable_external_atlas_for_sqoop:
       putSqoopEnvProperty("sqoop.atlas.hook", "true")
     else:
       putSqoopEnvProperty("sqoop.atlas.hook", "false")
@@ -852,8 +865,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       atlas_hook_class = "org.apache.atlas.storm.hook.StormAtlasHook"
       atlas_hook_is_set = atlas_hook_class in notifier_plugin_value
       enable_atlas_hook = False
+      enable_external_atlas_for_storm = False
+
+      if 'storm-atlas-application.properties' in services['configurations'] and 'enable.external.atlas.for.storm' in services['configurations']['storm-atlas-application.properties']['properties']:
+        enable_external_atlas_for_storm = services['configurations']['storm-atlas-application.properties']['properties']['enable.external.atlas.for.storm'].lower() == "true"
 
       if atlas_is_present:
+        putStormEnvProperty("storm.atlas.hook", "true")
+      elif enable_external_atlas_for_storm:
         putStormEnvProperty("storm.atlas.hook", "true")
       else:
         putStormEnvProperty("storm.atlas.hook", "false")
@@ -881,8 +900,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putFalconEnvProperty = self.putProperty(configurations, "falcon-env", services)
     enable_atlas_hook = False
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    enable_external_atlas_for_falcon = False
+    if 'falcon-atlas-application.properties' in services['configurations'] and 'enable.external.atlas.for.falcon' in services['configurations']['falcon-atlas-application.properties']['properties']:
+      enable_external_atlas_for_falcon = services['configurations']['falcon-atlas-application.properties']['properties']['enable.external.atlas.for.falcon'].lower() == "true"
 
     if "ATLAS" in servicesList:
+      putFalconEnvProperty("falcon.atlas.hook", "true")
+    elif enable_external_atlas_for_falcon:
       putFalconEnvProperty("falcon.atlas.hook", "true")
     else:
       putFalconEnvProperty("falcon.atlas.hook", "false")
@@ -1064,7 +1088,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     kafka_broker = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
- 
+
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = self.getSiteProperties(configurations, "ranger-kafka-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
@@ -1118,4 +1142,3 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "ranger-env")
     validationProblems.extend(parentValidationProblems)
     return validationProblems
-
