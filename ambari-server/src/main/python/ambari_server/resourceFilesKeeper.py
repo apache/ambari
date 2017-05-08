@@ -166,11 +166,17 @@ class ResourceFilesKeeper():
   def update_directory_archive(self, directory):
     """
     If hash sum for directory is not present or differs from saved value,
-    recalculates hash sum and creates directory archive
+    recalculates hash sum and creates directory archive. The archive is
+    also created if the existing archive does not exist, even if the
+    saved and current hash sums are matching.
     """
     skip_empty_directory = True
+
     cur_hash = self.count_hash_sum(directory)
     saved_hash = self.read_hash_sum(directory)
+
+    directory_archive_name = os.path.join(directory, self.ARCHIVE_NAME)
+
     if cur_hash != saved_hash:
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
@@ -180,6 +186,8 @@ class ResourceFilesKeeper():
       else:
         self.write_hash_sum(directory, cur_hash)
       pass
+    elif not os.path.isfile(directory_archive_name):
+      self.zip_directory(directory, skip_empty_directory)
 
   def count_hash_sum(self, directory):
     """
@@ -307,4 +315,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
   main(sys.argv)
-
