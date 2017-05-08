@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.domain;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.jbehave.web.selenium.WebDriverProvider;
 
 public class StoryDataRegistry {
   public static final StoryDataRegistry INSTANCE = new StoryDataRegistry();
@@ -33,6 +34,7 @@ public class StoryDataRegistry {
   private final int zookeeperPort = 9983;
   private final String serviceLogsCollection = "hadoop_logs";
   private final String auditLogsCollection = "audit_logs";
+  private WebDriverProvider webDriverProvider;
 
   private StoryDataRegistry() {
   }
@@ -95,5 +97,13 @@ public class StoryDataRegistry {
 
   public void setLogsearchContainerStarted(boolean logsearchContainerStarted) {
     this.logsearchContainerStarted = logsearchContainerStarted;
+  }
+
+  public WebDriverProvider getWebDriverProvider() {
+    return webDriverProvider;
+  }
+
+  public void setWebDriverProvider(WebDriverProvider webDriverProvider) {
+    this.webDriverProvider = webDriverProvider;
   }
 }

@@ -92,6 +92,10 @@ function start_logfeeder() {
   touch /var/log/ambari-logsearch-logfeeder/logsearch-logfeeder.log
 }
 
+function start_selenium_server() {
+  nohup java -jar /root/selenium-server-standalone.jar > /var/log/selenium-test.log &
+}
+
 function log() {
   component_log=${COMPONENT_LOG:-"logsearch"}
   case $component_log in
@@ -101,6 +105,9 @@ function log() {
     "solr")
       tail -f /var/log/ambari-logsearch-solr/solr.log
      ;;
+    "selenium")
+      tail -f /var/log/selenium-test.log
+     ;;
      *)
       tail -f /var/log/ambari-logsearch-portal/logsearch-app.log
      ;;
@@ -109,6 +116,7 @@ function log() {
 
 create_config
 generate_keys
+start_selenium_server
 start_solr
 start_logsearch
 start_logfeeder

@@ -33,8 +33,10 @@
   <properties>
     <it.skip>true</it.skip>
     <jbehave.version>4.0.5</jbehave.version>
+    <jbehave-selenium>3.5.5</jbehave-selenium>
     <jersey.version>2.23.1</jersey.version>
     <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
+    <failsafe-plugin.version>2.20</failsafe-plugin.version>
     <forkCount>1</forkCount>
   </properties>
 
@@ -43,6 +45,11 @@
       <groupId>org.jbehave</groupId>
       <artifactId>jbehave-core</artifactId>
       <version>${jbehave.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jbehave.web</groupId>
+      <artifactId>jbehave-web-selenium</artifactId>
+      <version>${jbehave-selenium}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.solr</groupId>
@@ -82,6 +89,12 @@
       <groupId>com.flipkart.zjsonpatch</groupId>
       <artifactId>zjsonpatch</artifactId>
       <version>0.2.4</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari</groupId>
@@ -98,6 +111,11 @@
       <artifactId>ambari-logsearch-logfeeder</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>11.0.1</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -113,35 +131,132 @@
         <directory>src/test/resources</directory>
       </testResource>
     </testResources>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>run-integration-tests</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-            <configuration>
-              <includes>
-                <include>**/*Stories.java</include>
-                <include>**/*Story.java</include>
-              </includes>
-              <skip>${it.skip}</skip>
-            </configuration>
-          </execution>
-          <execution>
-            <id>verify-integration-tests</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>selenium-tests</id>
+      <activation>
+        <property>
+          <name>selenium-tests</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${failsafe-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>run-integration-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/*UIStories.java</include>
+                  </includes>
+                  <systemPropertyVariables>
+                    <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                  </systemPropertyVariables>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify-integration-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>backend-tests</id>
+      <activation>
+        <property>
+          <name>backend-tests</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${failsafe-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>run-integration-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/*BackendStories.java</include>
+                  </includes>
+                  <systemPropertyVariables>
+                    <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                  </systemPropertyVariables>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify-integration-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>all-tests</id>
+      <activation>
+        <property>
+          <name>all-tests</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${failsafe-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>run-integration-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+                <configuration>
+                  <includes>
+                    <include>**/*Stories.java</include>
+                  </includes>
+                  <systemPropertyVariables>
+                    <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                  </systemPropertyVariables>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify-integration-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
