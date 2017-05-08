@@ -356,8 +356,8 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       self.do_kinit()
 
-      # Copy params.hive.service.keytab to hdfs://<host>:<port>/user/<hive_user>/.slider/keytabs/<hive_user> , required by LLAP
-      slider_keytab_install_cmd = format("slider install-keytab --keytab {params.hive_server2_keytab} --folder {params.hive_user} --overwrite")
+      # Copy params.hive_llap_keytab_file to hdfs://<host>:<port>/user/<hive_user>/.slider/keytabs/<hive_user> , required by LLAP
+      slider_keytab_install_cmd = format("slider install-keytab --keytab {params.hive_llap_keytab_file} --folder {params.hive_user} --overwrite")
       Execute(slider_keytab_install_cmd, user=params.hive_user)
 
     def do_kinit(self):
@@ -365,6 +365,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
 
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {params.hive_server2_keytab} {params.hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
+
+      llap_kinit_cmd = format("{kinit_path_local} -kt {params.hive_llap_keytab_file} {params.hive_llap_principal}; ")
+      Execute(llap_kinit_cmd, user=params.hive_user)
 
     """
     Get llap app status data for LLAP Tech Preview code base.

@@ -47,10 +47,10 @@ UKNOWN_STATUS_CODE = 'UNKNOWN'
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 
-HIVE_PRINCIPAL_KEY = '{{hive-interactive-site/hive.llap.daemon.service.principal}}'
+HIVE_PRINCIPAL_KEY = '{{hive-interactive-site/hive.llap.zk.sm.principal}}'
 HIVE_PRINCIPAL_DEFAULT = 'default.hive.principal'
 
-HIVE_PRINCIPAL_KEYTAB_KEY = '{{hive-interactive-site/hive.llap.daemon.keytab.file}}'
+HIVE_PRINCIPAL_KEYTAB_KEY = '{{hive-interactive-site/hive.llap.zk.sm.keytab.file}}'
 HIVE_PRINCIPAL_KEYTAB_DEFAULT = 'default.hive.keytab'
 
 HIVE_AUTHENTICATION_DEFAULT = 'NOSASL'
