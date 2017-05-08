@@ -173,4 +173,14 @@ public class PrivilegeEntity {
   public int hashCode() {
     return Objects.hash(id, permission, resource, principal);
   }
+
+  @Override
+  public String toString() {
+    return "PrivilegeEntity{" +
+        "id=" + id +
+        ", permission=" + permission +
+        ", resource=" + resource +
+        ", principal=" + principal +
+        '}';
+  }
 }

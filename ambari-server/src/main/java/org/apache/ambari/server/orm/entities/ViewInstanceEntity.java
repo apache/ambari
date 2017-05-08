@@ -1071,4 +1071,13 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     }
   }
 
+  @Override
+  public String toString() {
+    return "ViewInstanceEntity{" +
+        "viewInstanceId=" + viewInstanceId +
+        ", viewName='" + viewName + '\'' +
+        ", name='" + name + '\'' +
+        ", label='" + label + '\'' +
+        '}';
+  }
 }
