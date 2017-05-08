@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -283,7 +285,9 @@ public class HostVersionOutOfSyncListener {
       LOG.debug(event.toString());
     }
 
-    List<RepositoryVersionEntity> repos = repositoryVersionDAO.get().findAllDefinitions();
+    // create host version entries for every repository
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES, comment="Eventually take into account deleted repositories")
+    List<RepositoryVersionEntity> repos = repositoryVersionDAO.get().findAll();
 
     for (String hostName : event.getHostNames()) {
       HostEntity hostEntity = hostDAO.get().findByName(hostName);

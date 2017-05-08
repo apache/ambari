@@ -681,21 +681,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   /**
-   * Updates the version states.  Transactional to ensure only one transaction for all updates
-   * @param clusterId the cluster
-   * @param current   the repository that is current for the cluster
-   * @param target    the target repository
-   */
-  @Transactional
-  protected void updateVersionStates(Long clusterId, RepositoryVersionEntity current,
-      RepositoryVersionEntity target) {
-
-    hostComponentStateDAO.updateVersions(target.getVersion());
-    hostVersionDAO.updateVersions(target, current);
-//    clusterVersionDAO.updateVersions(clusterId, target, current);
-  }
-
-  /**
    * Additional check over {@link VersionUtils#compareVersions(String, String)} that
    * compares build numbers
    */

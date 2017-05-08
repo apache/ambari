@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
+import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.inject.Inject;
@@ -137,6 +138,11 @@ public class UpgradeContext {
    * {@link Direction#DOWNGRADE}.
    */
   private RepositoryVersionEntity m_targetRepositoryVersion;
+
+  /**
+   * Optionally set if {@link #setDowngradeFromVersion(String)} is called.
+   */
+  private RepositoryVersionEntity m_downgradeFromRepositoryVersion;
 
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
@@ -249,7 +255,7 @@ public class UpgradeContext {
     setSourceAndTargetVersions();
 
     if (m_direction == Direction.DOWNGRADE) {
-      m_downgradeFromVersion = upgradeEntity.getFromVersion();
+      setDowngradeFromVersion(upgradeEntity.getFromVersion());
     }
 
     // since this constructor is initialized from an entity, then this map is
@@ -309,7 +315,7 @@ public class UpgradeContext {
         break;
     }
 
-    m_targetStackId = targetStackId;
+    m_targetStackId = m_targetRepositoryVersion.getStackId();
   }
 
   /**
@@ -499,12 +505,23 @@ public class UpgradeContext {
   }
 
   /**
-   * This method returns the non-finalized version we are downgrading from.
+   * Optionally set if doing a downgrade. Represents the non-finalized version
+   * being downgraded from.
    *
    * @return version cluster is downgrading from
    */
   public String getDowngradeFromVersion() {
     return m_downgradeFromVersion;
+  }
+
+  /**
+   * Optionally set if doing a downgrade. Represents the non-finalized version
+   * being downgraded from.
+   *
+   * @return
+   */
+  public RepositoryVersionEntity getDowngradeFromRepositoryVersion() {
+    return m_downgradeFromRepositoryVersion;
   }
 
   /**
@@ -514,6 +531,9 @@ public class UpgradeContext {
    */
   public void setDowngradeFromVersion(String downgradeFromVersion) {
     m_downgradeFromVersion = downgradeFromVersion;
+
+    m_downgradeFromRepositoryVersion = m_repoVersionDAO.findByStackAndVersion(m_targetStackId,
+        downgradeFromVersion);
   }
 
   /**
@@ -682,5 +702,16 @@ public class UpgradeContext {
 
     parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "true");
     return parameters;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("direction", m_direction)
+        .add("type", m_type)
+        .add("target",m_targetRepositoryVersion).toString();
   }
 }

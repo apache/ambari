@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 
@@ -234,12 +234,6 @@ public interface ServiceComponentHost {
    */
   void setRestartRequired(boolean restartRequired);
 
-  /**
-   * Changes host version state according to state of the components installed on the host.
-   * @return The Repository Version Entity with that component in the host
-   * @throws AmbariException if host is detached from the cluster
-   */
-  RepositoryVersionEntity recalculateHostVersionState() throws AmbariException;
 
   HostComponentDesiredStateEntity getDesiredStateEntity();
 
@@ -249,5 +243,15 @@ public interface ServiceComponentHost {
    * @return the service component (never {@code null}).
    */
   ServiceComponent getServiceComponent();
+
+  /**
+   * Updates an existing {@link HostVersionEntity} for the desired repository of
+   * this component, or create one if it doesn't exist.
+   *
+   * @return Returns either the newly created or the updated Host Version
+   *         Entity.
+   * @throws AmbariException
+   */
+  HostVersionEntity recalculateHostVersionState() throws AmbariException;
 
 }

@@ -26,10 +26,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,7 +108,6 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -443,12 +440,14 @@ public class ClusterTest {
    * @param hostAttributes Host Attributes
    * @throws Exception
    */
-  private void addHost(String hostName, Map<String, String> hostAttributes) throws Exception {
+  private Host addHost(String hostName, Map<String, String> hostAttributes) throws Exception {
     clusters.addHost(hostName);
     Host host = clusters.getHost(hostName);
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
     host.setHostAttributes(hostAttributes);
+
+    return host;
   }
 
   /**
@@ -1640,14 +1639,16 @@ public class ClusterTest {
   }
 
   /**
-   * Comprehensive test for transitionHostVersion and recalculateClusterVersion.
-   * It creates a cluster with 3 hosts and 3 services, one of which does not advertise a version.
-   * It then verifies that all 3 hosts have a version of CURRENT, and so does the cluster.
-   * It then adds one more host with a component, so its HostVersion will initialize in CURRENT.
-   * Next, it distributes a repo so that it is INSTALLED on the 4 hosts.
-   * It then adds one more host, whose HostVersion will be OUT_OF_SYNC for the new repo.
-   * After redistributing bits again, it simulates an RU.
-   * Finally, some of the hosts will end up with a HostVersion in UPGRADED, and others still in INSTALLED.
+   * Comprehensive test for host versions. It creates a cluster with 3 hosts and
+   * 3 services, one of which does not advertise a version. It then verifies
+   * that all 3 hosts have a version of CURRENT, and so does the cluster. It
+   * then adds one more host with a component, so its HostVersion will
+   * initialize in CURRENT. Next, it distributes a repo so that it is INSTALLED
+   * on the 4 hosts. It then adds one more host, whose HostVersion will be
+   * OUT_OF_SYNC for the new repo. After redistributing bits again, it simulates
+   * an RU. Finally, some of the hosts will end up with a HostVersion in
+   * UPGRADED, and others still in INSTALLED.
+   *
    * @throws Exception
    */
   @Test
@@ -1736,13 +1737,21 @@ public class ClusterTest {
 
     // Add one more Host, with only Ganglia on it. It should have a HostVersion in NOT_REQUIRED for v2,
     // as Ganglia isn't versionable
-    addHost("h-5", hostAttributes);
+    Host host5 = addHost("h-5", hostAttributes);
     clusters.mapAndPublishHostsToCluster(Collections.singleton("h-5"), clusterName);
+
+    // verify that the new host version was added for the existing repo
+    HostVersionEntity h5Version1 = hostVersionDAO.findHostVersionByHostAndRepository(host5.getHostEntity(), rv1);
+    HostVersionEntity h5Version2 = hostVersionDAO.findHostVersionByHostAndRepository(host5.getHostEntity(), rv2);
+
+    Assert.assertEquals(RepositoryVersionState.NOT_REQUIRED, h5Version1.getState());
+    Assert.assertEquals(RepositoryVersionState.NOT_REQUIRED, h5Version2.getState());
+
     ServiceComponentHost schHost5Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-5");
     sc3CompB.addServiceComponentHost(schHost5Serv3CompB);
 
     // Host 5 will be in OUT_OF_SYNC, so redistribute bits to it so that it reaches a state of INSTALLED
-    HostVersionEntity h5Version2 = hostVersionDAO.findByClusterStackVersionAndHost(clusterName, stackId, v2, "h-5");
+    h5Version2 = hostVersionDAO.findByClusterStackVersionAndHost(clusterName, stackId, v2, "h-5");
     Assert.assertNotNull(h5Version2);
     Assert.assertEquals(RepositoryVersionState.NOT_REQUIRED, h5Version2.getState());
 
@@ -1897,82 +1906,11 @@ public class ClusterTest {
     List<HostVersionEntity> entities = hostVersionDAO.findByClusterAndHost(clusterName, "h-3");
     assertTrue("Expected no host versions", null == entities || 0 == entities.size());
 
-    c1.transitionHostVersionState(hostEntity, repositoryVersion, c1.getDesiredStackVersion());
+    List<ServiceComponentHost> componentsOnHost3 = c1.getServiceComponentHosts("h-3");
+    componentsOnHost3.iterator().next().recalculateHostVersionState();
 
     entities = hostVersionDAO.findByClusterAndHost(clusterName, "h-3");
-
     assertEquals(1, entities.size());
-  }
-
-  @Test
-  public void testTransitionHostVersionState_OutOfSync_BlankCurrent() throws Exception {
-    /**
-     * Checks case when there are 2 cluster stack versions present (CURRENT and OUT_OF_SYNC),
-     * and we add a new host to cluster. On a new host, both CURRENT and OUT_OF_SYNC host
-     * versions should be present
-     */
-    StackId stackId = new StackId("HDP-2.0.5");
-    String clusterName = "c1";
-    clusters.addCluster(clusterName, stackId);
-    final Cluster c1 = clusters.getCluster(clusterName);
-    Assert.assertEquals(clusterName, c1.getClusterName());
-
-    clusters.addHost("h-1");
-    clusters.addHost("h-2");
-    String h3 = "h-3";
-    clusters.addHost(h3);
-
-    for (String hostName : new String[] { "h-1", "h-2", h3}) {
-      Host h = clusters.getHost(hostName);
-      h.setIPv4("ipv4");
-      h.setIPv6("ipv6");
-
-      Map<String, String> hostAttributes = new HashMap<>();
-      hostAttributes.put("os_family", "redhat");
-      hostAttributes.put("os_release_version", "5.9");
-      h.setHostAttributes(hostAttributes);
-    }
-
-    String v1 = "2.0.5-1";
-    String v2 = "2.0.5-2";
-    c1.setDesiredStackVersion(stackId);
-    RepositoryVersionEntity rve1 = helper.getOrCreateRepositoryVersion(stackId,
-        v1);
-    RepositoryVersionEntity rve2 = helper.getOrCreateRepositoryVersion(stackId,
-        v2);
-
-    c1.setCurrentStackVersion(stackId);
-
-    clusters.mapHostToCluster("h-1", clusterName);
-    clusters.mapHostToCluster("h-2", clusterName);
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
-
-    Service service = c1.addService("ZOOKEEPER", repositoryVersion);
-    ServiceComponent sc = service.addServiceComponent("ZOOKEEPER_SERVER");
-    sc.addServiceComponentHost("h-1");
-    sc.addServiceComponentHost("h-2");
-
-    clusters.mapHostToCluster(h3, clusterName);
-
-    // This method is usually called when we receive heartbeat from new host
-    HostEntity hostEntity3 = mock(HostEntity.class);
-    when(hostEntity3.getHostName()).thenReturn(h3);
-
-    // HACK: to workaround issue with NullPointerException at
-    // org.eclipse.persistence.internal.sessions.MergeManager.registerObjectForMergeCloneIntoWorkingCopy(MergeManager.java:1037)
-    // during hostVersionDAO.merge()
-    HostVersionDAO hostVersionDAOMock = mock(HostVersionDAO.class);
-    Field field = ClusterImpl.class.getDeclaredField("hostVersionDAO");
-    field.setAccessible(true);
-    field.set(c1, hostVersionDAOMock);
-
-    ArgumentCaptor<HostVersionEntity> hostVersionCaptor = ArgumentCaptor.forClass(HostVersionEntity.class);
-
-    c1.transitionHostVersionState(hostEntity3, rve1, stackId);
-
-    verify(hostVersionDAOMock).merge(hostVersionCaptor.capture());
-    assertEquals(hostVersionCaptor.getValue().getState(), RepositoryVersionState.CURRENT);
   }
 
   /**

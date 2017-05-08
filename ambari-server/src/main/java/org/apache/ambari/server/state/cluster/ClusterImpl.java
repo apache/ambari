@@ -131,7 +131,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -1078,68 +1077,6 @@ public class ClusterImpl implements Cluster {
     }
 
     return hostsRequiringInstallation;
-  }
-
-  /**
-   * Transition the Host Version across states.
-   * @param host Host object
-   * @param repositoryVersion Repository Version with stack and version information
-   * @param stack Stack information
-   * @throws AmbariException
-   */
-  @Override
-  @Transactional
-  public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException {
-    StackEntity repoVersionStackEntity = repositoryVersion.getStack();
-    StackId repoVersionStackId = new StackId(repoVersionStackEntity);
-
-    HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(
-      getClusterId(), repoVersionStackId, repositoryVersion.getVersion(),
-      host.getHostId());
-
-    hostTransitionStateWriteLock.lock();
-    try {
-      // Create one if it doesn't already exist. It will be possible to make further transitions below.
-      boolean performingInitialBootstrap = false;
-      if (hostVersionEntity == null) {
-        if (hostVersionDAO.findByClusterAndHost(getClusterName(), host.getHostName()).isEmpty()) {
-          // That is an initial bootstrap
-          performingInitialBootstrap = true;
-        }
-        hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.INSTALLING);
-
-        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
-            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
-            hostVersionEntity.getRepositoryVersion().getVersion(), hostVersionEntity.getRepositoryVersion().getId());
-
-        hostVersionDAO.create(hostVersionEntity);
-      }
-
-      HostVersionEntity currentVersionEntity = hostVersionDAO.findByHostAndStateCurrent(getClusterId(), host.getHostId());
-      boolean isCurrentPresent = (currentVersionEntity != null);
-      final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
-
-      if (!isCurrentPresent) {
-        // Transition from UPGRADING -> CURRENT. This is allowed because Host Version Entity is bootstrapped in an UPGRADING state.
-        // Alternatively, transition to CURRENT during initial bootstrap if at least one host component advertised a version
-        if (hostSummary.isUpgradeFinished() || performingInitialBootstrap) {
-          hostVersionEntity.setState(RepositoryVersionState.CURRENT);
-          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-        }
-      } else {
-        // Handle transitions during a Stack Upgrade
-        if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
-          currentVersionEntity.setState(RepositoryVersionState.INSTALLED);
-          hostVersionEntity.setState(RepositoryVersionState.CURRENT);
-
-          hostVersionDAO.merge(currentVersionEntity);
-          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
-        }
-      }
-    } finally {
-      hostTransitionStateWriteLock.unlock();
-    }
-    return hostVersionEntity;
   }
 
   @Override

@@ -973,7 +973,7 @@ public class UpgradeResourceProviderTest {
     requestProps.clear();
     // Now perform a downgrade
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_direction");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.3");
@@ -992,8 +992,9 @@ public class UpgradeResourceProviderTest {
       }
     }
     assertNotNull(upgrade);
-    assertEquals("Downgrade groups reduced from 3 to 2", 2, upgrade.getUpgradeGroups().size());
-    group = upgrade.getUpgradeGroups().get(1);
+    List<UpgradeGroupEntity> groups = upgrade.getUpgradeGroups();
+    assertEquals("Downgrade groups reduced from 3 to 2", 1, groups.size());
+    group = upgrade.getUpgradeGroups().get(0);
     assertEquals("Execution items increased from 1 to 2", 2, group.getItems().size());
   }
 
@@ -1060,7 +1061,7 @@ public class UpgradeResourceProviderTest {
         assertEquals(oldStack, sc.getDesiredStackId());
 
         for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(oldStack.getStackVersion(), sch.getVersion());
+          assertEquals(repoVersionEntity2110.getVersion(), sch.getVersion());
         }
       }
     }
@@ -1100,14 +1101,10 @@ public class UpgradeResourceProviderTest {
     assertFalse(oldStack.equals(newStack));
 
     for (Service s : cluster.getServices().values()) {
-      assertEquals(newStack, s.getDesiredStackId());
+      assertEquals(repoVersionEntity2200, s.getDesiredRepositoryVersion());
 
       for (ServiceComponent sc : s.getServiceComponents().values()) {
-        assertEquals(newStack, sc.getDesiredStackId());
-
-        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-          assertEquals(newStack.getStackVersion(), sch.getVersion());
-        }
+        assertEquals(repoVersionEntity2200, sc.getDesiredRepositoryVersion());
       }
     }
   }
@@ -1568,7 +1565,7 @@ public class UpgradeResourceProviderTest {
 
     component = service.getServiceComponent("DRPC_SERVER");
     assertNotNull(component);
-    assertEquals("UNKNOWN", component.getDesiredVersion());
+    assertEquals(repoVersionEntity2110, component.getDesiredRepositoryVersion());
 
     hostComponent = component.getServiceComponentHost("h1");
     assertEquals(UpgradeState.NONE, hostComponent.getUpgradeState());

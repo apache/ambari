@@ -779,7 +779,7 @@ public class UpgradeHelper {
           }
 
           // !!! if we aren't version advertised, but there IS a version, set it.
-          if (!versionAdvertised && StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
+          if (!versionAdvertised && !StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
               serviceComponentHost.getVersion())) {
             serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);
           }

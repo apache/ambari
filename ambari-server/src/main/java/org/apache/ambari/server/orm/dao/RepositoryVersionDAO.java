@@ -198,12 +198,15 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   }
 
   /**
-   * Retrieves repository version when they are loaded by a version definition file
+   * Retrieves repository version when they are loaded by a version definition
+   * file. This will not return all repositories - it will only return those
+   * which have a non-NULL VDF.
    *
-   * @return a list of entities, or an empty list when there are none
+   * @return a list of repositories created by VDF, or an empty list when there
+   *         are none.
    */
   @RequiresSession
-  public List<RepositoryVersionEntity> findAllDefinitions() {
+  public List<RepositoryVersionEntity> findRepositoriesWithVersionDefinitions() {
     final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
         "repositoryVersionsFromDefinition", RepositoryVersionEntity.class);
     return daoUtils.selectList(query);

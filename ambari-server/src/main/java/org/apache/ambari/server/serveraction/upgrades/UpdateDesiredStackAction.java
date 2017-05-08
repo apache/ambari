@@ -22,6 +22,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -33,10 +34,14 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -46,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).
@@ -93,6 +99,12 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
    */
   @Inject
   private Configuration m_configuration;
+
+  /**
+   * Used for restting host version states on downgrade.
+   */
+  @Inject
+  private HostVersionDAO m_hostVersionDAO;
 
   /**
    * {@inheritDoc}
@@ -152,7 +164,8 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
    *          username performing the action
    * @return the command report to return
    */
-  private CommandReport updateDesiredRepositoryVersion(
+  @Transactional
+  CommandReport updateDesiredRepositoryVersion(
       Cluster cluster, StackId originalStackId, StackId targetStackId,
       UpgradeContext upgradeContext, UpgradePack upgradePack, String userName)
       throws AmbariException, InterruptedException {
@@ -177,7 +190,22 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
             upgradeContext.getVersion(), StringUtils.join(servicesInUpgrade, ','));
       }
 
-      out.append(message);
+      out.append(message).append(System.lineSeparator());
+
+      // a downgrade must force host versions back to INSTALLED
+      if (upgradeContext.getDirection() == Direction.DOWNGRADE) {
+        RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getDowngradeFromRepositoryVersion();
+        out.append(String.format("Setting all host versions back to %s for repository version %s",
+            RepositoryVersionState.INSTALLED, downgradeFromRepositoryVersion.getVersion()));
+
+        List<HostVersionEntity> hostVersionsToReset = m_hostVersionDAO.findHostVersionByClusterAndRepository(
+            cluster.getClusterId(), downgradeFromRepositoryVersion);
+
+        for (HostVersionEntity hostVersion : hostVersionsToReset) {
+          hostVersion.setState(RepositoryVersionState.INSTALLED);
+        }
+      }
+
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", out.toString(), err.toString());
     } catch (Exception e) {
       StringWriter sw = new StringWriter();

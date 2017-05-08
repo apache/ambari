@@ -28,8 +28,6 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
@@ -201,21 +199,7 @@ public interface Cluster {
       VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
 
   /**
-   * For a given host, will either either update an existing Host Version Entity for the given version, or create
-   * one if it doesn't exist
-   *
-   * @param host Host Entity object
-   * @param repositoryVersion Repository Version that the host is transitioning to
-   * @param stack Stack information with the version
-   * @return Returns either the newly created or the updated Host Version Entity.
-   * @throws AmbariException
-   */
-  HostVersionEntity transitionHostVersionState(HostEntity host,
-      final RepositoryVersionEntity repositoryVersion, final StackId stack)
-      throws AmbariException;
 
-
-  /**
    * Update state of a cluster stack version for cluster based on states of host versions and stackids.
    * @param repositoryVersion the repository version entity whose version is a value like 2.2.1.0-100)
    * @throws AmbariException

@@ -52,9 +52,11 @@ import org.apache.ambari.server.state.repository.Release;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -275,37 +277,6 @@ public class RepositoryVersionEntity {
     this.type = type;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
-
-    if (id != null ? !id.equals(that.id) : that.id != null) {
-      return false;
-    }
-    if (stack != null ? !stack.equals(that.stack) : that.stack != null) {
-      return false;
-    }
-    if (version != null ? !version.equals(that.version) : that.version != null) {
-      return false;
-    }
-    if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
-      return false;
-    }
-
-    if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
-      return false;
-    }
-
-    return true;
-  }
-
   /**
    * @return the XML that is the basis for the version
    */
@@ -366,14 +337,41 @@ public class RepositoryVersionEntity {
     return versionDefinition;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    RepositoryVersionEntity that = (RepositoryVersionEntity) o;
+    return new EqualsBuilder().append(id, that.id).append(stack, that.stack).append(version,
+        that.version).append(displayName, that.displayName).isEquals();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = id != null ? id.hashCode() : 0;
-    result = 31 * result + (stack != null ? stack.hashCode() : 0);
-    result = 31 * result + (version != null ? version.hashCode() : 0);
-    result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
-    result = 31 * result + (operatingSystems != null ? operatingSystems.hashCode() : 0);
-    return result;
+    return Objects.hashCode(id, stack, version, displayName);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString(){
+    return Objects.toStringHelper(this)
+        .add("id", id)
+        .add("stack", stack)
+        .add("version", version).toString();
   }
 
   /**

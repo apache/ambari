@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -42,12 +41,14 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -82,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -107,6 +110,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  private HostVersionDAO hostVersionDAO;
 
   private final ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
@@ -154,6 +160,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   private ConcurrentMap<String, HostConfig> actualConfigs = new ConcurrentHashMap<>();
   private ImmutableList<Map<String, String>> processes = ImmutableList.of();
+
+  /**
+   * Used for preventing multiple components on the same host from trying to
+   * recalculate versions concurrently.
+   */
+  private static final Striped<Lock> HOST_VERSION_LOCK = Striped.lazyWeakLock(20);
 
   /**
    * The name of the host (which should never, ever change)
@@ -1486,46 +1498,46 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   /**
-   * Bootstrap any Repo Version, and potentially transition the Host Version across states.
-   * If a Host Component has a valid version, then create a Host Version if it does not already exist.
-   * If a Host Component does not have a version, return right away because no information is known.
-   * @return Return the Repository Version object
-   * @throws AmbariException
+   * {@inheritDoc}
    */
   @Override
-  public RepositoryVersionEntity recalculateHostVersionState() throws AmbariException {
-    RepositoryVersionEntity repositoryVersion = null;
-    String version = getVersion();
-    if (getUpgradeState().equals(UpgradeState.IN_PROGRESS) ||
-      getUpgradeState().equals(UpgradeState.VERSION_MISMATCH) ||
-        State.UNKNOWN.toString().equals(version)) {
-      // TODO: we still recalculate host version if upgrading component failed. It seems to be ok
-      // Recalculate only if no upgrade in progress/no version mismatch
-      return null;
+  @Transactional
+  public HostVersionEntity recalculateHostVersionState() throws AmbariException {
+    RepositoryVersionEntity repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+    HostEntity hostEntity = host.getHostEntity();
+    HostVersionEntity hostVersionEntity = hostVersionDAO.findHostVersionByHostAndRepository(
+        hostEntity, repositoryVersion);
+
+    Lock lock = HOST_VERSION_LOCK.get(host.getHostName());
+    lock.lock();
+    try {
+      // Create one if it doesn't already exist. It will be possible to make
+      // further transitions below.
+      if (hostVersionEntity == null) {
+        hostVersionEntity = new HostVersionEntity(hostEntity, repositoryVersion,
+            RepositoryVersionState.INSTALLING);
+
+        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
+            hostVersionEntity.getRepositoryVersion().getVersion(),
+            hostVersionEntity.getRepositoryVersion().getId());
+
+        hostVersionDAO.create(hostVersionEntity);
+      }
+
+      final ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(
+          ambariMetaInfo, hostEntity, repositoryVersion);
+
+      if (hostSummary.isVersionCorrectForAllHosts(repositoryVersion)) {
+        if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT) {
+          hostVersionEntity.setState(RepositoryVersionState.CURRENT);
+          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
+        }
+      }
+    } finally {
+      lock.unlock();
     }
-
-    final String hostName = getHostName();
-    final long hostId = getHost().getHostId();
-    final Set<Cluster> clustersForHost = clusters.getClustersForHost(hostName);
-    if (clustersForHost.size() != 1) {
-      throw new AmbariException("Host " + hostName + " should be assigned only to one cluster");
-    }
-    final Cluster cluster = clustersForHost.iterator().next();
-    final StackId stackId = cluster.getDesiredStackVersion();
-    final StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-
-    // Check if there is a Repo Version already for the version.
-    // If it doesn't exist, will have to create it.
-    repositoryVersion = repositoryVersionDAO.findByStackNameAndVersion(stackId.getStackName(), version);
-
-    if (null == repositoryVersion) {
-      repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
-    }
-
-    final HostEntity host = hostDAO.findById(hostId);
-    cluster.transitionHostVersionState(host, repositoryVersion, stackId);
-
-    return repositoryVersion;
+    return hostVersionEntity;
   }
 
   /**
