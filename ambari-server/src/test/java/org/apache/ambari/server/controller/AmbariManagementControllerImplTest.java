@@ -73,9 +73,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
@@ -94,7 +92,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -919,7 +916,6 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getResourceId()).andReturn(1L).times(3);
     expect(cluster.getClusterName()).andReturn("cluster").times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
-    expect(cluster.getCurrentClusterVersion()).andReturn(null).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(null).anyTimes();
     expect(cluster.getDesiredStackVersion()).andReturn(null).anyTimes();
 
@@ -2059,8 +2055,6 @@ public class AmbariManagementControllerImplTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
-    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
-    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
 
@@ -2081,15 +2075,12 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.areHostsSysPrepped()).andReturn("true");
     expect(configuration.getDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
     expect(configuration.getPreviousDatabaseConnectorNames()).andReturn(new HashMap<String, String>()).anyTimes();
-    expect(clusterVersionDAO.findByClusterAndStateCurrent(clusterName)).andReturn(clusterVersionEntity).anyTimes();
-    expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
     expect(configHelper.getPropertyValuesWithPropertyType(stackId,
         PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
             notManagedHdfsPathSet);
 
-    replay(manager, clusters, cluster, injector, stackId, configuration, clusterVersionDAO, clusterVersionEntity,
-        repositoryVersionEntity, configHelper);
+    replay(manager, clusters, cluster, injector, stackId, configuration, repositoryVersionEntity, configHelper);
 
     AmbariManagementControllerImpl ambariManagementControllerImpl =
         createMockBuilder(AmbariManagementControllerImpl.class)
@@ -2116,10 +2107,6 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, configuration);
 
-    f = helperClass.getDeclaredField("clusterVersionDAO");
-    f.setAccessible(true);
-    f.set(helper, clusterVersionDAO);
-
     f = helperClass.getDeclaredField("configHelper");
     f.setAccessible(true);
     f.set(helper, configHelper);
@@ -2128,7 +2115,7 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, gson);
 
-    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
+    Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster, repositoryVersionEntity);
 
     assertEquals(defaultHostParams.size(), 16);
     assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
@@ -2221,10 +2208,10 @@ public class AmbariManagementControllerImplTest {
       super(actionManager, clusters, injector);
     }
 
-    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
-                                                             String osFamily) {
-      return super.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
-    }
+//    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
+//                                                             String osFamily) {
+//      return super.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
+//    }
 
   }
 
@@ -2341,10 +2328,6 @@ public class AmbariManagementControllerImplTest {
   public void testCreateClusterWithRepository() throws Exception {
     Injector injector = createNiceMock(Injector.class);
 
-    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
-
     RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
     RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
     expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
@@ -2353,16 +2336,9 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    expect(injector.getInstance(ClusterVersionDAO.class)).andReturn(clusterVersionDAO);
 
     Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.1")).atLeastOnce();
-
-    // this getting called one time means the cluster version is getting created
-    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
-    expect(cluster.createClusterVersion(anyObject(StackId.class), anyObject(String.class),
-        anyObject(String.class), anyObject(RepositoryVersionState.class))).andReturn(
-            clusterVersionEntity).once();
 
     expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
 
@@ -2371,7 +2347,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
 
-    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
 
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
@@ -2393,7 +2369,7 @@ public class AmbariManagementControllerImplTest {
     controller.createCluster(cr);
 
     // verification
-    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion, clusterVersionDAO);
+    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
   }
 
 

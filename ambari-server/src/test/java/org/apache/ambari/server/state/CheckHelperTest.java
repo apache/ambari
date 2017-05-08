@@ -29,7 +29,6 @@ import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -155,7 +154,6 @@ public class CheckHelperTest {
       @Override
       protected void configure() {
         bind(Clusters.class).toInstance(clusters);
-        bind(ClusterVersionDAO.class).toProvider(Providers.<ClusterVersionDAO>of(null));
         bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO>of(null));
         bind(UpgradeDAO.class).toProvider(Providers.<UpgradeDAO>of(null));
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));

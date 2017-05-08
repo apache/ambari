@@ -60,7 +60,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -196,9 +195,6 @@ public class HeartbeatTestHelper {
     Config config = cf.createNew(cluster, "cluster-env", "version1", configProperties, new HashMap<String, Map<String, String>>());
     cluster.addDesiredConfig("user", Collections.singleton(config));
 
-    helper.getOrCreateRepositoryVersion(stackId, repositoryVersion);
-    cluster.createClusterVersion(stackId, repositoryVersion, "admin",
-        RepositoryVersionState.INSTALLING);
 
     Map<String, String> hostAttributes = new HashMap<>();
     hostAttributes.put("os_family", "redhat");

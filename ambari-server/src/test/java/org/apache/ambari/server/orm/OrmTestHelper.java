@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -101,8 +102,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-
-import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
@@ -403,8 +402,6 @@ public class OrmTestHelper {
     StackId stackId = new StackId("HDP", "2.0.6");
     cluster.setDesiredStackVersion(stackId);
     getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
     return cluster;
   }
 
@@ -436,7 +433,8 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
 
-    RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
+        cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
@@ -469,7 +467,8 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
 
-    RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(cluster.getDesiredStackVersion(),
+        cluster.getDesiredStackVersion().getStackVersion());
 
     String serviceName = "YARN";
     Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
@@ -600,6 +599,41 @@ public class OrmTestHelper {
   }
 
   /**
+   * Convenient method to create or to get repository version for given cluster.  The repository
+   * version string is based on the cluster's stack version.
+   *
+   * @param stackId stack object
+   * @param version stack version
+   * @return repository version
+   */
+  public RepositoryVersionEntity getOrCreateRepositoryVersion(Cluster cluster) {
+    StackId stackId = cluster.getCurrentStackVersion();
+    String version = stackId.getStackVersion() + ".1";
+
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    assertNotNull(stackEntity);
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        stackId, version);
+
+    if (repositoryVersion == null) {
+      try {
+        repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
+            String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
+      } catch (Exception ex) {
+        LOG.error("Caught exception", ex);
+        ex.printStackTrace();
+        Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
+            stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
+      }
+    }
+    return repositoryVersion;
+  }
+
+  /**
    * Convenient method to create or to get repository version for given stack.
    *
    * @param stackId stack object
@@ -623,6 +657,7 @@ public class OrmTestHelper {
             String.valueOf(System.currentTimeMillis()) + uniqueCounter.incrementAndGet(), "");
       } catch (Exception ex) {
         LOG.error("Caught exception", ex);
+        ex.printStackTrace();
         Assert.fail(MessageFormat.format("Unable to create Repo Version for Stack {0} and version {1}",
             stackEntity.getStackName() + "-" + stackEntity.getStackVersion(), version));
       }

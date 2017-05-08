@@ -39,7 +39,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -123,8 +122,6 @@ public class EventsTest {
 
     m_cluster.setDesiredStackVersion(stackId);
     m_repositoryVersion = m_helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);
-    m_cluster.createClusterVersion(stackId, REPO_VERSION, "admin",
-        RepositoryVersionState.INSTALLING);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }

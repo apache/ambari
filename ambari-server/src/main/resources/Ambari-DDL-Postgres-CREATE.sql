@@ -163,18 +163,6 @@ CREATE TABLE repo_version (
   CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name),
   CONSTRAINT UQ_repo_version_stack_id UNIQUE (stack_id, version));
 
-CREATE TABLE cluster_version (
-  id BIGINT NOT NULL,
-  repo_version_id BIGINT NOT NULL,
-  cluster_id BIGINT NOT NULL,
-  state VARCHAR(32) NOT NULL,
-  start_time BIGINT NOT NULL,
-  end_time BIGINT,
-  user_name VARCHAR(32),
-  CONSTRAINT PK_cluster_version PRIMARY KEY (id),
-  CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
-  CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id));
-
 CREATE TABLE servicecomponentdesiredstate (
   id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
@@ -1074,7 +1062,6 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('alert_current_id_seq', 0),
   ('config_id_seq', 1),
   ('repo_version_id_seq', 0),
-  ('cluster_version_id_seq', 0),
   ('host_version_id_seq', 0),
   ('service_config_id_seq', 1),
   ('upgrade_id_seq', 0),

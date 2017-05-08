@@ -20,7 +20,6 @@ package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -40,8 +39,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,29 +63,20 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
@@ -119,13 +107,10 @@ public class UpgradeCatalog220Test {
   private static Injector injector;
   private static Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private static EntityManager entityManager = createNiceMock(EntityManager.class);
-  private static UpgradeCatalogHelper upgradeCatalogHelper;
-  private static StackEntity desiredStackEntity;
   private AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
   private AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private StackDAO stackDAO = createNiceMock(StackDAO.class);
   private RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-  private ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
   private HostVersionDAO hostVersionDAO = createNiceMock(HostVersionDAO.class);
   private ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
 
@@ -139,12 +124,11 @@ public class UpgradeCatalog220Test {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
+
     // inject AmbariMetaInfo to ensure that stacks get populated in the DB
     injector.getInstance(AmbariMetaInfo.class);
     // load the stack entity
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    desiredStackEntity = stackDAO.find("HDP", "2.2.0");
+
   }
 
   @AfterClass
@@ -309,89 +293,6 @@ public class UpgradeCatalog220Test {
     upgradeCatalog220.executeDMLUpdates();
 
     verify(upgradeCatalog220);
-  }
-
-  /**
-   * Verify that when bootstrapping HDP 2.1, records get inserted into the
-   * repo_version, cluster_version, and host_version tables.
-   * @throws AmbariException
-   */
-  private void verifyBootstrapHDP21() throws Exception, AmbariException {
-    final String stackName = "HDP";
-    final String stackVersion = "2.1";
-    final String stackNameAndVersion = stackName + "-" + stackVersion;
-    final String buildNumber = "2.1.0.0-0001";
-    final String stackAndBuild = stackName + "-" + buildNumber;
-    final String clusterName = "c1";
-
-    expect(amc.getAmbariMetaInfo()).andReturn(metaInfo);
-
-    // Mock the actions to bootstrap if using HDP 2.1
-    Clusters clusters = createNiceMock(Clusters.class);
-    expect(amc.getClusters()).andReturn(clusters);
-
-    Map<String, Cluster> clusterHashMap = new HashMap<>();
-    Cluster cluster = createNiceMock(Cluster.class);
-    clusterHashMap.put(clusterName, cluster);
-    expect(clusters.getClusters()).andReturn(clusterHashMap);
-
-    StackId stackId = new StackId(stackNameAndVersion);
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
-
-    StackInfo stackInfo = new StackInfo();
-    stackInfo.setVersion(buildNumber);
-    expect(metaInfo.getStack(stackName, stackVersion)).andReturn(stackInfo);
-
-    StackEntity stackEntity = createNiceMock(StackEntity.class);
-    expect(stackEntity.getStackName()).andReturn(stackName);
-    expect(stackEntity.getStackVersion()).andReturn(stackVersion);
-
-    expect(stackDAO.find(stackName, stackVersion)).andReturn(stackEntity);
-
-    replay(amc, metaInfo, clusters, cluster, stackEntity, stackDAO);
-
-    // Mock more function calls
-    // Repository Version
-    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
-    expect(repositoryVersionDAO.findByDisplayName(stackAndBuild)).andReturn(null);
-    expect(repositoryVersionDAO.findMaxId("id")).andReturn(0L);
-    expect(repositoryVersionDAO.findAll()).andReturn(Collections.<RepositoryVersionEntity>emptyList());
-    expect(repositoryVersionDAO.create(anyObject(StackEntity.class), anyObject(String.class), anyObject(String.class), anyObject(String.class))).andReturn(repositoryVersionEntity);
-    expect(repositoryVersionEntity.getId()).andReturn(1L);
-    expect(repositoryVersionEntity.getVersion()).andReturn(buildNumber);
-    replay(repositoryVersionDAO, repositoryVersionEntity);
-
-    // Cluster Version
-    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
-    expect(clusterVersionEntity.getId()).andReturn(1L);
-    expect(clusterVersionEntity.getState()).andReturn(RepositoryVersionState.CURRENT);
-    expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity);
-
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class), anyObject(StackId.class), anyObject(String.class))).andReturn(null);
-    expect(clusterVersionDAO.findMaxId("id")).andReturn(0L);
-    expect(clusterVersionDAO.findAll()).andReturn(Collections.<ClusterVersionEntity>emptyList());
-    expect(clusterVersionDAO.create(anyObject(ClusterEntity.class), anyObject(RepositoryVersionEntity.class), anyObject(RepositoryVersionState.class), anyLong(), anyLong(), anyObject(String.class))).andReturn(clusterVersionEntity);
-    replay(clusterVersionDAO, clusterVersionEntity);
-
-    // Host Version
-    ClusterEntity clusterEntity = createNiceMock(ClusterEntity.class);
-    expect(clusterEntity.getClusterName()).andReturn(clusterName).anyTimes();
-    expect(clusterDAO.findByName(anyObject(String.class))).andReturn(clusterEntity);
-
-    Collection<HostEntity> hostEntities = new ArrayList<>();
-    HostEntity hostEntity1 = createNiceMock(HostEntity.class);
-    HostEntity hostEntity2 = createNiceMock(HostEntity.class);
-    expect(hostEntity1.getHostName()).andReturn("host1");
-    expect(hostEntity2.getHostName()).andReturn("host2");
-    hostEntities.add(hostEntity1);
-    hostEntities.add(hostEntity2);
-    expect(clusterEntity.getHostEntities()).andReturn(hostEntities);
-
-    expect(hostVersionDAO.findByClusterStackVersionAndHost(anyObject(String.class), anyObject(StackId.class), anyObject(String.class), anyObject(String.class))).andReturn(null);
-    expect(hostVersionDAO.findMaxId("id")).andReturn(0L);
-    expect(hostVersionDAO.findAll()).andReturn(Collections.<HostVersionEntity>emptyList());
-
-    replay(clusterEntity, clusterDAO, hostVersionDAO, hostEntity1, hostEntity2);
   }
 
   @Test
@@ -994,7 +895,6 @@ public class UpgradeCatalog220Test {
         binder.bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         binder.bind(StackDAO.class).toInstance(stackDAO);
         binder.bind(RepositoryVersionDAO.class).toInstance(repositoryVersionDAO);
-        binder.bind(ClusterVersionDAO.class).toInstance(clusterVersionDAO);
         binder.bind(HostVersionDAO.class).toInstance(hostVersionDAO);
       }
     };
@@ -1585,7 +1485,7 @@ public class UpgradeCatalog220Test {
         put("kerberos.server.primary", "{{bare_accumulo_principal}}");
       }
     };
-    
+
     final Config clientConfig = easyMockSupport.createNiceMock(Config.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {

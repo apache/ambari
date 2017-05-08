@@ -20,25 +20,21 @@ package org.apache.ambari.server.stack;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ListMultimap;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
@@ -55,26 +51,17 @@ public class UpdateActiveRepoVersionOnStartup {
 
   private static final Logger LOG = LoggerFactory.getLogger(UpdateActiveRepoVersionOnStartup.class);
 
-
   ClusterDAO clusterDao;
-  ClusterVersionDAO clusterVersionDao;
   RepositoryVersionDAO repositoryVersionDao;
   RepositoryVersionHelper repositoryVersionHelper;
   StackManager stackManager;
 
-
-  private static final Function<RepositoryEntity, String> REPO_TO_ID = new Function<RepositoryEntity, String>() {
-    @Override  public String apply(@Nullable RepositoryEntity input) { return input.getRepositoryId(); }
-  };
-
   @Inject
   public UpdateActiveRepoVersionOnStartup(ClusterDAO clusterDao,
-      ClusterVersionDAO clusterVersionDao,
       RepositoryVersionDAO repositoryVersionDao,
       RepositoryVersionHelper repositoryVersionHelper,
       AmbariMetaInfo metaInfo) {
     this.clusterDao = clusterDao;
-    this.clusterVersionDao = clusterVersionDao;
     this.repositoryVersionDao = repositoryVersionDao;
     this.repositoryVersionHelper = repositoryVersionHelper;
     this.stackManager = metaInfo.getStackManager();
@@ -87,21 +74,20 @@ public class UpdateActiveRepoVersionOnStartup {
   @Transactional
   public void process() throws AmbariException {
     LOG.info("Updating existing repo versions with service repos.");
+
     try {
+
       List<ClusterEntity> clusters = clusterDao.findAll();
       for (ClusterEntity cluster: clusters) {
-        StackInfo stack =
-            stackManager.getStack(cluster.getDesiredStack().getStackName(), cluster.getDesiredStack().getStackVersion());
-        LOG.info("Updating existing repo versions for cluster {} on stack {}-{}",
-            cluster.getClusterName(), stack.getName(), stack.getVersion());
-        ClusterVersionEntity clusterVersion = clusterVersionDao.findByClusterAndStateCurrent(cluster.getClusterName());
-        if (null != clusterVersion) {
-          RepositoryVersionEntity repoVersion = clusterVersion.getRepositoryVersion();
-          updateRepoVersion(stack, repoVersion);
-          repositoryVersionDao.merge(repoVersion);
-        }
-        else {
-          LOG.warn("Missing cluster version for cluster {}", cluster.getClusterName());
+        for (ClusterServiceEntity service : cluster.getClusterServiceEntities()) {
+          RepositoryVersionEntity repositoryVersion = service.getServiceDesiredStateEntity().getDesiredRepositoryVersion();
+
+          StackId stackId = repositoryVersion.getStackId();
+          StackInfo stack = stackManager.getStack(stackId.getStackName(), stackId.getStackVersion());
+
+          if (updateRepoVersion(stack, repositoryVersion)) {
+            repositoryVersionDao.merge(repositoryVersion);
+          }
         }
       }
     }
@@ -112,13 +98,16 @@ public class UpdateActiveRepoVersionOnStartup {
     }
   }
 
-  private void updateRepoVersion(StackInfo stackInfo, RepositoryVersionEntity repoVersion) throws Exception {
+  private boolean updateRepoVersion(StackInfo stackInfo, RepositoryVersionEntity repoVersion) throws Exception {
     ListMultimap<String, RepositoryInfo> serviceReposByOs = stackInfo.getRepositoriesByOs();
 
     // Update repos in the JSON representation
     List<OperatingSystemEntity> operatingSystems = repoVersion.getOperatingSystems();
-    RepoUtil.addServiceReposToOperatingSystemEntities(operatingSystems, serviceReposByOs);
-    repoVersion.setOperatingSystems(repositoryVersionHelper.serializeOperatingSystemEntities(operatingSystems));
+    boolean changed = RepoUtil.addServiceReposToOperatingSystemEntities(operatingSystems, serviceReposByOs);
+    if (changed) {
+      repoVersion.setOperatingSystems(repositoryVersionHelper.serializeOperatingSystemEntities(operatingSystems));
+    }
+    return changed;
   }
 
 }

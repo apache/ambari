@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -755,6 +757,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgradeContext.setSupportedServices(supportedServices);
     upgradeContext.setScope(scope);
 
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "Check for any other way downgrade to get set, if required")
     String downgradeFromVersion = null;
 
     if (direction.isDowngrade()) {
@@ -765,6 +769,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             cluster.getClusterId(), Direction.UPGRADE);
 
         downgradeFromVersion = lastUpgradeItemForCluster.getToVersion();
+      }
+
+      if (null == downgradeFromVersion) {
+        throw new AmbariException("When downgrading, the downgrade version must be specified");
       }
 
       upgradeContext.setDowngradeFromVersion(downgradeFromVersion);
@@ -919,7 +927,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (null != downgradeFromVersion) {
       entity.setFromVersion(downgradeFromVersion);
     } else {
-      entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
+      entity.setFromVersion("");
     }
 
     entity.setToVersion(version);

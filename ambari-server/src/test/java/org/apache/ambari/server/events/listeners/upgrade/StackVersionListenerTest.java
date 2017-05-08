@@ -140,8 +140,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
     sch.setVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
-    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
-    expectLastCall().once();
 
     replayAll();
 
@@ -155,8 +153,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
     sch.setVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
-    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
-    expectLastCall().once();
 
     replayAll();
 
@@ -187,8 +183,6 @@ public class StackVersionListenerTest extends EasyMockSupport {
     sch.setVersion(VALID_NEW_VERSION);
     expectLastCall().once();
     expect(sch.recalculateHostVersionState()).andReturn(DUMMY_REPOSITORY_VERSION_ENTITY).once();
-    cluster.recalculateClusterVersionState(DUMMY_REPOSITORY_VERSION_ENTITY);
-    expectLastCall().once();
 
     replayAll();
 

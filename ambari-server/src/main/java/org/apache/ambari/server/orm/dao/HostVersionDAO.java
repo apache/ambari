@@ -297,6 +297,28 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Gets all host version entities that are of the given states
+   *
+   * @param repositoryVersion
+   *          the repository (not {@code null})
+   * @param states
+   *          the states
+   * @return the host versions
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByRepositoryAndStates(RepositoryVersionEntity repositoryVersion,
+      Collection<RepositoryVersionState> states) {
+
+    TypedQuery<HostVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "hostVersionByRepositoryAndStates", HostVersionEntity.class);
+
+    query.setParameter("repositoryVersion", repositoryVersion);
+    query.setParameter("states", states);
+
+    return daoUtils.selectList(query);
+  }
+
   @Transactional
   public void removeByHostName(String hostName) {
     Collection<HostVersionEntity> hostVersions = findByHost(hostName);

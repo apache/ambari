@@ -90,7 +90,6 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -235,9 +234,6 @@ public class UpgradeResourceProviderTest {
 
     helper.getOrCreateRepositoryVersion(stack211, stack211.getStackVersion());
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
-
-    cluster.createClusterVersion(stack211, stack211.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-    cluster.transitionClusterVersion(stack211, stack211.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -937,6 +933,7 @@ public class UpgradeResourceProviderTest {
     Cluster cluster = clusters.getCluster("c1");
 
     StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
     repoVersionEntity.setOperatingSystems("");
@@ -1173,7 +1170,7 @@ public class UpgradeResourceProviderTest {
     desiredConfigurations.put("baz-site", null);
 
     Cluster cluster = EasyMock.createNiceMock(Cluster.class);
-    expect(cluster.getCurrentStackVersion()).andReturn(stack211);
+    expect(cluster.getCurrentStackVersion()).andReturn(stack211).atLeastOnce();
     expect(cluster.getDesiredStackVersion()).andReturn(stack220);
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
     expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
@@ -1209,6 +1206,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeContext upgradeContext = upgradeContextFactory.create(cluster, upgrade.getType(),
         Direction.UPGRADE, "2.2.0.0", new HashMap<String, Object>());
+    upgradeContext.setUpgradePack(upgrade);
 
     upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
 

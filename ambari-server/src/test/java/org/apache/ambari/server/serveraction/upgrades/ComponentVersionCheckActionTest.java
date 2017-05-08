@@ -30,7 +30,6 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -41,14 +40,12 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -74,8 +71,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -86,8 +81,6 @@ import com.google.inject.persist.UnitOfWork;
  * Tests upgrade-related server side actions
  */
 public class ComponentVersionCheckActionTest {
-  private static final Logger LOG = LoggerFactory.getLogger(ComponentVersionCheckActionTest.class);
-
 
   private static final String HDP_2_1_1_0 = "2.1.1.0-1";
   private static final String HDP_2_1_1_1 = "2.1.1.1-2";
@@ -106,9 +99,6 @@ public class ComponentVersionCheckActionTest {
 
   @Inject
   private RepositoryVersionDAO repoVersionDAO;
-
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
 
   @Inject
   private HostVersionDAO hostVersionDAO;
@@ -174,8 +164,6 @@ public class ComponentVersionCheckActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     // Create the new repo version
     String urlInfo = "[{'repositories':["
@@ -184,8 +172,6 @@ public class ComponentVersionCheckActionTest {
     repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
 
     // Start upgrading the newer repo
-    c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
     c.setCurrentStackVersion(targetStack);
 
     HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
@@ -249,8 +235,6 @@ public class ComponentVersionCheckActionTest {
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
-    c.createClusterVersion(sourceStack, sourceRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(sourceStack, sourceRepo, RepositoryVersionState.CURRENT);
 
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(c.getClusterId());
@@ -274,12 +258,10 @@ public class ComponentVersionCheckActionTest {
 
   private void createNewRepoVersion(StackId targetStack, String targetRepo, String clusterName,
                                     String hostName) throws AmbariException {
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
 
     StackEntity stackEntityTarget = stackDAO.find(targetStack.getStackName(), targetStack.getStackVersion());
 
-    Cluster c = clusters.getCluster(clusterName);
     // Create the new repo version
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetRepo + "'}"
@@ -287,9 +269,6 @@ public class ComponentVersionCheckActionTest {
     repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
 
     // Start upgrading the newer repo
-    c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
-    c.transitionClusterVersion(targetStack, targetRepo, RepositoryVersionState.INSTALLED);
-
     HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
 
     HostVersionEntity entity = new HostVersionEntity();
@@ -350,7 +329,9 @@ public class ComponentVersionCheckActionTest {
     Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
 
-    Service service = installService(cluster, "HDFS");
+    RepositoryVersionEntity repositoryVersion = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
+
+    Service service = installService(cluster, "HDFS", repositoryVersion);
     addServiceComponent(cluster, service, "NAMENODE");
     addServiceComponent(cluster, service, "DATANODE");
     createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
@@ -371,17 +352,10 @@ public class ComponentVersionCheckActionTest {
 
     // inject an unhappy path where the cluster repo version is still UPGRADING
     // even though all of the hosts are UPGRADED
-    ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
-        "c1", HDP_22_STACK, targetRepo);
-
-    upgradingClusterVersion.setState(RepositoryVersionState.INSTALLING);
-    upgradingClusterVersion = clusterVersionDAO.merge(upgradingClusterVersion);
 
     // verify the conditions for the test are met properly
-    upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion("c1", HDP_22_STACK, targetRepo);
     List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion("c1", HDP_22_STACK, targetRepo);
 
-    assertEquals(RepositoryVersionState.INSTALLING, upgradingClusterVersion.getState());
     assertTrue(hostVersions.size() > 0);
     for (HostVersionEntity hostVersion : hostVersions) {
       assertEquals(RepositoryVersionState.INSTALLED, hostVersion.getState());
@@ -437,19 +411,17 @@ public class ComponentVersionCheckActionTest {
     RepositoryVersionEntity repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(
         HDP_21_STACK, HDP_2_1_1_1);
 
-    Service service = installService(cluster, "HDFS");
-    service.setDesiredRepositoryVersion(repositoryVersion2110);
-    ServiceComponent sc = addServiceComponent(cluster, service, "NAMENODE");
-    sc = addServiceComponent(cluster, service, "DATANODE");
+    Service service = installService(cluster, "HDFS", repositoryVersion2110);
+    addServiceComponent(cluster, service, "NAMENODE");
+    addServiceComponent(cluster, service, "DATANODE");
 
     ServiceComponentHost sch = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
     sch.setVersion(HDP_2_1_1_0);
     sch = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
     sch.setVersion(HDP_2_1_1_0);
 
-    service = installService(cluster, "ZOOKEEPER");
-    service.setDesiredRepositoryVersion(repositoryVersion2111);
-    sc = addServiceComponent(cluster, service, "ZOOKEEPER_SERVER");
+    service = installService(cluster, "ZOOKEEPER", repositoryVersion2111);
+    addServiceComponent(cluster, service, "ZOOKEEPER_SERVER");
 
     sch = createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
     sch.setVersion(HDP_2_1_1_1);
@@ -488,7 +460,7 @@ public class ComponentVersionCheckActionTest {
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,
                                                              String svcComponent, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
-    Service s = installService(cluster, svc);
+    Service s = cluster.getService(svc);
     ServiceComponent sc = addServiceComponent(cluster, s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
@@ -500,17 +472,9 @@ public class ComponentVersionCheckActionTest {
     return sch;
   }
 
-  private Service installService(Cluster cluster, String serviceName) throws AmbariException {
-    Service service = null;
-
-    try {
-      service = cluster.getService(serviceName);
-    } catch (ServiceNotFoundException e) {
-      RepositoryVersionEntity repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
-      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
-      cluster.addService(service);
-    }
-
+  private Service installService(Cluster cluster, String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
+    Service service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
+    cluster.addService(service);
     return service;
   }
 

@@ -502,5 +502,10 @@ public class ExecutionCommand extends AgentCommand {
     @Deprecated
     @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_VERSION_ID = "repository_version_id";
+
+    /**
+     * Put on hostLevelParams to indicate the version that the component should be.
+     */
+    String CURRENT_VERSION = "current_version";
   }
 }

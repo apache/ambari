@@ -64,7 +64,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -273,15 +272,6 @@ public class ClustersTest {
 
     cluster1.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
-        RepositoryVersionState.CURRENT);
-    cluster2.setDesiredStackVersion(stackId);
-    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
-        RepositoryVersionState.CURRENT);
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -364,15 +354,7 @@ public class ClustersTest {
     Assert.assertNotNull(clusters.getCluster(c2));
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
-        RepositoryVersionState.CURRENT);
-    cluster2.setDesiredStackVersion(stackId);
-    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
-        RepositoryVersionState.CURRENT);
+
     clusters.addHost(h1);
     clusters.addHost(h2);
     clusters.addHost(h3);
@@ -403,12 +385,6 @@ public class ClustersTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
-
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-
-    cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
-        RepositoryVersionState.CURRENT);
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", "1",
         new HashMap<String, String>() {{

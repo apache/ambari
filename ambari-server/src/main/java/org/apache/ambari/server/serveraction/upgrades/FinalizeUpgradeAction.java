@@ -255,9 +255,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
           String.format("Finalizing the version for cluster %s.", cluster.getClusterName())).append(
               System.lineSeparator());
 
-      cluster.transitionClusterVersion(clusterDesiredStackId, version,
-          RepositoryVersionState.CURRENT);
-
       outSB.append("Creating upgrade history...").append(System.lineSeparator());
       writeComponentHistory(upgradeContext);
 

@@ -45,7 +45,6 @@ import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -249,9 +248,6 @@ public class RetryUpgradeActionServiceTest {
     repoVersionDAO.create(repoVersionEntity);
 
     helper.getOrCreateRepositoryVersion(stack220, stack220.getStackVersion());
-
-    cluster.createClusterVersion(stack220, stack220.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-    cluster.transitionClusterVersion(stack220, stack220.getStackVersion(), RepositoryVersionState.CURRENT);
   }
 
   /**

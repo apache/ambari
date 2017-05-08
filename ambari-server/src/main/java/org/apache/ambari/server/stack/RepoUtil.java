@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,8 +115,9 @@ public class RepoUtil {
    *    service repository and will be added.
    * @param operatingSystems - A list of OperatingSystemEntity objects extracted from a RepositoryVersionEntity
    * @param stackReposByOs - Stack repositories loaded from the disk (including service repositories), grouped by os.
+   * @return {@code true} if there were added repositories
    */
-  public static void addServiceReposToOperatingSystemEntities(List<OperatingSystemEntity> operatingSystems,
+  public static boolean addServiceReposToOperatingSystemEntities(List<OperatingSystemEntity> operatingSystems,
       ListMultimap<String, RepositoryInfo> stackReposByOs) {
     Set<String> addedRepos = new HashSet<>();
     for (OperatingSystemEntity os : operatingSystems) {
@@ -128,6 +130,8 @@ public class RepoUtil {
         }
     }
     LOG.info("Added {} service repos: {}", addedRepos.size(),Iterables.toString(addedRepos));
+
+    return CollectionUtils.isNotEmpty(addedRepos);
   }
 
   /**

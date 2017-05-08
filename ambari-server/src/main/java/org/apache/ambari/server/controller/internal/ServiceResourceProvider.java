@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -423,13 +424,25 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       String desiredStack = request.getDesiredStack();
       String desiredRepositoryVersion = request.getDesiredRepositoryVersion();
       RepositoryVersionEntity repositoryVersion = null;
-      if( StringUtils.isNotBlank(desiredStack) && StringUtils.isNotBlank(desiredRepositoryVersion)){
+      if (StringUtils.isNotBlank(desiredStack) && StringUtils.isNotBlank(desiredRepositoryVersion)){
         repositoryVersion = repositoryVersionDAO.findByStackAndVersion(new StackId(desiredStack),
             desiredRepositoryVersion);
       }
 
+      if (null == desiredStack) {
+        desiredStack = cluster.getDesiredStackVersion().toString();
+      }
+
       if (null == repositoryVersion) {
-        repositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion();
+        List<RepositoryVersionEntity> allVersions = repositoryVersionDAO.findByStack(new StackId(desiredStack));
+
+        if (CollectionUtils.isNotEmpty(allVersions)) {
+          repositoryVersion = allVersions.get(0);
+        }
+      }
+
+      if (null == repositoryVersion) {
+        throw new AmbariException(String.format("Could not find any repositories defined by %s", desiredStack));
       }
 
       Service s = cluster.addService(request.getServiceName(), repositoryVersion);
@@ -630,7 +643,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       // Setting Maintenance state for service
       if (null != request.getMaintenanceState()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
+        if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
           throw new AuthorizationException("The authenticated user is not authorized to toggle the maintainence state of services");
         }
 

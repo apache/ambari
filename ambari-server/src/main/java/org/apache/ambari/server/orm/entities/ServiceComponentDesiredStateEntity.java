@@ -98,7 +98,7 @@ public class ServiceComponentDesiredStateEntity {
   @JoinColumn(
       name = "desired_repo_version_id",
       unique = false,
-      nullable = true,
+      nullable = false,
       insertable = true,
       updatable = true)
   private RepositoryVersionEntity desiredRepositoryVersion;

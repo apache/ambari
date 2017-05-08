@@ -62,9 +62,9 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Alert;
@@ -86,21 +86,17 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import junit.framework.Assert;
-
 public class HeartbeatProcessorTest {
 
-  private static final Logger log = LoggerFactory.getLogger(TestHeartbeatHandler.class);
   private Injector injector;
   private long requestId = 23;
   private long stageId = 31;
@@ -132,6 +128,9 @@ public class HeartbeatProcessorTest {
   @Inject
   private AmbariMetaInfo metaInfo;
 
+  @Inject
+  private OrmTestHelper helper;
+
 
   public HeartbeatProcessorTest(){
     InMemoryDefaultTestModule module = HeartbeatTestHelper.getTestModule();
@@ -153,7 +152,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -222,7 +220,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testRestartRequiredAfterInstallClient() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -287,7 +284,6 @@ public class HeartbeatProcessorTest {
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatCustomCommandWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -371,7 +367,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartbeatCustomStartStop() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -455,7 +450,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -580,7 +574,6 @@ public class HeartbeatProcessorTest {
    * @throws InvalidStateTransitionException
    */
   @Test
-  @SuppressWarnings("unchecked")
   public void testCommandReportOnHeartbeatUpdatedState()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
@@ -700,7 +693,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testUpgradeSpecificHandling() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -794,7 +786,6 @@ public class HeartbeatProcessorTest {
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testCommandStatusProcesses() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -873,7 +864,6 @@ public class HeartbeatProcessorTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testComponentUpgradeFailReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -985,7 +975,6 @@ public class HeartbeatProcessorTest {
 
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testComponentUpgradeInProgressReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -1068,7 +1057,6 @@ public class HeartbeatProcessorTest {
    * @throws Exception
    */
   @Test
-  @SuppressWarnings("unchecked")
   public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
 
@@ -1173,20 +1161,16 @@ public class HeartbeatProcessorTest {
     StackId stackId = new StackId("HDP", "0.1");
 
     RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = dao.findByStackAndVersion(stackId, "0.1-1234");
+    RepositoryVersionEntity entity = helper.getOrCreateRepositoryVersion(cluster);
     Assert.assertNotNull(entity);
 
     heartbeatProcessor.processHeartbeat(hb);
 
     entity = dao.findByStackAndVersion(stackId, "0.1-1234");
     Assert.assertNull(entity);
-
-    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
-    Assert.assertNotNull(entity);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testComponentInProgressStatusSafeAfterStatusReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = addService(cluster, HDFS);
@@ -1270,8 +1254,7 @@ public class HeartbeatProcessorTest {
    * @throws AmbariException
    */
   private Service addService(Cluster cluster, String serviceName) throws AmbariException {
-    ClusterVersionEntity clusterVersion = cluster.getCurrentClusterVersion();
-    RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     return cluster.addService(serviceName, repositoryVersion);
   }
 }

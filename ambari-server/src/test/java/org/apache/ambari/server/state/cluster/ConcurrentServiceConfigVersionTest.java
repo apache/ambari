@@ -38,7 +38,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -113,8 +112,6 @@ public class ConcurrentServiceConfigVersionTest {
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
 
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);

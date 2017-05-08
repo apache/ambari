@@ -38,6 +38,7 @@ import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -74,10 +75,8 @@ public class RecoveryConfigHelperTest {
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
 
-  /**
-   * The repository created when creating the test cluster.
-   */
-  private RepositoryVersionEntity repositoryVersion;
+  @Inject
+  private OrmTestHelper helper;
 
   private final String STACK_VERSION = "0.1";
   private final String REPO_VERSION = "0.1-1234";
@@ -146,7 +145,8 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentInstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
+
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
@@ -180,7 +180,7 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentUninstalled()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
@@ -216,7 +216,7 @@ public class RecoveryConfigHelperTest {
   public void testClusterEnvConfigChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
@@ -256,7 +256,7 @@ public class RecoveryConfigHelperTest {
   public void testMaintenanceModeChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
@@ -291,7 +291,7 @@ public class RecoveryConfigHelperTest {
   public void testServiceComponentRecoveryChanged()
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
@@ -332,6 +332,8 @@ public class RecoveryConfigHelperTest {
     // Create a cluster with 2 hosts
     Cluster cluster = getDummyCluster(hostNames);
 
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+
     // Add HDFS service with DATANODE component to the cluster
     Service hdfs = cluster.addService(HDFS, repositoryVersion);
 
@@ -357,6 +359,7 @@ public class RecoveryConfigHelperTest {
 
   private Cluster getDummyCluster(Set<String> hostNames)
       throws Exception {
+
     Map<String, String> configProperties = new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
       put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
@@ -369,8 +372,6 @@ public class RecoveryConfigHelperTest {
     Cluster cluster = heartbeatTestHelper.getDummyCluster("cluster1", stackId, REPO_VERSION,
         configProperties, hostNames);
 
-    repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId, REPO_VERSION);
-    assertNotNull(repositoryVersion);
     return cluster;
   }
 }

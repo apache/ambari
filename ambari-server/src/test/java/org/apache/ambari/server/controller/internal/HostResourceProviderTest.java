@@ -131,8 +131,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
-    cluster.recalculateAllClusterVersionStates();
-    EasyMock.expectLastCall().once();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).atLeastOnce();
     expect(clusters.getHost("Host100")).andReturn(null).atLeastOnce();
@@ -908,8 +906,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getHost("Host100")).andReturn(host100).anyTimes();
     clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
-    cluster.recalculateAllClusterVersionStates();
-    expectLastCall().anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
@@ -1001,8 +997,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getHostsForCluster("Cluster100")).andReturn(Collections.singletonMap("Host100", host100)).anyTimes();
     clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
     expectLastCall().anyTimes();
-    cluster.recalculateAllClusterVersionStates();
-    expectLastCall().anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
@@ -1081,7 +1075,6 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
     clusters.deleteHost("Host100");
     clusters.publishHostsDeletion(Collections.EMPTY_SET, Collections.singleton("Host100"));
-    cluster.recalculateAllClusterVersionStates();
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();

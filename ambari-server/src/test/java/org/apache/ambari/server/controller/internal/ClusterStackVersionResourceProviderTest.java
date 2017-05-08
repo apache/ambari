@@ -68,14 +68,10 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -130,9 +126,6 @@ public class ClusterStackVersionResourceProviderTest {
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private RepositoryVersionDAO repositoryVersionDAOMock;
-  private ResourceTypeDAO resourceTypeDAO;
-  private StackDAO stackDAO;
-  private ClusterVersionDAO clusterVersionDAO;
   private ConfigHelper configHelper;
   private Configuration configuration;
   private StageFactory stageFactory;
@@ -172,14 +165,11 @@ public class ClusterStackVersionResourceProviderTest {
             String.valueOf(MAX_TASKS_PER_STAGE));
     configuration = new Configuration(properties);
     stageFactory = createNiceMock(StageFactory.class);
-    clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
 
     // Initialize injector
     injector = Guice.createInjector(Modules.override(inMemoryModule).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
-    stackDAO = injector.getInstance(StackDAO.class);
   }
 
   @After
@@ -315,7 +305,7 @@ public class ClusterStackVersionResourceProviderTest {
       }
     }).anyTimes();
 
-    expect(cluster.transitionHostsToInstalling(anyObject(ClusterVersionEntity.class),
+    expect(cluster.transitionHostsToInstalling(
         anyObject(RepositoryVersionEntity.class), anyObject(VersionDefinitionXml.class),
         eq(false))).andReturn(hostsNeedingInstallCommands).atLeastOnce();
 
@@ -350,20 +340,14 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
-            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>emptyList()).once();
-
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
             cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, actionManager,
-            executionCommand, executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+            executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -443,22 +427,13 @@ public class ClusterStackVersionResourceProviderTest {
     Service hbaseService = createNiceMock(Service.class);
     expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
     expect(hbaseService.getName()).andReturn("HBASE").anyTimes();
-//    Service metricsService = createNiceMock(Service.class);
-
-    ServiceComponent scNameNode = createNiceMock(ServiceComponent.class);
-    ServiceComponent scDataNode = createNiceMock(ServiceComponent.class);
-    ServiceComponent scHBaseMaster = createNiceMock(ServiceComponent.class);
-    ServiceComponent scMetricCollector = createNiceMock(ServiceComponent.class);
 
     expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
     expect(hbaseService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
-//    expect(metricsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
-
 
     Map<String, Service> serviceMap = new HashMap<>();
     serviceMap.put("HDFS", hdfsService);
     serviceMap.put("HBASE", hbaseService);
-
 
     final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
     expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
@@ -487,9 +462,6 @@ public class ClusterStackVersionResourceProviderTest {
 
     ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
     hdfsPackage.setName("hdfs");
-
-//    ServiceOsSpecific.Package hbasePackage = new ServiceOsSpecific.Package();
-//    hbasePackage.setName("hbase");
 
     List<ServiceOsSpecific.Package> packages = Collections.singletonList(hdfsPackage);
 
@@ -573,10 +545,6 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
-            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
@@ -584,7 +552,7 @@ public class ClusterStackVersionResourceProviderTest {
     // replay
     replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
             cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, schHBM, actionManager,
-            executionCommand, executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+            executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -767,9 +735,8 @@ public class ClusterStackVersionResourceProviderTest {
       }
     }).anyTimes();
 
-    expect(cluster.transitionHostsToInstalling(anyObject(ClusterVersionEntity.class),
-        anyObject(RepositoryVersionEntity.class), anyObject(VersionDefinitionXml.class),
-        eq(false))).andReturn(hostsNeedingInstallCommands).atLeastOnce();
+    expect(cluster.transitionHostsToInstalling(anyObject(RepositoryVersionEntity.class),
+        anyObject(VersionDefinitionXml.class), eq(false))).andReturn(hostsNeedingInstallCommands).atLeastOnce();
 
 //    ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -797,8 +764,6 @@ public class ClusterStackVersionResourceProviderTest {
                     anyObject(StackId.class),
                     anyObject(String.class))).andReturn(repoVersion);
 
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>emptyList()).once();
-
     Capture<org.apache.ambari.server.actionmanager.Request> c = Capture.newInstance();
     Capture<ExecuteActionRequest> ear = Capture.newInstance();
 
@@ -809,11 +774,6 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
-            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
-
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
@@ -821,7 +781,7 @@ public class ClusterStackVersionResourceProviderTest {
     // replay
     replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
             cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHBM, actionManager,
-            executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+            executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -1015,9 +975,8 @@ public class ClusterStackVersionResourceProviderTest {
       }
     }).anyTimes();
 
-    expect(cluster.transitionHostsToInstalling(anyObject(ClusterVersionEntity.class),
-        anyObject(RepositoryVersionEntity.class), anyObject(VersionDefinitionXml.class),
-        eq(false))).andReturn(hostsNeedingInstallCommands).atLeastOnce();
+    expect(cluster.transitionHostsToInstalling(anyObject(RepositoryVersionEntity.class),
+        anyObject(VersionDefinitionXml.class), eq(false))).andReturn(hostsNeedingInstallCommands).atLeastOnce();
 
 //    ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -1053,20 +1012,14 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
-            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>emptyList()).once();
-
     // replay
     replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
             cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHBM, actionManager,
-            executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+            executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -1154,15 +1107,32 @@ public class ClusterStackVersionResourceProviderTest {
     int hostCount = 10;
     for (int i = 0; i < hostCount; i++) {
       String hostname = "host" + i;
+
+      List<HostVersionEntity> hostVersions = new ArrayList<>();
+
+      HostVersionEntity hostVersion = createNiceMock(HostVersionEntity.class);
+      expect(hostVersion.getRepositoryVersion()).andReturn(repoVersion);
+
+      hostVersions.add(hostVersion);
+      if (i == 2) {
+        // !!! make it look like there is already a versioned installed that is less than the one being installed
+        RepositoryVersionEntity badRve = new RepositoryVersionEntity();
+        badRve.setStack(stack);
+        badRve.setVersion("2.2.1.0-1000");
+
+        HostVersionEntity badHostVersion = createNiceMock(HostVersionEntity.class);
+        expect(badHostVersion.getRepositoryVersion()).andReturn(badRve);
+        hostVersions.add(badHostVersion);
+        replay(badHostVersion);
+      }
       Host host = createNiceMock(hostname, Host.class);
       expect(host.getHostName()).andReturn(hostname).anyTimes();
       expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
       expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(
           MaintenanceState.OFF).anyTimes();
-      expect(host.getAllHostVersions()).andReturn(
-          Collections.<HostVersionEntity>emptyList()).anyTimes();
+      expect(host.getAllHostVersions()).andReturn(hostVersions).anyTimes();
 
-      replay(host);
+      replay(host, hostVersion);
       hostsForCluster.put(hostname, host);
     }
 
@@ -1236,6 +1206,12 @@ public class ClusterStackVersionResourceProviderTest {
       }
     }).anyTimes();
 
+    // now the important expectations - that the cluster transition methods were
+    // called correctly
+    expect(cluster.transitionHostsToInstalling(anyObject(RepositoryVersionEntity.class),
+        anyObject(VersionDefinitionXml.class), eq(false))).andReturn(Collections.<Host>emptyList()).anyTimes();
+
+
     ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
     ExecutionCommandWrapper executionCommandWrapper = createNiceMock(ExecutionCommandWrapper.class);
 
@@ -1265,29 +1241,17 @@ public class ClusterStackVersionResourceProviderTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
-            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
 
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
 
-    // !!! make it look like there is already a versioned installed that is less than the one being installed
-    ClusterVersionEntity bad = new ClusterVersionEntity();
-    RepositoryVersionEntity badRve = new RepositoryVersionEntity();
-    badRve.setStack(stack);
-    badRve.setVersion("2.2.1.0-1000");
-    bad.setRepositoryVersion(badRve);
-
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.singletonList(bad)).once();
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
             cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, actionManager,
-            executionCommand, executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
+            executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -1357,6 +1321,10 @@ public class ClusterStackVersionResourceProviderTest {
 
     File f = new File("src/test/resources/hbase_version_test.xml");
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName(stackId.getStackName());
+    stackEntity.setStackVersion(stackId.getStackVersion());
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setId(1l);
     repoVersionEntity.setOperatingSystems(OS_JSON);
@@ -1364,6 +1332,7 @@ public class ClusterStackVersionResourceProviderTest {
     repoVersionEntity.setVersionXsd("version_definition.xsd");
     repoVersionEntity.setType(RepositoryType.STANDARD);
     repoVersionEntity.setVersion(repoVersion);
+    repoVersionEntity.setStack(stackEntity);
 
     List<Host> hostsNeedingInstallCommands = new ArrayList<>();
     Map<String, Host> hostsForCluster = new HashMap<>();
@@ -1382,6 +1351,7 @@ public class ClusterStackVersionResourceProviderTest {
       if (i < hostCount - 2) {
         expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(true).atLeastOnce();
         hostsNeedingInstallCommands.add(host);
+        expect(host.getAllHostVersions()).andReturn(Collections.<HostVersionEntity>emptyList()).anyTimes();
       } else {
         expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(false).atLeastOnce();
 
@@ -1392,8 +1362,7 @@ public class ClusterStackVersionResourceProviderTest {
         replay(hostVersionEntity);
 
         hostVersionEntitiesMergedWithNotRequired.add(hostVersionEntity);
-        expect(host.getAllHostVersions()).andReturn(
-            hostVersionEntitiesMergedWithNotRequired).anyTimes();
+        expect(host.getAllHostVersions()).andReturn(hostVersionEntitiesMergedWithNotRequired).anyTimes();
       }
 
       replay(host);
@@ -1443,7 +1412,6 @@ public class ClusterStackVersionResourceProviderTest {
 
     String clusterName = "Cluster100";
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-    expect(cluster.getClusterName()).andReturn(clusterName).atLeastOnce();
     expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
     expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(
@@ -1452,34 +1420,21 @@ public class ClusterStackVersionResourceProviderTest {
     expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
         anyObject(String.class))).andReturn(repoVersionEntity);
 
-    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(
-        Collections.<ClusterVersionEntity> emptyList()).once();
-
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1l);
     clusterEntity.setClusterName(clusterName);
 
-    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity, repoVersionEntity,
-        RepositoryVersionState.INSTALL_FAILED, 0, "");
-
-    // first expect back a null to make the code think it needs to create one,
-    // then return the real one it's going to use
-    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
-        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
-
-    expect(cluster.createClusterVersion(anyObject(StackId.class), eq(repoVersion),
-        EasyMock.anyString(), eq(RepositoryVersionState.INSTALLED))).andReturn(cve).once();
 
     // now the important expectations - that the cluster transition methods were
     // called correctly
-    expect(cluster.transitionHostsToInstalling(cve, repoVersionEntity,
+    expect(cluster.transitionHostsToInstalling(repoVersionEntity,
         repoVersionEntity.getRepositoryXml(), true)).andReturn(
             hostsNeedingInstallCommands).once();
 
     // replay
     replay(managementController, response, clusters, hdfsService, resourceProviderFactory,
         csvResourceProvider, cluster, repositoryVersionDAOMock, configHelper, schDatanode,
-        stageFactory, clusterVersionDAO, hostVersionDAO);
+        stageFactory, hostVersionDAO);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
         PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
@@ -1593,7 +1548,6 @@ public class ClusterStackVersionResourceProviderTest {
       bind(ConfigHelper.class).toInstance(configHelper);
       bind(Configuration.class).toInstance(configuration);
       bind(StageFactory.class).toInstance(stageFactory);
-      bind(ClusterVersionDAO.class).toInstance(clusterVersionDAO);
       bind(HostVersionDAO.class).toInstance(hostVersionDAO);
       bind(HostComponentStateDAO.class).toInstance(hostComponentStateDAO);
     }

@@ -39,7 +39,6 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -157,9 +156,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       HOST_NAME_PROPERTY_ID}));
-
-  @Inject
-  private MaintenanceStateHelper maintenanceStateHelper;
 
   @Inject
   private OsFamily osFamily;
@@ -525,9 +521,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
 
-    for (String clusterName : allClusterSet) {
-      clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
-    }
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -803,12 +796,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
-      if (clusterName != null && !clusterName.isEmpty()) {
-        clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
-        if (rackChange) {
-          // Authorization check for this update was performed before we got to this point.
-          controller.registerRackChange(clusterName);
-        }
+      if (StringUtils.isNotBlank(clusterName) && rackChange) {
+        // Authorization check for this update was performed before we got to this point.
+        controller.registerRackChange(clusterName);
       }
 
       //todo: if attempt was made to update a property other than those
@@ -931,9 +921,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
     clusters.publishHostsDeletion(allClustersWithHosts, hostNames);
-    for (String clustername : hostsClusters) {
-      clusters.getCluster(clustername).recalculateAllClusterVersionStates();
-    }
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {

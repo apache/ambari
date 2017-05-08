@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
@@ -83,8 +84,9 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
         String minStackVersion = minStack[1];
         String stackName = cluster.getCurrentStackVersion().getStackName();
         if (minStackName.equals(stackName)) {
-          String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
-          return VersionUtils.compareVersions(currentClusterRepositoryVersion, minStackVersion) >= 0;
+          Service yarnService = cluster.getService("YARN");
+          String currentRepositoryVersion = yarnService.getDesiredRepositoryVersion().getVersion();
+          return VersionUtils.compareVersions(currentRepositoryVersion, minStackVersion) >= 0;
         }
       }
     }

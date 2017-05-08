@@ -489,7 +489,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       if (!forceInstallOnNonMemberHost) {
         hostVersEntity.setState(RepositoryVersionState.INSTALLING);
         hostVersionDAO.merge(hostVersEntity);
-        cluster.recalculateClusterVersionState(repoVersionEnt);
       }
       req.persist();
     } catch (AmbariException e) {

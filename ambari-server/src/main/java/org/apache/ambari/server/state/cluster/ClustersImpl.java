@@ -43,10 +43,8 @@ import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
@@ -59,7 +57,6 @@ import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
 import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
@@ -113,13 +110,9 @@ public class ClustersImpl implements Clusters {
   @Inject
   private HostDAO hostDAO;
   @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-  @Inject
   private HostVersionDAO hostVersionDAO;
   @Inject
   private HostStateDAO hostStateDAO;
-  @Inject
-  private HostRoleCommandDAO hostRoleCommandDAO;
   @Inject
   private ResourceTypeDAO resourceTypeDAO;
   @Inject
@@ -649,12 +642,6 @@ public class ClustersImpl implements Clusters {
       clusterSet.remove(cluster);
     }
     clusterHostMap.remove(cluster.getClusterName());
-
-    Collection<ClusterVersionEntity> clusterVersions = cluster.getAllClusterVersions();
-    for (ClusterVersionEntity clusterVersion : clusterVersions) {
-      clusterVersionDAO.remove(clusterVersion);
-    }
-
     clusters.remove(clusterName);
   }
 

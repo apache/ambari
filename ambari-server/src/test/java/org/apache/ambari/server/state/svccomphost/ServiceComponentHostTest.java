@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -52,7 +51,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -127,12 +125,7 @@ public class ServiceComponentHostTest {
     hostNames.add(hostName1);
     addHostsToCluster(clusterName, hostAttributes, hostNames);
 
-    Cluster c1 = clusters.getCluster(clusterName);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    ClusterVersionEntity clusterVersion = c1.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-
-    repositoryVersion = clusterVersion.getRepositoryVersion();
+    repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
   }
 
   @After
@@ -718,11 +711,7 @@ public class ServiceComponentHostTest {
     Cluster cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    ClusterVersionEntity clusterVersion = cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin", RepositoryVersionState.INSTALLING);
-
-    RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
@@ -909,12 +898,7 @@ public class ServiceComponentHostTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    ClusterVersionEntity clusterVersion = cluster.createClusterVersion(stackId,
-        stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-
-    RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
     ServiceComponentHost sch2 = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", hostName);
@@ -1042,8 +1026,6 @@ public class ServiceComponentHostTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
 
     HostEntity hostEntity = hostDAO.findByName(hostName);
     Assert.assertNotNull(hostEntity);
@@ -1089,8 +1071,6 @@ public class ServiceComponentHostTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
 
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);

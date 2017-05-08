@@ -98,8 +98,8 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
-  private static final StackId HDP_21 = new StackId("HDP-2.1.1");
-  private static final StackId HDP_22 = new StackId("HDP-2.2.0");
+//  private static final StackId HDP_21 = new StackId("HDP-2.1.1");
+//  private static final StackId HDP_22 = new StackId("HDP-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
 
@@ -1260,9 +1260,6 @@ public class UpgradeHelperTest {
 
     helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
 
-    c.createClusterVersion(stackId, repositoryVersionString, "admin",
-        RepositoryVersionState.INSTALLING);
-
     for (int i = 0; i < 4; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
@@ -1485,8 +1482,6 @@ public class UpgradeHelperTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, version);
 
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
-
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
@@ -1564,8 +1559,6 @@ public class UpgradeHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         version);
 
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
-
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
@@ -1626,8 +1619,6 @@ public class UpgradeHelperTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         version);
-
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1690,8 +1681,6 @@ public class UpgradeHelperTest {
 
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         version);
-
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1811,8 +1800,6 @@ public class UpgradeHelperTest {
 
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
 
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
-
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);
@@ -1911,8 +1898,6 @@ public class UpgradeHelperTest {
     helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
 
     helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
-
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -2096,8 +2081,6 @@ public class UpgradeHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, version);
 
     helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
-
-    c.createClusterVersion(stackId, version, "admin", RepositoryVersionState.INSTALLING);
 
     // create 2 hosts
     for (int i = 0; i < 2; i++) {

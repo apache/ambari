@@ -28,7 +28,6 @@ import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -144,45 +143,6 @@ public interface Cluster {
   void removeServiceComponentHost(ServiceComponentHost svcCompHost)
       throws AmbariException;
 
-
-  /**
-   * Get the ClusterVersionEntity object whose state is CURRENT.
-   * @return Cluster Version entity to whose state is CURRENT.
-   */
-  ClusterVersionEntity getCurrentClusterVersion();
-
-  /**
-   * Gets the current stack version associated with the cluster.
-   * <ul>
-   * <li>if there is no upgrade in progress then get the
-   * {@link ClusterVersionEntity} object whose state is
-   * {@link RepositoryVersionState#CURRENT}.
-   * <li>If an upgrade is in progress then based on the direction and the
-   * desired stack determine which version to use. Assuming upgrading from HDP
-   * 2.2.0.0-1 to 2.3.0.0-2:
-   * <ul>
-   * <li>RU Upgrade: 2.3.0.0-2 (desired stack id)
-   * <li>RU Downgrade: 2.2.0.0-1 (desired stack id)
-   * <li>EU Upgrade: while stopping services and before changing desired stack,
-   * use 2.2.0.0-1, after, use 2.3.0.0-2
-   * <li>EU Downgrade: while stopping services and before changing desired
-   * stack, use 2.3.0.0-2, after, use 2.2.0.0-1
-   * </ul>
-   * </ul>
-   *
-   * This method must take into account both a running and a suspended upgrade.
-   *
-   * @return the effective cluster stack version given the current upgrading
-   *         conditions of the cluster.
-   */
-  ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException;
-
-  /**
-   * Get all of the ClusterVersionEntity objects for the cluster.
-   * @return
-   */
-  Collection<ClusterVersionEntity> getAllClusterVersions();
-
   /**
    * Get desired stack version
    * @return
@@ -222,10 +182,6 @@ public interface Cluster {
    * the version distributed to them will move into the
    * {@link RepositoryVersionState#NOT_REQUIRED} state.
    *
-   * @param sourceClusterVersion
-   *          cluster version to be queried for a stack name/version info and
-   *          desired RepositoryVersionState. The only valid state of a cluster
-   *          version is {@link RepositoryVersionState#INSTALLING}
    * @param repoVersionEntity
    *          the repository that the hosts are being transitioned for (not
    *          {@code null}).
@@ -241,9 +197,8 @@ public interface Cluster {
    * @return a list of hosts which need the repository installed.
    * @throws AmbariException
    */
-  List<Host> transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion,
-      RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
-      boolean forceInstalled) throws AmbariException;
+  List<Host> transitionHostsToInstalling(RepositoryVersionEntity repoVersionEntity,
+      VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
 
   /**
    * For a given host, will either either update an existing Host Version Entity for the given version, or create
@@ -259,40 +214,19 @@ public interface Cluster {
       final RepositoryVersionEntity repositoryVersion, final StackId stack)
       throws AmbariException;
 
+
   /**
    * Update state of a cluster stack version for cluster based on states of host versions and stackids.
    * @param repositoryVersion the repository version entity whose version is a value like 2.2.1.0-100)
    * @throws AmbariException
    */
-  void recalculateClusterVersionState(RepositoryVersionEntity repositoryVersion) throws AmbariException;
+//  void recalculateClusterVersionState(RepositoryVersionEntity repositoryVersion) throws AmbariException;
 
   /**
    * Update state of all cluster stack versions for cluster based on states of host versions.
    * @throws AmbariException
    */
-  void recalculateAllClusterVersionStates() throws AmbariException;
-
-  /**
-   * Create a cluster version for the given stack and version, whose initial
-   * state must either be either {@link RepositoryVersionState#UPGRADING} (if no
-   * other cluster version exists) or {@link RepositoryVersionState#INSTALLING}
-   * (if at exactly one CURRENT cluster version already exists) or
-   * {@link RepositoryVersionState#INIT} (if the cluster is being created using
-   * a specific repository version).
-   *
-   * @param stackId
-   *          Stack ID
-   * @param version
-   *          Stack version
-   * @param userName
-   *          User performing the operation
-   * @param state
-   *          Initial state
-   * @return the newly created and persisted {@link ClusterVersionEntity}.
-   * @throws AmbariException
-   */
-  ClusterVersionEntity createClusterVersion(StackId stackId, String version,
-      String userName, RepositoryVersionState state) throws AmbariException;
+//  void recalculateAllClusterVersionStates() throws AmbariException;
 
   /**
    * Transition an existing cluster version from one state to another.
@@ -305,8 +239,8 @@ public interface Cluster {
    *          Desired state
    * @throws AmbariException
    */
-  void transitionClusterVersion(StackId stackId, String version,
-      RepositoryVersionState state) throws AmbariException;
+//  void transitionClusterVersion(StackId stackId, String version,
+//      RepositoryVersionState state) throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its
@@ -515,7 +449,7 @@ public interface Cluster {
 
   /**
    * Add service to the cluster
-   * 
+   *
    * @param serviceName
    *          the name of the service to add (not {@code null}).
    * @param repositoryVersion

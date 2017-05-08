@@ -43,9 +43,7 @@ import com.google.inject.Singleton;
  * The {@link StackVersionListener} class handles the propagation of versions
  * advertised by the {@link org.apache.ambari.server.state.ServiceComponentHost}
  * that bubble up to the
- * {@link org.apache.ambari.server.orm.entities.HostVersionEntity} and
- * eventually the
- * {@link org.apache.ambari.server.orm.entities.ClusterVersionEntity}
+ * {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
  */
 @Singleton
 @EagerSingleton
@@ -167,10 +165,7 @@ public class StackVersionListener {
    * @throws AmbariException
    */
   private void bootstrapVersion(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
-    RepositoryVersionEntity repoVersion = sch.recalculateHostVersionState();
-    if (null != repoVersion) {
-      cluster.recalculateClusterVersionState(repoVersion);
-    }
+    sch.recalculateHostVersionState();
   }
 
   /**

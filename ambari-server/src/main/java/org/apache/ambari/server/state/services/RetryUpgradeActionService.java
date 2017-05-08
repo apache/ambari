@@ -30,7 +30,6 @@ import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -165,12 +164,6 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
    * @return Request Id of active stack upgrade.
    */
   private Long getActiveUpgradeRequestId(Cluster cluster) {
-    ClusterVersionEntity currentVersion = cluster.getCurrentClusterVersion();
-
-    if (currentVersion == null) {
-      LOG.debug("No Cluster Version exists as CURRENT. Skip retrying failed tasks.");
-      return null;
-    }
 
     // May be null, and either upgrade or downgrade
     UpgradeEntity currentUpgrade = cluster.getUpgradeInProgress();

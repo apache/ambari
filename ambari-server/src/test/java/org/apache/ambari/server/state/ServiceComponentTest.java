@@ -105,9 +105,6 @@ public class ServiceComponentTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         stackId.getStackVersion());
 
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
-
     Service s = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
     cluster.addService(s);
     service = cluster.getService(serviceName);

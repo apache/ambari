@@ -51,7 +51,6 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -60,7 +59,6 @@ import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -724,7 +722,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     RepositoryVersionHelper repositoryVersionHelper = injector.getInstance(RepositoryVersionHelper.class);
     RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
-    ClusterVersionDAO clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
     HostVersionDAO hostVersionDAO = injector.getInstance(HostVersionDAO.class);
 
     Clusters clusters = amc.getClusters();
@@ -766,6 +763,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
             repoVersionEntity.getId(), displayName, operatingSystems));
         }
 
+        /*
         // Create the Cluster Version if it doesn't already exist.
         ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(),
           stackId, hardcodedInitialVersion);
@@ -791,6 +789,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
             clusterVersionEntity.getId(), cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(),
             clusterVersionEntity.getState()));
         }
+        */
 
         // Create the Host Versions if they don't already exist.
         Collection<HostEntity> hosts = clusterEntity.getHostEntities();

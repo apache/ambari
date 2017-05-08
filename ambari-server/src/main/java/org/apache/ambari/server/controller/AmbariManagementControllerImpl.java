@@ -110,7 +110,6 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -119,7 +118,6 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -171,7 +169,6 @@ import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -302,8 +299,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ClusterDAO clusterDAO;
   @Inject
   private CredentialStoreService credentialStoreService;
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
   @Inject
   private SettingDAO settingDAO;
 
@@ -495,17 +490,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
     // Create cluster widgets and layouts
     initializeWidgetsAndLayouts(c, null);
-
-    if (null != versionEntity) {
-      ClusterVersionDAO clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
-
-      ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(request.getClusterName(), stackId,
-          request.getRepositoryVersion());
-
-      if (null == clusterVersion) {
-        c.createClusterVersion(stackId, versionEntity.getVersion(), getAuthName(), RepositoryVersionState.INIT);
-      }
-    }
   }
 
   @Override
@@ -1719,8 +1703,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       cluster.setCurrentStackVersion(desiredVersion);
     }
-    // Stack Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
-    // create any ClusterVersionEntity changes because those have to go through the Stack Upgrade process.
 
     boolean requiresHostListUpdate =
         request.getHostNames() != null && !request.getHostNames().isEmpty();
@@ -2193,7 +2175,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, String> commandParamsInp,
                                 ServiceComponentHostEvent event,
                                 boolean skipFailure,
-                                ClusterVersionEntity effectiveClusterVersion,
+                                RepositoryVersionEntity repoVersion,
                                 boolean isUpgradeSuspended,
                                 DatabaseType databaseType,
                                 Map<String, DesiredConfig> clusterDesiredConfigs
@@ -2316,8 +2298,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         commandParams.put(MAX_DURATION_OF_RETRIES, Integer.toString(retryMaxTime));
         commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(retryEnabled));
 
-        if (effectiveClusterVersion != null) {
-         commandParams.put(VERSION, effectiveClusterVersion.getRepositoryVersion().getVersion());
+        if (repoVersion != null) {
+         commandParams.put(VERSION, repoVersion.getVersion());
         }
         if (script.getTimeout() > 0) {
           scriptCommandTimeout = String.valueOf(script.getTimeout());
@@ -2368,20 +2350,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> hostParams = new TreeMap<>();
     hostParams.put(REPO_INFO, repoInfo);
     hostParams.putAll(getRcaParameters());
-
-    // use the effective cluster version here since this command might happen
-    // in the context of an upgrade and we should send the repo ID which matches
-    // the version being send down
-    RepositoryVersionEntity repoVersion = null;
-    if (null != effectiveClusterVersion) {
-      repoVersion = effectiveClusterVersion.getRepositoryVersion();
-    } else {
-      List<ClusterVersionEntity> list = clusterVersionDAO.findByClusterAndState(cluster.getClusterName(),
-          RepositoryVersionState.INIT);
-      if (1 == list.size()) {
-        repoVersion = list.get(0).getRepositoryVersion();
-      }
-    }
 
     if (null != repoVersion) {
       try {
@@ -2473,6 +2441,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
     execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
+    hostParams.put(KeyNames.CURRENT_VERSION, repoVersion.getVersion());
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.debug("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",
@@ -2598,9 +2567,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return requestStages;
     }
 
-    // caching effective cluster version
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
-
     // caching upgrade suspended
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
 
@@ -2627,7 +2593,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
       String hostParamsJson = StageUtils.getGson().toJson(
-          customCommandExecutionHelper.createDefaultHostParams(cluster));
+          customCommandExecutionHelper.createDefaultHostParams(cluster, null));
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
@@ -2924,6 +2890,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 requestParameters = new HashMap<>();
               }
               requestParameters.put(CLUSTER_PHASE_PROPERTY, requestProperties.get(CLUSTER_PHASE_PROPERTY));
+
             }
 
             Map<String, Map<String, String>> configurations = new TreeMap<>();
@@ -2943,8 +2910,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               LOG.info("Skipping create of INSTALL task for {} on {}.", scHost.getServiceComponentName(), scHost.getHostName());
               scHost.setState(State.INSTALLED);
             } else {
+              // !!! can never be null
+              RepositoryVersionEntity repoVersion = serviceComponent.getDesiredRepositoryVersion();
+
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event, skipFailure, effectiveClusterVersion, isUpgradeSuspended,
+                roleCommand, requestParameters, event, skipFailure, repoVersion, isUpgradeSuspended,
                 databaseType, clusterDesiredConfigs);
             }
 
@@ -3068,7 +3038,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                               RoleCommand roleCommand) throws AmbariException {
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(cluster);
+
+
+    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
+        cluster, scHost.getServiceComponent().getDesiredRepositoryVersion());
+
     Stage stage = createNewStage(0, cluster,
                                  1, "",
                                  clusterHostInfoJson, "{}", "");
@@ -3081,12 +3055,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         configurationAttributes =
         new TreeMap<>();
 
-    ClusterVersionEntity effectiveClusterVersion = cluster.getEffectiveClusterVersion();
+    RepositoryVersionEntity repoVersion = null;
+    if (null != scHost.getServiceComponent().getDesiredRepositoryVersion()) {
+      repoVersion = scHost.getServiceComponent().getDesiredRepositoryVersion();
+    } else {
+      Service service = cluster.getService(scHost.getServiceName());
+      repoVersion = service.getDesiredRepositoryVersion();
+    }
+
     boolean isUpgradeSuspended = cluster.isUpgradeSuspended();
     DatabaseType databaseType = configs.getDatabaseType();
     Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null, false, effectiveClusterVersion, isUpgradeSuspended, databaseType,
+                     roleCommand, null, null, false, repoVersion, isUpgradeSuspended, databaseType,
                      clusterDesiredConfigs);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
@@ -4010,6 +3991,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (null != cluster) {
       stackId = cluster.getDesiredStackVersion();
     }
+
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster, stackId);
     String commandParamsForStage = jsons.getCommandParamsForStage();
 

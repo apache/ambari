@@ -47,13 +47,13 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.customactions.ActionDefinition;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -91,8 +91,6 @@ public class AmbariActionExecutionHelper {
   private MaintenanceStateHelper maintenanceStateHelper;
   @Inject
   private Configuration configs;
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
 
   /**
    * Validates the request to execute an action.
@@ -457,7 +455,12 @@ public class AmbariActionExecutionHelper {
       for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
         hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
       }
-      addRepoInfoToHostLevelParams(cluster, hostLevelParams, hostName);
+
+      if (StringUtils.isNotBlank(serviceName)) {
+        Service service = cluster.getService(serviceName);
+        addRepoInfoToHostLevelParams(service.getDesiredRepositoryVersion(), hostLevelParams, hostName);
+      }
+
 
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
@@ -519,38 +522,35 @@ public class AmbariActionExecutionHelper {
   *
   * */
 
-  private void addRepoInfoToHostLevelParams(Cluster cluster, Map<String, String> hostLevelParams, String hostName) throws AmbariException {
-    if (null == cluster) {
+  private void addRepoInfoToHostLevelParams(RepositoryVersionEntity repositoryVersion,
+      Map<String, String> hostLevelParams, String hostName) throws AmbariException {
+    if (null == repositoryVersion) {
       return;
     }
 
     JsonObject rootJsonObject = new JsonObject();
     JsonArray repositories = new JsonArray();
-    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(
-        cluster.getClusterName());
-    if (clusterVersionEntity != null && clusterVersionEntity.getRepositoryVersion() != null) {
-      String hostOsFamily = clusters.getHost(hostName).getOsFamily();
-      for (OperatingSystemEntity operatingSystemEntity : clusterVersionEntity.getRepositoryVersion().getOperatingSystems()) {
-        // ostype in OperatingSystemEntity it's os family. That should be fixed
-        // in OperatingSystemEntity.
-        if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
-          for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
-            JsonObject repositoryInfo = new JsonObject();
-            repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
-            repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
-            repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
 
-            repositories.add(repositoryInfo);
-          }
-          rootJsonObject.add("repositories", repositories);
+    String hostOsFamily = clusters.getHost(hostName).getOsFamily();
+    for (OperatingSystemEntity operatingSystemEntity : repositoryVersion.getOperatingSystems()) {
+      // ostype in OperatingSystemEntity it's os family. That should be fixed
+      // in OperatingSystemEntity.
+      if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
+        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+          JsonObject repositoryInfo = new JsonObject();
+          repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
+          repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
+          repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+
+          repositories.add(repositoryInfo);
         }
+        rootJsonObject.add("repositories", repositories);
       }
     }
 
     hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
 
-    StackId stackId = cluster.getCurrentStackVersion();
-    hostLevelParams.put(STACK_NAME, stackId.getStackName());
-    hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    hostLevelParams.put(STACK_NAME, repositoryVersion.getStackName());
+    hostLevelParams.put(STACK_VERSION, repositoryVersion.getStackVersion());
   }
 }

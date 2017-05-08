@@ -105,10 +105,6 @@ public class RepositoryVersionEntity {
   @Column(name = "repositories")
   private String operatingSystems;
 
-
-  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
-  private Set<ClusterVersionEntity> clusterVersionEntities;
-
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
 
@@ -158,13 +154,6 @@ public class RepositoryVersionEntity {
     if (version.startsWith(stackName)) {
       version = version.substring(stackName.length() + 1);
     }
-  }
-  /**
-   * Update one-to-many relation without rebuilding the whole entity
-   * @param entity many-to-one entity
-   */
-  public void updateClusterVersionEntityRelation(ClusterVersionEntity entity){
-    clusterVersionEntities.add(entity);
   }
 
   /**
