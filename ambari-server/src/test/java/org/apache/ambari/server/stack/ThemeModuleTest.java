@@ -22,11 +22,13 @@ import org.apache.ambari.server.state.theme.Theme;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
-public class ThemeModuleTest {
+import com.google.common.collect.ImmutableSet;
 
+public class ThemeModuleTest {
 
   @Test
   public void testResolve() throws Exception {
@@ -48,7 +50,13 @@ public class ThemeModuleTest {
 
     assertEquals(10, parentTheme.getThemeConfiguration().getWidgets().size());
     assertEquals(12, childTheme.getThemeConfiguration().getWidgets().size());
+  }
 
-
+  @Test
+  public void testAddErrors() {
+    Set<String> errors = ImmutableSet.of("one error", "two errors");
+    ThemeModule module = new ThemeModule((File) null);
+    module.addErrors(errors);
+    assertEquals(errors, ImmutableSet.copyOf(module.getErrors()));
   }
 }
