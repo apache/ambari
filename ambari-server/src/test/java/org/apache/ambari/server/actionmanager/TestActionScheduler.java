@@ -208,7 +208,7 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
-    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     List<Stage> stages = Collections.singletonList(s);
@@ -217,7 +217,9 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
+
 
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
@@ -304,7 +306,7 @@ public class TestActionScheduler {
     hostEntity.setHostName(hostname);
     hostDAO.create(hostEntity);
 
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    final Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand(hostname, Role.SECONDARY_NAMENODE, RoleCommand.INSTALL,
             new ServiceComponentHostInstallEvent("SECONDARY_NAMENODE", hostname, System.currentTimeMillis(), "HDP-1.2.0"),
@@ -319,6 +321,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     doAnswer(new Answer<Void>() {
@@ -392,7 +395,7 @@ public class TestActionScheduler {
     when(host.getState()).thenReturn(HostState.HEARTBEAT_LOST);
     when(host.getHostName()).thenReturn(hostname);
 
-    final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
+    final Stage s = StageUtils.getATestStage(1, 977, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     List<Stage> stages = Collections.singletonList(s);
@@ -479,7 +482,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     final Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
-      CLUSTER_HOST_INFO, "{\"command_param\":\"param_value\"}", "{\"host_param\":\"param_value\"}");
+      "{\"command_param\":\"param_value\"}", "{\"host_param\":\"param_value\"}");
     addInstallTaskToStage(stage, hostname1, "cluster1", Role.DATANODE,
       RoleCommand.INSTALL, Service.Type.HDFS, 1);
     addInstallTaskToStage(stage, hostname2, "cluster1", Role.NAMENODE,
@@ -608,6 +611,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -724,6 +728,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -766,6 +771,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -979,6 +985,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -1045,7 +1052,7 @@ public class TestActionScheduler {
       String requestContext, int timeout, boolean stageSupportsAutoSkip,
       boolean autoSkipFailedTask) {
 
-    Stage stage = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, requestContext, CLUSTER_HOST_INFO,
+    Stage stage = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, requestContext,
       "{}", "{}");
 
     stage.setStageId(stageId);
@@ -1132,6 +1139,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(firstStageInProgressPerRequest.size());
@@ -1222,6 +1230,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -1298,6 +1307,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -1363,6 +1373,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
@@ -1509,7 +1520,7 @@ public class TestActionScheduler {
 
     long now = System.currentTimeMillis();
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,
-        "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO, "", "");
+        "testRequestFailureBasedOnSuccessFactor", "", "");
     stage.setStageId(1);
 
     addHostRoleExecutionCommand(now, stage, Role.SQOOP, Service.Type.SQOOP,
@@ -1708,7 +1719,7 @@ public class TestActionScheduler {
 
     long now = System.currentTimeMillis();
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "testRequestFailureBasedOnSuccessFactor",
-      CLUSTER_HOST_INFO, "", "");
+      "", "");
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
@@ -1858,7 +1869,7 @@ public class TestActionScheduler {
 
   private Stage createStage(String clusterName, int stageId, int requestId) {
     Stage stage = stageFactory.createNew(requestId, "/tmp", clusterName, 1L, "getStageWithSingleTask",
-      CLUSTER_HOST_INFO, "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+      "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     stage.setStageId(stageId);
     return stage;
   }
@@ -1958,7 +1969,6 @@ public class TestActionScheduler {
 
     //Data for stages
     Map<String, Set<String>> clusterHostInfo1 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
-    Map<String, Set<String>> clusterHostInfo2 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO_UPDATED, type);
     int stageId = 1;
     int requestId1 = 1;
     int requestId2 = 2;
@@ -1992,11 +2002,12 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
-    Stage s1 = StageUtils.getATestStage(requestId1, stageId, hostname, CLUSTER_HOST_INFO,
+    Stage s1 = StageUtils.getATestStage(requestId1, stageId, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
-    Stage s2 = StageUtils.getATestStage(requestId2, stageId, hostname, CLUSTER_HOST_INFO_UPDATED,
+    Stage s2 = StageUtils.getATestStage(requestId2, stageId, hostname,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     when(db.getCommandsInProgressCount()).thenReturn(1);
@@ -2023,7 +2034,7 @@ public class TestActionScheduler {
     ac = waitForQueueSize(hostname, aq, 1, scheduler);
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals(String.valueOf(requestId2) + "-" + stageId, ((ExecutionCommand) (ac.get(0))).getCommandId());
-    assertEquals(clusterHostInfo2, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
+    assertEquals(clusterHostInfo1, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
   }
 
 
@@ -2073,7 +2084,7 @@ public class TestActionScheduler {
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
     Stage stage1 = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "stageWith2Tasks",
-            CLUSTER_HOST_INFO, "", "");
+            "", "");
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_MASTER,
             RoleCommand.INSTALL, Service.Type.HBASE, 1);
     addInstallTaskToStage(stage1, hostname1, "cluster1", Role.HBASE_REGIONSERVER,
@@ -2151,6 +2162,7 @@ public class TestActionScheduler {
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
 
     RequestEntity request = mock(RequestEntity.class);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
@@ -2304,6 +2316,7 @@ public class TestActionScheduler {
 
     RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     when(db.getCommandsInProgressCount()).thenReturn(stagesInProgress.size());
@@ -2553,10 +2566,13 @@ public class TestActionScheduler {
 
     RequestEntity request1 = mock(RequestEntity.class);
     when(request1.isExclusive()).thenReturn(false);
+    when(request1.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     RequestEntity request2 = mock(RequestEntity.class);
     when(request2.isExclusive()).thenReturn(true);
+    when(request2.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     RequestEntity request3 = mock(RequestEntity.class);
     when(request3.isExclusive()).thenReturn(false);
+    when(request3.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
 
     when(db.getRequestEntity(requestId1)).thenReturn(request1);
     when(db.getRequestEntity(requestId2)).thenReturn(request2);
@@ -2747,6 +2763,7 @@ public class TestActionScheduler {
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
     
     RequestEntity request = mock(RequestEntity.class);
+    when(request.getClusterHostInfo()).thenReturn(CLUSTER_HOST_INFO);
     when(request.isExclusive()).thenReturn(false);
     when(db.getRequestEntity(anyLong())).thenReturn(request);
 

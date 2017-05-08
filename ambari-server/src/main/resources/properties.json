@@ -137,6 +137,7 @@
         "Requests/abort_reason",
         "Requests/remove_pending_host_requests",
         "Requests/pending_host_request_count",
+        "Requests/cluster_host_info",
         "_"
     ],
     "RequestSchedule" : [

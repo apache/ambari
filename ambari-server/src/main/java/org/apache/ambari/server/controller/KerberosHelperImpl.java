@@ -2236,14 +2236,13 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @return a newly created Stage
    */
   private Stage createNewStage(long id, Cluster cluster, long requestId,
-                               String requestContext, String clusterHostInfo,
-                               String commandParams, String hostParams) {
+                               String requestContext, String commandParams, String hostParams) {
+
     Stage stage = stageFactory.createNew(requestId,
         BASE_LOG_DIR + File.pathSeparator + requestId,
         cluster.getClusterName(),
         cluster.getClusterId(),
         requestContext,
-        clusterHostInfo,
         commandParams,
         hostParams);
 
@@ -2271,14 +2270,14 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param timeout           the timeout for the task/action  @return a newly created Stage
    */
   private Stage createServerActionStage(long id, Cluster cluster, long requestId,
-                                        String requestContext, String clusterHostInfo,
+                                        String requestContext,
                                         String commandParams, String hostParams,
                                         Class<? extends ServerAction> actionClass,
                                         ServiceComponentHostServerActionEvent event,
                                         Map<String, String> commandParameters, String commandDetail,
                                         Integer timeout) throws AmbariException {
 
-    Stage stage = createNewStage(id, cluster, requestId, requestContext, clusterHostInfo, commandParams, hostParams);
+    Stage stage = createNewStage(id, cluster, requestId, requestContext,  commandParams, hostParams);
     stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
         ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
@@ -2770,7 +2769,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Preparing Operations",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           PrepareEnableKerberosServerAction.class,
@@ -2781,6 +2779,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2793,7 +2793,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Preparing Operations",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           PrepareKerberosIdentitiesServerAction.class,
@@ -2804,6 +2803,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2816,7 +2817,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Preparing Operations",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           PrepareDisableKerberosServerAction.class,
@@ -2827,6 +2827,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2839,7 +2841,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Create Principals",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           CreatePrincipalsServerAction.class,
@@ -2850,6 +2851,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2862,7 +2865,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Destroy Principals",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           DestroyPrincipalsServerAction.class,
@@ -2873,6 +2875,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2885,7 +2889,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Configure Ambari Identity",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           ConfigureAmbariIdentitiesServerAction.class,
@@ -2896,6 +2899,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2908,7 +2913,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Create Keytabs",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           CreateKeytabFilesServerAction.class,
@@ -2919,6 +2923,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -2934,7 +2940,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Distribute Keytabs",
-          clusterHostInfoJson,
           StageUtils.getGson().toJson(commandParameters),
           hostParamsJson);
 
@@ -2959,6 +2964,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3000,12 +3007,13 @@ public class KerberosHelperImpl implements KerberosHelper {
         cluster,
         requestStageContainer.getId(),
         "Disable security",
-        clusterHostInfoJson,
         StageUtils.getGson().toJson(commandParameters),
         hostParamsJson);
       addDisableSecurityCommandToAllServices(cluster, stage);
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3043,7 +3051,6 @@ public class KerberosHelperImpl implements KerberosHelper {
         cluster,
         requestStageContainer.getId(),
         "Stopping ZooKeeper",
-        clusterHostInfoJson,
         StageUtils.getGson().toJson(commandParameters),
         hostParamsJson);
       for (ServiceComponent component : zookeeper.getServiceComponents().values()) {
@@ -3057,6 +3064,8 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3072,7 +3081,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Delete Keytabs",
-          clusterHostInfoJson,
           StageUtils.getGson().toJson(commandParameters),
           hostParamsJson);
 
@@ -3100,6 +3108,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3112,7 +3122,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Update Configurations",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           UpdateKerberosConfigsServerAction.class,
@@ -3123,6 +3132,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3146,7 +3157,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Finalize Operations",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           FinalizeKerberosServerAction.class,
@@ -3156,6 +3166,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
 
@@ -3168,7 +3180,6 @@ public class KerberosHelperImpl implements KerberosHelper {
           cluster,
           requestStageContainer.getId(),
           "Kerberization Clean Up",
-          clusterHostInfoJson,
           "{}",
           hostParamsJson,
           CleanupServerAction.class,
@@ -3179,6 +3190,8 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
+
+      requestStageContainer.setClusterHostInfo(clusterHostInfoJson);
       requestStageContainer.addStages(roleGraph.getStages());
     }
   }

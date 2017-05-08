@@ -103,6 +103,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/request_schedule/href";
   protected static final String REQUEST_TYPE_ID = "Requests/type";
   protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
+  protected static final String REQUEST_CLUSTER_HOST_INFO_ID = "Requests/cluster_host_info";
   protected static final String REQUEST_RESOURCE_FILTER_ID = "Requests/resource_filters";
   protected static final String REQUEST_OPERATION_LEVEL_ID = "Requests/operation_level";
   protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
@@ -158,7 +159,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_QUEUED_TASK_CNT_ID,
     REQUEST_PROGRESS_PERCENT_ID,
     REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
-    REQUEST_PENDING_HOST_REQUEST_COUNT_ID);
+    REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
+    REQUEST_CLUSTER_HOST_INFO_ID
+  );
 
   // ----- Constructors ----------------------------------------------------
 
@@ -750,6 +753,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         value = SecretReference.maskPasswordInPropertyMap(value);
       }
       resource.setProperty(REQUEST_INPUTS_ID, value);
+    }
+
+    if (isPropertyRequested(REQUEST_CLUSTER_HOST_INFO_ID, requestedPropertyIds)) {
+      resource.setProperty(REQUEST_CLUSTER_HOST_INFO_ID, entity.getClusterHostInfo());
     }
 
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,

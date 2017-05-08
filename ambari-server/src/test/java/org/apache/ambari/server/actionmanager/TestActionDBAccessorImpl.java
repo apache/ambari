@@ -194,7 +194,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(createStubStage(hostName, requestId, stageId));
     stages.add(createStubStage(hostName, requestId, stageId + 1));
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
     assertEquals(2, stages.size());
   }
@@ -540,7 +540,7 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testAbortRequest() throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
 
     clusters.addHost("host2");
@@ -577,7 +577,8 @@ public class TestActionDBAccessorImpl {
     String hostName = cmd.getHostName();
     cmd.setStatus(HostRoleStatus.COMPLETED);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("clusterHostInfo");
     db.persistActions(request);
     db.abortOperation(requestId);
 
@@ -621,7 +622,7 @@ public class TestActionDBAccessorImpl {
 
     stages.add(stage);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     // persist entities
     db.persistActions(request);
@@ -669,7 +670,7 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testGet1000TasksFromOracleDB() throws Exception {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     for (int i = 1000; i < 2002; i++) {
       String host = "host" + i;
@@ -682,7 +683,8 @@ public class TestActionDBAccessorImpl {
 
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("clusterHostInfo");
     db.persistActions(request);
 
     List<HostRoleCommandEntity> entities =
@@ -710,7 +712,7 @@ public class TestActionDBAccessorImpl {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
   }
 
@@ -724,7 +726,7 @@ public class TestActionDBAccessorImpl {
       stages.add(stage);
     }
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
   }
 
@@ -734,7 +736,7 @@ public class TestActionDBAccessorImpl {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.COMPLETED);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -748,7 +750,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.PENDING);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -757,7 +759,7 @@ public class TestActionDBAccessorImpl {
 
   private Stage createStubStage(String hostname, long requestId, long stageId) {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
@@ -775,7 +777,7 @@ public class TestActionDBAccessorImpl {
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
                                 long requestId, long stageId) throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
         RoleCommand.ACTIONEXECUTE,
@@ -786,20 +788,22 @@ public class TestActionDBAccessorImpl {
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("");
     db.persistActions(request);
   }
 
   private void populateActionDBWithServerAction(ActionDBAccessor db, String hostname,
                                                 long requestId, long stageId) throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-        "", "commandParamsStage", "hostParamsStage");
+        "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addServerActionCommand(serverActionName, null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("");
     db.persistActions(request);
   }
 }

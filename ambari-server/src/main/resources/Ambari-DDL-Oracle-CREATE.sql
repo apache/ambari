@@ -337,6 +337,7 @@ CREATE TABLE request (
   request_type VARCHAR(255),
   start_time NUMBER(19) NOT NULL,
   status VARCHAR(255),
+  cluster_host_info BLOB NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -348,7 +349,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure NUMBER(1) DEFAULT 0 NOT NULL,
   log_info VARCHAR2(255) NULL,
   request_context VARCHAR2(255) NULL,
-  cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
   command_execution_type VARCHAR2(32) DEFAULT 'STAGE' NOT NULL,

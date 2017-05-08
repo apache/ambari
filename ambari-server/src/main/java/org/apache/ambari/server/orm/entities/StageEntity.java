@@ -91,16 +91,6 @@ public class StageEntity {
    * lead to an OOM. As a result, lazy load this since it's barely ever
    * requested or used.
    */
-  @Column(name = "cluster_host_info")
-  @Basic(fetch = FetchType.LAZY)
-  private byte[] clusterHostInfo;
-
-  /**
-   * On large clusters, this value can be in the 10,000's of kilobytes. During
-   * an upgrade, all stages are loaded in memory for every request, which can
-   * lead to an OOM. As a result, lazy load this since it's barely ever
-   * requested or used.
-   */
   @Column(name = "command_params")
   @Basic(fetch = FetchType.LAZY)
   private byte[] commandParamsStage;
@@ -154,14 +144,6 @@ public class StageEntity {
 
   public String getRequestContext() {
     return defaultString(requestContext);
-  }
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo == null ? new String() : new String(clusterHostInfo);
-  }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.clusterHostInfo = clusterHostInfo.getBytes();
   }
 
   public String getCommandParamsStage() {

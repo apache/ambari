@@ -40,7 +40,6 @@ public class StageEntity_ {
   public static volatile SingularAttribute<StageEntity, String> logInfo;
   public static volatile SingularAttribute<StageEntity, String> requestContext;
 
-  public static volatile SingularAttribute<StageEntity, byte[]> clusterHostInfo;
   public static volatile SingularAttribute<StageEntity, byte[]> commandParamsStage;
   public static volatile SingularAttribute<StageEntity, byte[]> hostParamsStage;
 
@@ -72,9 +71,6 @@ public class StageEntity_ {
 
     mapping.put(StageResourceProvider.STAGE_CONTEXT,
         Collections.singletonList(requestContext));
-
-    mapping.put(StageResourceProvider.STAGE_CLUSTER_HOST_INFO,
-        Collections.singletonList(clusterHostInfo));
 
     mapping.put(StageResourceProvider.STAGE_COMMAND_PARAMS,
         Collections.singletonList(commandParamsStage));

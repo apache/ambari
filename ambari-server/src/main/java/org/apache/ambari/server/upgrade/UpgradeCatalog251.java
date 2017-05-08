@@ -24,6 +24,8 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@link UpgradeCatalog251} upgrades Ambari from 2.5.0 to 2.5.1.
@@ -32,6 +34,17 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
 
   static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   static final String HRC_IS_BACKGROUND_COLUMN = "is_background";
+
+  private static final String STAGE_TABLE = "stage";
+  private static final String REQUEST_TABLE = "request";
+  private static final String CLUSTER_HOST_INFO_COLUMN = "cluster_host_info";
+  private static final String REQUEST_ID_COLUMN = "request_id";
+
+
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog251.class);
 
   /**
    * Constructor.
@@ -65,6 +78,7 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     addBackgroundColumnToHostRoleCommand();
+    moveClusterHostColumnFromStageToRequest();
   }
 
   /**
@@ -90,5 +104,27 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
   private void addBackgroundColumnToHostRoleCommand() throws SQLException {
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
         new DBColumnInfo(HRC_IS_BACKGROUND_COLUMN, Short.class, null, 0, false));
+  }
+
+  /**
+   * Moves the {@value #CLUSTER_HOST_INFO_COLUMN} column from {@value #STAGE_TABLE} table to the
+   * {@value #REQUEST_TABLE} table
+   *
+   *
+   * @throws SQLException
+   */
+  private void moveClusterHostColumnFromStageToRequest() throws SQLException {
+    if (dbAccessor.tableHasColumn(STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN)){
+
+      dbAccessor.addColumn(REQUEST_TABLE, new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, true));
+
+      // Native query currently is best way to move data, in future move this functionality to dbAccessor
+      final String moveSQL = String.format("UPDATE %1$s AS a SET %3$s = b.%3$s FROM %2$s AS b WHERE a.%4$s = b.%4$s;",
+        REQUEST_TABLE, STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN, REQUEST_ID_COLUMN);
+
+      dbAccessor.executeUpdate(moveSQL, false);
+      dbAccessor.alterColumn(REQUEST_TABLE, new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false));
+      dbAccessor.dropColumn(STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN);
+    }
   }
 }

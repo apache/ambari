@@ -27,6 +27,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
@@ -59,6 +60,16 @@ public class RequestEntity {
   @Column(name = "command_name")
   @Basic
   private String commandName;
+
+  /**
+   * On large clusters, this value can be in the 10,000's of kilobytes. During
+   * an upgrade, all stages are loaded in memory for every request, which can
+   * lead to an OOM. As a result, lazy load this since it's barely ever
+   * requested or used.
+   */
+  @Column(name = "cluster_host_info")
+  @Basic(fetch = FetchType.LAZY)
+  private byte[] clusterHostInfo;
 
   @Column(name = "inputs")
   @Lob
@@ -123,6 +134,14 @@ public class RequestEntity {
 
   public void setStages(Collection<StageEntity> stages) {
     this.stages = stages;
+  }
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo == null ? "{}" : new String(clusterHostInfo);
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo.getBytes();
   }
 
   public Long getCreateTime() {

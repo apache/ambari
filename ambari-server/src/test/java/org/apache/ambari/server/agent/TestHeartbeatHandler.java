@@ -865,7 +865,7 @@ public class TestHeartbeatHandler {
     serviceComponentHost1.setState(State.INSTALLING);
 
     Stage s = stageFactory.createNew(1, "/a/b", "cluster1", 1L, "action manager test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(1);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
@@ -873,7 +873,7 @@ public class TestHeartbeatHandler {
           DummyCluster, "HDFS", false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "clusterHostInfo", clusters);
     actionDBAccessor.persistActions(request);
     actionDBAccessor.abortHostRole(DummyHostname1, 1, 1, Role.DATANODE.name());
 

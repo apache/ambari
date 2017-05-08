@@ -223,7 +223,7 @@ public class HeartbeatTestHelper {
 
   public void populateActionDB(ActionDBAccessor db, String DummyHostname1, long requestId, long stageId) throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", DummyCluster, 1L, "heartbeat handler test",
-        "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+        "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
@@ -232,7 +232,7 @@ public class HeartbeatTestHelper {
             DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE, false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "clusterHostInfo", clusters);
     db.persistActions(request);
   }
 

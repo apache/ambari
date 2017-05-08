@@ -1041,14 +1041,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private Stage createNewStage(long id, Cluster cluster, long requestId,
-                               String requestContext, String clusterHostInfo,
+                               String requestContext,
                                String commandParamsStage, String hostParamsStage) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
         stageFactory.createNew(requestId, logDir,
           null == cluster ? null : cluster.getClusterName(),
           null == cluster ? -1L : cluster.getClusterId(),
-          requestContext, clusterHostInfo, commandParamsStage,
+          requestContext, commandParamsStage,
           hostParamsStage);
     stage.setStageId(id);
     return stage;
@@ -2630,8 +2630,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           customCommandExecutionHelper.createDefaultHostParams(cluster));
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
-          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          clusterHostInfoJson, "{}", hostParamsJson);
+          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),"{}", hostParamsJson);
       boolean skipFailure = false;
       if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
         skipFailure = true;
@@ -2981,6 +2980,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
       rg.build(stage);
+      requestStages.setClusterHostInfo(clusterHostInfoJson);
       requestStages.addStages(rg.getStages());
 
       if (!componentsToEnableKerberos.isEmpty()) {
@@ -3066,9 +3066,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(cluster);
-    Stage stage = createNewStage(0, cluster,
-                                 1, "",
-                                 clusterHostInfoJson, "{}", "");
+    Stage stage = createNewStage(0, cluster,1, "","{}", "");
 
 
     Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
@@ -4036,7 +4034,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParamsForStage = gson.toJson(commandParamsStage);
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
-        jsons.getClusterHostInfo(), commandParamsForStage, jsons.getHostParamsForStage());
+        commandParamsForStage, jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
@@ -4057,6 +4055,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
+      requestStageContainer.setClusterHostInfo(jsons.getClusterHostInfo());
       requestStageContainer.addStages(stages);
     }
 

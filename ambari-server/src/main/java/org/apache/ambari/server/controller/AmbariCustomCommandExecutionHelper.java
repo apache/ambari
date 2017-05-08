@@ -75,10 +75,12 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -172,6 +174,9 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
+
+  @Inject
+  private RequestDAO requestDAO;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -1003,7 +1008,12 @@ public class AmbariCustomCommandExecutionHelper {
           StageUtils.getClusterHostInfo(cluster));
 
       // Reset cluster host info as it has changed
-      stage.setClusterHostInfo(clusterHostInfoJson);
+      RequestEntity requestEntity = requestDAO.findByPK(stage.getRequestId());
+
+      if (requestEntity != null) {
+        requestEntity.setClusterHostInfo(clusterHostInfoJson);
+        requestDAO.merge(requestEntity);
+      }
 
       Map<String, String> commandParams = new HashMap<>();
       if (serviceName.equals(Service.Type.HBASE.name())) {

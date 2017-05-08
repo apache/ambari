@@ -455,9 +455,10 @@ class ActionScheduler implements Runnable {
 
         //Schedule what we have so far
 
+
         for (ExecutionCommand cmd : commandsToSchedule) {
           ConfigHelper.processHiddenAttribute(cmd.getConfigurations(), cmd.getConfigurationAttributes(), cmd.getRole(), false);
-          processHostRole(stage, cmd, commandsToStart, commandsToUpdate);
+          processHostRole(request, stage, cmd, commandsToStart, commandsToUpdate);
         }
 
         LOG.debug("==> Commands to start: {}", commandsToStart.size());
@@ -1053,7 +1054,7 @@ class ActionScheduler implements Runnable {
     return serviceEventMap;
   }
 
-  private void processHostRole(Stage s, ExecutionCommand cmd, List<ExecutionCommand> commandsToStart,
+  private void processHostRole(RequestEntity r, Stage s, ExecutionCommand cmd, List<ExecutionCommand> commandsToStart,
                                List<ExecutionCommand> commandsToUpdate)
     throws AmbariException {
     long now = System.currentTimeMillis();
@@ -1069,23 +1070,23 @@ class ActionScheduler implements Runnable {
     }
     s.setLastAttemptTime(hostname, roleStr, now);
     s.incrementAttemptCount(hostname, roleStr);
-    /** change the hostname in the command for the host itself **/
-    cmd.setHostname(hostsMap.getHostMap(hostname));
 
 
-    //Try to get clusterHostInfo from cache
+    String requestPK = r.getRequestId().toString();
     String stagePk = s.getStageId() + "-" + s.getRequestId();
-    Map<String, Set<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(stagePk);
+
+    // Try to get clusterHostInfo from cache
+    Map<String, Set<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(requestPK);
 
     if (clusterHostInfo == null) {
       Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
-      clusterHostInfo = StageUtils.getGson().fromJson(s.getClusterHostInfo(), type);
-      clusterHostInfoCache.put(stagePk, clusterHostInfo);
+      clusterHostInfo = StageUtils.getGson().fromJson(r.getClusterHostInfo(), type);
+      clusterHostInfoCache.put(requestPK, clusterHostInfo);
     }
 
     cmd.setClusterHostInfo(clusterHostInfo);
 
-    //Try to get commandParams from cache and merge them with command-level parameters
+    // Try to get commandParams from cache and merge them with command-level parameters
     Map<String, String> commandParams = commandParamsStageCache.getIfPresent(stagePk);
 
     if (commandParams == null){
@@ -1106,10 +1107,10 @@ class ActionScheduler implements Runnable {
         }
       }
     } catch (ClusterNotFoundException cnfe) {
-      //NOP
+      // NOP
     }
 
-    //Try to get hostParams from cache and merge them with command-level parameters
+    // Try to get hostParams from cache and merge them with command-level parameters
     Map<String, String> hostParams = hostParamsStageCache.getIfPresent(stagePk);
     if (hostParams == null) {
       Type type = new TypeToken<Map<String, String>>() {}.getType();
@@ -1120,6 +1121,8 @@ class ActionScheduler implements Runnable {
     hostParamsCmd.putAll(hostParams);
     cmd.setHostLevelParams(hostParamsCmd);
 
+    // change the hostname in the command for the host itself
+    cmd.setHostname(hostsMap.getHostMap(hostname));
 
     commandsToUpdate.add(cmd);
   }

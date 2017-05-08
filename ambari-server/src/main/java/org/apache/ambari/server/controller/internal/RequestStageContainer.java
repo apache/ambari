@@ -65,6 +65,8 @@ public class RequestStageContainer {
 
   private ExecuteActionRequest actionRequest = null;
 
+  private String clusterHostInfo = null;
+
   /**
    * Logger
    */
@@ -99,6 +101,7 @@ public class RequestStageContainer {
     this.requestFactory = factory;
     this.actionManager = manager;
     this.actionRequest = actionRequest;
+    this.clusterHostInfo = "{}";
   }
 
   /**
@@ -108,6 +111,10 @@ public class RequestStageContainer {
    */
   public Long getId()  {
     return id;
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo){
+    this.clusterHostInfo = clusterHostInfo;
   }
 
   /**
@@ -202,8 +209,8 @@ public class RequestStageContainer {
   public void persist() throws AmbariException {
     if (!stages.isEmpty()) {
       Request request = (null == actionRequest)
-          ? requestFactory.createNewFromStages(stages)
-          : requestFactory.createNewFromStages(stages, actionRequest);
+          ? requestFactory.createNewFromStages(stages, clusterHostInfo)
+          : requestFactory.createNewFromStages(stages, clusterHostInfo, actionRequest);
 
       if (null != requestContext) {
         request.setRequestContext(requestContext);
