@@ -36,6 +36,7 @@ from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.network import reconfigure_urllib2_opener
+from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -150,6 +151,7 @@ class Script(object):
   # Class variable
   tmp_dir = ""
   force_https_protocol = "PROTOCOL_TLSv1"
+  ca_cert_file_path = None
 
   def load_structured_out(self):
     Script.structuredOut = {}
@@ -276,9 +278,11 @@ class Script(object):
     self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
-    # optional script argument for forcing https protocol
+    # optional script arguments for forcing https protocol and ca_certs file
     if len(sys.argv) >= 8:
       Script.force_https_protocol = sys.argv[7]
+    if len(sys.argv) >= 9:
+      Script.ca_cert_file_path = sys.argv[8]
 
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
@@ -295,6 +299,9 @@ class Script(object):
     if self.command_name == "status":
       Script.structuredOut = {}
       self.put_structured_out({})
+
+    # make sure that script has forced https protocol and ca_certs file passed from agent
+    ensure_ssl_using_protocol(Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path())
 
     try:
       with open(self.command_data_file) as f:
@@ -514,6 +521,15 @@ class Script(object):
     """
     import ssl
     return getattr(ssl, Script.get_force_https_protocol_name())
+
+  @staticmethod
+  def get_ca_cert_file_path():
+    """
+    Get path to file with trusted certificates.
+
+    :return: trusted certificates file path
+    """
+    return Script.ca_cert_file_path
 
   @staticmethod
   def get_component_from_role(role_directory_map, default_role):

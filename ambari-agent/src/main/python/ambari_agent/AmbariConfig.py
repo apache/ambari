@@ -27,6 +27,7 @@ import os
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 logger = logging.getLogger(__name__)
 
 content = """
@@ -74,9 +75,8 @@ log_command_executes = 0
 
 """.format(ps=os.sep)
 
-
 servicesToPidNames = {
-  'GLUSTERFS' : 'glusterd.pid$',
+  'GLUSTERFS': 'glusterd.pid$',
   'NAMENODE': 'hadoop-{USER}-namenode.pid$',
   'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
   'DATANODE': 'hadoop-{USER}-datanode.pid$',
@@ -97,13 +97,13 @@ servicesToPidNames = {
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
-  'HIVE_SERVER_INTERACTIVE' : 'hive-interactive.pid',
+  'HIVE_SERVER_INTERACTIVE': 'hive-interactive.pid',
   'MYSQL_SERVER': 'mysqld.pid',
   'HUE_SERVER': '/var/run/hue/supervisor.pid',
   'WEBHCAT_SERVER': 'webhcat.pid',
 }
 
-#Each service, which's pid depends on user should provide user mapping
+# Each service, which's pid depends on user should provide user mapping
 servicesToLinuxUser = {
   'NAMENODE': 'hdfs_user',
   'SECONDARY_NAMENODE': 'hdfs_user',
@@ -120,30 +120,30 @@ servicesToLinuxUser = {
 }
 
 pidPathVars = [
-  {'var' : 'glusterfs_pid_dir_prefix',
-   'defaultValue' : '/var/run'},
-  {'var' : 'hadoop_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop'},
-  {'var' : 'hadoop_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop'},
-  {'var' : 'hbase_pid_dir',
-   'defaultValue' : '/var/run/hbase'},
-  {'var' : 'zk_pid_dir',
-   'defaultValue' : '/var/run/zookeeper'},
-  {'var' : 'oozie_pid_dir',
-   'defaultValue' : '/var/run/oozie'},
-  {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},
-  {'var' : 'hive_pid_dir',
-   'defaultValue' : '/var/run/hive'},
-  {'var' : 'mysqld_pid_dir',
-   'defaultValue' : '/var/run/mysqld'},
-  {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},
-  {'var' : 'yarn_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop-yarn'},
-  {'var' : 'mapred_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop-mapreduce'},
+  {'var': 'glusterfs_pid_dir_prefix',
+   'defaultValue': '/var/run'},
+  {'var': 'hadoop_pid_dir_prefix',
+   'defaultValue': '/var/run/hadoop'},
+  {'var': 'hadoop_pid_dir_prefix',
+   'defaultValue': '/var/run/hadoop'},
+  {'var': 'hbase_pid_dir',
+   'defaultValue': '/var/run/hbase'},
+  {'var': 'zk_pid_dir',
+   'defaultValue': '/var/run/zookeeper'},
+  {'var': 'oozie_pid_dir',
+   'defaultValue': '/var/run/oozie'},
+  {'var': 'hcat_pid_dir',
+   'defaultValue': '/var/run/webhcat'},
+  {'var': 'hive_pid_dir',
+   'defaultValue': '/var/run/hive'},
+  {'var': 'mysqld_pid_dir',
+   'defaultValue': '/var/run/mysqld'},
+  {'var': 'hcat_pid_dir',
+   'defaultValue': '/var/run/webhcat'},
+  {'var': 'yarn_pid_dir_prefix',
+   'defaultValue': '/var/run/hadoop-yarn'},
+  {'var': 'mapred_pid_dir_prefix',
+   'defaultValue': '/var/run/hadoop-mapreduce'},
 ]
 
 
@@ -311,7 +311,7 @@ class AmbariConfig:
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
       if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
         self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
-      for k,v in reg_resp[AmbariConfig.AMBARI_PROPERTIES_CATEGORY].items():
+      for k, v in reg_resp[AmbariConfig.AMBARI_PROPERTIES_CATEGORY].items():
         self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
         logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
@@ -332,6 +332,15 @@ class AmbariConfig:
     """
     import ssl
     return getattr(ssl, self.get_force_https_protocol_name())
+
+  def get_ca_cert_file_path(self):
+    """
+    Get path to file with trusted certificates.
+
+    :return: trusted certificates file path
+    """
+    return self.get('security', 'ca_cert_path', default="")
+
 
 def isSameHostList(hostlist1, hostlist2):
   is_same = True

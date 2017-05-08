@@ -82,6 +82,7 @@ class CustomServiceOrchestrator():
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
     self.force_https_protocol = config.get_force_https_protocol_name()
+    self.ca_cert_file_path = config.get_ca_cert_file_path()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR
     self.file_cache = FileCache(config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
@@ -399,7 +400,7 @@ class CustomServiceOrchestrator():
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
-                         self.force_https_protocol]
+                         self.force_https_protocol, self.ca_cert_file_path]
         
         if log_out_files:
           script_params.append("-o")
