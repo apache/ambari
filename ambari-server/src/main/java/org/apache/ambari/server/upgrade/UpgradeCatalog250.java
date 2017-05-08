@@ -35,10 +35,12 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -51,6 +53,7 @@ import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.view.ViewArchiveUtility;
+import org.apache.ambari.server.view.ViewInstanceOperationHandler;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +112,12 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
   protected static final String HOST_COMPONENT_DESIREDSTATE_ID_COL = "id";
   protected static final String HOST_COMPONENT_DESIREDSTATE_INDEX = "UQ_hcdesiredstate_name";
+
+  @Inject
+  ViewInstanceDAO viewInstanceDAO;
+
+  @Inject
+  ViewInstanceOperationHandler viewInstanceOperationHandler;
 
   @Inject
   protected ViewArchiveUtility archiveUtility;
@@ -192,7 +201,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
     updateHiveLlapConfigs();
-    updateTablesForZeppelinViewRemoval();
+    unInstallAllZeppelinViews();
     updateZeppelinConfigs();
     updateAtlasConfigs();
     updateLogSearchConfigs();
@@ -676,10 +685,19 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void updateTablesForZeppelinViewRemoval() throws SQLException {
-    dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
-    dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
-    dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  protected void unInstallAllZeppelinViews(){
+    LOG.info("Removing all Zeppelin views.");
+    List<ViewInstanceEntity> viewInstanceList =  viewInstanceDAO.findAll();
+    for( ViewInstanceEntity viewInstanceEntity : viewInstanceList ){
+      if(viewInstanceEntity.getViewName().equalsIgnoreCase("ZEPPELIN{1.0.0}")){
+        LOG.info("Uninstalling zeppelin view : {}", viewInstanceEntity);
+        try {
+          viewInstanceOperationHandler.uninstallViewInstance(viewInstanceEntity);
+        }catch(Exception e){
+          LOG.error("Exception occurred while uninstalling view {}. Ignored for now.", viewInstanceEntity);
+        }
+      }
+    }
   }
 
   /**

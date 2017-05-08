@@ -894,4 +894,13 @@ public class ViewEntity implements ViewDefinition {
   public static String getViewName(String name, String version) {
     return name + "{" + version + "}";
   }
+
+  @Override
+  public String toString() {
+    return "ViewEntity{" +
+        "name='" + name + '\'' +
+        ", label='" + label + '\'' +
+        ", description='" + description + '\'' +
+        '}';
+  }
 }
