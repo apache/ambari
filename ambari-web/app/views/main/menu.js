@@ -115,7 +115,7 @@ App.MainSideMenuView = Em.CollectionView.extend({
             href: router.urlFor('main.admin.adminKerberos')
           });
         }
-        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || upg) {
+        if ((App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') && App.isAuthorized('SERVICE.MANAGE_AUTO_START, CLUSTER.MANAGE_AUTO_START')) || upg) {
           if (App.supports.serviceAutoStart) {
             categories.push({
               name: 'serviceAutoStart',

@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,11 +40,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
@@ -69,6 +75,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -79,6 +89,8 @@ import com.google.common.collect.Maps;
 /**
  * BlueprintConfigurationProcessor unit tests.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(AmbariServer.class)
 public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(), Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -98,6 +110,21 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   @Mock(type = MockType.NICE)
   private Stack stack;
+
+  @Mock(type = MockType.NICE)
+  private AmbariManagementController controller;
+
+  @Mock(type = MockType.NICE)
+  private KerberosHelper kerberosHelper;
+
+  @Mock(type = MockType.NICE)
+  private KerberosDescriptor kerberosDescriptor;
+
+  @Mock(type = MockType.NICE)
+  private Clusters clusters;
+
+  @Mock(type = MockType.NICE)
+  private Cluster cluster;
 
   @Mock
   private TopologyRequest topologyRequestMock;
@@ -198,6 +225,18 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     Set<String> emptySet = Collections.emptySet();
     expect(stack.getExcludedConfigurationTypes(anyObject(String.class))).andReturn(emptySet).anyTimes();
+    expect(ambariContext.isClusterKerberosEnabled(1)).andReturn(true).once();
+    expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
+    PowerMock.replay(AmbariServer.class);
+    expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
+    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
+    Set<String> properties = new HashSet<String>();
+    properties.add("core-site/hadoop.security.auth_to_local");
+    expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
   }
 
   @After
@@ -902,6 +941,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     kerberosEnvProperties.put("kdc_hosts", expectedHostName + ",secondary.kdc.org");
     kerberosEnvProperties.put("master_kdc", expectedHostName);
     coreSiteProperties.put("hadoop.proxyuser.yarn.hosts", expectedHostName);
+    coreSiteProperties.put("hadoop.security.auth_to_local", "RULE:clustername");
 
     Configuration clusterConfig = new Configuration(configProperties,
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -933,6 +973,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
       kerberosEnvProperties.containsKey("master_kdc"));
     assertEquals("hadoop.proxyuser.yarn.hosts was not exported correctly",
       createExportedHostName("host_group_1"), coreSiteProperties.get("hadoop.proxyuser.yarn.hosts"));
+    assertFalse("hadoop.security.auth_to_local should not be present in exported blueprint in core-site",
+      coreSiteProperties.containsKey("hadoop.security.auth_to_local"));
   }
 
   @Test
@@ -8099,7 +8141,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo, ambariContext);
+    replay(stack, serviceInfo, ambariContext, controller, kerberosHelper, kerberosDescriptor, clusters, cluster);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<>();
     Collection<String> allServices = new HashSet<>();

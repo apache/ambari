@@ -52,6 +52,11 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -61,8 +66,12 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -85,11 +94,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
  */
 @SuppressWarnings("unchecked")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(AmbariContext.class)
+@PrepareForTest({AmbariContext.class, AmbariServer.class})
 public class ClusterBlueprintRendererTest {
 
   private static final ClusterTopology topology = createNiceMock(ClusterTopology.class);
   private static final ClusterController clusterController = createNiceMock(ClusterControllerImpl.class);
+
+  private static final AmbariContext ambariContext = createNiceMock(AmbariContext.class);
+  private static final Cluster cluster = createNiceMock(Cluster.class);
+  private static final Clusters clusters = createNiceMock(ClustersImpl.class);
+  private static final AmbariManagementController controller = createNiceMock(AmbariManagementControllerImpl.class);
+  private static final KerberosHelper kerberosHelper = createNiceMock(KerberosHelperImpl.class);
+  private static final KerberosDescriptor kerberosDescriptor = createNiceMock(KerberosDescriptor.class);
 
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final Stack stack = createNiceMock(Stack.class);
@@ -155,7 +171,20 @@ public class ClusterBlueprintRendererTest {
     expect(group1.getComponents()).andReturn(group1Components).anyTimes();
     expect(group2.getComponents()).andReturn(group2Components).anyTimes();
 
-    replay(topology, blueprint, stack, group1, group2);
+    expect(topology.getAmbariContext()).andReturn(ambariContext).anyTimes();
+    expect(topology.getClusterId()).andReturn(1L).anyTimes();
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(controller).anyTimes();
+    PowerMock.replay(AmbariServer.class);
+    expect(clusters.getCluster("clusterName")).andReturn(cluster).anyTimes();
+    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(kerberosHelper.getKerberosDescriptor(cluster)).andReturn(kerberosDescriptor).anyTimes();
+    Set<String> properties = new HashSet<String>();
+    properties.add("core-site/hadoop.security.auth_to_local");
+    expect(kerberosDescriptor.getAllAuthToLocalProperties()).andReturn(properties).anyTimes();
+    expect(ambariContext.getClusterName(1L)).andReturn("clusterName").anyTimes();
+    replay(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
   }
 
   private void setupMocksForKerberosEnabledCluster() throws Exception {
@@ -165,6 +194,7 @@ public class ClusterBlueprintRendererTest {
 
     PowerMock.mockStatic(AmbariContext.class);
     expect(AmbariContext.getClusterController()).andReturn(clusterController).anyTimes();
+    expect(AmbariContext.getController()).andReturn(controller).anyTimes();
 
     reset(topology);
 
@@ -210,8 +240,8 @@ public class ClusterBlueprintRendererTest {
 
   @After
   public void tearDown() {
-    verify(topology, blueprint, stack, group1, group2);
-    reset(topology, blueprint, stack, group1, group2);
+    verify(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
+    reset(topology, blueprint, stack, group1, group2, ambariContext, clusters, controller, kerberosHelper, cluster, kerberosDescriptor);
   }
 
   @Test

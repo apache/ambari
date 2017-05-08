@@ -25,4 +25,26 @@
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>ranger-nifi-plugin-enabled</name>
+    <value>No</value>
+    <display-name>NIFI Ranger Plugin</display-name>
+    <description>Enable NIFI Ranger plugin</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>Yes</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>No</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

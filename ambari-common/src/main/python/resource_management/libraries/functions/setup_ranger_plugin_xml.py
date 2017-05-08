@@ -49,7 +49,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
                         xa_audit_db_password, ssl_truststore_password,
                         ssl_keystore_password, api_version=None, stack_version_override = None, skip_if_rangeradmin_down = True,
                         is_security_enabled = False, is_stack_supports_ranger_kerberos = False,
-                        component_user_principal = None, component_user_keytab = None):
+                        component_user_principal = None, component_user_keytab = None, cred_lib_path_override = None, cred_setup_prefix_override = None):
 
   if audit_db_is_enabled and component_driver_curl_source is not None and not component_driver_curl_source.endswith("/None"):
     if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
@@ -69,8 +69,10 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
   if policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-  stack_version = get_stack_version(component_select_name)
-  if stack_version_override is not None:
+
+  if stack_version_override is None:
+    stack_version = get_stack_version(component_select_name)
+  else:
     stack_version = stack_version_override
 
   component_conf_dir = conf_dict
@@ -187,7 +189,7 @@ def setup_ranger_plugin(component_select_name, service_name, previous_jdbc_jar,
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
-              component_user, component_group, java_home)
+              component_user, component_group, java_home, cred_lib_path_override, cred_setup_prefix_override)
 
   else:
     File(format('{component_conf_dir}/ranger-security.xml'),
@@ -207,16 +209,20 @@ def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list
       sudo=True)
 
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_version, credential_file, xa_audit_db_password,
-                                ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
+                                ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home, cred_lib_path_override = None, cred_setup_prefix_override = None):
 
   stack_root = Script.get_stack_root()
   service_name = str(service_name).lower()
-  cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
-  cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 
-  if service_name == 'nifi':
-    cred_lib_path = format('{stack_root}/{stack_version}/{service_name}/ext/ranger/install/lib/*')
-    cred_setup_prefix = (format('{stack_root}/{stack_version}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'), '-l', cred_lib_path)
+  if cred_lib_path_override is not None:
+    cred_lib_path = cred_lib_path_override
+  else:
+    cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
+
+  if cred_setup_prefix_override is not None:
+    cred_setup_prefix = cred_setup_prefix_override
+  else:
+    cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if audit_db_is_enabled:
     cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'auditDBCred', '-v', PasswordString(xa_audit_db_password), '-c', '1')
