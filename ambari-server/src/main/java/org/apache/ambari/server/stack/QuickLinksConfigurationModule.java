@@ -125,7 +125,7 @@ public class QuickLinksConfigurationModule extends BaseModule<QuickLinksConfigur
 
   @Override
   public void addErrors(Collection<String> errors) {
-    errors.addAll(errors);
+    this.errors.addAll(errors);
   }
 
   @Override

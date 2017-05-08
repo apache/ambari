@@ -125,7 +125,7 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   @Override
   public void addErrors(Collection<String> errors) {
-    errors.addAll(errors);
+    this.errors.addAll(errors);
   }
 
   @Override
