@@ -29,7 +29,10 @@ LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
 
 logger = logging.getLogger(__name__)
 
-ensure_ssl_using_protocol(AmbariConfig.get_resolved_config().get_force_https_protocol_name())
+ensure_ssl_using_protocol(
+  AmbariConfig.get_resolved_config().get_force_https_protocol_name(),
+  AmbariConfig.get_resolved_config().get_ca_cert_file_path()
+)
 
 class NetUtil:
 

@@ -183,23 +183,42 @@ def resolve_address(address):
       return '127.0.0.1'
   return address
 
-def ensure_ssl_using_protocol(protocol):
+def ensure_ssl_using_protocol(protocol="PROTOCOL_TLSv1", ca_certs=None):
   """
   Monkey patching ssl module to force it use tls_v1. Do this in common module to avoid problems with
   PythonReflectiveExecutor.
+
   :param protocol: one of ("PROTOCOL_SSLv2", "PROTOCOL_SSLv3", "PROTOCOL_SSLv23", "PROTOCOL_TLSv1", "PROTOCOL_TLSv1_1", "PROTOCOL_TLSv1_2")
+  :param ca_certs: path to ca_certs file
   :return:
   """
   from functools import wraps
   import ssl
-  if hasattr(ssl.wrap_socket, "_ambari_patched"):
-    return # do not create chain of wrappers, patch only once
-  def sslwrap(func):
-    @wraps(func)
-    def bar(*args, **kw):
-      import ssl
-      kw['ssl_version'] = getattr(ssl, protocol)
-      return func(*args, **kw)
-    bar._ambari_patched = True
-    return bar
-  ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+
+  if not hasattr(ssl.wrap_socket, "_ambari_patched"):
+    def sslwrap(func):
+      @wraps(func)
+      def bar(*args, **kw):
+        import ssl
+        kw['ssl_version'] = getattr(ssl, protocol)
+        if ca_certs and not 'ca_certs' in kw:
+          kw['ca_certs'] = ca_certs
+          kw['cert_reqs'] = ssl.CERT_REQUIRED
+        return func(*args, **kw)
+      bar._ambari_patched = True
+      return bar
+    ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+
+  # python 2.7 stuff goes here
+  if hasattr(ssl, "_create_default_https_context"):
+    if not hasattr(ssl._create_default_https_context, "_ambari_patched"):
+      @wraps(ssl._create_default_https_context)
+      def _create_default_https_context_patched():
+        context = ssl.SSLContext(protocol = getattr(ssl, protocol))
+        if ca_certs:
+          context.load_verify_locations(ca_certs)
+          context.verify_mode = ssl.CERT_REQUIRED
+          context.check_hostname = False
+        return context
+      _create_default_https_context_patched._ambari_patched = True
+      ssl._create_default_https_context = _create_default_https_context_patched
