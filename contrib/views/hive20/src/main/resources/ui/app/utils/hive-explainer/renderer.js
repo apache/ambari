@@ -134,7 +134,7 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
 
 }
 function isSingleReducerAvailable(data){
-  let reducerCount = data.vertices.filter(function(item){
+  let reducerCount = data.verticesData.filter(function(item){
     return item['_vertex'].indexOf("Reducer") === 0;
   });
   if(reducerCount && reducerCount.length === 1) {
