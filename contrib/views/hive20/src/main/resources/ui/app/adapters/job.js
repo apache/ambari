@@ -73,7 +73,7 @@ export default ApplicationAdapter.extend({
   },
 
   downloadAsCsv(jobId, path){
-    let resultUrl = this.urlForFindRecord(jobId, 'job') + "/results/csv/?fileName=" + path + ".csv";
+    let resultUrl = this.urlForFindRecord(jobId, 'job') + "/results/csv/" + path + ".csv";
     return resultUrl;
   }
 

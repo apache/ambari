@@ -586,7 +586,7 @@ export default Ember.Controller.extend({
 
       defer.promise.then(function (text) {
         // download file ...
-        var urlString = "%@/?fileName=%@.csv";
+        var urlString = "%@/%@.csv";
         var url = self.get('csvUrl');
         url = urlString.fmt(url, text);
         window.open(url);
