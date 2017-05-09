@@ -500,10 +500,18 @@ function getConnectionPath(connector, svg, container, data){
   }
   path.push(pSource);
   const offsetY = svg.node().getBoundingClientRect().top;
+  let isEdgeReversed = false, edgeReversalVal;
   return path.reduce((accumulator, cPoint, index) => {
     if(index === 0) {
+      if(cPoint.x > (cPoint.y - offsetY)) {
+        edgeReversalVal = cPoint.x;
+        isEdgeReversed = true;
+      }
       return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     } else {
+      if(isEdgeReversed && path.length === 4 && index !== path.length-1 && edgeReversalVal > cPoint.x){
+        return accumulator + `L ${cPoint.x+150}, ${cPoint.y - offsetY}\n`;
+      }
       return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
     }
   }, '');
@@ -543,9 +551,9 @@ function getConnectionPathArrow(connector, svg, container){
     if(path.length === 2){
       if(index === 0) {
         if(cPoint.x > 0){
-          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23}  L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
         } else {
-          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23}  L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
         }
       } else {
         return accumulator;
@@ -553,9 +561,9 @@ function getConnectionPathArrow(connector, svg, container){
     } else {
       if(index === 0) {
         if(cPoint.x > 0) {
-          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-15} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+35} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23} L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
         } else {
-          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+15} V 0, ${10*6} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY+9} V 0, 67 L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
         }
       } else {
         return accumulator;
