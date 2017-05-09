@@ -238,7 +238,8 @@ App.MainServiceItemView = Em.View.extend({
         });
       }
 
-      self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
+      if(App.isAuthorized('HOST.ADD_DELETE_COMPONENTS')){
+        self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
         if (App.get('components.addableToHost').contains(item.component)) {
 
           var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
@@ -254,7 +255,8 @@ App.MainServiceItemView = Em.View.extend({
 
           options.push(item);
         }
-      });
+       });
+      }
 
       allMasters.forEach(function(master) {
         var component = App.StackServiceComponent.find(master);
