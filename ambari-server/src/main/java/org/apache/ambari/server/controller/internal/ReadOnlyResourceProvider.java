@@ -43,6 +43,26 @@ public abstract class ReadOnlyResourceProvider extends AbstractControllerResourc
     super(propertyIds, keyPropertyIds, managementController);
   }
 
+  /**
+   * Create a new resource provider for the given management controller. This
+   * constructor will initialize the specified {@link Resource.Type} with the
+   * provided keys. It should be used in cases where the provider declares its
+   * own keys instead of reading them from a JSON file.
+   *
+   * @param type
+   *          the type to set the properties for (not {@code null}).
+   * @param propertyIds
+   *          the property ids
+   * @param keyPropertyIds
+   *          the key property ids
+   * @param managementController
+   *          the management controller
+   */
+  ReadOnlyResourceProvider(Resource.Type type, Set<String> propertyIds,
+      Map<Resource.Type, String> keyPropertyIds, AmbariManagementController managementController) {
+    super(type, propertyIds, keyPropertyIds, managementController);
+  }
+
   @Override
   public RequestStatus createResources(Request request) throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException,

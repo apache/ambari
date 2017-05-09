@@ -105,7 +105,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   };
 
   public RepositoryResourceProvider(AmbariManagementController managementController) {
-    super(propertyIds, keyPropertyIds, managementController);
+    super(Resource.Type.Repository, propertyIds, keyPropertyIds, managementController);
   }
 
   @Override

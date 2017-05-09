@@ -68,6 +68,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -100,11 +101,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   public static final String REPOSITORY_VERSION_HAS_CHILDREN                   = "RepositoryVersions/has_children";
 
   @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Sets.newHashSet(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   @SuppressWarnings("serial")
   public static Set<String> propertyIds = Sets.newHashSet(
@@ -125,13 +122,11 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       REPOSITORY_VERSION_STACK_SERVICES);
 
   @SuppressWarnings("serial")
-  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
-      put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
-      put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
-    }
-  };
+  public static Map<Type, String> keyPropertyIds = new ImmutableMap.Builder<Type, String>()
+      .put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID)
+      .put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)
+      .put(Type.RepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID)
+      .build();
 
   @Inject
   private Gson gson;
@@ -159,7 +154,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
    *
    */
   public RepositoryVersionResourceProvider() {
-    super(propertyIds, keyPropertyIds);
+    super(Resource.Type.RepositoryVersion, propertyIds, keyPropertyIds);
 
     setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
     setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));

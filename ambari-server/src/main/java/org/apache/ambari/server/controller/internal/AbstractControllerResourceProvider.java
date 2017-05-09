@@ -59,8 +59,13 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
   }
 
   /**
-   * Create a new resource provider for the given management controller.
+   * Create a new resource provider for the given management controller. This
+   * constructor will initialize the specified {@link Resource.Type} with the
+   * provided keys. It should be used in cases where the provider declares its
+   * own keys instead of reading them from a JSON file.
    *
+   * @param type
+   *          the type to set the properties for (not {@code null}).
    * @param propertyIds
    *          the property ids
    * @param keyPropertyIds
@@ -68,7 +73,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
    * @param managementController
    *          the management controller
    */
-  protected AbstractControllerResourceProvider(Resource.Type type, Set<String> propertyIds,
+  AbstractControllerResourceProvider(Resource.Type type, Set<String> propertyIds,
       Map<Resource.Type, String> keyPropertyIds, AmbariManagementController managementController) {
     this(propertyIds, keyPropertyIds, managementController);
     PropertyHelper.setPropertyIds(type, propertyIds);
