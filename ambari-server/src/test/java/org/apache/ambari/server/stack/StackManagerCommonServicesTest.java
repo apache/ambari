@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
@@ -123,10 +124,11 @@ public class StackManagerCommonServicesTest {
     osFamily = new OsFamily(config);
 
     replay(metaInfoDao, actionMetadata);
+    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
 
     StackManager stackManager = new StackManager(new File(stackRoot), new File(
         commonServicesRoot), new File(extensionRoot), osFamily, true, metaInfoDao,
-        actionMetadata, stackDao, extensionDao, linkDao);
+        actionMetadata, stackDao, extensionDao, linkDao, helper);
 
     EasyMock.verify( config, stackDao );
 

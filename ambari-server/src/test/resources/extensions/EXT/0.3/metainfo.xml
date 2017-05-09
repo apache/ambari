@@ -19,7 +19,7 @@
   <versions>
     <active>true</active>
   </versions>
-  <extends>0.1</extends>
+  <extends>0.2</extends>
   <auto-link>true</auto-link>
   <prerequisites>
     <min-stack-versions>
