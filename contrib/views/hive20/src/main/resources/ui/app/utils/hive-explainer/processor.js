@@ -264,10 +264,10 @@ export function getEdgesWithCorrectedUnion(edges) {
 function findAllOutputOperators(vertices, outputOperatorsList, edges, patterns) {
     vertices.forEach(cEdge => {
       edges.push(cEdge);
-      let outputOperator = cEdge["OutputOperators:"];
-      if(outputOperator) {
-        patterns.push({outputOperator:outputOperator.substring(1, outputOperator.length-1), cEdge:[edges[edges.length-4], edges[edges.length-3], edges[edges.length-2], edges[edges.length-1]]});
-        outputOperatorsList.push({outputOperator:outputOperator.substring(1, outputOperator.length-1), cEdge:edges});
+      let outputOperator = cEdge["outputOperator:"];
+      if(outputOperator && outputOperator.length) {
+        patterns.push({outputOperator:outputOperator[0], cEdge:[edges[edges.length-4], edges[edges.length-3], edges[edges.length-2], edges[edges.length-1]]});
+        outputOperatorsList.push({outputOperator:outputOperator[0], cEdge:edges});
       }
       findAllOutputOperators(cEdge._children, outputOperatorsList, edges, patterns);
     });
@@ -303,7 +303,7 @@ function findPatternParent(edges, patternArray) {
       if(cSubChild && cSubChild["OperatorId:"] === patternArray[0]["OperatorId:"]){
         if(cChild._children.length>1){
           cChild._children = [cChild._children[0]];
-          cChild["OutputOperators:"] = patternArray[1]["OutputOperators:"];
+          cChild["outputOperator:"] = patternArray[1]["outputOperator:"];
           newVertex = Object.assign(patternArray[2], {
            "_operator":"Build Bloom Filter",
            "_children":[],
@@ -314,7 +314,7 @@ function findPatternParent(edges, patternArray) {
            ...patternArray[3].groups||[doCloneAndOmit(patternArray[3], ['_groups'])]]
           });
         }
-      } else if(cSubChild && cSubChild["OperatorId:"] === patternArray[3]["OperatorId:"]){
+      } else if(cSubChild && patternArray[patternArray.length-1] && cSubChild["OperatorId:"] === patternArray[patternArray.length-1]["OperatorId:"]){
           cChild._children = newVertex ? [newVertex]:[];
       } else {
         findPatternParent(cChild, patternArray);

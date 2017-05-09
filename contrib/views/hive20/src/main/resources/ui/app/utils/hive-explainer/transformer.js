@@ -506,10 +506,10 @@ function findAllOperatorsInTargetVertex(node, resultsAggregator, targetNode) {
 }
 
 function findAllOperatorsInSourceVertex(node, resultsAggregator, srcNode) {
-  let outputOperator = node["OutputOperators:"];
+  let outputOperator = node["outputOperator:"];
   if(outputOperator) {
-    resultsAggregator.push(outputOperator.substring(1, outputOperator.length-1));
-    srcNode[outputOperator.substring(1, outputOperator.length-1)] = node;
+    resultsAggregator.push(outputOperator[0]);
+    srcNode[outputOperator[0]] = node;
   }
   node._children.forEach(cChild => findAllOperatorsInSourceVertex(cChild, resultsAggregator, srcNode));
   if(!node._children) {
