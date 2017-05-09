@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -200,6 +201,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   public ExtensionInfo getExtensionByService(String serviceName) {
     Collection<ExtensionInfo> extensions = getExtensions();
     for (ExtensionInfo extension : extensions) {
+      Collection<ServiceInfo> services = extension.getServices();
       for (ServiceInfo service : services) {
         if (service.getName().equals(serviceName))
           return extension;
@@ -207,6 +209,24 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     }
     //todo: exception?
     return null;
+  }
+
+  public void addExtension(ExtensionInfo extension) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    extensions.add(extension);
+    Collection<ServiceInfo> services = getServices();
+    for (ServiceInfo service : extension.getServices()) {
+      services.add(service);
+    }
+  }
+
+  public void removeExtension(ExtensionInfo extension) {
+    Collection<ExtensionInfo> extensions = getExtensions();
+    extensions.remove(extension);
+    Collection<ServiceInfo> services = getServices();
+    for (ServiceInfo service : extension.getServices()) {
+      services.remove(service);
+    }
   }
 
   public List<PropertyInfo> getProperties() {
@@ -476,9 +496,10 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
 
   @Override
   public int compareTo(StackInfo o) {
-    String myId = name + "-" + version;
-    String oId = o.name + "-" + o.version;
-    return myId.compareTo(oId);
+    if (name.equals(o.name)) {
+      return VersionUtils.compareVersions(version, o.version);
+    }
+    return name.compareTo(o.name);
   }
 
   //todo: ensure that required properties are never modified...

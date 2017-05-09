@@ -30,6 +30,7 @@ import java.util.Set;
 import org.apache.ambari.server.controller.ExtensionVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
+import org.apache.ambari.server.utils.VersionUtils;
 
 /**
  * An extension version is like a stack version but it contains custom services.  Linking an extension
@@ -45,6 +46,8 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
   private List<ExtensionMetainfoXml.Stack> stacks;
   private List<ExtensionMetainfoXml.Extension> extensions;
   private boolean valid = true;
+  private boolean autoLink = false;
+  private boolean active = false;
 
   /**
    *
@@ -185,9 +188,10 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
 
   @Override
   public int compareTo(ExtensionInfo o) {
-    String myId = name + "-" + version;
-    String oId = o.name + "-" + o.version;
-    return myId.compareTo(oId);
+    if (name.equals(o.name)) {
+      return VersionUtils.compareVersions(version, o.version);
+    }
+    return name.compareTo(o.name);
   }
 
   public List<ExtensionMetainfoXml.Stack> getStacks() {
@@ -204,5 +208,21 @@ public class ExtensionInfo implements Comparable<ExtensionInfo>, Validable{
 
   public void setExtensions(List<ExtensionMetainfoXml.Extension> extensions) {
     this.extensions = extensions;
+  }
+
+  public boolean isAutoLink() {
+    return autoLink;
+  }
+
+  public void setAutoLink(boolean autoLink) {
+    this.autoLink = autoLink;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 }
