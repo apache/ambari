@@ -126,7 +126,7 @@
   </property>
   <property>
     <name>delete.topic.enable</name>
-    <value>false</value>
+    <value>true</value>
     <description>Enables delete topic. Delete topic through the admin tool will have no effect if this config is turned off</description>
     <on-ambari-upgrade add="true"/>
   </property>
