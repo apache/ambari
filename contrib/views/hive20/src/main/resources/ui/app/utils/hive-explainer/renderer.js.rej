@@ -1,0 +1,17 @@
+***************
+*** 134,140 ****
+  
+  }
+  function isSingleReducerAvailable(data){
+-   let reducerCount = data.vertices.filter(function(item){
+      return item['_vertex'].indexOf("Reducer") === 0;
+    });
+    if(reducerCount && reducerCount.length === 1) {
+--- 134,140 ----
+  
+  }
+  function isSingleReducerAvailable(data){
++   let reducerCount = data.verticesData.filter(function(item){
+      return item['_vertex'].indexOf("Reducer") === 0;
+    });
+    if(reducerCount && reducerCount.length === 1) {

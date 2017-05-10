@@ -1,0 +1,50 @@
+***************
+*** 28,34 ****
+      getFetchVertex(fetch),
+    ];
+  
+-   let edges = [];
+    if(tez) {
+      edges = getEdges(tez, vertices);
+      edges = getEdgesWithCorrectedUnion(edges);
+--- 28,34 ----
+      getFetchVertex(fetch),
+    ];
+  
++   let edges = [], verticesData;
+    if(tez) {
+      edges = getEdges(tez, vertices);
+      edges = getEdgesWithCorrectedUnion(edges);
+***************
+*** 38,44 ****
+    vertices = doEnhance(vertices);
+  
+    vertices = getProcessedVertices(vertices, edges);
+- 
+    const {adjustedVertices, adjustedEdges} = getAdjustedVerticesAndEdges(vertices, edges);
+    vertices = adjustedVertices;
+    edges = adjustedEdges;
+--- 38,44 ----
+    vertices = doEnhance(vertices);
+  
+    vertices = getProcessedVertices(vertices, edges);
++   verticesData = vertices;
+    const {adjustedVertices, adjustedEdges} = getAdjustedVerticesAndEdges(vertices, edges);
+    vertices = adjustedVertices;
+    edges = adjustedEdges;
+***************
+*** 60,65 ****
+      tree,
+      nodes,
+      connections,
+    });
+  }
+  
+--- 60,66 ----
+      tree,
+      nodes,
+      connections,
++     verticesData
+    });
+  }
+  
