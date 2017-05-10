@@ -369,7 +369,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.summary.alerts.popup.header').format(context.get('displayName')),
       autoHeight: false,
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['sixty-percent-width-modal', 'service-alerts-popup'],
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/service_alert_popup'),
         classNames: ['service-alerts'],
