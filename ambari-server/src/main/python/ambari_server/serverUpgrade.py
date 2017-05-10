@@ -522,7 +522,28 @@ def restore_custom_services():
     print_error_msg(err)
     raise FatalException(1, err)
 
-  services = glob.glob(os.path.join(resources_dir,"stacks","*","*","services","*"))
+  stack_services_search_path = os.path.join("stacks","*","*","services","*")
+  stack_old_dir_name = "stacks_*.old"
+  stack_backup_services_search_path = os.path.join("*","*","services","*")
+  stack_old_dir_mask = r'/stacks.*old/'
+  stack_base_service_dir = '/stacks/'
+
+  find_and_copy_custom_services(resources_dir, stack_services_search_path, stack_old_dir_name,
+                                stack_backup_services_search_path, stack_old_dir_mask, stack_base_service_dir)
+
+  common_services_search_path = os.path.join("common-services","*")
+  common_old_dir_name = "common-services_*.old"
+  common_backup_services_search_path = "*"
+  common_old_dir_mask = r'/common-services.*old'
+  common_base_service_dir = '/common-services/'
+
+  find_and_copy_custom_services(resources_dir, common_services_search_path, common_old_dir_name,
+                                common_backup_services_search_path, common_old_dir_mask, common_base_service_dir)
+
+
+def find_and_copy_custom_services(resources_dir, services_search_path, old_dir_name, backup_services_search_path,
+                                    old_dir_mask, base_service_dir):
+  services = glob.glob(os.path.join(resources_dir, services_search_path))
   managed_services = []
   for service in services:
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
@@ -530,15 +551,15 @@ def restore_custom_services():
   # add deprecated managed services
   managed_services.extend(["NAGIOS","GANGLIA","MAPREDUCE","WEBHCAT"])
 
-  stack_backup_dirs = glob.glob(os.path.join(resources_dir,"stacks_*.old"))
+  stack_backup_dirs = glob.glob(os.path.join(resources_dir, old_dir_name))
   if stack_backup_dirs:
     last_backup_dir = max(stack_backup_dirs, key=os.path.getctime)
-    backup_services = glob.glob(os.path.join(last_backup_dir,"*","*","services","*"))
+    backup_services = glob.glob(os.path.join(last_backup_dir, backup_services_search_path))
 
-    regex = re.compile(r'/stacks.*old/')
+    regex = re.compile(old_dir_mask)
     for backup_service in backup_services:
       backup_base_service_dir = os.path.dirname(backup_service)
-      current_base_service_dir = regex.sub('/stacks/', backup_base_service_dir)
+      current_base_service_dir = regex.sub(base_service_dir, backup_base_service_dir)
       # if services dir does not exists, we do not manage this stack
       if not os.path.exists(current_base_service_dir):
         continue
