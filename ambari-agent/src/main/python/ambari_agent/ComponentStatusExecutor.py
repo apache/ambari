@@ -69,6 +69,7 @@ class ComponentStatusExecutor(threading.Thread):
               if self.stop_event.is_set():
                 break
 
+              service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
               # TODO STOMP: run real command
@@ -76,6 +77,7 @@ class ComponentStatusExecutor(threading.Thread):
               #self.customServiceOrchestrator.requestComponentStatus(command)
               status = random.choice(["INSTALLED","STARTED"])
               result = {
+                'serviceName': service_name,
                 'componentName': component_name,
                 'command': command,
                 'status': status,

@@ -40,7 +40,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module = InitializerModule()
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
-    heartbeat_thread.heartbeat_interval = 0
     heartbeat_thread.start()
 
     connect_frame = self.server.frames_queue.get()
@@ -94,7 +93,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.server.frames_queue.queue.clear()
 
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
-    heartbeat_thread.heartbeat_interval = 0
     heartbeat_thread.start()
 
     connect_frame = self.server.frames_queue.get()

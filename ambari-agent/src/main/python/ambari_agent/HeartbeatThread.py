@@ -113,7 +113,7 @@ class HeartbeatThread(threading.Thread):
     """
     Heartbeat body to be send to server
     """
-    return {'heartbeat-request-test':'true'}
+    return {'hostname':'true'}
 
   def subscribe_and_listen(self):
     """

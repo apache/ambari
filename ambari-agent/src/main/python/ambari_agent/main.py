@@ -109,6 +109,10 @@ from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
 
+from ambari_agent import HeartbeatThread
+from ambari_agent.InitializerModule import InitializerModule
+from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
+
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
@@ -140,7 +144,7 @@ def setup_logging(logger, filename, logging_level):
     rotateLog.setFormatter(formatter)
     _file_logging_handlers[filename] = rotateLog
   logger.addHandler(rotateLog)
-      
+
   logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
@@ -150,18 +154,18 @@ GRACEFUL_STOP_TRIES_SLEEP = 3
 
 
 def add_syslog_handler(logger):
-    
+
   syslog_enabled = config.has_option("logging","syslog_enabled") and (int(config.get("logging","syslog_enabled")) == 1)
-      
+
   #add syslog handler if we are on linux and syslog is enabled in ambari config
   if syslog_enabled and IS_LINUX:
     logger.info("Adding syslog handler to ambari agent logger")
     syslog_handler = SysLogHandler(address="/dev/log",
                                    facility=SysLogHandler.LOG_LOCAL1)
-        
+
     syslog_handler.setFormatter(SYSLOG_FORMATTER)
     logger.addHandler(syslog_handler)
-    
+
 def update_log_level(config):
   # Setting loglevel based on config file
   global logger
@@ -172,7 +176,7 @@ def update_log_level(config):
     # create logger
     logger = logging.getLogger(__name__)
     logger.info("Logging configured by " + log_cfg_file)
-  else:  
+  else:
     try:
       loglevel = config.get('agent', 'loglevel')
       if loglevel is not None:
@@ -210,19 +214,19 @@ def check_sudo():
   # don't need to check sudo for root.
   if os.geteuid() == 0:
     return
-  
+
   runner = shellRunner()
   test_command = [AMBARI_SUDO_BINARY, '/usr/bin/test', '/']
   test_command_str = ' '.join(test_command)
-  
+
   start_time = time.time()
   res = runner.run(test_command)
   end_time = time.time()
   run_time = end_time - start_time
-  
+
   if res['exitCode'] != 0:
     raise Exception("Please check your sudo configurations.\n" + test_command_str + " failed with " + res['error'] + res['output']) # bad sudo configurations
-  
+
   if run_time > 2:
     logger.warn(("Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n" +
                 "This will create a significant slow down for ambari-agent service tasks.").format(test_command_str, run_time))
@@ -275,7 +279,7 @@ def perform_prestart_checks(expected_hostname):
     logger.error(msg)
     print(msg)
     sys.exit(1)
-    
+
   check_sudo()
 
 
@@ -291,7 +295,7 @@ def stop_agent():
     with open(ProcessHelper.pidfile, 'r') as f:
       pid = f.read()
     pid = int(pid)
-    
+
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
     for i in range(GRACEFUL_STOP_TRIES):
       result = runner.run([AMBARI_SUDO_BINARY, 'kill', '-0', str(pid)])
@@ -344,19 +348,25 @@ def reset_agent(options):
 
 MAX_RETRIES = 10
 
-def run_threads(server_hostname, heartbeat_stop_callback):
-  # Launch Controller communication
-  controller = Controller(config, server_hostname, heartbeat_stop_callback)
-  controller.start()
-  time.sleep(2) # in order to get controller.statusCommandsExecutor initialized
-  while controller.is_alive():
+# TODO STOMP: remove from globals
+initializer_module = None
+
+def run_threads():
+  global initializer_module
+  initializer_module = InitializerModule()
+
+  heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+  heartbeat_thread.start()
+
+  component_status_executor = ComponentStatusExecutor(initializer_module)
+  component_status_executor.start()
+
+  while not initializer_module.stop_event.is_set():
     time.sleep(0.1)
 
-    need_relaunch, reason = controller.get_status_commands_executor().need_relaunch
-    if need_relaunch:
-      controller.get_status_commands_executor().relaunch(reason)
-
-  controller.get_status_commands_executor().kill("AGENT_STOPPED", can_relaunch=False)
+  # TODO STOMP: if thread cannot stop by itself kill it hard after some timeout.
+  heartbeat_thread.join()
+  component_status_executor.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
@@ -403,7 +413,7 @@ def main(heartbeat_stop_callback=None):
 
   # Check for ambari configuration file.
   resolve_ambari_config()
-  
+
   # Add syslog hanlder based on ambari config file
   add_syslog_handler(logger)
 
@@ -468,7 +478,7 @@ def main(heartbeat_stop_callback=None):
         # Set the active server
         active_server = server_hostname
         # Launch Controller communication
-        run_threads(server_hostname, heartbeat_stop_callback)
+        run_threads()
 
       #
       # If Ambari Agent connected to the server or
@@ -488,7 +498,7 @@ if __name__ == "__main__":
   is_logger_setup = False
   try:
     heartbeat_stop_callback = bind_signal_handlers(agentPid)
-  
+
     main(heartbeat_stop_callback)
   except SystemExit:
     raise
