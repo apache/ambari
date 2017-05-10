@@ -797,9 +797,10 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
 
   ambari_user = read_ambari_user()
 
-  # This is required when a non-admin user is configured to setup ambari-server
-  print_info_msg("Adjusting file permissions and ownerships")
-  for pack in adjust_ownership_list:
+  if ambari_user:
+     # This is required when a non-admin user is configured to setup ambari-server
+    print_info_msg("Adjusting file permissions and ownerships")
+    for pack in adjust_ownership_list:
       file = pack[0]
       mod = pack[1]
       user = pack[2].format(ambari_user)
@@ -807,7 +808,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
       logger.info("Setting file permissions: {0} {1} {2} {3}".format(file, mod, user, recursive))
       set_file_permissions(file, mod, user, recursive)
 
-  for pack in change_ownership_list:
+    for pack in change_ownership_list:
       path = pack[0]
       user = pack[1].format(ambari_user)
       recursive = pack[2]
