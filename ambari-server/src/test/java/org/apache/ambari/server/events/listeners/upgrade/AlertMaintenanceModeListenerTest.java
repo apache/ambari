@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -185,10 +186,12 @@ public class AlertMaintenanceModeListenerTest {
     EasyMock.expect(hostHistory.getHostName()).andReturn(HOSTNAME).atLeastOnce();
     EasyMock.expect(hostHistory.getServiceName()).andReturn(null).atLeastOnce();
     EasyMock.expect(hostHistory.getComponentName()).andReturn(null).atLeastOnce();
+    EasyMock.expect(hostHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
 
     EasyMock.expect(serviceHistory.getHostName()).andReturn(null).atLeastOnce();
     EasyMock.expect(serviceHistory.getServiceName()).andReturn(SERVICE).atLeastOnce();
     EasyMock.expect(serviceHistory.getComponentName()).andReturn(null).atLeastOnce();
+    EasyMock.expect(serviceHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
 
     if (testType.equals("SCH")) {
       EasyMock.expect(componentHistory.getHostName()).andReturn(HOSTNAME).atLeastOnce();
@@ -199,6 +202,7 @@ public class AlertMaintenanceModeListenerTest {
       EasyMock.expect(componentHistory.getServiceName()).andReturn(null).atLeastOnce();
       EasyMock.expect(componentHistory.getComponentName()).andReturn(COMPONENT).atLeastOnce();
     }
+    EasyMock.expect(componentHistory.getAlertState()).andReturn(AlertState.OK).atLeastOnce();
 
     List<AlertCurrentEntity> currentAlerts = new ArrayList<AlertCurrentEntity>();
     currentAlerts.add(hostAlert);
