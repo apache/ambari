@@ -18,14 +18,21 @@
  */
 package org.apache.ambari.logsearch.story;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import org.apache.ambari.logsearch.steps.LogSearchApiSteps;
 import org.apache.ambari.logsearch.steps.SolrSteps;
 import org.apache.ambari.logsearch.steps.LogSearchDockerSteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
+import org.jbehave.core.embedder.executors.SameThreadExecutors;
 import org.jbehave.core.io.LoadFromClasspath;
+import org.jbehave.core.io.StoryFinder;
 import org.jbehave.core.io.StoryPathResolver;
 import org.jbehave.core.io.UnderscoredCamelCaseResolver;
+import org.jbehave.core.junit.JUnitStories;
 import org.jbehave.core.junit.JUnitStory;
 import org.jbehave.core.reporters.Format;
 import org.jbehave.core.reporters.StoryReporterBuilder;
@@ -33,12 +40,17 @@ import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 import org.junit.Test;
 
-abstract public class LogSearchStory extends JUnitStory {
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.jbehave.core.io.CodeLocations.codeLocationFromClass;
+
+public class LogSearchBackendStories extends JUnitStories {
+
   @Override
   public Configuration configuration() {
-    StoryPathResolver storyPathResolver = new UnderscoredCamelCaseResolver(".story");
     return new MostUsefulConfiguration()
-      .useStoryPathResolver(storyPathResolver)
       .useStoryLoader(new LoadFromClasspath(this.getClass()))
       .useStoryReporterBuilder(
         new StoryReporterBuilder().withFailureTrace(true).withDefaultFormats().withFormats(Format.CONSOLE, Format.TXT));
@@ -55,6 +67,18 @@ abstract public class LogSearchStory extends JUnitStory {
   @Test
   public void run() throws Throwable {
     super.run();
+  }
+
+  @Override
+  protected List<String> storyPaths() {
+    List<String> backendStories = new StoryFinder()
+      .findPaths(codeLocationFromClass(this.getClass()).getFile(), Arrays.asList("**/*.story"), null);
+    return Lists.newArrayList(Collections2.filter(backendStories, new Predicate<String>() {
+      @Override
+      public boolean apply(String storyFileName) {
+        return !storyFileName.endsWith("ui.story");
+      }
+    }));
   }
 
 }

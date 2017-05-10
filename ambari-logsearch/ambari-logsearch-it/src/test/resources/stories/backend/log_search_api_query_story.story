@@ -5,7 +5,7 @@ As a user
 I want to perform queries against Log Search api
 So that I can validate the json outputs
 
-Scenario: scenario description
+Scenario: Log Search API JSON responses
 
 Given logsearch docker container
 When LogSearch api query sent: <apiQuery>

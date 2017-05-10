@@ -40,12 +40,17 @@ class ServiceCheck(Script):
     topic_exists_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --topic {topic} --list")
     topic_exists_cmd_p = subprocess.Popen(topic_exists_cmd.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     topic_exists_cmd_out, topic_exists_cmd_err = topic_exists_cmd_p.communicate()
-    # run create topic command only if the topic doesn't exists
-    if topic not in topic_exists_cmd_out:
-      create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
+    
+    delete_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --delete --topic {topic}")
+    create_topic_cmd = format("{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1")
+    if topic in topic_exists_cmd_out:
+      # run delete topic and recreate the topic command only if the topic exists
+      command = source_cmd + " ; " + delete_topic_cmd + ";" + create_topic_cmd
+    else:
+      # run create topic command 
       command = source_cmd + " ; " + create_topic_cmd
-      Logger.info("Running kafka create topic command: %s" % command)
-      call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
+    Logger.info("Running kafka create topic command: %s" % command)
+    call_and_match_output(command, format("({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"), "Failed to check that topic exists", user=params.kafka_user)
 
   def read_kafka_config(self):
     import params

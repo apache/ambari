@@ -30,6 +30,11 @@ function build_logsearch_container() {
   popd
 }
 
+function get_docker_ip() {
+  local ip=$(ifconfig en0 | grep inet | awk '$1=="inet" {print $2}')
+  echo $ip
+}
+
 function start_logsearch_container() {
   setup_profile
   source $sdir/Profile
@@ -38,9 +43,10 @@ function start_logsearch_container() {
   popd
   : ${MAVEN_REPOSITORY_LOCATION:?"Please set the MAVEN_REPOSITORY_LOCATION in Profile"}
   kill_logsearch_container
+  local docker_ip=$(get_docker_ip)
   echo "Run Log Search container"
-  docker run -d --name logsearch --hostname logsearch.apache.org \
-    -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS -p 9983:9983 \
+  docker run -d --name logsearch --hostname logsearch.apache.org -e DISPLAY=$docker_ip:0 \
+    -v $AMBARI_LOCATION:/root/ambari -v $MAVEN_REPOSITORY_LOCATION:/root/.m2 $LOGSEARCH_EXPOSED_PORTS $LOGSEARCH_ENV_OPTS $LOGSEARCH_EXTRA_OPTS $LOGSEARCH_VOLUME_OPTS -p 9983:9983 -p 4444:4444 -p 5910:5910 \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-logfeeder/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-logfeeder/target/package/classes \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-server/target/classes:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes \
     -v $AMBARI_LOCATION/ambari-logsearch/ambari-logsearch-web/src/main/webapp:/root/ambari/ambari-logsearch/ambari-logsearch-server/target/package/classes/webapps/app \

@@ -1,0 +1,39 @@
+{
+  "ATLAS": {
+    "service": [],
+    "ATLAS_SERVER": [
+      {
+        "name": "metadata_server_webui",
+        "label": "Metadata Server Web UI",
+        "description": "This host-level alert is triggered if the Metadata Server Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{application-properties/atlas.server.bind.address}}:{{application-properties/atlas.server.http.port}}/api/atlas/admin/status",
+            "https": "{{application-properties/atlas.server.bind.address}}:{{application-properties/atlas.server.https.port}}/api/atlas/admin/status",
+            "https_property": "{{application-properties/atlas.enableTLS}}",
+            "https_property_value": "true",
+            "default_port": 21000,
+            "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
+            "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

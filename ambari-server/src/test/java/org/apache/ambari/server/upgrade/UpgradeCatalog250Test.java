@@ -387,11 +387,11 @@ public class UpgradeCatalog250Test {
     Method updateHadoopEnvConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHadoopEnvConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
+    Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("unInstallAllZeppelinViews");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
     Method addManageAlertNotificationsPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageAlertNotificationsPermissions");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
-    Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method updateZeppelinConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateZeppelinConfigs");
     Method updateAtlasConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAtlasConfigs");
     Method updateLogSearchConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateLogSearchConfigs");
@@ -447,7 +447,7 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.updateHiveLlapConfigs();
     expectLastCall().once();
 
-    upgradeCatalog250.updateTablesForZeppelinViewRemoval();
+    upgradeCatalog250.unInstallAllZeppelinViews();
     expectLastCall().once();
 
     upgradeCatalog250.updateZeppelinConfigs();

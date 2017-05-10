@@ -539,7 +539,9 @@ var urls = {
     'mock': '/data/alerts/alert_instances_history.json'
   },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=' +
+    'Requests/end_time,Requests/id,Requests/progress_percent,Requests/request_context,' +
+    'Requests/request_status,Requests/start_time,Requests/cluster_name&minimal_response=true',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },

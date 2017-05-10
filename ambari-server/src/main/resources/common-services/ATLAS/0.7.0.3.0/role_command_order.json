@@ -1,0 +1,7 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for ATLAS",
+    "ATLAS_SERVICE_CHECK-SERVICE_CHECK": ["ATLAS_SERVER-START"],
+    "ATLAS_SERVER-START": ["KAFKA_BROKER-START", "INFRA_SOLR-START", "HBASE_MASTER-START", "HBASE_REGIONSERVER-START"]
+  }
+}

@@ -16,7 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.story;
+package org.apache.ambari.logsearch.web;
 
-public class LogSearchApiQueryStory extends LogSearchStory {
+import org.apache.ambari.logsearch.domain.StoryDataRegistry;
+import org.jbehave.web.selenium.WebDriverProvider;
+
+import java.util.concurrent.TimeUnit;
+
+public class Home extends AbstractPage {
+
+  public Home(WebDriverProvider driverProvider) {
+    super(driverProvider);
+  }
+
+  public void open() {
+    get(String.format("http://%s:%d/index.html",
+      StoryDataRegistry.INSTANCE.getDockerHost(),
+      StoryDataRegistry.INSTANCE.getLogsearchPort()));
+    manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+  }
+
 }
