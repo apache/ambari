@@ -61,7 +61,7 @@ public class UserService extends BaseService {
   @ApiOperation(value = "Get all users", nickname = "UserService#getUsers", notes = "Returns details of all users.", response = UserResponse.class, responseContainer = "List")
   @ApiImplicitParams({
     @ApiImplicitParam(name = "fields", value = "Filter user details", defaultValue = "Users/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "Users/user_name.desc", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(name = "sortBy", value = "Sort users (asc | desc)", defaultValue = "Users/user_name.asc", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "page_size", value = "The number of resources to be returned for the paged response.", defaultValue = "10", dataType = "integer", paramType = "query"),
     @ApiImplicitParam(name = "from", value = "The starting page resource (inclusive). Valid values are :offset | \"start\"", defaultValue = "0", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = "to", value = "The ending page resource (inclusive). Valid values are :offset | \"end\"", dataType = "string", paramType = "query")

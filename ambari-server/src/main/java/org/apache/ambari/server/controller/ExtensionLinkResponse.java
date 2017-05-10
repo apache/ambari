@@ -24,80 +24,32 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.Validable;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * An extension version is like a stack version but it contains custom services.  Linking an extension
  * version to the current stack version allows the cluster to install the custom services contained in
  * the extension version.
  */
-public class ExtensionLinkResponse implements Validable {
+public class ExtensionLinkResponse implements Validable, ApiModel {
 
-  private String linkId;
-
-  private String stackName;
-
-  private String stackVersion;
-
-  private String extensionName;
-
-  private String extensionVersion;
-
+  private ExtensionLinkResponseInfo extensionLinkResponseInfo;
   private boolean valid;
-
   private Set<String> errorSet = new HashSet<>();
 
   public ExtensionLinkResponse(String linkId, String stackName, String stackVersion, String extensionName,
-                              String extensionVersion, boolean valid, Collection<String> errorSet) {
-
-    setLinkId(linkId);
-    setStackName(stackName);
-    setStackVersion(stackVersion);
-    setExtensionName(extensionName);
-    setExtensionVersion(extensionVersion);
-    setValid(valid);
-    addErrors(errorSet);
+                               String extensionVersion, boolean valid, Collection<String> errorSet) {
+    extensionLinkResponseInfo = new ExtensionLinkResponseInfo(linkId, stackName, stackVersion, extensionName,
+        extensionVersion, valid, errorSet);
   }
 
-  public String getLinkId() {
-    return linkId;
-  }
-
-  public void setLinkId(String linkId) {
-    this.linkId = linkId;
-  }
-
-  public String getStackName() {
-    return stackName;
-  }
-
-  public void setStackName(String stackName) {
-    this.stackName = stackName;
-  }
-
-  public String getStackVersion() {
-    return stackVersion;
-  }
-
-  public void setStackVersion(String stackVersion) {
-    this.stackVersion = stackVersion;
-  }
-
-  public String getExtensionName() {
-    return extensionName;
-  }
-
-  public void setExtensionName(String extensionName) {
-    this.extensionName = extensionName;
-  }
-
-  public String getExtensionVersion() {
-    return extensionVersion;
-  }
-
-  public void setExtensionVersion(String extensionVersion) {
-    this.extensionVersion = extensionVersion;
+  @ApiModelProperty(name = "ExtensionLink")
+  public ExtensionLinkResponseInfo getExtensionLinkResponseInfo() {
+    return extensionLinkResponseInfo;
   }
 
   @Override
+  @ApiModelProperty(hidden = true)
   public boolean isValid() {
     return valid;
   }
@@ -113,6 +65,7 @@ public class ExtensionLinkResponse implements Validable {
   }
 
   @Override
+  @ApiModelProperty(hidden = true)
   public Collection<String> getErrors() {
     return errorSet;
   }
@@ -120,5 +73,71 @@ public class ExtensionLinkResponse implements Validable {
   @Override
   public void addErrors(Collection<String> errors) {
     this.errorSet.addAll(errors);
+  }
+
+  public class ExtensionLinkResponseInfo {
+    public ExtensionLinkResponseInfo(String linkId, String stackName, String stackVersion, String extensionName,
+                                 String extensionVersion, boolean valid, Collection<String> errorSet) {
+
+      setLinkId(linkId);
+      setStackName(stackName);
+      setStackVersion(stackVersion);
+      setExtensionName(extensionName);
+      setExtensionVersion(extensionVersion);
+      setValid(valid);
+      addErrors(errorSet);
+    }
+
+    private String linkId;
+    private String stackName;
+    private String stackVersion;
+    private String extensionName;
+    private String extensionVersion;
+
+    @ApiModelProperty(name = "link_id")
+    public String getLinkId() {
+      return linkId;
+    }
+
+    public void setLinkId(String linkId) {
+      this.linkId = linkId;
+    }
+
+    @ApiModelProperty(name = "stack_name")
+    public String getStackName() {
+      return stackName;
+    }
+
+    public void setStackName(String stackName) {
+      this.stackName = stackName;
+    }
+
+    @ApiModelProperty(name = "stack_version")
+    public String getStackVersion() {
+      return stackVersion;
+    }
+
+    public void setStackVersion(String stackVersion) {
+      this.stackVersion = stackVersion;
+    }
+
+    @ApiModelProperty(name = "extension_name")
+    public String getExtensionName() {
+      return extensionName;
+    }
+
+    public void setExtensionName(String extensionName) {
+      this.extensionName = extensionName;
+    }
+
+    @ApiModelProperty(name = "extension_version")
+    public String getExtensionVersion() {
+      return extensionVersion;
+    }
+
+    public void setExtensionVersion(String extensionVersion) {
+      this.extensionVersion = extensionVersion;
+    }
+
   }
 }

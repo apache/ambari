@@ -24,13 +24,16 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.apache.ambari.server.state.quicklinks.QuickLinks;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Wrapper for quickLinksConfiguration description
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-public class QuickLinksConfigurationInfo {
+public class QuickLinksConfigurationInfo implements ApiModel {
 
   private String fileName;
   @XmlElement(name = "default")
@@ -61,6 +64,7 @@ public class QuickLinksConfigurationInfo {
       '}';
   }
 
+  @ApiModelProperty(name = "file_name")
   public String getFileName() {
     return fileName;
   }
@@ -69,6 +73,7 @@ public class QuickLinksConfigurationInfo {
     this.fileName = fileName;
   }
 
+  @ApiModelProperty(name = "default")
   public Boolean getIsDefault() {
     return isDefault;
   }
@@ -77,6 +82,7 @@ public class QuickLinksConfigurationInfo {
     this.isDefault = isDefault;
   }
 
+  @ApiModelProperty(hidden = true)
   public Boolean isDeleted() {
     return deleted;
   }

@@ -28,6 +28,8 @@ import java.util.Set;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.ServiceInfo;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class StackServiceResponse {
 
   private String stackName;
@@ -108,16 +110,13 @@ public class StackServiceResponse {
     }
 
     kerberosDescriptorFile = service.getKerberosDescriptorFile();
-
     serviceProperties = service.getServiceProperties();
-
     credentialStoreSupported = service.isCredentialStoreSupported();
-
     credentialStoreEnabled = service.isCredentialStoreEnabled();
-
     isSupportDeleteViaUI = service.isSupportDeleteViaUI();
   }
 
+  @ApiModelProperty(name = "selection")
   public ServiceInfo.Selection getSelection() {
     return selection;
   }
@@ -126,6 +125,7 @@ public class StackServiceResponse {
     this.selection = selection;
   }
 
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -134,6 +134,7 @@ public class StackServiceResponse {
     this.stackName = stackName;
   }
 
+  @ApiModelProperty(name = "stack_version")
   public String getStackVersion() {
     return stackVersion;
   }
@@ -142,6 +143,7 @@ public class StackServiceResponse {
     this.stackVersion = stackVersion;
   }
 
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -150,6 +152,7 @@ public class StackServiceResponse {
     this.serviceName = serviceName;
   }
 
+  @ApiModelProperty(name = "service_type")
   public String getServiceType() {
     return serviceType;
   }
@@ -158,6 +161,7 @@ public class StackServiceResponse {
     this.serviceType = serviceType;
   }
 
+  @ApiModelProperty(name = "display_name")
   public String getServiceDisplayName() {
     return serviceDisplayName;
   }
@@ -166,6 +170,7 @@ public class StackServiceResponse {
     this.serviceDisplayName = serviceDisplayName;
   }
 
+  @ApiModelProperty(name = "user_name")
   public String getUserName() {
     return userName;
   }
@@ -174,6 +179,7 @@ public class StackServiceResponse {
     this.userName = userName;
   }
 
+  @ApiModelProperty(name = "comments")
   public String getComments() {
     return comments;
   }
@@ -182,6 +188,7 @@ public class StackServiceResponse {
     this.comments = comments;
   }
 
+  @ApiModelProperty(name = "service_version")
   public String getServiceVersion() {
     return serviceVersion;
   }
@@ -190,14 +197,17 @@ public class StackServiceResponse {
     this.serviceVersion = serviceVersion;
   }
 
+  @ApiModelProperty(name = "config_types")
   public Map<String, Map<String, Map<String, String>>> getConfigTypes() {
     return configTypes;
   }
 
+  @ApiModelProperty(hidden = true)
   public Set<String> getExcludedConfigTypes() {
     return excludedConfigTypes;
   }
 
+  @ApiModelProperty(name = "required_services")
   public List<String> getRequiredServices() {
     return requiredServices;
   }
@@ -212,6 +222,7 @@ public class StackServiceResponse {
    * @return a File pointing to the service-level Kerberos descriptor, or null if no relevant file is
    * available
    */
+  @ApiModelProperty(hidden =  true)
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
   }
@@ -235,6 +246,7 @@ public class StackServiceResponse {
    *         {@code false} otherwise.
    *
    */
+  @ApiModelProperty(name = "service_check_supported")
   public boolean isServiceCheckSupported() {
     return serviceCheckSupported;
   }
@@ -244,6 +256,7 @@ public class StackServiceResponse {
    *
    * @return the commands or an empty list (never {@code null}).
    */
+  @ApiModelProperty(name = "custom_commands")
   public List<String> getCustomCommands() {
     return customCommands;
   }
@@ -252,6 +265,7 @@ public class StackServiceResponse {
    * Get the service properties of this service.
    * @return the properties or an empty map (never {@code null}).
    */
+  @ApiModelProperty(name = "properties")
   public Map<String, String> getServiceProperties() {
     return serviceProperties;
   }
@@ -261,6 +275,7 @@ public class StackServiceResponse {
    *
    * @return true or false.
    */
+  @ApiModelProperty(name = "credential_store_supported")
   public boolean isCredentialStoreSupported() {
     return credentialStoreSupported;
   }
@@ -279,6 +294,7 @@ public class StackServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_enabled")
   public boolean isCredentialStoreEnabled() {
     return credentialStoreEnabled;
   }
@@ -297,6 +313,7 @@ public class StackServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_required")
   public boolean isCredentialStoreRequired() {
     return credentialStoreRequired;
   }
@@ -310,7 +327,13 @@ public class StackServiceResponse {
     this.credentialStoreRequired = credentialStoreRequired;
   }
 
+  @ApiModelProperty(hidden = true)
   public boolean isSupportDeleteViaUI(){
     return isSupportDeleteViaUI;
+  }
+
+  public interface StackServiceResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "StackServices")
+    public StackServiceResponse getStackServiceResponse();
   }
 }

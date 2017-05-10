@@ -95,11 +95,11 @@ public class HostService extends BaseService {
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = "string", paramType = "query"),
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_OR_HOST_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response getHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
@@ -123,15 +123,15 @@ public class HostService extends BaseService {
     @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Hosts/*", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, defaultValue = "Hosts/host_name.asc", dataType = "string", paramType = "query"),
     @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = QUERY_FROM_TYPE, paramType = "query"),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = "query"),
     @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = QUERY_TO_TYPE, paramType = "query"),
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response getHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.GET,
@@ -156,14 +156,14 @@ public class HostService extends BaseService {
     @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_CREATED, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = UNKNOWN_HOSTS),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_CONFLICT, message = HOST_ALREADY_EXISTS),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response createHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.POST,
@@ -189,14 +189,14 @@ public class HostService extends BaseService {
     @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body")
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_CREATED, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = REQUEST_ACCEPTED),
-    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = INVALID_ARGUMENTS),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_NOT_FOUND),
     @ApiResponse(code = HttpStatus.SC_CONFLICT, message = HOST_ALREADY_EXISTS),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response createHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
@@ -224,13 +224,13 @@ public class HostService extends BaseService {
     @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body")
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = REQUEST_ACCEPTED),
-    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = INVALID_ARGUMENTS),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_OR_HOST_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response updateHost(String body, @Context HttpHeaders headers, @Context UriInfo ui,
      @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
@@ -256,13 +256,13 @@ public class HostService extends BaseService {
     @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = REQUEST_ACCEPTED),
-    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = INVALID_ARGUMENTS),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_OR_HOST_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response updateHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
@@ -284,11 +284,11 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Deletes a host")
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_OR_HOST_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response deleteHost(@Context HttpHeaders headers, @Context UriInfo ui,
     @ApiParam(value = "host name", required = true) @PathParam("hostName") String hostName
@@ -304,11 +304,11 @@ public class HostService extends BaseService {
     @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
   })
   @ApiResponses({
-    @ApiResponse(code = HttpStatus.SC_OK, message = SUCCESSFUL_OPERATION),
-    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = CLUSTER_OR_HOST_NOT_FOUND),
-    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = NOT_AUTHENTICATED),
-    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = PERMISSION_DENIED),
-    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = SERVER_ERROR),
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_CLUSTER_OR_HOST_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
   })
   public Response deleteHosts(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
     return handleRequest(headers, body, ui, Request.Type.DELETE,

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state.theme;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,17 +27,22 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TabLayout {
+
 	@JsonProperty("tab-rows")
 	private String tabRows;
+
 	@JsonProperty("sections")
 	private List<Section> sections;
+
 	@JsonProperty("tab-columns")
 	private String tabColumns;
 
+  @ApiModelProperty(name = "tab-rows")
   public String getTabRows() {
     return tabRows;
   }
@@ -47,6 +51,7 @@ public class TabLayout {
     this.tabRows = tabRows;
   }
 
+  @ApiModelProperty(name = "sections")
   public List<Section> getSections() {
     return sections;
   }
@@ -55,6 +60,7 @@ public class TabLayout {
     this.sections = sections;
   }
 
+  @ApiModelProperty(name = "tab-columns")
   public String getTabColumns() {
     return tabColumns;
   }

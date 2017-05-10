@@ -139,7 +139,7 @@ public class ViewInstanceService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Create view instance", nickname = "ViewInstanceService#createService", notes = "Creates view instance resource.")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
+      @ApiImplicitParam(name = "body", value = "input parameters in json form", required = true, dataType = "org.apache.ambari.server.controller.ViewInstanceRequest", paramType = "body")
   })
   @ApiResponses(value = {
     @ApiResponse(code = 200, message = "Successful operation"),

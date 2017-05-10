@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.state.theme;
 
-
 import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -51,6 +51,7 @@ public class Subsection {
   private List<SubsectionTab> subsectionTabs;
 
 
+  @ApiModelProperty( name = "row-index")
   public String getRowIndex() {
     return rowIndex;
   }
@@ -59,6 +60,7 @@ public class Subsection {
     this.rowIndex = rowIndex;
   }
 
+  @ApiModelProperty( name = "name")
   public String getName() {
     return name;
   }
@@ -67,6 +69,7 @@ public class Subsection {
     this.name = name;
   }
 
+  @ApiModelProperty( name = "column-span")
   public String getColumnSpan() {
     return columnSpan;
   }
@@ -75,6 +78,7 @@ public class Subsection {
     this.columnSpan = columnSpan;
   }
 
+  @ApiModelProperty( name = "row-span")
   public String getRowSpan() {
     return rowSpan;
   }
@@ -83,6 +87,7 @@ public class Subsection {
     this.rowSpan = rowSpan;
   }
 
+  @ApiModelProperty( name = "column-index")
   public String getColumnIndex() {
     return columnIndex;
   }
@@ -91,6 +96,7 @@ public class Subsection {
     this.columnIndex = columnIndex;
   }
 
+  @ApiModelProperty( name = "display-name")
   public String getDisplayName() {
     return displayName;
   }
@@ -99,6 +105,7 @@ public class Subsection {
     this.displayName = displayName;
   }
 
+  @ApiModelProperty( name = "border")
   public String getBorder() {
     return border;
   }
@@ -107,6 +114,7 @@ public class Subsection {
     this.border = border;
   }
 
+  @ApiModelProperty( name = "left-vertical-splitter")
   public Boolean getLeftVerticalSplitter() {
     return leftVerticalSplitter;
   }
@@ -115,6 +123,7 @@ public class Subsection {
     this.leftVerticalSplitter = leftVerticalSplitter;
   }
 
+  @ApiModelProperty( name = "depends-on")
   public List<ConfigCondition> getDependsOn() {
     return dependsOn;
   }
@@ -123,6 +132,7 @@ public class Subsection {
     this.dependsOn = dependsOn;
   }
 
+  @ApiModelProperty( name = "subsection-tab")
   public List<SubsectionTab> getSubsectionTabs() {
     return subsectionTabs;
   }
@@ -131,6 +141,7 @@ public class Subsection {
     this.subsectionTabs = subsectionTabs;
   }
 
+  @ApiModelProperty( name = "removed")
   public boolean isRemoved() {
     return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null && dependsOn == null && subsectionTabs == null;
   }
