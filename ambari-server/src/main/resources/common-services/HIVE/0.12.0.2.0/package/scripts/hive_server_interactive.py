@@ -366,9 +366,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {params.hive_server2_keytab} {params.hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
 
-      llap_kinit_cmd = format("{kinit_path_local} -kt {params.hive_llap_keytab_file} {params.hive_llap_principal}; ")
-      Execute(llap_kinit_cmd, user=params.hive_user)
-
     """
     Get llap app status data for LLAP Tech Preview code base.
     """
