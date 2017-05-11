@@ -389,6 +389,8 @@ h2.table-title {
 }
 .table input[type="checkbox"] + label {
   position: relative;
+  line-height: 1.3em;
+  font-size: initial;
   top: 4px;
   margin-bottom: 0;
 }
