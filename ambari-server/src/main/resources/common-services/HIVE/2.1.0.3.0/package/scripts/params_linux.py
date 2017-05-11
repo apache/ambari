@@ -684,8 +684,8 @@ if has_hive_interactive:
   llap_extra_slider_opts = default('/configurations/hive-interactive-env/llap_extra_slider_opts', "")
   hive_llap_principal = None
   if security_enabled:
-    hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
-    hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
+    hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.daemon.keytab.file']
+    hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.daemon.service.principal']).replace('_HOST',hostname.lower())
   pass
 
 if len(hive_server_hosts) == 0 and len(hive_server_interactive_hosts) > 0:
