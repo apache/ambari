@@ -76,7 +76,7 @@ public enum RepositoryVersionState {
   /**
    * Repository version is not required
    */
-  NOT_REQUIRED(1),
+  NOT_REQUIRED(0),
 
   /**
    * Repository version that is in the process of being installed.
@@ -101,7 +101,7 @@ public enum RepositoryVersionState {
   /**
    * Repository version that is installed and supported and is the active version.
    */
-  CURRENT(0);
+  CURRENT(1);
 
   private final int weight;
 

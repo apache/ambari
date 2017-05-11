@@ -192,17 +192,19 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
 
       out.append(message).append(System.lineSeparator());
 
-      // a downgrade must force host versions back to INSTALLED
+      // a downgrade must force host versions back to INSTALLED, but only if it's required
       if (upgradeContext.getDirection() == Direction.DOWNGRADE) {
         RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getDowngradeFromRepositoryVersion();
-        out.append(String.format("Setting all host versions back to %s for repository version %s",
+        out.append(String.format("Setting host versions back to %s for repository version %s",
             RepositoryVersionState.INSTALLED, downgradeFromRepositoryVersion.getVersion()));
 
         List<HostVersionEntity> hostVersionsToReset = m_hostVersionDAO.findHostVersionByClusterAndRepository(
             cluster.getClusterId(), downgradeFromRepositoryVersion);
 
         for (HostVersionEntity hostVersion : hostVersionsToReset) {
-          hostVersion.setState(RepositoryVersionState.INSTALLED);
+          if( hostVersion.getState() != RepositoryVersionState.NOT_REQUIRED ){
+            hostVersion.setState(RepositoryVersionState.INSTALLED);
+          }
         }
       }
 

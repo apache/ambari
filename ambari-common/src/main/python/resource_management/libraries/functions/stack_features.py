@@ -23,6 +23,7 @@ import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.version import format_stack_version
 
 # executionCommand for STOP
 _ROLE_COMMAND_STOP = 'STOP'
@@ -141,7 +142,7 @@ def get_stack_feature_version(config):
     if current_cluster_version is not None:
       version_for_stack_feature_checks = current_cluster_version
     elif original_stack is not None:
-      version_for_stack_feature_checks = original_stack
+      version_for_stack_feature_checks = format_stack_version(original_stack)
     else:
       version_for_stack_feature_checks = version if version is not None else stack_version
 
