@@ -212,7 +212,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy is only supported from HDP 2.5
 has_livyserver = False
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and "livy-env" in config['configurations']:
   livy_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY_SERVER")
   livy_conf = format("{stack_root}/current/{livy_component_directory}/conf")
   livy_log_dir = config['configurations']['livy-env']['livy_log_dir']
