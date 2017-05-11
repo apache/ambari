@@ -199,6 +199,10 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+           <bulkCommands>
+              <displayName>JournalNodes</displayName>
+              <masterComponent>NAMENODE</masterComponent>
+          </bulkCommands>
           <logs>
             <log>
               <logId>hdfs_journalnode</logId>
