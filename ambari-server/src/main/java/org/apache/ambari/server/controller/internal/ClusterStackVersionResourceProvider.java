@@ -77,7 +77,6 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
@@ -240,6 +239,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByPK(repositoryVersionId);
 
+      final List<RepositoryVersionState> allStates = new ArrayList<>();
       final Map<RepositoryVersionState, List<String>> hostStates = new HashMap<>();
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
         hostStates.put(state, new ArrayList<String>());
@@ -248,10 +248,13 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       StackEntity repoVersionStackEntity = repositoryVersion.getStack();
       StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
-      for (HostVersionEntity hostVersionEntity : hostVersionDAO.findByClusterStackAndVersion(
-          clusterName, repoVersionStackId, repositoryVersion.getVersion())) {
+      List<HostVersionEntity> hostVersionsForRepository = hostVersionDAO.findHostVersionByClusterAndRepository(
+          cluster.getClusterId(), repositoryVersion);
 
+      // create the in-memory structures
+      for (HostVersionEntity hostVersionEntity : hostVersionsForRepository) {
         hostStates.get(hostVersionEntity.getState()).add(hostVersionEntity.getHostName());
+        allStates.add(hostVersionEntity.getState());
       }
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
@@ -259,35 +262,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       setResourceProperty(resource, CLUSTER_STACK_VERSION_ID_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, repoVersionStackId.getStackName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, repoVersionStackId.getStackVersion(), requestedIds);
-
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
 
       @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
           comment = "this is a fake status until the UI can handle services that are on their own")
-      RepositoryVersionState finalState = null;
-
-      for (RepositoryVersionState state : EnumSet.of(RepositoryVersionState.INSTALLING,
-          RepositoryVersionState.INSTALL_FAILED, RepositoryVersionState.OUT_OF_SYNC)) {
-
-        if (CollectionUtils.isNotEmpty(hostStates.get(state))) {
-          finalState = state;
-          break;
-        }
-      }
-
-      if (null == finalState) {
-        int count = cluster.getClusterSize();
-
-        for (RepositoryVersionState state : EnumSet.of(RepositoryVersionState.INSTALLED, RepositoryVersionState.CURRENT)) {
-          if (count == CollectionUtils.size(hostStates.get(state))) {
-            finalState = state;
-            break;
-          }
-        }
-      }
-      // !!! end ExperimentalFeature
-
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, finalState, requestedIds);
-      setResourceProperty(resource, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repositoryVersion.getId(), requestedIds);
+      RepositoryVersionState aggregateState = RepositoryVersionState.getAggregateState(allStates);
+      setResourceProperty(resource, CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, aggregateState, requestedIds);
 
       if (predicate == null || predicate.evaluate(resource)) {
         resources.add(resource);
