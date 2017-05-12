@@ -102,4 +102,17 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.runtime.shuffle.keep-alive.enabled</name>
+    <value>true</value>
+    <description>Connection keep-alive for shuffle</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.am-rm.heartbeat.interval-ms.max</name>
+    <value>10000</value>
+    <description>The heartbeat interval between the tez AM and YARN RM</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
 </configuration>
