@@ -481,6 +481,21 @@
             <set key="hive.vectorized.groupby.maxentries" value="1000000"/>
           </definition>
 
+          <definition xsi:type="configure" id="llap_update_settings" summary="Update additional LLAP settings">
+            <type>hive-interactive-site</type>
+            <set key="hive.llap.task.scheduler.locality.delay" value="-1"/>
+            <set key="hive.mapjoin.hybridgrace.hashtable" value="false"/>
+            <set key="hive.merge.nway.joins" value="false"/>
+            <set key="hive.llap.daemon.rpc.port" value="0"/>
+          </definition>
+
+          <definition xsi:type="configure" id="llap_update_tez_settings" summary="Update additional LLAP-Tez settings">
+            <type>tez-interactive-site</type>
+            <set key="tez.runtime.shuffle.keep-alive.enabled" value="true"/>
+            <set key="tez.am.am-rm.heartbeat.interval-ms.max" value="30000"/>
+            <set key="tez.session.am.dag.submit.timeout.secs" value="1209600"/>
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_6_0_0_copy_hive_tez_container_size_to_hiveInteractive">
             <type>hive-interactive-site</type>
             <transfer operation="copy" from-type="hive-site" from-key="hive.tez.container.size" to-key="hive.tez.container.size" default-value="682"  if-type="hive-interactive-site" if-key="hive.tez.container.size" if-key-state="absent"/>

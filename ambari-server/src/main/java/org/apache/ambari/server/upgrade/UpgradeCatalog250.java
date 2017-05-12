@@ -200,7 +200,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
-    updateHiveLlapConfigs();
     unInstallAllZeppelinViews();
     updateZeppelinConfigs();
     updateAtlasConfigs();
@@ -762,57 +761,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     return content;
   }
 
-  protected void updateHiveLlapConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-
-          if (installedServices.contains("HIVE")) {
-            Config hiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
-            if (hiveSite != null) {
-              Map<String, String> hiveSiteProperties = hiveSite.getProperties();
-              String schedulerDelay = hiveSiteProperties.get("hive.llap.task.scheduler.locality.delay");
-              if (schedulerDelay != null) {
-                // Property exists. Change to new default if set to -1.
-                if (schedulerDelay.length() != 0) {
-                  try {
-                    int schedulerDelayInt = Integer.parseInt(schedulerDelay);
-                    if (schedulerDelayInt == -1) {
-                      // Old default. Set to new default.
-                      updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
-                              .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
-                          false);
-                    }
-                  } catch (NumberFormatException e) {
-                    // Invalid existing value. Set to new default.
-                    updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
-                            .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
-                        false);
-                  }
-                }
-              }
-              updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                  Collections.singletonMap("hive.mapjoin.hybridgrace.hashtable", "true"), true,
-                  false);
-              updateConfigurationProperties("tez-interactive-site",
-                  Collections.singletonMap("tez.session.am.dag.submit.timeout.secs", "1209600"), true,
-                  false);
-              // Explicitly skipping hive.llap.allow.permanent.fns during upgrades, since it's related to security,
-              // and we don't know if the value is set by the user or as a result of the previous default.
-            }
-          }
-        }
-      }
-    }
-  }
-
-
   protected void updateHadoopEnvConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(
         AmbariManagementController.class);
@@ -1045,7 +993,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
-  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
   private static final String HIVE_INTERACTIVE_ENV = "hive-interactive-env";
   private static final String HIVE_ENV = "hive-env";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
@@ -1056,26 +1003,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
-          if (hiveInteractiveSite != null) {
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("hive.auto.convert.join.noconditionaltask.size", "1000000000");
-
-            String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
-            if (StringUtils.isNotBlank(llapRpcPortString)) {
-              try {
-                int llapRpcPort = Integer.parseInt(llapRpcPortString);
-                if (llapRpcPort == 15001) {
-                  newProperties.put("hive.llap.daemon.rpc.port", "0");
-                  LOG.info("Updating HSI hive.llap.daemon.rpc.port to: 0");
-                }
-              } catch (NumberFormatException e) {
-                LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
-              }
-            }
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, newProperties, true, true);
-          }
-
           Config hiveInteractiveEnv = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_ENV);
           Config hiveEnv = cluster.getDesiredConfigByType(HIVE_ENV);
           if (hiveInteractiveEnv != null) {
