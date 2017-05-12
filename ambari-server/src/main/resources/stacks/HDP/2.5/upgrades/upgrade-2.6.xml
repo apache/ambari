@@ -845,6 +845,8 @@
           <task xsi:type="configure" id="llap_update_hashaggregation"/>
           <task xsi:type="configure" id="llap_append_stack_size_java_opts"/>
           <task xsi:type="configure" id="llap_update_shuffle_parallel_copies"/>
+          <task xsi:type="configure" id="llap_update_settings"/>
+          <task xsi:type="configure" id="llap_update_tez_settings"/>
         </pre-upgrade>
         
         <pre-downgrade />

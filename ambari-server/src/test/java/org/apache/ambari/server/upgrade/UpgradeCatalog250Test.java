@@ -386,7 +386,6 @@ public class UpgradeCatalog250Test {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
     Method updateHadoopEnvConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHadoopEnvConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
-    Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("unInstallAllZeppelinViews");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
     Method addManageServiceAutoStartPermissions = UpgradeCatalog250.class.getDeclaredMethod("addManageServiceAutoStartPermissions");
@@ -409,7 +408,6 @@ public class UpgradeCatalog250Test {
         .addMockedMethod(updateAmsConfigs)
         .addMockedMethod(updateHadoopEnvConfigs)
         .addMockedMethod(updateKafkaConfigs)
-        .addMockedMethod(updateHiveLlapConfigs)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(addManageServiceAutoStartPermissions)
         .addMockedMethod(addManageAlertNotificationsPermissions)
@@ -442,9 +440,6 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateHIVEInteractiveConfigs();
-    expectLastCall().once();
-
-    upgradeCatalog250.updateHiveLlapConfigs();
     expectLastCall().once();
 
     upgradeCatalog250.unInstallAllZeppelinViews();
@@ -1704,19 +1699,6 @@ public class UpgradeCatalog250Test {
         "hive.metastore.heapsize", "512",
         "hive_ambari_database", "MySQL");
 
-    Map<String, String> oldHiveIntSite = ImmutableMap.of(
-        "hive.llap.daemon.rpc.port", "15001");
-
-    Map<String, String> expectedHiveIntSite = ImmutableMap.of(
-        "hive.llap.daemon.rpc.port", "0",
-        "hive.auto.convert.join.noconditionaltask.size", "1000000000");
-
-    Config mockHsiSite = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("hive-interactive-site")).andReturn(mockHsiSite).atLeastOnce();
-    expect(mockHsiSite.getProperties()).andReturn(oldHiveIntSite).anyTimes();
-    Capture<Map<String, String>> hsiSiteCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiSiteCapture), anyString(),
-        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
@@ -1731,12 +1713,9 @@ public class UpgradeCatalog250Test {
 
     replay(clusters, cluster);
     replay(controller, injector2);
-    replay(mockHsiEnv, mockHiveEnv, mockHsiSite);
+    replay(mockHsiEnv, mockHiveEnv);
     new UpgradeCatalog250(injector2).updateHIVEInteractiveConfigs();
     easyMockSupport.verifyAll();
-
-    Map<String, String> updatedHsiSite = hsiSiteCapture.getValue();
-    assertTrue(Maps.difference(expectedHiveIntSite, updatedHsiSite).areEqual());
 
     Map<String, String> updatedHsiEnv = hsiEnvCapture.getValue();
     assertTrue(Maps.difference(expectedHsiEnv, updatedHsiEnv).areEqual());
