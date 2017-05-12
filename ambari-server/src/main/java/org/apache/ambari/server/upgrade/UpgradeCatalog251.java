@@ -114,17 +114,10 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void moveClusterHostColumnFromStageToRequest() throws SQLException {
-    if (dbAccessor.tableHasColumn(STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN)){
+    DBColumnInfo sourceColumn = new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false);
+    DBColumnInfo targetColumn = new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false);
 
-      dbAccessor.addColumn(REQUEST_TABLE, new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, true));
-
-      // Native query currently is best way to move data, in future move this functionality to dbAccessor
-      final String moveSQL = String.format("UPDATE %1$s AS a SET %3$s = b.%3$s FROM %2$s AS b WHERE a.%4$s = b.%4$s;",
-        REQUEST_TABLE, STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN, REQUEST_ID_COLUMN);
-
-      dbAccessor.executeUpdate(moveSQL, false);
-      dbAccessor.alterColumn(REQUEST_TABLE, new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false));
-      dbAccessor.dropColumn(STAGE_TABLE, CLUSTER_HOST_INFO_COLUMN);
-    }
+    dbAccessor.moveColumnToAnotherTable(STAGE_TABLE, sourceColumn, REQUEST_ID_COLUMN, REQUEST_TABLE, targetColumn,
+      REQUEST_ID_COLUMN, false);
   }
 }

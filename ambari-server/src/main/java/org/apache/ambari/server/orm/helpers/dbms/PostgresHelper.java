@@ -44,6 +44,18 @@ public class PostgresHelper extends GenericDbmsHelper {
     return builder;
   }
 
+  /**
+   {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+         String sourceIDColumnName, String targetTable, String targetColumnName, String targetIDColumnName) {
+
+    return String.format("UPDATE %1$s AS a SET %3$s = b.%4$s FROM %2$s AS b WHERE a.%5$s = b.%6$s",
+      targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
+  }
+
+
   @Override
   public StringBuilder writeSetNullableString(StringBuilder builder,
       String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable) {
