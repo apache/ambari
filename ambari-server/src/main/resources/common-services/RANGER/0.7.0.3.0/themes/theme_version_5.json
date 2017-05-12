@@ -1,0 +1,48 @@
+{
+  "configuration": {
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs"
+        },
+        {
+          "config": "ranger-env/ranger-nifi-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "NIFI",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-nifi-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,722 @@
+{
+  "name": "default",
+  "description": "Default theme for Ranger service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "ranger_admin_settings",
+            "display-name": "Ranger Admin",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-ranger-admin",
+                  "display-name": "Ranger Admin",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "3",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "3",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-db-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-db-row1-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-db-root-user-col1",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-db-root-user-col2",
+                      "row-index": "1",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "ranger_user_info",
+            "display-name": "Ranger User Info",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-user-info",
+                  "display-name": "Ranger User Info",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-user-row2-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "subsection-tabs": [
+                        {
+                          "name": "ldap-common-configs",
+                          "display-name": "Common Configs",
+                          "depends-on": [
+                            {
+                              "configs": [
+                                "usersync-properties/SYNC_SOURCE"
+                              ],
+                              "if": "${usersync-properties/SYNC_SOURCE} === ldap",
+                              "then": {
+                                "property_value_attributes": {
+                                  "visible": true
+                                }
+                              },
+                              "else": {
+                                "property_value_attributes": {
+                                  "visible": false
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "name": "ldap-user-configs",
+                          "display-name": "User Configs",
+                          "depends-on": [
+                            {
+                              "configs": [
+                                "usersync-properties/SYNC_SOURCE"
+                              ],
+                              "if": "${usersync-properties/SYNC_SOURCE} === ldap",
+                              "then": {
+                                "property_value_attributes": {
+                                  "visible": true
+                                }
+                              },
+                              "else": {
+                                "property_value_attributes": {
+                                  "visible": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "ranger_plugin",
+            "display-name": "Ranger Plugin",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-ranger-plugin",
+                  "display-name": "Ranger Plugin",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "section-ranger-plugin-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "section-ranger-plugin-row1-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "section-ranger-plugin-row1-col3",
+                      "row-index": "0",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "ranger_audit_settings",
+            "display-name": "Ranger Audit",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "2",
+              "sections": [
+                {
+                  "name": "section-ranger-audit-hdfs",
+                  "display-name": "Audit to HDFS",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-hdfs-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-ranger-audit-db",
+                  "display-name": "Audit to DB",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-audit-db-row2-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-audit-db-row2-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "admin-properties/DB_FLAVOR",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_name",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_user",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "ranger-admin-site/ranger.jpa.jdbc.url",
+          "subsection-name": "subsection-ranger-db-row1-col1"
+        },
+        {
+          "config": "admin-properties/db_host",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "ranger-admin-site/ranger.jpa.jdbc.driver",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "admin-properties/db_password",
+          "subsection-name": "subsection-ranger-db-row1-col2"
+        },
+        {
+          "config": "admin-properties/db_root_user",
+          "subsection-name": "subsection-ranger-db-root-user-col1"
+        },
+        {
+          "config": "admin-properties/db_root_password",
+          "subsection-name": "subsection-ranger-db-root-user-col2"
+        },
+        {
+          "config": "usersync-properties/SYNC_SOURCE",
+          "subsection-name": "subsection-ranger-user-row2-col1"
+        },
+
+        {
+          "config": "usersync-properties/MIN_UNIX_USER_ID_TO_SYNC",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "usersync-properties/SYNC_SOURCE"
+              ],
+              "if": "${usersync-properties/SYNC_SOURCE} === unix",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_URL",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs"
+        },
+        {
+          "config": "ranger-env/bind_anonymous",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_BIND_DN",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/bind_anonymous"
+              ],
+              "if": "${ranger-env/bind_anonymous}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              }
+            }
+          ]
+
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_BIND_PASSWORD",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-common-configs",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/bind_anonymous"
+              ],
+              "if": "${ranger-env/bind_anonymous}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_NAME_ATTRIBUTE",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_OBJECT_CLASS",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_BASE",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_FILTER",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_SCOPE",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "usersync-properties/SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "ranger-env/ranger-hdfs-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HDFS",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/ranger-hive-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col1",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HIVE",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/ranger-hbase-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col2",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "HBASE",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/ranger-storm-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col2",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "STORM",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/ranger-knox-plugin-enabled",
+          "subsection-name": "section-ranger-plugin-row1-col3",
+          "depends-on": [
+            {
+              "resource": "service",
+              "if": "KNOX",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.hdfs",
+          "subsection-name": "subsection-ranger-hdfs-row1-col1"
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.hdfs.dir",
+          "subsection-name": "subsection-ranger-hdfs-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.hdfs"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.hdfs}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "config": "ranger-env/xasecure.audit.destination.db",
+          "subsection-name": "subsection-ranger-audit-db-row2-col1"
+        },
+        {
+          "config": "admin-properties/audit_db_user",
+          "subsection-name": "subsection-ranger-audit-db-row2-col1"
+        },
+        {
+          "config": "admin-properties/audit_db_name",
+          "subsection-name": "subsection-ranger-audit-db-row2-col2"
+        },
+        {
+          "config": "admin-properties/audit_db_password",
+          "subsection-name": "subsection-ranger-audit-db-row2-col2"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "admin-properties/DB_FLAVOR",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "admin-properties/db_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.jpa.jdbc.url",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_host",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "admin-properties/db_root_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/db_root_password",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_SOURCE",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "usersync-properties/MIN_UNIX_USER_ID_TO_SYNC",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_URL",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-env/bind_anonymous",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_BIND_DN",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_BIND_PASSWORD",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_NAME_ATTRIBUTE",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_OBJECT_CLASS",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_BASE",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_FILTER",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_SEARCH_SCOPE",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "usersync-properties/SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hdfs-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hive-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-hbase-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-knox-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/ranger-storm-plugin-enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.hdfs",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.hdfs.dir",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "ranger-env/xasecure.audit.destination.db",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "admin-properties/audit_db_user",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/audit_db_name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "admin-properties/audit_db_password",
+        "widget": {
+          "type": "password"
+        }
+      }
+    ]
+  }
+}
+
