@@ -55,8 +55,7 @@ public class AbstractLogSearchSteps {
       LOG.info("Command output: {}", output);
       StoryDataRegistry.INSTANCE.setLogsearchContainerStarted(true);
 
-      // TODO: create a script which returns the proper host for docker, use: runCommand or an env variable
-      String dockerHostFromUri = "localhost";
+      String dockerHostFromUri = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";;
 
       StoryDataRegistry.INSTANCE.setDockerHost(dockerHostFromUri);
       checkHostAndPortReachable(dockerHostFromUri, StoryDataRegistry.INSTANCE.getLogsearchPort(), "LogSearch");

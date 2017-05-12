@@ -53,9 +53,8 @@ public class LogSearchUIStories extends JUnitStories {
   private SeleniumContext context;
 
   public LogSearchUIStories() {
-    // TODO: get docker host from a runCommand funtion
-    String hubUrl = "http://localhost:4444/wd/hub";
-    System.setProperty("REMOTE_WEBDRIVER_URL", hubUrl);
+    String dockerHost = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";
+    System.setProperty("REMOTE_WEBDRIVER_URL", String.format("http://%s:4444/wd/hub", dockerHost));
     DesiredCapabilities capability = DesiredCapabilities.firefox();
     capability.setPlatform(Platform.LINUX);
     capability.setVersion("45.8.0");

@@ -38,6 +38,7 @@
     <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
     <failsafe-plugin.version>2.20</failsafe-plugin.version>
     <forkCount>1</forkCount>
+    <docker.host>localhost</docker.host>
   </properties>
 
   <dependencies>
@@ -160,6 +161,7 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
@@ -201,6 +203,7 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
@@ -242,6 +245,7 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
