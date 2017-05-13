@@ -114,5 +114,17 @@
     <description>The heartbeat interval between the tez AM and YARN RM</description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.runtime.enable.final-merge.in.output</name>
+    <value>false</value>
+    <description>Whether to enable a map side merge of outputs</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.am.task.reschedule.higher.priority</name>
+    <value>false</value>
+    <description>Whether rescheduled tasks should be treated at higher priority</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 </configuration>
