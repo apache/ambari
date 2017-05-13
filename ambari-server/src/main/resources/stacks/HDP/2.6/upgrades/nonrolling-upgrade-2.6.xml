@@ -327,6 +327,13 @@
         <task xsi:type="configure" id="hdp_2_6_yarn_preemption"/>
       </execute-stage>
 
+      <!-- YARN -->
+      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM admin env">
+        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
+          <summary>Updating YARN NodeManager admin env config</summary>
+        </task>
+      </execute-stage>
+
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Ranger Kafka plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name"/>
