@@ -695,6 +695,10 @@
       </component>
 
       <component name="NODEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

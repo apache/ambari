@@ -790,6 +790,7 @@
       <component name="NODEMANAGER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
+          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env"/>
         </pre-upgrade>
 
         <pre-downgrade/>
