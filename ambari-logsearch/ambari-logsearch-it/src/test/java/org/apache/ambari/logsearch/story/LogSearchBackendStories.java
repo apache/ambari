@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.story;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -27,31 +26,24 @@ import org.apache.ambari.logsearch.steps.SolrSteps;
 import org.apache.ambari.logsearch.steps.LogSearchDockerSteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
-import org.jbehave.core.embedder.executors.SameThreadExecutors;
-import org.jbehave.core.io.LoadFromClasspath;
-import org.jbehave.core.io.StoryFinder;
-import org.jbehave.core.io.StoryPathResolver;
-import org.jbehave.core.io.UnderscoredCamelCaseResolver;
 import org.jbehave.core.junit.JUnitStories;
-import org.jbehave.core.junit.JUnitStory;
 import org.jbehave.core.reporters.Format;
 import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 import org.junit.Test;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
 
-import static org.jbehave.core.io.CodeLocations.codeLocationFromClass;
-
 public class LogSearchBackendStories extends JUnitStories {
+
+  private static final String BACKEND_STORIES_LOCATION_PROPERTY = "backend.stories.location";
+  private static final String STORY_SUFFIX = ".story";
 
   @Override
   public Configuration configuration() {
     return new MostUsefulConfiguration()
-      .useStoryLoader(new LoadFromClasspath(this.getClass()))
+      .useStoryLoader(LogSearchStoryLocator.getStoryLoader(BACKEND_STORIES_LOCATION_PROPERTY, this.getClass()))
       .useStoryReporterBuilder(
         new StoryReporterBuilder().withFailureTrace(true).withDefaultFormats().withFormats(Format.CONSOLE, Format.TXT));
   }
@@ -71,8 +63,7 @@ public class LogSearchBackendStories extends JUnitStories {
 
   @Override
   protected List<String> storyPaths() {
-    List<String> backendStories = new StoryFinder()
-      .findPaths(codeLocationFromClass(this.getClass()).getFile(), Arrays.asList("**/*.story"), null);
+    List<String> backendStories = LogSearchStoryLocator.findStories(BACKEND_STORIES_LOCATION_PROPERTY, STORY_SUFFIX, this.getClass());
     return Lists.newArrayList(Collections2.filter(backendStories, new Predicate<String>() {
       @Override
       public boolean apply(String storyFileName) {

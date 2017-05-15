@@ -45,5 +45,6 @@ mvn clean integration-test -Dbackend-tests failsafe:verify
 xquartz
 # then in an another window you can start ui tests
 mvn clean integration-test -Dselenium-tests failsafe:verify
+# you can specify story file folde location with -Dbackend.stories.location and -Dui.stories.location (absolute file path) in the commands
 ```
 Also you can run from the IDE, but make sure all of the ambari logsearch modules are built.
