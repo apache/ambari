@@ -33,11 +33,13 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -62,6 +64,10 @@ public class UpgradeDAOTest {
 
   private OrmTestHelper helper;
 
+  RepositoryVersionEntity repositoryVersion2200;
+  RepositoryVersionEntity repositoryVersion2500;
+  RepositoryVersionEntity repositoryVersion2511;
+
   /**
    *
    */
@@ -83,12 +89,16 @@ public class UpgradeDAOTest {
     requestEntity.setStages(new ArrayList<StageEntity>());
     requestDAO.create(requestEntity);
 
+    repositoryVersion2200 = helper.getOrCreateRepositoryVersion(new StackId("HDP", "2.2.0"), "2.2.0.0-1234");
+    repositoryVersion2500 = helper.getOrCreateRepositoryVersion(new StackId("HDP", "2.5.0"), "2.5.0.0-4567");
+    repositoryVersion2511 = helper.getOrCreateRepositoryVersion(new StackId("HDP", "2.5.0"), "2.5.1.1-4567");
+
+
     // create upgrade entities
     UpgradeEntity entity = new UpgradeEntity();
     entity.setClusterId(clusterId.longValue());
     entity.setRequestEntity(requestEntity);
-    entity.setFromVersion("");
-    entity.setToVersion("");
+    entity.setRepositoryVersion(repositoryVersion2200);
     entity.setUpgradeType(UpgradeType.ROLLING);
     entity.setUpgradePackage("test-upgrade");
     entity.setDowngradeAllowed(true);
@@ -165,8 +175,7 @@ public class UpgradeDAOTest {
     entity1.setClusterId(clusterId.longValue());
     entity1.setDirection(Direction.UPGRADE);
     entity1.setRequestEntity(requestEntity);
-    entity1.setFromVersion("2.2.0.0-1234");
-    entity1.setToVersion("2.3.0.0-4567");
+    entity1.setRepositoryVersion(repositoryVersion2500);
     entity1.setUpgradeType(UpgradeType.ROLLING);
     entity1.setUpgradePackage("test-upgrade");
     entity1.setDowngradeAllowed(true);
@@ -176,8 +185,7 @@ public class UpgradeDAOTest {
     entity2.setClusterId(clusterId.longValue());
     entity2.setDirection(Direction.DOWNGRADE);
     entity2.setRequestEntity(requestEntity);
-    entity2.setFromVersion("2.3.0.0-4567");
-    entity2.setToVersion("2.2.0.0-1234");
+    entity2.setRepositoryVersion(repositoryVersion2200);
     entity2.setUpgradeType(UpgradeType.ROLLING);
     entity2.setUpgradePackage("test-upgrade");
     entity2.setDowngradeAllowed(true);
@@ -187,8 +195,7 @@ public class UpgradeDAOTest {
     entity3.setClusterId(clusterId.longValue());
     entity3.setDirection(Direction.UPGRADE);
     entity3.setRequestEntity(requestEntity);
-    entity3.setFromVersion("2.2.0.0-1234");
-    entity3.setToVersion("2.3.1.1-4567");
+    entity3.setRepositoryVersion(repositoryVersion2511);
     entity3.setUpgradeType(UpgradeType.ROLLING);
     entity3.setUpgradePackage("test-upgrade");
     entity3.setDowngradeAllowed(true);
@@ -217,8 +224,7 @@ public class UpgradeDAOTest {
     upgradeEntity.setClusterId(clusterId.longValue());
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setRequestEntity(requestEntity);
-    upgradeEntity.setFromVersion("2.2.0.0-1234");
-    upgradeEntity.setToVersion("2.3.0.0-4567");
+    upgradeEntity.setRepositoryVersion(repositoryVersion2500);
     upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
     upgradeEntity.setUpgradePackage("test-upgrade");
     dao.create(upgradeEntity);

@@ -51,13 +51,11 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
-import org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -135,8 +133,6 @@ public class UpgradeActionTest {
   @Inject
   private UpgradeDAO upgradeDAO;
   @Inject
-  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
-  @Inject
   private StackDAO stackDAO;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
@@ -144,6 +140,11 @@ public class UpgradeActionTest {
   private FinalizeUpgradeAction finalizeUpgradeAction;
   @Inject
   private ConfigFactory configFactory;
+
+  private RepositoryVersionEntity repositoryVersion2110;
+  private RepositoryVersionEntity repositoryVersion2111;
+  private RepositoryVersionEntity repositoryVersion2201;
+  private RepositoryVersionEntity repositoryVersion2202;
 
   @Before
   public void setup() throws Exception {
@@ -159,6 +160,11 @@ public class UpgradeActionTest {
     Field field = AmbariServer.class.getDeclaredField("clusterController");
     field.setAccessible(true);
     field.set(null, amc);
+
+    repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
+    repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_1);
+    repositoryVersion2201 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_1);
+    repositoryVersion2202 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_2);
   }
 
   @After
@@ -394,7 +400,7 @@ public class UpgradeActionTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2201);
 
     // Install ZK and HDFS with some components
     Service zk = installService(cluster, "ZOOKEEPER");
@@ -423,7 +429,6 @@ public class UpgradeActionTest {
     commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_ORIGINAL_STACK, sourceStack.getStackId());
     commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_TARGET_STACK, targetStack.getStackId());
     commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_DIRECTION, Direction.UPGRADE.toString());
-    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_VERSION, targetRepo);
     commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_UPGRADE_PACK, upgradePackName);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
@@ -468,13 +473,10 @@ public class UpgradeActionTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2111);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, sourceRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -522,13 +524,10 @@ public class UpgradeActionTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2202);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, midRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -559,7 +558,7 @@ public class UpgradeActionTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2111);
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
     assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
@@ -567,7 +566,6 @@ public class UpgradeActionTest {
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -618,7 +616,7 @@ public class UpgradeActionTest {
     // Verify the repo before calling Finalize
     Cluster cluster = clusters.getCluster(clusterName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2111);
 
     RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(),
             sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
@@ -627,7 +625,6 @@ public class UpgradeActionTest {
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -661,13 +658,10 @@ public class UpgradeActionTest {
     cluster.setCurrentStackVersion(sourceStack);
     cluster.setDesiredStackVersion(targetStack);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2201);
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -719,7 +713,7 @@ public class UpgradeActionTest {
 
     makeCrossStackUpgradeTargetRepo(targetStack, targetRepo, hostName);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2201);
 
     // create some configs
     createConfigs(cluster);
@@ -739,9 +733,6 @@ public class UpgradeActionTest {
 
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, sourceRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -819,7 +810,7 @@ public class UpgradeActionTest {
     cluster.setCurrentStackVersion(sourceStack);
     cluster.setDesiredStackVersion(targetStack);
 
-    createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
+    createUpgrade(cluster, repositoryVersion2201);
 
     // set the SCH versions to the new stack so that the finalize action is
     // happy
@@ -842,9 +833,6 @@ public class UpgradeActionTest {
     // automatically before CURRENT
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -868,74 +856,6 @@ public class UpgradeActionTest {
     assertEquals(desiredStackId, currentStackId);
     assertEquals(targetStack, currentStackId);
     assertEquals(targetStack, desiredStackId);
-  }
-
-  @Test
-  public void testUpgradeHistory() throws Exception {
-    StackId sourceStack = HDP_21_STACK;
-    StackId targetStack = HDP_21_STACK;
-    String sourceRepo = HDP_2_1_1_0;
-    String targetRepo = HDP_2_1_1_1;
-    String hostName = "h1";
-
-    createUpgradeClusterAndSourceRepo(sourceStack, sourceRepo, hostName);
-
-    Cluster cluster = clusters.getCluster(clusterName);
-
-    // install HDFS with some components
-    Service service = installService(cluster, "HDFS");
-    addServiceComponent(cluster, service, "NAMENODE");
-    addServiceComponent(cluster, service, "DATANODE");
-    ServiceComponentHost nnSCH = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
-    ServiceComponentHost dnSCH = createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
-
-    RepositoryVersionEntity targetRepositoryVersion = createUpgradeClusterTargetRepo(targetStack,
-        targetRepo, hostName);
-
-    // fake their upgrade
-    service.setDesiredRepositoryVersion(targetRepositoryVersion);
-    nnSCH.setVersion(targetRepo);
-    dnSCH.setVersion(targetRepo);
-
-    UpgradeEntity upgrade = createUpgrade(cluster, sourceStack, sourceRepo, targetRepo);
-
-    // verify that no history exist exists yet
-    List<ServiceComponentHistoryEntity> historyEntites = serviceComponentDesiredStateDAO.findHistory(
-            cluster.getClusterId(), nnSCH.getServiceName(),
-            nnSCH.getServiceComponentName());
-
-    assertEquals(0, historyEntites.size());
-
-    RepositoryInfo repo = ambariMetaInfo.getRepository(sourceStack.getStackName(), sourceStack.getStackVersion(), "redhat6", sourceStack.getStackId());
-    assertEquals(HDP_211_CENTOS6_REPO_URL, repo.getBaseUrl());
-//    verifyBaseRepoURL(helper, cluster, null, host, HDP_211_CENTOS6_REPO_URL);
-
-    // Finalize the upgrade, passing in the request ID so that history is
-    // created
-    Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.REQUEST_ID, String.valueOf(upgrade.getRequestId()));
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-
-    ExecutionCommand executionCommand = new ExecutionCommand();
-    executionCommand.setCommandParams(commandParams);
-    executionCommand.setClusterName(clusterName);
-
-    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
-    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
-
-    finalizeUpgradeAction.setExecutionCommand(executionCommand);
-    finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
-
-    CommandReport report = finalizeUpgradeAction.execute(null);
-    assertNotNull(report);
-    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
-
-    // ensure that history now exists
-    historyEntites = serviceComponentDesiredStateDAO.findHistory(cluster.getClusterId(),
-            nnSCH.getServiceName(), nnSCH.getServiceComponentName());
-
-    assertEquals(1, historyEntites.size());
   }
 
 
@@ -1013,8 +933,8 @@ public class UpgradeActionTest {
    * @param targetRepo
    * @throws Exception
    */
-  private UpgradeEntity createUpgrade(Cluster cluster, StackId sourceStack, String sourceRepo,
-      String targetRepo) throws Exception {
+  private UpgradeEntity createUpgrade(Cluster cluster, RepositoryVersionEntity repositoryVersion)
+      throws Exception {
 
     // create some entities for the finalize action to work with for patch
     // history
@@ -1030,8 +950,7 @@ public class UpgradeActionTest {
     upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
-    upgradeEntity.setFromVersion(sourceRepo);
-    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setRepositoryVersion(repositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
 
     upgradeDAO.create(upgradeEntity);

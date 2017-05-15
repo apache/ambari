@@ -23,13 +23,11 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_P
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,8 +63,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -78,20 +74,20 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
+import org.apache.ambari.server.orm.entities.UpgradeHistoryEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
-import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -99,33 +95,26 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
-import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
-import org.apache.ambari.server.state.stack.upgrade.HostOrderItem;
-import org.apache.ambari.server.state.stack.upgrade.HostOrderItem.HostOrderActionType;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
-import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
@@ -140,12 +129,12 @@ import com.google.inject.persist.Transactional;
 public class UpgradeResourceProvider extends AbstractControllerResourceProvider {
 
   public static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
-  public static final String UPGRADE_VERSION = "Upgrade/repository_version";
+  public static final String UPGRADE_REPO_VERSION_ID = "Upgrade/repository_version_id";
   public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
   public static final String UPGRADE_PACK = "Upgrade/pack";
   public static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
-  public static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
-  public static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
+  public static final String UPGRADE_ASSOCIATED_VERSION = "Upgrade/associated_version";
+  public static final String UPGRADE_VERSIONS = "Upgrade/versions";
   public static final String UPGRADE_DIRECTION = "Upgrade/direction";
   public static final String UPGRADE_DOWNGRADE_ALLOWED = "Upgrade/downgrade_allowed";
   public static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
@@ -153,7 +142,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
   public static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
   public static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
-
 
   /**
    * Names that appear in the Upgrade Packs that are used by
@@ -169,17 +157,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Skip slave/client component failures if the tasks are skippable.
    */
-  protected static final String UPGRADE_SKIP_FAILURES = "Upgrade/skip_failures";
+  public static final String UPGRADE_SKIP_FAILURES = "Upgrade/skip_failures";
 
   /**
    * Skip service check failures if the tasks are skippable.
    */
-  protected static final String UPGRADE_SKIP_SC_FAILURES = "Upgrade/skip_service_check_failures";
+  public static final String UPGRADE_SKIP_SC_FAILURES = "Upgrade/skip_service_check_failures";
 
   /**
    * Skip manual verification tasks for hands-free upgrade/downgrade experience.
    */
-  protected static final String UPGRADE_SKIP_MANUAL_VERIFICATION = "Upgrade/skip_manual_verification";
+  public static final String UPGRADE_SKIP_MANUAL_VERIFICATION = "Upgrade/skip_manual_verification";
 
   /**
    * When creating an upgrade of type {@link UpgradeType#HOST_ORDERED}, this
@@ -200,7 +188,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * </pre>
    *
    */
-  protected static final String UPGRADE_HOST_ORDERED_HOSTS = "Upgrade/host_order";
+  public static final String UPGRADE_HOST_ORDERED_HOSTS = "Upgrade/host_order";
 
   /*
    * Lifted from RequestResourceProvider
@@ -217,6 +205,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   private static final Set<String> PK_PROPERTY_IDS = new HashSet<>(
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
+
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
   /**
@@ -267,9 +256,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   @Inject
   private static Configuration s_configuration;
 
-  @Inject
-  private static Gson s_gson;
-
   /**
    * Used to create instances of {@link UpgradeContext} with injected
    * dependencies.
@@ -280,12 +266,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   static {
     // properties
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
-    PROPERTY_IDS.add(UPGRADE_VERSION);
+    PROPERTY_IDS.add(UPGRADE_REPO_VERSION_ID);
     PROPERTY_IDS.add(UPGRADE_TYPE);
     PROPERTY_IDS.add(UPGRADE_PACK);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
-    PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
-    PROPERTY_IDS.add(UPGRADE_TO_VERSION);
+    PROPERTY_IDS.add(UPGRADE_ASSOCIATED_VERSION);
+    PROPERTY_IDS.add(UPGRADE_VERSIONS);
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
     PROPERTY_IDS.add(UPGRADE_DOWNGRADE_ALLOWED);
     PROPERTY_IDS.add(UPGRADE_SUSPENDED);
@@ -304,6 +290,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(REQUEST_START_TIME_ID);
     PROPERTY_IDS.add(REQUEST_STATUS_PROPERTY_ID);
     PROPERTY_IDS.add(REQUEST_TYPE_ID);
+
+    PROPERTY_IDS.add("Upgrade/from_version");
+    PROPERTY_IDS.add("Upgrade/to_version");
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Upgrade, UPGRADE_REQUEST_ID);
@@ -355,32 +344,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       @Override
       public UpgradeEntity invoke() throws AmbariException, AuthorizationException {
 
-        final String directionProperty = (String) requestMap.get(UPGRADE_DIRECTION);
-        if (StringUtils.isEmpty(directionProperty)) {
-          throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
-        }
-
-        final Direction direction = Direction.valueOf(directionProperty);
-
-        // Default to ROLLING upgrade, but attempt to read from properties.
-        UpgradeType upgradeType = UpgradeType.ROLLING;
-        if (requestMap.containsKey(UPGRADE_TYPE)) {
-          try {
-            upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
-          } catch (Exception e) {
-            throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
-                UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
-          }
-        }
-
-        // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
-        final String version = (String) requestMap.get(UPGRADE_VERSION);
-
-        final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, upgradeType,
-            direction, version, requestMap);
-
-        UpgradePack upgradePack = validateRequest(upgradeContext);
-        upgradeContext.setUpgradePack(upgradePack);
+        // create the context, validating the properties in the process
+        final UpgradeContext upgradeContext = s_upgradeContextFactory.create(cluster, requestMap);
 
         try {
           return createUpgrade(upgradeContext);
@@ -598,47 +563,33 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType(), requestedIds);
     setResourceProperty(resource, UPGRADE_PACK, entity.getUpgradePackage(), requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
-    setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
-    setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
     setResourceProperty(resource, UPGRADE_SUSPENDED, entity.isSuspended(), requestedIds);
     setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
     setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
 
+    // set the assocaited to/from version (to/from is dictated by direction)
+    RepositoryVersionEntity repositoryVersion = entity.getRepositoryVersion();
+    setResourceProperty(resource, UPGRADE_ASSOCIATED_VERSION, repositoryVersion.getVersion(), requestedIds);
+
+    // now set the target verison for all services in the upgrade
+    Map<String, RepositoryVersions> repositoryVersions = new HashMap<>();
+    for( UpgradeHistoryEntity history : entity.getHistory() ){
+      RepositoryVersions serviceVersions = repositoryVersions.get(history.getServiceName());
+      if (null != serviceVersions) {
+        continue;
+      }
+
+      serviceVersions = new RepositoryVersions(history.getFromReposistoryVersion(),
+          history.getTargetRepositoryVersion());
+
+      repositoryVersions.put(history.getServiceName(), serviceVersions);
+    }
+
+    setResourceProperty(resource, UPGRADE_VERSIONS, repositoryVersions, requestedIds);
+
     return resource;
-  }
-
-  /**
-   * Validates a singular API request.
-   *
-   * @param upgradeContext the map of properties
-   * @return the validated upgrade pack
-   * @throws AmbariException
-   */
-  private UpgradePack validateRequest(UpgradeContext upgradeContext) throws AmbariException {
-    Cluster cluster = upgradeContext.getCluster();
-    Direction direction = upgradeContext.getDirection();
-    Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-    UpgradeType upgradeType = upgradeContext.getType();
-
-    /**
-     * For the unit tests tests, there are multiple upgrade packs for the same type, so
-     * allow picking one of them. In prod, this is empty.
-     */
-    String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
-
-    String version = (String) requestMap.get(UPGRADE_VERSION);
-    String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
-
-    UpgradePack pack = s_upgradeHelper.suggestUpgradePack(cluster.getClusterName(),
-        versionForUpgradePack, version, direction, upgradeType, preferredUpgradePackName);
-
-    // the validator will throw an exception if the upgrade request is not valid
-    UpgradeRequestValidator upgradeRequestValidator = buildValidator(upgradeType);
-    upgradeRequestValidator.validate(upgradeContext, pack);
-
-    return pack;
   }
 
   /**
@@ -698,111 +649,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     UpgradePack pack = upgradeContext.getUpgradePack();
     Cluster cluster = upgradeContext.getCluster();
     Direction direction = upgradeContext.getDirection();
-    Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-    UpgradeType upgradeType = upgradeContext.getType();
 
     ConfigHelper configHelper = getManagementController().getConfigHelper();
-
-    // the upgrade context calculated these for us based on direction
-    StackId sourceStackId = upgradeContext.getOriginalStackId();
-
-    // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
-    final String version = upgradeContext.getVersion();
-
-    MasterHostResolver resolver = null;
-    if (direction.isUpgrade()) {
-      resolver = new MasterHostResolver(configHelper, cluster);
-    } else {
-      resolver = new MasterHostResolver(configHelper, cluster, version);
-    }
-
-    Set<String> supportedServices = new HashSet<>();
-    UpgradeScope scope = UpgradeScope.COMPLETE;
-
-    switch (direction) {
-      case UPGRADE:
-        RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
-        RepositoryType repositoryType = targetRepositoryVersion.getType();
-
-        // !!! Consult the version definition and add the service names to supportedServices
-        if (repositoryType != RepositoryType.STANDARD) {
-          scope = UpgradeScope.PARTIAL;
-
-          try {
-            VersionDefinitionXml vdf = targetRepositoryVersion.getRepositoryXml();
-            supportedServices.addAll(vdf.getAvailableServiceNames());
-
-            // if this is every true, then just stop the upgrade attempt and
-            // throw an exception
-            if (supportedServices.isEmpty()) {
-              String message = String.format(
-                  "When using a VDF of type %s, the available services must be defined in the VDF",
-                  targetRepositoryVersion.getType());
-              throw new AmbariException(message);
-            }
-
-          } catch (Exception e) {
-            String msg = String.format("Could not parse version definition for %s.  Upgrade will not proceed.", version);
-            LOG.error(msg, e);
-            throw new AmbariException(msg);
-          }
-        }
-
-        break;
-      case DOWNGRADE:
-        break;
-    }
-
-    upgradeContext.setResolver(resolver);
-    upgradeContext.setSupportedServices(supportedServices);
-    upgradeContext.setScope(scope);
-
-    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
-        comment = "Check for any other way downgrade to get set, if required")
-    String downgradeFromVersion = null;
-
-    if (direction.isDowngrade()) {
-      if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
-        downgradeFromVersion = (String) requestMap.get(UPGRADE_FROM_VERSION);
-      } else {
-        UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(
-            cluster.getClusterId(), Direction.UPGRADE);
-
-        downgradeFromVersion = lastUpgradeItemForCluster.getToVersion();
-      }
-
-      if (null == downgradeFromVersion) {
-        throw new AmbariException("When downgrading, the downgrade version must be specified");
-      }
-
-      upgradeContext.setDowngradeFromVersion(downgradeFromVersion);
-    }
-
-    // optionally skip failures - this can be supplied on either the request or
-    // in the upgrade pack explicitely, however the request will always override
-    // the upgrade pack if explicitely specified
-    boolean skipComponentFailures = pack.isComponentFailureAutoSkipped();
-    boolean skipServiceCheckFailures = pack.isServiceCheckFailureAutoSkipped();
-
-    // only override the upgrade pack if set on the request
-    if (requestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
-      skipComponentFailures = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_FAILURES));
-    }
-
-    // only override the upgrade pack if set on the request
-    if (requestMap.containsKey(UPGRADE_SKIP_SC_FAILURES)) {
-      skipServiceCheckFailures = Boolean.parseBoolean(
-          (String) requestMap.get(UPGRADE_SKIP_SC_FAILURES));
-    }
-
-    boolean skipManualVerification = false;
-    if(requestMap.containsKey(UPGRADE_SKIP_MANUAL_VERIFICATION)) {
-      skipManualVerification = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_MANUAL_VERIFICATION));
-    }
-
-    upgradeContext.setAutoSkipComponentFailures(skipComponentFailures);
-    upgradeContext.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
-    upgradeContext.setAutoSkipManualVerification(skipManualVerification);
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, upgradeContext);
 
@@ -828,7 +676,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<>();
-    RequestStageContainer req = createRequest(direction, version);
+    RequestStageContainer req = createRequest(upgradeContext);
 
     /**
     During a Rolling Upgrade, change the desired Stack Id if jumping across
@@ -849,21 +697,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       s_upgradeHelper.putComponentsToUpgradingState(upgradeContext);
     }
 
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment = "This is wrong")
+    StackId configurationPackSourceStackId = upgradeContext.getRepositoryVersion().getStackId();
+
     // resolve or build a proper config upgrade pack - always start out with the config pack
     // for the current stack and merge into that
     //
     // HDP 2.2 to 2.3 should start with the config-upgrade.xml from HDP 2.2
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
-    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack, sourceStackId);
+    ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack,
+        configurationPackSourceStackId);
 
     // create the upgrade and request
     for (UpgradeGroupHolder group : groups) {
-      boolean skippable = group.skippable;
-      boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
-      boolean allowRetry = group.allowRetry;
-
       List<UpgradeItemEntity> itemEntities = new ArrayList<>();
+
       for (StageWrapper wrapper : group.items) {
+        RepositoryVersionEntity effectiveRepositoryVersion = upgradeContext.getRepositoryVersion();
+
         if (wrapper.getType() == StageWrapper.Type.SERVER_SIDE_ACTION) {
           // !!! each stage is guaranteed to be of one type. but because there
           // is a bug that prevents one stage with multiple tasks assigned for
@@ -882,20 +733,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setHosts(wrapper.getHostsJson());
               itemEntities.add(itemEntity);
 
-              // At this point, need to change the effective Stack Id so that subsequent tasks run on the newer value.
-              if (upgradeType == UpgradeType.NON_ROLLING && UpdateStackGrouping.class.equals(group.groupClass)) {
-                if (direction.isUpgrade()) {
-                  upgradeContext.setEffectiveStackId(upgradeContext.getTargetStackId());
-                } else {
-                  upgradeContext.setEffectiveStackId(upgradeContext.getOriginalStackId());
-                }
-              } else if (UpdateStackGrouping.class.equals(group.groupClass)) {
-                upgradeContext.setEffectiveStackId(upgradeContext.getTargetStackId());
-              }
-
               injectVariables(configHelper, cluster, itemEntity);
-              makeServerSideStage(upgradeContext, req, itemEntity, (ServerSideActionTask) task,
-                  skippable, supportsAutoSkipOnFailure, allowRetry, pack, configUpgradePack);
+              makeServerSideStage(group, upgradeContext, effectiveRepositoryVersion, req,
+                  itemEntity, (ServerSideActionTask) task, configUpgradePack);
             }
           }
         } else {
@@ -908,8 +748,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
-          createStage(upgradeContext, req, itemEntity, wrapper, skippable,
-              supportsAutoSkipOnFailure, allowRetry);
+          createStage(group, upgradeContext, effectiveRepositoryVersion, req, itemEntity, wrapper);
         }
       }
 
@@ -923,27 +762,51 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     UpgradeEntity entity = new UpgradeEntity();
-
-    if (null != downgradeFromVersion) {
-      entity.setFromVersion(downgradeFromVersion);
-    } else {
-      entity.setFromVersion("");
-    }
-
-    entity.setToVersion(version);
+    entity.setRepositoryVersion(upgradeContext.getRepositoryVersion());
     entity.setUpgradeGroups(groupEntities);
     entity.setClusterId(cluster.getClusterId());
     entity.setDirection(direction);
     entity.setUpgradePackage(pack.getName());
     entity.setUpgradeType(pack.getType());
-    entity.setAutoSkipComponentFailures(skipComponentFailures);
-    entity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
+    entity.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
+    entity.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
 
     if (upgradeContext.getDirection().isDowngrade()) {
       // !!! You can't downgrade a Downgrade, no matter what the upgrade pack says.
       entity.setDowngradeAllowed(false);
     } else {
       entity.setDowngradeAllowed(pack.isDowngradeAllowed());
+    }
+
+    // set upgrade history for every component in the upgrade
+    Set<String> services = upgradeContext.getSupportedServices();
+    for (String serviceName : services) {
+      Service service = cluster.getService(serviceName);
+      Map<String, ServiceComponent> componentMap = service.getServiceComponents();
+      for (ServiceComponent component : componentMap.values()) {
+        UpgradeHistoryEntity history = new UpgradeHistoryEntity();
+        history.setUpgrade(entity);
+        history.setServiceName(serviceName);
+        history.setComponentName(component.getName());
+
+        // depending on whether this is an upgrade or a downgrade, the history
+        // will be different
+        if (upgradeContext.getDirection() == Direction.UPGRADE) {
+          history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
+          history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
+        } else {
+          // the target version on a downgrade is the original version that the
+          // service was on in the failed upgrade
+          RepositoryVersionEntity targetRepositoryVersion =
+              upgradeContext.getTargetRepositoryVersion(serviceName);
+
+          history.setFromRepositoryVersion(upgradeContext.getRepositoryVersion());
+          history.setTargetRepositoryVersion(targetRepositoryVersion);
+        }
+
+        // add the history
+        entity.addHistory(history);
+      }
     }
 
     req.getRequestStatusResponse();
@@ -1014,8 +877,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Cluster cluster = upgradeContext.getCluster();
     Direction direction = upgradeContext.getDirection();
     UpgradePack upgradePack = upgradeContext.getUpgradePack();
-    String stackName = upgradeContext.getTargetStackId().getStackName();
-    String version = upgradeContext.getVersion();
+    String stackName = upgradeContext.getRepositoryVersion().getStackId().getStackName();
+    String version = upgradeContext.getRepositoryVersion().getStackId().getStackVersion();
     String userName = getManagementController().getAuthName();
 
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
@@ -1250,36 +1113,45 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  private RequestStageContainer createRequest(Direction direction, String version) {
+  private RequestStageContainer createRequest(UpgradeContext upgradeContext) {
     ActionManager actionManager = getManagementController().getActionManager();
 
     RequestStageContainer requestStages = new RequestStageContainer(
         actionManager.getNextRequestId(), null, s_requestFactory.get(), actionManager);
-    requestStages.setRequestContext(String.format("%s to %s", direction.getVerb(true), version));
+
+    Direction direction = upgradeContext.getDirection();
+    RepositoryVersionEntity repositoryVersion = upgradeContext.getRepositoryVersion();
+
+    requestStages.setRequestContext(String.format("%s %s %s", direction.getVerb(true),
+        direction.getPreposition(), repositoryVersion.getVersion()));
 
     return requestStages;
   }
 
-  private void createStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
+  private void createStage(UpgradeGroupHolder group, UpgradeContext context,
+      RepositoryVersionEntity effectiveRepositoryVersion,
+      RequestStageContainer request, UpgradeItemEntity entity, StageWrapper wrapper)
           throws AmbariException {
+
+    boolean skippable = group.skippable;
+    boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
+    boolean allowRetry = group.allowRetry;
 
     switch (wrapper.getType()) {
       case CONFIGURE:
       case START:
       case STOP:
       case RESTART:
-        makeCommandStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
-            allowRetry);
+        makeCommandStage(context, request, effectiveRepositoryVersion, entity, wrapper, skippable,
+            supportsAutoSkipOnFailure, allowRetry);
         break;
       case RU_TASKS:
-        makeActionStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
-            allowRetry);
+        makeActionStage(context, request, effectiveRepositoryVersion, entity, wrapper, skippable,
+            supportsAutoSkipOnFailure, allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(context, request, entity, wrapper, skippable,
-            supportsAutoSkipOnFailure, allowRetry);
+        makeServiceCheckStage(context, request, effectiveRepositoryVersion, entity, wrapper,
+            skippable, supportsAutoSkipOnFailure, allowRetry);
         break;
       default:
         break;
@@ -1302,9 +1174,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      RepositoryVersionEntity effectiveRepositoryVersion, UpgradeItemEntity entity,
+      StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
+      boolean allowRetry) throws AmbariException {
 
     if (0 == wrapper.getHosts().size()) {
       throw new AmbariException(
@@ -1328,7 +1200,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // service, it is necessary to set the
     // service_package_folder and hooks_folder params.
     AmbariMetaInfo ambariMetaInfo = s_metaProvider.get();
-    StackId stackId = context.getEffectiveStackId();
+    StackId stackId = effectiveRepositoryVersion.getStackId();
 
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
@@ -1354,7 +1226,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveRepositoryVersion);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1395,9 +1267,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   private void makeCommandStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      RepositoryVersionEntity effectiveRepositoryVersion, UpgradeItemEntity entity,
+      StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
+      boolean allowRetry) throws AmbariException {
 
     Cluster cluster = context.getCluster();
 
@@ -1437,7 +1309,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveRepositoryVersion);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1470,9 +1342,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeServiceCheckStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry)
-          throws AmbariException {
+      RepositoryVersionEntity effectiveRepositoryVersion, UpgradeItemEntity entity,
+      StageWrapper wrapper, boolean skippable, boolean supportsAutoSkipOnFailure,
+      boolean allowRetry) throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<>();
 
@@ -1499,7 +1371,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, effectiveRepositoryVersion);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
@@ -1536,13 +1408,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * upgrade
    * @throws AmbariException
    */
-  private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable,
-      boolean supportsAutoSkipOnFailure, boolean allowRetry,
-      UpgradePack upgradePack, ConfigUpgradePack configUpgradePack)
-          throws AmbariException {
+  private void makeServerSideStage(UpgradeGroupHolder group, UpgradeContext context,
+      RepositoryVersionEntity effectiveRepositoryVersion, RequestStageContainer request,
+      UpgradeItemEntity entity, ServerSideActionTask task, ConfigUpgradePack configUpgradePack)
+      throws AmbariException {
 
     Cluster cluster = context.getCluster();
+    UpgradePack upgradePack = context.getUpgradePack();
 
     Map<String, String> commandParams = getNewParameterMap(request, context);
     commandParams.put(UpgradeContext.COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
@@ -1624,21 +1496,21 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         commandParams);
 
     actionContext.setTimeout(Short.valueOf((short) -1));
-    actionContext.setRetryAllowed(allowRetry);
+    actionContext.setRetryAllowed(group.allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, context.getEffectiveStackId());
+        cluster, null);
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getClusterHostInfo(),
         jsons.getCommandParamsForStage(), jsons.getHostParamsForStage());
 
-    stage.setSkippable(skippable);
-    stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
+    stage.setSkippable(group.skippable);
+    stage.setAutoSkipFailureSupported(group.supportsAutoSkipOnFailure);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -1652,7 +1524,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         getManagementController().getAuthName(), Role.AMBARI_SERVER_ACTION, RoleCommand.EXECUTE,
         cluster.getClusterName(),
         new ServiceComponentHostServerActionEvent(null, System.currentTimeMillis()), commandParams,
-        itemDetail, null, s_configuration.getDefaultServerTaskTimeout(), allowRetry,
+        itemDetail, null, s_configuration.getDefaultServerTaskTimeout(), group.allowRetry,
         context.isComponentFailureAutoSkipped());
 
     request.addStages(Collections.singletonList(stage));
@@ -1663,11 +1535,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * following properties are already set:
    * <ul>
    * <li>{@link UpgradeContext#COMMAND_PARAM_CLUSTER_NAME}
-   * <li>{@link UpgradeContext#COMMAND_PARAM_VERSION}
    * <li>{@link UpgradeContext#COMMAND_PARAM_DIRECTION}
-   * <li>{@link UpgradeContext#COMMAND_PARAM_ORIGINAL_STACK}
-   * <li>{@link UpgradeContext#COMMAND_PARAM_TARGET_STACK}
-   * <li>{@link UpgradeContext#COMMAND_DOWNGRADE_FROM_VERSION}
    * <li>{@link UpgradeContext#COMMAND_PARAM_UPGRADE_TYPE}
    * <li>{@link KeyNames#REFRESH_CONFIG_TAGS_BEFORE_EXECUTION} - necessary in
    * order to have the commands contain the correct configurations. Otherwise,
@@ -1778,57 +1646,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Builds the list of {@link HostOrderItem}s from the upgrade request. If the
-   * upgrade request does not contain the hosts
-   *
-   * @param requestMap
-   *          the map of properties from the request (not {@code null}).
-   * @return the ordered list of actions to orchestrate for the
-   *         {@link UpgradeType#HOST_ORDERED} upgrade.
-   * @throws AmbariException
-   *           if the request properties are not valid.
-   */
-  @SuppressWarnings("unchecked")
-  private List<HostOrderItem> extractHostOrderItemsFromRequest(Map<String, Object> requestMap)
-      throws AmbariException {
-    // ewwww
-    Set<Map<String, List<String>>> hostsOrder = (Set<Map<String, List<String>>>) requestMap.get(
-        UPGRADE_HOST_ORDERED_HOSTS);
-
-    if (CollectionUtils.isEmpty(hostsOrder)) {
-      throw new AmbariException(
-          String.format("The %s property must be specified when using a %s upgrade type.",
-              UPGRADE_HOST_ORDERED_HOSTS, UpgradeType.HOST_ORDERED));
-    }
-
-    List<HostOrderItem> hostOrderItems = new ArrayList<>();
-
-    // extract all of the hosts so that we can ensure they are all accounted for
-    Iterator<Map<String, List<String>>> iterator = hostsOrder.iterator();
-    while (iterator.hasNext()) {
-      Map<String, List<String>> grouping = iterator.next();
-      List<String> hosts = grouping.get("hosts");
-      List<String> serviceChecks = grouping.get("service_checks");
-
-      if (CollectionUtils.isEmpty(hosts) && CollectionUtils.isEmpty(serviceChecks)) {
-        throw new AmbariException(String.format(
-            "The %s property must contain at least one object with either a %s or %s key",
-            UPGRADE_HOST_ORDERED_HOSTS, "hosts", "service_checks"));
-      }
-
-      if (CollectionUtils.isNotEmpty(hosts)) {
-        hostOrderItems.add(new HostOrderItem(HostOrderActionType.HOST_UPGRADE, hosts));
-      }
-
-      if (CollectionUtils.isNotEmpty(serviceChecks)) {
-        hostOrderItems.add(new HostOrderItem(HostOrderActionType.SERVICE_CHECK, serviceChecks));
-      }
-    }
-
-    return hostOrderItems;
-  }
-
-  /**
    * Builds the correct {@link ConfigUpgradePack} based on the upgrade and
    * source stack.
    * <ul>
@@ -1887,267 +1704,34 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Builds a chain of {@link UpgradeRequestValidator}s to ensure that the
-   * incoming request to create a new upgrade is valid.
-   *
-   * @param upgradeType
-   *          the type of upgrade to build the validator for.
-   * @return the validator which can check to ensure that the properties are
-   *         valid.
+   * The {@link RepositoryVersions} class is used to represent to/from versions
+   * of a service during an upgrade or downgrade.
    */
-  private UpgradeRequestValidator buildValidator(UpgradeType upgradeType){
-    UpgradeRequestValidator validator = new BasicUpgradePropertiesValidator();
-    UpgradeRequestValidator preReqValidator = new PreReqCheckValidator();
-    validator.setNextValidator(preReqValidator);
+  final static class RepositoryVersions {
+    @JsonProperty("from_repository_id")
+    final long fromRepositoryId;
 
-    final UpgradeRequestValidator upgradeTypeValidator;
-    switch( upgradeType ){
-      case HOST_ORDERED:
-        upgradeTypeValidator = new HostOrderedUpgradeValidator();
-        break;
-      case NON_ROLLING:
-      case ROLLING:
-      default:
-        upgradeTypeValidator = null;
-        break;
-    }
+    @JsonProperty("from_repository_version")
+    final String fromRepositoryVersion;
 
-    preReqValidator.setNextValidator(upgradeTypeValidator);
-    return validator;
-  }
+    @JsonProperty("to_repository_id")
+    final long toRepositoryId;
 
-  /**
-   * The {@link UpgradeRequestValidator} contains the logic to check for correct
-   * upgrade request properties and then pass the responsibility onto the next
-   * validator in the chain.
-   */
-  private abstract class UpgradeRequestValidator {
-    /**
-     * The next validator.
-     */
-    UpgradeRequestValidator m_nextValidator;
+    @JsonProperty("to_repository_version")
+    final String toRepositoryVersion;
 
     /**
-     * Sets the next validator in the chain.
+     * Constructor.
      *
-     * @param nextValidator
-     *          the next validator to run, or {@code null} for none.
+     * @param from
+     * @param target
      */
-    void setNextValidator(UpgradeRequestValidator nextValidator) {
-      m_nextValidator = nextValidator;
-    }
+    public RepositoryVersions(RepositoryVersionEntity from, RepositoryVersionEntity to) {
+      fromRepositoryId = from.getId();
+      fromRepositoryVersion = from.getVersion();
 
-    /**
-     * Validates the upgrade request from this point in the chain.
-     *
-     * @param upgradeContext
-     * @param upgradePack
-     * @throws AmbariException
-     */
-    final void validate(UpgradeContext upgradeContext, UpgradePack upgradePack)
-        throws AmbariException {
-
-      // run this instance's check
-      check(upgradeContext, upgradePack);
-
-      // pass along to the next
-      if( null != m_nextValidator ) {
-        m_nextValidator.validate(upgradeContext, upgradePack);
-      }
-    }
-
-    /**
-     * Checks to ensure that upgrade request is valid given the specific
-     * arguments.
-     *
-     * @param upgradeContext
-     * @param upgradePack
-     *
-     * @throws AmbariException
-     */
-    abstract void check(UpgradeContext upgradeContext, UpgradePack upgradePack)
-        throws AmbariException;
-  }
-
-  /**
-   * The {@link BasicUpgradePropertiesValidator} ensures that the basic required
-   * properties are present on the upgrade request.
-   */
-  private final class BasicUpgradePropertiesValidator extends UpgradeRequestValidator {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void check(UpgradeContext upgradeContext, UpgradePack upgradePack)
-        throws AmbariException {
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-
-      String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
-      String version = (String) requestMap.get(UPGRADE_VERSION);
-      String direction = (String) requestMap.get(UPGRADE_DIRECTION);
-
-      if (StringUtils.isBlank(clusterName)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
-      }
-
-      if (StringUtils.isBlank(version)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_VERSION));
-      }
-
-      if (StringUtils.isBlank(direction)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
-      }
-    }
-  }
-
-  /**
-   * The {@link PreReqCheckValidator} ensures that the upgrade pre-requisite
-   * checks have passed.
-   */
-  private final class PreReqCheckValidator extends UpgradeRequestValidator {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    void check(UpgradeContext upgradeContext, UpgradePack upgradePack) throws AmbariException {
-      Cluster cluster = upgradeContext.getCluster();
-      Direction direction = upgradeContext.getDirection();
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-      UpgradeType upgradeType = upgradeContext.getType();
-
-      String version = (String) requestMap.get(UPGRADE_VERSION);
-      boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
-      boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
-      String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
-
-      // verify that there is not an upgrade or downgrade that is in progress or suspended
-      UpgradeEntity existingUpgrade = cluster.getUpgradeInProgress();
-      if( null != existingUpgrade ){
-        throw new AmbariException(
-            String.format("Unable to perform %s as another %s (request ID %s) is in progress.",
-                direction.getText(false), existingUpgrade.getDirection().getText(false),
-                existingUpgrade.getRequestId()));
-      }
-
-      // skip this check if it's a downgrade or we are instructed to skip it
-      if( direction.isDowngrade() || skipPrereqChecks ){
-        return;
-      }
-
-      // Validate pre-req checks pass
-      PreUpgradeCheckResourceProvider preUpgradeCheckResourceProvider = (PreUpgradeCheckResourceProvider)
-          getResourceProvider(Resource.Type.PreUpgradeCheck);
-
-      Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(version).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(upgradeType).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
-
-      Request preUpgradeCheckRequest = PropertyHelper.getReadRequest();
-
-      Set<Resource> preUpgradeCheckResources;
-      try {
-        preUpgradeCheckResources = preUpgradeCheckResourceProvider.getResources(
-            preUpgradeCheckRequest, preUpgradeCheckPredicate);
-      } catch (NoSuchResourceException|SystemException|UnsupportedPropertyException|NoSuchParentResourceException e) {
-        throw new AmbariException(
-            String.format("Unable to perform %s. Prerequisite checks could not be run",
-                direction.getText(false), e));
-      }
-
-      List<Resource> failedResources = new LinkedList<>();
-      if (preUpgradeCheckResources != null) {
-        for (Resource res : preUpgradeCheckResources) {
-          PrereqCheckStatus prereqCheckStatus = (PrereqCheckStatus) res.getPropertyValue(
-              PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
-
-          if (prereqCheckStatus == PrereqCheckStatus.FAIL
-              || (failOnCheckWarnings && prereqCheckStatus == PrereqCheckStatus.WARNING)) {
-            failedResources.add(res);
-          }
-        }
-      }
-
-      if (!failedResources.isEmpty()) {
-        throw new AmbariException(
-            String.format("Unable to perform %s. Prerequisite checks failed %s",
-                direction.getText(false), s_gson.toJson(failedResources)));
-      }
-    }
-  }
-
-  /**
-   * Ensures that for {@link UpgradeType#HOST_ORDERED}, the properties supplied
-   * are valid.
-   */
-  @SuppressWarnings("unchecked")
-  private final class HostOrderedUpgradeValidator extends UpgradeRequestValidator {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    void check(UpgradeContext upgradeContext, UpgradePack upgradePack) throws AmbariException {
-      Cluster cluster = upgradeContext.getCluster();
-      Direction direction = upgradeContext.getDirection();
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-
-      String skipFailuresRequestProperty = (String) requestMap.get(UPGRADE_SKIP_FAILURES);
-      if (Boolean.parseBoolean(skipFailuresRequestProperty)) {
-        throw new AmbariException(
-            String.format("The %s property is not valid when creating a %s upgrade.",
-                UPGRADE_SKIP_FAILURES, UpgradeType.HOST_ORDERED));
-      }
-
-      String skipManualVerification = (String) requestMap.get(UPGRADE_SKIP_MANUAL_VERIFICATION);
-      if (Boolean.parseBoolean(skipManualVerification)) {
-        throw new AmbariException(
-            String.format("The %s property is not valid when creating a %s upgrade.",
-                UPGRADE_SKIP_MANUAL_VERIFICATION, UpgradeType.HOST_ORDERED));
-      }
-
-      if (!requestMap.containsKey(UPGRADE_HOST_ORDERED_HOSTS)) {
-        throw new AmbariException(
-            String.format("The %s property is required when creating a %s upgrade.",
-                UPGRADE_HOST_ORDERED_HOSTS, UpgradeType.HOST_ORDERED));
-      }
-
-      List<HostOrderItem> hostOrderItems = extractHostOrderItemsFromRequest(requestMap);
-      List<String> hostsFromRequest = new ArrayList<>(hostOrderItems.size());
-      for (HostOrderItem hostOrderItem : hostOrderItems) {
-        if (hostOrderItem.getType() == HostOrderActionType.HOST_UPGRADE) {
-          hostsFromRequest.addAll(hostOrderItem.getActionItems());
-        }
-      }
-
-      // ensure that all hosts for this cluster are accounted for
-      Collection<Host> hosts = cluster.getHosts();
-      Set<String> clusterHostNames = new HashSet<>(hosts.size());
-      for (Host host : hosts) {
-        clusterHostNames.add(host.getHostName());
-      }
-
-      Collection<String> disjunction = CollectionUtils.disjunction(hostsFromRequest,
-          clusterHostNames);
-
-      if (CollectionUtils.isNotEmpty(disjunction)) {
-        throw new AmbariException(String.format(
-            "The supplied list of hosts must match the cluster hosts in an upgrade of type %s. The following hosts are either missing or invalid: %s",
-            UpgradeType.HOST_ORDERED, StringUtils.join(disjunction, ", ")));
-      }
-
-      // verify that the upgradepack has the required grouping and set the
-      // action items on it
-      HostOrderGrouping hostOrderGrouping = null;
-      List<Grouping> groupings = upgradePack.getGroups(direction);
-      for (Grouping grouping : groupings) {
-        if (grouping instanceof HostOrderGrouping) {
-          hostOrderGrouping = (HostOrderGrouping) grouping;
-          hostOrderGrouping.setHostOrderItems(hostOrderItems);
-        }
-      }
+      toRepositoryId = to.getId();
+      toRepositoryVersion = to.getVersion();
     }
   }
 }

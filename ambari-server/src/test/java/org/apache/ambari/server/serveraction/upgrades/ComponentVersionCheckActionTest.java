@@ -169,7 +169,9 @@ public class ComponentVersionCheckActionTest {
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetStack.getStackId() + "'}"
         + "], 'OperatingSystems/os_type':'redhat6'}]";
-    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
+
+    RepositoryVersionEntity toRepositoryVersion = repoVersionDAO.create(stackEntityTarget,
+        targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
 
     // Start upgrading the newer repo
     c.setCurrentStackVersion(targetStack);
@@ -194,8 +196,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
-    upgradeEntity.setFromVersion(sourceRepo);
-    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setRepositoryVersion(toRepositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
     upgradeDAO.create(upgradeEntity);
 
@@ -236,6 +237,10 @@ public class ComponentVersionCheckActionTest {
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
 
+    // create the new repo version
+    RepositoryVersionEntity toRepositoryVersion = m_helper.getOrCreateRepositoryVersion(targetStack,
+        targetRepo);
+
     RequestEntity requestEntity = new RequestEntity();
     requestEntity.setClusterId(c.getClusterId());
     requestEntity.setRequestId(1L);
@@ -248,8 +253,7 @@ public class ComponentVersionCheckActionTest {
     upgradeEntity.setClusterId(c.getClusterId());
     upgradeEntity.setRequestEntity(requestEntity);
     upgradeEntity.setUpgradePackage("");
-    upgradeEntity.setFromVersion(sourceRepo);
-    upgradeEntity.setToVersion(targetRepo);
+    upgradeEntity.setRepositoryVersion(toRepositoryVersion);
     upgradeEntity.setUpgradeType(UpgradeType.NON_ROLLING);
     upgradeDAO.create(upgradeEntity);
 
@@ -296,7 +300,6 @@ public class ComponentVersionCheckActionTest {
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -365,9 +368,6 @@ public class ComponentVersionCheckActionTest {
     // automatically before CURRENT
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -435,9 +435,6 @@ public class ComponentVersionCheckActionTest {
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
-    commandParams.put(FinalizeUpgradeAction.SUPPORTED_SERVICES_KEY, "ZOOKEEPER");
-    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, "HDP-2.1.1");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);

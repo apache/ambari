@@ -52,6 +52,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -225,7 +226,7 @@ public class ComponentVersionAlertRunnableTest extends EasyMockSupport {
   @Test
   public void testUpgradeInProgress() throws Exception {
     UpgradeEntity upgrade = createNiceMock(UpgradeEntity.class);
-    expect(upgrade.getToVersion()).andReturn("VERSION").once();
+    expect(upgrade.getDirection()).andReturn(Direction.UPGRADE).atLeastOnce();
     expect(m_cluster.getUpgradeInProgress()).andReturn(upgrade).once();
 
     replayAll();

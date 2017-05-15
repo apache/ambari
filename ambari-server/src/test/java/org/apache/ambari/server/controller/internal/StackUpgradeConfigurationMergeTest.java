@@ -156,6 +156,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     UpgradePack upgradePack = createNiceMock(UpgradePack.class);
     StackEntity targetStack = createNiceMock(StackEntity.class);
+    StackId targetStackId = createNiceMock(StackId.class);
 
     String version = "2.5.0.0-1234";
 
@@ -172,9 +173,12 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     EasyMock.expect(targetStack.getStackName()).andReturn("HDP").anyTimes();
     EasyMock.expect(targetStack.getStackVersion()).andReturn("2.5").anyTimes();
+    EasyMock.expect(targetStackId.getStackName()).andReturn("HDP").atLeastOnce();
+    EasyMock.expect(targetStackId.getStackVersion()).andReturn("2.5").atLeastOnce();
 
-    EasyMock.expect(repositoryVersionEntity.getStack()).andReturn(targetStack);
-    EasyMock.expect(repositoryVersionEntity.getVersion()).andReturn(version);
+    EasyMock.expect(repositoryVersionEntity.getStackId()).andReturn(targetStackId).atLeastOnce();
+    EasyMock.expect(repositoryVersionEntity.getStack()).andReturn(targetStack).atLeastOnce();
+    EasyMock.expect(repositoryVersionEntity.getVersion()).andReturn(version).atLeastOnce();
     EasyMock.expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", version)).andReturn(
         repositoryVersionEntity);
 
@@ -244,9 +248,8 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
     EasyMock.expect(upgradeContext.getUpgradePack()).andReturn(upgradePack).anyTimes();
-    EasyMock.expect(upgradeContext.getTargetRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
-    EasyMock.expect(upgradeContext.getTargetStackId()).andReturn(new StackId("HDP-2.5")).anyTimes();
-    EasyMock.expect(upgradeContext.getVersion()).andReturn(version).anyTimes();
+    EasyMock.expect(upgradeContext.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
+    EasyMock.expect(upgradeContext.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repositoryVersionEntity).anyTimes();
     replayAll();
 
     UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(amc);

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -39,6 +40,8 @@ import javax.persistence.TableGenerator;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.hadoop.metrics2.sink.relocated.google.common.base.Objects;
 
 /**
  * Models the data representation of an upgrade
@@ -60,7 +63,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
   @NamedQuery(name = "UpgradeEntity.findUpgrade",
       query = "SELECT u FROM UpgradeEntity u WHERE u.upgradeId = :upgradeId"),
   @NamedQuery(name = "UpgradeEntity.findUpgradeByRequestId",
-      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),  
+      query = "SELECT u FROM UpgradeEntity u WHERE u.requestId = :requestId"),
   @NamedQuery(name = "UpgradeEntity.findLatestForClusterInDirection",
       query = "SELECT u FROM UpgradeEntity u JOIN RequestEntity r ON u.requestId = r.requestId WHERE u.clusterId = :clusterId AND u.direction = :direction ORDER BY r.startTime DESC, u.upgradeId DESC"),
   @NamedQuery(name = "UpgradeEntity.findLatestForCluster",
@@ -91,12 +94,6 @@ public class UpgradeEntity {
   @JoinColumn(name = "request_id", nullable = false, insertable = true, updatable = false)
   private RequestEntity requestEntity = null;
 
-  @Column(name="from_version", nullable = false)
-  private String fromVersion = null;
-
-  @Column(name="to_version", nullable = false)
-  private String toVersion = null;
-
   @Column(name="direction", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private Direction direction = Direction.UPGRADE;
@@ -107,6 +104,9 @@ public class UpgradeEntity {
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
+
+  @JoinColumn(name = "repo_version_id", referencedColumnName = "repo_version_id", nullable = false)
+  private RepositoryVersionEntity repositoryVersion;
 
   @Column(name = "skip_failures", nullable = false)
   private Integer skipFailures = 0;
@@ -125,6 +125,14 @@ public class UpgradeEntity {
 
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
   private List<UpgradeGroupEntity> upgradeGroupEntities;
+
+  /**
+   * Uni-directional relationship between an upgrade an all of the components in
+   * that upgrade.
+   */
+  @OneToMany(orphanRemoval=true, cascade = { CascadeType.ALL })
+  @JoinColumn(name = "upgrade_id")
+  private List<UpgradeHistoryEntity> upgradeHistory;
 
   /**
    * @return the id
@@ -181,34 +189,6 @@ public class UpgradeEntity {
   public void setRequestEntity(RequestEntity requestEntity) {
     this.requestEntity = requestEntity;
     requestId = requestEntity.getRequestId();
-  }
-
-  /**
-   * @return the "from" version
-   */
-  public String getFromVersion() {
-    return fromVersion;
-  }
-
-  /**
-   * @param version the "from" version
-   */
-  public void setFromVersion(String version) {
-    fromVersion = version;
-  }
-
-  /**
-   * @return the "to" version
-   */
-  public String getToVersion() {
-    return toVersion;
-  }
-
-  /**
-   * @param version the "to" version
-   */
-  public void setToVersion(String version) {
-    toVersion = version;
   }
 
   /**
@@ -333,60 +313,95 @@ public class UpgradeEntity {
     this.suspended = suspended ? (short) 1 : (short) 0;
   }
 
+  /**
+   * Adds a historical entry for a service component in this upgrade.
+   *
+   * @param historicalEntry
+   *          the entry to add.
+   */
+  public void addHistory(UpgradeHistoryEntity historicalEntry) {
+    if (null == upgradeHistory) {
+      upgradeHistory = new ArrayList<>();
+    }
+
+    upgradeHistory.add(historicalEntry);
+  }
+
+  /**
+   * Gets the history of this component's upgrades and downgrades.
+   *
+   * @return the component history, or {@code null} if none.
+   */
+  public List<UpgradeHistoryEntity> getHistory() {
+    return upgradeHistory;
+  }
+
+  /**
+   * Upgrades will always have a single version being upgraded to and downgrades
+   * will have a single version being downgraded from. This repository
+   * represents that version.
+   * <p/>
+   * When the direction is {@link Direction#UPGRADE}, this represents the target
+   * repository. <br/>
+   * When the direction is {@link Direction#DOWNGRADE}, this represents the
+   * repository being downgraded from.
+   *
+   * @return the repository version being upgraded to or downgraded from (never
+   *         {@code null}).
+   */
+  public RepositoryVersionEntity getRepositoryVersion() {
+    return repositoryVersion;
+  }
+
+  /**
+   * Sets the repository version for this upgrade. This value will change
+   * depending on the direction of the upgrade.
+   * <p/>
+   * When the direction is {@link Direction#UPGRADE}, this represents the target
+   * repository. <br/>
+   * When the direction is {@link Direction#DOWNGRADE}, this represents the
+   * repository being downgraded from.
+   *
+   * @param repositoryVersion
+   *          the repository version being upgraded to or downgraded from (not
+   *          {@code null}).
+   */
+  public void setRepositoryVersion(RepositoryVersionEntity repositoryVersion) {
+    this.repositoryVersion = repositoryVersion;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
     UpgradeEntity that = (UpgradeEntity) o;
-
-    if (upgradeId != null ? !upgradeId.equals(that.upgradeId) : that.upgradeId != null) {
-      return false;
-    }
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
-      return false;
-    }
-    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) {
-      return false;
-    }
-    if (fromVersion != null ? !fromVersion.equals(that.fromVersion) : that.fromVersion != null) {
-      return false;
-    }
-    if (toVersion != null ? !toVersion.equals(that.toVersion) : that.toVersion != null) {
-      return false;
-    }
-    if (direction != null ? !direction.equals(that.direction) : that.direction != null) {
-      return false;
-    }
-    if (suspended != null ? !suspended.equals(that.suspended) : that.suspended != null) {
-      return false;
-    }
-    if (upgradeType != null ? !upgradeType.equals(that.upgradeType) : that.upgradeType != null) {
-      return false;
-    }
-    if (upgradePackage != null ? !upgradePackage.equals(that.upgradePackage) : that.upgradePackage != null) {
-      return false;
-    }
-
-    return true;
+    return new EqualsBuilder()
+        .append(upgradeId, that.upgradeId)
+        .append(clusterId, that.clusterId)
+        .append(requestId, that.requestId)
+        .append(direction, that.direction)
+        .append(suspended, that.suspended)
+        .append(upgradeType, that.upgradeType)
+        .append(upgradePackage, that.upgradePackage)
+        .isEquals();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    int result = upgradeId != null ? upgradeId.hashCode() : 0;
-    result = 31 * result + (clusterId != null ? clusterId.hashCode() : 0);
-    result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
-    result = 31 * result + (fromVersion != null ? fromVersion.hashCode() : 0);
-    result = 31 * result + (toVersion != null ? toVersion.hashCode() : 0);
-    result = 31 * result + (direction != null ? direction.hashCode() : 0);
-    result = 31 * result + (suspended != null ? suspended.hashCode() : 0);
-    result = 31 * result + (upgradeType != null ? upgradeType.hashCode() : 0);
-    result = 31 * result + (upgradePackage != null ? upgradePackage.hashCode() : 0);
-    return result;
+    return Objects.hashCode(upgradeId, clusterId, requestId, direction, suspended, upgradeType,
+        upgradePackage);
   }
 
 }

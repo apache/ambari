@@ -18,6 +18,7 @@
 package org.apache.ambari.server.checks;
 
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -49,6 +50,8 @@ public class PreviousUpgradeCompletedTest {
   private PrereqCheckRequest checkRequest = new PrereqCheckRequest(clusterName);
   private PreviousUpgradeCompleted puc = new PreviousUpgradeCompleted();
 
+  private RepositoryVersionEntity toRepsitoryVersion;
+
   /**
    *
    */
@@ -75,6 +78,8 @@ public class PreviousUpgradeCompletedTest {
       }
     };
 
+    toRepsitoryVersion = Mockito.mock(RepositoryVersionEntity.class);
+    Mockito.when(toRepsitoryVersion.getVersion()).thenReturn(destRepositoryVersion);
   }
 
   @Test
@@ -89,8 +94,7 @@ public class PreviousUpgradeCompletedTest {
     UpgradeEntity upgradeInProgress = Mockito.mock(UpgradeEntity.class);
     Mockito.when(upgradeInProgress.getDirection()).thenReturn(Direction.UPGRADE);
     Mockito.when(upgradeInProgress.getClusterId()).thenReturn(1L);
-    Mockito.when(upgradeInProgress.getFromVersion()).thenReturn(sourceRepositoryVersion);
-    Mockito.when(upgradeInProgress.getToVersion()).thenReturn(destRepositoryVersion);
+    Mockito.when(upgradeInProgress.getRepositoryVersion()).thenReturn(toRepsitoryVersion);
 
     Mockito.when(cluster.getUpgradeInProgress()).thenReturn(upgradeInProgress);
     check = new PrerequisiteCheck(null, null);

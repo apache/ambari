@@ -480,19 +480,6 @@ public class AmbariCustomCommandExecutionHelper {
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
-      RepositoryVersionEntity repoVersion = null;
-      if (null != component) {
-        repoVersion = component.getDesiredRepositoryVersion();
-      }
-
-      if (null == repoVersion && null != clusterService) {
-        repoVersion = clusterService.getDesiredRepositoryVersion();
-      }
-
-      if (repoVersion != null) {
-       commandParams.put(KeyNames.VERSION, repoVersion.getVersion());
-      }
-
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
         roleParams = new TreeMap<>();
@@ -1396,18 +1383,23 @@ public class AmbariCustomCommandExecutionHelper {
    * @return a wrapper of the imporant JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
-      Cluster cluster, StackId stackId) throws AmbariException {
+      Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
 
     Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
     Map<String, String> hostParamsStage = new HashMap<>();
     Map<String, Set<String>> clusterHostInfo;
     String clusterHostInfoJson = "{}";
 
+    StackId stackId = null;
+    if (null != repositoryVersion) {
+      stackId = repositoryVersion.getStackId();
+    }
+
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
 
       // Important, because this runs during Stack Uprade, it needs to use the effective Stack Id.
-      hostParamsStage = createDefaultHostParams(cluster, null);
+      hostParamsStage = createDefaultHostParams(cluster, repositoryVersion);
 
       String componentName = null;
       String serviceName = null;
@@ -1416,7 +1408,7 @@ public class AmbariCustomCommandExecutionHelper {
         serviceName = actionExecContext.getOperationLevel().getServiceName();
       }
 
-      if (serviceName != null && componentName != null) {
+      if (serviceName != null && componentName != null && null != stackId) {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),
                 serviceName, componentName);
@@ -1428,17 +1420,22 @@ public class AmbariCustomCommandExecutionHelper {
         String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
         hostParamsStage.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
       }
+
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
       //Propogate HCFS service type info to command params
-      Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-      for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-        if (serviceInfoInstance.getServiceType() != null) {
-          LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
-              serviceInfoInstance.getName());
+      if (null != stackId) {
+        Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(),
+            stackId.getStackVersion());
 
-          commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
-          break;
+        for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+          if (serviceInfoInstance.getServiceType() != null) {
+            LOG.debug("Adding {} to command parameters for {}",
+                serviceInfoInstance.getServiceType(), serviceInfoInstance.getName());
+
+            commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
+            break;
+          }
         }
       }
     }
@@ -1481,10 +1478,6 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    if (null != repositoryVersion) {
-      hostLevelParams.put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
-    }
 
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());

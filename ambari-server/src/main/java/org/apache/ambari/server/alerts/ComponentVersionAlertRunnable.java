@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -63,7 +64,7 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
   /**
    * The message for the alert when there is an upgrade in progress.
    */
-  private static final String UPGRADE_IN_PROGRESS_MSG = "This alert will be suspended while the upgrade to {0} is in progress.";
+  private static final String UPGRADE_IN_PROGRESS_MSG = "This alert will be suspended while the {0} is in progress.";
 
   /**
    * The unknown component error message.
@@ -95,7 +96,8 @@ public class ComponentVersionAlertRunnable extends AlertRunnable {
     // if there is an upgrade in progress, then skip running this alert
     UpgradeEntity upgrade = cluster.getUpgradeInProgress();
     if (null != upgrade) {
-      String message = MessageFormat.format(UPGRADE_IN_PROGRESS_MSG, upgrade.getToVersion());
+      Direction direction = upgrade.getDirection();
+      String message = MessageFormat.format(UPGRADE_IN_PROGRESS_MSG, direction.getText(false));
 
       return Collections.singletonList(
           buildAlert(cluster, myDefinition, AlertState.SKIPPED, message));

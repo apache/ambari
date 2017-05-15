@@ -31,9 +31,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,12 +170,17 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     // May be null, and either upgrade or downgrade
     UpgradeEntity currentUpgrade = cluster.getUpgradeInProgress();
     if (currentUpgrade == null) {
-      LOG.debug("There is no active stack upgrade in progress. Skip retrying failed tasks.");
+      LOG.debug("There is no active upgrade in progress. Skip retrying failed tasks.");
       return null;
     }
-    LOG.debug("Found an active stack upgrade with id: {}, direction: {}, type: {}, from version: {}, to version: {}",
-        currentUpgrade.getId(), currentUpgrade.getDirection(), currentUpgrade.getUpgradeType(),
-        currentUpgrade.getFromVersion(), currentUpgrade.getToVersion());
+
+    Direction direction = currentUpgrade.getDirection();
+    RepositoryVersionEntity repositoryVersion = currentUpgrade.getRepositoryVersion();
+
+    LOG.debug(
+        "Found an active upgrade with id: {}, direction: {}, {} {}", currentUpgrade.getId(),
+        direction, currentUpgrade.getUpgradeType(), direction.getPreposition(),
+        repositoryVersion.getVersion());
 
     return currentUpgrade.getRequestId();
   }

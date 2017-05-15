@@ -266,7 +266,7 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
    *
    * @return resource provider for the specified type
    */
-  ResourceProvider getResourceProvider(Resource.Type type) {
+  public static ResourceProvider getResourceProvider(Resource.Type type) {
     return ((ClusterControllerImpl) ClusterControllerHelper.getClusterController()).
         ensureResourceProvider(type);
   }

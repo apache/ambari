@@ -830,18 +830,18 @@ CREATE TABLE upgrade (
   upgrade_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
+  repo_version_id BIGINT NOT NULL,
   skip_failures TINYINT(1) NOT NULL DEFAULT 0,
   skip_sc_failures TINYINT(1) NOT NULL DEFAULT 0,
   downgrade_allowed TINYINT(1) NOT NULL DEFAULT 1,
   suspended TINYINT(1) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id),
+  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
 );
 
 CREATE TABLE upgrade_group (
@@ -865,17 +865,18 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
-CREATE TABLE servicecomponent_history(
+CREATE TABLE upgrade_history(
   id BIGINT NOT NULL,
-  component_id BIGINT NOT NULL,
   upgrade_id BIGINT NOT NULL,
-  from_stack_id BIGINT NOT NULL,
-  to_stack_id BIGINT NOT NULL,
-  CONSTRAINT PK_sc_history PRIMARY KEY (id),
-  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  from_repo_version_id BIGINT NOT NULL,
+  target_repo_version_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name)
 );
 
 CREATE TABLE servicecomponent_version(

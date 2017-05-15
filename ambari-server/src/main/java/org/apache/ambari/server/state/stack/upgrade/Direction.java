@@ -79,4 +79,13 @@ public enum Direction {
   }
 
 
+  /**
+   * Gets the preposition based on the direction. Since the repository is
+   * singular, it will either be "to repo" or "from repo".
+   *
+   * @return "to" or "from"
+   */
+  public String getPreposition() {
+    return (this == UPGRADE) ? "to" : "from";
+  }
 }

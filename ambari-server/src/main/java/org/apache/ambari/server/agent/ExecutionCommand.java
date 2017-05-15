@@ -158,7 +158,7 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   public Map<String, Map<String, String>> getConfigurationCredentials() {
-    return this.configurationCredentials;
+    return configurationCredentials;
   }
 
   public String getCommandId() {
@@ -462,7 +462,6 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
-    String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
@@ -504,8 +503,24 @@ public class ExecutionCommand extends AgentCommand {
     String REPO_VERSION_ID = "repository_version_id";
 
     /**
-     * Put on hostLevelParams to indicate the version that the component should be.
+     * The version of the component to send down with the command. Normally,
+     * this is simply the repository version of the component. However, during
+     * ugprades, this value may change depending on the progress of the upgrade
+     * and the type/direction.
      */
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "Change this to reflect the component version")
+    String VERSION = "version";
+
+    /**
+     * Put on hostLevelParams to indicate the version that the component should
+     * be.
+     */
+    @Deprecated
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "This should be replaced by a map of all service component versions")
     String CURRENT_VERSION = "current_version";
   }
 }

@@ -286,8 +286,7 @@ public class RetryUpgradeActionServiceTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+    upgrade.setRepositoryVersion(repoVersionEntity);
     upgradeDAO.create(upgrade);
 
     cluster.setUpgradeEntity(upgrade);

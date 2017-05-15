@@ -19,9 +19,9 @@ package org.apache.ambari.server.state;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -263,7 +263,6 @@ public class UpgradeHelper {
   public List<UpgradeGroupHolder> createSequence(UpgradePack upgradePack,
       UpgradeContext context) throws AmbariException {
 
-    context.setAmbariMetaInfo(m_ambariMetaInfo.get());
     Cluster cluster = context.getCluster();
     MasterHostResolver mhr = context.getResolver();
 
@@ -541,7 +540,6 @@ public class UpgradeHelper {
   private String tokenReplace(UpgradeContext ctx, String source, String service, String component) {
     Cluster cluster = ctx.getCluster();
     MasterHostResolver mhr = ctx.getResolver();
-    String version = ctx.getVersion();
 
     String result = source;
 
@@ -578,7 +576,7 @@ public class UpgradeHelper {
           break;
         }
         case VERSION:
-          value = version;
+          value = ctx.getRepositoryVersion().getVersion();
           break;
         case DIRECTION_VERB:
         case DIRECTION_VERB_PROPER:
@@ -732,29 +730,17 @@ public class UpgradeHelper {
   @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
   public void putComponentsToUpgradingState(UpgradeContext upgradeContext) throws AmbariException {
 
-    // determine which services/components will participate in the upgrade
     Cluster cluster = upgradeContext.getCluster();
-    Set<Service> services = new HashSet<>(cluster.getServices().values());
-    Map<Service, Set<ServiceComponent>> targetServices = new HashMap<>();
-    for (Service service : services) {
-      if (upgradeContext.isServiceSupported(service.getName())) {
-        Set<ServiceComponent> serviceComponents = new HashSet<>(
-            service.getServiceComponents().values());
+    Set<String> services = upgradeContext.getSupportedServices();
 
-        targetServices.put(service, serviceComponents);
-      }
-    }
-
-    RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion();
-    StackId targetStack = targetRepositoryVersion.getStackId();
-
-    for (Map.Entry<Service, Set<ServiceComponent>> entry: targetServices.entrySet()) {
-      // set service desired repo
-      Service service = entry.getKey();
+    for (String serviceName : services) {
+      Service service = cluster.getService(serviceName);
+      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
+      StackId targetStack = targetRepositoryVersion.getStackId();
       service.setDesiredRepositoryVersion(targetRepositoryVersion);
 
-      for (ServiceComponent serviceComponent: entry.getValue()) {
-
+      Collection<ServiceComponent> components = service.getServiceComponents().values();
+      for (ServiceComponent serviceComponent : components) {
         boolean versionAdvertised = false;
         try {
           ComponentInfo ci = m_ambariMetaInfo.get().getComponent(targetStack.getStackName(),
@@ -773,12 +759,13 @@ public class UpgradeHelper {
           upgradeStateToSet = UpgradeState.NONE;
         }
 
-        for (ServiceComponentHost serviceComponentHost: serviceComponent.getServiceComponentHosts().values()) {
+        for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
           if (serviceComponentHost.getUpgradeState() != upgradeStateToSet) {
             serviceComponentHost.setUpgradeState(upgradeStateToSet);
           }
 
-          // !!! if we aren't version advertised, but there IS a version, set it.
+          // !!! if we aren't version advertised, but there IS a version, set
+          // it.
           if (!versionAdvertised && !StringUtils.equals(StackVersionListener.UNKNOWN_VERSION,
               serviceComponentHost.getVersion())) {
             serviceComponentHost.setVersion(StackVersionListener.UNKNOWN_VERSION);

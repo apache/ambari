@@ -807,10 +807,9 @@ CREATE TABLE upgrade (
   upgrade_id NUMERIC(19) NOT NULL,
   cluster_id NUMERIC(19) NOT NULL,
   request_id NUMERIC(19) NOT NULL,
-  from_version VARCHAR(255) DEFAULT '' NOT NULL,
-  to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
+  repo_version_id NUMERIC(19) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
   skip_sc_failures BIT NOT NULL DEFAULT 0,
@@ -818,7 +817,8 @@ CREATE TABLE upgrade (
   suspended BIT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_upgrade PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
-  FOREIGN KEY (request_id) REFERENCES request(request_id)
+  FOREIGN KEY (request_id) REFERENCES request(request_id),
+  FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id)
 );
 
 CREATE TABLE upgrade_group (
@@ -842,17 +842,18 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
-CREATE TABLE servicecomponent_history(
-  id NUMERIC(19) NOT NULL,
-  component_id NUMERIC(19) NOT NULL,
-  upgrade_id NUMERIC(19) NOT NULL,
-  from_stack_id NUMERIC(19) NOT NULL,
-  to_stack_id NUMERIC(19) NOT NULL,
-  CONSTRAINT PK_sc_history PRIMARY KEY (id),
-  CONSTRAINT FK_sc_history_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_sc_history_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
-  CONSTRAINT FK_sc_history_from_stack_id FOREIGN KEY (from_stack_id) REFERENCES stack (stack_id),
-  CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
+CREATE TABLE upgrade_history(
+  id BIGINT NOT NULL,
+  upgrade_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  component_name VARCHAR(255) NOT NULL,
+  from_repo_version_id BIGINT NOT NULL,
+  target_repo_version_id BIGINT NOT NULL,
+  CONSTRAINT PK_upgrade_hist PRIMARY KEY (id),
+  CONSTRAINT FK_upgrade_hist_upgrade_id FOREIGN KEY (upgrade_id) REFERENCES upgrade (upgrade_id),
+  CONSTRAINT FK_upgrade_hist_from_repo FOREIGN KEY (from_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT FK_upgrade_hist_target_repo FOREIGN KEY (target_repo_version_id) REFERENCES repo_version (repo_version_id),
+  CONSTRAINT UQ_upgrade_hist UNIQUE (upgrade_id, component_name, service_name)
 );
 
 CREATE TABLE servicecomponent_version(
@@ -1079,7 +1080,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_ho
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('setting_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('hostcomponentstate_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponentdesiredstate_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_history_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_history_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_setting_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('ambari_operation_history_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_id_seq', 0);

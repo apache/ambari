@@ -33,6 +33,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -173,9 +174,14 @@ public class HostOrderGrouping extends Grouping {
           // either doesn't exist or the downgrade is to the current target version.
           // hostsType better not be null either, but check anyway
           if (null != hostsType && !hostsType.hosts.contains(hostName)) {
+            RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
+                sch.getServiceName());
+
             LOG.warn("Host {} could not be orchestrated. Either there are no components for {}/{} " +
                 "or the target version {} is already current.",
-                hostName, sch.getServiceName(), sch.getServiceComponentName(), upgradeContext.getVersion());
+                hostName, sch.getServiceName(), sch.getServiceComponentName(),
+                targetRepositoryVersion.getVersion());
+
             continue;
           }
 
@@ -225,7 +231,7 @@ public class HostOrderGrouping extends Grouping {
           // create task wrappers
           List<TaskWrapper> taskWrappers = new ArrayList<>();
           for (HostRoleCommand command : stageCommandsForHost) {
-            StackId stackId = upgradeContext.getEffectiveStackId();
+            StackId stackId = upgradeContext.getRepositoryVersion().getStackId();
             String componentName = command.getRole().name();
 
             String serviceName = null;
@@ -328,7 +334,10 @@ public class HostOrderGrouping extends Grouping {
      * @return                {@code true} if the host component advertises its version
      */
     private boolean isVersionAdvertised(UpgradeContext upgradeContext, ServiceComponentHost sch) {
-      StackId targetStack = upgradeContext.getTargetStackId();
+      RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
+          sch.getServiceName());
+
+      StackId targetStack = targetRepositoryVersion.getStackId();
 
       try {
         ComponentInfo component = upgradeContext.getAmbariMetaInfo().getComponent(

@@ -3988,12 +3988,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         actionManager,
         actionRequest);
 
-    StackId stackId = null;
-    if (null != cluster) {
-      stackId = cluster.getDesiredStackVersion();
+    RepositoryVersionEntity desiredRepositoryVersion = null;
+
+    RequestOperationLevel operationLevel = actionExecContext.getOperationLevel();
+    if (null != operationLevel) {
+      Service service = cluster.getService(operationLevel.getServiceName());
+      if (null != service) {
+        desiredRepositoryVersion = service.getDesiredRepositoryVersion();
+      }
     }
 
-    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster, stackId);
+    ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext,
+        cluster, desiredRepositoryVersion);
+
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
     Map<String, String> commandParamsStage = gson.fromJson(commandParamsForStage, new TypeToken<Map<String, String>>()

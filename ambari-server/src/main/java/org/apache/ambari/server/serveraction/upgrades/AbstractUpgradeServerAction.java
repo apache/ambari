@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import java.util.Collections;
-import java.util.Set;
-
-import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -28,11 +24,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
 import org.apache.ambari.server.state.UpgradeHelper;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
-import org.apache.commons.lang.StringUtils;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -42,24 +34,7 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
   public static final String CLUSTER_NAME_KEY = UpgradeContext.COMMAND_PARAM_CLUSTER_NAME;
   public static final String UPGRADE_DIRECTION_KEY = UpgradeContext.COMMAND_PARAM_DIRECTION;
-  public static final String VERSION_KEY = UpgradeContext.COMMAND_PARAM_VERSION;
   protected static final String REQUEST_ID = UpgradeContext.COMMAND_PARAM_REQUEST_ID;
-
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   */
-  protected static final String ORIGINAL_STACK_KEY = UpgradeContext.COMMAND_PARAM_ORIGINAL_STACK;
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  protected static final String TARGET_STACK_KEY = UpgradeContext.COMMAND_PARAM_TARGET_STACK;
-
-  protected static final String SUPPORTED_SERVICES_KEY = UpgradeResourceProvider.COMMAND_PARAM_SUPPORTED_SERVICES;
 
   @Inject
   protected Clusters m_clusters;
@@ -83,22 +58,6 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
   protected UpgradeContext getUpgradeContext(Cluster cluster) {
     UpgradeEntity upgrade = cluster.getUpgradeInProgress();
     UpgradeContext upgradeContext = m_upgradeContextFactory.create(cluster, upgrade);
-
-    final UpgradeScope scope;
-    final Set<String> supportedServices;
-    String services = getCommandParameterValue(SUPPORTED_SERVICES_KEY);
-    if (StringUtils.isBlank(services)) {
-      scope = UpgradeScope.COMPLETE;
-      supportedServices = Collections.emptySet();
-
-    } else {
-      scope = UpgradeScope.PARTIAL;
-      supportedServices = Sets.newHashSet(StringUtils.split(services, ','));
-    }
-
-    upgradeContext.setSupportedServices(supportedServices);
-    upgradeContext.setScope(scope);
-
     return upgradeContext;
   }
 }

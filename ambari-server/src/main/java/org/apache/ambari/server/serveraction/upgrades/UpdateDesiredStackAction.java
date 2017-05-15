@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
@@ -30,21 +28,18 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -66,8 +61,6 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredStackAction.class);
 
-  public static final String COMMAND_PARAM_VERSION = VERSION;
-  public static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
   public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
   public static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
 
@@ -91,9 +84,6 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
   @Inject
   private Clusters clusters;
 
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
-
   /**
    * The Ambari configuration.
    */
@@ -113,20 +103,9 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
-    Map<String, String> commandParams = getExecutionCommand().getCommandParams();
     String clusterName = getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    UpgradeEntity upgrade = cluster.getUpgradeInProgress();
-
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
-
-    StackId originalStackId = new StackId(commandParams.get(COMMAND_PARAM_ORIGINAL_STACK));
-    StackId targetStackId = new StackId(commandParams.get(COMMAND_PARAM_TARGET_STACK));
-
-    String upgradePackName = upgrade.getUpgradePackage();
-
-    UpgradePack upgradePack = ambariMetaInfo.getUpgradePacks(originalStackId.getStackName(),
-        originalStackId.getStackVersion()).get(upgradePackName);
 
     Map<String, String> roleParams = getExecutionCommand().getRoleParams();
 
@@ -142,8 +121,7 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
     // invalidate any cached effective ID
     cluster.invalidateUpgradeEffectiveVersion();
 
-    return updateDesiredRepositoryVersion(cluster, originalStackId, targetStackId, upgradeContext,
-        upgradePack, userName);
+    return updateDesiredRepositoryVersion(cluster, upgradeContext, userName);
   }
 
   /**
@@ -152,49 +130,62 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
    *
    * @param cluster
    *          the cluster
-   * @param originalStackId
-   *          the stack Id of the cluster before the upgrade.
-   * @param targetStackId
-   *          the stack Id that was desired for this upgrade.
-   * @param direction
-   *          direction, either upgrade or downgrade
-   * @param upgradePack
-   *          Upgrade Pack to use
+   * @param upgradeContext
+   *          the upgrade context
    * @param userName
    *          username performing the action
    * @return the command report to return
    */
   @Transactional
   CommandReport updateDesiredRepositoryVersion(
-      Cluster cluster, StackId originalStackId, StackId targetStackId,
-      UpgradeContext upgradeContext, UpgradePack upgradePack, String userName)
+      Cluster cluster, UpgradeContext upgradeContext, String userName)
       throws AmbariException, InterruptedException {
 
     StringBuilder out = new StringBuilder();
     StringBuilder err = new StringBuilder();
 
     try {
+      // the desired repository message to put in the command report - this will
+      // change based on the type of upgrade and the services participating
+      if (upgradeContext.getDirection() == Direction.UPGRADE) {
+        final String message;
+        RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getRepositoryVersion();
+
+        if (upgradeContext.getRepositoryType() == RepositoryType.STANDARD) {
+          message = MessageFormat.format(
+              "Updating the desired repository version to {0} for all cluster services.",
+              targetRepositoryVersion.getVersion());
+        } else {
+          Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
+          message = MessageFormat.format(
+              "Updating the desired repository version to {0} for the following services: {1}",
+              targetRepositoryVersion.getVersion(), StringUtils.join(servicesInUpgrade, ','));
+        }
+
+        out.append(message).append(System.lineSeparator());
+      }
+
+      if( upgradeContext.getDirection() == Direction.DOWNGRADE ){
+        String message = "Updating the desired repository back their original values for the following services:";
+        out.append(message).append(System.lineSeparator());
+
+        Map<String, RepositoryVersionEntity> targetVersionsByService = upgradeContext.getTargetVersions();
+        for (String serviceName : targetVersionsByService.keySet()) {
+          RepositoryVersionEntity repositoryVersion = targetVersionsByService.get(serviceName);
+
+          message = String.format("  %s to %s", serviceName, repositoryVersion.getVersion());
+          out.append(message).append(System.lineSeparator());
+        }
+      }
+
       UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(AmbariServer.getController());
       upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
       m_upgradeHelper.putComponentsToUpgradingState(upgradeContext);
 
-      final String message;
-      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
-      if (servicesInUpgrade.isEmpty()) {
-        message = MessageFormat.format(
-            "Updating the desired repository version to {0} for all cluster services.",
-            upgradeContext.getVersion());
-      } else {
-        message = MessageFormat.format(
-            "Updating the desired repository version to {0} for the following services: {1}",
-            upgradeContext.getVersion(), StringUtils.join(servicesInUpgrade, ','));
-      }
-
-      out.append(message).append(System.lineSeparator());
-
-      // a downgrade must force host versions back to INSTALLED, but only if it's required
+      // a downgrade must force host versions back to INSTALLED for the
+      // repository which failed to be upgraded.
       if (upgradeContext.getDirection() == Direction.DOWNGRADE) {
-        RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getDowngradeFromRepositoryVersion();
+        RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getRepositoryVersion();
         out.append(String.format("Setting host versions back to %s for repository version %s",
             RepositoryVersionState.INSTALLED, downgradeFromRepositoryVersion.getVersion()));
 

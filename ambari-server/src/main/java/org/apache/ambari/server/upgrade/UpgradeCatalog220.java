@@ -312,9 +312,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
       // apply changes
       upgradeDAO.merge(upgrade);
 
-      LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
-        upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
-        upgrade.getToVersion()));
+      LOG.info(String.format("Updated upgrade id %s", upgrade.getId()));
     }
 
     // make the columns nullable now that they have defaults

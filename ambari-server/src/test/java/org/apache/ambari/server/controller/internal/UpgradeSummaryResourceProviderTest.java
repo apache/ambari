@@ -38,7 +38,6 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.ServiceComponentHostEventWrapper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
@@ -72,12 +71,10 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -163,7 +160,7 @@ public class UpgradeSummaryResourceProviderTest {
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster("c1");
 
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, "2.2.0.1-1234");
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -196,8 +193,6 @@ public class UpgradeSummaryResourceProviderTest {
   @Transactional
   void createCommands(Cluster cluster, Long upgradeRequestId, Long stageId) {
     HostEntity h1 = hostDAO.findByName("h1");
-    ServiceComponentHostEvent event = new ServiceComponentHostOpInProgressEvent("ZOOKEEPER_SERVER", "h1", 1L);
-    ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(event);
 
     RequestEntity requestEntity = requestDAO.findByPK(upgradeRequestId);
 
@@ -277,8 +272,11 @@ public class UpgradeSummaryResourceProviderTest {
     upgrade.setUpgradePackage("some-name");
     upgrade.setUpgradeType(UpgradeType.ROLLING);
     upgrade.setDirection(Direction.UPGRADE);
-    upgrade.setFromVersion("2.2.0.0");
-    upgrade.setToVersion("2.2.0.1");
+
+    RepositoryVersionEntity repositoryVersion2201 = injector.getInstance(
+        RepositoryVersionDAO.class).findByStackNameAndVersion("HDP", "2.2.0.1-1234");
+
+    upgrade.setRepositoryVersion(repositoryVersion2201);
     upgradeDAO.create(upgrade);
 
     // Resource used to make assertions.

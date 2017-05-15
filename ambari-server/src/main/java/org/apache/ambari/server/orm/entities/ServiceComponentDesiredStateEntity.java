@@ -113,15 +113,6 @@ public class ServiceComponentDesiredStateEntity {
   @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
-  /**
-   * All of the upgrades and downgrades which have occurred for this component.
-   * Can be {@code null} for none.
-   */
-  @OneToMany(
-      mappedBy = "m_serviceComponentDesiredStateEntity",
-      cascade = { CascadeType.ALL })
-  private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
-
   @OneToMany(mappedBy = "m_serviceComponentDesiredStateEntity", cascade = { CascadeType.ALL })
   private Collection<ServiceComponentVersionEntity> serviceComponentVersions;
 
@@ -176,33 +167,6 @@ public class ServiceComponentDesiredStateEntity {
   public String getDesiredVersion() {
     return desiredRepositoryVersion.getVersion();
   }
-
-  /**
-   * Adds a historical entry for the version of this service component. New
-   * entries are automatically created when this entity is merged via a
-   * {@link CascadeType#MERGE}.
-   *
-   * @param historicalEntry
-   *          the entry to add.
-   */
-  public void addHistory(ServiceComponentHistoryEntity historicalEntry) {
-    if (null == serviceComponentHistory) {
-      serviceComponentHistory = new ArrayList<>();
-    }
-
-    serviceComponentHistory.add(historicalEntry);
-    historicalEntry.setServiceComponentDesiredState(this);
-  }
-
-  /**
-   * Gets the history of this component's upgrades and downgrades.
-   *
-   * @return the component history, or {@code null} if none.
-   */
-  public Collection<ServiceComponentHistoryEntity> getHistory() {
-    return serviceComponentHistory;
-  }
-
 
   /**
    * @param versionEntity the version to add

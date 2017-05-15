@@ -76,7 +76,9 @@ import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,8 +100,7 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
-//  private static final StackId HDP_21 = new StackId("HDP-2.1.1");
-//  private static final StackId HDP_22 = new StackId("HDP-2.2.0");
+  private static final StackId STACK_ID_HDP_220 = new StackId("HDP-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
 
@@ -113,6 +114,9 @@ public class UpgradeHelperTest {
   private AmbariManagementController m_managementController;
   private Gson m_gson = new Gson();
   private UpgradeContextFactory m_upgradeContextFactory;
+
+  private RepositoryVersionEntity repositoryVersion2200;
+  private RepositoryVersionEntity repositoryVersion2210;
 
   /**
    * Because test cases need to share config mocks, put common ones in this function.
@@ -157,6 +161,9 @@ public class UpgradeHelperTest {
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
     m_upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
+
+    repositoryVersion2200 = helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, DOWNGRADE_VERSION);
+    repositoryVersion2210 = helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, UPGRADE_VERSION);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -207,10 +214,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -289,11 +293,15 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.PARTIAL);
+    Set<String> services = Collections.singleton("ZOOKEEPER");
+    UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
+    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
+    EasyMock.expect(context.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
+    EasyMock.expect(context.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
+    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion2210).anyTimes();
+    EasyMock.expect(context.getSupportedServices()).andReturn(services).anyTimes();
+    EasyMock.expect(context.getRepositoryType()).andReturn(RepositoryType.PATCH).anyTimes();
+    EasyMock.replay(context);
 
     List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
     assertEquals(8, groupings.size());
@@ -347,12 +355,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-
-    context.setResolver(m_masterHostResolver);
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.COMPLETE);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
+        repositoryVersion2210, RepositoryType.STANDARD, Collections.singleton("ZOOKEEPER"));
 
     List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
     assertEquals(8, groupings.size());
@@ -404,9 +408,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -454,12 +456,14 @@ public class UpgradeHelperTest {
     Host hostInMaintenanceMode = cluster.getHosts().iterator().next();
     hostInMaintenanceMode.setMaintenanceState(cluster.getClusterId(), MaintenanceState.ON);
 
-    // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver masterHostResolver = new MasterHostResolver(null, cluster, "");
+    UpgradeContext context = getMockUpgradeContextNoReplay(cluster, Direction.UPGRADE,
+        UpgradeType.ROLLING, repositoryVersion2210);
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(masterHostResolver);
+    // use a "real" master host resolver here so that we can actually test MM
+    MasterHostResolver masterHostResolver = new MasterHostResolver(null, context);
+
+    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    replay(context);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
     assertEquals(7, groups.size());
@@ -489,9 +493,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -539,9 +541,7 @@ public class UpgradeHelperTest {
     assertEquals(1, schs.size());
     assertEquals(HostState.HEARTBEAT_LOST, schs.get(0).getHostState());
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -577,9 +577,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.DOWNGRADE,
+        UpgradeType.ROLLING, repositoryVersion2200);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -618,9 +617,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -648,11 +645,7 @@ public class UpgradeHelperTest {
     assertNotNull(upgrade);
 
     Cluster cluster = makeCluster();
-
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
-
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
     assertEquals(7, groups.size());
@@ -678,9 +671,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -750,9 +741,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -862,9 +851,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -925,9 +912,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -992,9 +977,7 @@ public class UpgradeHelperTest {
     assertNotNull(upgrade);
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1066,9 +1049,7 @@ public class UpgradeHelperTest {
       numServiceChecksExpected++;
     }
 
-    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(c, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1119,9 +1100,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.DOWNGRADE,
+        UpgradeType.ROLLING, repositoryVersion2200);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1155,9 +1135,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1248,7 +1226,6 @@ public class UpgradeHelperTest {
 
     String repositoryVersionString = "2.1.1-1234";
     StackId stackId = new StackId("HDP-2.1.1");
-    StackId stackId2 = new StackId("HDP-2.2.0");
 
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
@@ -1256,9 +1233,9 @@ public class UpgradeHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         repositoryVersionString);
 
-    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+    helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, "2.2.0");
 
-    helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
+    helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, UPGRADE_VERSION);
 
     for (int i = 0; i < 4; i++) {
       String hostName = "h" + (i+1);
@@ -1420,9 +1397,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1516,9 +1491,8 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
     replay(m_masterHostResolver);
 
-    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.ROLLING,
-        Direction.DOWNGRADE, DOWNGRADE_VERSION, new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(c, Direction.DOWNGRADE, UpgradeType.ROLLING,
+        repositoryVersion2200);
 
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     assertTrue(upgrades.containsKey("upgrade_direction"));
@@ -1556,7 +1530,7 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+    RepositoryVersionEntity repositoryVersion211 = helper.getOrCreateRepositoryVersion(stackId,
         version);
 
     for (int i = 0; i < 2; i++) {
@@ -1574,28 +1548,34 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion211));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
 
     ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
-    sch1.setVersion("2.1.1.0-1234");
+    sch1.setVersion(repositoryVersion211.getVersion());
 
     ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
-    sch2.setVersion("2.1.1.0-1234");
+    sch2.setVersion(repositoryVersion211.getVersion());
 
     List<ServiceComponentHost> schs = c.getServiceComponentHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
     assertEquals(2, schs.size());
-    MasterHostResolver mhr = new MasterHostResolver(null, c, "2.1.1.0-1234");
 
-    HostsType ht = mhr.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
+    UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
+        UpgradeType.HOST_ORDERED, repositoryVersion211);
+
+    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, context);
+    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    replay(context);
+
+    HostsType ht = resolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
     assertEquals(0, ht.hosts.size());
 
     // !!! if one of them is failed, it should be scheduled
     sch2.setUpgradeState(UpgradeState.FAILED);
 
-    ht = mhr.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
+    ht = resolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
 
     assertEquals(1, ht.hosts.size());
     assertEquals("h2", ht.hosts.iterator().next());
@@ -1617,7 +1597,7 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+    RepositoryVersionEntity repositoryVersion211 = helper.getOrCreateRepositoryVersion(stackId,
         version);
 
     for (int i = 0; i < 2; i++) {
@@ -1635,7 +1615,7 @@ public class UpgradeHelperTest {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1655,7 +1635,15 @@ public class UpgradeHelperTest {
     expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn2")).andReturn("H2:50070").anyTimes();
     replay(m_configHelper);
 
-    MasterHostResolver mhr = new MockMasterHostResolver(m_configHelper, c, version);
+    UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
+        UpgradeType.NON_ROLLING, repositoryVersion211);
+
+    // use a "real" master host resolver here so that we can actually test MM
+    MasterHostResolver mhr = new MockMasterHostResolver(m_configHelper, context);
+
+    EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
+    replay(context);
+
 
     HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
     assertNotNull(ht.master);
@@ -1679,8 +1667,7 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
-        version);
+    RepositoryVersionEntity repositoryVersion211 = helper.getOrCreateRepositoryVersion(stackId, version);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1697,7 +1684,7 @@ public class UpgradeHelperTest {
     }
 
     // Add services
-    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "HDFS", repositoryVersion211));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -1717,7 +1704,14 @@ public class UpgradeHelperTest {
     expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn2")).andReturn("H2:50070").anyTimes();
     replay(m_configHelper);
 
-    MasterHostResolver mhr = new BadMasterHostResolver(m_configHelper, c, version);
+    UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
+        UpgradeType.NON_ROLLING, repositoryVersion211);
+
+    // use a "real" master host resolver here so that we can actually test MM
+    MasterHostResolver mhr = new BadMasterHostResolver(m_configHelper, context);
+
+    EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
+    replay(context);
 
     HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
     assertNotNull(ht.master);
@@ -1754,13 +1748,8 @@ public class UpgradeHelperTest {
     assertEquals(upgradeType, upgradePack.getType());
 
     // get an upgrade
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-
-    context.setResolver(m_masterHostResolver);
-
-    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
-    context.setScope(UpgradeScope.COMPLETE);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
+        repositoryVersion2210, RepositoryType.STANDARD, Collections.singleton("ZOOKEEPER"));
 
     List<Grouping> groupings = upgradePack.getGroups(Direction.UPGRADE);
     assertEquals(2, groupings.size());
@@ -1795,10 +1784,10 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
+    RepositoryVersionEntity repoVersion211 = helper.getOrCreateRepositoryVersion(stackId,
         version);
 
-    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1815,7 +1804,7 @@ public class UpgradeHelperTest {
     }
 
     // !!! add storm
-    c.addService(serviceFactory.createNew(c, "STORM", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "STORM", repoVersion211));
 
     Service s = c.getService("STORM");
     ServiceComponent sc = s.addServiceComponent("NIMBUS");
@@ -1853,23 +1842,30 @@ public class UpgradeHelperTest {
 
     };
 
-    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
+    UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
+        UpgradeType.NON_ROLLING, repoVersion220);
 
-    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING,
-        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
-    context.setResolver(resolver);
+    // use a "real" master host resolver here so that we can actually test MM
+    MasterHostResolver masterHostResolver = new MasterHostResolver(m_configHelper, context);
+
+    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    replay(context);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
 
-    sch1.setVersion("2.1.1");
-    sch2.setVersion("2.1.1");
-    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+    sch1.setVersion(repoVersion211.getVersion());
+    sch2.setVersion(repoVersion211.getVersion());
 
-    context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING, Direction.DOWNGRADE,
-        "2.1.1", new HashMap<String, Object>());
-    context.setResolver(resolver);
+    context = getMockUpgradeContextNoReplay(c, Direction.DOWNGRADE, UpgradeType.NON_ROLLING,
+        repoVersion211);
+
+    // use a "real" master host resolver here so that we can actually test MM
+    masterHostResolver = new MasterHostResolver(m_configHelper, context);
+
+    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    replay(context);
 
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
@@ -1895,7 +1891,7 @@ public class UpgradeHelperTest {
     RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId,
         version);
 
-    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
 
     helper.getOrCreateRepositoryVersion(stackId2, UPGRADE_VERSION);
 
@@ -1949,9 +1945,8 @@ public class UpgradeHelperTest {
     UpgradePack upgrade = upgrades.get("upgrade_multi_server_tasks");
     assertNotNull(upgrade);
 
-    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.NON_ROLLING,
-        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(c, Direction.UPGRADE, UpgradeType.NON_ROLLING,
+        repoVersion220);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -2078,9 +2073,9 @@ public class UpgradeHelperTest {
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
 
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, version);
+    RepositoryVersionEntity repoVersion211 = helper.getOrCreateRepositoryVersion(stackId, version);
 
-    helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(stackId2, "2.2.0");
 
     // create 2 hosts
     for (int i = 0; i < 2; i++) {
@@ -2099,8 +2094,8 @@ public class UpgradeHelperTest {
 
     // add ZK Server to both hosts, and then Nimbus to only 1 - this will test
     // how the HOU breaks out dependencies into stages
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion));
-    c.addService(serviceFactory.createNew(c, "HBASE", repositoryVersion));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repoVersion211));
+    c.addService(serviceFactory.createNew(c, "HBASE", repoVersion211));
     Service zookeeper = c.getService("ZOOKEEPER");
     Service hbase = c.getService("HBASE");
     ServiceComponent zookeeperServer = zookeeper.addServiceComponent("ZOOKEEPER_SERVER");
@@ -2131,12 +2126,14 @@ public class UpgradeHelperTest {
     field.setAccessible(true);
     field.set(upgradePack, UpgradeType.HOST_ORDERED);
 
-    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
+    UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
+        UpgradeType.HOST_ORDERED, repoVersion220);
 
-    UpgradeContext context = m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED,
-        Direction.UPGRADE, "2.2.0", new HashMap<String, Object>());
+    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, context);
+    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    replay(context);
 
-    context.setResolver(resolver);
+
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
@@ -2169,30 +2166,34 @@ public class UpgradeHelperTest {
     assertEquals(StageWrapper.Type.SERVICE_CHECK, holder.items.get(8).getType());
 
     // !!! test downgrade when all host components have failed
-    zookeeperServer1.setVersion("2.1.1");
-    zookeeperServer2.setVersion("2.1.1");
-    hbaseMaster1.setVersion("2.1.1");
-    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+    zookeeperServer1.setVersion(repoVersion211.getVersion());
+    zookeeperServer2.setVersion(repoVersion211.getVersion());
+    hbaseMaster1.setVersion(repoVersion211.getVersion());
 
-    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
-        "2.1.1", new HashMap<String, Object>());
+    context = getMockUpgradeContextNoReplay(c, Direction.DOWNGRADE, UpgradeType.HOST_ORDERED,
+        repoVersion211);
 
-    context.setResolver(resolver);
+    resolver = new MasterHostResolver(m_configHelper, context);
+    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    replay(context);
+
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
     assertEquals(2, groups.get(0).items.size());
 
     // !!! test downgrade when one of the hosts had failed
-    zookeeperServer1.setVersion("2.1.1");
-    zookeeperServer2.setVersion("2.2.0");
-    hbaseMaster1.setVersion("2.1.1");
-    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+    zookeeperServer1.setVersion(repoVersion211.getVersion());
+    zookeeperServer2.setVersion(repoVersion220.getVersion());
+    hbaseMaster1.setVersion(repoVersion211.getVersion());
 
-    m_upgradeContextFactory.create(c, UpgradeType.HOST_ORDERED, Direction.DOWNGRADE,
-        "2.1.1", new HashMap<String, Object>());
+    context = getMockUpgradeContextNoReplay(c, Direction.DOWNGRADE, UpgradeType.HOST_ORDERED,
+        repoVersion211);
 
-    context.setResolver(resolver);
+    resolver = new MasterHostResolver(m_configHelper, context);
+    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    replay(context);
+
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
@@ -2214,10 +2215,7 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = m_upgradeContextFactory.create(cluster, UpgradeType.ROLLING,
-        Direction.UPGRADE, UPGRADE_VERSION, new HashMap<String, Object>());
-
-    context.setResolver(m_masterHostResolver);
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING);
 
     // initially, no conditions should be met
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
@@ -2251,13 +2249,177 @@ public class UpgradeHelperTest {
   }
 
   /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction, UpgradeType type){
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion2210);
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
+      UpgradeType type, RepositoryVersionEntity repositoryVersion) {
+    Set<String> allServices = cluster.getServices().keySet();
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion,
+        RepositoryType.STANDARD, allServices);
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
+      UpgradeType type, RepositoryVersionEntity repositoryVersion, RepositoryType repositoryType,
+      Set<String> services) {
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion,
+        repositoryType, services, m_masterHostResolver);
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContextNoReplay(Cluster cluster, Direction direction,
+      UpgradeType type, RepositoryVersionEntity repositoryVersion) {
+    Set<String> allServices = cluster.getServices().keySet();
+
+    UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
+    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
+    EasyMock.expect(context.getType()).andReturn(type).anyTimes();
+    EasyMock.expect(context.getDirection()).andReturn(direction).anyTimes();
+    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
+    EasyMock.expect(context.getSupportedServices()).andReturn(allServices).anyTimes();
+    EasyMock.expect(context.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    EasyMock.expect(context.isScoped(EasyMock.anyObject(UpgradeScope.class))).andReturn(true).anyTimes();
+    return context;
+  }
+
+  /**
+   * @param cluster
+   * @param direction
+   * @param type
+   * @param repositoryType
+   * @param services
+   * @return
+   */
+  private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
+      UpgradeType type, RepositoryVersionEntity repositoryVersion, RepositoryType repositoryType,
+      Set<String> services, MasterHostResolver resolver) {
+    UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
+    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
+    EasyMock.expect(context.getType()).andReturn(type).anyTimes();
+    EasyMock.expect(context.getDirection()).andReturn(direction).anyTimes();
+    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
+    EasyMock.expect(context.getSupportedServices()).andReturn(services).anyTimes();
+    EasyMock.expect(context.getRepositoryType()).andReturn(repositoryType).anyTimes();
+    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    EasyMock.expect(context.isScoped(EasyMock.anyObject(UpgradeScope.class))).andReturn(true).anyTimes();
+    EasyMock.expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+
+    final Map<String, RepositoryVersionEntity> targetRepositoryVersions = new HashMap<>();
+    for( String serviceName : services ){
+      targetRepositoryVersions.put(serviceName, repositoryVersion);
+    }
+
+    final Capture<String> repoVersionServiceName = EasyMock.newCapture();
+    EasyMock.expect(
+        context.getTargetRepositoryVersion(EasyMock.capture(repoVersionServiceName))).andAnswer(
+            new IAnswer<RepositoryVersionEntity>() {
+              @Override
+              public RepositoryVersionEntity answer() {
+                return targetRepositoryVersions.get(repoVersionServiceName.getValue());
+              }
+            }).anyTimes();
+
+    final Capture<String> serviceNameSupported = EasyMock.newCapture();
+    EasyMock.expect(context.isServiceSupported(EasyMock.capture(serviceNameSupported))).andAnswer(
+        new IAnswer<Boolean>() {
+          @Override
+          public Boolean answer() {
+            return targetRepositoryVersions.containsKey(serviceNameSupported.getValue());
+          }
+        }).anyTimes();
+
+
+    final Map<String, String> serviceNames = new HashMap<>();
+
+
+    final Capture<String> serviceDisplayNameArg1 = EasyMock.newCapture();
+    final Capture<String> serviceDisplayNameArg2 = EasyMock.newCapture();
+
+    context.setServiceDisplay(EasyMock.capture(serviceDisplayNameArg1), EasyMock.capture(serviceDisplayNameArg2));
+    EasyMock.expectLastCall().andAnswer(
+        new IAnswer<Object>() {
+          @Override
+          public Object answer() {
+            serviceNames.put(serviceDisplayNameArg1.getValue(), serviceDisplayNameArg2.getValue());
+            return null;
+          }
+        }).anyTimes();
+
+
+    final Map<String, String> componentNames = new HashMap<>();
+    final Capture<String> componentDisplayNameArg1 = EasyMock.newCapture();
+    final Capture<String> componentDisplayNameArg2 = EasyMock.newCapture();
+    final Capture<String> componentDisplayNameArg3 = EasyMock.newCapture();
+
+    context.setComponentDisplay(EasyMock.capture(componentDisplayNameArg1),
+        EasyMock.capture(componentDisplayNameArg2), EasyMock.capture(componentDisplayNameArg3));
+
+    EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() {
+        componentNames.put(
+            componentDisplayNameArg1.getValue() + ":" + componentDisplayNameArg2.getValue(),
+            componentDisplayNameArg3.getValue());
+        return null;
+      }
+    }).anyTimes();
+
+    final Capture<String> getServiceDisplayArgument1 = EasyMock.newCapture();
+    EasyMock.expect(
+        context.getServiceDisplay(EasyMock.capture(getServiceDisplayArgument1))).andAnswer(
+            new IAnswer<String>() {
+              @Override
+              public String answer() {
+                return serviceNames.get(getServiceDisplayArgument1.getValue());
+              }
+            }).anyTimes();
+
+    final Capture<String> getComponentDisplayArgument1 = EasyMock.newCapture();
+    final Capture<String> getComponentDisplayArgument2 = EasyMock.newCapture();
+    EasyMock.expect(context.getComponentDisplay(EasyMock.capture(getComponentDisplayArgument1),
+        EasyMock.capture(getComponentDisplayArgument2))).andAnswer(new IAnswer<String>() {
+          @Override
+          public String answer() {
+            return componentNames.get(getComponentDisplayArgument1.getValue() + ":"
+                + getComponentDisplayArgument2.getValue());
+          }
+        }).anyTimes();
+
+    replay(context);
+    return context;
+  }
+
+  /**
    * Extend {@link org.apache.ambari.server.stack.MasterHostResolver} in order
    * to overwrite the JMX methods.
    */
   private class MockMasterHostResolver extends MasterHostResolver {
 
-    public MockMasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
-      super(configHelper, cluster, version);
+    public MockMasterHostResolver(ConfigHelper configHelper, UpgradeContext context) {
+      super(configHelper, context);
     }
 
     /**
@@ -2299,8 +2461,8 @@ public class UpgradeHelperTest {
 
   private static class BadMasterHostResolver extends MasterHostResolver {
 
-    public BadMasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
-      super(configHelper, cluster, version);
+    public BadMasterHostResolver(ConfigHelper configHelper, UpgradeContext context) {
+      super(configHelper, context);
     }
 
     @Override

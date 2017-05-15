@@ -18,7 +18,6 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -54,7 +53,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
     Cluster cluster = m_clusters.getCluster(clusterName);
 
     UpgradeContext upgradeContext = getUpgradeContext(cluster);
-    List<InfoTuple> errors = getHostComponentsWhichDidNotUpgrade(upgradeContext);
+    Set<InfoTuple> errors = validateComponentVersions(upgradeContext);
 
     StringBuilder outSB = new StringBuilder();
     StringBuilder errSB = new StringBuilder();
@@ -69,19 +68,21 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
     }
   }
 
-  private String getErrors(StringBuilder outSB, StringBuilder errSB, List<InfoTuple> errors) {
+  private String getErrors(StringBuilder outSB, StringBuilder errSB, Set<InfoTuple> errors) {
 
-    errSB.append("The following components were found to have version mismatches.  ");
-    errSB.append("Finalize will not complete successfully:\n");
+    errSB.append("Finalization will not be able to completed because of the following version inconsistencies:");
 
     Set<String> hosts = new TreeSet<>();
     Map<String, JsonArray> hostDetails = new HashMap<>();
 
     for (InfoTuple tuple : errors) {
+      errSB.append("  ");
       errSB.append(tuple.hostName).append(": ");
+      errSB.append(System.lineSeparator()).append("    ");
       errSB.append(tuple.serviceName).append('/').append(tuple.componentName);
       errSB.append(" reports ").append(StringUtils.trimToEmpty(tuple.currentVersion));
-      errSB.append('\n');
+      errSB.append(" but expects ").append(tuple.targetVersion);
+      errSB.append(System.lineSeparator());
 
       hosts.add(tuple.hostName);
 
@@ -93,6 +94,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
       obj.addProperty("service", tuple.serviceName);
       obj.addProperty("component", tuple.componentName);
       obj.addProperty("version", tuple.currentVersion);
+      obj.addProperty("targetVersion", tuple.targetVersion);
 
       hostDetails.get(tuple.hostName).add(obj);
     }
