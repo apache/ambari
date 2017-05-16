@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,6 +20,8 @@ package org.apache.ambari.server.controller;
 
 import java.util.Map;
 
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+
 import io.swagger.annotations.ApiModelProperty;
 
 /**
@@ -29,21 +31,22 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public interface ClusterServiceArtifactResponse {
 
-  @ApiModelProperty(name = "Artifacts")
-  public ClusterServiceArtifactResponseInfo getClusterServiceArtifactResponseInfo();
+  @ApiModelProperty(name = ArtifactResourceProvider.RESPONSE_KEY)
+  @SuppressWarnings("unused")
+  ClusterServiceArtifactResponseInfo getClusterServiceArtifactResponseInfo();
 
-  @ApiModelProperty(name = "artifact_data")
-  public Map<String, Object> getArtifactData();
+  @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY)
+  Map<String, Object> getArtifactData();
 
-  public interface ClusterServiceArtifactResponseInfo {
-    @ApiModelProperty(name = "artifact_name")
-    public String getArtifactName();
+  interface ClusterServiceArtifactResponseInfo {
+    @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_NAME)
+    String getArtifactName();
 
-    @ApiModelProperty(name = "cluster_name")
-    public String getClusterName();
+    @ApiModelProperty(name = ArtifactResourceProvider.CLUSTER_NAME)
+    String getClusterName();
 
-    @ApiModelProperty(name = "service_name")
-    public String getServiceName();
+    @ApiModelProperty(name = ArtifactResourceProvider.SERVICE_NAME)
+    String getServiceName();
   }
 
 }

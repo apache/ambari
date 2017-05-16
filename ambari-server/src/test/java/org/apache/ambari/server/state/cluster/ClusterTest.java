@@ -1048,9 +1048,9 @@ public class ClusterTest {
     createDefaultCluster();
 
     ClusterResponse r = c1.convertToResponse();
-    Assert.assertEquals(c1.getClusterId(), r.getClusterId().longValue());
+    Assert.assertEquals(c1.getClusterId(), r.getClusterId());
     Assert.assertEquals(c1.getClusterName(), r.getClusterName());
-    Assert.assertEquals(Integer.valueOf(2), r.getTotalHosts());
+    Assert.assertEquals(2, r.getTotalHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getHealthyStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());
@@ -1079,7 +1079,7 @@ public class ClusterTest {
 
     r = c1.convertToResponse();
 
-    Assert.assertEquals(Integer.valueOf(3), r.getTotalHosts());
+    Assert.assertEquals(3, r.getTotalHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getAlertStatusHosts());
     Assert.assertEquals(1, r.getClusterHealthReport().getHealthyStatusHosts());
     Assert.assertEquals(0, r.getClusterHealthReport().getUnhealthyStatusHosts());

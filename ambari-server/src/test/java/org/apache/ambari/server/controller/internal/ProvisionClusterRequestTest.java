@@ -498,7 +498,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);
@@ -553,7 +553,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);
@@ -592,7 +592,7 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> properties = new LinkedHashMap<>();
 
     properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID, blueprintName);
+    properties.put(ClusterResourceProvider.BLUEPRINT, blueprintName);
 
     Collection<Map<String, Object>> hostGroups = new ArrayList<>();
     properties.put("host_groups", hostGroups);

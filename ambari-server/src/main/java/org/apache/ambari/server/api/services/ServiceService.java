@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -155,7 +155,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#createServices"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = "body", allowMultiple = false)
+      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -188,7 +188,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#createService"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = "body", allowMultiple = true)
+      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -223,7 +223,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#updateService"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = "body")
+      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -254,7 +254,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#updateServices"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = "body")
+      @ApiImplicitParam(dataType = SERVICE_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -339,7 +339,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#createArtifact"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = "body", allowMultiple = false)
+      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -419,7 +419,7 @@ public class ServiceService extends BaseService {
   @GET
   @Path("{serviceName}/artifacts/{artifactName}")
   @Produces(MediaType.TEXT_PLAIN)
-  @ApiOperation(value = "Get the detais of a service artifact",
+  @ApiOperation(value = "Get the details of a service artifact",
       nickname = "ServiceService#getArtifact",
       response = ClusterServiceArtifactResponse.class,
       responseContainer = RESPONSE_CONTAINER_LIST)
@@ -465,7 +465,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#updateArtifacts"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = "body")
+      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -503,7 +503,7 @@ public class ServiceService extends BaseService {
       nickname = "ServiceService#updateArtifact"
   )
   @ApiImplicitParams({
-      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = "body")
+      @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
       @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),

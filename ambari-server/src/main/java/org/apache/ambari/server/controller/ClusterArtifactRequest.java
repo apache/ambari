@@ -24,21 +24,21 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Request schema for endpoint {@link org.apache.ambari.server.api.services.ServiceService#createArtifact(String,
+ * Request schema for endpoint {@link org.apache.ambari.server.api.services.ClusterService#createClusterArtifact(String,
  * javax.ws.rs.core.HttpHeaders, javax.ws.rs.core.UriInfo, String, String)}
  *
  * The interface is not actually implemented, it only carries swagger annotations.
  */
 @SuppressWarnings("unused")
-public interface ClusterServiceArtifactRequest extends ApiModel {
+public interface ClusterArtifactRequest extends ApiModel {
 
   @ApiModelProperty(name = ArtifactResourceProvider.RESPONSE_KEY)
-  ClusterServiceArtifactRequestInfo getClusterServiceArtifactRequestInfo();
+  ClusterArtifactRequestInfo getClusterArtifactRequestInfo();
 
   @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY)
   Map<String, Object> getArtifactData();
 
-  interface ClusterServiceArtifactRequestInfo {
+  interface ClusterArtifactRequestInfo {
     @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_NAME)
     String getArtifactName();
   }

@@ -92,7 +92,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Returns information about a single host", response = HostResponse.Wrapper.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = "string", paramType = "query"),
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -120,11 +120,11 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Returns a collection of all hosts", response = HostResponse.Wrapper.class, responseContainer = "List")
   @ApiImplicitParams({
-    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Hosts/*", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, defaultValue = "Hosts/host_name.asc", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = "integer", paramType = "query"),
-    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = "query"),
-    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = QUERY_TO_TYPE, paramType = "query"),
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, defaultValue = "Hosts/*", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, defaultValue = "Hosts/host_name.asc", dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -153,7 +153,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Creates multiple hosts in a single request")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
+    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -186,7 +186,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Creates a host")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body")
+    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
@@ -221,7 +221,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Updates a host")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body")
+    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -253,7 +253,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Updates multiple hosts in a single request")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
+    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
@@ -301,7 +301,7 @@ public class HostService extends BaseService {
   @Produces("text/plain")
   @ApiOperation(value = "Deletes multiple hosts in a single request")
   @ApiImplicitParams({
-    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = "body", allowMultiple = true)
+    @ApiImplicitParam(dataType = HOST_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
   })
   @ApiResponses({
     @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),

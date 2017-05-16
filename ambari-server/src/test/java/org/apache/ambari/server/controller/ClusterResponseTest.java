@@ -30,7 +30,7 @@ public class ClusterResponseTest {
 
   @Test
   public void testBasicGetAndSet() {
-    Long clusterId = new Long(10);
+    long clusterId = 10L;
     String clusterName = "foo";
     State provisioningState = State.INSTALLED;
     SecurityType securityType = SecurityType.KERBEROS;
@@ -43,17 +43,16 @@ public class ClusterResponseTest {
     
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
-    Assert.assertEquals(provisioningState.name(), r1.getProvisioningState());
-    Assert.assertEquals(securityType.name(), r1.getSecurityType());
-    Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
-    Assert.assertEquals(Integer.valueOf(1), r1.getTotalHosts());
+    Assert.assertEquals(provisioningState, r1.getProvisioningState());
+    Assert.assertEquals(securityType, r1.getSecurityType());
+    Assert.assertEquals(1, r1.getTotalHosts());
     Assert.assertEquals("bar", r1.getDesiredStackVersion());
   }
 
   @Test
   public void testToString() {
     ClusterResponse r =
-      new ClusterResponse(null, null, null, null, null, null, null, null);
+      new ClusterResponse(0, null, null, null, null, 0, null, null);
     r.toString();
   }
 }

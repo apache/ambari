@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.controller;
 
 import java.util.Map;
@@ -24,23 +25,25 @@ import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Request schema for endpoint {@link org.apache.ambari.server.api.services.ServiceService#createArtifact(String,
- * javax.ws.rs.core.HttpHeaders, javax.ws.rs.core.UriInfo, String, String)}
+ * Response schema for endpoint {@link org.apache.ambari.server.api.services.ClusterService#getClusterArtifact}
  *
  * The interface is not actually implemented, it only carries swagger annotations.
  */
-@SuppressWarnings("unused")
-public interface ClusterServiceArtifactRequest extends ApiModel {
+public interface ClusterArtifactResponse {
 
   @ApiModelProperty(name = ArtifactResourceProvider.RESPONSE_KEY)
-  ClusterServiceArtifactRequestInfo getClusterServiceArtifactRequestInfo();
+  @SuppressWarnings("unused")
+  ClusterArtifactResponseInfo getClusterArtifactResponseInfo();
 
   @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY)
   Map<String, Object> getArtifactData();
 
-  interface ClusterServiceArtifactRequestInfo {
+  interface ClusterArtifactResponseInfo {
     @ApiModelProperty(name = ArtifactResourceProvider.ARTIFACT_NAME)
     String getArtifactName();
+
+    @ApiModelProperty(name = ArtifactResourceProvider.CLUSTER_NAME)
+    String getClusterName();
   }
 
 }

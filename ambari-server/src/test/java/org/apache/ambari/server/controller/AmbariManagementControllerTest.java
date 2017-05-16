@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -636,45 +636,29 @@ public class AmbariManagementControllerTest {
     // TODO implement after configs integration
   }
 
-  @Test
-  public void testCreateClusterWithInvalidRequest() {
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest1() throws Exception {
     ClusterRequest r = new ClusterRequest(null, null, null, null);
-    r.toString();
+    controller.createCluster(r);
+  }
 
-    try {
-      controller.createCluster(r);
-      fail("Expected create cluster for invalid request");
-    } catch (Exception e) {
-      // Expected
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest2() throws Exception {
+    ClusterRequest r = new ClusterRequest(1L, null, null, null);
+    controller.createCluster(r);
+  }
 
-    r.setClusterId(1L);
-    try {
-      controller.createCluster(r);
-      fail("Expected create cluster for invalid request");
-    } catch (Exception e) {
-      // Expected
-    }
-    r.setClusterId(null);
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest3() throws Exception {
+    ClusterRequest r = new ClusterRequest(null, getUniqueName(), null, null);
+    controller.createCluster(r);
+  }
 
-    r.setClusterName(getUniqueName());
-    try {
-      controller.createCluster(r);
-     fail("Expected create cluster for invalid request - no stack version");
-    } catch (Exception e) {
-      // Expected
-    }
-
-    r.setStackVersion("HDP-1.2.0");
-    r.setProvisioningState(State.INSTALLING.name());
-    try {
-      controller.createCluster(r);
-      controller.updateClusters(Collections.singleton(r), null);
-
-     fail("Expected create cluster for invalid request - invalid provisioning state");
-    } catch (Exception e) {
-      // Expected
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest4() throws Exception {
+    ClusterRequest r = new ClusterRequest(null, null, State.INSTALLING.name(), null, "HDP-1.2.0", null);
+    controller.createCluster(r);
+    controller.updateClusters(Collections.singleton(r), null);
   }
 
   @Test
@@ -2219,7 +2203,7 @@ public class AmbariManagementControllerTest {
     boolean found = false;
     for (ClusterResponse cr : resp) {
       if (cr.getClusterName().equals(cluster1)) {
-        Assert.assertEquals(c1.getClusterId(), cr.getClusterId().longValue());
+        Assert.assertEquals(c1.getClusterId(), cr.getClusterId());
         Assert.assertEquals(c1.getDesiredStackVersion().getStackId(), cr.getDesiredStackVersion());
         found = true;
         break;
@@ -2241,19 +2225,15 @@ public class AmbariManagementControllerTest {
     clusters.addCluster(cluster3, new StackId("HDP-1.2.0"));
     clusters.addCluster(cluster4, new StackId("HDP-0.1"));
 
-    Cluster c1 = clusters.getCluster(cluster1);
-    Cluster c2 = clusters.getCluster(cluster2);
-    Cluster c3 = clusters.getCluster(cluster3);
-    Cluster c4 = clusters.getCluster(cluster4);
-
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
+    Assert.assertTrue(resp.size() >= 4);
 
     r = new ClusterRequest(null, cluster1, null, null);
     resp = controller.getClusters(Collections.singleton(r));
     Assert.assertEquals(1, resp.size());
-    Assert.assertEquals(c1.getClusterId(),
-        resp.iterator().next().getClusterId().longValue());
+    Cluster c1 = clusters.getCluster(cluster1);
+    Assert.assertEquals(c1.getClusterId(), resp.iterator().next().getClusterId());
 
     r = new ClusterRequest(null, null, "HDP-0.1", null);
     resp = controller.getClusters(Collections.singleton(r));
@@ -9297,13 +9277,13 @@ public class AmbariManagementControllerTest {
     ClusterRequest cr = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(cr);
 
-    Long CLUSTER_ID = clusters.getCluster(CLUSTER_NAME).getClusterId();
+    long clusterId = clusters.getCluster(CLUSTER_NAME).getClusterId();
 
     ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
         new HashMap<String, String>() {{ put("a", "b"); }}, null);
-    cr.setDesiredConfig(Collections.singletonList(configRequest));
-    cr.setClusterId(CLUSTER_ID);
-    amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    ClusterRequest ur = new ClusterRequest(clusterId, CLUSTER_NAME, STACK_ID, null);
+    ur.setDesiredConfig(Collections.singletonList(configRequest));
+    amc.updateClusters(Collections.singleton(ur), new HashMap<String, String>());
 
     // add some hosts
     Set<HostRequest> hrs = new HashSet<>();
@@ -9348,8 +9328,8 @@ public class AmbariManagementControllerTest {
     // change mind, delete the cluster
     amc.deleteCluster(cr);
 
-      assertNotNull(clusters.getHost(HOST1));
-      assertNotNull(clusters.getHost(HOST2));
+    assertNotNull(clusters.getHost(HOST1));
+    assertNotNull(clusters.getHost(HOST2));
 
     HostDAO dao = injector.getInstance(HostDAO.class);
 
