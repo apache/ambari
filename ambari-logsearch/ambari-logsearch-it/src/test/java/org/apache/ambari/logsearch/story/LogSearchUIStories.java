@@ -24,8 +24,6 @@ import org.apache.ambari.logsearch.steps.LogSearchUISteps;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.Embeddable;
 import org.jbehave.core.embedder.executors.SameThreadExecutors;
-import org.jbehave.core.io.LoadFromClasspath;
-import org.jbehave.core.io.StoryFinder;
 import org.jbehave.core.junit.JUnitStories;
 import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
@@ -52,10 +50,12 @@ public class LogSearchUIStories extends JUnitStories {
   private WebDriverProvider driverProvider;
   private SeleniumContext context;
 
+  private static final String UI_STORIES_LOCATION_PROPERTY = "ui.stories.location";
+  private static final String STORY_SUFFIX = ".ui.story";
+
   public LogSearchUIStories() {
-    // TODO: get docker host from a runCommand funtion
-    String hubUrl = "http://localhost:4444/wd/hub";
-    System.setProperty("REMOTE_WEBDRIVER_URL", hubUrl);
+    String dockerHost = System.getProperty("docker.host") != null ? System.getProperty("docker.host") : "localhost";
+    System.setProperty("REMOTE_WEBDRIVER_URL", String.format("http://%s:4444/wd/hub", dockerHost));
     DesiredCapabilities capability = DesiredCapabilities.firefox();
     capability.setPlatform(Platform.LINUX);
     capability.setVersion("45.8.0");
@@ -71,7 +71,7 @@ public class LogSearchUIStories extends JUnitStories {
     return new SeleniumConfiguration()
       .useSeleniumContext(context)
       .useWebDriverProvider(driverProvider)
-      .useStoryLoader(new LoadFromClasspath(embeddableClass))
+      .useStoryLoader(LogSearchStoryLocator.getStoryLoader(UI_STORIES_LOCATION_PROPERTY, this.getClass()))
       .useStoryReporterBuilder(new StoryReporterBuilder()
         .withCodeLocation(codeLocationFromClass(embeddableClass))
         .withDefaultFormats()
@@ -87,7 +87,6 @@ public class LogSearchUIStories extends JUnitStories {
 
   @Override
   protected List<String> storyPaths() {
-    return new StoryFinder()
-      .findPaths(codeLocationFromClass(this.getClass()).getFile(), Arrays.asList("**/*.ui.story"), null);
+    return LogSearchStoryLocator.findStories(UI_STORIES_LOCATION_PROPERTY, STORY_SUFFIX, this.getClass());
   }
 }

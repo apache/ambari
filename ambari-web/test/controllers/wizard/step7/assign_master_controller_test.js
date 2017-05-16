@@ -414,19 +414,31 @@ describe('App.AssignMasterOnStep7Controller', function () {
       expect(view.showPopup.calledWith({componentName: 'C1'})).to.be.true;
     });
 
-    it('showAlertPopup should be called', function() {
-      this.mock.returns(true);
-      view.pendingBatchRequestsAjaxSuccess({}, {}, {hostComponent: {componentName: 'C1'}});
-      expect(App.showAlertPopup.calledWith(
-        Em.I18n.t('services.service.actions.hsi.alertPopup.header'),
-        Em.I18n.t('services.service.actions.hsi.alertPopup.body')
-      )).to.be.true;
-      expect(configWidgetContext.get('config.value')).to.be.equal('iv1');
-      expect(configWidgetContext.get('controller.forceUpdateBoundaries')).to.be.true;
-      expect(configWidgetContext.setValue.calledWith('iv1')).to.be.true;
-      expect(configWidgetContext.sendRequestRorDependentConfigs.calledWith(
-        configWidgetContext.get('config')
-      )).to.be.true;
+    describe('showAlertPopup should be called', function() {
+      beforeEach(function() {
+        this.mock.returns(true);
+        view.pendingBatchRequestsAjaxSuccess({}, {}, {hostComponent: {componentName: 'C1'}});
+      });
+      it('App.showAlertPopup is called', function () {
+        expect(App.showAlertPopup.calledWith(
+          Em.I18n.t('services.service.actions.hsi.alertPopup.header'),
+          Em.I18n.t('services.service.actions.hsi.alertPopup.body')
+        )).to.be.true;
+      });
+      it('config value is correct', function () {
+        expect(configWidgetContext.get('config.value')).to.be.equal('iv1');
+      });
+      it('forceUpdateBoundaries is true', function () {
+        expect(configWidgetContext.get('controller.forceUpdateBoundaries')).to.be.true;
+      });
+      it('configWidgetContext.setValue is called', function () {
+        expect(configWidgetContext.setValue.calledWith('iv1')).to.be.true;
+      });
+      it('configWidgetContext.sendRequestRorDependentConfigs is called', function () {
+        expect(configWidgetContext.sendRequestRorDependentConfigs.calledWith(
+          configWidgetContext.get('config')
+        )).to.be.true;
+      });
     });
   });
 

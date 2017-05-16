@@ -38,6 +38,9 @@
     <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
     <failsafe-plugin.version>2.20</failsafe-plugin.version>
     <forkCount>1</forkCount>
+    <docker.host>localhost</docker.host>
+    <backend.stories.location>NONE</backend.stories.location>
+    <ui.stories.location>NONE</ui.stories.location>
   </properties>
 
   <dependencies>
@@ -160,6 +163,8 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
+                    <ui.stories.location>${ui.stories.location}</ui.stories.location>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
@@ -201,6 +206,8 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
+                    <backend.stories.location>${backend.stories.location}</backend.stories.location>
                   </systemPropertyVariables>
                 </configuration>
               </execution>
@@ -242,6 +249,9 @@
                   </includes>
                   <systemPropertyVariables>
                     <log4j.configuration>file:${project.build.testOutputDirectory}/log4j.properties</log4j.configuration>
+                    <docker.host>${docker.host}</docker.host>
+                    <backend.stories.location>${backend.stories.location}</backend.stories.location>
+                    <ui.stories.location>${ui.stories.location}</ui.stories.location>
                   </systemPropertyVariables>
                 </configuration>
               </execution>

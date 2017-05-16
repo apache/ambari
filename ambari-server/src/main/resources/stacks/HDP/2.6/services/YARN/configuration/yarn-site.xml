@@ -101,4 +101,13 @@
     </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>yarn.nodemanager.admin-env</name>
+    <value>MALLOC_ARENA_MAX=$MALLOC_ARENA_MAX,PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:$PATH</value>
+    <description>
+      Environment variables that should be forwarded from the NodeManager's
+      environment to the container's.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
