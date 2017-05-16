@@ -140,6 +140,7 @@
                           <excludes>
                             <exclude>log4j.xml</exclude>
                             <exclude>infra-manager.properties</exclude>
+                            <exclude>infra-manager-env.sh</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -152,6 +153,7 @@
                           <includes>
                             <include>log4j.xml</include>
                             <include>infra-manager.properties</include>
+                            <include>infra-manager-env.sh</include>
                           </includes>
                         </source>
                       </sources>
@@ -341,7 +343,7 @@
                         <prefix>${infra-manager.mapping.path}</prefix>
                       </mapper>
                       <excludes>
-                        log4j.xml,infra-manager.properties
+                        log4j.xml,infra-manager.properties,infra-manager-env.sh
                       </excludes>
                     </data>
                     <data>
@@ -355,7 +357,7 @@
                         <filemode>644</filemode>
                       </mapper>
                       <includes>
-                        log4j.xml,infra-manager.properties
+                        log4j.xml,infra-manager.properties,infra-manager-env.sh
                       </includes>
                     </data>
                   </dataSet>

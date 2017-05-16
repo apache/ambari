@@ -12,9 +12,10 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License
 
-JVM="java"
-sdir="`dirname \"$0\"`"
+export INFRA_MANAGER_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=5007,server=y,suspend=n"
+touch /root/infra-manager.log
+/root/ambari-infra-manager/infraManager.sh --port 61890 > /root/infra-manager.log
+tail -f /root/infra-manager.log
 
-PATH=$JAVA_HOME/bin:$PATH nohup $JVM -classpath "/etc/ambari-infra-manager/conf:$sdir:$sdir/libs/*" $INFRA_MANAGER_OPTS org.apache.ambari.infra.InfraManager ${1+"$@"} &

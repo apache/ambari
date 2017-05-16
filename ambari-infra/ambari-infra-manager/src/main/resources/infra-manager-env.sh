@@ -14,7 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JVM="java"
-sdir="`dirname \"$0\"`"
-
-PATH=$JAVA_HOME/bin:$PATH nohup $JVM -classpath "/etc/ambari-infra-manager/conf:$sdir:$sdir/libs/*" $INFRA_MANAGER_OPTS org.apache.ambari.infra.InfraManager ${1+"$@"} &
+# Extend with java options or system properties. e.g.: INFRA_MANAGER_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=5007,server=y,suspend=n"
+export INFRA_MANAGER_OPTS=""

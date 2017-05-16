@@ -23,3 +23,9 @@ TODO
 ```bash
 mvn clean package exec:java
 ```
+
+## Build & Run Application in docker container
+```bash
+cd docker
+./infra-manager-docker.sh
+```

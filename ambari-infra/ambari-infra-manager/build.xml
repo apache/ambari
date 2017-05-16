@@ -35,6 +35,7 @@
     </copy>
     <copy todir="target/package" includeEmptyDirs="no">
       <fileset file="src/main/resources/infraManager.sh"/>
+      <fileset file="src/main/resources/infra-manager-env.sh"/>
       <fileset file="target/classes/infra-manager.properties"/>
       <fileset file="target/classes/log4j.xml"/>
     </copy>
