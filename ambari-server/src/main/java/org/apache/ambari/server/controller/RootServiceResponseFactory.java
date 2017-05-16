@@ -84,7 +84,7 @@ public class RootServiceResponseFactory extends
   public Set<RootServiceComponentResponse> getRootServiceComponents(
       RootServiceComponentRequest request) throws ObjectNotFoundException {
     Set<RootServiceComponentResponse> response = new HashSet<>();
-    
+
     String serviceName = request.getServiceName();
     String componentName = request.getComponentName();
     Services service;
@@ -109,13 +109,13 @@ public class RootServiceResponseFactory extends
       catch (IllegalArgumentException ex) {
         throw new ObjectNotFoundException("Component name: " + componentName);
       }
-      response = Collections.singleton(new RootServiceComponentResponse(component.toString(),
+      response = Collections.singleton(new RootServiceComponentResponse(serviceName, component.toString(),
                                        getComponentVersion(componentName, null),
                                        getComponentProperties(componentName)));
     } else {
     
       for (Components component: service.getComponents())    
-        response.add(new RootServiceComponentResponse(component.toString(),
+        response.add(new RootServiceComponentResponse(serviceName, component.toString(),
                      getComponentVersion(component.name(), null),
                      getComponentProperties(component.name())));
       }
@@ -198,8 +198,10 @@ public class RootServiceResponseFactory extends
   public Set<RootServiceHostComponentResponse> getRootServiceHostComponent(RootServiceHostComponentRequest request, Set<HostResponse> hosts) throws AmbariException {
     Set<RootServiceHostComponentResponse> response = new HashSet<>();
 
-    Set<RootServiceComponentResponse> rootServiceComponents = 
-        getRootServiceComponents(new RootServiceComponentRequest(request.getServiceName(), request.getComponentName()));
+    String serviceName = request.getServiceName();
+    String componentName = request.getComponentName();
+    Set<RootServiceComponentResponse> rootServiceComponents =
+        getRootServiceComponents(new RootServiceComponentRequest(serviceName, componentName));
 
     //Cartesian product with hosts and components
     for (RootServiceComponentResponse component : rootServiceComponents) {
@@ -207,7 +209,7 @@ public class RootServiceResponseFactory extends
       Set<HostResponse> filteredHosts = new HashSet<>(hosts);
       
       //Make some filtering of hosts if need
-      if (component.getComponentName().equals(Components.AMBARI_SERVER.name()))
+      if (component.getComponentName().equals(Components.AMBARI_SERVER.name())) {
         CollectionUtils.filter(filteredHosts, new Predicate() {
           @Override
           public boolean evaluate(Object arg0) {
@@ -215,15 +217,17 @@ public class RootServiceResponseFactory extends
             return hostResponse.getHostname().equals(StageUtils.getHostName());
           }
         });
+      }
       
       for (HostResponse host : filteredHosts) {
-        
-        if (component.getComponentName().equals(Components.AMBARI_SERVER.name()))
-          response.add(new RootServiceHostComponentResponse(host.getHostname(), component.getComponentName(),
-            RUNNING_STATE, getComponentVersion(component.getComponentName(), host), component.getProperties()));
-        else
-          response.add(new RootServiceHostComponentResponse(host.getHostname(), component.getComponentName(),
-            host.getHostState().toString(), getComponentVersion(component.getComponentName(), host), component.getProperties()));
+        String state;
+        if (component.getComponentName().equals(Components.AMBARI_SERVER.name())) {
+          state = RUNNING_STATE;
+        } else {
+          state = host.getHostState().toString();
+        }
+        String componentVersion = getComponentVersion(componentName, host);
+        response.add(new RootServiceHostComponentResponse(serviceName, host.getHostname(), componentName, state, componentVersion, component.getProperties()));
       }
     }
     

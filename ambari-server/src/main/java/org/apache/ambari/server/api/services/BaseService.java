@@ -86,6 +86,8 @@ public abstract class BaseService {
   static final String PARAM_TYPE_BODY = "body";
 
 
+  static final String FIELDS_SEPARATOR = ", ";
+
   /**
    * Logger instance.
    */

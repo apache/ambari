@@ -73,6 +73,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -88,6 +89,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   // Hosts
   public static final String RESPONSE_KEY = "Hosts";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
   public static final String CLUSTER_NAME_PROPERTY_ID = "cluster_name";
   public static final String CPU_COUNT_PROPERTY_ID = "cpu_count";
@@ -145,9 +147,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   protected static final String FORCE_DELETE_COMPONENTS = "force_delete_components";
 
 
-  private static Set<String> pkPropertyIds =
-    new HashSet<>(Arrays.asList(new String[]{
-      HOST_HOST_NAME_PROPERTY_ID}));
+  private static final Set<String> PK_PROPERTY_IDS = ImmutableSet.of(HOST_HOST_NAME_PROPERTY_ID);
 
   @Inject
   private OsFamily osFamily;
@@ -358,7 +358,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
+    return PK_PROPERTY_IDS;
   }
 
 
