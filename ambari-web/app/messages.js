@@ -3165,7 +3165,7 @@ Em.I18n.translations = {
   'menu.item.dashboard':'Dashboard',
   'menu.item.services':'Services',
   'menu.item.hosts':'Hosts',
-  'menu.item.admin':'Admin',
+  'menu.item.admin':'Cluster Admin',
   'menu.item.alerts': 'Alerts',
   'menu.item.views':'<i class="glyphicon glyphicon-th"></i>',
   'menu.item.views.noViews':'No Views',
