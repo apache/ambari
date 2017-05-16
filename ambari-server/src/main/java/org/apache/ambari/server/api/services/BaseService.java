@@ -52,6 +52,7 @@ public abstract class BaseService {
   static final String MSG_SUCCESSFUL_OPERATION = "Successful operation";
   static final String MSG_REQUEST_ACCEPTED = "Request is accepted, but not completely processed yet";
   static final String MSG_INVALID_ARGUMENTS = "Invalid arguments";
+  static final String MSG_INVALID_REQUEST = "Invalid request";
   static final String MSG_CLUSTER_NOT_FOUND = "Cluster not found";
   static final String MSG_CLUSTER_OR_HOST_NOT_FOUND = "Cluster or host not found";
   static final String MSG_NOT_AUTHENTICATED = "Not authenticated";
