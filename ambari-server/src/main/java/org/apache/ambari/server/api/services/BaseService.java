@@ -57,6 +57,7 @@ public abstract class BaseService {
   static final String MSG_NOT_AUTHENTICATED = "Not authenticated";
   static final String MSG_PERMISSION_DENIED = "Not permitted to perform the operation";
   static final String MSG_SERVER_ERROR = "Internal server error";
+  static final String MSG_RESOURCE_ALREADY_EXISTS = "The requested resource already exists.";
   static final String MSG_RESOURCE_NOT_FOUND = "The requested resource doesn't exist.";
 
   static final String QUERY_FIELDS = "fields";
@@ -81,6 +82,8 @@ public abstract class BaseService {
   static final String DATA_TYPE_STRING = "string";
 
   static final String PARAM_TYPE_QUERY = "query";
+  static final String PARAM_TYPE_BODY = "body";
+
 
   /**
    * Logger instance.
