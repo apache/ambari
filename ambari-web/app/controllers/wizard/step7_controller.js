@@ -1151,6 +1151,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
               this.get('stepConfigs').findProperty('serviceName', service.serviceName).get('configs').pushObject(overriddenSCP);
             }
           }, this);
+          modelGroup.set('hash', this.get('wizardController').getConfigGroupHash(modelGroup));
         }, this);
         service.set('configGroups', App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')));
       }
