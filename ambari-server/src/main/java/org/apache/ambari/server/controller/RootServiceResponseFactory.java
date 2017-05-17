@@ -199,9 +199,8 @@ public class RootServiceResponseFactory extends
     Set<RootServiceHostComponentResponse> response = new HashSet<>();
 
     String serviceName = request.getServiceName();
-    String componentName = request.getComponentName();
     Set<RootServiceComponentResponse> rootServiceComponents =
-        getRootServiceComponents(new RootServiceComponentRequest(serviceName, componentName));
+        getRootServiceComponents(new RootServiceComponentRequest(serviceName, request.getComponentName()));
 
     //Cartesian product with hosts and components
     for (RootServiceComponentResponse component : rootServiceComponents) {
@@ -226,8 +225,8 @@ public class RootServiceResponseFactory extends
         } else {
           state = host.getHostState().toString();
         }
-        String componentVersion = getComponentVersion(componentName, host);
-        response.add(new RootServiceHostComponentResponse(serviceName, host.getHostname(), componentName, state, componentVersion, component.getProperties()));
+        String componentVersion = getComponentVersion(component.getComponentName(), host);
+        response.add(new RootServiceHostComponentResponse(serviceName, host.getHostname(), component.getComponentName(), state, componentVersion, component.getProperties()));
       }
     }
     
