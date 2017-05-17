@@ -938,6 +938,7 @@ public class HostImpl implements Host {
   public HostResponse convertToResponse() {
     HostResponse r = new HostResponse(getHostName());
 
+    r.setAgentVersion(getAgentVersion());
     r.setPhCpuCount(getPhCpuCount());
     r.setCpuCount(getCpuCount());
     r.setDisksInfo(getDisksInfo());
