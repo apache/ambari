@@ -243,6 +243,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
     livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.launch.kerberos.principal']
 
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+  livy_http_scheme = 'https' if 'livy.keystore' in config['configurations']['livy-conf'] else 'http'
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

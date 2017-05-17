@@ -46,6 +46,7 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+LIVY_SSL_ENABLED_KEY = '{{livy-conf/livy.keystore}}'
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
@@ -57,7 +58,7 @@ def get_tokens():
     Returns a tuple of tokens in the format {{site/property}} that will be used
     to build the dictionary passed into execute
     """
-    return (LIVY_SERVER_PORT_KEY,LIVYUSER_DEFAULT,SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,SMOKEUSER_KEY)
+    return (LIVY_SERVER_PORT_KEY,LIVYUSER_DEFAULT,SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,SMOKEUSER_KEY,LIVY_SSL_ENABLED_KEY)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def execute(configurations={}, parameters={}, host_name=None):
@@ -118,13 +119,14 @@ def execute(configurations={}, parameters={}, host_name=None):
         finally:
             kinit_lock.release()
 
+    http_scheme = 'https' if LIVY_SSL_ENABLED_KEY in configurations else 'http'
     result_code = None
     try:
         start_time = time.time()
         try:
             livy_livyserver_host = str(host_name)
 
-            livy_cmd = format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livy_livyserver_host}:{port}/sessions | grep 200 ")
+            livy_cmd = format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {http_scheme}://{livy_livyserver_host}:{port}/sessions | grep 200 ")
 
             Execute(livy_cmd,
                     tries=3,
