@@ -74,6 +74,16 @@ public class TestAmbariMetricsSinkImpl extends AbstractTimelineMetricsSink imple
   }
 
   @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return true;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return 61888;
+  }
+
+  @Override
   public void init(MetricsConfiguration configuration) {
 
   }

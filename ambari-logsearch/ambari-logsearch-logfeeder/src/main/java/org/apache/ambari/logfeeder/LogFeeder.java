@@ -29,7 +29,7 @@ import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
 import org.apache.ambari.logsearch.config.zookeeper.LogSearchConfigZK;
 import org.apache.ambari.logfeeder.input.InputConfigUploader;
 import org.apache.ambari.logfeeder.input.InputManager;
-import org.apache.ambari.logfeeder.logconfig.LogConfigHandler;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
@@ -71,13 +71,13 @@ public class LogFeeder {
     long startTime = System.currentTimeMillis();
 
     configHandler.init();
-    LogConfigHandler.handleConfig();
     SSLUtil.ensureStorePasswords();
     
     config = LogSearchConfigFactory.createLogSearchConfig(Component.LOGFEEDER,
         Maps.fromProperties(LogFeederUtil.getProperties()), LogSearchConfigZK.class);
+    LogLevelFilterHandler.init(config);
     InputConfigUploader.load(config);
-    config.monitorInputConfigChanges(configHandler);
+    config.monitorInputConfigChanges(configHandler, new LogLevelFilterHandler());
     
     metricsManager.init();
     

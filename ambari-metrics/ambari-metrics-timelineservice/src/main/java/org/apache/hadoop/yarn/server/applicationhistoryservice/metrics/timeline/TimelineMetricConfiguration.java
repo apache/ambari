@@ -296,6 +296,8 @@ public class TimelineMetricConfiguration {
 
   public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
 
+  public static final String TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION = "timeline.metrics.host.inmemory.aggregation";
+
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private Configuration amsEnvConf;

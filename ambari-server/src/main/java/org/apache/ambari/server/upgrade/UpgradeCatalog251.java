@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,18 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -32,6 +41,8 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
 
   static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   static final String HRC_IS_BACKGROUND_COLUMN = "is_background";
+
+  protected static final String KAFKA_BROKER_CONFIG = "kafka-broker";
 
   /**
    * Constructor.
@@ -79,6 +90,40 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    updateKAFKAConfigs();
+  }
+
+  /**
+   * Ensure that the updates from Ambari 2.4.0 are applied in the event the initial version is
+   * Ambari 2.5.0, since this Kafka change failed to make it into Ambari 2.5.0.
+   *
+   * If the base version was before Ambari 2.5.0, this method should wind up doing nothing.
+   * @throws AmbariException
+   */
+  protected void updateKAFKAConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("KAFKA") && cluster.getSecurityType() == SecurityType.KERBEROS) {
+            Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER_CONFIG);
+            if (kafkaBroker != null) {
+              String listenersPropertyValue = kafkaBroker.getProperties().get("listeners");
+              if (StringUtils.isNotEmpty(listenersPropertyValue)) {
+                String newListenersPropertyValue = listenersPropertyValue.replaceAll("\\bPLAINTEXT\\b", "PLAINTEXTSASL");
+                if(!newListenersPropertyValue.equals(listenersPropertyValue)) {
+                  updateConfigurationProperties(KAFKA_BROKER_CONFIG, Collections.singletonMap("listeners", newListenersPropertyValue), true, false);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**

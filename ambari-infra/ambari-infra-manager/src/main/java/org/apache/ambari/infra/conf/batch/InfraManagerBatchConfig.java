@@ -104,7 +104,7 @@ public class InfraManagerBatchConfig {
     dataSource.setDriverClassName("org.sqlite.JDBC");
     dataSource.setUrl("jdbc:sqlite:" + sqliteDbFileLocation);
     dataSource.setUsername(databaseUsername);
-    dataSource.setUsername(databasePassword);
+    dataSource.setPassword(databasePassword);
     return dataSource;
   }
 

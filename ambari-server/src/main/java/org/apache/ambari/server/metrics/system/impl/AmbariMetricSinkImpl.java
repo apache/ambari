@@ -300,6 +300,16 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     return hostName;
   }
 
+  @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return false;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return 0;
+  }
+
   private List<TimelineMetric> getFilteredMetricList(List<SingleMetric> metrics) {
     final List<TimelineMetric> metricList = new ArrayList<>();
     for (SingleMetric metric : metrics) {

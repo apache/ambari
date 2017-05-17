@@ -20,7 +20,7 @@
 package org.apache.ambari.logsearch.config.api;
 
 /**
- * Monitors input configuration changes. 
+ * Monitors input configuration changes.
  */
 public interface InputConfigMonitor {
   /**
@@ -31,7 +31,7 @@ public interface InputConfigMonitor {
    * @throws Exception
    */
   void loadInputConfigs(String serviceName, String inputConfig) throws Exception;
-  
+
   /**
    * Notification of the removal of an input configuration.
    * 

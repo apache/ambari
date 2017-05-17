@@ -142,7 +142,6 @@ public class InfraManager {
     ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/api/v1/*");
     jerseyServlet.setInitOrder(1);
     jerseyServlet.setInitParameter("jersey.config.server.provider.packages","org.apache.ambari.infra.rest,io.swagger.jaxrs.listing");
-
     context.getSessionHandler().getSessionManager().setMaxInactiveInterval(SESSION_TIMEOUT);
     context.getSessionHandler().getSessionManager().getSessionCookieConfig().setName(INFRA_MANAGER_SESSION_ID);
 

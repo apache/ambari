@@ -128,6 +128,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(App.StackVersion, 'find').returns([Em.Object.create({
         state: 'CURRENT',
         repositoryVersion: {
+          id: '1',
           repositoryVersion: '2.2',
           displayName: 'HDP-2.2'
         }
@@ -155,6 +156,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('currentVersion is corrent', function () {
       expect(controller.get('currentVersion')).to.eql({
+        "id": "1",
         "repository_version": "2.2",
         "repository_name": "HDP-2.2"
       });
@@ -389,6 +391,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#runPreUpgradeCheck()", function() {
     it("make ajax call", function() {
       controller.runPreUpgradeCheck(Em.Object.create({
+        id: '1',
         repositoryVersion: '2.2',
         displayName: 'HDP-2.2',
         upgradeType: 'ROLLING',
@@ -399,6 +402,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(args[0]).to.exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
+        id: '1',
         value: '2.2',
         label: 'HDP-2.2',
         type: 'ROLLING',
@@ -1126,6 +1130,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.set('upgradeVersion', 'HDP-2.3');
       controller.set('upgradeType', 'NON_ROLLING');
       controller.startDowngrade(Em.Object.create({
+        id: '1',
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
       }));
@@ -1139,6 +1144,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it('request-data is valid', function () {
       expect(this.callArgs.data).to.eql({
         from: '2.3',
+        id: '1',
         value: '2.2',
         label: 'HDP-2.2',
         isDowngrade: true,

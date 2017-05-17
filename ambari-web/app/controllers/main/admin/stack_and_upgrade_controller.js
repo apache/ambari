@@ -71,7 +71,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * @type {boolean}
    */
-  showPauseButton: Em.computed.and('!App.upgradeSuspended', '!App.upgradeCompleted'),
+  showPauseButton: Em.computed.and('!App.upgradeSuspended', '!App.upgradeCompleted', '!App.upgradeInit'),
 
   /**
    * @type {boolean}
@@ -414,7 +414,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (currentVersion) {
       this.set('currentVersion', {
         repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-        repository_name: currentVersion.get('repositoryVersion.displayName')
+        repository_name: currentVersion.get('repositoryVersion.displayName'),
+        id: currentVersion.get('repositoryVersion.id')
       });
     }
   },
@@ -736,6 +737,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
+        id: currentVersion.id,
         isDowngrade: true,
         upgradeType: this.get('upgradeType')
       },
@@ -1379,7 +1381,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
+      id: version.get('id')
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);

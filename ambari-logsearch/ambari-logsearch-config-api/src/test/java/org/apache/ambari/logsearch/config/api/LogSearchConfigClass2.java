@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
 
 public class LogSearchConfigClass2 implements LogSearchConfig {
   @Override
@@ -35,10 +37,14 @@ public class LogSearchConfigClass2 implements LogSearchConfig {
   }
 
   @Override
+  public void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {}
+
+  @Override
   public void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {}
 
   @Override
-  public void monitorInputConfigChanges(InputConfigMonitor configMonitor) throws Exception {}
+  public void monitorInputConfigChanges(InputConfigMonitor inputConfigMonitor, LogLevelFilterMonitor logLevelFilterMonitor)
+      throws Exception {}
 
   @Override
   public List<String> getServices(String clusterName) {
@@ -49,7 +55,18 @@ public class LogSearchConfigClass2 implements LogSearchConfig {
   public String getInputConfig(String clusterName, String serviceName) {
     return null;
   }
-  
+
+  @Override
+  public void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) {}
+
+  @Override
+  public void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception {}
+
+  @Override
+  public LogLevelFilterMap getLogLevelFilters(String clusterName) {
+    return null;
+  }
+
   @Override
   public void close() {}
 }

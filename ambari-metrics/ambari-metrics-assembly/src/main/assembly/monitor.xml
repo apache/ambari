@@ -46,6 +46,13 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${aggregator.dir}/conf/unix</directory>
+      <outputDirectory>conf</outputDirectory>
+      <includes>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${monitor.dir}/conf/unix</directory>
       <outputDirectory>bin</outputDirectory>
       <includes>

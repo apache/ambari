@@ -50,7 +50,73 @@ var configs = Em.A([
   Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p1', value: 'v1'}),
   Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p2', value: 'v2'}),
   Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p1', value: 'v1'}),
-  Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p2', value: 'v2'})
+  Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'cluster-env.xml', name: 'p1', value: 'v1'}),
+]);
+
+var services = Em.A([
+        Em.Object.create({
+          serviceName: 's1',
+          isSelected: true,
+          isInstalled: false,
+          displayNameOnSelectServicePage: 's01',
+          isClientOnlyService: false,
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isClient: true
+            })
+          ]),
+          configTypes: Em.A([
+            Em.Object.create({
+              type: 'cluster-env'
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's2',
+          isSelected: true,
+          isInstalled: false,
+          displayNameOnSelectServicePage: 's02',
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isMaster: true
+            })
+          ]),
+          configTypes: Em.A([
+            Em.Object.create({
+              type: 'hdfs-site'
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's3',
+          isSelected: true,
+          isInstalled: false,
+          displayNameOnSelectServicePage: 's03',
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isHAComponentOnly: true
+            })
+          ]),
+          configTypes: [],
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's4',
+          isSelected: true,
+          isInstalled: false,
+          displayNameOnSelectServicePage: 's03',
+          isClientOnlyService: true,
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isClient: true
+            })
+          ]),
+          configTypes: [],
+          isHiddenOnSelectServicePage: false
+        })
 ]);
 
 function getController() {
@@ -211,54 +277,6 @@ describe('App.WizardStep8Controller', function () {
   describe('#loadServices', function () {
 
     beforeEach(function () {
-      var services = Em.A([
-        Em.Object.create({
-          serviceName: 's1',
-          isSelected: true,
-          displayNameOnSelectServicePage: 's01',
-          isClientOnlyService: false,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's2',
-          isSelected: true,
-          displayNameOnSelectServicePage: 's02',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isMaster: true
-            })
-          ]),
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's3',
-          isSelected: true,
-          displayNameOnSelectServicePage: 's03',
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isHAComponentOnly: true
-            })
-          ]),
-          isHiddenOnSelectServicePage: false
-        }),
-        Em.Object.create({
-          serviceName: 's4',
-          isSelected: true,
-          displayNameOnSelectServicePage: 's03',
-          isClientOnlyService: true,
-          serviceComponents: Em.A([
-            Em.Object.create({
-              isClient: true
-            })
-          ]),
-          isHiddenOnSelectServicePage: false
-        })
-      ]);
       var selectedServices = services.filterProperty('isSelected');
       var slaveComponentHosts = Em.A([
         Em.Object.create({
@@ -2323,5 +2341,19 @@ describe('App.WizardStep8Controller', function () {
     });
 
   });
-
+  //TODO
+  describe('#generateBlueprint', function () {
+     console.log("testing.......")
+     beforeEach(function () {
+         installerStep8Controller = getController();
+         installerStep8Controller.set('configs', configs);
+         installerStep8Controller.set('content.services', services.filterProperty('isSelected'))
+         installerStep8Controller.set('selectedServices', []);
+         sinon.spy(installerStep8Controller, 'getConfigurationDetailsForConfigType');
+     });
+     it('should call generateBlueprint', function() {
+       installerStep8Controller.generateBlueprint();
+       expect(installerStep8Controller.getConfigurationDetailsForConfigType.calledThrice).to.be.true;
+     });
+ });
 });

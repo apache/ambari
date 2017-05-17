@@ -302,9 +302,32 @@ public class UpgradeCatalog300Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchConfCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
+    Map<String, String> oldLogSearchProperties = ImmutableMap.of(
+        "logsearch.logfeeder.include.default.level", "FATAL,ERROR,WARN"
+    );
+
+    Map<String, String> expectedLogFeederProperties = ImmutableMap.of(
+        "logfeeder.include.default.level", "FATAL,ERROR,WARN"
+    );
+
+    Config logFeederPropertiesConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-properties")).andReturn(logFeederPropertiesConf).times(2);
+    expect(logFeederPropertiesConf.getProperties()).andReturn(Collections.<String, String> emptyMap()).once();
+    Capture<Map<String, String>> logFeederPropertiesCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), eq("logfeeder-properties"), capture(logFeederPropertiesCapture),
+        anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Config logSearchPropertiesConf = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchPropertiesConf).times(2);
+    expect(logSearchPropertiesConf.getProperties()).andReturn(oldLogSearchProperties).times(2);
+    Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
+        anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
     replay(clusters, cluster);
     replay(controller, injector2);
     replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
+    replay(logSearchPropertiesConf, logFeederPropertiesConf);
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
@@ -313,5 +336,11 @@ public class UpgradeCatalog300Test {
     for (Map<String, String> updatedLogSearchConf : updatedLogSearchConfs) {
       assertTrue(Maps.difference(Collections.<String, String> emptyMap(), updatedLogSearchConf).areEqual());
     }
+    
+    Map<String,String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederProperties, newLogFeederProperties).areEqual());
+    
+    Map<String,String> newLogSearchProperties = logSearchPropertiesCapture.getValue();
+    assertTrue(Maps.difference(Collections.<String, String> emptyMap(), newLogSearchProperties).areEqual());
   }
 }

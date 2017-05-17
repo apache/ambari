@@ -367,7 +367,7 @@ def print_action_arguments_help(action):
             ";".join([print_opt for print_opt, _ in optional_options]))
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def init_parser_options(parser):
+def init_action_parser(action, parser):
   parser.add_option('-k', '--service-user-name', dest="svc_user",
                     default=None,
                     help="User account under which the Ambari Server service will run")
@@ -455,31 +455,58 @@ def init_parser_options(parser):
   # -h reserved for help
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def init_parser_options(parser):
-  parser.add_option('-f', '--init-script-file', default=None,
-                    help="File with setup script")
-  parser.add_option('-r', '--drop-script-file', default=None,
-                    help="File with drop script")
-  parser.add_option('-u', '--upgrade-script-file', default=AmbariPath.get("/var/lib/"
-                                                           "ambari-server/resources/upgrade/ddl/"
-                                                           "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql"),
-                    help="File with upgrade script")
-  parser.add_option('-t', '--upgrade-stack-script-file', default=AmbariPath.get("/var/lib/"
-                                                                 "ambari-server/resources/upgrade/dml/"
-                                                                 "Ambari-DML-Postgres-UPGRADE_STACK.sql"),
-                    help="File with stack upgrade script")
-  parser.add_option('-j', '--java-home', default=None,
-                    help="Use specified java_home.  Must be valid on all hosts")
-  parser.add_option("-v", "--verbose",
-                    action="store_true", dest="verbose", default=False,
-                    help="Print verbose status messages")
-  parser.add_option("-s", "--silent",
-                    action="store_true", dest="silent", default=False,
-                    help="Silently accepts default prompt values. For db-cleanup command, silent mode will stop ambari server.")
+def init_setup_parser_options(parser):
+  database_group = optparse.OptionGroup(parser, 'Database options (command need to include all options)')
+  database_group.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere", dest="dbms")
+  database_group.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
+  database_group.add_option('--databaseport', default=None, help="Database port", dest="database_port")
+  database_group.add_option('--databasename', default=None, help="Database/Service name or ServiceID",
+                            dest="database_name")
+  database_group.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
+  database_group.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
+  parser.add_option_group(database_group)
+
+  jdbc_group = optparse.OptionGroup(parser, 'JDBC options (command need to include all options)')
+  jdbc_group.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file or archive " \
+                                                            "with all required files(jdbc jar, libraries and etc), for the " \
+                                                            "database type specified with the --jdbc-db option. " \
+                                                            "Used only with --jdbc-db option. Archive is supported only for" \
+                                                            " sqlanywhere database." ,
+                        dest="jdbc_driver")
+  jdbc_group.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the " \
+                                                        "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
+                        dest="jdbc_db")
+  parser.add_option_group(jdbc_group)
+
+  other_group = optparse.OptionGroup(parser, 'Other options')
+
+  other_group.add_option('-j', '--java-home', default=None,
+                         help="Use specified java_home.  Must be valid on all hosts")
+  other_group.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
+  other_group.add_option('--postgresschema', default=None, help="Postgres database schema name",
+                         dest="postgres_schema")
+  other_group.add_option('--sqla-server-name', default=None, help="SQL Anywhere server name", dest="sqla_server_name")
+  other_group.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
+                                                               "Name sid|sname", dest="sid_or_sname")
+
+  parser.add_option_group(other_group)
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_start_parser_options(parser):
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
   parser.add_option('-y', '--suspend-start', action="store_true", dest='suspend_start', default=False,
                     help="Freeze ambari-server Java process at startup in debug mode")
+  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
+  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
+  parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_empty_parser_options(parser):
+  pass
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_ldap_sync_parser_options(parser):
   parser.add_option('--all', action="store_true", default=False, help="LDAP sync all option.  Synchronize all LDAP users and groups.",
                     dest="ldap_sync_all")
   parser.add_option('--existing', action="store_true", default=False,
@@ -488,79 +515,11 @@ def init_parser_options(parser):
                     dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
-  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere", dest="dbms")
-  parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
-  parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
-  parser.add_option('--databasename', default=None, help="Database/Service name or ServiceID",
-                    dest="database_name")
-  parser.add_option('--postgresschema', default=None, help="Postgres database schema name",
-                    dest="postgres_schema")
-  parser.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
-  parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
-  parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
-                                                          "Name sid|sname", dest="sid_or_sname")
-  parser.add_option('--sqla-server-name', default=None, help="SQL Anywhere server name", dest="sqla_server_name")
-  parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file or archive " \
-                                                        "with all required files(jdbc jar, libraries and etc), for the " \
-                                                        "database type specified with the --jdbc-db option. " \
-                                                        "Used only with --jdbc-db option. Archive is supported only for" \
-                                                        " sqlanywhere database." ,
-                    dest="jdbc_driver")
-  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the " \
-                                                    "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
-                    dest="jdbc_db")
-  parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
-  parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
-  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
-  parser.add_option('--skip-database-check', action="store_true", default=False, help="Skip database consistency check", dest="skip_database_check")
-  parser.add_option('--skip-view-extraction', action="store_true", default=False, help="Skip extraction of system views", dest="skip_view_extraction")
-  parser.add_option('--auto-fix-database', action="store_true", default=False, help="Automatically fix database consistency issues", dest="fix_database_consistency")
-  parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
-  parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
-                    help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
-  parser.add_option('--stack', dest="stack_name", default=None, type="string",
-                    help="Specify stack name for the stack versions that needs to be enabled")
-  parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
-  add_parser_options('--mpack',
-      default=None,
-      help="Specify the path for management pack to be installed/upgraded",
-      dest="mpack_path",
-      parser=parser,
-      required_for_actions=[INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION]
-  )
-  add_parser_options('--mpack-name',
-      default=None,
-      help="Specify the management pack name to be uninstalled",
-      dest="mpack_name",
-      parser=parser,
-      required_for_actions=[UNINSTALL_MPACK_ACTION]
-  )
-  add_parser_options('--purge',
-      action="store_true",
-      default=False,
-      help="Purge existing resources specified in purge-list",
-      dest="purge",
-      parser=parser,
-      optional_for_actions=[INSTALL_MPACK_ACTION]
-  )
-  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
-  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
-  add_parser_options('--purge-list',
-      default=default_purge_resources,
-      help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
-      dest="purge_list",
-      parser=parser,
-      optional_for_actions=[INSTALL_MPACK_ACTION]
-  )
-  add_parser_options('--force',
-      action="store_true",
-      default=False,
-      help="Force install management pack",
-      dest="force",
-      parser=parser,
-      optional_for_actions=[INSTALL_MPACK_ACTION]
-  )
+  parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
+  parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
 
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_ldap_setup_parser_options(parser):
   parser.add_option('--ldap-url', default=None, help="Primary url for LDAP", dest="ldap_url")
   parser.add_option('--ldap-secondary-url', default=None, help="Secondary url for LDAP", dest="ldap_secondary_url")
   parser.add_option('--ldap-ssl', default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl")
@@ -576,29 +535,83 @@ def init_parser_options(parser):
   parser.add_option('--ldap-save-settings', action="store_true", default=None, help="Save without review for LDAP", dest="ldap_save_settings")
   parser.add_option('--ldap-referral', default=None, help="Referral method [follow/ignore] for LDAP", dest="ldap_referral")
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
-  parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
-  parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
   parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
 
-  parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
-  parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
-  parser.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
-  parser.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_set_current_parser_options(parser):
+  parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
+  parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
+  parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
 
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_setup_security_parser_options(parser):
   parser.add_option('--security-option', default=None,
                     help="Setup security option (setup-https|encrypt-password|setup-kerberos-jaas|setup-truststore|import-certificate)",
                     dest="security_option")
-  parser.add_option('--api-ssl', default=None, help="Enable SSL for Ambari API [true/false]", dest="api_ssl")
-  parser.add_option('--api-ssl-port', default=None, help="Client API SSL port", dest="api_ssl_port")
-  parser.add_option('--import-cert-path', default=None, help="Path to Certificate (import)", dest="import_cert_path")
-  parser.add_option('--import-cert-alias', default=None, help="Alias for the imported certificate", dest="import_cert_alias")
-  parser.add_option('--import-key-path', default=None, help="Path to Private Key (import)", dest="import_key_path")
-  parser.add_option('--pem-password', default=None, help="Password for Private Key", dest="pem_password")
-  parser.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
-  parser.add_option('--master-key-persist', default=None, help="Persist master key [true/false]", dest="master_key_persist")
-  parser.add_option('--jaas-principal', default=None, help="Kerberos principal for ambari server", dest="jaas_principal")
-  parser.add_option('--jaas-keytab', default=None, help="Keytab path for Kerberos principal", dest="jaas_keytab")
 
+  https_group = optparse.OptionGroup(parser, "setup-https options")
+  https_group.add_option('--api-ssl', default=None, help="Enable SSL for Ambari API [true/false]", dest="api_ssl")
+  https_group.add_option('--api-ssl-port', default=None, help="Client API SSL port", dest="api_ssl_port")
+  https_group.add_option('--import-key-path', default=None, help="Path to Private Key (import)", dest="import_key_path")
+  https_group.add_option('--pem-password', default=None, help="Password for Private Key", dest="pem_password")
+  parser.add_option_group(https_group)
+
+  encrypt_passwords_group = optparse.OptionGroup(parser, "encrypt-passwords options")
+  encrypt_passwords_group.add_option('--master-key', default=None, help="Master key for encrypting passwords", dest="master_key")
+  encrypt_passwords_group.add_option('--master-key-persist', default=None, help="Persist master key [true/false]", dest="master_key_persist")
+  parser.add_option_group(encrypt_passwords_group)
+
+  setup_kerberos_jaas_group = optparse.OptionGroup(parser, "setup-kerberos-jaas options")
+  setup_kerberos_jaas_group.add_option('--jaas-principal', default=None, help="Kerberos principal for ambari server", dest="jaas_principal")
+  setup_kerberos_jaas_group.add_option('--jaas-keytab', default=None, help="Keytab path for Kerberos principal", dest="jaas_keytab")
+  parser.add_option_group(setup_kerberos_jaas_group)
+
+  setup_truststore_group = optparse.OptionGroup(parser, "setup-truststore options, uses encrypt-passwords options if configured")
+  setup_truststore_group.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
+  setup_truststore_group.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")
+  setup_truststore_group.add_option('--truststore-password', default=None, help="Password for TrustStore", dest="trust_store_password")
+  setup_truststore_group.add_option('--truststore-reconfigure', action="store_true", default=None, help="Force to reconfigure TrustStore if exits", dest="trust_store_reconfigure")
+  parser.add_option_group(setup_truststore_group)
+
+  import_certificate_group = optparse.OptionGroup(parser, "import-certificate options, uses --truststore-path option")
+  import_certificate_group.add_option('--import-cert-path', default=None, help="Path to Certificate (import)", dest="import_cert_path")
+  import_certificate_group.add_option('--import-cert-alias', default=None, help="Alias for the imported certificate", dest="import_cert_alias")
+  parser.add_option_group(import_certificate_group)
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_enable_stack_parser_options(parser):
+  parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
+                    help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
+  parser.add_option('--stack', dest="stack_name", default=None, type="string",
+                    help="Specify stack name for the stack versions that needs to be enabled")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_db_cleanup_parser_options(parser):
+  parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
+  parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_install_mpack_parser_options(parser):
+  parser.add_option('--mpack', default=None, help="Specify the path for management pack to be installed", dest="mpack_path")
+  parser.add_option('--purge', action="store_true", default=False, help="Purge existing resources specified in purge-list", dest="purge")
+  purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  default_purge_resources = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+
+  parser.add_option('--purge-list', default=default_purge_resources,
+                    help="Comma separated list of resources to purge ({0}). By default ({1}) will be purged.".format(purge_resources, default_purge_resources),
+                    dest="purge_list")
+  parser.add_option('--force', action="store_true", default=False, help="Force install management pack", dest="force")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_uninstall_mpack_parser_options(parser):
+  parser.add_option('--mpack-name', default=None, help="Specify the management pack name to be uninstalled", dest="mpack_name")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_upgrade_mpack_parser_options(parser):
+  parser.add_option('--mpack', default=None, help="Specify the path for management pack to be updated", dest="mpack_path")
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_kerberos_setup_parser_options(parser):
   parser.add_option('--kerberos-setup', default=None, help="Setup Kerberos Authentication", dest="kerberos_setup")
   parser.add_option('--kerberos-enabled', default=False, help="Kerberos enabled", dest="kerberos_enabled")
   parser.add_option('--kerberos-spnego-principal', default="HTTP/_HOST", help="Kerberos SPNEGO principal", dest="kerberos_spnego_principal")
@@ -774,6 +787,46 @@ def create_user_action_map(args, options):
       }
   return action_map
 
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_action_parser(action, parser):
+  action_parser_map = {
+    SETUP_ACTION: init_setup_parser_options,
+    SETUP_JCE_ACTION: init_empty_parser_options,
+    START_ACTION: init_start_parser_options,
+    STOP_ACTION: init_empty_parser_options,
+    RESTART_ACTION: init_start_parser_options,
+    RESET_ACTION: init_empty_parser_options,
+    STATUS_ACTION: init_empty_parser_options,
+    UPGRADE_ACTION: init_empty_parser_options,
+    UPGRADE_STACK_ACTION:init_empty_parser_options,
+    LDAP_SETUP_ACTION: init_ldap_setup_parser_options,
+    LDAP_SYNC_ACTION: init_ldap_sync_parser_options,
+    SET_CURRENT_ACTION: init_set_current_parser_options,
+    SETUP_SECURITY_ACTION: init_setup_security_parser_options,
+    REFRESH_STACK_HASH_ACTION: init_empty_parser_options,
+    BACKUP_ACTION: init_empty_parser_options,
+    RESTORE_ACTION: init_empty_parser_options,
+    UPDATE_HOST_NAMES_ACTION: init_empty_parser_options,
+    CHECK_DATABASE_ACTION: init_empty_parser_options,
+    ENABLE_STACK_ACTION: init_enable_stack_parser_options,
+    SETUP_SSO_ACTION: init_empty_parser_options,
+    DB_CLEANUP_ACTION: init_db_cleanup_parser_options,
+    INSTALL_MPACK_ACTION: init_install_mpack_parser_options,
+    UNINSTALL_MPACK_ACTION: init_uninstall_mpack_parser_options,
+    UPGRADE_MPACK_ACTION: init_upgrade_mpack_parser_options,
+    PAM_SETUP_ACTION: init_empty_parser_options,
+    KERBEROS_SETUP_ACTION: init_kerberos_setup_parser_options,
+  }
+  parser.add_option("-v", "--verbose",
+                    action="store_true", dest="verbose", default=False,
+                    help="Print verbose status messages")
+  parser.add_option("-s", "--silent",
+                    action="store_true", dest="silent", default=False,
+                    help="Silently accepts default prompt values. For db-cleanup command, silent mode will stop ambari server.")
+  try:
+    action_parser_map[action](parser)
+  except KeyError:
+    parser.error("Invalid action: " + action)
 
 def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
@@ -825,16 +878,6 @@ def main(options, args, parser):
 
   options.warnings = []
 
-  if are_cmd_line_db_args_blank(options):
-    options.must_set_database_options = True
-  elif not are_cmd_line_db_args_valid(options):
-    parser.error('All database options should be set. Please see help for the options.')
-  else:
-    options.must_set_database_options = False
-
-  #correct database
-  fix_database_options(options, parser)
-
   if len(args) == 0:
     print parser.print_help()
     parser.error("No action entered")
@@ -847,6 +890,17 @@ def main(options, args, parser):
     action_obj = action_map[action]
   except KeyError:
     parser.error("Invalid action: " + action)
+
+  if action == SETUP_ACTION:
+    if are_cmd_line_db_args_blank(options):
+      options.must_set_database_options = True
+    elif not are_cmd_line_db_args_valid(options):
+      parser.error('All database options should be set. Please see help for the options.')
+    else:
+      options.must_set_database_options = False
+
+    #correct database
+    fix_database_options(options, parser)
 
   matches = 0
   for args_number_required in action_obj.possible_args_numbers:
@@ -900,8 +954,9 @@ def main(options, args, parser):
     sys.exit(options.exit_code)
 
 def mainBody():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id os]",)
-  init_parser_options(parser)
+  parser = optparse.OptionParser(usage="usage: %prog action [options]",)
+  action = sys.argv[1]
+  init_action_parser(action, parser)
   (options, args) = parser.parse_args()
 
   # check if only silent key set
