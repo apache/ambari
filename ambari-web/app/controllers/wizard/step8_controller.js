@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var fileUtils = require('utils/file_utils');
 
 App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, App.ConfigsSaverMixin, {
 
@@ -1762,6 +1763,170 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       })
 
     });
+  },
+
+  getComponentsForHost: function(host) {
+    if(!host.hostComponents) {
+      App.router.get('installerController').get('allHosts');
+    }
+    var componentNameDetail = [];
+    host.hostComponents.mapProperty('componentName').forEach(function (componentName) {
+      if(componentName === 'CLIENT') {
+        this.get('content.clients').mapProperty('component_name').forEach(function (clientComponent) {
+          componentNameDetail.push({ name : clientComponent });
+        }, this);
+        return;
+      }
+      componentNameDetail.push({ name : componentName });
+    }, this);
+    return componentNameDetail;
+  },
+
+  getPropertyAttributesForConfigType : function(configs) {
+    //Currently only looks for final properties, if any
+    var finalProperties = configs.filterProperty('isFinal', 'true');
+    var propertyAttributes = {};
+    finalProperties.forEach(function (finalProperty) {
+      propertyAttributes[finalProperty['name']] = "true";
+    });
+    var finalPropertyMap = {};
+    if (!App.isEmptyObject(finalProperties)) {
+      finalPropertyMap = {
+        "isFinal": propertyAttributes
+      };
+    }
+    return finalPropertyMap;
+  },
+
+  getConfigurationDetailsForConfigType: function(configs) {
+    var configDetails = {};
+    var self = this;
+    configs.forEach(function (propertyObj) {
+      configDetails[propertyObj['name']] = propertyObj['value'];
+    }, this);
+    var configurationsDetails = {
+      "properties_attributes": self.getPropertyAttributesForConfigType(configs),
+      "properties": configDetails
+    };
+    return configurationsDetails;
+  },
+
+  hostInExistingHostGroup: function (newHost, cluster_template_host_groups) {
+    var hostGroupMatched = false;
+      cluster_template_host_groups.some(function (existingHostGroup) {
+        if(!hostGroupMatched) {
+        var fqdnInHostGroup =  existingHostGroup.hosts[0].fqdn;
+        var componentsInExistingHostGroup = this.getRegisteredHosts().filterProperty('hostName', fqdnInHostGroup)[0].hostComponents;
+        if(componentsInExistingHostGroup.length !== newHost.hostComponents.length) {
+          return;
+        } else {
+          var componentMismatch = false;
+          componentsInExistingHostGroup.forEach(function (componentInExistingHostGroup, index) {
+          if(!componentMismatch) {
+            if(!newHost.hostComponents.mapProperty('componentName').includes(componentInExistingHostGroup.componentName)) {
+              componentMismatch = true;
+            }
+          }
+          });
+          if(!componentMismatch) {
+            hostGroupMatched = true;
+            existingHostGroup["cardinality"]["cardinality"] = parseInt(existingHostGroup["cardinality"]["cardinality"]) + 1;
+            existingHostGroup.hosts.push({"fqdn" : newHost.hostName})
+            return true;
+          }
+        }
+        }
+      }, this);
+    return hostGroupMatched;
+  },
+
+  generateBlueprint: function () {
+    console.log("Prepare blueprint for download...");
+    var blueprint = {};
+    var self = this;
+    //service configurations
+    var totalConf = [];
+    //Add cluster-env
+    var clusterEnv = this.get('configs').filterProperty('filename', 'cluster-env.xml');
+    var configurations = {};
+    configurations["cluster-env"] = self.getConfigurationDetailsForConfigType(clusterEnv);
+    totalConf.push(configurations);
+    //Add configurations for selected services
+    this.get('selectedServices').forEach(function (service) {
+      Object.keys(service.get('configTypes')).forEach(function (type) {
+        if (!this.get('serviceConfigTags').someProperty('type', type)) {
+          var configs = this.get('configs').filterProperty('filename', App.config.getOriginalFileName(type));
+          var configurations = {};
+          configurations[type] = self.getConfigurationDetailsForConfigType(configs);
+          totalConf.push(configurations);
+        }
+      }, this);
+    }, this);
+
+    //TODO address configGroups
+    var host_groups = [];
+    var cluster_template_host_groups = [];
+    var counter = 0;
+
+    this.getRegisteredHosts().filterProperty('isInstalled', false).map(function (host) {
+      var clusterTemplateHostGroupDetail = {};
+      if(self.hostInExistingHostGroup(host, cluster_template_host_groups)) {
+        return;
+      }
+
+      var hostGroupId = "host_group_" + counter;
+      var cardinality = {"cardinality": 1};
+      var hostGroupDetail = {
+        "name": hostGroupId,
+        "components": self.getComponentsForHost(host),
+        cardinality
+      };
+      hostGroupDetail.toJSON = function () {
+      var hostGroupDetailResult = {};
+      for (var x in this) {
+        if (x === "cardinality") {
+          hostGroupDetailResult[x] = (this[x]["cardinality"]).toString();
+          } else {
+            hostGroupDetailResult[x] = this[x];
+        }
+      }
+      return hostGroupDetailResult;
+      }
+      host_groups.push(hostGroupDetail);
+      var hostListForGroup = [];
+      var hostDetail = {
+        "fqdn": host.hostName
+      }
+      hostListForGroup.push(hostDetail);
+      clusterTemplateHostGroupDetail = {
+        "name": hostGroupId,
+        "hosts": hostListForGroup,
+        cardinality
+      };
+      clusterTemplateHostGroupDetail.toJSON = function () {
+        return _.omit(this, [ "cardinality" ]);
+      };
+
+      cluster_template_host_groups.push(clusterTemplateHostGroupDetail);
+      counter++;
+    }, this);
+
+    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    blueprint = { //TODO: bp name
+        'configurations':totalConf,
+        'host_groups':host_groups,
+        'Blueprints':{'stack_name':selectedStack.get('stackName'), 'stack_version':selectedStack.get('stackVersion')}
+    };
+    fileUtils.downloadTextFile(JSON.stringify(blueprint), 'json', 'blueprint.json')
+
+    var cluster_template = {
+      "blueprint": App.clusterStatus.clusterName,
+      "config_recommendation_strategy" : "NEVER_APPLY",
+      "provision_action" : "INSTALL_AND_START",
+      "configurations":[],
+      "host_groups":cluster_template_host_groups
+    };
+    fileUtils.downloadTextFile(JSON.stringify(cluster_template), 'json', 'clustertemplate.json')
   },
 
   downloadCSV: function() {

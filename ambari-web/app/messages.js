@@ -125,6 +125,7 @@ Em.I18n.translations = {
   'common.more': 'More...',
   'common.print':'Print',
   'common.deploy':'Deploy',
+  'common.generate.blueprint':'Generate Blueprint',
   'common.message':'Message',
   'common.tasks':'Tasks',
   'common.open':'Open',
