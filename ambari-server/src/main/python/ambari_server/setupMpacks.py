@@ -714,7 +714,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     _execute_hook(mpack_metadata, BEFORE_INSTALL_HOOK_NAME, tmp_root_dir)
 
   # Purge previously installed stacks and management packs
-  if options.purge and options.purge_list:
+  if not is_upgrade and options.purge and options.purge_list:
     purge_resources = options.purge_list.split(",")
     validate_purge(options, purge_resources, tmp_root_dir, mpack_metadata, replay_mode)
     purge_stacks_and_mpacks(purge_resources, replay_mode)
@@ -934,9 +934,6 @@ def upgrade_mpack(options, replay_mode=False):
   """
   logger.info("Upgrade mpack.")
   mpack_path = options.mpack_path
-  if options.purge:
-    print_error_msg("Purge is not supported with upgrade_mpack action!")
-    raise FatalException(-1, "Purge is not supported with upgrade_mpack action!")
 
   if not mpack_path:
     print_error_msg("Management pack not specified!")
@@ -962,7 +959,7 @@ def upgrade_mpack(options, replay_mode=False):
 
   print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
   if not replay_mode:
-    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
+    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, False, [], options.force, options.verbose)
 
 def replay_mpack_logs():
   """
