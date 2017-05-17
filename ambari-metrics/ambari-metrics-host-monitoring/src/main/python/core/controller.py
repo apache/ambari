@@ -27,6 +27,9 @@ from event_definition import HostMetricCollectEvent, ProcessMetricCollectEvent
 from metric_collector import MetricsCollector
 from emitter import Emitter
 from host_info import HostInfo
+from aggregator import Aggregator
+from aggregator import AggregatorWatchdog
+
 
 logger = logging.getLogger()
 
@@ -50,11 +53,15 @@ class Controller(threading.Thread):
     self.initialize_events_cache()
     self.emitter = Emitter(self.config, self.application_metric_map, stop_handler)
     self._t = None
+    self.aggregator = None
+    self.aggregator_watchdog = None
 
   def run(self):
     logger.info('Running Controller thread: %s' % threading.currentThread().getName())
 
     self.start_emitter()
+    if self.config.is_inmemory_aggregation_enabled():
+      self.start_aggregator_with_watchdog()
 
     # Wake every 5 seconds to push events to the queue
     while True:
@@ -62,6 +69,10 @@ class Controller(threading.Thread):
         logger.warn('Event Queue full!! Suspending further collections.')
       else:
         self.enqueque_events()
+      # restart aggregator if needed
+      if self.config.is_inmemory_aggregation_enabled() and not self.aggregator_watchdog.is_ok():
+        logger.warning("Aggregator is not available. Restarting aggregator.")
+        self.start_aggregator_with_watchdog()
       pass
       # Wait for the service stop event instead of sleeping blindly
       if 0 == self._stop_handler.wait(self.sleep_interval):
@@ -75,6 +86,12 @@ class Controller(threading.Thread):
     # The emitter thread should have stopped by now, just ensure it has shut
     # down properly
     self.emitter.join(5)
+
+    if self.config.is_inmemory_aggregation_enabled():
+      self.aggregator.stop()
+      self.aggregator_watchdog.stop()
+      self.aggregator.join(5)
+      self.aggregator_watchdog.join(5)
     pass
 
   # TODO: Optimize to not use Timer class and use the Queue instead
@@ -115,3 +132,14 @@ class Controller(threading.Thread):
 
   def start_emitter(self):
     self.emitter.start()
+
+  # Start aggregator and watcher threads
+  def start_aggregator_with_watchdog(self):
+    if self.aggregator:
+      self.aggregator.stop()
+    if self.aggregator_watchdog:
+      self.aggregator.stop()
+    self.aggregator = Aggregator(self.config, self._stop_handler)
+    self.aggregator_watchdog = AggregatorWatchdog(self.config, self._stop_handler)
+    self.aggregator.start()
+    self.aggregator_watchdog.start()

@@ -93,6 +93,9 @@
               <primary>true</primary>
             </log>
           </logs>
+          <configuration-dependencies>
+            <config-type>ams-site</config-type>
+          </configuration-dependencies>
         </component>
 
         <component>

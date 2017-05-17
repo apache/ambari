@@ -15,56 +15,64 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
+package org.apache.hadoop.metrics2.sink.timeline;
 
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
-*
-*/
-public class MetricClusterAggregate extends MetricAggregate {
-  private int numberOfHosts;
+ * Represents a collection of minute based aggregation of values for
+ * resolution greater than a minute.
+ */
+public class MetricHostAggregate extends MetricAggregate {
+
+  private long numberOfSamples = 0;
 
   @JsonCreator
-  public MetricClusterAggregate() {
+  public MetricHostAggregate() {
+    super(0.0, 0.0, Double.MIN_VALUE, Double.MAX_VALUE);
   }
 
-  public MetricClusterAggregate(Double sum, int numberOfHosts, Double deviation,
-                         Double max, Double min) {
+  public MetricHostAggregate(Double sum, int numberOfSamples,
+                             Double deviation,
+                             Double max, Double min) {
     super(sum, deviation, max, min);
-    this.numberOfHosts = numberOfHosts;
+    this.numberOfSamples = numberOfSamples;
   }
 
-  @JsonProperty("numberOfHosts")
-  public int getNumberOfHosts() {
-    return numberOfHosts;
+  @JsonProperty("numberOfSamples")
+  public long getNumberOfSamples() {
+    return numberOfSamples == 0 ? 1 : numberOfSamples;
   }
 
-  public void updateNumberOfHosts(int count) {
-    this.numberOfHosts += count;
+  public void updateNumberOfSamples(long count) {
+    this.numberOfSamples += count;
   }
 
-  public void setNumberOfHosts(int numberOfHosts) {
-    this.numberOfHosts = numberOfHosts;
+  public void setNumberOfSamples(long numberOfSamples) {
+    this.numberOfSamples = numberOfSamples;
+  }
+
+  public double calculateAverage() {
+    return sum / numberOfSamples;
   }
 
   /**
    * Find and update min, max and avg for a minute
    */
-  public void updateAggregates(MetricClusterAggregate hostAggregate) {
+  public void updateAggregates(MetricHostAggregate hostAggregate) {
     updateMax(hostAggregate.getMax());
     updateMin(hostAggregate.getMin());
     updateSum(hostAggregate.getSum());
-    updateNumberOfHosts(hostAggregate.getNumberOfHosts());
+    updateNumberOfSamples(hostAggregate.getNumberOfSamples());
   }
 
   @Override
   public String toString() {
-    return "MetricAggregate{" +
+    return "MetricHostAggregate{" +
       "sum=" + sum +
-      ", numberOfHosts=" + numberOfHosts +
+      ", numberOfSamples=" + numberOfSamples +
       ", deviation=" + deviation +
       ", max=" + max +
       ", min=" + min +

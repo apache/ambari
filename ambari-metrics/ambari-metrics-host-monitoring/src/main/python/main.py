@@ -21,7 +21,7 @@ limitations under the License.
 import logging
 import os
 import sys
-
+import signal
 from ambari_commons.os_utils import remove_file
 
 from core.controller import Controller
@@ -72,6 +72,10 @@ def server_process_main(stop_handler, scmStatus=None):
 
   if scmStatus is not None:
     scmStatus.reportStarted()
+
+  # For some reason this is needed to catch system signals like SIGTERM
+  # TODO fix if possible
+  signal.pause()
 
   #The controller thread finishes when the stop event is signaled
   controller.join()

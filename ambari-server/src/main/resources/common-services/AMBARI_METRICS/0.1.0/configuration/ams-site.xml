@@ -787,4 +787,15 @@
     <value>{{cluster_zookeeper_clientPort}}</value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation</name>
+    <value>false</value>
+    <description>if set to "true" host metrics will be aggregated in memory on each host</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.host.inmemory.aggregation.port</name>
+    <value>61888</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
