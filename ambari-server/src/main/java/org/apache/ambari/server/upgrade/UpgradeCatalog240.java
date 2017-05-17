@@ -182,6 +182,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String EXTENSION_ID_COLUMN = "extension_id";
   protected static final String EXTENSION_LINK_TABLE = "extensionlink";
   protected static final String EXTENSION_LINK_ID_COLUMN = "link_id";
+  protected static final String KAFKA_BROKER_CONFIG = "kafka-broker";
 
   private static final Map<String, Integer> ROLE_ORDER;
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
@@ -381,6 +382,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addManageUserPersistedDataPermission();
     allowClusterOperatorToManageCredentials();
     updateHDFSConfigs();
+    updateKAFKAConfigs();
     updateHIVEConfigs();
     updateAMSConfigs();
     updateClusterEnv();
@@ -1925,6 +1927,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateKAFKAConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("KAFKA") && cluster.getSecurityType() == SecurityType.KERBEROS) {
+            Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER_CONFIG);
+            if (kafkaBroker != null) {
+              String listenersPropertyValue = kafkaBroker.getProperties().get("listeners");
+              if (StringUtils.isNotEmpty(listenersPropertyValue)) {
+                String newListenersPropertyValue = listenersPropertyValue.replaceAll("\\bPLAINTEXT\\b", "PLAINTEXTSASL");
+                updateConfigurationProperties(KAFKA_BROKER_CONFIG, Collections.singletonMap("listeners", newListenersPropertyValue), true, false);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   protected void updateHIVEConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);

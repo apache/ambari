@@ -944,7 +944,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-      "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+      "KAFKA": {"kafka-broker": self.validateKAFKAConfigurations},
       "RANGER": {"admin-properties": self.validateRangerAdminConfigurations,
                  "ranger-env": self.validateRangerConfigurationsEnv}
     }
@@ -1108,19 +1108,30 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def validateKAFKAConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     kafka_broker = properties
     validationItems = []
-
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+ 
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-kafka-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
     prop_name = 'authorizer.class.name'
     prop_val = "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer"
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
       if kafka_broker[prop_name] != prop_val:
         validationItems.append({"config-name": prop_name,
                                 "item": self.getWarnItem(
                                 "If Ranger Kafka Plugin is enabled."\
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
+
+    if self.isSecurityEnabled(services) and 'security.inter.broker.protocol' in properties:
+      interBrokerValue = properties['security.inter.broker.protocol']
+      prop_name = 'listeners'
+      prop_value =  properties[prop_name]
+      if interBrokerValue and interBrokerValue not in prop_value:
+        validationItems.append({"config-name": "listeners",
+                                "item": self.getWarnItem("If kerberos is enabled "\
+                                "{0}  need to contain {1} as one of "\
+                                "the protocol".format(prop_name, interBrokerValue))})
+
 
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 

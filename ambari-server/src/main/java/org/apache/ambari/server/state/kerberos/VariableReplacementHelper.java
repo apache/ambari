@@ -18,18 +18,19 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.inject.Singleton;
-import org.apache.ambari.server.AmbariException;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Singleton;
 
 /**
  * Helper class to provide variable replacement services
@@ -56,6 +57,7 @@ public class VariableReplacementHelper {
     {
       put("each", new EachFunction());
       put("toLower", new ToLowerFunction());
+      put("replace", new ReplaceValue());
       put("append", new AppendFunction());
     }
   };
@@ -233,6 +235,38 @@ public class VariableReplacementHelper {
         return builder.toString();
       }
 
+      return "";
+    }
+  }
+
+  /**
+   * ReplaceValue is a Function implementation that replaces the value in the string
+   * <p/>
+   * This function expects the following arguments (in order) within the args array:
+   * <ol>
+   * <li>regular expression that should be replaced</li>
+   * <li>replacement value for the string</li>
+   * </ol>
+   */
+  private static class ReplaceValue implements Function {
+
+    @Override
+    public String perform(String[] args, String data, Map<String, Map<String, String>> replacementsMap) {
+      if ((args == null) || (args.length != 2)) {
+        throw new IllegalArgumentException("Invalid number of arguments encountered");
+      }
+      if (data != null) {
+        StringBuffer builder = new StringBuffer();
+        String regex = args[0];
+        String replacement = args[1];
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(data);
+        while (matcher.find()) {
+          matcher.appendReplacement(builder, replacement);
+        }
+        matcher.appendTail(builder);
+        return builder.toString();
+      }
       return "";
     }
   }
