@@ -167,6 +167,7 @@ module.exports = App.WizardRoute.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           App.logger.logTimerIfMoreThan(consoleMsg.format(2));
+          wizardStep2Controller.set('wizardController', controller);
           controller.connectOutlet('wizardStep5', controller.get('content'));
         });
       });

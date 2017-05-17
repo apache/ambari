@@ -314,6 +314,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
 
       this.set("hosts", result);
       this.sortHosts(result);
+      this.set('isHostsLoaded', true);
     }
   },
 
@@ -642,5 +643,18 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
       });
     }
     return masterComponents;
-  }
+  },
+
+  getHosts: function () {
+    var result,
+      parentController = this.get('content.controllerName');
+    if (parentController) {
+      result = this._super();
+    } else {
+      result = this.get('hosts').mapProperty('host_name');
+    }
+    return result;
+  },
+
+  clearStepOnExit: Em.K
 });
