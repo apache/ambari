@@ -74,7 +74,7 @@ Get the collection of all currently configured clusters.
         		"href" : "http://your.ambari.server/api/v1/clusters/c1",
         		"Clusters" : {
           			"cluster_name" : "c1",
-          			"version" : "HDP-2.5"
+          			"version" : "HDP-1.2.0"
         		}
       		} 	      		
     	]
