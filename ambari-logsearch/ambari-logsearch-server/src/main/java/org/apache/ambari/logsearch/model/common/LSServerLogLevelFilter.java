@@ -16,33 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.ambari.logsearch.model.common;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @ApiModel
-public class LogfeederFilterData {
+public class LSServerLogLevelFilter {
 
-  @ApiModelProperty
-  private String label;
+  @ApiModelProperty private String label;
+  @ApiModelProperty private List<String> hosts;
+  @ApiModelProperty private List<String> defaultLevels;
+  @ApiModelProperty private List<String> overrideLevels;
+  @ApiModelProperty private Date expiryTime;
 
-  @ApiModelProperty
-  private List<String> hosts = new ArrayList<>();
+  public LSServerLogLevelFilter() {}
 
-  @ApiModelProperty
-  private List<String> defaultLevels = new ArrayList<>();
-
-  @ApiModelProperty
-  private List<String> overrideLevels = new ArrayList<>();
-
-  @ApiModelProperty
-  private String expiryTime;
-
-  public LogfeederFilterData() {
+  public LSServerLogLevelFilter(LogLevelFilter logLevelFilter) {
+    label = logLevelFilter.getLabel();
+    hosts = logLevelFilter.getHosts();
+    defaultLevels = logLevelFilter.getDefaultLevels();
+    overrideLevels = logLevelFilter.getOverrideLevels();
+    expiryTime = logLevelFilter.getExpiryTime();
   }
 
   public String getLabel() {
@@ -77,11 +78,23 @@ public class LogfeederFilterData {
     this.overrideLevels = overrideLevels;
   }
 
-  public String getExpiryTime() {
+  public Date getExpiryTime() {
     return expiryTime;
   }
 
-  public void setExpiryTime(String expiryTime) {
+  public void setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
+  }
+
+  public LogLevelFilter convertToApi() {
+    LogLevelFilter apiFilter = new LogLevelFilter();
+    
+    apiFilter.setLabel(label);
+    apiFilter.setHosts(hosts);
+    apiFilter.setDefaultLevels(defaultLevels);
+    apiFilter.setOverrideLevels(overrideLevels);
+    apiFilter.setExpiryTime(expiryTime);
+    
+    return apiFilter;
   }
 }

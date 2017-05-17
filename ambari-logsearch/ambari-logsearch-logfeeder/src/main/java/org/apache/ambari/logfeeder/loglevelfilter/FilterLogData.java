@@ -17,22 +17,17 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder.logconfig;
+package org.apache.ambari.logfeeder.loglevelfilter;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-/**
- * Read configuration from solr and filter the log
- */
 public enum FilterLogData {
   INSTANCE;
   
@@ -67,20 +62,11 @@ public enum FilterLogData {
     }
     
     String hostName = (String) jsonObj.get(LogFeederConstants.SOLR_HOST);
-    String componentName = (String) jsonObj.get(LogFeederConstants.SOLR_COMPONENT);
+    String logId = (String) jsonObj.get(LogFeederConstants.SOLR_COMPONENT);
     String level = (String) jsonObj.get(LogFeederConstants.SOLR_LEVEL);
-    if (StringUtils.isNotBlank(hostName) && StringUtils.isNotBlank(componentName) && StringUtils.isNotBlank(level)) {
-      LogFeederFilter componentFilter = LogConfigHandler.findComponentFilter(componentName);
-      if (componentFilter == null) {
-        return DEFAULT_VALUE;
-      }
-      List<String> allowedLevels = LogConfigHandler.getAllowedLevels(hostName, componentFilter);
-      if (CollectionUtils.isEmpty(allowedLevels)) {
-        allowedLevels.add(LogFeederConstants.ALL);
-      }
-      return LogFeederUtil.isListContains(allowedLevels, level, false);
-    }
-    else {
+    if (StringUtils.isNotBlank(hostName) && StringUtils.isNotBlank(logId) && StringUtils.isNotBlank(level)) {
+      return LogLevelFilterHandler.isAllowed(hostName, logId, level);
+    } else {
       return DEFAULT_VALUE;
     }
   }

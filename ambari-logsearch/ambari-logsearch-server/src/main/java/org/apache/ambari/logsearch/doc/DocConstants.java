@@ -113,15 +113,15 @@ public class DocConstants {
     public static final String SAVE_USER_CONFIG_OD = "Save user config";
     public static final String DELETE_USER_CONFIG_OD = "Delete user config";
     public static final String GET_USER_CONFIG_OD = "Get user config";
-    public static final String GET_USER_FILTER_OD = "Get user filter";
-    public static final String UPDATE_USER_FILTER_OD = "Update user filter";
     public static final String GET_ALL_USER_NAMES_OD = "Get all user names";
   }
 
   public class ShipperConfigOperationDescriptions {
-    public static final String GET_SERVICE_NAMES = "Get service names";
-    public static final String GET_SHIPPER_CONFIG = "Get shipper config";
-    public static final String SET_SHIPPER_CONFIG = "Set shipper config";
+    public static final String GET_SERVICE_NAMES_OD = "Get service names";
+    public static final String GET_SHIPPER_CONFIG_OD = "Get shipper config";
+    public static final String SET_SHIPPER_CONFIG_OD = "Set shipper config";
+    public static final String GET_LOG_LEVEL_FILTER_OD = "Get log level filter";
+    public static final String UPDATE_LOG_LEVEL_FILTER_OD = "Update log level filter";
   }
 
   public class StatusOperationDescriptions {

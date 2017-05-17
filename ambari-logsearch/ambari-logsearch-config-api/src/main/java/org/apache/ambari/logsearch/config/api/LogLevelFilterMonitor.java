@@ -17,25 +17,28 @@
  * under the License.
  */
 
+/**
+ * Monitors log level filter changes.
+ */
 package org.apache.ambari.logsearch.config.api;
 
-/**
- * Monitors input configuration changes.
- */
-public interface InputConfigMonitor {
-  /**
-   * Notification of a new input configuration.
-   * 
-   * @param serviceName The name of the service for which the input configuration was created.
-   * @param inputConfig The input configuration.
-   * @throws Exception
-   */
-  void loadInputConfigs(String serviceName, String inputConfig) throws Exception;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+
+public interface LogLevelFilterMonitor {
 
   /**
-   * Notification of the removal of an input configuration.
+   * Notification of a new or updated log level filter.
    * 
-   * @param serviceName The name of the service of which's input configuration was removed.
+   * @param logId The log for which the log level filter was created/updated.
+   * @param logLevelFilter The log level filter to apply from now on to the log.
    */
-  void removeInputs(String serviceName);
+  void setLogLevelFilter(String logId, LogLevelFilter logLevelFilter);
+
+  /**
+   * Notification of the removal of a log level filter.
+   * 
+   * @param logId The log of which's log level filter was removed.
+   */
+  void removeLogLevelFilter(String logId);
+
 }

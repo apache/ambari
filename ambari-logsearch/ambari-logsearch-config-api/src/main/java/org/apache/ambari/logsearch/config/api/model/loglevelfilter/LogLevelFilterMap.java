@@ -16,35 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.model.common;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+package org.apache.ambari.logsearch.config.api.model.loglevelfilter;
 
 import java.util.TreeMap;
 
-@ApiModel
-public class LogFeederDataMap {
+public class LogLevelFilterMap {
+  private TreeMap<String, LogLevelFilter> filter;
 
-  @ApiModelProperty
-  private String id;
-
-  @ApiModelProperty
-  private TreeMap<String, LogfeederFilterData> filter;
-
-  public TreeMap<String, LogfeederFilterData> getFilter() {
+  public TreeMap<String, LogLevelFilter> getFilter() {
     return filter;
   }
 
-  public void setFilter(TreeMap<String, LogfeederFilterData> filter) {
+  public void setFilter(TreeMap<String, LogLevelFilter> filter) {
     this.filter = filter;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 }

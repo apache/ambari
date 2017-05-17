@@ -16,32 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.logconfig;
+package org.apache.ambari.logsearch.config.api.model.loglevelfilter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-
-@JsonAutoDetect(getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class LogFeederFilter {
+public class LogLevelFilter {
 
   private String label;
   private List<String> hosts;
   private List<String> defaultLevels;
   private List<String> overrideLevels;
-  private String expiryTime;
+  private Date expiryTime;
 
-  public LogFeederFilter() {
+  public LogLevelFilter() {
     hosts = new ArrayList<String>();
     defaultLevels = new ArrayList<String>();
     overrideLevels = new ArrayList<String>();
@@ -79,11 +68,11 @@ public class LogFeederFilter {
     this.overrideLevels = overrideLevels;
   }
 
-  public String getExpiryTime() {
+  public Date getExpiryTime() {
     return expiryTime;
   }
 
-  public void setExpiryTime(String expiryTime) {
+  public void setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
   }
 
