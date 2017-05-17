@@ -20,21 +20,29 @@ package org.apache.ambari.server.upgrade;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -42,10 +50,12 @@ import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockRunner;
+import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
 import org.junit.After;
@@ -53,8 +63,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -162,5 +174,85 @@ public class UpgradeCatalog251Test {
     Assert.assertEquals(UpgradeCatalog251.HRC_IS_BACKGROUND_COLUMN, captured.getName());
     Assert.assertEquals(Integer.valueOf(0), captured.getDefaultValue());
     Assert.assertEquals(Short.class, captured.getType());
+  }
+
+  @Test
+  public void testExecuteDMLUpdates() throws Exception {
+    Method updateKAFKAConfigs = UpgradeCatalog251.class.getDeclaredMethod("updateKAFKAConfigs");
+
+    UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
+        .addMockedMethod(updateKAFKAConfigs)
+        .createMock();
+
+    Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
+    field.set(upgradeCatalog251, dbAccessor);
+
+    upgradeCatalog251.updateKAFKAConfigs();
+    expectLastCall().once();
+
+    replay(upgradeCatalog251, dbAccessor);
+
+    upgradeCatalog251.executeDMLUpdates();
+
+    verify(upgradeCatalog251, dbAccessor);
+  }
+
+
+  @Test
+  public void testUpdateKAFKAConfigs() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    Map<String, String> initialProperties = Collections.singletonMap("listeners", "PLAINTEXT://localhost:6667,SSL://localhost:6666");
+    Map<String, String> expectedUpdates = Collections.singletonMap("listeners", "PLAINTEXTSASL://localhost:6667,SSL://localhost:6666");
+
+    final Config kafkaBroker = easyMockSupport.createNiceMock(Config.class);
+    expect(kafkaBroker.getProperties()).andReturn(initialProperties).times(1);
+    // Re-entrant test
+    expect(kafkaBroker.getProperties()).andReturn(expectedUpdates).times(1);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).atLeastOnce();
+    expect(mockClusters.getClusters()).andReturn(Collections.singletonMap("normal", mockClusterExpected)).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(kafkaBroker).atLeastOnce();
+    expect(mockClusterExpected.getSecurityType()).andReturn(SecurityType.KERBEROS).atLeastOnce();
+    expect(mockClusterExpected.getServices()).andReturn(Collections.<String, Service>singletonMap("KAFKA", null)).atLeastOnce();
+
+    UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationProperties", String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+
+
+    // upgradeCatalog251.updateConfigurationProperties is only expected to execute once since no changes are
+    // expected when the relevant data have been previously changed
+    upgradeCatalog251.updateConfigurationProperties("kafka-broker", expectedUpdates, true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog251);
+
+    // Execute the first time... upgrading to Ambari 2.4.0
+    upgradeCatalog251.updateKAFKAConfigs();
+
+    // Test reentry... upgrading from Ambari 2.4.0
+    upgradeCatalog251.updateKAFKAConfigs();
+
+    easyMockSupport.verifyAll();
   }
 }
