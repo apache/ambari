@@ -82,7 +82,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     if host_name is None:
         host_name = socket.getfqdn()
 
-    livyuser = LIVYUSER_DEFAULT
+    livyuser = configurations[SMOKEUSER_KEY]
 
     security_enabled = False
     if SECURITY_ENABLED_KEY in configurations:
