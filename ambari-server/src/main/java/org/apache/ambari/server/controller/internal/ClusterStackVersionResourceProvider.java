@@ -55,7 +55,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -169,9 +168,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   private static Configuration configuration;
 
   @Inject
-  private static HostComponentStateDAO hostComponentStateDAO;
-
-  @Inject
   private static RepositoryVersionHelper repoVersionHelper;
 
 
@@ -222,7 +218,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       requestedEntities.add(id);
     } else {
       cluster.getCurrentStackVersion();
-      List<RepositoryVersionEntity> entities = repositoryVersionDAO.findByStack(cluster.getCurrentStackVersion());
+      List<RepositoryVersionEntity> entities = repositoryVersionDAO.findAll();
 
       for (RepositoryVersionEntity entity : entities) {
         requestedEntities.add(entity.getId());

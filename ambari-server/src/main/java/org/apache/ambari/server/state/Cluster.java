@@ -675,11 +675,4 @@ public interface Cluster {
    */
   void addSuspendedUpgradeParameters(Map<String, String> commandParams,
       Map<String, String> roleParams);
-
-  /**
-   * Invalidates any cached effective cluster versions for upgrades.
-   *
-   * @see #getEffectiveClusterVersion()
-   */
-  void invalidateUpgradeEffectiveVersion();
 }

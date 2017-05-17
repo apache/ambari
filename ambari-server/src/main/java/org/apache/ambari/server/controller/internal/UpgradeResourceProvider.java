@@ -80,7 +80,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -105,6 +104,7 @@ import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.commons.collections.CollectionUtils;
@@ -142,17 +142,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
   public static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
   public static final String UPGRADE_FAIL_ON_CHECK_WARNINGS = "Upgrade/fail_on_check_warnings";
-
-  /**
-   * Names that appear in the Upgrade Packs that are used by
-   * {@link org.apache.ambari.server.state.cluster.ClusterImpl#isNonRollingUpgradePastUpgradingStack}
-   * to determine if an upgrade has already changed the version to use.
-   * For this reason, DO NOT CHANGE the name of these since they represent historic values.
-   */
-  public static final String CONST_UPGRADE_GROUP_NAME = "UPDATE_DESIRED_STACK_ID";
-  public static final String CONST_UPGRADE_ITEM_TEXT = "Update Target Stack";
-  public static final String CONST_CUSTOM_COMMAND_NAME = UpdateDesiredStackAction.class.getName();
-
 
   /**
    * Skip slave/client component failures if the tasks are skippable.
@@ -207,11 +196,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
 
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
-
-  /**
-   * The list of supported services put on a command.
-   */
-  public static final String COMMAND_PARAM_SUPPORTED_SERVICES = "supported_services";
 
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
@@ -661,22 +645,37 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Non Rolling Upgrades require a group with name "UPDATE_DESIRED_STACK_ID".
     // This is needed as a marker to indicate which version to use when an upgrade is paused.
     if (pack.getType() == UpgradeType.NON_ROLLING) {
-      boolean foundGroupWithNameUPDATE_DESIRED_STACK_ID = false;
+      boolean foundUpdateDesiredRepositoryIdGrouping = false;
       for (UpgradeGroupHolder group : groups) {
-        if (group.name.equalsIgnoreCase(CONST_UPGRADE_GROUP_NAME)) {
-          foundGroupWithNameUPDATE_DESIRED_STACK_ID = true;
+        if (group.groupClass == UpdateStackGrouping.class) {
+          foundUpdateDesiredRepositoryIdGrouping = true;
           break;
         }
       }
 
-      if (foundGroupWithNameUPDATE_DESIRED_STACK_ID == false) {
-        throw new AmbariException(String.format("NonRolling Upgrade Pack %s requires a Group with name %s",
-            pack.getName(), CONST_UPGRADE_GROUP_NAME));
+      if (!foundUpdateDesiredRepositoryIdGrouping) {
+        throw new AmbariException(String.format(
+            "Express upgrade packs are required to have a group of type %s. The upgrade pack %s is missing this grouping.",
+            "update-stack", pack.getName()));
       }
     }
 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<>();
     RequestStageContainer req = createRequest(upgradeContext);
+
+    UpgradeEntity upgrade = new UpgradeEntity();
+    upgrade.setRepositoryVersion(upgradeContext.getRepositoryVersion());
+    upgrade.setClusterId(cluster.getClusterId());
+    upgrade.setDirection(direction);
+    upgrade.setUpgradePackage(pack.getName());
+    upgrade.setUpgradeType(pack.getType());
+    upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
+    upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
+    upgrade.setDowngradeAllowed(upgradeContext.isDowngradeAllowed());
+
+    // create to/from history for this upgrade - this should be done before any
+    // possible changes to the desired version for components
+    addComponentHistoryToUpgrade(cluster, upgrade, upgradeContext);
 
     /**
     During a Rolling Upgrade, change the desired Stack Id if jumping across
@@ -761,56 +760,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
     }
 
-    UpgradeEntity entity = new UpgradeEntity();
-    entity.setRepositoryVersion(upgradeContext.getRepositoryVersion());
-    entity.setUpgradeGroups(groupEntities);
-    entity.setClusterId(cluster.getClusterId());
-    entity.setDirection(direction);
-    entity.setUpgradePackage(pack.getName());
-    entity.setUpgradeType(pack.getType());
-    entity.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
-    entity.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
-
-    if (upgradeContext.getDirection().isDowngrade()) {
-      // !!! You can't downgrade a Downgrade, no matter what the upgrade pack says.
-      entity.setDowngradeAllowed(false);
-    } else {
-      entity.setDowngradeAllowed(pack.isDowngradeAllowed());
-    }
-
-    // set upgrade history for every component in the upgrade
-    Set<String> services = upgradeContext.getSupportedServices();
-    for (String serviceName : services) {
-      Service service = cluster.getService(serviceName);
-      Map<String, ServiceComponent> componentMap = service.getServiceComponents();
-      for (ServiceComponent component : componentMap.values()) {
-        UpgradeHistoryEntity history = new UpgradeHistoryEntity();
-        history.setUpgrade(entity);
-        history.setServiceName(serviceName);
-        history.setComponentName(component.getName());
-
-        // depending on whether this is an upgrade or a downgrade, the history
-        // will be different
-        if (upgradeContext.getDirection() == Direction.UPGRADE) {
-          history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
-          history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
-        } else {
-          // the target version on a downgrade is the original version that the
-          // service was on in the failed upgrade
-          RepositoryVersionEntity targetRepositoryVersion =
-              upgradeContext.getTargetRepositoryVersion(serviceName);
-
-          history.setFromRepositoryVersion(upgradeContext.getRepositoryVersion());
-          history.setTargetRepositoryVersion(targetRepositoryVersion);
-        }
-
-        // add the history
-        entity.addHistory(history);
-      }
-    }
+    // set all of the groups we just created
+    upgrade.setUpgradeGroups(groupEntities);
 
     req.getRequestStatusResponse();
-    return createUpgradeInsideTransaction(cluster, req, entity);
+    return createUpgradeInsideTransaction(cluster, req, upgrade);
   }
 
   /**
@@ -1418,7 +1372,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> commandParams = getNewParameterMap(request, context);
     commandParams.put(UpgradeContext.COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
-    commandParams.put(COMMAND_PARAM_SUPPORTED_SERVICES, StringUtils.join(context.getSupportedServices(), ','));
 
     // Notice that this does not apply any params because the input does not specify a stage.
     // All of the other actions do use additional params.
@@ -1642,6 +1595,50 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeOrDowngradeForCluster(cluster.getClusterId());
       lastUpgradeItemForCluster.setSuspended(false);
       s_upgradeDAO.merge(lastUpgradeItemForCluster);
+    }
+  }
+
+  /**
+   * Creates the {@link UpgradeHistoryEntity} instances for this upgrade for
+   * every component participating.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param upgrade
+   *          the upgrade to add the entities to (not {@code null}).
+   * @param upgradeContext
+   *          the upgrade context for this upgrade (not {@code null}).
+   */
+  private void addComponentHistoryToUpgrade(Cluster cluster, UpgradeEntity upgrade,
+      UpgradeContext upgradeContext) throws AmbariException {
+    Set<String> services = upgradeContext.getSupportedServices();
+    for (String serviceName : services) {
+      Service service = cluster.getService(serviceName);
+      Map<String, ServiceComponent> componentMap = service.getServiceComponents();
+      for (ServiceComponent component : componentMap.values()) {
+        UpgradeHistoryEntity history = new UpgradeHistoryEntity();
+        history.setUpgrade(upgrade);
+        history.setServiceName(serviceName);
+        history.setComponentName(component.getName());
+
+        // depending on whether this is an upgrade or a downgrade, the history
+        // will be different
+        if (upgradeContext.getDirection() == Direction.UPGRADE) {
+          history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
+          history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
+        } else {
+          // the target version on a downgrade is the original version that the
+          // service was on in the failed upgrade
+          RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(
+              serviceName);
+
+          history.setFromRepositoryVersion(upgradeContext.getRepositoryVersion());
+          history.setTargetRepositoryVersion(targetRepositoryVersion);
+        }
+
+        // add the history
+        upgrade.addHistory(history);
+      }
     }
   }
 

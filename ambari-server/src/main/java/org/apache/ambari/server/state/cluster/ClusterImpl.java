@@ -304,13 +304,6 @@ public class ClusterImpl implements Cluster {
    */
   private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
-  /**
-   * A simple cache of the effective cluster version during an upgrade. Since
-   * calculation of this during an upgrade is not very quick or clean, it's good
-   * to cache it.
-   */
-  private final Map<Long, String> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
-
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity, Injector injector,
       AmbariEventPublisher eventPublisher)
@@ -963,14 +956,6 @@ public class ClusterImpl implements Cluster {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setSecurityType(securityType);
     clusterEntity = clusterDAO.merge(clusterEntity);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void invalidateUpgradeEffectiveVersion() {
-    upgradeEffectiveVersionCache.clear();
   }
 
   /**

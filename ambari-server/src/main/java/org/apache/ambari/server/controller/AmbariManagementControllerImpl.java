@@ -3991,7 +3991,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     RepositoryVersionEntity desiredRepositoryVersion = null;
 
     RequestOperationLevel operationLevel = actionExecContext.getOperationLevel();
-    if (null != operationLevel) {
+    if (null != operationLevel && null != operationLevel.getServiceName()) {
       Service service = cluster.getService(operationLevel.getServiceName());
       if (null != service) {
         desiredRepositoryVersion = service.getDesiredRepositoryVersion();

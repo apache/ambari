@@ -231,7 +231,7 @@
       <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
-          <function>unlink_all_configs</function>
+          <function>foo_function</function>
         </task>
       </execute-stage>
     </group>

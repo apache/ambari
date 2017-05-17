@@ -299,8 +299,6 @@ public class ComponentVersionCheckActionTest {
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
@@ -367,8 +365,6 @@ public class ComponentVersionCheckActionTest {
     // now finalize and ensure we can transition from UPGRADING to UPGRADED
     // automatically before CURRENT
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
@@ -434,8 +430,6 @@ public class ComponentVersionCheckActionTest {
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");

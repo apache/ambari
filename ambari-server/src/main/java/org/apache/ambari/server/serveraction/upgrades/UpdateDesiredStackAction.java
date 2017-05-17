@@ -61,22 +61,6 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredStackAction.class);
 
-  public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
-  public static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
-
-  /**
-   * The original "current" stack of the cluster before the upgrade started.
-   * This is the same regardless of whether the current direction is
-   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
-
-  /**
-   * The target upgrade stack before the upgrade started. This is the same
-   * regardless of whether the current direction is {@link Direction#UPGRADE} or
-   * {@link Direction#DOWNGRADE}.
-   */
-  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
 
   /**
    * The Cluster that this ServerAction implementation is executing on.
@@ -117,9 +101,6 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
       userName = m_configuration.getAnonymousAuditName();
       LOG.warn(String.format("Did not receive role parameter %s, will save configs using anonymous username %s", ServerAction.ACTION_USER_NAME, userName));
     }
-
-    // invalidate any cached effective ID
-    cluster.invalidateUpgradeEffectiveVersion();
 
     return updateDesiredRepositoryVersion(cluster, upgradeContext, userName);
   }

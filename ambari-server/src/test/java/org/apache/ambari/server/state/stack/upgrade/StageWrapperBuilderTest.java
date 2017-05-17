@@ -100,7 +100,7 @@ public class StageWrapperBuilderTest extends EasyMockSupport {
     EasyMock.expect(repoVersionDAO.findByStackNameAndVersion(EasyMock.anyString(),
         EasyMock.anyString())).andReturn(repoVersionEntity).anyTimes();
 
-    UpgradeContext upgradeContext = EasyMock.createNiceMock(UpgradeContext.class);
+    UpgradeContext upgradeContext = createNiceMock(UpgradeContext.class);
     EasyMock.expect(upgradeContext.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(upgradeContext.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
     EasyMock.expect(upgradeContext.getDirection()).andReturn(Direction.UPGRADE).anyTimes();

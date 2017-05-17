@@ -643,7 +643,7 @@ public class UpgradeCatalog200Test {
         clusterEntity, HOST_NAME);
 
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
-        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity);
+        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", repositoryVersion);
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         clusterEntity.getClusterId(), "NAGIOS", "NAGIOS_SERVER");

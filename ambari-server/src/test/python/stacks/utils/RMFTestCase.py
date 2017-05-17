@@ -381,5 +381,15 @@ class CallFunctionMock():
       result = other(*self.args, **self.kwargs)
       return self.call_result == result
     return False
-      
+
+def experimental_mock(*args, **kwargs):
+  """
+  Used to disable experimental mocks...
+  :return: 
+  """
+  def decorator(function):
+    def wrapper(*args, **kwargs):
+      return function(*args, **kwargs)
+    return wrapper
+  return decorator
 

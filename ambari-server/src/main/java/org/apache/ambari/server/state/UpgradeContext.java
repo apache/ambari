@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.state;
 
-import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_CLUSTER_NAME;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_DIRECTION;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_FAIL_ON_CHECK_WARNINGS;
 import static org.apache.ambari.server.controller.internal.UpgradeResourceProvider.UPGRADE_HOST_ORDERED_HOSTS;
@@ -114,11 +113,6 @@ public class UpgradeContext {
    * The type of upgrade.
    */
   final private UpgradeType m_type;
-
-  /**
-   * The request parameters from the REST API for creating this upgrade.
-   */
-  final private Map<String, Object> m_upgradeRequestMap;
 
   /**
    * The upgrade pack for this upgrade.
@@ -247,10 +241,9 @@ public class UpgradeContext {
     m_repoVersionDAO = repoVersionDAO;
 
     m_cluster = cluster;
-    m_upgradeRequestMap = upgradeRequestMap;
 
     // determine direction
-    String directionProperty = (String) m_upgradeRequestMap.get(UPGRADE_DIRECTION);
+    String directionProperty = (String) upgradeRequestMap.get(UPGRADE_DIRECTION);
     if (StringUtils.isEmpty(directionProperty)) {
       throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
     }
@@ -258,10 +251,10 @@ public class UpgradeContext {
     m_direction = Direction.valueOf(directionProperty);
 
     // determine upgrade type (default is ROLLING)
-    String upgradeTypeProperty = (String) m_upgradeRequestMap.get(UPGRADE_TYPE);
+    String upgradeTypeProperty = (String) upgradeRequestMap.get(UPGRADE_TYPE);
     if (StringUtils.isNotBlank(upgradeTypeProperty)) {
       try {
-        m_type = UpgradeType.valueOf(m_upgradeRequestMap.get(UPGRADE_TYPE).toString());
+        m_type = UpgradeType.valueOf(upgradeRequestMap.get(UPGRADE_TYPE).toString());
       } catch (Exception e) {
         throw new AmbariException(String.format("Property %s has an incorrect value of %s.",
             UPGRADE_TYPE, upgradeTypeProperty));
@@ -274,7 +267,7 @@ public class UpgradeContext {
     // depending on the direction, we must either have a target repository or an upgrade we are downgrading from
     switch(m_direction){
       case UPGRADE:{
-        String repositoryVersionId = (String) m_upgradeRequestMap.get(UPGRADE_REPO_VERSION_ID);
+        String repositoryVersionId = (String) upgradeRequestMap.get(UPGRADE_REPO_VERSION_ID);
         if (null == repositoryVersionId) {
           throw new AmbariException(
               String.format("The property %s is required when the upgrade direction is %s",
@@ -340,7 +333,7 @@ public class UpgradeContext {
      * For the unit tests tests, there are multiple upgrade packs for the same
      * type, so allow picking one of them. In prod, this is empty.
      */
-    String preferredUpgradePackName = (String) m_upgradeRequestMap.get(UPGRADE_PACK);
+    String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
 
     @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES, comment="This is wrong")
     String upgradePackFromVersion = cluster.getService(
@@ -352,7 +345,8 @@ public class UpgradeContext {
 
     // the validator will throw an exception if the upgrade request is not valid
     UpgradeRequestValidator upgradeRequestValidator = buildValidator(m_type);
-    upgradeRequestValidator.validate(this);
+    upgradeRequestValidator.validate(cluster, m_direction, m_type, m_upgradePack,
+        upgradeRequestMap);
 
     // optionally skip failures - this can be supplied on either the request or
     // in the upgrade pack explicitely, however the request will always override
@@ -361,21 +355,21 @@ public class UpgradeContext {
     boolean skipServiceCheckFailures = m_upgradePack.isServiceCheckFailureAutoSkipped();
 
     // only override the upgrade pack if set on the request
-    if (m_upgradeRequestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
+    if (upgradeRequestMap.containsKey(UPGRADE_SKIP_FAILURES)) {
       skipComponentFailures = Boolean.parseBoolean(
-          (String) m_upgradeRequestMap.get(UPGRADE_SKIP_FAILURES));
+          (String) upgradeRequestMap.get(UPGRADE_SKIP_FAILURES));
     }
 
     // only override the upgrade pack if set on the request
-    if (m_upgradeRequestMap.containsKey(UPGRADE_SKIP_SC_FAILURES)) {
+    if (upgradeRequestMap.containsKey(UPGRADE_SKIP_SC_FAILURES)) {
       skipServiceCheckFailures = Boolean.parseBoolean(
-          (String) m_upgradeRequestMap.get(UPGRADE_SKIP_SC_FAILURES));
+          (String) upgradeRequestMap.get(UPGRADE_SKIP_SC_FAILURES));
     }
 
     boolean skipManualVerification = false;
-    if (m_upgradeRequestMap.containsKey(UPGRADE_SKIP_MANUAL_VERIFICATION)) {
+    if (upgradeRequestMap.containsKey(UPGRADE_SKIP_MANUAL_VERIFICATION)) {
       skipManualVerification = Boolean.parseBoolean(
-          (String) m_upgradeRequestMap.get(UPGRADE_SKIP_MANUAL_VERIFICATION));
+          (String) upgradeRequestMap.get(UPGRADE_SKIP_MANUAL_VERIFICATION));
     }
 
     m_autoSkipComponentFailures = skipComponentFailures;
@@ -423,22 +417,6 @@ public class UpgradeContext {
     m_upgradePack = packs.get(upgradePackage);
 
     m_resolver = new MasterHostResolver(configHelper, this);
-
-    // since this constructor is initialized from an entity, then this map is
-    // not present
-    m_upgradeRequestMap = Collections.emptyMap();
-  }
-
-
-  /**
-   * Gets the original mapping of key/value pairs from the request which created
-   * the upgrade.
-   *
-   * @return the original mapping of key/value pairs from the request which
-   *         created the upgrade.
-   */
-  public Map<String, Object> getUpgradeRequest() {
-    return m_upgradeRequestMap;
   }
 
   /**
@@ -752,6 +730,22 @@ public class UpgradeContext {
   }
 
   /**
+   * Gets whether a downgrade is allowed for this upgrade. If the direction is
+   * {@link Direction#DOWNGRADE}, then this method always returns false.
+   * Otherwise it will consule {@link UpgradePack#isDowngradeAllowed()}.
+   *
+   * @return {@code true} of a downgrade is allowed for this upgrade,
+   *         {@code false} otherwise.
+   */
+  public boolean isDowngradeAllowed() {
+    if (m_direction == Direction.DOWNGRADE) {
+      return false;
+    }
+
+    return m_upgradePack.isDowngradeAllowed();
+  }
+
+  /**
    * Builds a chain of {@link UpgradeRequestValidator}s to ensure that the
    * incoming request to create a new upgrade is valid.
    *
@@ -805,19 +799,22 @@ public class UpgradeContext {
     /**
      * Validates the upgrade request from this point in the chain.
      *
-     * @param upgradeContext
+     * @param cluster
+     * @param direction
+     * @param type
      * @param upgradePack
+     * @param requestMap
      * @throws AmbariException
      */
-    final void validate(UpgradeContext upgradeContext)
-        throws AmbariException {
+    final void validate(Cluster cluster, Direction direction, UpgradeType type,
+        UpgradePack upgradePack, Map<String, Object> requestMap) throws AmbariException {
 
       // run this instance's check
-      check(upgradeContext, upgradeContext.getUpgradePack());
+      check(cluster, direction, type, upgradePack, requestMap);
 
       // pass along to the next
       if( null != m_nextValidator ) {
-        m_nextValidator.validate(upgradeContext);
+        m_nextValidator.validate(cluster, direction, type, upgradePack, requestMap);
       }
     }
 
@@ -825,13 +822,15 @@ public class UpgradeContext {
      * Checks to ensure that upgrade request is valid given the specific
      * arguments.
      *
-     * @param upgradeContext
+     * @param cluster
+     * @param direction
+     * @param type
      * @param upgradePack
-     *
+     * @param requestMap
      * @throws AmbariException
      */
-    abstract void check(UpgradeContext upgradeContext, UpgradePack upgradePack)
-        throws AmbariException;
+    abstract void check(Cluster cluster, Direction direction, UpgradeType type,
+        UpgradePack upgradePack, Map<String, Object> requestMap) throws AmbariException;
   }
 
   /**
@@ -844,22 +843,10 @@ public class UpgradeContext {
      * {@inheritDoc}
      */
     @Override
-    public void check(UpgradeContext upgradeContext, UpgradePack upgradePack)
-        throws AmbariException {
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
+    public void check(Cluster cluster, Direction direction, UpgradeType type,
+        UpgradePack upgradePack, Map<String, Object> requestMap) throws AmbariException {
 
-      String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
-      String direction = (String) requestMap.get(UPGRADE_DIRECTION);
-
-      if (StringUtils.isBlank(clusterName)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
-      }
-
-      if (StringUtils.isBlank(direction)) {
-        throw new AmbariException(String.format("%s is required", UPGRADE_DIRECTION));
-      }
-
-      if (Direction.valueOf(direction) == Direction.UPGRADE) {
+      if (direction == Direction.UPGRADE) {
         String repositoryVersionId = (String) requestMap.get(UPGRADE_REPO_VERSION_ID);
         if (StringUtils.isBlank(repositoryVersionId)) {
           throw new AmbariException(
@@ -878,11 +865,8 @@ public class UpgradeContext {
      * {@inheritDoc}
      */
     @Override
-    void check(UpgradeContext upgradeContext, UpgradePack upgradePack) throws AmbariException {
-      Cluster cluster = upgradeContext.getCluster();
-      Direction direction = upgradeContext.getDirection();
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
-      UpgradeType upgradeType = upgradeContext.getType();
+    void check(Cluster cluster, Direction direction, UpgradeType type, UpgradePack upgradePack,
+        Map<String, Object> requestMap) throws AmbariException {
 
       String repositoryVersionId = (String) requestMap.get(UPGRADE_REPO_VERSION_ID);
       boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
@@ -913,7 +897,7 @@ public class UpgradeContext {
       Predicate preUpgradeCheckPredicate = new PredicateBuilder().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).equals(cluster.getClusterName()).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).equals(repositoryVersion.getVersion()).and().property(
-          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(upgradeType).and().property(
+          PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).equals(type).and().property(
           PreUpgradeCheckResourceProvider.UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID).equals(preferredUpgradePack).toPredicate();
 
       Request preUpgradeCheckRequest = PropertyHelper.getReadRequest();
@@ -960,10 +944,8 @@ public class UpgradeContext {
      * {@inheritDoc}
      */
     @Override
-    void check(UpgradeContext upgradeContext, UpgradePack upgradePack) throws AmbariException {
-      Cluster cluster = upgradeContext.getCluster();
-      Direction direction = upgradeContext.getDirection();
-      Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
+    void check(Cluster cluster, Direction direction, UpgradeType type, UpgradePack upgradePack,
+        Map<String, Object> requestMap) throws AmbariException {
 
       String skipFailuresRequestProperty = (String) requestMap.get(UPGRADE_SKIP_FAILURES);
       if (Boolean.parseBoolean(skipFailuresRequestProperty)) {
@@ -1020,56 +1002,56 @@ public class UpgradeContext {
         }
       }
     }
-  }
 
-  /**
-   * Builds the list of {@link HostOrderItem}s from the upgrade request. If the
-   * upgrade request does not contain the hosts
-   *
-   * @param requestMap
-   *          the map of properties from the request (not {@code null}).
-   * @return the ordered list of actions to orchestrate for the
-   *         {@link UpgradeType#HOST_ORDERED} upgrade.
-   * @throws AmbariException
-   *           if the request properties are not valid.
-   */
-  @SuppressWarnings("unchecked")
-  private List<HostOrderItem> extractHostOrderItemsFromRequest(Map<String, Object> requestMap)
-      throws AmbariException {
-    // ewwww
-    Set<Map<String, List<String>>> hostsOrder = (Set<Map<String, List<String>>>) requestMap.get(
-        UPGRADE_HOST_ORDERED_HOSTS);
+    /**
+     * Builds the list of {@link HostOrderItem}s from the upgrade request. If
+     * the upgrade request does not contain the hosts
+     *
+     * @param requestMap
+     *          the map of properties from the request (not {@code null}).
+     * @return the ordered list of actions to orchestrate for the
+     *         {@link UpgradeType#HOST_ORDERED} upgrade.
+     * @throws AmbariException
+     *           if the request properties are not valid.
+     */
+    private List<HostOrderItem> extractHostOrderItemsFromRequest(Map<String, Object> requestMap)
+        throws AmbariException {
+      // ewwww
+      Set<Map<String, List<String>>> hostsOrder = (Set<Map<String, List<String>>>) requestMap.get(
+          UPGRADE_HOST_ORDERED_HOSTS);
 
-    if (CollectionUtils.isEmpty(hostsOrder)) {
-      throw new AmbariException(
-          String.format("The %s property must be specified when using a %s upgrade type.",
-              UPGRADE_HOST_ORDERED_HOSTS, UpgradeType.HOST_ORDERED));
+      if (CollectionUtils.isEmpty(hostsOrder)) {
+        throw new AmbariException(
+            String.format("The %s property must be specified when using a %s upgrade type.",
+                UPGRADE_HOST_ORDERED_HOSTS, UpgradeType.HOST_ORDERED));
+      }
+
+      List<HostOrderItem> hostOrderItems = new ArrayList<>();
+
+      // extract all of the hosts so that we can ensure they are all accounted
+      // for
+      Iterator<Map<String, List<String>>> iterator = hostsOrder.iterator();
+      while (iterator.hasNext()) {
+        Map<String, List<String>> grouping = iterator.next();
+        List<String> hosts = grouping.get("hosts");
+        List<String> serviceChecks = grouping.get("service_checks");
+
+        if (CollectionUtils.isEmpty(hosts) && CollectionUtils.isEmpty(serviceChecks)) {
+          throw new AmbariException(String.format(
+              "The %s property must contain at least one object with either a %s or %s key",
+              UPGRADE_HOST_ORDERED_HOSTS, "hosts", "service_checks"));
+        }
+
+        if (CollectionUtils.isNotEmpty(hosts)) {
+          hostOrderItems.add(new HostOrderItem(HostOrderActionType.HOST_UPGRADE, hosts));
+        }
+
+        if (CollectionUtils.isNotEmpty(serviceChecks)) {
+          hostOrderItems.add(new HostOrderItem(HostOrderActionType.SERVICE_CHECK, serviceChecks));
+        }
+      }
+
+      return hostOrderItems;
     }
-
-    List<HostOrderItem> hostOrderItems = new ArrayList<>();
-
-    // extract all of the hosts so that we can ensure they are all accounted for
-    Iterator<Map<String, List<String>>> iterator = hostsOrder.iterator();
-    while (iterator.hasNext()) {
-      Map<String, List<String>> grouping = iterator.next();
-      List<String> hosts = grouping.get("hosts");
-      List<String> serviceChecks = grouping.get("service_checks");
-
-      if (CollectionUtils.isEmpty(hosts) && CollectionUtils.isEmpty(serviceChecks)) {
-        throw new AmbariException(String.format(
-            "The %s property must contain at least one object with either a %s or %s key",
-            UPGRADE_HOST_ORDERED_HOSTS, "hosts", "service_checks"));
-      }
-
-      if (CollectionUtils.isNotEmpty(hosts)) {
-        hostOrderItems.add(new HostOrderItem(HostOrderActionType.HOST_UPGRADE, hosts));
-      }
-
-      if (CollectionUtils.isNotEmpty(serviceChecks)) {
-        hostOrderItems.add(new HostOrderItem(HostOrderActionType.SERVICE_CHECK, serviceChecks));
-      }
-    }
-
-    return hostOrderItems;
   }
 }

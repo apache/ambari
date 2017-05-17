@@ -75,7 +75,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
@@ -363,7 +362,8 @@ public class UpgradeActionTest {
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetRepo + "'}"
         + "], 'OperatingSystems/os_type':'redhat6'}]";
-    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
+
+    m_helper.getOrCreateRepositoryVersion(new StackId(stackEntityTarget), targetRepo);
 
     // Start upgrading the newer repo
 
@@ -426,11 +426,6 @@ public class UpgradeActionTest {
     Assert.assertFalse(configs.isEmpty());
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_ORIGINAL_STACK, sourceStack.getStackId());
-    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_TARGET_STACK, targetStack.getStackId());
-    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_DIRECTION, Direction.UPGRADE.toString());
-    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_UPGRADE_PACK, upgradePackName);
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     Map<String, String> roleParams = new HashMap<>();
@@ -476,8 +471,6 @@ public class UpgradeActionTest {
     createUpgrade(cluster, repositoryVersion2111);
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -527,8 +520,6 @@ public class UpgradeActionTest {
     createUpgrade(cluster, repositoryVersion2202);
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -565,8 +556,6 @@ public class UpgradeActionTest {
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -624,7 +613,6 @@ public class UpgradeActionTest {
 
     // Finalize the upgrade
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
 
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
@@ -661,8 +649,6 @@ public class UpgradeActionTest {
     createUpgrade(cluster, repositoryVersion2201);
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -732,8 +718,6 @@ public class UpgradeActionTest {
     assertEquals(8, configs.size());
 
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);
@@ -832,8 +816,6 @@ public class UpgradeActionTest {
     // now finalize and ensure we can transition from UPGRADING to UPGRADED
     // automatically before CURRENT
     Map<String, String> commandParams = new HashMap<>();
-    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-
     ExecutionCommand executionCommand = new ExecutionCommand();
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName(clusterName);

@@ -65,6 +65,7 @@ import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -825,11 +827,16 @@ public class UpgradeCatalog210Test {
     clusterEntity.setClusterStateEntity(clusterStateEntity);
     clusterDAO.merge(clusterEntity);
 
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        desiredStackEntity, desiredRepositoryVersion);
+
     ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
     componentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName("STORM_REST_API");
+    componentDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersion);
 
     ServiceComponentDesiredStateDAO componentDesiredStateDAO =
       injector.getInstance(ServiceComponentDesiredStateDAO.class);

@@ -75,7 +75,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
   private AmbariMetaInfo ambariMetaInfo;
 
   @Inject
-  VersionEventPublisher versionEventPublisher;
+  private VersionEventPublisher versionEventPublisher;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
@@ -240,7 +240,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             downgradeFromVersion, StringUtils.join(servicesInUpgrade, ','));
       }
 
-      outSB.append(message).append(System.lineSeparator());
       outSB.append(message).append(System.lineSeparator());
 
       // iterate through all host components and make sure that they are on the

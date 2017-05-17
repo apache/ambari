@@ -32,10 +32,6 @@ import com.google.inject.Inject;
  */
 public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
 
-  public static final String CLUSTER_NAME_KEY = UpgradeContext.COMMAND_PARAM_CLUSTER_NAME;
-  public static final String UPGRADE_DIRECTION_KEY = UpgradeContext.COMMAND_PARAM_DIRECTION;
-  protected static final String REQUEST_ID = UpgradeContext.COMMAND_PARAM_REQUEST_ID;
-
   @Inject
   protected Clusters m_clusters;
 
