@@ -51,6 +51,7 @@ App.MainController = Em.Controller.extend({
     App.store.defaultTransaction.reopen({
       removeCleanRecords: Em.K
     });
+    App.StompClient.connect();
     App.router.get('clusterController').loadClusterData();
   },
 

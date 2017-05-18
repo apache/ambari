@@ -28,10 +28,10 @@ module.exports = Em.Object.extend({
    * TODO set actual url
    * @type string
    */
-  webSocketUrl: 'ws://localhost:11080/stomp',
+  webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1',
 
   //TODO set actual url
-  sockJsUrl: 'http://localhost:11080/stomp',
+  sockJsUrl: 'http://{hostname}:8080/api/stomp/v1',
 
   /**
    * @type {boolean}
@@ -54,11 +54,7 @@ module.exports = Em.Object.extend({
    * default headers
    * @type {object}
    */
-  headers: {
-    "Authorization": "Basic " + btoa("admin:admin"),
-    "correlationId": 1,
-    "content-type": "text/plain"
-  },
+  headers: {},
 
   connect: function(useSockJS) {
     const dfd = $.Deferred();
@@ -84,11 +80,12 @@ module.exports = Em.Object.extend({
    * @returns {*}
    */
   getSocket: function(useSockJS) {
+    const hostname = window.location.hostname;
     if (!WebSocket || useSockJS) {
       this.set('isWebSocketSupported', false);
-      return new SockJS(this.get('sockJsUrl'));
+      return new SockJS(this.get('sockJsUrl').replace('{hostname}', hostname));
     } else {
-      return new WebSocket(this.get('webSocketUrl'));
+      return new WebSocket(this.get('webSocketUrl').replace('{hostname}', hostname));
     }
   },
 

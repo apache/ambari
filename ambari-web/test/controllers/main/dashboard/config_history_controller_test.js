@@ -131,28 +131,31 @@ describe('MainConfigHistoryController', function () {
     });
   });
 
-  describe('#doPolling()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'load', function(){
-        return {done: Em.K};
-      });
-      this.clock = sinon.useFakeTimers();
+  describe('#subscribeToUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'subscribe');
     });
-    afterEach(function () {
-      this.clock.restore();
-      controller.load.restore();
+    afterEach(function() {
+      App.StompClient.subscribe.restore();
     });
-    it('isPolling false', function () {
-      controller.set('isPolling', false);
-      controller.doPolling();
-      this.clock.tick(App.componentsUpdateInterval);
-      expect(controller.load.called).to.be.false;
+
+    it('App.StompClient.subscribe should be called', function() {
+      controller.subscribeToUpdates();
+      expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
     });
-    it('isPolling true', function () {
-      controller.set('isPolling', true);
-      controller.doPolling();
-      this.clock.tick(App.componentsUpdateInterval);
-      expect(controller.load.calledOnce).to.be.true;
+  });
+
+  describe('#unsubscribeOfUpdates', function() {
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'unsubscribe');
+    });
+    afterEach(function() {
+      App.StompClient.unsubscribe.restore();
+    });
+
+    it('App.StompClient.subscribe should be called', function() {
+      controller.unsubscribeOfUpdates();
+      expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
     });
   });
 });
