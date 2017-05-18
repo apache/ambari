@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -420,29 +422,14 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-
       String desiredStack = request.getDesiredStack();
-      String desiredRepositoryVersion = request.getDesiredRepositoryVersion();
-      RepositoryVersionEntity repositoryVersion = null;
-      if (StringUtils.isNotBlank(desiredStack) && StringUtils.isNotBlank(desiredRepositoryVersion)){
-        repositoryVersion = repositoryVersionDAO.findByStackAndVersion(new StackId(desiredStack),
-            desiredRepositoryVersion);
-      }
 
-      if (null == desiredStack) {
-        desiredStack = cluster.getDesiredStackVersion().toString();
-      }
-
-      if (null == repositoryVersion) {
-        List<RepositoryVersionEntity> allVersions = repositoryVersionDAO.findByStack(new StackId(desiredStack));
-
-        if (CollectionUtils.isNotEmpty(allVersions)) {
-          repositoryVersion = allVersions.get(0);
-        }
-      }
+      RepositoryVersionEntity repositoryVersion = request.getResolvedRepository();
 
       if (null == repositoryVersion) {
         throw new AmbariException(String.format("Could not find any repositories defined by %s", desiredStack));
+      } else {
+        desiredStack = repositoryVersion.getStackId().toString();
       }
 
       Service s = cluster.addService(request.getServiceName(), repositoryVersion);
@@ -451,7 +438,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
        * Get the credential_store_supported field only from the stack definition.
        * Not possible to update the value through a request.
        */
-      StackId stackId = cluster.getDesiredStackVersion();
+      StackId stackId = repositoryVersion.getStackId();
       AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), request.getServiceName());
@@ -621,6 +608,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (!serviceNames.containsKey(request.getClusterName())) {
         serviceNames.put(request.getClusterName(), new HashSet<String>());
       }
+
       if (serviceNames.get(request.getClusterName())
           .contains(request.getServiceName())) {
         // TODO throw single exception
@@ -746,6 +734,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           }
         }
       }
+
       for (Service service : depServices) {
         updateServiceComponents(requestStages, changedComps, changedScHosts,
           ignoredScHosts, reqOpLvl, service, State.STARTED);
@@ -766,6 +755,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       Boolean credentialStoreEnabled = serviceCredential.getValue();
       service.setCredentialStoreEnabled(credentialStoreEnabled);
     }
+
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
@@ -877,7 +867,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               + ", hostname=" + sch.getHostName()
               + ", currentState=" + oldSchState
               + ", newDesiredState=" + newState;
-          StackId sid = cluster.getDesiredStackVersion();
+          StackId sid = service.getDesiredStackId();
 
           if ( ambariMetaInfo.getComponent(
               sid.getStackName(), sid.getStackVersion(), sc.getServiceName(),
@@ -1050,6 +1040,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
     Map<String, Set<String>> serviceNames = new HashMap<>();
     Set<String> duplicates = new HashSet<>();
+
     for (ServiceRequest request : requests) {
       final String clusterName = request.getClusterName();
       final String serviceName = request.getServiceName();
@@ -1102,7 +1093,38 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // Expected
       }
 
-      StackId stackId = cluster.getDesiredStackVersion();
+      @Experimental(feature = ExperimentalFeature.MULTI_SERVICE,
+          comment = "the desired stack should not come from the cluster.  this is a placeholder until the UI sends correct information")
+      String desiredStack = request.getDesiredStack();
+      StackId stackId = new StackId(desiredStack);
+
+      String desiredRepositoryVersion = request.getDesiredRepositoryVersion();
+      RepositoryVersionEntity repositoryVersion = null;
+      if (StringUtils.isNotBlank(desiredRepositoryVersion)){
+        repositoryVersion = repositoryVersionDAO.findByVersion(desiredRepositoryVersion);
+      }
+
+      if (null == repositoryVersion) {
+        // !!! FIXME hack until the UI always sends the repository
+        if (null == desiredStack) {
+          desiredStack = cluster.getDesiredStackVersion().toString();
+        }
+
+        List<RepositoryVersionEntity> allVersions = repositoryVersionDAO.findByStack(new StackId(desiredStack));
+
+        if (CollectionUtils.isNotEmpty(allVersions)) {
+          repositoryVersion = allVersions.get(0);
+        }
+      }
+
+      if (null == repositoryVersion) {
+        throw new AmbariException(String.format("Could not find any repositories defined by %s", desiredStack));
+      } else {
+        stackId = repositoryVersion.getStackId();
+      }
+
+      request.setResolvedRepository(repositoryVersion);
+
       if (!ambariMetaInfo.isValidService(stackId.getStackName(),
               stackId.getStackVersion(), request.getServiceName())) {
         throw new IllegalArgumentException("Unsupported or invalid service in stack, clusterName=" + clusterName

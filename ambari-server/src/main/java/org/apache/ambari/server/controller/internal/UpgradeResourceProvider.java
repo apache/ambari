@@ -1456,7 +1456,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
-        cluster, null);
+        cluster, context.getRepositoryVersion());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
         cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getClusterHostInfo(),

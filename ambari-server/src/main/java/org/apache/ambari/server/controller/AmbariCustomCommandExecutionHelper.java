@@ -195,12 +195,15 @@ public class AmbariCustomCommandExecutionHelper {
       String serviceName, String componentName, String commandName)
       throws AmbariException {
 
-    Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getDesiredStackVersion();
-
     if (componentName == null) {
       return false;
     }
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service service = cluster.getService(serviceName);
+    ServiceComponent component = service.getServiceComponent(componentName);
+    StackId stackId = component.getDesiredStackId();
+
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
         stackId.getStackName(), stackId.getStackVersion(),
         serviceName, componentName);
@@ -320,12 +323,12 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
-    StackId stackId = cluster.getDesiredStackVersion();
+    Service service = cluster.getService(serviceName);
+    StackId stackId = service.getDesiredStackId();
+
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-    ServiceInfo serviceInfo = ambariMetaInfo.getService(
-        stackId.getStackName(), stackId.getStackVersion(), serviceName);
-    StackInfo stackInfo = ambariMetaInfo.getStack
-       (stackId.getStackName(), stackId.getStackVersion());
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId);
 
     CustomCommandDefinition customCommandDefinition = null;
     ComponentInfo ci = serviceInfo.getComponentByName(componentName);
@@ -691,7 +694,13 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = stage.getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getDesiredStackVersion();
+    Service service = cluster.getService(serviceName);
+    ServiceComponent component = null;
+    if (null != componentName) {
+      component = service.getServiceComponent(componentName);
+    }
+    StackId stackId = (null != component) ? component.getDesiredStackId() : service.getDesiredStackId();
+
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
@@ -1252,7 +1261,7 @@ public class AmbariCustomCommandExecutionHelper {
     }
 
     final CommandRepository command = new CommandRepository();
-    StackId stackId = cluster.getDesiredStackVersion();
+    StackId stackId = component.getDesiredStackId();
     command.setRepositories(repoInfos);
     command.setStackName(stackId.getStackName());
 
@@ -1310,7 +1319,7 @@ public class AmbariCustomCommandExecutionHelper {
     String hostOsFamily = host.getOsFamily();
     String hostName = host.getHostName();
 
-    StackId stackId = cluster.getDesiredStackVersion();
+    StackId stackId = component.getDesiredStackId();
 
     Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
             stackId.getStackName(), stackId.getStackVersion());
@@ -1409,6 +1418,10 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (serviceName != null && componentName != null && null != stackId) {
+        Service service = cluster.getService(serviceName);
+        ServiceComponent component = service.getServiceComponent(componentName);
+        stackId = component.getDesiredStackId();
+
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(
                 stackId.getStackName(), stackId.getStackVersion(),
                 serviceName, componentName);
@@ -1448,8 +1461,8 @@ public class AmbariCustomCommandExecutionHelper {
   }
 
   Map<String, String> createDefaultHostParams(Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    StackId stackId = cluster.getDesiredStackVersion();
-    if (null == stackId && null != repositoryVersion) {
+    StackId stackId = null;
+    if (null != repositoryVersion) {
       stackId = repositoryVersion.getStackId();
     }
 
@@ -1482,6 +1495,7 @@ public class AmbariCustomCommandExecutionHelper {
     for (Map.Entry<String, String> dbConnectorName : configs.getDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(dbConnectorName.getKey(), dbConnectorName.getValue());
     }
+
     for (Map.Entry<String, String> previousDBConnectorName : configs.getPreviousDatabaseConnectorNames().entrySet()) {
       hostLevelParams.put(previousDBConnectorName.getKey(), previousDBConnectorName.getValue());
     }
@@ -1501,9 +1515,18 @@ public class AmbariCustomCommandExecutionHelper {
    */
   public boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
       throws AmbariException {
+
     if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
-      StackId stackId = cluster.getDesiredStackVersion();
+      StackId stackId = null;
+      try {
+        Service service = cluster.getService(serviceName);
+        stackId = service.getDesiredStackId();
+      } catch (AmbariException e) {
+        LOG.debug("Could not load service {}, skipping topology check", serviceName);
+        stackId = cluster.getDesiredStackVersion();
+      }
+
 
       AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 

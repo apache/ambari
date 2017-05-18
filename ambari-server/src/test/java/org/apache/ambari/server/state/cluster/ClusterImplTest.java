@@ -213,8 +213,10 @@ public class ClusterImplTest {
 
     String stackVersion = "HDP-2.1.1";
     String repoVersion = "2.1.1-1234";
+    StackId stackId = new StackId(stackVersion);
+    ormTestHelper.createStack(stackId);
 
-    clusters.addCluster(clusterName, new StackId(stackVersion));
+    clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
     RepositoryVersionEntity repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(
@@ -268,13 +270,13 @@ public class ClusterImplTest {
   @Test
   public void testDeleteHost() throws Exception {
     // Given
-
-
     String clusterName = "TEST_DELETE_HOST";
     String hostName1 = "HOSTNAME1", hostName2 = "HOSTNAME2";
     String hostToDelete = hostName2;
+    StackId stackId = new StackId("HDP-2.1.1");
 
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    ormTestHelper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -305,8 +307,6 @@ public class ClusterImplTest {
     catch(HostNotFoundException e){
 
     }
-
-
   }
 
   @Test
@@ -314,7 +314,9 @@ public class ClusterImplTest {
     // Given
     String clusterName = "TEST_CLUSTER_SIZE";
     String hostName1 = "host1", hostName2 = "host2";
-    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+    StackId stackId = new StackId("HDP", "2.1.1");
+    ormTestHelper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);
     clusters.addHost(hostName1);

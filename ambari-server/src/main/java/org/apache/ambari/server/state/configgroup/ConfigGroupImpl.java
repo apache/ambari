@@ -409,7 +409,7 @@ public class ConfigGroupImpl implements ConfigGroup {
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
-          config = configFactory.createNew(cluster, config.getType(), config.getTag(),
+          config = configFactory.createNew(null, cluster, config.getType(), config.getTag(),
               config.getProperties(), config.getPropertiesAttributes());
 
           entry.setValue(config);

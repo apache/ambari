@@ -199,7 +199,9 @@ public class Stage {
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
     stageEntity.setClusterHostInfo(clusterHostInfo);
     stageEntity.setCommandParamsStage(commandParamsStage);
-    stageEntity.setHostParamsStage(hostParamsStage);
+    if (null != hostParamsStage) {
+      stageEntity.setHostParamsStage(hostParamsStage);
+    }
     stageEntity.setCommandExecutionType(commandExecutionType);
     stageEntity.setStatus(status);
     stageEntity.setDisplayStatus(displayStatus);

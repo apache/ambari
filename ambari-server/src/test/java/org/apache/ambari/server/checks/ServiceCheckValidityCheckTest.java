@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,13 +96,13 @@ public class ServiceCheckValidityCheckTest {
       }
     };
 
-
     Cluster cluster = mock(Cluster.class);
     when(clusters.getCluster(CLUSTER_NAME)).thenReturn(cluster);
     when(cluster.getClusterId()).thenReturn(CLUSTER_ID);
     when(cluster.getServices()).thenReturn(ImmutableMap.of(SERVICE_NAME, service));
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     when(service.getName()).thenReturn(SERVICE_NAME);
+    when(service.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
 
 
     serviceCheckValidityCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {

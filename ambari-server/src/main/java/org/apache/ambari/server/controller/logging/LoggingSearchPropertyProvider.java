@@ -41,6 +41,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.LogDefinition;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
   @Inject
   private LoggingRequestHelperFactory loggingRequestHelperFactory;
-  
+
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws SystemException {
     Map<String, Boolean> isLogSearchRunning = new HashMap<>();
@@ -186,12 +187,13 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
   private String getMappedComponentNameForSearch(String clusterName, String componentName, AmbariManagementController controller) {
     try {
       AmbariMetaInfo metaInfo = controller.getAmbariMetaInfo();
-      StackId stackId =
-        controller.getClusters().getCluster(clusterName).getCurrentStackVersion();
+      Cluster cluster = controller.getClusters().getCluster(clusterName);
+      String serviceName = controller.findServiceName(cluster, componentName);
+      Service service = cluster.getService(serviceName);
+      StackId stackId = service.getDesiredStackId();
+
       final String stackName = stackId.getStackName();
       final String stackVersion = stackId.getStackVersion();
-      final String serviceName =
-        metaInfo.getComponentToService(stackName, stackVersion, componentName);
 
       ComponentInfo componentInfo =
         metaInfo.getComponent(stackName, stackVersion, serviceName, componentName);

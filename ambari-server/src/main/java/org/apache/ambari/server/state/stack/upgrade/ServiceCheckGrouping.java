@@ -180,7 +180,7 @@ public class ServiceCheckGrouping extends Grouping {
         Service svc = clusterServices.get(service);
         if (null != svc) {
           // Services that only have clients such as Pig can still have service check scripts.
-          StackId stackId = m_cluster.getDesiredStackVersion();
+          StackId stackId = svc.getDesiredStackId();
           try {
             ServiceInfo si = m_metaInfo.getService(stackId.getStackName(), stackId.getStackVersion(), service);
             CommandScriptDefinition script = si.getCommandScript();
@@ -201,6 +201,7 @@ public class ServiceCheckGrouping extends Grouping {
    * Attempts to merge all the service check groupings.  This merges the excluded list and
    * the priorities.  The priorities are merged in an order specific manner.
    */
+  @Override
   public void merge(Iterator<Grouping> iterator) throws AmbariException {
     List<String> priorities = new ArrayList<>();
     priorities.addAll(getPriorities());

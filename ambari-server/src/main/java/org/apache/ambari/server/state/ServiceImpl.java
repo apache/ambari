@@ -161,7 +161,7 @@ public class ServiceImpl implements Service {
                 serviceComponentFactory.createExisting(this,
                     serviceComponentDesiredStateEntity));
           } catch(ProvisionException ex) {
-            StackId stackId = cluster.getCurrentStackVersion();
+            StackId stackId = new StackId(serviceComponentDesiredStateEntity.getDesiredStack());
             LOG.error(String.format("Can not get component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s",
                 stackId.getStackName(), stackId.getStackVersion(),
                 serviceEntity.getServiceName(),serviceComponentDesiredStateEntity.getComponentName()));
@@ -186,8 +186,8 @@ public class ServiceImpl implements Service {
   @Override
   public void updateServiceInfo() throws AmbariException {
     try {
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(cluster.getDesiredStackVersion().getStackName(),
-              cluster.getDesiredStackVersion().getStackVersion(), getName());
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(this);
+
       isClientOnlyService = serviceInfo.isClientOnlyService();
       isCredentialStoreSupported = serviceInfo.isCredentialStoreSupported();
       isCredentialStoreRequired = serviceInfo.isCredentialStoreRequired();
@@ -197,7 +197,7 @@ public class ServiceImpl implements Service {
               + " not recognized in stack info"
               + ", clusterName=" + cluster.getClusterName()
               + ", serviceName=" + getName()
-              + ", stackInfo=" + cluster.getDesiredStackVersion().getStackName());
+              + ", stackInfo=" + getDesiredStackId().getStackName());
     }
   }
 
@@ -308,8 +308,13 @@ public class ServiceImpl implements Service {
   @Override
   public StackId getDesiredStackId() {
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
-    return new StackId(desiredStackEntity);
+
+    if (null == serviceDesiredStateEntity) {
+      return null;
+    } else {
+      StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
+      return new StackId(desiredStackEntity);
+    }
   }
 
   /**
@@ -470,7 +475,7 @@ public class ServiceImpl implements Service {
     persistEntities(serviceEntity);
 
     // publish the service installed event
-    StackId stackId = cluster.getDesiredStackVersion();
+    StackId stackId = getDesiredStackId();
     cluster.addService(this);
 
     ServiceInstalledEvent event = new ServiceInstalledEvent(getClusterId(), stackId.getStackName(),
@@ -595,10 +600,14 @@ public class ServiceImpl implements Service {
     deleteAllComponents();
     deleteAllServiceConfigs();
 
+    StackId stackId = getDesiredStackId();
+
     removeEntities();
 
     // publish the service removed event
-    StackId stackId = cluster.getDesiredStackVersion();
+    if (null == stackId) {
+      return;
+    }
 
     ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(),
         stackId.getStackVersion(), getName());

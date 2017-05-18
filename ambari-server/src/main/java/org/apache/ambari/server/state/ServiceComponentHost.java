@@ -254,4 +254,11 @@ public interface ServiceComponentHost {
    */
   HostVersionEntity recalculateHostVersionState() throws AmbariException;
 
+  /**
+   * Convenience method to get the desired stack id from the service component
+   *
+   * @return the desired stack id
+   */
+  StackId getDesiredStackId();
+
 }

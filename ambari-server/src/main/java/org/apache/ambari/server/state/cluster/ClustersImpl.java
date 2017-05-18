@@ -37,7 +37,6 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
@@ -78,7 +77,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -127,8 +125,6 @@ public class ClustersImpl implements Clusters {
   private ClusterFactory clusterFactory;
   @Inject
   private HostFactory hostFactory;
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private SecurityHelper securityHelper;
   @Inject
@@ -297,25 +293,6 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void setCurrentStackVersion(String clusterName, StackId stackId)
-      throws AmbariException{
-
-    if(stackId == null || clusterName == null || clusterName.isEmpty()){
-      LOG.warn("Unable to set version for cluster " + clusterName);
-      throw new AmbariException("Unable to set"
-          + " version=" + stackId
-          + " for cluster " + clusterName);
-    }
-
-    Cluster cluster = clusters.get(clusterName);
-    if (null == cluster) {
-      throw new ClusterNotFoundException(clusterName);
-    }
-
-    cluster.setCurrentStackVersion(stackId);
-  }
-
-  @Override
   public List<Host> getHosts() {
     return new ArrayList<>(hosts.values());
   }
@@ -428,13 +405,6 @@ public class ClustersImpl implements Clusters {
     eventPublisher.publish(event);
   }
 
-  private boolean isOsSupportedByClusterStack(Cluster c, Host h) throws AmbariException {
-    Map<String, List<RepositoryInfo>> repos =
-        ambariMetaInfo.getRepository(c.getDesiredStackVersion().getStackName(),
-            c.getDesiredStackVersion().getStackVersion());
-    return !(repos == null || repos.isEmpty()) && repos.containsKey(h.getOsFamily());
-  }
-
   @Override
   public void updateHostWithClusterAndAttributes(
       Map<String, Set<String>> hostClusters,
@@ -527,11 +497,9 @@ public class ClustersImpl implements Clusters {
   @Override
   public void mapHostToCluster(String hostname, String clusterName)
       throws AmbariException {
-    Host host = null;
-    Cluster cluster = null;
 
-    host = getHost(hostname);
-    cluster = getCluster(clusterName);
+    Host host = getHost(hostname);
+    Cluster cluster = getCluster(clusterName);
 
     // check to ensure there are no duplicates
     for (Cluster c : hostClusterMap.get(hostname)) {
@@ -539,15 +507,6 @@ public class ClustersImpl implements Clusters {
         throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
           clusterName + ", hostName=" + hostname);
       }
-    }
-
-    if (!isOsSupportedByClusterStack(cluster, host)) {
-      String message = "Trying to map host to cluster where stack does not"
-        + " support host's os type" + ", clusterName=" + clusterName
-        + ", clusterStackId=" + cluster.getDesiredStackVersion().getStackId()
-        + ", hostname=" + hostname + ", hostOsFamily=" + host.getOsFamily();
-      LOG.error(message);
-      throw new AmbariException(message);
     }
 
     long clusterId = cluster.getClusterId();

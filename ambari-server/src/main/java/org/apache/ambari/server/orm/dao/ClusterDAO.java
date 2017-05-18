@@ -348,7 +348,7 @@ public class ClusterDAO {
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
-    entityManagerProvider.get().remove(merge(clusterEntity));
+    entityManagerProvider.get().remove(clusterEntity);
   }
 
   @Transactional

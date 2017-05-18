@@ -128,6 +128,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -764,9 +765,9 @@ public class UpgradeCatalog240Test {
 
     Capture<Map<String, String>> oozieCapture =  newCapture();
     Capture<Map<String, String>> hiveCapture =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("oozie-env"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockClusterExpected), eq("oozie-env"),
         capture(oozieCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("hive-env"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockClusterExpected), eq("hive-env"),
             capture(hiveCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
@@ -848,15 +849,15 @@ public class UpgradeCatalog240Test {
     expect(falconStartupConfig.getProperties()).andReturn(falconStartupConfigProperties).anyTimes();
 
     Capture<Map<String, String>> falconCapture =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockClusterExpected), eq("falcon-env"),
         capture(falconCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     Capture<Map<String, String>> falconCapture2 =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockClusterExpected), eq("falcon-env"),
         capture(falconCapture2), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     Capture<Map<String, String>> falconStartupCapture =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-startup.properties"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockClusterExpected), eq("falcon-startup.properties"),
         capture(falconStartupCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
@@ -911,7 +912,10 @@ public class UpgradeCatalog240Test {
       put("normal", mockCluster);
     }}).anyTimes();
 
-    expect(mockCluster.getServices()).andReturn(new HashMap<String, Service>(){{put("HBASE",null);}}).anyTimes();
+    final Service hbaseService = createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(new StackId("HDP-2.4"));
+
+    expect(mockCluster.getServices()).andReturn(new HashMap<String, Service>(){{put("HBASE",hbaseService);}}).anyTimes();
     expect(mockCluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
     final Config mockHbaseSiteConfigs = easyMockSupport.createNiceMock(Config.class);
@@ -934,10 +938,8 @@ public class UpgradeCatalog240Test {
     }}).anyTimes();
 
 
-
-
     Capture<Map<String, String>> hbaseCapture =  newCapture();
-    expect(mockAmbariManagementController.createConfig(eq(mockCluster), eq("hbase-site"),
+    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), eq(mockCluster), eq("hbase-site"),
         capture(hbaseCapture), anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
@@ -1023,7 +1025,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
                                    EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1099,9 +1101,9 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("hdfs-site"), capture(propertiesCaptureHdfsSite), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("hdfs-site"), capture(propertiesCaptureHdfsSite), anyString(),
                                    EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("hadoop-env"), capture(propertiesCaptureHadoopEnv), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("hadoop-env"), capture(propertiesCaptureHadoopEnv), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1167,7 +1169,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
             EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1299,9 +1301,9 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("spark-defaults"), capture(propertiesSparkDefaultsCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("spark-defaults"), capture(propertiesSparkDefaultsCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("spark-javaopts-properties"), capture(propertiesSparkJavaOptsCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("spark-javaopts-properties"), capture(propertiesSparkJavaOptsCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1360,7 +1362,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1419,7 +1421,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1476,7 +1478,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1551,11 +1553,17 @@ public class UpgradeCatalog240Test {
 
     final StackId currentStackVersion = new StackId("HDP", "2.4.2");
 
+    final Service kerbService = createNiceMock(Service.class);
+    expect(kerbService.getDesiredStackId()).andReturn(currentStackVersion);
+
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(currentStackVersion).once();
+
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("KERBEROS", kerbService)
+        .build());
 
     expect(cluster.getConfigsByType("kerberos-env"))
         .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
@@ -1575,26 +1583,25 @@ public class UpgradeCatalog240Test {
     Capture<String> tagCapture = newCapture(CaptureType.ALL);
     Capture<Map<String, Map<String, String>>> attributesCapture = newCapture(CaptureType.ALL);
 
-    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+    expect(controller.createConfig(anyObject(StackId.class), capture(clusterCapture), capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
         .andReturn(createNiceMock(Config.class))
         .anyTimes();
     expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).once();
 
     expect(metaInfo.getStack(currentStackVersion.getStackName(), currentStackVersion.getStackVersion()))
-        .andReturn(stackInfo)
-        .once();
+        .andReturn(stackInfo).atLeastOnce();
 
-    expect(stackInfo.getService("KERBEROS")).andReturn(serviceInfo).once();
+    expect(stackInfo.getService("KERBEROS")).andReturn(serviceInfo).atLeastOnce();
 
     final PropertyInfo propertyInfo = new PropertyInfo();
     propertyInfo.setFilename("krb5-conf.xml");
     propertyInfo.setName("content");
     propertyInfo.setValue("new content template");
 
-    expect(serviceInfo.getProperties()).andReturn(Collections.singletonList(propertyInfo)).once();
+    expect(serviceInfo.getProperties()).andReturn(Collections.singletonList(propertyInfo)).atLeastOnce();
 
-    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters, kerbService);
 
     final Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -1611,7 +1618,7 @@ public class UpgradeCatalog240Test {
 
     injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
 
-    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters, kerbService);
 
     List<String> typeCaptureValues = typeCapture.getValues();
     Assert.assertEquals(2, typeCaptureValues.size());
@@ -1697,6 +1704,12 @@ public class UpgradeCatalog240Test {
 
     final StackId currentStackVersion = new StackId("HDP", "2.4.2");
 
+    final Service kerbService = createNiceMock(Service.class);
+    expect(kerbService.getDesiredStackId()).andReturn(currentStackVersion);
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("KERBEROS", kerbService)
+        .build());
+
     expect(metaInfo.getStack(currentStackVersion.getStackName(), currentStackVersion.getStackVersion()))
         .andReturn(stackInfo)
         .once();
@@ -1712,13 +1725,13 @@ public class UpgradeCatalog240Test {
 
     expect(cluster.getConfigsByType("kerberos-env"))
         .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
-        .once();
+        .atLeastOnce();
 
     expect(cluster.getDesiredConfigByType("kerberos-env"))
         .andReturn(configKerberosEnv)
-        .once();
+        .atLeastOnce();
 
-    expect(cluster.getCurrentStackVersion()).andReturn(currentStackVersion).once();
+//    expect(cluster.getCurrentStackVersion()).andReturn(currentStackVersion).once();
 
     Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
     Capture<String> typeCapture = newCapture(CaptureType.ALL);
@@ -1726,13 +1739,12 @@ public class UpgradeCatalog240Test {
     Capture<String> tagCapture = newCapture(CaptureType.ALL);
     Capture<Map<String, Map<String, String>>> attributesCapture = newCapture(CaptureType.ALL);
 
-
-    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+    expect(controller.createConfig(anyObject(StackId.class), capture(clusterCapture), capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture)))
         .andReturn(createNiceMock(Config.class))
         .anyTimes();
 
-    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters, kerbService);
 
     final Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -1749,7 +1761,7 @@ public class UpgradeCatalog240Test {
 
     injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
 
-    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters, kerbService);
 
     List<String> typeCaptureValues = typeCapture.getValues();
     Assert.assertEquals(1, typeCaptureValues.size());
@@ -2144,16 +2156,23 @@ public class UpgradeCatalog240Test {
     expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
     expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
 
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getDesiredStackId()).andReturn(stackId);
+
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .build());
+
     expect(widgetDAO.findByName(1L, "NameNode Operations", "ambari", "HDFS_SUMMARY"))
       .andReturn(Collections.singletonList(widgetEntity));
     expect(widgetDAO.merge(widgetEntity)).andReturn(null);
     expect(widgetEntity.getWidgetName()).andReturn("Namenode Operations").anyTimes();
 
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
+    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo, hdfsService);
 
     mockInjector.getInstance(UpgradeCatalog240.class).updateHDFSWidgetDefinition();
 
-    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
+    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo, hdfsService);
   }
 
   @Test
@@ -2255,15 +2274,22 @@ public class UpgradeCatalog240Test {
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
     final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockHbaseSite = easyMockSupport.createNiceMock(Config.class);
+
+
+    final StackId stackId = new StackId("HDP-2.5");
+
+    Service hbaseService = easyMockSupport.createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(stackId);
+
+
     // HBase and Kerberos are both "installed"
     final Map<String, Service> mockServices = new HashMap<>();
-    mockServices.put("HBASE", null);
-    final StackId stackId = new StackId("HDP-2.5");
+    mockServices.put("HBASE", hbaseService);
 
     expect(controller.getClusters()).andReturn(clusters).once();
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("normal", cluster)).once();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
-    expect(cluster.getServices()).andReturn(mockServices).once();
+//    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(cluster.getServices()).andReturn(mockServices).atLeastOnce();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getDesiredConfigByType(UpgradeCatalog240.HBASE_SITE_CONFIG)).andReturn(mockHbaseSite).atLeastOnce();
     expect(mockHbaseSite.getProperties()).andReturn(oldPqsProperties).anyTimes();
@@ -2405,14 +2431,18 @@ public class UpgradeCatalog240Test {
     Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
     final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
     Config mockHbaseSite = easyMockSupport.createNiceMock(Config.class);
+
+    final StackId stackId = new StackId("HDP-2.5");
+
+    Service hbaseService = easyMockSupport.createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(stackId);
+
     // HBase and Kerberos are both "installed"
     final Map<String, Service> mockServices = new HashMap<>();
-    mockServices.put("HBASE", null);
-    final StackId stackId = new StackId("HDP-2.5");
+    mockServices.put("HBASE", hbaseService);
 
     expect(controller.getClusters()).andReturn(clusters).once();
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("normal", cluster)).once();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServices()).andReturn(mockServices).once();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getDesiredConfigByType(UpgradeCatalog240.HBASE_SITE_CONFIG)).andReturn(mockHbaseSite).atLeastOnce();
@@ -2556,7 +2586,7 @@ public class UpgradeCatalog240Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
             EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);

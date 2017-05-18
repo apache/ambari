@@ -313,6 +313,20 @@ public class OrmTestHelper {
     hostDAO.merge(host2);
   }
 
+  @Transactional
+  public StackEntity createStack(StackId stackId) throws AmbariException {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
+    if (null == stackEntity) {
+      stackEntity = new StackEntity();
+      stackEntity.setStackName(stackId.getStackName());
+      stackEntity.setStackVersion(stackId.getStackVersion());
+      stackDAO.create(stackEntity);
+    }
+
+    return stackEntity;
+  }
+
   /**
    * Creates an empty cluster with an ID.
    *
@@ -385,6 +399,8 @@ public class OrmTestHelper {
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String clusterName = "cluster-" + System.currentTimeMillis();
     StackId stackId = new StackId("HDP", "2.0.6");
+
+    createStack(stackId);
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -642,9 +658,12 @@ public class OrmTestHelper {
    */
   public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
       String version) {
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-        stackId.getStackVersion());
+    StackEntity stackEntity = null;
+    try {
+      stackEntity = createStack(stackId);
+    } catch (Exception e) {
+      LOG.error("Expected successful repository", e);
+    }
 
     assertNotNull(stackEntity);
 

@@ -106,6 +106,7 @@ public class EventsTest {
 
     m_clusterName = "foo";
     StackId stackId = new StackId("HDP", STACK_VERSION);
+    m_helper.createStack(stackId);
 
     m_clusters.addCluster(m_clusterName, stackId);
     m_clusters.addHost(HOSTNAME);

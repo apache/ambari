@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -146,8 +147,6 @@ public class AmbariActionExecutionHelper {
           actionRequest.getClusterName());
       }
 
-      StackId stackId = cluster.getCurrentStackVersion();
-
       String expectedService = actionDef.getTargetService() == null ? "" : actionDef.getTargetService();
 
       String actualService = resourceFilter == null || resourceFilter.getServiceName() == null ? "" : resourceFilter.getServiceName();
@@ -157,11 +156,14 @@ public class AmbariActionExecutionHelper {
       }
 
       targetService = expectedService;
-      if (targetService == null || targetService.isEmpty()) {
+      if (StringUtils.isBlank(targetService)) {
         targetService = actualService;
       }
 
-      if (targetService != null && !targetService.isEmpty()) {
+      if (StringUtils.isNotBlank(targetService)) {
+        Service service = cluster.getService(targetService);
+        StackId stackId = service.getDesiredStackId();
+
         ServiceInfo serviceInfo;
         try {
           serviceInfo = ambariMetaInfo.getService(stackId.getStackName(), stackId.getStackVersion(),
@@ -184,16 +186,20 @@ public class AmbariActionExecutionHelper {
       }
 
       targetComponent = expectedComponent;
-      if (targetComponent == null || targetComponent.isEmpty()) {
+      if (StringUtils.isBlank(targetComponent)) {
         targetComponent = actualComponent;
       }
 
-      if (!targetComponent.isEmpty() && targetService.isEmpty()) {
+      if (StringUtils.isNotBlank(targetComponent) && StringUtils.isBlank(targetService)) {
         throw new AmbariException("Action " + actionRequest.getActionName() + " targets component " + targetComponent +
           " without specifying the target service.");
       }
 
-      if (targetComponent != null && !targetComponent.isEmpty()) {
+      if (StringUtils.isNotBlank(targetComponent)) {
+        Service service = cluster.getService(targetService);
+        ServiceComponent component = service.getServiceComponent(targetComponent);
+        StackId stackId = component.getDesiredStackId();
+
         ComponentInfo compInfo;
         try {
           compInfo = ambariMetaInfo.getComponent(stackId.getStackName(), stackId.getStackVersion(),
@@ -281,13 +287,16 @@ public class AmbariActionExecutionHelper {
     }
 
     if (null != cluster) {
-      StackId stackId = cluster.getCurrentStackVersion();
+//      StackId stackId = cluster.getCurrentStackVersion();
       if (serviceName != null && !serviceName.isEmpty()) {
         if (componentName != null && !componentName.isEmpty()) {
-          Map<String, ServiceComponentHost> componentHosts =
-            cluster.getService(serviceName)
-              .getServiceComponent(componentName).getServiceComponentHosts();
+          Service service = cluster.getService(serviceName);
+          ServiceComponent component = service.getServiceComponent(componentName);
+          StackId stackId = component.getDesiredStackId();
+
+          Map<String, ServiceComponentHost> componentHosts = component.getServiceComponentHosts();
           candidateHosts.addAll(componentHosts.keySet());
+
           try {
             componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), serviceName, componentName);
@@ -297,8 +306,7 @@ public class AmbariActionExecutionHelper {
           }
         } else {
           for (String component : cluster.getService(serviceName).getServiceComponents().keySet()) {
-            Map<String, ServiceComponentHost> componentHosts =
-              cluster.getService(serviceName)
+            Map<String, ServiceComponentHost> componentHosts = cluster.getService(serviceName)
                 .getServiceComponent(component).getServiceComponentHosts();
             candidateHosts.addAll(componentHosts.keySet());
           }

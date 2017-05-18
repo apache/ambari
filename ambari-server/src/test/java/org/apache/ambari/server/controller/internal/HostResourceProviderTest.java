@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
@@ -1319,8 +1320,12 @@ public class HostResourceProviderTest extends EasyMockSupport {
       Map<String, Object> requestProperties = new HashMap<>();
       requestProperties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, request.getHostname());
       requestProperties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName());
+      if (null != request.getRackInfo()) {
+        requestProperties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, UUID.randomUUID().toString());
+      }
       properties.add(requestProperties);
     }
+
     provider.createHosts(PropertyHelper.getCreateRequest(properties, Collections.<String, String>emptyMap()));
   }
 

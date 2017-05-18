@@ -70,6 +70,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -217,7 +218,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       Long id = Long.parseLong(propertyMap.get(CLUSTER_STACK_VERSION_ID_PROPERTY_ID).toString());
       requestedEntities.add(id);
     } else {
-      cluster.getCurrentStackVersion();
       List<RepositoryVersionEntity> entities = repositoryVersionDAO.findAll();
 
       for (RepositoryVersionEntity entity : entities) {
@@ -327,20 +327,30 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           cluster.getClusterName(), entity.getDirection().getText(false)));
     }
 
-    final StackId stackId;
+    Set<StackId> stackIds = new HashSet<>();
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
             propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
       stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      stackId = new StackId(stackName, stackVersion);
+      StackId stackId = new StackId(stackName, stackVersion);
       if (! ami.isSupportedStack(stackName, stackVersion)) {
         throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
                 stackId));
       }
+      stackIds.add(stackId);
     } else { // Using stack that is current for cluster
-      StackId currentStackVersion = cluster.getCurrentStackVersion();
-      stackId = currentStackVersion;
+      for (Service service : cluster.getServices().values()) {
+        stackIds.add(service.getDesiredStackId());
+      }
     }
+
+    if (stackIds.size() > 1) {
+      throw new SystemException("Could not determine stack to add out of " + StringUtils.join(stackIds, ','));
+    }
+
+    StackId stackId = stackIds.iterator().next();
+    stackName = stackId.getStackName();
+    stackVersion = stackId.getStackVersion();
 
     RepositoryVersionEntity repoVersionEntity = repositoryVersionDAO.findByStackAndVersion(
         stackId, desiredRepoVersion);

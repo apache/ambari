@@ -426,8 +426,6 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                                    Map<String, Set<String>> propertiesToRemove,
                                                                    boolean kerberosEnabled) throws AmbariException {
 
-    StackId stackVersion = cluster.getCurrentStackVersion();
-
     List<String> hostNames = new ArrayList<>();
     Collection<Host> hosts = cluster.getHosts();
 
@@ -488,44 +486,58 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
       }
 
-      StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
-          .forStack(stackVersion.getStackName(), stackVersion.getStackVersion())
-          .forServices(new ArrayList<>(services))
-          .forHosts(hostNames)
-          .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
-          .withConfigurations(requestConfigurations)
-          .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
-          .build();
+      Set<StackId> visitedStacks = new HashSet<>();
 
-      try {
-        RecommendationResponse response = stackAdvisorHelper.recommend(request);
+      for (String serviceName : services) {
+        Service service = cluster.getService(serviceName);
+        StackId stackId = service.getDesiredStackId();
 
-        RecommendationResponse.Recommendation recommendation = (response == null) ? null : response.getRecommendations();
-        RecommendationResponse.Blueprint blueprint = (recommendation == null) ? null : recommendation.getBlueprint();
-        Map<String, RecommendationResponse.BlueprintConfigurations> configurations = (blueprint == null) ? null : blueprint.getConfigurations();
-
-        if (configurations != null) {
-          for (Map.Entry<String, RecommendationResponse.BlueprintConfigurations> configuration : configurations.entrySet()) {
-            String configType = configuration.getKey();
-            Map<String, String> recommendedConfigProperties = configuration.getValue().getProperties();
-            Map<String, ValueAttributesInfo> recommendedConfigPropertyAttributes = configuration.getValue().getPropertyAttributes();
-            Map<String, String> existingConfigProperties = (existingConfigurations == null) ? null : existingConfigurations.get(configType);
-            Map<String, String> kerberosConfigProperties = kerberosConfigurations.get(configType);
-            Set<String> ignoreProperties = (propertiesToIgnore == null) ? null : propertiesToIgnore.get(configType);
-
-            addRecommendedPropertiesForConfigType(kerberosConfigurations, configType, recommendedConfigProperties,
-                existingConfigProperties, kerberosConfigProperties, ignoreProperties);
-
-            if (recommendedConfigPropertyAttributes != null) {
-              removeRecommendedPropertiesForConfigType(configType, recommendedConfigPropertyAttributes,
-                  existingConfigProperties, kerberosConfigurations, ignoreProperties, propertiesToRemove);
-            }
-          }
+        if (visitedStacks.contains(stackId)) {
+          continue;
         }
 
-      } catch (Exception e) {
-        throw new AmbariException(e.getMessage(), e);
+        StackAdvisorRequest request = StackAdvisorRequest.StackAdvisorRequestBuilder
+            .forStack(stackId.getStackName(), stackId.getStackVersion())
+            .forServices(new ArrayList<>(services))
+            .forHosts(hostNames)
+            .withComponentHostsMap(cluster.getServiceComponentHostMap(null, services))
+            .withConfigurations(requestConfigurations)
+            .ofType(StackAdvisorRequest.StackAdvisorRequestType.CONFIGURATIONS)
+            .build();
+
+        try {
+          RecommendationResponse response = stackAdvisorHelper.recommend(request);
+
+          RecommendationResponse.Recommendation recommendation = (response == null) ? null : response.getRecommendations();
+          RecommendationResponse.Blueprint blueprint = (recommendation == null) ? null : recommendation.getBlueprint();
+          Map<String, RecommendationResponse.BlueprintConfigurations> configurations = (blueprint == null) ? null : blueprint.getConfigurations();
+
+          if (configurations != null) {
+            for (Map.Entry<String, RecommendationResponse.BlueprintConfigurations> configuration : configurations.entrySet()) {
+              String configType = configuration.getKey();
+              Map<String, String> recommendedConfigProperties = configuration.getValue().getProperties();
+              Map<String, ValueAttributesInfo> recommendedConfigPropertyAttributes = configuration.getValue().getPropertyAttributes();
+              Map<String, String> existingConfigProperties = (existingConfigurations == null) ? null : existingConfigurations.get(configType);
+              Map<String, String> kerberosConfigProperties = kerberosConfigurations.get(configType);
+              Set<String> ignoreProperties = (propertiesToIgnore == null) ? null : propertiesToIgnore.get(configType);
+
+              addRecommendedPropertiesForConfigType(kerberosConfigurations, configType, recommendedConfigProperties,
+                  existingConfigProperties, kerberosConfigProperties, ignoreProperties);
+
+              if (recommendedConfigPropertyAttributes != null) {
+                removeRecommendedPropertiesForConfigType(configType, recommendedConfigPropertyAttributes,
+                    existingConfigProperties, kerberosConfigurations, ignoreProperties, propertiesToRemove);
+              }
+            }
+          }
+
+        } catch (Exception e) {
+          throw new AmbariException(e.getMessage(), e);
+        }
+
+        visitedStacks.add(stackId);
       }
+
     }
 
     return kerberosConfigurations;
@@ -2559,7 +2571,18 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @throws AmbariException if an error occurs while retrieving the Kerberos descriptor
    */
   private KerberosDescriptor getKerberosDescriptorFromStack(Cluster cluster) throws AmbariException {
-    StackId stackId = cluster.getCurrentStackVersion();
+    // !!! FIXME in a per-service view, what does this become?
+    Set<StackId> stackIds = new HashSet<>();
+
+    for (Service service : cluster.getServices().values()) {
+      stackIds.add(service.getDesiredStackId());
+    }
+
+    if (1 != stackIds.size()) {
+      throw new AmbariException("Services are deployed from multiple stacks and cannot determine a unique one.");
+    }
+
+    StackId stackId = stackIds.iterator().next();
 
     // -------------------------------
     // Get the default Kerberos descriptor from the stack, which is the same as the value from

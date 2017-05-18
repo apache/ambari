@@ -55,6 +55,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -258,7 +259,7 @@ public class UpgradeCatalog300Test {
 
     verify(dbAccessor, entityManager, emFactory, emCache);
   }
-  
+
   @Test
   public void testLogSearchUpdateConfigs() throws Exception {
     reset(clusters, cluster);
@@ -285,21 +286,21 @@ public class UpgradeCatalog300Test {
     expect(confLogSearchConf1.getType()).andReturn("service-1-logsearch-conf");
     Config confLogSearchConf2 = easyMockSupport.createNiceMock(Config.class);
     expect(confLogSearchConf2.getType()).andReturn("service-2-logsearch-conf");
-    
+
     Map<String, String> oldLogSearchConf = ImmutableMap.of(
         "service_name", "Service",
         "component_mappings", "Component Mappings",
         "content", "Content");
 
     Collection<Config> configs = Arrays.asList(confSomethingElse1, confLogSearchConf1, confSomethingElse2, confLogSearchConf2);
-    
+
     expect(cluster.getAllConfigs()).andReturn(configs).atLeastOnce();
     expect(cluster.getDesiredConfigByType("service-1-logsearch-conf")).andReturn(confLogSearchConf1).once();
     expect(cluster.getDesiredConfigByType("service-2-logsearch-conf")).andReturn(confLogSearchConf2).once();
     expect(confLogSearchConf1.getProperties()).andReturn(oldLogSearchConf).once();
     expect(confLogSearchConf2.getProperties()).andReturn(oldLogSearchConf).once();
     Capture<Map<String, String>> logSearchConfCapture = EasyMock.newCapture(CaptureType.ALL);
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchConfCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(logSearchConfCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     Map<String, String> oldLogSearchProperties = ImmutableMap.of(
@@ -314,14 +315,14 @@ public class UpgradeCatalog300Test {
     expect(cluster.getDesiredConfigByType("logfeeder-properties")).andReturn(logFeederPropertiesConf).times(2);
     expect(logFeederPropertiesConf.getProperties()).andReturn(Collections.<String, String> emptyMap()).once();
     Capture<Map<String, String>> logFeederPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("logfeeder-properties"), capture(logFeederPropertiesCapture),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("logfeeder-properties"), capture(logFeederPropertiesCapture),
         anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Config logSearchPropertiesConf = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchPropertiesConf).times(2);
     expect(logSearchPropertiesConf.getProperties()).andReturn(oldLogSearchProperties).times(2);
     Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
         anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -336,10 +337,10 @@ public class UpgradeCatalog300Test {
     for (Map<String, String> updatedLogSearchConf : updatedLogSearchConfs) {
       assertTrue(Maps.difference(Collections.<String, String> emptyMap(), updatedLogSearchConf).areEqual());
     }
-    
+
     Map<String,String> newLogFeederProperties = logFeederPropertiesCapture.getValue();
     assertTrue(Maps.difference(expectedLogFeederProperties, newLogFeederProperties).areEqual());
-    
+
     Map<String,String> newLogSearchProperties = logSearchPropertiesCapture.getValue();
     assertTrue(Maps.difference(Collections.<String, String> emptyMap(), newLogSearchProperties).areEqual());
   }

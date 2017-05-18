@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -1311,27 +1312,15 @@ public class TestHeartbeatHandler {
   @Test
   public void testComponents() throws Exception,
       InvalidStateTransitionException {
+
     ComponentsResponse expected = new ComponentsResponse();
     StackId dummyStackId = new StackId(DummyStackId);
     Map<String, Map<String, String>> dummyComponents = new HashMap<>();
 
     Map<String, String> dummyCategoryMap = new HashMap<>();
-    dummyCategoryMap.put("PIG", "CLIENT");
-    dummyComponents.put("PIG", dummyCategoryMap);
 
     dummyCategoryMap = new HashMap<>();
-    dummyCategoryMap.put("MAPREDUCE_CLIENT", "CLIENT");
-    dummyCategoryMap.put("JOBTRACKER", "MASTER");
-    dummyCategoryMap.put("TASKTRACKER", "SLAVE");
-    dummyComponents.put("MAPREDUCE", dummyCategoryMap);
-
-    dummyCategoryMap = new HashMap<>();
-    dummyCategoryMap.put("DATANODE2", "SLAVE");
     dummyCategoryMap.put("NAMENODE", "MASTER");
-    dummyCategoryMap.put("HDFS_CLIENT", "CLIENT");
-    dummyCategoryMap.put("DATANODE1", "SLAVE");
-    dummyCategoryMap.put("SECONDARY_NAMENODE", "MASTER");
-    dummyCategoryMap.put("DATANODE", "SLAVE");
     dummyComponents.put("HDFS", dummyCategoryMap);
 
     expected.setClusterName(DummyCluster);
@@ -1339,7 +1328,22 @@ public class TestHeartbeatHandler {
     expected.setStackVersion(dummyStackId.getStackVersion());
     expected.setComponents(dummyComponents);
 
-    heartbeatTestHelper.getDummyCluster();
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service service = EasyMock.createNiceMock(Service.class);
+    expect(service.getName()).andReturn("HDFS").atLeastOnce();
+
+    Map<String, ServiceComponent> componentMap = new HashMap<>();
+    ServiceComponent nnComponent = EasyMock.createNiceMock(ServiceComponent.class);
+    expect(nnComponent.getName()).andReturn("NAMENODE").atLeastOnce();
+    expect(nnComponent.getDesiredStackId()).andReturn(dummyStackId).atLeastOnce();
+    componentMap.put("NAMENODE", nnComponent);
+
+    expect(service.getServiceComponents()).andReturn(componentMap);
+
+    replay(service, nnComponent);
+
+    cluster.addService(service);
+
     HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(
         actionManagerTestHelper.getMockActionManager(),
         new ActionQueue());
@@ -1351,8 +1355,6 @@ public class TestHeartbeatHandler {
     }
 
     assertEquals(expected.getClusterName(), actual.getClusterName());
-    assertEquals(expected.getStackName(), actual.getStackName());
-    assertEquals(expected.getStackVersion(), actual.getStackVersion());
     assertEquals(expected.getComponents(), actual.getComponents());
   }
 

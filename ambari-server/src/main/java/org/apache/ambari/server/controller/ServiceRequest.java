@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
-
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 
 public class ServiceRequest {
 
@@ -30,6 +30,10 @@ public class ServiceRequest {
 
   private String desiredStack;
   private String desiredRepositoryVersion;
+  /**
+   * Short-lived object that gets set while validating a request
+   */
+  private RepositoryVersionEntity resolvedRepository;
 
   public ServiceRequest(String clusterName, String serviceName, String desiredStack,
       String desiredRepositoryVersion, String desiredState) {
@@ -153,5 +157,16 @@ public class ServiceRequest {
       .append(", credentialStoreEnabled=").append(credentialStoreEnabled)
       .append(", credentialStoreSupported=").append(credentialStoreSupported);
     return sb.toString();
+  }
+
+  /**
+   * @param repositoryVersion
+   */
+  public void setResolvedRepository(RepositoryVersionEntity repositoryVersion) {
+    resolvedRepository = repositoryVersion;
+  }
+
+  public RepositoryVersionEntity getResolvedRepository() {
+    return resolvedRepository;
   }
 }

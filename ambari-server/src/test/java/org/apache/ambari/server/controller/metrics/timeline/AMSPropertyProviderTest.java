@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -51,6 +50,7 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCache;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
@@ -66,6 +66,7 @@ import org.apache.ambari.server.security.authorization.internal.InternalAuthenti
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
@@ -535,14 +536,14 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateMetricsForEmbeddedHBase() throws Exception {
-    AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
+    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
     PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(ams).anyTimes();
+    expect(AmbariServer.getController()).andReturn(amc).anyTimes();
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-    expect(ams.getClusters()).andReturn(clusters).anyTimes();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("HostRoles/cluster_name")).andReturn(cluster).anyTimes();
     expect(cluster.getResourceId()).andReturn(2L).anyTimes();
 
@@ -552,13 +553,19 @@ public class AMSPropertyProviderTest {
     } catch (AmbariException e) {
       e.printStackTrace();
     }
+
+    Service amsService = createNiceMock(Service.class);
+    expect(amsService.getDesiredStackId()).andReturn(stackId);
+    expect(amsService.getName()).andReturn("AMS");
+    expect(cluster.getServiceByComponentName("METRICS_COLLECTOR")).andReturn(amsService);
+
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
-    expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(amc.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariMetaInfo.getComponentToService("HDP", "2.2", "METRICS_COLLECTOR")).andReturn("AMS").anyTimes();
     expect(ambariMetaInfo.getComponent("HDP", "2.2", "AMS", "METRICS_COLLECTOR"))
       .andReturn(componentInfo).anyTimes();
     expect(componentInfo.getTimelineAppid()).andReturn("AMS-HBASE");
-    replay(ams, clusters, cluster, ambariMetaInfo, componentInfo);
+    replay(amc, clusters, cluster, amsService, ambariMetaInfo, componentInfo);
     PowerMock.replayAll();
 
     TestStreamProvider streamProvider = new TestStreamProvider(EMBEDDED_METRICS_FILE_PATH);
@@ -609,15 +616,15 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testAggregateFunctionForComponentMetrics() throws Exception {
-    AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
+    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
     PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(ams).anyTimes();
+    expect(AmbariServer.getController()).andReturn(amc).anyTimes();
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
     StackId stackId = new StackId("HDP", "2.2");
-    expect(ams.getClusters()).andReturn(clusters).anyTimes();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("HostRoles/cluster_name")).andReturn(cluster).anyTimes();
     expect(cluster.getResourceId()).andReturn(2L).anyTimes();
 
@@ -626,13 +633,20 @@ public class AMSPropertyProviderTest {
     } catch (AmbariException e) {
       e.printStackTrace();
     }
+
+    Service hbaseService = createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(stackId);
+    expect(hbaseService.getName()).andReturn("HBASE");
+    expect(cluster.getServiceByComponentName("HBASE_REGIONSERVER")).andReturn(hbaseService);
+
+
     expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
-    expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(amc.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(ambariMetaInfo.getComponentToService("HDP", "2.2", "HBASE_REGIONSERVER")).andReturn("HBASE").anyTimes();
     expect(ambariMetaInfo.getComponent("HDP", "2.2", "HBASE", "HBASE_REGIONSERVER"))
       .andReturn(componentInfo).anyTimes();
     expect(componentInfo.getTimelineAppid()).andReturn("HBASE");
-    replay(ams, clusters, cluster, ambariMetaInfo, componentInfo);
+    replay(amc, clusters, cluster, hbaseService, ambariMetaInfo, componentInfo);
     PowerMock.replayAll();
 
     TestStreamProvider streamProvider = new TestStreamProvider(AGGREGATE_METRICS_FILE_PATH);

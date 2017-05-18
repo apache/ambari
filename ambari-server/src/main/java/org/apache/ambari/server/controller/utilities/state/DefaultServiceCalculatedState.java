@@ -32,6 +32,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.slf4j.Logger;
@@ -78,12 +79,14 @@ public class DefaultServiceCalculatedState implements ServiceCalculatedState {
     return null;
   }
 
+  @Override
   public State getState(String clusterName, String serviceName) {
       try {
         Cluster cluster = getCluster(clusterName);
         if (cluster != null && managementControllerProvider != null) {
+          Service service = cluster.getService(serviceName);
           AmbariMetaInfo ambariMetaInfo = managementControllerProvider.get().getAmbariMetaInfo();
-          StackId stackId = cluster.getDesiredStackVersion();
+          StackId stackId = service.getDesiredStackId();
 
           ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
             serviceName, null, null, null);

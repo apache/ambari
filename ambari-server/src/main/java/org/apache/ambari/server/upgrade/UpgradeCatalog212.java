@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
@@ -305,9 +306,16 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
+          Service service = cluster.getServices().get("HIVE");
+
+          if (null == service) {
+            continue;
+          }
+
+          StackId stackId = service.getDesiredStackId();
+
           String content = null;
           Boolean isHiveSitePresent = cluster.getDesiredConfigByType(HIVE_SITE) != null;
-          StackId stackId = cluster.getCurrentStackVersion();
           Boolean isStackNotLess22 = (stackId != null && stackId.getStackName().equals("HDP") &&
                   VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0);
 

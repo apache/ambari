@@ -34,7 +34,6 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.ServiceComponentHostEventWrapper;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
@@ -45,7 +44,6 @@ import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,9 +100,6 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
   private ActionMetadata actionMetadata;
 
   @Inject
-  private AmbariMetaInfo ambariMetaInfo;
-
-  @Inject
   private Clusters clusters;
 
   /**
@@ -125,7 +120,6 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
 
     String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
-    StackId stackId = cluster.getDesiredStackVersion();
 
     // use the host role command to get to the parent upgrade group
     UpgradeItemEntity upgradeItem = m_upgradeDAO.findUpgradeItemByRequestAndStage(requestId,stageId);
@@ -197,8 +191,8 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
             Role role = skippedTask.getRole();
             if (! publishedHostComponentsOnHost.contains(role)) {
               HashMap<String, String> details = new HashMap<>();
-              String service = ambariMetaInfo.getComponentToService(
-                stackId.getStackName(), stackId.getStackVersion(), role.toString());
+
+              String service = cluster.getServiceByComponentName(role.toString()).getName();
 
               details.put("service", service);
               details.put("component", role.toString());

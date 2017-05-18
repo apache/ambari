@@ -44,10 +44,9 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -85,9 +84,6 @@ public class HeartBeatHandler {
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
-
-  @Inject
-  private Injector injector;
 
   @Inject
   private Configuration config;
@@ -506,36 +502,26 @@ public class HeartBeatHandler {
     ComponentsResponse response = new ComponentsResponse();
 
     Cluster cluster = clusterFsm.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
-    if (stackId == null) {
-      throw new AmbariException("Cannot provide stack components map. " +
-        "Stack hasn't been selected yet.");
+
+    Map<String, Map<String, String>> componentsMap = new HashMap<>();
+
+    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
+      componentsMap.put(service.getName(), new HashMap<String, String>());
+
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        StackId stackId = component.getDesiredStackId();
+
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+            stackId.getStackName(), stackId.getStackVersion(), service.getName(), component.getName());
+
+        componentsMap.get(service.getName()).put(component.getName(), componentInfo.getCategory());
+      }
     }
-    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     response.setClusterName(clusterName);
-    response.setStackName(stackId.getStackName());
-    response.setStackVersion(stackId.getStackVersion());
-    response.setComponents(getComponentsMap(stack));
+    response.setComponents(componentsMap);
 
     return response;
-  }
-
-  private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
-    Map<String, Map<String, String>> result = new HashMap<>();
-
-    for (ServiceInfo service : stack.getServices()) {
-      Map<String, String> components = new HashMap<>();
-
-      for (ComponentInfo component : service.getComponents()) {
-        components.put(component.getName(), component.getCategory());
-      }
-
-      result.put(service.getName(), components);
-    }
-
-    return result;
   }
 
   /**

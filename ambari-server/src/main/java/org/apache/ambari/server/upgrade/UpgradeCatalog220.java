@@ -730,103 +730,89 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
     for (Cluster cluster : clusters.getClusters().values()) {
       ClusterEntity clusterEntity = clusterDAO.findByName(cluster.getClusterName());
-      final StackId stackId = cluster.getCurrentStackVersion();
-      LOG.info(MessageFormat.format("Analyzing cluster {0}, currently at stack {1} and version {2}",
-        cluster.getClusterName(), stackId.getStackName(), stackId.getStackVersion()));
 
-      if (stackId.getStackName().equalsIgnoreCase("HDP") && stackId.getStackVersion().equalsIgnoreCase("2.1")) {
-        final StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-        StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+      Set<StackId> stackIds = new HashSet<>();
 
-        LOG.info("Bootstrapping the versions since using HDP-2.1");
+      for (Service service : cluster.getServices().values()) {
+        StackId stackId = service.getDesiredStackId();
 
-        // The actual value is not known, so use this.
-        String displayName = stackId.getStackName() + "-" + hardcodedInitialVersion;
-
-        // However, the Repo URLs should be correct.
-        String operatingSystems = repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories());
-
-        // Create the Repo Version if it doesn't already exist.
-        RepositoryVersionEntity repoVersionEntity = repositoryVersionDAO.findByDisplayName(displayName);
-        if (null != repoVersionEntity) {
-          LOG.info(MessageFormat.format("A Repo Version already exists with Display Name: {0}", displayName));
+        if (stackIds.contains(stackId)) {
+          continue;
         } else {
-          final long repoVersionIdSeq = repositoryVersionDAO.findMaxId("id");
-          // Safe to attempt to add the sequence if it doesn't exist already.
-          addSequence("repo_version_id_seq", repoVersionIdSeq, false);
-
-          repoVersionEntity = repositoryVersionDAO.create(
-            stackEntity, hardcodedInitialVersion, displayName, operatingSystems);
-          LOG.info(MessageFormat.format("Created Repo Version with ID: {0,number,#}\n, Display Name: {1}, Repo URLs: {2}\n",
-            repoVersionEntity.getId(), displayName, operatingSystems));
+          stackIds.add(stackId);
         }
 
-        /*
-        // Create the Cluster Version if it doesn't already exist.
-        ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(),
-          stackId, hardcodedInitialVersion);
 
-        if (null != clusterVersionEntity) {
-          LOG.info(MessageFormat.format("A Cluster Version version for cluster: {0}, version: {1}, already exists; its state is {2}.",
-            cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(), clusterVersionEntity.getState()));
 
-          // If there are not CURRENT cluster versions, make this one the CURRENT one.
-          if (clusterVersionEntity.getState() != RepositoryVersionState.CURRENT &&
-            clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).isEmpty()) {
-            clusterVersionEntity.setState(RepositoryVersionState.CURRENT);
-            clusterVersionDAO.merge(clusterVersionEntity);
+        LOG.info(MessageFormat.format("Analyzing cluster {0}, currently at stack {1} and version {2}",
+          cluster.getClusterName(), stackId.getStackName(), stackId.getStackVersion()));
+
+        if (stackId.getStackName().equalsIgnoreCase("HDP") && stackId.getStackVersion().equalsIgnoreCase("2.1")) {
+          final StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+          StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+
+          LOG.info("Bootstrapping the versions since using HDP-2.1");
+
+          // The actual value is not known, so use this.
+          String displayName = stackId.getStackName() + "-" + hardcodedInitialVersion;
+
+          // However, the Repo URLs should be correct.
+          String operatingSystems = repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories());
+
+          // Create the Repo Version if it doesn't already exist.
+          RepositoryVersionEntity repoVersionEntity = repositoryVersionDAO.findByDisplayName(displayName);
+          if (null != repoVersionEntity) {
+            LOG.info(MessageFormat.format("A Repo Version already exists with Display Name: {0}", displayName));
+          } else {
+            final long repoVersionIdSeq = repositoryVersionDAO.findMaxId("id");
+            // Safe to attempt to add the sequence if it doesn't exist already.
+            addSequence("repo_version_id_seq", repoVersionIdSeq, false);
+
+            repoVersionEntity = repositoryVersionDAO.create(
+              stackEntity, hardcodedInitialVersion, displayName, operatingSystems);
+            LOG.info(MessageFormat.format("Created Repo Version with ID: {0,number,#}\n, Display Name: {1}, Repo URLs: {2}\n",
+              repoVersionEntity.getId(), displayName, operatingSystems));
           }
-        } else {
-          final long clusterVersionIdSeq = clusterVersionDAO.findMaxId("id");
-          // Safe to attempt to add the sequence if it doesn't exist already.
-          addSequence("cluster_version_id_seq", clusterVersionIdSeq, false);
 
-          clusterVersionEntity = clusterVersionDAO.create(clusterEntity, repoVersionEntity, RepositoryVersionState.CURRENT,
-            System.currentTimeMillis(), System.currentTimeMillis(), "admin");
-          LOG.info(MessageFormat.format("Created Cluster Version with ID: {0,number,#}, cluster: {1}, version: {2}, state: {3}.",
-            clusterVersionEntity.getId(), cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(),
-            clusterVersionEntity.getState()));
-        }
-        */
+          // Create the Host Versions if they don't already exist.
+          Collection<HostEntity> hosts = clusterEntity.getHostEntities();
+          boolean addedAtLeastOneHost = false;
+          if (null != hosts && !hosts.isEmpty()) {
+            for (HostEntity hostEntity : hosts) {
+              HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(),
+                stackId, hardcodedInitialVersion, hostEntity.getHostName());
 
-        // Create the Host Versions if they don't already exist.
-        Collection<HostEntity> hosts = clusterEntity.getHostEntities();
-        boolean addedAtLeastOneHost = false;
-        if (null != hosts && !hosts.isEmpty()) {
-          for (HostEntity hostEntity : hosts) {
-            HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(),
-              stackId, hardcodedInitialVersion, hostEntity.getHostName());
+              if (null != hostVersionEntity) {
+                LOG.info(MessageFormat.format("A Host Version version for cluster: {0}, version: {1}, host: {2}, already exists; its state is {3}.",
+                  cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
+                  hostEntity.getHostName(), hostVersionEntity.getState()));
 
-            if (null != hostVersionEntity) {
-              LOG.info(MessageFormat.format("A Host Version version for cluster: {0}, version: {1}, host: {2}, already exists; its state is {3}.",
-                cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
-                hostEntity.getHostName(), hostVersionEntity.getState()));
+                if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT &&
+                  hostVersionDAO.findByClusterHostAndState(cluster.getClusterName(), hostEntity.getHostName(),
+                    RepositoryVersionState.CURRENT).isEmpty()) {
+                  hostVersionEntity.setState(RepositoryVersionState.CURRENT);
+                  hostVersionDAO.merge(hostVersionEntity);
+                }
+              } else {
+                // This should only be done the first time.
+                if (!addedAtLeastOneHost) {
+                  final long hostVersionIdSeq = hostVersionDAO.findMaxId("id");
+                  // Safe to attempt to add the sequence if it doesn't exist already.
+                  addSequence("host_version_id_seq", hostVersionIdSeq, false);
+                  addedAtLeastOneHost = true;
+                }
 
-              if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT &&
-                hostVersionDAO.findByClusterHostAndState(cluster.getClusterName(), hostEntity.getHostName(),
-                  RepositoryVersionState.CURRENT).isEmpty()) {
-                hostVersionEntity.setState(RepositoryVersionState.CURRENT);
-                hostVersionDAO.merge(hostVersionEntity);
+                hostVersionEntity = new HostVersionEntity(hostEntity, repoVersionEntity, RepositoryVersionState.CURRENT);
+                hostVersionDAO.create(hostVersionEntity);
+                LOG.info(MessageFormat.format("Created Host Version with ID: {0,number,#}, cluster: {1}, version: {2}, host: {3}, state: {4}.",
+                  hostVersionEntity.getId(), cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
+                  hostEntity.getHostName(), hostVersionEntity.getState()));
               }
-            } else {
-              // This should only be done the first time.
-              if (!addedAtLeastOneHost) {
-                final long hostVersionIdSeq = hostVersionDAO.findMaxId("id");
-                // Safe to attempt to add the sequence if it doesn't exist already.
-                addSequence("host_version_id_seq", hostVersionIdSeq, false);
-                addedAtLeastOneHost = true;
-              }
-
-              hostVersionEntity = new HostVersionEntity(hostEntity, repoVersionEntity, RepositoryVersionState.CURRENT);
-              hostVersionDAO.create(hostVersionEntity);
-              LOG.info(MessageFormat.format("Created Host Version with ID: {0,number,#}, cluster: {1}, version: {2}, host: {3}, state: {4}.",
-                hostVersionEntity.getId(), cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
-                hostEntity.getHostName(), hostVersionEntity.getState()));
             }
+          } else {
+            LOG.info(MessageFormat.format("Not inserting any Host Version records since cluster {0} does not have any hosts.",
+              cluster.getClusterName()));
           }
-        } else {
-          LOG.info(MessageFormat.format("Not inserting any Host Version records since cluster {0} does not have any hosts.",
-            cluster.getClusterName()));
         }
       }
     }
@@ -1017,7 +1003,14 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, HIVE_SITE_CONFIG, updates, true, false);
         }
       }
-      StackId stackId = cluster.getCurrentStackVersion();
+
+      Service service = cluster.getServices().get("HIVE");
+
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
       boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
               VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
 
@@ -1037,7 +1030,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, HIVE_ENV_CONFIG, hiveEnvProps, true, true);
         }
       }
-
     }
   }
 
@@ -1046,7 +1038,13 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     boolean updateConfig = false;
 
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
-      StackId stackId = cluster.getCurrentStackVersion();
+      Service service = cluster.getServices().get("HBASE");
+
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
       Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
       if (hbaseEnvConfig != null) {
         String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);

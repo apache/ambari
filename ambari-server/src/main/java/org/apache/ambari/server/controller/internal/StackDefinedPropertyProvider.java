@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
@@ -46,6 +47,7 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
@@ -160,12 +162,19 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         String componentName = r.getPropertyValue(componentNamePropertyId).toString();
 
         Cluster cluster = clusters.getCluster(clusterName);
-        StackId stack = cluster.getDesiredStackVersion();
-        String svc = metaInfo.getComponentToService(stack.getStackName(),
-            stack.getStackVersion(), componentName);
+        Service service = null;
+
+        try {
+          service = cluster.getServiceByComponentName(componentName);
+        } catch (ServiceNotFoundException e) {
+          LOG.debug("Could not load component {}", componentName);
+          continue;
+        }
+
+        StackId stack = service.getDesiredStackId();
 
         List<MetricDefinition> defs = metaInfo.getMetrics(
-            stack.getStackName(), stack.getStackVersion(), svc, componentName, type.name());
+            stack.getStackName(), stack.getStackVersion(), service.getName(), componentName, type.name());
 
         if (null == defs || 0 == defs.size()) {
           continue;
@@ -227,6 +236,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       // Need to rethrow the catched 'AuthorizationException'.
       throw e;
     } catch (Exception e) {
+      e.printStackTrace();
       LOG.error("Error loading deferred resources", e);
       throw new SystemException("Error loading deferred resources", e);
     }

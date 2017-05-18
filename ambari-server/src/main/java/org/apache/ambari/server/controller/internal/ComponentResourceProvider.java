@@ -333,6 +333,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (!componentNames.containsKey(request.getClusterName())) {
         componentNames.put(request.getClusterName(), new HashMap<String, Set<String>>());
       }
+
       Map<String, Set<String>> serviceComponents = componentNames.get(request.getClusterName());
       if (!serviceComponents.containsKey(request.getServiceName())) {
         serviceComponents.put(request.getServiceName(), new HashSet<String>());
@@ -449,7 +450,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Set<ServiceComponentResponse> response = new HashSet<>();
     String category = null;
 
-    StackId stackId = cluster.getDesiredStackVersion();
 
     if (request.getComponentName() != null) {
       setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
@@ -457,6 +457,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       final Service s = getServiceFromCluster(request, cluster);
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
+
+      StackId stackId = sc.getDesiredStackId();
 
       try {
         ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
@@ -488,6 +490,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           // skip non matching state
           continue;
         }
+
+        StackId stackId = sc.getDesiredStackId();
 
         ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
         try {
@@ -826,17 +830,17 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                                       final Cluster cluster,
                                       final AmbariMetaInfo ambariMetaInfo) throws AmbariException {
     if (StringUtils.isEmpty(request.getServiceName())) {
-      StackId stackId = cluster.getDesiredStackVersion();
+
       String componentName = request.getComponentName();
-      String serviceName = ambariMetaInfo.getComponentToService(stackId.getStackName(),
-              stackId.getStackVersion(), componentName);
+
+      String serviceName = getManagementController().findServiceName(cluster, componentName);
+
       debug("Looking up service name for component, componentName={}, serviceName={}", componentName, serviceName);
 
       if (StringUtils.isEmpty(serviceName)) {
         throw new AmbariException("Could not find service for component"
                 + ", componentName=" + request.getComponentName()
-                + ", clusterName=" + cluster.getClusterName()
-                + ", stackInfo=" + stackId.getStackId());
+                + ", clusterName=" + cluster.getClusterName());
       }
       request.setServiceName(serviceName);
     }

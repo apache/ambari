@@ -111,6 +111,10 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    helper.createStack(stackId);
+
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     m_repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, REPO_VERSION);

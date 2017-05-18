@@ -42,6 +42,8 @@ import javax.persistence.EntityManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -67,6 +69,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyUpgradeBehavior;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -584,7 +587,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             propertiesAttributes = Collections.emptyMap();
           }
 
-          controller.createConfig(cluster, configType, mergedProperties, newTag, propertiesAttributes);
+          controller.createConfig(cluster.getDesiredStackVersion(), cluster, configType, mergedProperties, newTag, propertiesAttributes);
 
           Config baseConfig = cluster.getConfig(configType, newTag);
           if (baseConfig != null) {
@@ -772,7 +775,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected KerberosDescriptor getKerberosDescriptor(Cluster cluster) throws AmbariException {
     // Get the Stack-defined Kerberos Descriptor (aka default Kerberos Descriptor)
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    StackId stackId = cluster.getCurrentStackVersion();
+
+
+    // !!! FIXME
+    @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "can only take the first stack we find until we can support multiple with Kerberos")
+    StackId stackId = getStackId(cluster);
+
     KerberosDescriptor defaultDescriptor = ambariMetaInfo.getKerberosDescriptor(stackId.getStackName(), stackId.getStackVersion());
 
     // Get the User-set Kerberos Descriptor
@@ -1065,7 +1074,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
 
-      StackId stackId = cluster.getDesiredStackVersion();
+      Service service = cluster.getServices().get(serviceName);
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
+
       Map<String, Object> widgetDescriptor = null;
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       ServiceInfo serviceInfo = stackInfo.getService(serviceName);
@@ -1132,5 +1147,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
       }
     }
+  }
+
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES,
+      comment = "can only take the first stack we find until we can support multiple with Kerberos")
+  private StackId getStackId(Cluster cluster) throws AmbariException {
+    return cluster.getServices().values().iterator().next().getDesiredStackId();
   }
 }

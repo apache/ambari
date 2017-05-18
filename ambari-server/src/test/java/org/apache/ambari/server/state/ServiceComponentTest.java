@@ -86,6 +86,9 @@ public class ServiceComponentTest {
     serviceName = "HDFS";
 
     StackId stackId = new StackId("HDP-0.1");
+
+    helper.createStack(stackId);
+
     clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
 

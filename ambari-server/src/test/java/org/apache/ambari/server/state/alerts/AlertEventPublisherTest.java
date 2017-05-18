@@ -99,7 +99,10 @@ public class AlertEventPublisherTest {
     aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     clusterName = "foo";
-    clusters.addCluster(clusterName, new StackId("HDP", STACK_VERSION));
+    StackId stackId = new StackId("HDP", STACK_VERSION);
+    ormHelper.createStack(stackId);
+
+    clusters.addCluster(clusterName, stackId);
     cluster = clusters.getCluster(clusterName);
     Assert.assertNotNull(cluster);
   }

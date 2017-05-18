@@ -31,6 +31,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -135,35 +136,46 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = clusters.getClusters();
       if ((clusterMap != null) && !clusterMap.isEmpty()) {
         // Iterate through the clusters and perform any configuration updates
-        for (final Cluster cluster : clusterMap.values()) {
-          StackId currentStackVersion = cluster.getCurrentStackVersion();
-          String currentStackName = currentStackVersion != null? currentStackVersion.getStackName() : null;
-          if (currentStackName != null && currentStackName.equalsIgnoreCase("PHD")) {
-            // Update configs only if PHD stack is deployed
-            Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-            if(desiredConfigs != null && !desiredConfigs.isEmpty()) {
-              for (Map.Entry<String, DesiredConfig> dc : desiredConfigs.entrySet()) {
-                String configType = dc.getKey();
-                DesiredConfig desiredConfig = dc.getValue();
-                String configTag = desiredConfig.getTag();
-                Config config = cluster.getConfig(configType, configTag);
+        Set<StackId> stackIds = new HashSet<>();
 
-                Map<String, String> properties = config.getProperties();
-                if(properties != null && !properties.isEmpty()) {
-                  Map<String, String> updates = new HashMap<>();
-                  for (Map.Entry<String, String> property : properties.entrySet()) {
-                    String propertyKey = property.getKey();
-                    String propertyValue = property.getValue();
-                    String modifiedPropertyValue = propertyValue;
-                    for (String regex : replacements.keySet()) {
-                      modifiedPropertyValue = modifiedPropertyValue.replaceAll(regex, replacements.get(regex));
+        for (final Cluster cluster : clusterMap.values()) {
+          for (Service service : cluster.getServices().values()) {
+            StackId currentStackVersion = service.getDesiredStackId();
+
+            if (stackIds.contains(currentStackVersion)) {
+              continue;
+            } else {
+              stackIds.add(currentStackVersion);
+            }
+
+            String currentStackName = currentStackVersion != null? currentStackVersion.getStackName() : null;
+            if (currentStackName != null && currentStackName.equalsIgnoreCase("PHD")) {
+              // Update configs only if PHD stack is deployed
+              Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+              if(desiredConfigs != null && !desiredConfigs.isEmpty()) {
+                for (Map.Entry<String, DesiredConfig> dc : desiredConfigs.entrySet()) {
+                  String configType = dc.getKey();
+                  DesiredConfig desiredConfig = dc.getValue();
+                  String configTag = desiredConfig.getTag();
+                  Config config = cluster.getConfig(configType, configTag);
+
+                  Map<String, String> properties = config.getProperties();
+                  if(properties != null && !properties.isEmpty()) {
+                    Map<String, String> updates = new HashMap<>();
+                    for (Map.Entry<String, String> property : properties.entrySet()) {
+                      String propertyKey = property.getKey();
+                      String propertyValue = property.getValue();
+                      String modifiedPropertyValue = propertyValue;
+                      for (String regex : replacements.keySet()) {
+                        modifiedPropertyValue = modifiedPropertyValue.replaceAll(regex, replacements.get(regex));
+                      }
+                      if (!modifiedPropertyValue.equals(propertyValue)) {
+                        updates.put(propertyKey, modifiedPropertyValue);
+                      }
                     }
-                    if (!modifiedPropertyValue.equals(propertyValue)) {
-                      updates.put(propertyKey, modifiedPropertyValue);
+                    if (!updates.isEmpty()) {
+                      updateConfigurationPropertiesForCluster(cluster, configType, updates, true, false);
                     }
-                  }
-                  if (!updates.isEmpty()) {
-                    updateConfigurationPropertiesForCluster(cluster, configType, updates, true, false);
                   }
                 }
               }

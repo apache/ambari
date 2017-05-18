@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
@@ -195,9 +194,6 @@ public class ClusterImpl implements Cluster {
 
   private final ReadWriteLock clusterGlobalLock;
 
-  // This is a lock for operations that do not need to be cluster global
-  private final Lock hostTransitionStateWriteLock;
-
   /**
    * The unique ID of the {@link @ClusterEntity}.
    */
@@ -315,7 +311,6 @@ public class ClusterImpl implements Cluster {
     injector.injectMembers(this);
 
     clusterGlobalLock = lockFactory.newReadWriteLock("clusterGlobalLock");
-    hostTransitionStateWriteLock = lockFactory.newLock("hostTransitionStateLock");
 
     loadStackVersion();
     loadServices();
@@ -874,6 +869,20 @@ public class ClusterImpl implements Cluster {
   public Map<String, Service> getServices() {
     return new HashMap<>(services);
   }
+
+  @Override
+  public Service getServiceByComponentName(String componentName) throws AmbariException {
+    for (Service service : services.values()) {
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.getName().equals(componentName)) {
+          return service;
+        }
+      }
+    }
+
+    throw new ServiceNotFoundException(getClusterName(), "component: " + componentName);
+  }
+
 
   @Override
   public StackId getDesiredStackVersion() {

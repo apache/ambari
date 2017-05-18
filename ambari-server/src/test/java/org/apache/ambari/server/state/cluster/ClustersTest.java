@@ -50,12 +50,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
-import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
-import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -142,8 +140,9 @@ public class ClustersTest {
 
   @Test
   public void testAddAndGetCluster() throws AmbariException {
-
     StackId stackId = new StackId("HDP-2.1.1");
+
+    helper.createStack(stackId);
 
     String c1 = "foo";
     String c2 = "foo";
@@ -196,6 +195,8 @@ public class ClustersTest {
   @Test
   public void testAddAndGetClusterWithSecurityType() throws AmbariException {
     StackId stackId = new StackId("HDP-2.1.1");
+
+    helper.createStack(stackId);
 
     String c1 = "foo";
     SecurityType securityType = SecurityType.KERBEROS;
@@ -261,6 +262,8 @@ public class ClustersTest {
     }
 
     StackId stackId = new StackId("HDP-0.1");
+
+    helper.createStack(stackId);
 
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
@@ -346,6 +349,8 @@ public class ClustersTest {
 
     StackId stackId = new StackId("HDP-0.1");
 
+    helper.createStack(stackId);
+
     clusters.addCluster(c1, stackId);
     clusters.addCluster(c2, stackId);
     Cluster cluster1 = clusters.getCluster(c1);
@@ -376,6 +381,9 @@ public class ClustersTest {
     final String h2 = "h2";
 
     StackId stackId = new StackId("HDP-0.1");
+
+    helper.createStack(stackId);
+
     clusters.addCluster(c1, stackId);
 
     Cluster cluster = clusters.getCluster(c1);
@@ -489,58 +497,6 @@ public class ClustersTest {
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, topologyRequestDAO.findByClusterId(cluster.getClusterId()).size());
   }
-
-  @Test
-  public void testSetCurrentStackVersion() throws AmbariException {
-    String c1 = "foo3";
-
-    try
-    {
-      clusters.setCurrentStackVersion("", null);
-      fail("Exception should be thrown on invalid set");
-    }
-      catch (AmbariException e) {
-      // Expected
-    }
-
-    try
-    {
-      clusters.setCurrentStackVersion(c1, null);
-      fail("Exception should be thrown on invalid set");
-    }
-    catch (AmbariException e) {
-      // Expected
-    }
-
-    StackId stackId = new StackId("HDP-0.1");
-
-    try
-    {
-      clusters.setCurrentStackVersion(c1, stackId);
-      fail("Exception should be thrown on invalid set");
-    }
-    catch (AmbariException e) {
-      // Expected
-      Assert.assertTrue(e.getMessage().contains("Cluster not found"));
-    }
-
-    clusters.addCluster(c1, stackId);
-    clusters.setCurrentStackVersion(c1, stackId);
-
-    Assert.assertNotNull(clusters.getCluster(c1));
-    ClusterStateEntity entity = injector.getInstance(ClusterStateDAO.class).findByPK(clusters.getCluster(c1).getClusterId());
-    Assert.assertNotNull(entity);
-
-    Assert.assertTrue(entity.getCurrentStack().getStackName().equals(
-        stackId.getStackName())
-        && entity.getCurrentStack().getStackVersion().equals(
-            stackId.getStackVersion()));
-
-    Assert.assertTrue(clusters.getCluster(c1).getCurrentStackVersion().getStackName().equals(stackId.getStackName()));
-    Assert.assertTrue(
-        clusters.getCluster(c1).getCurrentStackVersion().getStackVersion().equals(stackId.getStackVersion()));
-  }
-
 
   @Test
   public void testNullHostNamesInTopologyRequests() throws AmbariException {
@@ -674,6 +630,9 @@ public class ClustersTest {
 
   private Cluster createCluster(String clusterName) throws AmbariException {
     StackId stackId = new StackId("HDP-0.1");
+
+    helper.createStack(stackId);
+
     clusters.addCluster(clusterName, stackId);
 
     return clusters.getCluster(clusterName);

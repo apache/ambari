@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -71,6 +72,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -457,16 +459,21 @@ public class UpgradeCatalog212Test {
       }
     });
 
+    StackId stackId = new StackId("HDP-2.2");
+
+    Service hiveService = easyMockSupport.createNiceMock(Service.class);
+    expect(hiveService.getDesiredStackId()).andReturn(stackId);
+
     expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", mockClusterExpected);
     }}).once();
 
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HIVE", hiveService)
+        .build());
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).atLeastOnce();
-
-    StackId stackId = new StackId("HDP-2.2");
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(stackId).atLeastOnce();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog212.class).updateHiveConfigs();

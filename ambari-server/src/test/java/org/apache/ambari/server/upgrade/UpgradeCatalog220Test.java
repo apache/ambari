@@ -92,6 +92,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -473,10 +474,11 @@ public class UpgradeCatalog220Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", mockClusterExpected);
     }}).atLeastOnce();
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2"));
-
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", easyMockSupport.createNiceMock(Service.class))
+        .build());
     expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
-    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).atLeastOnce();
+    expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).anyTimes();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog220.class).updateHbaseEnvConfig();
@@ -603,7 +605,7 @@ public class UpgradeCatalog220Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -664,7 +666,7 @@ public class UpgradeCatalog220Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -1209,7 +1211,9 @@ public class UpgradeCatalog220Test {
     }}).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(hiveSiteConf).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(hiveEnvConf).atLeastOnce();
-
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HIVE", easyMockSupport.createNiceMock(Service.class))
+        .build());
     expect(hiveSiteConf.getProperties()).andReturn(propertiesHiveSite).once();
     expect(hiveEnvConf.getProperties()).andReturn(propertiesHiveEnv).once();
 

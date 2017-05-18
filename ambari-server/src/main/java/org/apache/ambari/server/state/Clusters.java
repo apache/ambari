@@ -209,15 +209,6 @@ public interface Clusters {
       throws AmbariException;
 
   /**
-   * Sets the current stack version for the cluster
-   * @param clusterName The name of the cluster
-   * @param stackId The identifier for the stack
-   * @throws AmbariException
-   */
-  void setCurrentStackVersion(String clusterName, StackId stackId)
-      throws AmbariException;
-
-  /**
    * Update the host set for clusters and the host attributes associated with the hosts
    * @param hostsClusters
    * @param hostAttributes

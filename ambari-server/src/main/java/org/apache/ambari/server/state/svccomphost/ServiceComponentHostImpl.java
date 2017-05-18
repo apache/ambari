@@ -1567,4 +1567,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public ServiceComponent getServiceComponent() {
     return serviceComponent;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StackId getDesiredStackId() {
+    return serviceComponent.getDesiredStackId();
+  }
+
 }

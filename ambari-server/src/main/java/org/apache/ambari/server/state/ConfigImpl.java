@@ -101,6 +101,17 @@ public class ConfigImpl implements Config {
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
+        clusterDAO, gson, eventPublisher, lockFactory);
+  }
+
+
+  @AssistedInject
+  ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
@@ -139,7 +150,7 @@ public class ConfigImpl implements Config {
 
     // when creating a brand new config without a backing entity, use the
     // cluster's desired stack as the config's stack
-    stackId = cluster.getDesiredStackVersion();
+    this.stackId = stackId;
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
     persist(entity);
 

@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -92,11 +91,6 @@ public class ServiceComponentImpl implements ServiceComponent {
    */
   private final long desiredStateEntityId;
 
-  /**
-   * Data access object used for lookup up stacks.
-   */
-  private final StackDAO stackDAO;
-
   @Inject
   private RepositoryVersionDAO repoVersionDAO;
 
@@ -108,7 +102,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       AmbariMetaInfo ambariMetaInfo,
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       ClusterServiceDAO clusterServiceDAO, ServiceComponentHostFactory serviceComponentHostFactory,
-      StackDAO stackDAO, AmbariEventPublisher eventPublisher)
+      AmbariEventPublisher eventPublisher)
       throws AmbariException {
 
     this.ambariMetaInfo = ambariMetaInfo;
@@ -117,7 +111,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceComponentHostFactory = serviceComponentHostFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
 
     ServiceComponentDesiredStateEntity desiredStateEntity = new ServiceComponentDesiredStateEntity();
@@ -161,14 +154,13 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO,
       ClusterServiceDAO clusterServiceDAO,
       HostComponentDesiredStateDAO hostComponentDesiredStateDAO,
-      ServiceComponentHostFactory serviceComponentHostFactory, StackDAO stackDAO,
+      ServiceComponentHostFactory serviceComponentHostFactory,
       AmbariEventPublisher eventPublisher)
       throws AmbariException {
     this.service = service;
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
     this.clusterServiceDAO = clusterServiceDAO;
     this.serviceComponentHostFactory = serviceComponentHostFactory;
-    this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
     this.ambariMetaInfo = ambariMetaInfo;
 
@@ -191,7 +183,7 @@ public class ServiceComponentImpl implements ServiceComponent {
           serviceComponentHostFactory.createExisting(this,
             hostComponentStateEntity, hostComponentDesiredStateEntity));
       } catch(ProvisionException ex) {
-        StackId currentStackId = service.getCluster().getCurrentStackVersion();
+        StackId currentStackId = getDesiredStackId();
         LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
           currentStackId.getStackName(), currentStackId.getStackVersion(),
           service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));

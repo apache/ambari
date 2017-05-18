@@ -35,6 +35,7 @@ import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
@@ -44,6 +45,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -97,6 +99,18 @@ public class TestStagePlanner {
   public void testMultiStagePlan() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .build());
+
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -122,9 +136,17 @@ public class TestStagePlanner {
   public void testRestartStagePlan() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hiveService = mock(Service.class);
+    when(hiveService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HIVE", hiveService)
+        .build());
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
-    long now = System.currentTimeMillis();
+
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "execution command wrapper test",
       "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
@@ -151,6 +173,39 @@ public class TestStagePlanner {
   public void testManyStages() {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hdfsService = mock(Service.class);
+    when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service hbaseService = mock(Service.class);
+    when(hbaseService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service zkService = mock(Service.class);
+    when(zkService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service mrService = mock(Service.class);
+    when(mrService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service oozieService = mock(Service.class);
+    when(oozieService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service webhcatService = mock(Service.class);
+    when(webhcatService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    Service gangliaService = mock(Service.class);
+    when(gangliaService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+
+    when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .put("HBASE", hbaseService)
+        .put("ZOOKEEPER", zkService)
+        .put("MAPREDUCE", mrService)
+        .put("OOZIE", oozieService)
+        .put("WEBHCAT", webhcatService)
+        .put("GANGLIA", gangliaService)
+        .build());
+
+
     RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
@@ -188,6 +243,7 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
         "host9", now), "cluster1", "GANGLIA", false, false);
+
     System.out.println(stage.toString());
     rg.build(stage);
     System.out.println(rg.stringifyGraph());

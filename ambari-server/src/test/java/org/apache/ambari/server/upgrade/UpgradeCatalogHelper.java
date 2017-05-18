@@ -179,7 +179,7 @@ public class UpgradeCatalogHelper {
   @Transactional
   protected void addComponent(Injector injector, ClusterEntity clusterEntity,
       ClusterServiceEntity clusterServiceEntity, HostEntity hostEntity,
-      String componentName, RepositoryVersionEntity repositoryversion) {
+      String componentName, StackEntity desiredStackEntity, RepositoryVersionEntity desiredRepositoryVersion) {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
         ServiceComponentDesiredStateDAO.class);
 
@@ -189,7 +189,8 @@ public class UpgradeCatalogHelper {
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
-    componentDesiredStateEntity.setDesiredRepositoryVersion(repositoryversion);
+    componentDesiredStateEntity.setDesiredRepositoryVersion(desiredRepositoryVersion);
+
     serviceComponentDesiredStateDAO.create(componentDesiredStateEntity);
 
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);

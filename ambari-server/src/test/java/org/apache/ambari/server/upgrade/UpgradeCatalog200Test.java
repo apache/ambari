@@ -84,7 +84,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -459,8 +458,6 @@ public class UpgradeCatalog200Test {
   public void testPersistHDPRepo() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createStrictMock(AmbariManagementController.class);
-    final AmbariMetaInfo mockAmbariMetaInfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
-    final StackInfo mockStackInfo = easyMockSupport.createNiceMock(StackInfo.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockCluster = easyMockSupport.createStrictMock(Cluster.class);
     final Map<String, Cluster> clusterMap = new HashMap<>();
@@ -468,8 +465,6 @@ public class UpgradeCatalog200Test {
     OperatingSystemInfo osi = new OperatingSystemInfo("redhat6");
     HashSet<OperatingSystemInfo> osiSet = new HashSet<>();
     osiSet.add(osi);
-    StackId stackId = new StackId("HDP","2.2");
-    final RepositoryInfo mockRepositoryInfo = easyMockSupport.createNiceMock(RepositoryInfo.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -482,20 +477,7 @@ public class UpgradeCatalog200Test {
       }
     });
 
-    expect(mockAmbariManagementController.getAmbariMetaInfo()).andReturn(mockAmbariMetaInfo);
-    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
-    expect(mockClusters.getClusters()).andReturn(clusterMap).once();
-    expect(mockCluster.getCurrentStackVersion()).andReturn(stackId).once();
     expect(mockCluster.getClusterName()).andReturn("cc").anyTimes();
-    expect(mockAmbariMetaInfo.getOperatingSystems("HDP", "2.2")).andReturn(osiSet).once();
-    expect(mockAmbariMetaInfo.getRepository("HDP", "2.2", "redhat6", "HDP-2.2")).andReturn(mockRepositoryInfo).once();
-    expect(mockAmbariMetaInfo.getStack("HDP", "2.2")).andReturn(mockStackInfo);
-    expect(mockStackInfo.getRepositories()).andReturn(new ArrayList<RepositoryInfo>() {{
-      add(mockRepositoryInfo);
-    }});
-    expect(mockRepositoryInfo.getDefaultBaseUrl()).andReturn("http://baseurl").once();
-    mockAmbariMetaInfo.updateRepo("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl", null);
-    expectLastCall().once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog200.class).persistHDPRepo();
@@ -643,7 +625,7 @@ public class UpgradeCatalog200Test {
         clusterEntity, HOST_NAME);
 
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
-        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", repositoryVersion);
+        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity, repositoryVersion);
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         clusterEntity.getClusterId(), "NAGIOS", "NAGIOS_SERVER");

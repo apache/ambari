@@ -99,6 +99,9 @@ public class HostVersionOutOfSyncListenerTest {
     injector.injectMembers(this);
 
     StackId stackId = new StackId(this.stackId);
+
+    helper.createStack(stackId);
+
     clusters.addCluster("c1", stackId);
     c1 = clusters.getCluster("c1");
     addHost("h1");

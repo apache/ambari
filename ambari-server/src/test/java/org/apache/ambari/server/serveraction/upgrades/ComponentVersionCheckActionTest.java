@@ -137,6 +137,8 @@ public class ComponentVersionCheckActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
+    m_helper.createStack(sourceStack);
+
     Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);
 
@@ -205,6 +207,9 @@ public class ComponentVersionCheckActionTest {
 
   private void makeCrossStackUpgradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack,
                                             String targetRepo, String clusterName, String hostName) throws Exception {
+
+    m_helper.createStack(sourceStack);
+    m_helper.createStack(targetStack);
 
     Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);

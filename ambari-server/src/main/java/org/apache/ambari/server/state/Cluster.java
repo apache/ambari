@@ -74,6 +74,14 @@ public interface Cluster {
   Service getService(String serviceName) throws AmbariException;
 
   /**
+   * Gets a service from the given component name.
+   * @param componentName
+   * @return
+   * @throws AmbariException
+   */
+  Service getServiceByComponentName(String componentName) throws AmbariException;
+
+  /**
    * Get all services
    * @return
    */
@@ -197,34 +205,6 @@ public interface Cluster {
    */
   List<Host> transitionHostsToInstalling(RepositoryVersionEntity repoVersionEntity,
       VersionDefinitionXml versionDefinitionXml, boolean forceInstalled) throws AmbariException;
-
-  /**
-
-   * Update state of a cluster stack version for cluster based on states of host versions and stackids.
-   * @param repositoryVersion the repository version entity whose version is a value like 2.2.1.0-100)
-   * @throws AmbariException
-   */
-//  void recalculateClusterVersionState(RepositoryVersionEntity repositoryVersion) throws AmbariException;
-
-  /**
-   * Update state of all cluster stack versions for cluster based on states of host versions.
-   * @throws AmbariException
-   */
-//  void recalculateAllClusterVersionStates() throws AmbariException;
-
-  /**
-   * Transition an existing cluster version from one state to another.
-   *
-   * @param stackId
-   *          Stack ID
-   * @param version
-   *          Stack version
-   * @param state
-   *          Desired state
-   * @throws AmbariException
-   */
-//  void transitionClusterVersion(StackId stackId, String version,
-//      RepositoryVersionState state) throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its

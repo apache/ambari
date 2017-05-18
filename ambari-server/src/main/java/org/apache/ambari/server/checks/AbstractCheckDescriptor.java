@@ -37,6 +37,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.RepositoryType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -232,6 +233,15 @@ public abstract class AbstractCheckDescriptor {
     return properties.get(propertyName);
   }
 
+  protected Cluster getCluster(PrereqCheckRequest request) throws AmbariException {
+    String clusterName = request.getClusterName();
+    if (null != clusterName) {
+      return clustersProvider.get().getCluster(clusterName);
+    }
+
+    return null;
+  }
+
   /**
    * Gets the fail reason
    * @param key               the failure text key
@@ -257,19 +267,21 @@ public abstract class AbstractCheckDescriptor {
 
         try {
           Cluster c = clusters.getCluster(request.getClusterName());
-          Map<String, ServiceInfo> services = metaInfo.getServices(
-              c.getDesiredStackVersion().getStackName(),
-              c.getDesiredStackVersion().getStackVersion());
 
           LinkedHashSet<String> displays = new LinkedHashSet<>();
-          for (String name : names) {
-            if (services.containsKey(name)) {
-              displays.add(services.get(name).getDisplayName());
-            } else {
-              displays.add(name);
+
+          for (Service service : c.getServices().values()) {
+            if (names.contains(service.getName())) {
+              try {
+                ServiceInfo serviceInfo = metaInfo.getService(service);
+                displays.add(serviceInfo.getDisplayName());
+              } catch (Exception e) {
+                displays.add(service.getName());
+              }
             }
           }
           names = displays;
+
         } catch (Exception e) {
           LOG.warn("Could not load service info map");
         }

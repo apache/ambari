@@ -1072,18 +1072,23 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
       for (final Cluster cluster : clusterMap.values()) {
-        StackId stackId = cluster.getCurrentStackVersion();
-        if (stackId != null && stackId.getStackName().equals("HDP") &&
+
+        ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+        ServiceComponentDesiredStateEntity entity = dao.findByName(cluster.getClusterId(),
+            "STORM", "STORM_REST_API");
+
+        if (null == entity) {
+          continue;
+        }
+
+        StackId stackId = new StackId(entity.getDesiredStack());
+
+        if (stackId.getStackName().equals("HDP") &&
           VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
 
           executeInTransaction(new Runnable() {
             @Override
             public void run() {
-            ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-              ServiceComponentDesiredStateEntity entity = dao.findByName(cluster.getClusterId(),
-                  "STORM", "STORM_REST_API");
-
-            if (entity != null) {
               EntityManager em = getEntityManagerProvider().get();
               CriteriaBuilder cb = em.getCriteriaBuilder();
 
@@ -1113,7 +1118,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                   "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
                   "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
               }
-            }
             }
           });
         }

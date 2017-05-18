@@ -82,9 +82,9 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
       if(minStack.length == 2) {
         String minStackName = minStack[0];
         String minStackVersion = minStack[1];
-        String stackName = cluster.getCurrentStackVersion().getStackName();
+        Service yarnService = cluster.getService("YARN");
+        String stackName = yarnService.getDesiredStackId().getStackName();
         if (minStackName.equals(stackName)) {
-          Service yarnService = cluster.getService("YARN");
           String currentRepositoryVersion = yarnService.getDesiredRepositoryVersion().getVersion();
           return VersionUtils.compareVersions(currentRepositoryVersion, minStackVersion) >= 0;
         }

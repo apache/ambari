@@ -67,7 +67,9 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
-    final StackId stackId = cluster.getDesiredStackVersion();
+    final StackId stackId = request.getSourceStackId();
+
+
 
     for (Host host : clusterHosts.values()) {
       // hosts in MM will produce a warning if they do not have the repo version

@@ -293,13 +293,13 @@ public class HeartbeatProcessor extends AbstractService{
         int slaveCount = 0;
         int slavesRunning = 0;
 
-        StackId stackId;
         Cluster cluster = clusterFsm.getCluster(clusterName);
-        stackId = cluster.getDesiredStackVersion();
 
 
         List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(heartbeat.getHostname());
         for (ServiceComponentHost scHost : scHosts) {
+          StackId stackId = scHost.getDesiredStackId();
+
           ComponentInfo componentInfo =
               ambariMetaInfo.getComponent(stackId.getStackName(),
                   stackId.getStackVersion(), scHost.getServiceName(),

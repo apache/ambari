@@ -40,5 +40,10 @@ public enum ExperimentalFeature {
   /**
    * Used for code that is targeted for patch upgrades
    */
-  PATCH_UPGRADES
+  PATCH_UPGRADES,
+
+  /**
+   * For code that is for multi-service
+   */
+  MULTI_SERVICE
 }

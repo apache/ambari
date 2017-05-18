@@ -27,8 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -36,7 +37,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -50,12 +50,10 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -331,7 +329,10 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     updateClusterEnvConfiguration();
   }
 
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES,
+      comment = "the metainfo table of storing the latest repo will be removed")
   protected void persistHDPRepo() throws AmbariException{
+    /*
     AmbariManagementController amc = injector.getInstance(
             AmbariManagementController.class);
     AmbariMetaInfo ambariMetaInfo = amc.getAmbariMetaInfo();
@@ -369,7 +370,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         cluster.getClusterName());
       System.out.println(repositoryTable(ambariMetaInfo.getStack(stackName, stackVersion).getRepositories()));
     }
-
+    */
   }
 
   /**

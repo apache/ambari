@@ -109,6 +109,7 @@ public class ConcurrentServiceConfigVersionTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+    helper.createStack(stackId);
     clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
     repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -180,8 +181,6 @@ public class ConcurrentServiceConfigVersionTest {
         for (int i = 0; i < NUMBER_OF_SERVICE_CONFIG_VERSIONS; i++) {
           ServiceConfigVersionResponse response = cluster.createServiceConfigVersion(
               "HDFS", null, getName() + "-serviceConfig" + i, null);
-
-          System.out.println("**** " + response.getVersion());
 
           Thread.sleep(100);
         }

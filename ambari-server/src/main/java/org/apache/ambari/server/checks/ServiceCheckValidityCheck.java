@@ -116,7 +116,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
       if (service.getMaintenanceState() != MaintenanceState.OFF || !hasAtLeastOneComponentVersionAdvertised(service)) {
         continue;
       }
-      StackId stackId = cluster.getCurrentStackVersion();
+      StackId stackId = service.getDesiredStackId();
       boolean isServiceWitNoConfigs = ambariMetaInfo.get().isServiceWithNoConfigs(stackId.getStackName(), stackId.getStackVersion(), service.getName());
       if (isServiceWitNoConfigs){
         LOG.info(String.format("%s in %s version %s does not have customizable configurations. Skip checking service configuration history.", service.getName(), stackId.getStackName(), stackId.getStackVersion()));

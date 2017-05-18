@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -381,6 +382,12 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   protected void updateTezConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Service service = cluster.getServices().get("TEZ");
+
+      if (null == service) {
+        continue;
+      }
+
       Config tezSiteProps = cluster.getDesiredConfigByType(TEZ_SITE);
       if (tezSiteProps != null) {
 
@@ -388,8 +395,8 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
         String tezCountersMaxProperty = tezSiteProps.getProperties().get(TEZ_COUNTERS_MAX);
         String tezCountersMaxGroupesProperty = tezSiteProps.getProperties().get(TEZ_COUNTERS_MAX_GROUPS);
 
-        StackId stackId = cluster.getCurrentStackVersion();
-        boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
+        StackId stackId = service.getDesiredStackId();
+        boolean isStackNotLess23 = (stackId.getStackName().equals("HDP") &&
             VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
 
         if (isStackNotLess23) {

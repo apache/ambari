@@ -59,6 +59,8 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.events.MetricsCollectorHostDownEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -308,12 +310,15 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         StackId stackId;
         try {
           AmbariManagementController managementController = AmbariServer.getController();
-          stackId = managementController.getClusters().getCluster(clusterName).getCurrentStackVersion();
+          Cluster cluster = managementController.getClusters().getCluster(clusterName);
+          Service service = cluster.getServiceByComponentName(componentName);
+          stackId = service.getDesiredStackId();
+
           if (stackId != null) {
             String stackName = stackId.getStackName();
             String version = stackId.getStackVersion();
             AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-            String serviceName = ambariMetaInfo.getComponentToService(stackName, version, componentName);
+            String serviceName = service.getName();
             String timeLineAppId = ambariMetaInfo.getComponent(stackName, version, serviceName, componentName).getTimelineAppid();
             if (timeLineAppId != null){
               timelineAppIdCache.put(componentName, timeLineAppId);
