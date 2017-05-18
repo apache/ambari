@@ -356,11 +356,16 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
               then the Atlas RPM will not be able to copy its artifacts into /etc/atlas/conf directory and therefore
               prevent Ambari from by copying those unmanaged contents into /etc/atlas/$version/0
               '''
-              parent_dir = os.path.dirname(current_dir)
-              if os.path.exists(parent_dir):
-                Link(conf_dir, to=current_dir)
+              component_list = default("/localComponents", [])
+              if "ATLAS_SERVER" in component_list or "ATLAS_CLIENT" in component_list:
+                Logger.info("Atlas is installed on this host.")
+                parent_dir = os.path.dirname(current_dir)
+                if os.path.exists(parent_dir):
+                  Link(conf_dir, to=current_dir)
+                else:
+                  Logger.info("Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(conf_dir, current_dir))
               else:
-                Logger.info("Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(conf_dir, current_dir))
+                Logger.info("Will not create symlink from {0} to {1} because Atlas is not installed on this host.".format(conf_dir, current_dir))
             else:
               # Normal path for other packages
               Link(conf_dir, to=current_dir)
