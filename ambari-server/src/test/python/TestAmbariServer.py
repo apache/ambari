@@ -85,7 +85,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   print_info_msg, print_warning_msg, print_error_msg
                 from ambari_commons.os_utils import run_os_command, search_file, set_file_permissions, remove_file, copy_file, \
                   is_valid_filepath
-                from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
+                from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, DBMSConfig
                 from ambari_server.dbConfiguration_linux import PGConfig, LinuxDBMSConfig, OracleConfig
                 from ambari_server.properties import Properties
                 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
@@ -302,30 +302,27 @@ class TestAmbariServer(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_security")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_setup_security(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                                    logger_mock, OptionParserMock,
-                                    setup_security_method):
-    opm = OptionParserMock.return_value
-    options = MagicMock()
-    args = ["setup-security"]
-    opm.parse_args.return_value = (options, args)
-    options.dbms = None
-    options.security_option = "setup-security"
-    options.sid_or_sname = "sid"
-    setup_security_method.return_value = None
+                                    logger_mock, setup_security_method):
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', 'setup-security', '--security-option=setup-security']
+      setup_security_method.return_value = None
 
-    _ambari_server_.mainBody()
+      _ambari_server_.mainBody()
 
-    _ambari_server_.mainBody()
-    self.assertTrue(setup_security_method.called)
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-    pass
+      _ambari_server_.mainBody()
+      self.assertTrue(setup_security_method.called)
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+    finally:
+      sys.argv = tmp_argv
+  pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_ambari_krb5_jaas")
@@ -404,148 +401,147 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_setup(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                           logger_mock, OptionParserMock, reset_method, stop_method,
+                           logger_mock, reset_method, stop_method,
                            start_method, setup_method, exit_mock):
-    opm = OptionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["setup"]
-    opm.parse_args.return_value = (options, args)
-
-    options.dbms = None
-    options.sid_or_sname = "sid"
-    _ambari_server_.mainBody()
-
-    self.assertTrue(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
-
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-
-    setup_method.reset_mock()
-    start_method.reset_mock()
-    stop_method.reset_mock()
-    reset_method.reset_mock()
-    exit_mock.reset_mock()
-    args = ["setup", "-v"]
-    options = self._create_empty_options_mock()
-    opm.parse_args.return_value = (options, args)
-    options.dbms = None
-    options.sid_or_sname = "sid"
-    setup_method.side_effect = Exception("Unexpected error")
+    import sys
+    tmp_argv = sys.argv
     try:
+      sys.argv = ["ambari-server", "setup"]
+
       _ambari_server_.mainBody()
-    except Exception:
-      self.assertTrue(True)
-    self.assertTrue(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
-    self.assertTrue(get_verbose())
 
-    setup_method.reset_mock()
-    start_method.reset_mock()
-    stop_method.reset_mock()
-    reset_method.reset_mock()
-    exit_mock.reset_mock()
-    args = ["setup"]
-    options = self._create_empty_options_mock()
-    opm.parse_args.return_value = (options, args)
-    options.dbms = None
-    options.sid_or_sname = "sid"
-    options.verbose = False
-    setup_method.side_effect = Exception("Unexpected error")
-    _ambari_server_.mainBody()
-    self.assertTrue(exit_mock.called)
-    self.assertTrue(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
-    self.assertFalse(get_verbose())
+      self.assertTrue(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
 
-    pass
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+
+      setup_method.reset_mock()
+      start_method.reset_mock()
+      stop_method.reset_mock()
+      reset_method.reset_mock()
+      exit_mock.reset_mock()
+      sys.argv = ["ambari-server", "setup", "-v"]
+      setup_method.side_effect = Exception("Unexpected error")
+      try:
+        _ambari_server_.mainBody()
+      except Exception:
+        self.assertTrue(True)
+      self.assertTrue(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
+      self.assertTrue(get_verbose())
+
+      setup_method.reset_mock()
+      start_method.reset_mock()
+      stop_method.reset_mock()
+      reset_method.reset_mock()
+      exit_mock.reset_mock()
+      sys.argv = ["ambari-server", "setup"]
+      setup_method.side_effect = Exception("Unexpected error")
+      _ambari_server_.mainBody()
+      self.assertTrue(exit_mock.called)
+      self.assertTrue(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
+      self.assertFalse(get_verbose())
+
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(_ambari_server_, "setup")
-  @patch("optparse.OptionParser")
+  @patch.object(PGConfig, "_setup_local_server")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
-  def test_main_with_preset_dbms(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                                 logger_mock, optionParserMock, setup_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["setup"]
-    opm.parse_args.return_value = (options, args)
+  @patch("ambari_server.serverSetup.check_ambari_user")
+  @patch('ambari_server.serverSetup.download_and_install_jdk')
+  @patch("ambari_server.serverSetup.configure_os_settings")
+  @patch.object(DBMSConfig, "setup_database")
+  @patch("ambari_server.serverSetup.check_jdbc_drivers")
+  @patch("ambari_server.serverSetup.extract_views")
+  @patch("ambari_server.serverSetup.adjust_directory_permissions")
+  @patch("ambari_server.serverSetup.service_setup")
+  def test_main_with_preset_dbms(self, service_setup_mock, adjust_directory_permissions_mock, extract_views_mock, check_jdbc_drivers_mock, setup_database_mock, configure_os_settings_mock, download_and_install_jdk_mock, check_ambari_user_mock, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                 logger_mock, setup_local_db_method):
+    extract_views_mock.return_value = 0
+    check_ambari_user_mock.return_value = (0, False, 'user', None)
+    configure_os_settings_mock.return_value = 0
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ["ambari-server", "setup", "-s"]
 
-    options.dbms = "sqlanywhere"
-    options.sid_or_sname = "sname"
-    _ambari_server_.mainBody()
+      _ambari_server_.mainBody()
 
-    self.assertTrue(setup_method.called)
-    self.assertEquals(options.database_index, 5)
-    pass
+      self.assertTrue(setup_local_db_method.called)
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "fix_database_options")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
-  def test_fix_database_options_called(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock,
+  def test_fix_database_options_called(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
                                        fixDBOptionsMock, setup_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["setup"]
-    opm.parse_args.return_value = (options, args)
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', 'setup']
 
-    _ambari_server_.mainBody()
+      _ambari_server_.mainBody()
 
-    self.assertTrue(setup_method.called)
-    self.assertTrue(fixDBOptionsMock.called)
-    set_silent(False)
-    pass
+      self.assertTrue(setup_method.called)
+      self.assertTrue(fixDBOptionsMock.called)
+      set_silent(False)
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_start(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
-                           optionParserMock, reset_method, stop_method,
+                           reset_method, stop_method,
                            start_method, setup_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["setup"]
-    opm.parse_args.return_value = (options, args)
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', "setup"]
 
-    options.dbms = None
-    options.sid_or_sname = "sname"
-    _ambari_server_.mainBody()
+      _ambari_server_.mainBody()
 
-    self.assertTrue(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
+      self.assertTrue(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
 
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-    pass
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -656,33 +652,32 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "reset")
   @patch.object(_ambari_server_, "backup")
   @patch.object(_ambari_server_, "restore")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_backup(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
-                            optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+                            restore_mock, backup_mock, reset_method, stop_method,
                            start_method, setup_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["backup"]
-    opm.parse_args.return_value = (options, args)
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', "backup"]
 
-    options.dbms = None
-    options.sid_or_sname = "sname"
-    _ambari_server_.mainBody()
+      _ambari_server_.mainBody()
 
-    self.assertTrue(backup_mock.called)
-    self.assertFalse(restore_mock.called)
-    self.assertFalse(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
+      self.assertTrue(backup_mock.called)
+      self.assertFalse(restore_mock.called)
+      self.assertFalse(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
 
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-    pass
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   #Restore is not yet supported on Windows
   @not_for_platform(PLATFORM_WINDOWS)
@@ -693,33 +688,31 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "reset")
   @patch.object(_ambari_server_, "backup")
   @patch.object(_ambari_server_, "restore")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_restore(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
-                             optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+                             restore_mock, backup_mock, reset_method, stop_method,
                             start_method, setup_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    args = ["restore"]
-    opm.parse_args.return_value = (options, args)
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', "restore"]
+      _ambari_server_.mainBody()
 
-    options.dbms = None
-    options.sid_or_sname = "sname"
-    _ambari_server_.mainBody()
+      self.assertTrue(restore_mock.called)
+      self.assertFalse(backup_mock.called)
+      self.assertFalse(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertFalse(reset_method.called)
 
-    self.assertTrue(restore_mock.called)
-    self.assertFalse(backup_mock.called)
-    self.assertFalse(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertFalse(reset_method.called)
-
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-    pass
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -791,32 +784,30 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_reset(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                           logger_mock, optionParserMock, reset_method, stop_method,
+                           logger_mock, reset_method, stop_method,
                            start_method, setup_method):
-    opm = optionParserMock.return_value
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', "reset"]
 
-    options = self._create_empty_options_mock()
-    args = ["reset"]
-    opm.parse_args.return_value = (options, args)
-    options.dbms = None
-    options.sid_or_sname = "sid"
+      _ambari_server_.mainBody()
 
-    _ambari_server_.mainBody()
+      self.assertFalse(setup_method.called)
+      self.assertFalse(start_method.called)
+      self.assertFalse(stop_method.called)
+      self.assertTrue(reset_method.called)
 
-    self.assertFalse(setup_method.called)
-    self.assertFalse(start_method.called)
-    self.assertFalse(stop_method.called)
-    self.assertTrue(reset_method.called)
-
-    self.assertFalse(False, get_verbose())
-    self.assertFalse(False, get_silent())
-    pass
+      self.assertFalse(False, get_verbose())
+      self.assertFalse(False, get_silent())
+      pass
+    finally:
+      sys.argv = tmp_argv
 
 
   @not_for_platform(PLATFORM_WINDOWS)
@@ -8341,64 +8332,84 @@ class TestAmbariServer(TestCase):
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "is_server_runing")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_status_running(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                                    logger_mock,  optionParserMock, is_server_runing_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    del options.exit_message
+                                    logger_mock, is_server_runing_method):
 
-    args = ["status"]
-    opm.parse_args.return_value = (options, args)
-
-    is_server_runing_method.return_value = (True, 100)
-
-    options.dbms = None
-    options.sid_or_sname = "sid"
-
+    import sys
+    tmp_argv = sys.argv
     try:
-      _ambari_server_.mainBody()
-    except SystemExit as e:
-      self.assertTrue(e.code == 0)
+      sys.argv = ['ambari-server', "status"]
 
-    self.assertTrue(is_server_runing_method.called)
-    pass
+      is_server_runing_method.return_value = (True, 100)
+
+
+      try:
+        _ambari_server_.mainBody()
+      except SystemExit as e:
+        self.assertTrue(e.code == 0)
+
+      self.assertTrue(is_server_runing_method.called)
+      pass
+    finally:
+      sys.argv = tmp_argv
 
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "is_server_runing")
-  @patch("optparse.OptionParser")
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
   @patch.object(_ambari_server_, "init_logging")
   def test_main_test_status_not_running(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
-                                        logger_mock, optionParserMock, is_server_runing_method):
-    opm = optionParserMock.return_value
-    options = self._create_empty_options_mock()
-    del options.exit_message
+                                        logger_mock, is_server_runing_method):
 
-    args = ["status"]
-    opm.parse_args.return_value = (options, args)
-
-    is_server_runing_method.return_value = (False, None)
-
-    options.dbms = None
-    options.sid_or_sname = "sid"
-
+    import sys
+    tmp_argv = sys.argv
     try:
-      _ambari_server_.mainBody()
-    except SystemExit as e:
-      self.assertTrue(e.code == 3)
+      sys.argv = ['ambari-server', "status"]
 
-    self.assertTrue(is_server_runing_method.called)
-    pass
+      is_server_runing_method.return_value = (False, None)
 
+      try:
+        _ambari_server_.mainBody()
+      except SystemExit as e:
+        self.assertTrue(e.code == 3)
+
+      self.assertTrue(is_server_runing_method.called)
+      pass
+    finally:
+      sys.argv = tmp_argv
+
+  @not_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  @patch.object(_ambari_server_, "init_logging")
+  def test_status_extra_option(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                        logger_mock):
+
+    import sys
+    tmp_argv = sys.argv
+    try:
+      sys.argv = ['ambari-server', "status", '--skip-database-check']
+      flag = False
+      try:
+        _ambari_server_.mainBody()
+      except SystemExit as e:
+        self.assertEquals(e.code, 2)
+        flag = True
+
+      self.assertTrue(flag)
+
+      pass
+    finally:
+      sys.argv = tmp_argv
 
   def test_web_server_startup_timeout(self):
     from ambari_server.serverConfiguration import get_web_server_startup_timeout

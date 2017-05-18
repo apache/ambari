@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.ambari.logfeeder.LogFeeder;
-import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -310,24 +309,6 @@ public class LogFeederUtil {
       log.counter++;
       return false;
     }
-  }
-
-  public static boolean isListContains(List<String> list, String str, boolean caseSensitive) {
-    if (list == null) {
-      return false;
-    }
-    
-    for (String value : list) {
-      if (value == null) {
-        continue;
-      }
-      
-      if (caseSensitive ? value.equals(str) : value.equalsIgnoreCase(str) ||
-          value.equalsIgnoreCase(LogFeederConstants.ALL)) {
-        return true;
-      }
-    }
-    return false;
   }
   
   private static String logfeederTempDir = null;

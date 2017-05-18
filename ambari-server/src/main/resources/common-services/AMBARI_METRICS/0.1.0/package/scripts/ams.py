@@ -163,6 +163,20 @@ def ams(name=None):
               create_parents = True
     )
 
+    if params.host_in_memory_aggregation and params.log4j_props is not None:
+      File(os.path.join(params.ams_monitor_conf_dir, "log4j.properties"),
+           owner=params.ams_user,
+           content=params.log4j_props
+           )
+
+    XmlConfig("ams-site.xml",
+              conf_dir=params.ams_monitor_conf_dir,
+              configurations=params.config['configurations']['ams-site'],
+              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              owner=params.ams_user,
+              group=params.user_group
+              )
+
     TemplateConfig(
       os.path.join(params.ams_monitor_conf_dir, "metric_monitor.ini"),
       owner=params.ams_user,
@@ -365,6 +379,22 @@ def ams(name=None, action=None):
               mode=0755,
               create_parents = True
     )
+
+    if params.host_in_memory_aggregation and params.log4j_props is not None:
+      File(format("{params.ams_monitor_conf_dir}/log4j.properties"),
+           mode=0644,
+           group=params.user_group,
+           owner=params.ams_user,
+           content=InlineTemplate(params.log4j_props)
+           )
+
+    XmlConfig("ams-site.xml",
+              conf_dir=params.ams_monitor_conf_dir,
+              configurations=params.config['configurations']['ams-site'],
+              configuration_attributes=params.config['configuration_attributes']['ams-site'],
+              owner=params.ams_user,
+              group=params.user_group
+              )
 
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}")
             )

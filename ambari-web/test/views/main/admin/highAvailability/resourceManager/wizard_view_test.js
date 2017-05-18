@@ -85,11 +85,7 @@ describe('App.RMHighAvailabilityWizardView', function () {
       items: [
         {
           Hosts: {
-            host_name: 'host1',
-            cpu_count: 1,
-            total_mem: 1,
-            disk_info: {},
-            maintenance_state: 'OFF'
+            host_name: 'host1'
           }
         }
       ]
@@ -108,23 +104,15 @@ describe('App.RMHighAvailabilityWizardView', function () {
       expect(view.get('controller.content.hosts')).to.be.eql({
         "host1": {
           "name": "host1",
-          "cpu": 1,
-          "memory": 1,
-          "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true,
-          "maintenance_state": "OFF"
+          "isInstalled": true
         }
       });
       expect(App.db.setHosts.calledWith({
         "host1": {
           "name": "host1",
-          "cpu": 1,
-          "memory": 1,
-          "disk_info": {},
           "bootStatus": "REGISTERED",
-          "isInstalled": true,
-          "maintenance_state": "OFF"
+          "isInstalled": true
         }
       })).to.be.true;
     });

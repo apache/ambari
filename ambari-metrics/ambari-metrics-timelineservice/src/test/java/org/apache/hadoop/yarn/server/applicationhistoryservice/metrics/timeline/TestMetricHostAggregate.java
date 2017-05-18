@@ -18,7 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .timeline;
 
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
+import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +34,7 @@ public class TestMetricHostAggregate {
     assertThat(aggregate.getSum()).isEqualTo(3.0);
     assertThat(aggregate.getMin()).isEqualTo(1.0);
     assertThat(aggregate.getMax()).isEqualTo(2.0);
-    assertThat(aggregate.getAvg()).isEqualTo(3.0 / 2);
+    assertThat(aggregate.calculateAverage()).isEqualTo(3.0 / 2);
   }
 
   @Test
@@ -50,7 +50,7 @@ public class TestMetricHostAggregate {
     assertThat(aggregate.getSum()).isEqualTo(12.0);
     assertThat(aggregate.getMin()).isEqualTo(0.5);
     assertThat(aggregate.getMax()).isEqualTo(7.5);
-    assertThat(aggregate.getAvg()).isEqualTo((3.0 + 8.0 + 1.0) / 5);
+    assertThat(aggregate.calculateAverage()).isEqualTo((3.0 + 8.0 + 1.0) / 5);
   }
 
   static MetricHostAggregate createAggregate (Double sum, Double min,

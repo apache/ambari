@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>KNOX</name>
+      <displayName>Knox</displayName>
+      <comment>Provides a single point of authentication and access for Apache Hadoop services in a cluster</comment>
+      <version>0.5.0.3.0</version>
+      <components>
+        <component>
+          <name>KNOX_GATEWAY</name>
+          <displayName>Knox Gateway</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/knox_gateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>knox_gateway</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>knox_cli</logId>
+            </log>
+            <log>
+              <logId>knox_ldap</logId>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>STARTDEMOLDAP</name>
+              <commandScript>
+                <script>scripts/knox_gateway.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>STOPDEMOLDAP</name>
+              <commandScript>
+                <script>scripts/knox_gateway.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>knox_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>knox-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>gateway-site</config-type>
+        <config-type>gateway-log4j</config-type>
+        <config-type>topology</config-type>
+        <config-type>admin-topology</config-type>
+        <config-type>knoxsso-topology</config-type>
+        <config-type>ranger-knox-plugin-properties</config-type>
+        <config-type>ranger-knox-audit</config-type>
+        <config-type>ranger-knox-policymgr-ssl</config-type>
+        <config-type>ranger-knox-security</config-type>
+      </configuration-dependencies>
+    </service>
+  </services>
+</metainfo>

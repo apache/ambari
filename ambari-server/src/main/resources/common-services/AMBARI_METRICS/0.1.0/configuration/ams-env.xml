@@ -101,6 +101,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>timeline.metrics.host.inmemory.aggregation.jvm.arguments</name>
+    <value>-Xmx256m -Xms128m -XX:PermSize=68m</value>
+    <description>
+      Local aggregator jvm extra arguments separated with spaces
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>timeline.metrics.skip.network.interfaces.patterns</name>
     <value>None</value>
     <description>

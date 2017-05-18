@@ -22,6 +22,7 @@ package org.apache.ambari.logsearch.rest;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,12 +31,18 @@ import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+
 import org.apache.ambari.logsearch.manager.ShipperConfigManager;
+import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.springframework.context.annotation.Scope;
 
 import java.util.List;
 
-import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.*;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_LOG_LEVEL_FILTER_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SERVICE_NAMES_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.GET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.SET_SHIPPER_CONFIG_OD;
+import static org.apache.ambari.logsearch.doc.DocConstants.ShipperConfigOperationDescriptions.UPDATE_LOG_LEVEL_FILTER_OD;
 
 @Api(value = "shipper", description = "Shipper config operations")
 @Path("shipper")
@@ -49,7 +56,7 @@ public class ShipperConfigResource {
   @GET
   @Path("/input/{clusterName}/services")
   @Produces({"application/json"})
-  @ApiOperation(GET_SERVICE_NAMES)
+  @ApiOperation(GET_SERVICE_NAMES_OD)
   public List<String> getServices(@PathParam("clusterName") String clusterName) {
     return shipperConfigManager.getServices(clusterName);
   }
@@ -57,17 +64,43 @@ public class ShipperConfigResource {
   @GET
   @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
-  @ApiOperation(GET_SHIPPER_CONFIG)
+  @ApiOperation(GET_SHIPPER_CONFIG_OD)
   public String getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName") String serviceName) {
     return shipperConfigManager.getInputConfig(clusterName, serviceName);
   }
 
+  @POST
+  @Path("/input/{clusterName}/services/{serviceName}")
+  @Produces({"application/json"})
+  @ApiOperation(SET_SHIPPER_CONFIG_OD)
+  public Response createShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")
+    String serviceName) {
+    return shipperConfigManager.createInputConfig(clusterName, serviceName, body);
+  }
+
   @PUT
   @Path("/input/{clusterName}/services/{serviceName}")
-  @Produces("text/plain")
-  @ApiOperation(SET_SHIPPER_CONFIG)
+  @Produces({"application/json"})
+  @ApiOperation(SET_SHIPPER_CONFIG_OD)
   public Response setShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")
     String serviceName) {
     return shipperConfigManager.setInputConfig(clusterName, serviceName, body);
   }
+
+  @GET
+  @Path("/filters/{clusterName}/level")
+  @Produces({"application/json"})
+  @ApiOperation(GET_LOG_LEVEL_FILTER_OD)
+  public LSServerLogLevelFilterMap getLogLevelFilters(@PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.getLogLevelFilters(clusterName);
+  }
+
+  @PUT
+  @Path("/filters/{clusterName}/level")
+  @Produces({"application/json"})
+  @ApiOperation(UPDATE_LOG_LEVEL_FILTER_OD)
+  public Response setogLevelFilter(LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
+    return shipperConfigManager.setLogLevelFilters(clusterName, request);
+  }
+
 }

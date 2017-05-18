@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -332,6 +334,19 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             removeProperties.add("content");
 
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
+          }
+          
+          Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
+          Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
+          if (logSearchProperties != null && logFeederProperties != null) {
+            String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
+            
+            Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
+            removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
+            
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("logfeeder.include.default.level", defaultLogLevels);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
           }
         }
       }

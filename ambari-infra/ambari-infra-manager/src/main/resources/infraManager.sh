@@ -17,4 +17,4 @@
 JVM="java"
 sdir="`dirname \"$0\"`"
 
-PATH=$JAVA_HOME/bin:$PATH $JVM -classpath "/etc/ambari-infra-manager/conf:$sdir:$sdir/libs/*" org.apache.ambari.infra.InfraManager ${1+"$@"}
+PATH=$JAVA_HOME/bin:$PATH nohup $JVM -classpath "/etc/ambari-infra-manager/conf:$sdir:$sdir/libs/*" $INFRA_MANAGER_OPTS org.apache.ambari.infra.InfraManager ${1+"$@"} &

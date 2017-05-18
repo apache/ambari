@@ -22,9 +22,13 @@ package org.apache.ambari.logsearch.config.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
+import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -32,15 +36,19 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
 
 import com.google.common.base.Splitter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class LogSearchConfigZK implements LogSearchConfig {
   private static final Logger LOG = Logger.getLogger(LogSearchConfigZK.class);
@@ -49,6 +57,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final int CONNECTION_TIMEOUT = 30000;
   private static final String DEFAULT_ZK_ROOT = "/logsearch";
   private static final long WAIT_FOR_ROOT_SLEEP_SECONDS = 10;
+  private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
   private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
   private static final String ZK_CONNECT_STRING_PROPERTY = "logsearch.config.zk_connect_string";
@@ -59,6 +68,7 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private String root;
   private CuratorFramework client;
   private TreeCache cache;
+  private Gson gson;
 
   @Override
   public void init(Component component, Map<String, String> properties) throws Exception {
@@ -89,6 +99,8 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
       cache = new TreeCache(client, String.format("%s/%s", root, properties.get(CLUSTER_NAME_PROPERTY)));
     }
+    
+    gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
   }
 
   @Override
@@ -98,10 +110,145 @@ public class LogSearchConfigZK implements LogSearchConfig {
   }
 
   @Override
+  public void createInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {
+    String nodePath = String.format("%s/%s/input/%s", root, clusterName, serviceName);
+    try {
+      client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, inputConfig.getBytes());
+      LOG.info("Uploaded input config for the service " + serviceName + " for cluster " + clusterName);
+    } catch (NodeExistsException e) {
+      LOG.debug("Did not upload input config for service " + serviceName + " as it was already uploaded by another Log Feeder");
+    }
+  }
+
+  @Override
   public void setInputConfig(String clusterName, String serviceName, String inputConfig) throws Exception {
     String nodePath = String.format("%s/%s/input/%s", root, clusterName, serviceName);
-    client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, inputConfig.getBytes());
+    client.setData().forPath(nodePath, inputConfig.getBytes());
     LOG.info("Set input config for the service " + serviceName + " for cluster " + clusterName);
+  }
+
+  @Override
+  public void monitorInputConfigChanges(final InputConfigMonitor inputConfigMonitor,
+      final LogLevelFilterMonitor logLevelFilterMonitor ) throws Exception {
+    TreeCacheListener listener = new TreeCacheListener() {
+      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
+        String nodeData = new String(event.getData().getData());
+        Type eventType = event.getType();
+        
+        String configPathStab = String.format("%s/%s/", root, properties.get(CLUSTER_NAME_PROPERTY));
+        
+        if (event.getData().getPath().startsWith(configPathStab + "input/")) {
+          handleInputConfigChange(eventType, nodeName, nodeData);
+        } else if (event.getData().getPath().startsWith(configPathStab + "loglevelfilter/")) {
+          handleLogLevelFilterChange(eventType, nodeName, nodeData);
+        }
+      }
+
+      private void handleInputConfigChange(Type eventType, String nodeName, String nodeData) {
+        switch (eventType) {
+          case NODE_ADDED:
+            LOG.info("Node added under input ZK node: " + nodeName);
+            addInputs(nodeName, nodeData);
+            break;
+          case NODE_UPDATED:
+            LOG.info("Node updated under input ZK node: " + nodeName);
+            removeInputs(nodeName);
+            addInputs(nodeName, nodeData);
+            break;
+          case NODE_REMOVED:
+            LOG.info("Node removed from input ZK node: " + nodeName);
+            removeInputs(nodeName);
+            break;
+          default:
+            break;
+        }
+      }
+
+      private void removeInputs(String serviceName) {
+        inputConfigMonitor.removeInputs(serviceName);
+      }
+
+      private void addInputs(String serviceName, String inputConfig) {
+        try {
+          inputConfigMonitor.loadInputConfigs(serviceName, inputConfig);
+        } catch (Exception e) {
+          LOG.error("Could not load input configuration for service " + serviceName + ":\n" + inputConfig, e);
+        }
+      }
+
+      private void handleLogLevelFilterChange(Type eventType, String nodeName, String nodeData) {
+        switch (eventType) {
+          case NODE_ADDED:
+          case NODE_UPDATED:
+            LOG.info("Node added/updated under loglevelfilter ZK node: " + nodeName);
+            LogLevelFilter logLevelFilter = gson.fromJson(nodeData, LogLevelFilter.class);
+            logLevelFilterMonitor.setLogLevelFilter(nodeName, logLevelFilter);
+            break;
+          case NODE_REMOVED:
+            LOG.info("Node removed loglevelfilter input ZK node: " + nodeName);
+            logLevelFilterMonitor.removeLogLevelFilter(nodeName);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+    cache.getListenable().addListener(listener);
+    cache.start();
+  }
+
+  @Override
+  public List<String> getServices(String clusterName) {
+    String parentPath = String.format("%s/%s/input", root, clusterName);
+    Map<String, ChildData> serviceNodes = cache.getCurrentChildren(parentPath);
+    return new ArrayList<String>(serviceNodes.keySet());
+  }
+
+  @Override
+  public String getInputConfig(String clusterName, String serviceName) {
+    ChildData childData = cache.getCurrentData(String.format("%s/%s/input/%s", root, clusterName, serviceName));
+    return childData == null ? null : new String(childData.getData());
+  }
+
+  @Override
+  public void createLogLevelFilter(String clusterName, String logId, LogLevelFilter filter) throws Exception {
+    String nodePath = String.format("%s/%s/loglevelfilter/%s", root, clusterName, logId);
+    String logLevelFilterJson = gson.toJson(filter);
+    try {
+      client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(nodePath, logLevelFilterJson.getBytes());
+      LOG.info("Uploaded log level filter for the log " + logId + " for cluster " + clusterName);
+    } catch (NodeExistsException e) {
+      LOG.debug("Did not upload log level filters for log " + logId + " as it was already uploaded by another Log Feeder");
+    }
+  }
+
+  @Override
+  public void setLogLevelFilters(String clusterName, LogLevelFilterMap filters) throws Exception {
+    for (Map.Entry<String, LogLevelFilter> e : filters.getFilter().entrySet()) {
+      String nodePath = String.format("%s/%s/loglevelfilter/%s", root, clusterName, e.getKey());
+      String logLevelFilterJson = gson.toJson(e.getValue());
+      String currentLogLevelFilterJson = new String(cache.getCurrentData(nodePath).getData());
+      if (!logLevelFilterJson.equals(currentLogLevelFilterJson)) {
+        client.setData().forPath(nodePath, logLevelFilterJson.getBytes());
+        LOG.info("Set log level filter for the log " + e.getKey() + " for cluster " + clusterName);
+      }
+    }
+  }
+
+  @Override
+  public LogLevelFilterMap getLogLevelFilters(String clusterName) {
+    String parentPath = String.format("%s/%s/loglevelfilter", root, clusterName);
+    Map<String, ChildData> logLevelFilterNodes = cache.getCurrentChildren(parentPath);
+    TreeMap<String, LogLevelFilter> filters = new TreeMap<>();
+    for (Map.Entry<String, ChildData> e : logLevelFilterNodes.entrySet()) {
+      LogLevelFilter logLevelFilter = gson.fromJson(new String(e.getValue().getData()), LogLevelFilter.class);
+      filters.put(e.getKey(), logLevelFilter);
+    }
+    
+    LogLevelFilterMap logLevelFilters = new LogLevelFilterMap();
+    logLevelFilters.setFilter(filters);
+    return logLevelFilters;
   }
 
   private List<ACL> getAcls() {
@@ -145,64 +292,6 @@ public class LogSearchConfigZK implements LogSearchConfig {
       }
     }
     return permissionCode;
-  }
-
-  @Override
-  public void monitorInputConfigChanges(final InputConfigMonitor configMonitor) throws Exception {
-    TreeCacheListener listener = new TreeCacheListener() {
-      public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
-        if (!event.getData().getPath().startsWith(String.format("%s/%s/input/", root, properties.get(CLUSTER_NAME_PROPERTY)))) {
-          return;
-        }
-        
-        String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
-        String nodeData = new String(event.getData().getData());
-        switch (event.getType()) {
-          case NODE_ADDED:
-            LOG.info("Node added under input ZK node: " + nodeName);
-            addInputs(nodeName, nodeData);
-            break;
-          case NODE_UPDATED:
-            LOG.info("Node updated under input ZK node: " + nodeName);
-            removeInputs(nodeName);
-            addInputs(nodeName, nodeData);
-            break;
-          case NODE_REMOVED:
-            LOG.info("Node removed from input ZK node: " + nodeName);
-            removeInputs(nodeName);
-            break;
-          default:
-            break;
-        }
-      }
-
-      private void removeInputs(String serviceName) {
-        configMonitor.removeInputs(serviceName);
-      }
-
-      private void addInputs(String serviceName, String inputConfig) {
-        try {
-          configMonitor.loadInputConfigs(serviceName, inputConfig);
-        } catch (Exception e) {
-          LOG.error("Could not load input configuration for service " + serviceName + ":\n" + inputConfig, e);
-        }
-      }
-    };
-    cache.getListenable().addListener(listener);
-    cache.start();
-  }
-
-  @Override
-  public List<String> getServices(String clusterName) {
-    String parentPath = String.format("%s/%s/input", root, clusterName);
-    Map<String, ChildData> serviceNodes = cache.getCurrentChildren(parentPath);
-    return new ArrayList<String>(serviceNodes.keySet());
-  }
-
-  @Override
-  public String getInputConfig(String clusterName, String serviceName) {
-    ChildData childData = cache.getCurrentData(String.format("%s/%s/input/%s", root, clusterName, serviceName));
-    return childData == null ? null : new String(childData.getData());
   }
 
   @Override

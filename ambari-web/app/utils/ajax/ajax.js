@@ -1712,7 +1712,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value,
+            "repository_version_id": data.id,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures,
@@ -1731,7 +1731,7 @@ var urls = {
         data: JSON.stringify({
           "Upgrade": {
             "from_version": data.from,
-            "repository_version": data.value,
+            "repository_version_id": data.id,
             "upgrade_type": data.upgradeType,
             "direction": "DOWNGRADE"
           }
@@ -2696,6 +2696,10 @@ var urls = {
   },
   'hosts.config_groups': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.info.install': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
   'hosts.host_components.pre_load': {

@@ -75,7 +75,7 @@ public class InputConfigUploader extends Thread {
             String inputConfig = Files.toString(inputConfigFile, Charset.defaultCharset());
             
             if (!config.inputConfigExists(clusterName, serviceName)) {
-              config.setInputConfig(clusterName, serviceName, inputConfig);
+              config.createInputConfig(clusterName, serviceName, inputConfig);
             }
             filesHandled.add(inputConfigFile.getAbsolutePath());
           } catch (Exception e) {

@@ -25,7 +25,6 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -33,7 +32,6 @@ import javax.ws.rs.Produces;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.manager.UserConfigManager;
-import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
 import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
 import org.apache.ambari.logsearch.model.response.UserConfigData;
 import org.apache.ambari.logsearch.model.response.UserConfigDataListResponse;
@@ -71,22 +69,6 @@ public class UserConfigResource {
   @ApiOperation(GET_USER_CONFIG_OD)
   public UserConfigDataListResponse getUserConfig(@BeanParam UserConfigRequest request) {
     return userConfigManager.getUserConfig(request);
-  }
-
-  @GET
-  @Path("/filters")
-  @Produces({"application/json"})
-  @ApiOperation(GET_USER_FILTER_OD)
-  public LogFeederDataMap getUserFilter() {
-    return userConfigManager.getUserFilter();
-  }
-
-  @PUT
-  @Path("/filters")
-  @Produces({"application/json"})
-  @ApiOperation(UPDATE_USER_FILTER_OD)
-  public LogFeederDataMap updateUserFilter(LogFeederDataMap request) {
-    return userConfigManager.saveUserFiter(request);
   }
 
   @GET
