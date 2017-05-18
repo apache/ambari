@@ -1712,7 +1712,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version_id": data.id,
+            "repository_version": data.value,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures,
@@ -1731,7 +1731,7 @@ var urls = {
         data: JSON.stringify({
           "Upgrade": {
             "from_version": data.from,
-            "repository_version_id": data.id,
+            "repository_version": data.value,
             "upgrade_type": data.upgradeType,
             "direction": "DOWNGRADE"
           }
