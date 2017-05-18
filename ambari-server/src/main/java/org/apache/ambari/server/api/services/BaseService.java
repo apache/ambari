@@ -76,6 +76,9 @@ public abstract class BaseService {
   static final String QUERY_TO_DESCRIPTION = "The ending page resource (inclusive).  \"end\" is also accepted.";
   static final String QUERY_TO_TYPE = "integer";
   static final String QUERY_TO_VALUES = "range[1, infinity]";
+  static final String QUERY_PREDICATE = "{predicate}";
+  static final String QUERY_PREDICATE_DESCRIPTION = "The predicate to filter resources by. Omitting the predicate will " +
+      "match all resources.";
 
   static final String RESPONSE_CONTAINER_LIST = "List";
 
@@ -84,7 +87,6 @@ public abstract class BaseService {
 
   static final String PARAM_TYPE_QUERY = "query";
   static final String PARAM_TYPE_BODY = "body";
-
 
   static final String FIELDS_SEPARATOR = ", ";
 
