@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>PIG</name>
-      <version>0.15.0.2.3</version>
+      <version>0.15.0</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
