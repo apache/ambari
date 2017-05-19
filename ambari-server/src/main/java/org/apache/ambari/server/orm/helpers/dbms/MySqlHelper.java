@@ -93,4 +93,16 @@ public class MySqlHelper extends GenericDbmsHelper {
     }
     return defaultWriter;
   }
+
+  /**
+   {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+         String sourceIDColumnName, String targetTable, String targetColumnName, String targetIDColumnName) {
+
+    return String.format("UPDATE %1$s AS a INNER JOIN %2$s AS b ON a.%5$s = b.%6$s SET a.%3$s = b.%4$s",
+      targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
+  }
+
 }

@@ -139,7 +139,7 @@ public class UserHookService implements HookService {
       String stageContextText = String.format(POST_USER_CREATION_REQUEST_CONTEXT, ctx.getUserGroups().size());
 
       Stage stage = stageFactory.createNew(requestStageContainer.getId(), configuration.getServerTempDir() + File.pathSeparatorChar + requestStageContainer.getId(), clsData.getClusterName(),
-          clsData.getClusterId(), stageContextText, "{}", "{}", "{}");
+          clsData.getClusterId(), stageContextText, "{}", "{}");
       stage.setStageId(requestStageContainer.getLastStageId());
 
       ServiceComponentHostServerActionEvent serverActionEvent = new ServiceComponentHostServerActionEvent("ambari-server-host", System.currentTimeMillis());
@@ -148,6 +148,7 @@ public class UserHookService implements HookService {
       stage.addServerActionCommand(PostUserCreationHookServerAction.class.getName(), "ambari", Role.AMBARI_SERVER_ACTION,
           RoleCommand.EXECUTE, clsData.getClusterName(), serverActionEvent, commandParams, stageContextText, null, null, false, false);
 
+      requestStageContainer.setClusterHostInfo("{}");
       requestStageContainer.addStages(Collections.singletonList(stage));
       requestStageContainer.persist();
 
