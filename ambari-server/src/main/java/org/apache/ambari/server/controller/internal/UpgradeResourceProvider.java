@@ -1371,8 +1371,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
-        cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
-        jsons.getClusterHostInfo(), jsons.getCommandParamsForStage(),
+        cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
@@ -1454,8 +1453,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
-        cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
-        jsons.getClusterHostInfo(), jsons.getCommandParamsForStage(),
+        cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
@@ -1516,8 +1514,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
-        cluster.getClusterName(), cluster.getClusterId(), entity.getText(),
-        jsons.getClusterHostInfo(), jsons.getCommandParamsForStage(),
+        cluster.getClusterName(), cluster.getClusterId(), entity.getText(), jsons.getCommandParamsForStage(),
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
@@ -1648,8 +1645,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         cluster, context.getEffectiveStackId());
 
     Stage stage = s_stageFactory.get().createNew(request.getId().longValue(), "/tmp/ambari",
-        cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getClusterHostInfo(),
-        jsons.getCommandParamsForStage(), jsons.getHostParamsForStage());
+        cluster.getClusterName(), cluster.getClusterId(), stageText, jsons.getCommandParamsForStage(),
+      jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
     stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);

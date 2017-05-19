@@ -79,4 +79,16 @@ public class OracleHelper extends GenericDbmsHelper {
   public boolean isConstraintSupportedAfterNullability() {
     return false;
   }
+
+  /**
+   {@inheritDoc}
+   */
+  @Override
+  public String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName,
+         String sourceIDColumnName, String targetTable, String targetColumnName, String targetIDColumnName) {
+
+    // sub-query should return only one value, ROWNUM is safe-guard for this
+    return String.format("UPDATE %1$s a SET (a.%3$s) = (SELECT b.%4$s FROM %2$s b WHERE b.%6$s = a.%5$s and ROWNUM < 2)",
+      targetTable, sourceTable, targetColumnName, sourceColumnName, targetIDColumnName, sourceIDColumnName);
+  }
 }

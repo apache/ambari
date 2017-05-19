@@ -77,8 +77,8 @@ public class ActionManager {
     scheduler.stop();
   }
 
-  public void sendActions(List<Stage> stages, ExecuteActionRequest actionRequest) throws AmbariException {
-    Request request = requestFactory.createNewFromStages(stages, actionRequest);
+  public void sendActions(List<Stage> stages, String clusterHostInfo, ExecuteActionRequest actionRequest) throws AmbariException {
+    Request request = requestFactory.createNewFromStages(stages, clusterHostInfo, actionRequest);
     sendActions(request, actionRequest);
   }
 
