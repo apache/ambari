@@ -1,0 +1,45 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"ui.https.keystore.path",
+          "desired":"EXIST",
+          "site":"storm-site"
+        },
+        {
+          "property":"ui.https.key.password",
+          "desired":"EXIST",
+          "site":"storm-site"
+        },
+        {
+          "property":"ui.https.port",
+          "desired":"EXIST",
+          "site":"storm-site"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "storm_ui",
+        "label": "Storm UI",
+        "requires_user_name": "false",
+        "component_name": "STORM_UI_SERVER",
+        "url":"%@://%@:%@/",
+        "port":{
+          "http_property": "ui.port",
+          "http_default_port": "8744",
+          "https_property": "ui.https.port",
+          "https_default_port": "8740",
+          "regex": "^(\\d+)$",
+          "site": "storm-site"
+        }
+      }
+    ]
+  }
+}

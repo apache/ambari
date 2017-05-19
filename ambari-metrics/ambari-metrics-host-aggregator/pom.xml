@@ -29,7 +29,7 @@
     <artifactId>ambari-metrics-host-aggregator</artifactId>
     <packaging>jar</packaging>
 
-    <name>ambari-metrics-host-aggregator</name>
+    <name>Ambari Metrics Host Aggregator</name>
     <url>http://maven.apache.org</url>
 
     <properties>
@@ -92,7 +92,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>1.6</version>
                 <configuration>
-                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>

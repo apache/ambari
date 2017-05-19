@@ -94,56 +94,86 @@ describe('App.WizardStep5Controller', function () {
 
   });
 
-  describe('#renderHostInfo', function () {
+  describe('#loadWizardHostsSuccessCallback', function () {
 
     var tests = Em.A([
       {
-        hosts: {
-          h1: {memory: 4, cpu: 1, name: 'host1', bootStatus: 'INIT'},
-          h2: {memory: 3, cpu: 1, name: 'host2', bootStatus: 'INIT'},
-          h3: {memory: 2, cpu: 1, name: 'host3', bootStatus: 'INIT'},
-          h4: {memory: 1, cpu: 1, name: 'host4', bootStatus: 'INIT'}
+        dbHosts: {
+          host1: {bootStatus: 'INIT'},
+          host2: {bootStatus: 'INIT'},
+          host3: {bootStatus: 'INIT'},
+          host4: {bootStatus: 'INIT'}
         },
+        hosts: [
+          {Hosts: {total_mem: 4, cpu_count: 1, host_name: 'host1', bootStatus: 'INIT'}},
+          {Hosts: {total_mem: 3, cpu_count: 1, host_name: 'host2', bootStatus: 'INIT'}},
+          {Hosts: {total_mem: 2, cpu_count: 1, host_name: 'host3', bootStatus: 'INIT'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host4', bootStatus: 'INIT'}}
+        ],
         m: 'no one host is REGISTERED',
         e: []
       },
       {
-        hosts: {
-          h1: {memory: 4, cpu: 1, name: 'host1', bootStatus: 'REGISTERED'},
-          h2: {memory: 3, cpu: 1, name: 'host2', bootStatus: 'REGISTERED'},
-          h3: {memory: 2, cpu: 1, name: 'host3', bootStatus: 'REGISTERED'},
-          h4: {memory: 1, cpu: 1, name: 'host4', bootStatus: 'REGISTERED'}
+        dbHosts: {
+          host1: {bootStatus: 'REGISTERED'},
+          host2: {bootStatus: 'REGISTERED'},
+          host3: {bootStatus: 'REGISTERED'},
+          host4: {bootStatus: 'REGISTERED'}
         },
+        hosts: [
+          {Hosts: {total_mem: 4, cpu_count: 1, host_name: 'host1', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 3, cpu_count: 1, host_name: 'host2', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 2, cpu_count: 1, host_name: 'host3', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host4', bootStatus: 'REGISTERED'}}
+        ],
         m: 'all hosts are REGISTERED, memory',
         e: ['host1', 'host2', 'host3', 'host4']
       },
       {
-        hosts: {
-          h1: {memory: 1, cpu: 4, name: 'host1', bootStatus: 'REGISTERED'},
-          h2: {memory: 1, cpu: 3, name: 'host2', bootStatus: 'REGISTERED'},
-          h3: {memory: 1, cpu: 2, name: 'host3', bootStatus: 'REGISTERED'},
-          h4: {memory: 1, cpu: 1, name: 'host4', bootStatus: 'REGISTERED'}
+        dbHosts: {
+          host1: {bootStatus: 'REGISTERED'},
+          host2: {bootStatus: 'REGISTERED'},
+          host3: {bootStatus: 'REGISTERED'},
+          host4: {bootStatus: 'REGISTERED'}
         },
+        hosts: [
+          {Hosts: {total_mem: 1, cpu_count: 4, host_name: 'host1', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 3, host_name: 'host2', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 2, host_name: 'host3', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host4', bootStatus: 'REGISTERED'}}
+        ],
         m: 'all hosts are REGISTERED, cpu',
         e: ['host1', 'host2', 'host3', 'host4']
       },
       {
-        hosts: {
-          h1: {memory: 1, cpu: 1, name: 'host4', bootStatus: 'REGISTERED'},
-          h2: {memory: 1, cpu: 1, name: 'host2', bootStatus: 'REGISTERED'},
-          h3: {memory: 1, cpu: 1, name: 'host3', bootStatus: 'REGISTERED'},
-          h4: {memory: 1, cpu: 1, name: 'host1', bootStatus: 'REGISTERED'}
+        dbHosts: {
+          host1: {bootStatus: 'REGISTERED'},
+          host2: {bootStatus: 'REGISTERED'},
+          host3: {bootStatus: 'REGISTERED'},
+          host4: {bootStatus: 'REGISTERED'}
         },
+        hosts: [
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host4', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host2', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host3', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host1', bootStatus: 'REGISTERED'}}
+        ],
         m: 'all hosts are REGISTERED, host_name',
         e: ['host1', 'host2', 'host3', 'host4']
       },
       {
-        hosts: {
-          h1: {memory: 2, cpu: 1, name: 'host1', bootStatus: 'REGISTERED'},
-          h2: {memory: 1, cpu: 2, name: 'host3', bootStatus: 'INIT'},
-          h3: {memory: 1, cpu: 1, name: 'host4', bootStatus: 'REGISTERED'},
-          h4: {memory: 1, cpu: 1, name: 'host2', bootStatus: 'INIT'}
+        dbHosts: {
+          host1: {bootStatus: 'REGISTERED'},
+          host2: {bootStatus: 'INIT'},
+          host3: {bootStatus: 'INIT'},
+          host4: {bootStatus: 'REGISTERED'}
         },
+        hosts: [
+          {Hosts: {total_mem: 2, cpu_count: 1, host_name: 'host1', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 2, host_name: 'host3', bootStatus: 'INIT'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host4', bootStatus: 'REGISTERED'}},
+          {Hosts: {total_mem: 1, cpu_count: 1, host_name: 'host2', bootStatus: 'INIT'}}
+        ],
         m: 'mix',
         e: ['host1', 'host4']
       }
@@ -151,8 +181,8 @@ describe('App.WizardStep5Controller', function () {
 
     tests.forEach(function (test) {
       it(test.m, function () {
-        controller.set('content', {hosts: test.hosts});
-        controller.renderHostInfo();
+        controller.set('content', {hosts: test.dbHosts});
+        controller.loadWizardHostsSuccessCallback({items: test.hosts});
         var r = controller.get('hosts');
         expect(Em.A(r).mapProperty('host_name')).to.eql(test.e);
       });
