@@ -21,6 +21,14 @@ package org.apache.ambari.infra.conf.batch;
 import org.apache.ambari.infra.job.dummy.DummyItemProcessor;
 import org.apache.ambari.infra.job.dummy.DummyItemWriter;
 import org.apache.ambari.infra.job.dummy.DummyObject;
+import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
+import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;
+import org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao;
+import org.springframework.batch.admin.service.JobService;
+import org.springframework.batch.admin.service.SearchableJobExecutionDao;
+import org.springframework.batch.admin.service.SearchableJobInstanceDao;
+import org.springframework.batch.admin.service.SearchableStepExecutionDao;
+import org.springframework.batch.admin.service.SimpleJobService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -34,6 +42,9 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.dao.DefaultExecutionContextSerializer;
+import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
@@ -53,6 +64,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -164,6 +176,49 @@ public class InfraManagerBatchConfig {
     JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
     jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
     return jobRegistryBeanPostProcessor;
+  }
+
+  @Bean
+  public JdbcTemplate jdbcTemplate() {
+    return new JdbcTemplate(dataSource());
+  }
+
+  @Bean
+  public SearchableJobInstanceDao searchableJobInstanceDao() {
+    JdbcSearchableJobInstanceDao dao = new JdbcSearchableJobInstanceDao();
+    dao.setJdbcTemplate(jdbcTemplate());
+    return dao;
+  }
+
+  @Bean
+  public SearchableJobExecutionDao searchableJobExecutionDao() {
+    JdbcSearchableJobExecutionDao dao = new JdbcSearchableJobExecutionDao();
+    dao.setJdbcTemplate(jdbcTemplate());
+    dao.setDataSource(dataSource());
+    return dao;
+  }
+
+  @Bean
+  public SearchableStepExecutionDao searchableStepExecutionDao() {
+    JdbcSearchableStepExecutionDao dao = new JdbcSearchableStepExecutionDao();
+    dao.setDataSource(dataSource());
+    dao.setJdbcTemplate(jdbcTemplate());
+    return dao;
+  }
+
+  @Bean
+  public ExecutionContextDao executionContextDao() {
+    JdbcExecutionContextDao dao = new JdbcExecutionContextDao();
+    dao.setSerializer(new DefaultExecutionContextSerializer());
+    dao.setJdbcTemplate(jdbcTemplate());
+    return dao;
+  }
+
+  @Bean
+  public JobService jobService() throws Exception {
+    return new
+      SimpleJobService(searchableJobInstanceDao(), searchableJobExecutionDao(), searchableStepExecutionDao(),
+      jobRepository(), jobLauncher(), jobRegistry, executionContextDao());
   }
 
   @Bean(name = "dummyStep")
