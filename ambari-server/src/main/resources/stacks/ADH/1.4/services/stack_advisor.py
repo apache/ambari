@@ -29,11 +29,11 @@ import socket
 
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
 
-class HDP23StackAdvisor(HDP22StackAdvisor):
+class ADH14StackAdvisor(ADH13StackAdvisor):
 
   def __init__(self):
-    super(HDP23StackAdvisor, self).__init__()
-    self.initialize_logger("HDP23StackAdvisor")
+    super(ADH14StackAdvisor, self).__init__()
+    self.initialize_logger("ADH14StackAdvisor")
 
   def __getHosts(self, componentsList, componentName):
     host_lists = [component["hostnames"] for component in componentsList if
@@ -44,7 +44,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       return []
 
   def getServiceConfigurationRecommenderDict(self):
-    parentRecommendConfDict = super(HDP23StackAdvisor, self).getServiceConfigurationRecommenderDict()
+    parentRecommendConfDict = super(ADH14StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "TEZ": self.recommendTezConfigurations,
       "HDFS": self.recommendHDFSConfigurations,
@@ -62,7 +62,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return parentRecommendConfDict
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
 
     putTezProperty = self.putProperty(configurations, "tez-site")
 
@@ -139,7 +139,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
     putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
@@ -190,7 +190,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
@@ -288,7 +288,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putHiveSitePropertyAttribute('atlas.rest.address', 'delete', 'true')
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
 
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
@@ -592,7 +592,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
@@ -789,7 +789,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
           putRangerSecurityProperty(component_config_property, policymgr_external_url)
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -846,7 +846,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putSqoopSitePropertyAttribute('sqoop.job.data.publish.class', 'delete', 'true')
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
-    super(HDP23StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
+    super(ADH14StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     putStormStartupProperty = self.putProperty(configurations, "storm-site", services)
     putStormEnvProperty = self.putProperty(configurations, "storm-env", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -912,7 +912,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putFalconEnvProperty("falcon.atlas.hook", "false")
 
   def getServiceConfigurationValidators(self):
-    parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
+    parentValidators = super(ADH14StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
@@ -926,7 +926,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return parentValidators
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    parentValidationProblems = super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(ADH14StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
 
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -948,7 +948,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    parentValidationProblems = super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(ADH14StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     hive_env_properties = self.getSiteProperties(configurations, "hive-env")
     validationItems = []
@@ -973,7 +973,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return configurationValidationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    parentValidationProblems = super(HDP23StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(ADH14StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
     validationItems = []
     #Adding Ranger Plugin logic here
@@ -1044,7 +1044,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return validationProblems
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    parentValidationProblems = super(HDP23StackAdvisor, self).validateHBASEConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(ADH14StackAdvisor, self).validateHBASEConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hbase_site = properties
     validationItems = []
 
@@ -1129,7 +1129,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems,'admin-properties')
 
   def validateRangerConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
-    parentValidationProblems = super(HDP23StackAdvisor, self).validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(ADH14StackAdvisor, self).validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
     ranger_env_properties = properties
     validationItems = []
     security_enabled = self.isSecurityEnabled(services)
