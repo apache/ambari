@@ -334,6 +334,13 @@
         </task>
       </execute-stage>
 
+      <!-- YARN -->
+      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM">
+        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
+          <summary>Updating YARN NodeManager config for LLAP</summary>
+        </task>
+      </execute-stage>
+
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Ranger Kafka plugin">
         <task xsi:type="configure" id="hdp_2_6_maint_ranger_kafka_plugin_cluster_name"/>
