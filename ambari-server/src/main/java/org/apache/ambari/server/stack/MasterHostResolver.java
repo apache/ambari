@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.UpgradeContext;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
@@ -80,10 +81,10 @@ public class MasterHostResolver {
    * @param upgradeContext
    *          the upgrade context
    */
-  public MasterHostResolver(ConfigHelper configHelper, UpgradeContext upgradeContext) {
+  public MasterHostResolver(Cluster cluster, ConfigHelper configHelper, UpgradeContext upgradeContext) {
     m_configHelper = configHelper;
     m_upgradeContext = upgradeContext;
-    m_cluster = upgradeContext.getCluster();
+    m_cluster = cluster;
   }
 
   /**
@@ -209,8 +210,17 @@ public class MasterHostResolver {
           continue;
         }
 
-        if(m_upgradeContext.getDirection() == Direction.UPGRADE){
+        if (sch.getUpgradeState() == UpgradeState.FAILED) {
           upgradeHosts.add(hostName);
+          continue;
+        }
+
+        if(m_upgradeContext.getDirection() == Direction.UPGRADE){
+          RepositoryVersionEntity targetRepositoryVersion = m_upgradeContext.getRepositoryVersion();
+          if (!StringUtils.equals(targetRepositoryVersion.getVersion(), sch.getVersion())) {
+            upgradeHosts.add(hostName);
+          }
+
           continue;
         }
 

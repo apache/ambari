@@ -269,7 +269,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
     Capture<Map<String, Map<String, String>>> attributesCapture = newCapture();
 
 
-    expect(controller.createConfig(anyObject(StackId.class), capture(clusterCapture), capture(typeCapture),
+    expect(controller.createConfig(capture(clusterCapture), anyObject(StackId.class),capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
         .andReturn(createNiceMock(Config.class))
         .once();

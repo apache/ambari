@@ -1029,7 +1029,8 @@ public class ConfigHelper {
                                String serviceVersionNote) throws AmbariException {
 
     // create the configuration history entry
-    Config baseConfig = createConfig(cluster, controller, configType, FIRST_VERSION_TAG, properties,
+    Config baseConfig = createConfig(cluster, controller, cluster.getDesiredStackVersion(),
+        configType, FIRST_VERSION_TAG, properties,
         propertyAttributes);
 
     if (baseConfig != null) {
@@ -1070,13 +1071,14 @@ public class ConfigHelper {
    * Create configurations and assign them for services.
    * @param cluster               the cluster
    * @param controller            the controller
+   * @param stackId               the stack to create the new properties for
    * @param batchProperties       the type->config map batch of properties
    * @param authenticatedUserName the user that initiated the change
    * @param serviceVersionNote    the service version note
    * @throws AmbariException
    */
   public void createConfigTypes(Cluster cluster,
-      AmbariManagementController controller,
+      AmbariManagementController controller, StackId stackId,
       Map<String, Map<String, String>> batchProperties, String authenticatedUserName,
       String serviceVersionNote) throws AmbariException {
 
@@ -1086,8 +1088,8 @@ public class ConfigHelper {
       String type = entry.getKey();
       Map<String, String> properties = entry.getValue();
 
-      Config baseConfig = createConfig(cluster, controller, type, FIRST_VERSION_TAG, properties,
-        Collections.<String, Map<String,String>>emptyMap());
+      Config baseConfig = createConfig(cluster, controller, stackId, type, FIRST_VERSION_TAG,
+          properties, Collections.<String, Map<String, String>> emptyMap());
 
       if (null != baseConfig) {
         try {
@@ -1122,6 +1124,8 @@ public class ConfigHelper {
    * @param controller
    *          the controller which actually creates the configuration (not
    *          {@code null}).
+   * @param stackId
+   *          the stack to create the new properties for
    * @param type
    *          the new configuration type (not {@code null}).
    * @param tag
@@ -1134,8 +1138,8 @@ public class ConfigHelper {
    * @return
    * @throws AmbariException
    */
-  Config createConfig(Cluster cluster, AmbariManagementController controller, String type,
-      String tag, Map<String, String> properties,
+  Config createConfig(Cluster cluster, AmbariManagementController controller, StackId stackId,
+      String type, String tag, Map<String, String> properties,
       Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
 
     // if the configuration is not new, then create a timestamp tag
@@ -1158,24 +1162,22 @@ public class ConfigHelper {
       }
     }
 
-    return controller.createConfig(cluster.getDesiredStackVersion(), cluster, type, properties, tag, propertyAttributes);
+    return controller.createConfig(cluster, stackId, type, properties, tag, propertyAttributes);
   }
 
   /**
-   * Gets the default properties from the specified stack and services when a
-   * cluster is first installed.
+   * Gets the default properties for the specified service. These properties
+   * represent those which would be used when a service is first installed.
    *
    * @param stack
    *          the stack to pull stack-values from (not {@code null})
-   * @param cluster
-   *          the cluster to use when determining which services default
-   *          configurations to include (not {@code null}).
-   * @param onStackUpgradeFilter if true skip {@code <on-stack-upgrade merge="false"/>} properties
+   * @param serviceName
+   *          the service name {@code null}).
    * @return a mapping of configuration type to map of key/value pairs for the
    *         default configurations.
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster, boolean onStackUpgradeFilter)
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, String serviceName)
       throws AmbariException {
     Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<>();
 
@@ -1189,28 +1191,26 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-      if (!onStackUpgradeFilter || stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
+      if (stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
         defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
             stackDefaultProperty.getValue());
       }
     }
 
     // for every installed service, populate the default service properties
-    for (String serviceName : cluster.getServices().keySet()) {
-      Set<org.apache.ambari.server.state.PropertyInfo> serviceConfigurationProperties = ambariMetaInfo.getServiceProperties(
-          stack.getStackName(), stack.getStackVersion(), serviceName);
+    Set<org.apache.ambari.server.state.PropertyInfo> serviceConfigurationProperties = ambariMetaInfo.getServiceProperties(
+        stack.getStackName(), stack.getStackVersion(), serviceName);
 
-      // !!! use new stack as the basis
-      for (PropertyInfo serviceDefaultProperty : serviceConfigurationProperties) {
-        String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
+    // !!! use new stack as the basis
+    for (PropertyInfo serviceDefaultProperty : serviceConfigurationProperties) {
+      String type = ConfigHelper.fileNameToConfigType(serviceDefaultProperty.getFilename());
 
-        if (!defaultPropertiesByType.containsKey(type)) {
-          defaultPropertiesByType.put(type, new HashMap<String, String>());
-        }
-        if (!onStackUpgradeFilter || serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
-          defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
-              serviceDefaultProperty.getValue());
-        }
+      if (!defaultPropertiesByType.containsKey(type)) {
+        defaultPropertiesByType.put(type, new HashMap<String, String>());
+      }
+      if (serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
+        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+            serviceDefaultProperty.getValue());
       }
     }
 

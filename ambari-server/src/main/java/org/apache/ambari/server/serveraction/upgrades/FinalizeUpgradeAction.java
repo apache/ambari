@@ -226,6 +226,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       Cluster cluster = upgradeContext.getCluster();
       RepositoryVersionEntity downgradeFromRepositoryVersion = upgradeContext.getRepositoryVersion();
       String downgradeFromVersion = downgradeFromRepositoryVersion.getVersion();
+      Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
 
       String message;
 
@@ -234,7 +235,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             "Finalizing the downgrade from {0} for all cluster services.",
             downgradeFromVersion);
       } else {
-        Set<String> servicesInUpgrade = upgradeContext.getSupportedServices();
         message = MessageFormat.format(
             "Finalizing the downgrade from {0} for the following services: {1}",
             downgradeFromVersion, StringUtils.join(servicesInUpgrade, ','));
@@ -288,6 +288,22 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
             hostComponentState.setUpgradeState(UpgradeState.NONE);
             hostComponentStateDAO.merge(hostComponentState);
           }
+        }
+      }
+
+      // remove any configurations for services which crossed a stack boundary
+      for( String serviceName : servicesInUpgrade ){
+        RepositoryVersionEntity sourceRepositoryVersion = upgradeContext.getSourceRepositoryVersion(serviceName);
+        RepositoryVersionEntity targetRepositoryVersion = upgradeContext.getTargetRepositoryVersion(serviceName);
+        StackId sourceStackId = sourceRepositoryVersion.getStackId();
+        StackId targetStackId = targetRepositoryVersion.getStackId();
+        // only work with configurations when crossing stacks
+        if (!sourceStackId.equals(targetStackId)) {
+          outSB.append(
+              String.format("Removing %s configurations for %s", sourceStackId,
+                  serviceName)).append(System.lineSeparator());
+
+          cluster.removeConfigurations(sourceStackId, serviceName);
         }
       }
 

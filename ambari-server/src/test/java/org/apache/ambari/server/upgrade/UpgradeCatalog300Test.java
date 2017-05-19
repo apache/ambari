@@ -300,7 +300,7 @@ public class UpgradeCatalog300Test {
     expect(confLogSearchConf1.getProperties()).andReturn(oldLogSearchConf).once();
     expect(confLogSearchConf2.getProperties()).andReturn(oldLogSearchConf).once();
     Capture<Map<String, String>> logSearchConfCapture = EasyMock.newCapture(CaptureType.ALL);
-    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), anyString(), capture(logSearchConfCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchConfCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     Map<String, String> oldLogSearchProperties = ImmutableMap.of(
@@ -315,14 +315,14 @@ public class UpgradeCatalog300Test {
     expect(cluster.getDesiredConfigByType("logfeeder-properties")).andReturn(logFeederPropertiesConf).times(2);
     expect(logFeederPropertiesConf.getProperties()).andReturn(Collections.<String, String> emptyMap()).once();
     Capture<Map<String, String>> logFeederPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("logfeeder-properties"), capture(logFeederPropertiesCapture),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), eq("logfeeder-properties"), capture(logFeederPropertiesCapture),
         anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Config logSearchPropertiesConf = easyMockSupport.createNiceMock(Config.class);
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(logSearchPropertiesConf).times(2);
     expect(logSearchPropertiesConf.getProperties()).andReturn(oldLogSearchProperties).times(2);
     Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(StackId.class), anyObject(Cluster.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
         anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);

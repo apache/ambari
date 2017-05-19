@@ -186,6 +186,14 @@ public class UpgradeContext {
   private final Map<String, RepositoryVersionEntity> m_targetRepositoryMap = new HashMap<>();
 
   /**
+   * A mapping of service to source (from) repository. On an upgrade, this will
+   * be the current desired repository of every service. When downgrading, this
+   * will be the same for all components and will represent the value returned
+   * from {@link #getRepositoryVersion()}.
+   */
+  private final Map<String, RepositoryVersionEntity> m_sourceRepositoryMap = new HashMap<>();
+
+  /**
    * Used by some {@link Grouping}s to generate commands. It is exposed here
    * mainly for injection purposes since the XML is not created by Guice.
    */
@@ -303,8 +311,10 @@ public class UpgradeContext {
         }
 
         // populate the target repository map for all services in the upgrade
-        for (String service : m_services) {
-          m_targetRepositoryMap.put(service, m_repositoryVersion);
+        for (String serviceName : m_services) {
+          Service service = cluster.getService(serviceName);
+          m_sourceRepositoryMap.put(serviceName, service.getDesiredRepositoryVersion());
+          m_targetRepositoryMap.put(serviceName, m_repositoryVersion);
         }
 
         break;
@@ -315,9 +325,10 @@ public class UpgradeContext {
 
         m_repositoryVersion = upgrade.getRepositoryVersion();
 
-        // populate the target repository map for all services in the upgrade
+        // populate the repository maps for all services in the upgrade
         for (UpgradeHistoryEntity history : upgrade.getHistory()) {
           m_services.add(history.getServiceName());
+          m_sourceRepositoryMap.put(history.getServiceName(), m_repositoryVersion);
           m_targetRepositoryMap.put(history.getServiceName(), history.getFromReposistoryVersion());
         }
 
@@ -376,7 +387,7 @@ public class UpgradeContext {
     m_autoSkipServiceCheckFailures = skipServiceCheckFailures;
     m_autoSkipManualVerification = skipManualVerification;
 
-    m_resolver = new MasterHostResolver(configHelper, this);
+    m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
   }
 
   /**
@@ -405,7 +416,9 @@ public class UpgradeContext {
     List<UpgradeHistoryEntity> allHistory = upgradeEntity.getHistory();
     for (UpgradeHistoryEntity history : allHistory) {
       String serviceName = history.getServiceName();
+      RepositoryVersionEntity sourceRepositoryVersion = history.getFromReposistoryVersion();
       RepositoryVersionEntity targetRepositoryVersion = history.getTargetRepositoryVersion();
+      m_sourceRepositoryMap.put(serviceName, sourceRepositoryVersion);
       m_targetRepositoryMap.put(serviceName, targetRepositoryVersion);
       m_services.add(serviceName);
     }
@@ -416,7 +429,7 @@ public class UpgradeContext {
     Map<String, UpgradePack> packs = m_metaInfo.getUpgradePacks(stackId.getStackName(), stackId.getStackVersion());
     m_upgradePack = packs.get(upgradePackage);
 
-    m_resolver = new MasterHostResolver(configHelper, this);
+    m_resolver = new MasterHostResolver(m_cluster, configHelper, this);
   }
 
   /**
@@ -445,6 +458,50 @@ public class UpgradeContext {
    */
   public Cluster getCluster() {
     return m_cluster;
+  }
+
+  /**
+   * Gets the version that components are being considered to be "coming from".
+   * <p/>
+   * With a {@link Direction#UPGRADE}, this value represent the services'
+   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
+   * value for all services which is the version that the downgrade is coming
+   * from.
+   *
+   * @return the source version for the upgrade
+   */
+  public Map<String, RepositoryVersionEntity> getSourceVersions() {
+    return new HashMap<>(m_sourceRepositoryMap);
+  }
+
+  /**
+   * Gets the version that service is being considered to be "coming from".
+   * <p/>
+   * With a {@link Direction#UPGRADE}, this value represent the services'
+   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
+   * value for all services which is the version that the downgrade is coming
+   * from.
+   *
+   * @return the source repository for the upgrade
+   */
+  public RepositoryVersionEntity getSourceRepositoryVersion(String serviceName) {
+    return m_sourceRepositoryMap.get(serviceName);
+  }
+
+  /**
+   * Gets the version that service is being considered to be "coming from".
+   * <p/>
+   * With a {@link Direction#UPGRADE}, this value represent the services'
+   * desired repository. However, {@link Direction#DOWNGRADE} will use the same
+   * value for all services which is the version that the downgrade is coming
+   * from.
+   *
+   * @return the source repository for the upgrade
+   * @see #getSourceRepositoryVersion(String)
+   */
+  public String getSourceVersion(String serviceName) {
+    RepositoryVersionEntity serviceSourceVersion = m_sourceRepositoryMap.get(serviceName);
+    return serviceSourceVersion.getVersion();
   }
 
   /**
@@ -487,6 +544,7 @@ public class UpgradeContext {
    * the original repository that the service was on.
    *
    * @return the target version for the upgrade
+   * @see #getTargetRepositoryVersion(String)
    */
   public String getTargetVersion(String serviceName) {
     RepositoryVersionEntity serviceTargetVersion = m_targetRepositoryMap.get(serviceName);

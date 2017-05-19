@@ -29,8 +29,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
@@ -159,9 +157,8 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
         }
       }
 
-      UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(AmbariServer.getController());
-      upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
-      m_upgradeHelper.putComponentsToUpgradingState(upgradeContext);
+      // move repositories to the right version and create/revert configs
+      m_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
 
       // a downgrade must force host versions back to INSTALLED for the
       // repository which failed to be upgraded.

@@ -930,7 +930,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       stackId = cluster.getDesiredStackVersion();
     }
 
-    Config config = createConfig(stackId, cluster, request.getType(), requestProperties,
+    Config config = createConfig(cluster, stackId, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
 
     LOG.info(MessageFormat.format("Creating configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
@@ -942,7 +942,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Config createConfig(StackId stackId, Cluster cluster, String type, Map<String, String> properties,
+  public Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                              String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
 
     Config config = configFactory.createNew(stackId, cluster, type, versionTag, properties,

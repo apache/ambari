@@ -84,7 +84,8 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
         for (String configType : requiredPropertiesByType.keySet()) {
 
           // We need a copy not to modify the original
-          Collection<String> requiredPropertiesForType = new HashSet(requiredPropertiesByType.get(configType));
+          Collection<String> requiredPropertiesForType = new HashSet(
+              requiredPropertiesByType.get(configType));
 
           if (!operationalConfigurations.containsKey(configType)) {
             // all required configuration is missing for the config type

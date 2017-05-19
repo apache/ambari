@@ -1293,6 +1293,9 @@ public class ClusterTest {
   public void testServiceConfigVersionsForGroups() throws Exception {
     createDefaultCluster();
 
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
+    c1.addService("HDFS", repositoryVersion);
+
     Config config1 = configFactory.createNew(c1, "hdfs-site", "version1",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
 
@@ -1310,7 +1313,7 @@ public class ClusterTest {
       new HashMap<String, String>() {{ put("a", "c"); }}, new HashMap<String, Map<String,String>>());
 
     ConfigGroup configGroup =
-      configGroupFactory.createNew(c1, "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
+      configGroupFactory.createNew(c1, "HDFS", "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
         Collections.<Long, Host>emptyMap());
 
     c1.addConfigGroup(configGroup);
@@ -1362,7 +1365,7 @@ public class ClusterTest {
         Collections.singletonMap("a", "b"), null);
 
     ConfigGroup configGroup2 =
-        configGroupFactory.createNew(c1, "test group 2", "HDFS", "descr",
+        configGroupFactory.createNew(c1, "HDFS", "test group 2", "HDFS", "descr",
             new HashMap<>(Collections.singletonMap("hdfs-site", config4)),
             Collections.<Long, Host>emptyMap());
 
@@ -1397,7 +1400,7 @@ public class ClusterTest {
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
         ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1456,7 +1459,7 @@ public class ClusterTest {
     Config hdfsSiteConfigV2 = configFactory.createNew(c1, "hdfs-site", "version2",
         ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(c1, "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
+    ConfigGroup configGroup = configGroupFactory.createNew(c1, "HDFS", "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1934,7 +1937,7 @@ public class ClusterTest {
           }
         }, new HashMap<String, Map<String, String>>());
 
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1", "t1", "",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1", "t1", "",
         new HashMap<String, Config>() {
           {
             put("foo-site", originalConfig);
@@ -1974,25 +1977,31 @@ public class ClusterTest {
   }
 
   /**
-   * Tests that {@link Cluster#applyLatestConfigurations(StackId)} sets the
+   * Tests that {@link Cluster#applyLatestConfigurations(StackId, String)} sets the
    * right configs to enabled.
    *
    * @throws Exception
    */
   @Test
   public void testApplyLatestConfigurations() throws Exception {
-    createDefaultCluster();
+    StackId stackId = new StackId("HDP-2.0.6");
+    StackId newStackId = new StackId("HDP-2.2.0");
+    createDefaultCluster(Sets.newHashSet("host-1"), stackId);
+
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    StackId stackId = cluster.getCurrentStackVersion();
-    StackId newStackId = new StackId("HDP-2.0.6");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
 
-    Assert.assertFalse( stackId.equals(newStackId) );
+    Assert.assertFalse(stackId.equals(newStackId));
 
-    String configType = "foo-type";
+    // add a service
+    String serviceName = "ZOOKEEPER";
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
+    Service service = cluster.addService(serviceName, repositoryVersion);
+    String configType = "zoo.cfg";
 
     ClusterConfigEntity clusterConfig1 = new ClusterConfigEntity();
     clusterConfig1.setClusterEntity(clusterEntity);
@@ -2009,6 +2018,8 @@ public class ClusterTest {
     clusterEntity.getClusterConfigEntities().add(clusterConfig1);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
+    cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
+
     ClusterConfigEntity clusterConfig2 = new ClusterConfigEntity();
     clusterConfig2.setClusterEntity(clusterEntity);
     clusterConfig2.setConfigId(2L);
@@ -2024,6 +2035,11 @@ public class ClusterTest {
     clusterEntity.getClusterConfigEntities().add(clusterConfig2);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
+    // before creating the new service config version, we need to push the
+    // service's desired repository forward
+    service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.createServiceConfigVersion(serviceName, "", "version-2", null);
+
     // check that the original config is enabled
     Collection<ClusterConfigEntity> clusterConfigs = clusterEntity.getClusterConfigEntities();
     Assert.assertEquals(2, clusterConfigs.size());
@@ -2035,7 +2051,7 @@ public class ClusterTest {
       }
     }
 
-    cluster.applyLatestConfigurations(newStackId);
+    cluster.applyLatestConfigurations(newStackId, serviceName);
     clusterEntity = clusterDAO.findByName("c1");
 
     // now check that the new config is enabled
@@ -2059,18 +2075,24 @@ public class ClusterTest {
    */
   @Test
   public void testApplyLatestConfigurationsToPreviousStack() throws Exception {
-    createDefaultCluster();
+    StackId stackId = new StackId("HDP-2.0.6");
+    StackId newStackId = new StackId("HDP-2.2.0");
+    createDefaultCluster(Sets.newHashSet("host-1"), stackId);
+
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    StackId stackId = cluster.getCurrentStackVersion();
-    StackId newStackId = new StackId("HDP-2.0.6");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
 
     Assert.assertFalse(stackId.equals(newStackId));
 
-    String configType = "foo-type";
+    // add a service
+    String serviceName = "ZOOKEEPER";
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
+    Service service = cluster.addService(serviceName, repositoryVersion);
+    String configType = "zoo.cfg";
 
     // create 5 configurations in the current stack
     for (int i = 1; i <= 5; i++) {
@@ -2100,6 +2122,9 @@ public class ClusterTest {
     // save them all
     clusterEntity = clusterDAO.merge(clusterEntity);
 
+    // create a service configuration for them
+    cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
+
     // create a new configuration in the new stack and enable it
     ClusterConfigEntity clusterConfigNewStack = new ClusterConfigEntity();
     clusterConfigNewStack.setClusterEntity(clusterEntity);
@@ -2116,6 +2141,11 @@ public class ClusterTest {
     clusterEntity.getClusterConfigEntities().add(clusterConfigNewStack);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
+    // before creating the new service config version, we need to push the
+    // service's desired repository forward
+    service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.createServiceConfigVersion(serviceName, "", "version-2", null);
+
     // check that only the newest configuration is enabled
     ClusterConfigEntity clusterConfig = clusterDAO.findEnabledConfigByType(
         clusterEntity.getClusterId(), configType);
@@ -2123,7 +2153,7 @@ public class ClusterTest {
     Assert.assertEquals(clusterConfigNewStack.getTag(), clusterConfig.getTag());
 
     // move back to the original stack
-    cluster.applyLatestConfigurations(stackId);
+    cluster.applyLatestConfigurations(stackId, serviceName);
     clusterEntity = clusterDAO.findByName("c1");
 
     // now check that latest config from the original stack is enabled
@@ -2138,65 +2168,73 @@ public class ClusterTest {
    */
   @Test
   public void testDesiredConfigurationsAfterApplyingLatestForStack() throws Exception {
-    createDefaultCluster();
-    Cluster cluster = clusters.getCluster("c1");
-    StackId stackId = cluster.getCurrentStackVersion();
+    StackId stackId = new StackId("HDP-2.0.6");
     StackId newStackId = new StackId("HDP-2.2.0");
+    createDefaultCluster(Sets.newHashSet("host-1"), stackId);
+
+    Cluster cluster = clusters.getCluster("c1");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
     // make sure the stacks are different
     Assert.assertFalse(stackId.equals(newStackId));
 
+    // add a service
+    String serviceName = "ZOOKEEPER";
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
+    Service service = cluster.addService(serviceName, repositoryVersion);
+    String configType = "zoo.cfg";
+
     Map<String, String> properties = new HashMap<>();
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<>();
 
-    // foo-type for v1 on current stack
+    // config for v1 on current stack
     properties.put("foo-property-1", "foo-value-1");
-    Config c1 = configFactory.createNew(cluster, "foo-type", "version-1", properties, propertiesAttributes);
+    Config c1 = configFactory.createNew(stackId, cluster, configType, "version-1", properties, propertiesAttributes);
 
     // make v1 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
 
-    // bump the stack
-    cluster.setDesiredStackVersion(newStackId);
+    // bump the repo version
+    service.setDesiredRepositoryVersion(repoVersion220);
 
     // save v2
-    // foo-type for v2 on new stack
+    // config for v2 on new stack
     properties.put("foo-property-2", "foo-value-2");
-    Config c2 = configFactory.createNew(cluster, "foo-type", "version-2", properties, propertiesAttributes);
+    Config c2 = configFactory.createNew(newStackId, cluster, configType, "version-2", properties, propertiesAttributes);
 
     // make v2 "current"
     cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
 
     // check desired config
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    DesiredConfig desiredConfig = desiredConfigs.get("foo-type");
-    desiredConfig = desiredConfigs.get("foo-type");
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    desiredConfig = desiredConfigs.get(configType);
     assertNotNull(desiredConfig);
     assertEquals(Long.valueOf(2), desiredConfig.getVersion());
     assertEquals("version-2", desiredConfig.getTag());
 
     String hostName = cluster.getHosts().iterator().next().getHostName();
 
-    // {foo-type={tag=version-2}}
+    // {config-type={tag=version-2}}
     Map<String, Map<String, String>> effectiveDesiredTags = configHelper.getEffectiveDesiredTags(
         cluster, hostName);
 
-    assertEquals("version-2", effectiveDesiredTags.get("foo-type").get("tag"));
+    assertEquals("version-2", effectiveDesiredTags.get(configType).get("tag"));
 
-    // move the stack back to the old stack
-    cluster.setDesiredStackVersion(stackId);
+    // move the service back to the old repo version / stack
+    service.setDesiredRepositoryVersion(repositoryVersion);
 
     // apply the configs for the old stack
-    cluster.applyLatestConfigurations(stackId);
+    cluster.applyLatestConfigurations(stackId, serviceName);
 
-    // {foo-type={tag=version-1}}
+    // {config-type={tag=version-1}}
     effectiveDesiredTags = configHelper.getEffectiveDesiredTags(cluster, hostName);
-    assertEquals("version-1", effectiveDesiredTags.get("foo-type").get("tag"));
+    assertEquals("version-1", effectiveDesiredTags.get(configType).get("tag"));
 
     desiredConfigs = cluster.getDesiredConfigs();
-    desiredConfig = desiredConfigs.get("foo-type");
+    desiredConfig = desiredConfigs.get(configType);
     assertNotNull(desiredConfig);
     assertEquals(Long.valueOf(1), desiredConfig.getVersion());
     assertEquals("version-1", desiredConfig.getTag());
@@ -2209,18 +2247,24 @@ public class ClusterTest {
    */
   @Test
   public void testRemoveConfigurations() throws Exception {
-    createDefaultCluster();
+    StackId stackId = new StackId("HDP-2.0.6");
+    StackId newStackId = new StackId("HDP-2.2.0");
+    createDefaultCluster(Sets.newHashSet("host-1"), stackId);
+
     Cluster cluster = clusters.getCluster("c1");
     ClusterEntity clusterEntity = clusterDAO.findByName("c1");
-    StackId stackId = cluster.getCurrentStackVersion();
-    StackId newStackId = new StackId("HDP-2.0.6");
+    RepositoryVersionEntity repoVersion220 = helper.getOrCreateRepositoryVersion(newStackId, "2.2.0-1234");
 
     StackEntity currentStack = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     StackEntity newStack = stackDAO.find(newStackId.getStackName(), newStackId.getStackVersion());
 
     Assert.assertFalse(stackId.equals(newStackId));
 
-    String configType = "foo-type";
+    // add a service
+    String serviceName = "ZOOKEEPER";
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(c1);
+    Service service = cluster.addService(serviceName, repositoryVersion);
+    String configType = "zoo.cfg";
 
     ClusterConfigEntity clusterConfig = new ClusterConfigEntity();
     clusterConfig.setClusterEntity(clusterEntity);
@@ -2237,6 +2281,13 @@ public class ClusterTest {
     clusterEntity.getClusterConfigEntities().add(clusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
 
+    // create the service version association
+    cluster.createServiceConfigVersion(serviceName, "", "version-1", null);
+
+    // now un-select it and create a new config
+    clusterConfig.setSelected(false);
+    clusterConfig = clusterDAO.merge(clusterConfig);
+
     ClusterConfigEntity newClusterConfig = new ClusterConfigEntity();
     newClusterConfig.setClusterEntity(clusterEntity);
     newClusterConfig.setConfigId(2L);
@@ -2246,11 +2297,18 @@ public class ClusterTest {
     newClusterConfig.setType(configType);
     newClusterConfig.setTimestamp(2L);
     newClusterConfig.setVersion(2L);
-    newClusterConfig.setSelected(false);
+    newClusterConfig.setSelected(true);
 
     clusterDAO.createConfig(newClusterConfig);
     clusterEntity.getClusterConfigEntities().add(newClusterConfig);
     clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // before creating the new service config version, we need to push the
+    // service's desired repository forward
+    service.setDesiredRepositoryVersion(repoVersion220);
+    cluster.createServiceConfigVersion(serviceName, "", "version-2", null);
+
+    cluster.applyLatestConfigurations(newStackId, serviceName);
 
     // get back the cluster configs for the new stack
     List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
@@ -2259,7 +2317,7 @@ public class ClusterTest {
     Assert.assertEquals(1, clusterConfigs.size());
 
     // remove the configs
-    cluster.removeConfigurations(newStackId);
+    cluster.removeConfigurations(newStackId, serviceName);
 
     clusterConfigs = clusterDAO.getAllConfigurations(cluster.getClusterId(), newStackId);
     Assert.assertEquals(0, clusterConfigs.size());

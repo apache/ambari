@@ -587,7 +587,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             propertiesAttributes = Collections.emptyMap();
           }
 
-          controller.createConfig(cluster.getDesiredStackVersion(), cluster, configType, mergedProperties, newTag, propertiesAttributes);
+          controller.createConfig(cluster, cluster.getDesiredStackVersion(), configType,
+              mergedProperties, newTag, propertiesAttributes);
 
           Config baseConfig = cluster.getConfig(configType, newTag);
           if (baseConfig != null) {

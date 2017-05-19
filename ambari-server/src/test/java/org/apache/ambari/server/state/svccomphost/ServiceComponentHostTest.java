@@ -545,7 +545,7 @@ public class ServiceComponentHostTest {
 
     Cluster cluster = clusters.getCluster(clusterName);
 
-    final ConfigGroup configGroup = configGroupFactory.createNew(cluster,
+    final ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS",
       "cg1", "t1", "", new HashMap<String, Config>(), new HashMap<Long, Host>());
 
     cluster.addConfigGroup(configGroup);
@@ -799,7 +799,7 @@ public class ServiceComponentHostTest {
         new HashMap<String, Map<String,String>>());
 
     host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1",
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "HDFS", "g1",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);
@@ -855,7 +855,7 @@ public class ServiceComponentHostTest {
     final Config c1 = configFactory.createNew(cluster, "core-site", "version2",
       new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }},
       new HashMap<String, Map<String,String>>());
-    configGroup = configGroupFactory.createNew(cluster, "g2",
+    configGroup = configGroupFactory.createNew(cluster, "HDFS", "g2",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     cluster.addConfigGroup(configGroup);

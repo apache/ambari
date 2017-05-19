@@ -48,13 +48,4 @@ public enum UpgradeScope {
   @XmlEnumValue("ANY")
   @SerializedName("any")
   ANY;
-
-  public boolean isScoped(UpgradeScope scope) {
-    if (ANY == this || ANY == scope) {
-      return true;
-    }
-
-    return this == scope;
-  }
-
 }

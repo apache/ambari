@@ -388,10 +388,15 @@ public class ServiceConfigDAOTest {
 
     long clusterId = serviceConfigEntity.getClusterId();
 
-    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_01);
-    Assert.assertEquals(4, serviceConfigs.size());
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(
+        clusterId, HDP_01, "HDFS");
 
-    serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_02);
+    Assert.assertEquals(3, serviceConfigs.size());
+
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_01, "YARN");
+    Assert.assertEquals(1, serviceConfigs.size());
+    
+    serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(clusterId, HDP_02, "HDFS");
     Assert.assertEquals(0, serviceConfigs.size());
   }
 

@@ -131,7 +131,7 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop1", "v1-old");
     mergedProperties.put("prop4", "v4");
 
-    expect(amc.createConfig(anyObject(StackId.class), eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 
@@ -153,7 +153,7 @@ public class AbstractUpgradeCatalogTest {
     mergedProperties.put("prop2", "v2");
     mergedProperties.put("prop3", "v3-old");
 
-    expect(amc.createConfig(anyObject(StackId.class), eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 
@@ -172,7 +172,7 @@ public class AbstractUpgradeCatalogTest {
     Map<String, String> mergedProperties = new HashMap<>();
     mergedProperties.put("prop1", "v1-old");
 
-    expect(amc.createConfig(anyObject(StackId.class), eq(cluster), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
+    expect(amc.createConfig(eq(cluster), anyObject(StackId.class), eq("hdfs-site"), eq(mergedProperties), anyString(), eq(tags))).andReturn(null);
 
     replay(injector, configHelper, amc, cluster, clusters, serviceInfo, oldConfig);
 

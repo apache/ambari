@@ -42,6 +42,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -55,6 +56,7 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.stack.StackManagerMock;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -100,6 +102,7 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
+  private static final StackId STACK_ID_HDP_211 = new StackId("HDP-2.1.1");
   private static final StackId STACK_ID_HDP_220 = new StackId("HDP-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
@@ -113,8 +116,8 @@ public class UpgradeHelperTest {
   private ConfigHelper m_configHelper;
   private AmbariManagementController m_managementController;
   private Gson m_gson = new Gson();
-  private UpgradeContextFactory m_upgradeContextFactory;
 
+  private RepositoryVersionEntity repositoryVersion2110;
   private RepositoryVersionEntity repositoryVersion2200;
   private RepositoryVersionEntity repositoryVersion2210;
 
@@ -160,8 +163,8 @@ public class UpgradeHelperTest {
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
-    m_upgradeContextFactory = injector.getInstance(UpgradeContextFactory.class);
 
+    repositoryVersion2110 = helper.getOrCreateRepositoryVersion(STACK_ID_HDP_211, "2.1.1.0-1234");
     repositoryVersion2200 = helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, DOWNGRADE_VERSION);
     repositoryVersion2210 = helper.getOrCreateRepositoryVersion(STACK_ID_HDP_220, UPGRADE_VERSION);
 
@@ -294,14 +297,9 @@ public class UpgradeHelperTest {
     Cluster cluster = makeCluster();
 
     Set<String> services = Collections.singleton("ZOOKEEPER");
-    UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
-    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
-    EasyMock.expect(context.getType()).andReturn(UpgradeType.ROLLING).anyTimes();
-    EasyMock.expect(context.getDirection()).andReturn(Direction.UPGRADE).anyTimes();
-    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion2210).anyTimes();
-    EasyMock.expect(context.getSupportedServices()).andReturn(services).anyTimes();
-    EasyMock.expect(context.getRepositoryType()).andReturn(RepositoryType.PATCH).anyTimes();
-    EasyMock.replay(context);
+
+    UpgradeContext context = getMockUpgradeContext(cluster, Direction.UPGRADE, UpgradeType.ROLLING,
+        repositoryVersion2210, RepositoryType.PATCH, services);
 
     List<Grouping> groupings = upgrade.getGroups(Direction.UPGRADE);
     assertEquals(8, groupings.size());
@@ -460,7 +458,7 @@ public class UpgradeHelperTest {
         UpgradeType.ROLLING, repositoryVersion2210);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver masterHostResolver = new MasterHostResolver(null, context);
+    MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, null, context);
 
     EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
@@ -1525,13 +1523,9 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
-    String version = "2.1.1.0-1234";
     StackId stackId = new StackId("HDP-2.1.1");
     clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
-
-    RepositoryVersionEntity repositoryVersion211 = helper.getOrCreateRepositoryVersion(stackId,
-        version);
 
     for (int i = 0; i < 2; i++) {
       String hostName = "h" + (i+1);
@@ -1548,24 +1542,24 @@ public class UpgradeHelperTest {
     }
 
     // !!! add services
-    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion211));
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER", repositoryVersion2110));
 
     Service s = c.getService("ZOOKEEPER");
     ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
 
     ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
-    sch1.setVersion(repositoryVersion211.getVersion());
+    sch1.setVersion(repositoryVersion2110.getVersion());
 
     ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
-    sch2.setVersion(repositoryVersion211.getVersion());
+    sch2.setVersion(repositoryVersion2110.getVersion());
 
     List<ServiceComponentHost> schs = c.getServiceComponentHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
     assertEquals(2, schs.size());
 
     UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
-        UpgradeType.HOST_ORDERED, repositoryVersion211);
+        UpgradeType.HOST_ORDERED, repositoryVersion2110);
 
-    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, context);
+    MasterHostResolver resolver = new MasterHostResolver(c, m_configHelper, context);
     EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
@@ -1639,7 +1633,7 @@ public class UpgradeHelperTest {
         UpgradeType.NON_ROLLING, repositoryVersion211);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver mhr = new MockMasterHostResolver(m_configHelper, context);
+    MasterHostResolver mhr = new MockMasterHostResolver(c, m_configHelper, context);
 
     EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
     replay(context);
@@ -1708,7 +1702,7 @@ public class UpgradeHelperTest {
         UpgradeType.NON_ROLLING, repositoryVersion211);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver mhr = new BadMasterHostResolver(m_configHelper, context);
+    MasterHostResolver mhr = new BadMasterHostResolver(c, m_configHelper, context);
 
     EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
     replay(context);
@@ -1846,7 +1840,7 @@ public class UpgradeHelperTest {
         UpgradeType.NON_ROLLING, repoVersion220);
 
     // use a "real" master host resolver here so that we can actually test MM
-    MasterHostResolver masterHostResolver = new MasterHostResolver(m_configHelper, context);
+    MasterHostResolver masterHostResolver = new MasterHostResolver(c, m_configHelper, context);
 
     EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
@@ -1862,7 +1856,7 @@ public class UpgradeHelperTest {
         repoVersion211);
 
     // use a "real" master host resolver here so that we can actually test MM
-    masterHostResolver = new MasterHostResolver(m_configHelper, context);
+    masterHostResolver = new MasterHostResolver(c, m_configHelper, context);
 
     EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
@@ -2129,7 +2123,7 @@ public class UpgradeHelperTest {
     UpgradeContext context = getMockUpgradeContextNoReplay(c, Direction.UPGRADE,
         UpgradeType.HOST_ORDERED, repoVersion220);
 
-    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, context);
+    MasterHostResolver resolver = new MasterHostResolver(c, m_configHelper, context);
     EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
@@ -2173,7 +2167,7 @@ public class UpgradeHelperTest {
     context = getMockUpgradeContextNoReplay(c, Direction.DOWNGRADE, UpgradeType.HOST_ORDERED,
         repoVersion211);
 
-    resolver = new MasterHostResolver(m_configHelper, context);
+    resolver = new MasterHostResolver(c, m_configHelper, context);
     EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
@@ -2190,7 +2184,7 @@ public class UpgradeHelperTest {
     context = getMockUpgradeContextNoReplay(c, Direction.DOWNGRADE, UpgradeType.HOST_ORDERED,
         repoVersion211);
 
-    resolver = new MasterHostResolver(m_configHelper, context);
+    resolver = new MasterHostResolver(c, m_configHelper, context);
     EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
@@ -2281,7 +2275,7 @@ public class UpgradeHelperTest {
       UpgradeType type, RepositoryVersionEntity repositoryVersion, RepositoryType repositoryType,
       Set<String> services) {
     return getMockUpgradeContext(cluster, direction, type, repositoryVersion,
-        repositoryType, services, m_masterHostResolver);
+        repositoryType, services, m_masterHostResolver, true);
   }
 
   /**
@@ -2294,15 +2288,8 @@ public class UpgradeHelperTest {
       UpgradeType type, RepositoryVersionEntity repositoryVersion) {
     Set<String> allServices = cluster.getServices().keySet();
 
-    UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
-    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
-    EasyMock.expect(context.getType()).andReturn(type).anyTimes();
-    EasyMock.expect(context.getDirection()).andReturn(direction).anyTimes();
-    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
-    EasyMock.expect(context.getSupportedServices()).andReturn(allServices).anyTimes();
-    EasyMock.expect(context.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
-    EasyMock.expect(context.isScoped(EasyMock.anyObject(UpgradeScope.class))).andReturn(true).anyTimes();
-    return context;
+    return getMockUpgradeContext(cluster, direction, type, repositoryVersion,
+        RepositoryType.STANDARD, allServices, null, false);
   }
 
   /**
@@ -2314,8 +2301,8 @@ public class UpgradeHelperTest {
    * @return
    */
   private UpgradeContext getMockUpgradeContext(Cluster cluster, Direction direction,
-      UpgradeType type, RepositoryVersionEntity repositoryVersion, RepositoryType repositoryType,
-      Set<String> services, MasterHostResolver resolver) {
+      UpgradeType type, RepositoryVersionEntity repositoryVersion, final RepositoryType repositoryType,
+      Set<String> services, MasterHostResolver resolver, boolean replay) {
     UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
     EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
     EasyMock.expect(context.getType()).andReturn(type).anyTimes();
@@ -2323,9 +2310,14 @@ public class UpgradeHelperTest {
     EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
     EasyMock.expect(context.getSupportedServices()).andReturn(services).anyTimes();
     EasyMock.expect(context.getRepositoryType()).andReturn(repositoryType).anyTimes();
-    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
-    EasyMock.expect(context.isScoped(EasyMock.anyObject(UpgradeScope.class))).andReturn(true).anyTimes();
     EasyMock.expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    EasyMock.expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));
+    EasyMock.expect(context.getRoleGraphFactory()).andStubReturn(injector.getInstance(RoleGraphFactory.class));
+
+    // only set this if supplied
+    if (null != resolver) {
+      EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    }
 
     final Map<String, RepositoryVersionEntity> targetRepositoryVersions = new HashMap<>();
     for( String serviceName : services ){
@@ -2353,8 +2345,6 @@ public class UpgradeHelperTest {
 
 
     final Map<String, String> serviceNames = new HashMap<>();
-
-
     final Capture<String> serviceDisplayNameArg1 = EasyMock.newCapture();
     final Capture<String> serviceDisplayNameArg2 = EasyMock.newCapture();
 
@@ -2408,7 +2398,28 @@ public class UpgradeHelperTest {
           }
         }).anyTimes();
 
-    replay(context);
+    final Capture<UpgradeScope> isScopedCapture = EasyMock.newCapture();
+    EasyMock.expect(context.isScoped(EasyMock.capture(isScopedCapture))).andStubAnswer(
+        new IAnswer<Boolean>() {
+          @Override
+          public Boolean answer() throws Throwable {
+            UpgradeScope scope = isScopedCapture.getValue();
+            if (scope == UpgradeScope.ANY) {
+              return true;
+            }
+
+            if (scope == UpgradeScope.PARTIAL) {
+              return repositoryType != RepositoryType.STANDARD;
+            }
+
+            return repositoryType == RepositoryType.STANDARD;
+          }
+        });
+
+    if (replay) {
+      replay(context);
+    }
+
     return context;
   }
 
@@ -2418,8 +2429,8 @@ public class UpgradeHelperTest {
    */
   private class MockMasterHostResolver extends MasterHostResolver {
 
-    public MockMasterHostResolver(ConfigHelper configHelper, UpgradeContext context) {
-      super(configHelper, context);
+    public MockMasterHostResolver(Cluster cluster, ConfigHelper configHelper, UpgradeContext context) {
+      super(cluster, configHelper, context);
     }
 
     /**
@@ -2461,8 +2472,8 @@ public class UpgradeHelperTest {
 
   private static class BadMasterHostResolver extends MasterHostResolver {
 
-    public BadMasterHostResolver(ConfigHelper configHelper, UpgradeContext context) {
-      super(configHelper, context);
+    public BadMasterHostResolver(Cluster cluster, ConfigHelper configHelper, UpgradeContext context) {
+      super(cluster, configHelper, context);
     }
 
     @Override

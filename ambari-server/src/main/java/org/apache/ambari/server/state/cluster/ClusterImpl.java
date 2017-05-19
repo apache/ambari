@@ -1530,12 +1530,20 @@ public class ClusterImpl implements Cluster {
       long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(clusterId,
           serviceName);
 
+      // get the correct stack ID to use when creating the service config
+      StackEntity stackEntity = clusterEntity.getDesiredStack();
+      Service service = services.get(serviceName);
+      if (null != service) {
+        StackId serviceStackId = service.getDesiredStackId();
+        stackEntity = stackDAO.find(serviceStackId);
+      }
+
       serviceConfigEntity.setServiceName(serviceName);
       serviceConfigEntity.setClusterEntity(clusterEntity);
       serviceConfigEntity.setVersion(nextServiceConfigVersion);
       serviceConfigEntity.setUser(user);
       serviceConfigEntity.setNote(note);
-      serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
+      serviceConfigEntity.setStack(stackEntity);
 
       serviceConfigDAO.create(serviceConfigEntity);
       if (configGroup != null) {
@@ -2320,30 +2328,50 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   @Transactional
-  public void applyLatestConfigurations(StackId stackId) {
+  public void applyLatestConfigurations(StackId stackId, String serviceName) {
     clusterGlobalLock.writeLock().lock();
 
     try {
+      // grab all of the configurations and hash them so we can easily update them when picking and choosing only those from the service
       ClusterEntity clusterEntity = getClusterEntity();
       Collection<ClusterConfigEntity> configEntities = clusterEntity.getClusterConfigEntities();
-
-      // hash them for easier retrieval later
       ImmutableMap<Object, ClusterConfigEntity> clusterConfigEntityMap = Maps.uniqueIndex(
           configEntities, Functions.identity());
 
-      // disable all configs
-      for (ClusterConfigEntity e : configEntities) {
-        LOG.debug("Disabling configuration {} with tag {}", e.getType(), e.getTag());
-        e.setSelected(false);
+      // find the latest configurations for the service
+      Set<String> configTypesForService = new HashSet<>();
+      List<ServiceConfigEntity> latestServiceConfigs = serviceConfigDAO.getLastServiceConfigsForService(
+          getClusterId(), serviceName);
+
+      // process the current service configurations
+      for (ServiceConfigEntity serviceConfig : latestServiceConfigs) {
+        List<ClusterConfigEntity> latestConfigs = serviceConfig.getClusterConfigEntities();
+        for( ClusterConfigEntity latestConfig : latestConfigs ){
+          // grab the hash'd entity from the map so we're working with the right one
+          latestConfig = clusterConfigEntityMap.get(latestConfig);
+
+          // add the config type to our list for tracking later on
+          configTypesForService.add(latestConfig.getType());
+
+          // un-select the latest configuration for the service
+          LOG.debug("Disabling configuration {} with tag {}", latestConfig.getType(), latestConfig.getTag());
+          latestConfig.setSelected(false);
+        }
       }
 
-      // work through the in-memory list, finding only the most recent mapping per type
+      // get the latest configurations for the given stack which we're going to make active
       Collection<ClusterConfigEntity> latestConfigsByStack = clusterDAO.getLatestConfigurations(
           clusterId, stackId);
 
-      // pull the correct latest mapping for the stack out of the cached map
-      // from the cluster entity
+      // set the service configuration for the specified stack to the latest
       for (ClusterConfigEntity latestConfigByStack : latestConfigsByStack) {
+        // since we're iterating over all configuration types, only work with those that are for our service
+        if (!configTypesForService.contains(latestConfigByStack.getType())) {
+          continue;
+        }
+
+        // pull the correct latest mapping for the stack out of the cached map
+        // from the cluster entity
         ClusterConfigEntity entity = clusterConfigEntityMap.get(latestConfigByStack);
         entity.setSelected(true);
 
@@ -2358,13 +2386,14 @@ public class ClusterImpl implements Cluster {
       clusterEntity = clusterDAO.merge(clusterEntity);
 
       cacheConfigurations();
+
+      LOG.info(
+          "Applied latest configurations for {} on stack {}. The the following types were modified: {}",
+          serviceName, stackId, StringUtils.join(configTypesForService, ','));
+
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
-
-    LOG.info(
-        "Applied latest configurations for {} on stack {}. The desired configurations are now {}",
-        getClusterName(), stackId, getDesiredConfigs());
 
     // publish an event to instruct entity managers to clear cached instances of
     // ClusterEntity immediately - it takes EclipseLink about 1000ms to update
@@ -2389,14 +2418,18 @@ public class ClusterImpl implements Cluster {
   }
 
   /**
-   * Removes all configurations associated with the specified stack. The caller
-   * should make sure the cluster global write lock is acquired.
+   * Removes all configurations associated with the specified stack for the
+   * specified service. The caller should make sure the cluster global write
+   * lock is acquired.
    *
    * @param stackId
+   *          the stack to remove configurations for (not {@code null}).
+   * @param serviceName
+   *          the service name (not {@code null}).
    * @see #clusterGlobalLock
    */
   @Transactional
-  void removeAllConfigsForStack(StackId stackId) {
+  void removeAllConfigsForStack(StackId stackId, String serviceName) {
     ClusterEntity clusterEntity = getClusterEntity();
 
     // make sure the entity isn't stale in the current unit of work.
@@ -2404,53 +2437,50 @@ public class ClusterImpl implements Cluster {
 
     long clusterId = clusterEntity.getClusterId();
 
+    // keep track of any types removed for logging purposes
+    Set<String> removedConfigurationTypes = new HashSet<>();
+
     // this will keep track of cluster config mappings that need removal
     // since there is no relationship between configs and their mappings, we
     // have to do it manually
     List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<>(50);
-    Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+    Collection<ClusterConfigEntity> allClusterConfigEntities = clusterEntity.getClusterConfigEntities();
+    Collection<ServiceConfigEntity> allServiceConfigEntities = clusterEntity.getServiceConfigEntities();
 
-    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
-      clusterId, stackId);
+    // get the service configs only for the service
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getServiceConfigsForServiceAndStack(
+        clusterId, stackId, serviceName);
 
     // remove all service configurations and associated configs
-    Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
-
     for (ServiceConfigEntity serviceConfig : serviceConfigs) {
       for (ClusterConfigEntity configEntity : serviceConfig.getClusterConfigEntities()) {
-        clusterConfigEntities.remove(configEntity);
+        removedConfigurationTypes.add(configEntity.getType());
+
+        allClusterConfigEntities.remove(configEntity);
         clusterDAO.removeConfig(configEntity);
         removedClusterConfigs.add(configEntity);
       }
 
       serviceConfig.getClusterConfigEntities().clear();
       serviceConfigDAO.remove(serviceConfig);
-      serviceConfigEntities.remove(serviceConfig);
+      allServiceConfigEntities.remove(serviceConfig);
     }
 
-    // remove any leftover cluster configurations that don't have a service
-    // configuration (like cluster-env)
-    List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
-      clusterId, stackId);
-
-    for (ClusterConfigEntity clusterConfig : clusterConfigs) {
-      clusterConfigEntities.remove(clusterConfig);
-      clusterDAO.removeConfig(clusterConfig);
-      removedClusterConfigs.add(clusterConfig);
-    }
-
-    clusterEntity.setClusterConfigEntities(clusterConfigEntities);
+    clusterEntity.setClusterConfigEntities(allClusterConfigEntities);
     clusterEntity = clusterDAO.merge(clusterEntity);
+
+    LOG.info("Removed the following configuration types for {} on stack {}: {}", serviceName,
+        stackId, StringUtils.join(removedConfigurationTypes, ','));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeConfigurations(StackId stackId) {
+  public void removeConfigurations(StackId stackId, String serviceName) {
     clusterGlobalLock.writeLock().lock();
     try {
-      removeAllConfigsForStack(stackId);
+      removeAllConfigsForStack(stackId, serviceName);
       cacheConfigurations();
     } finally {
       clusterGlobalLock.writeLock().unlock();

@@ -579,12 +579,10 @@ public class ConfigGroupResourceProvider extends
 
       verifyConfigs(request.getConfigs(), cluster.getClusterName());
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster,
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceName,
         request.getGroupName(),
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
-
-      configGroup.setServiceName(serviceName);
 
       cluster.addConfigGroup(configGroup);
       if (serviceName != null) {

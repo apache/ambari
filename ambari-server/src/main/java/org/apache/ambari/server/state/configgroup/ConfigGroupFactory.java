@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.configgroup;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
@@ -30,7 +32,8 @@ public interface ConfigGroupFactory {
   /**
    * Creates and saves a new {@link ConfigGroup}.
    */
-  ConfigGroup createNew(@Assisted("cluster") Cluster cluster, @Assisted("name") String name,
+  ConfigGroup createNew(@Assisted("cluster") Cluster cluster,
+      @Assisted("serviceName") @Nullable String serviceName, @Assisted("name") String name,
       @Assisted("tag") String tag, @Assisted("description") String description,
       @Assisted("configs") Map<String, Config> configs, @Assisted("hosts") Map<Long, Host> hosts);
 

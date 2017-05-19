@@ -115,7 +115,7 @@ public interface AmbariManagementController {
    * TODO move this method to Cluster? doesn't seem to be on its place
    * @return config created
    */
-  Config createConfig(StackId stackId, Cluster cluster, String type, Map<String, String> properties,
+  Config createConfig(Cluster cluster, StackId stackId, String type, Map<String, String> properties,
                       String versionTag, Map<String, Map<String, String>> propertiesAttributes);
 
   /**

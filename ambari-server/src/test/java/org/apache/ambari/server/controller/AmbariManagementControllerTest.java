@@ -435,7 +435,7 @@ public class AmbariManagementControllerTest {
     controller.deleteHostComponents(requests);
   }
 
-  private Long createConfigGroup(Cluster cluster, String name, String tag,
+  private Long createConfigGroup(Cluster cluster, String serviceName, String name, String tag,
                               List<String> hosts, List<Config> configs)
                               throws AmbariException {
 
@@ -452,8 +452,10 @@ public class AmbariManagementControllerTest {
       configMap.put(config.getType(), config);
     }
 
-    ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, serviceName, name,
       tag, "", configMap, hostMap);
+
+    configGroup.setServiceName(serviceName);
 
     cluster.addConfigGroup(configGroup);
 
@@ -6662,8 +6664,8 @@ public class AmbariManagementControllerTest {
     configs = new HashMap<>();
     configs.put("a", "c");
     cluster = clusters.getCluster(cluster1);
-    final Config config =  configFactory.createReadOnly("core-site", "version122", configs, null);
-    Long groupId = createConfigGroup(cluster, group1, tag1,
+    final Config config = configFactory.createReadOnly("core-site", "version122", configs, null);
+    Long groupId = createConfigGroup(cluster, serviceName1, group1, tag1,
       new ArrayList<String>() {{ add(host1); }},
       new ArrayList<Config>() {{ add(config); }});
 
@@ -6674,7 +6676,7 @@ public class AmbariManagementControllerTest {
     configs.put("a", "c");
 
     final Config config2 =  configFactory.createReadOnly("mapred-site", "version122", configs, null);
-    groupId = createConfigGroup(cluster, group2, tag2,
+    groupId = createConfigGroup(cluster, serviceName2, group2, tag2,
       new ArrayList<String>() {{ add(host1); }},
       new ArrayList<Config>() {{ add(config2); }});
 
@@ -6817,7 +6819,7 @@ public class AmbariManagementControllerTest {
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     final Config config = configFactory.createReadOnly("hdfs-site", "version122", configs, null);
-    Long groupId = createConfigGroup(clusters.getCluster(cluster1), group1, tag1,
+    Long groupId = createConfigGroup(clusters.getCluster(cluster1), serviceName, group1, tag1,
         new ArrayList<String>() {{
           add(host1);
           add(host2);
@@ -6926,7 +6928,7 @@ public class AmbariManagementControllerTest {
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
     final Config config = configFactory.createReadOnly("hdfs-site", "version122", configs, null);
-    Long groupId = createConfigGroup(clusters.getCluster(cluster1), group1, tag1,
+    Long groupId = createConfigGroup(clusters.getCluster(cluster1), serviceName, group1, tag1,
       new ArrayList<String>() {{ add(host1); add(host2); }},
       new ArrayList<Config>() {{ add(config); }});
 

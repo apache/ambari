@@ -544,9 +544,8 @@ public interface Cluster {
   Map<String, Object> getSessionAttributes();
 
   /**
-   * Makes the most recent configurations in the specified stack the current set
-   * of configurations. This method will first ensure that the cluster's current
-   * stack matches that of the configuration stack specified.
+   * Makes the most recent configurations for the specified stack current. This
+   * will only modify configurations for the given service.
    * <p/>
    * When completed, all other configurations for any other stack will remain,
    * but will not be marked as selected.
@@ -554,18 +553,21 @@ public interface Cluster {
    * @param stackId
    *          the stack to use when finding the latest configurations (not
    *          {@code null}).
+   * @param serviceName
+   *          the service to modify configurations for (not {@code null}).
    */
-  void applyLatestConfigurations(StackId stackId);
+  void applyLatestConfigurations(StackId stackId, String serviceName);
 
   /**
-   * Removes all cluster configurations and service configurations that belong
-   * to the specified stack.
+   * Removes all configurations for the specified service and stack.
    *
    * @param stackId
    *          the stack to use when finding the configurations to remove (not
    *          {@code null}).
+   * @param serviceName
+   *          the service to rmeove configurations for (not {@code null}).
    */
-  void removeConfigurations(StackId stackId);
+  void removeConfigurations(StackId stackId, String serviceName);
 
   /**
    * Returns whether this cluster was provisioned by a Blueprint or not.

@@ -46,8 +46,6 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
       throws AmbariException, InterruptedException {
 
-    Map<String, String> commandParams = getExecutionCommand().getCommandParams();
-
     String clusterName = getExecutionCommand().getClusterName();
 
     Cluster cluster = m_clusters.getCluster(clusterName);
@@ -59,8 +57,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
     StringBuilder errSB = new StringBuilder();
 
     if (errors.isEmpty()) {
-      outSB.append("No version mismatches found for components");
-      errSB.append("No errors found for components");
+      outSB.append("All service components are reporting the correct version.");
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } else {
       String structuredOut = getErrors(outSB, errSB, errors);

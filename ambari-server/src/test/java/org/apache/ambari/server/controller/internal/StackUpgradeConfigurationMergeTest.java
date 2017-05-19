@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeContextFactory;
+import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -205,11 +206,11 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     // HDP 2.4 configs
     EasyMock.expect(configHelper.getDefaultProperties(EasyMock.eq(s_currentStackId),
-        EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(oldStackDefaultConfigurationsByType);
+        EasyMock.anyString())).andReturn(oldStackDefaultConfigurationsByType);
 
     // HDP 2.5 configs
     EasyMock.expect(configHelper.getDefaultProperties(EasyMock.eq(s_targetStackId),
-        EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(newConfigurationsByType);
+        EasyMock.anyString())).andReturn(newConfigurationsByType);
 
     // CURRENT HDP 2.4 configs
     Config currentClusterConfigFoo = createNiceMock(Config.class);
@@ -238,6 +239,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     Capture<Map<String, Map<String, String>>> capturedArgument = EasyMock.newCapture();
     configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
         EasyMock.anyObject(AmbariManagementController.class),
+        EasyMock.anyObject(StackId.class),
         EasyMock.capture(capturedArgument),
         EasyMock.anyString(), EasyMock.anyString());
 
@@ -252,10 +254,8 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     EasyMock.expect(upgradeContext.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repositoryVersionEntity).anyTimes();
     replayAll();
 
-    UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(amc);
-    m_injector.injectMembers(upgradeResourceProvider);
-
-    upgradeResourceProvider.applyStackAndProcessConfigurations(upgradeContext);
+    UpgradeHelper upgradeHelper = m_injector.getInstance(UpgradeHelper.class);
+    upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
 
     // assertion time!
     Map<String, Map<String, String>> mergedConfigurations = capturedArgument.getValue();

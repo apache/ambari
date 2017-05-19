@@ -517,7 +517,7 @@ public class UpgradeCatalog210Test {
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
     expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
-    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), (Cluster)anyObject(),
+    expect(mockAmbariManagementController.createConfig((Cluster)anyObject(), anyObject(StackId.class),
       anyString(),
       capture(configCreation),
       anyString(),
@@ -601,7 +601,7 @@ public class UpgradeCatalog210Test {
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
     expect(mockHivePluginProperies.getProperties()).andReturn(propertiesExpectedPluginProperies).anyTimes();
     expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
-    expect(mockAmbariManagementController.createConfig(anyObject(StackId.class), (Cluster) anyObject(),
+    expect(mockAmbariManagementController.createConfig((Cluster) anyObject(), anyObject(StackId.class),
         anyString(),
         capture(configCreation),
         anyString(),
