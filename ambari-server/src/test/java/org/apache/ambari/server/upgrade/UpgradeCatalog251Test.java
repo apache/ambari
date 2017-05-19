@@ -179,10 +179,15 @@ public class UpgradeCatalog251Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method updateKAFKAConfigs = UpgradeCatalog251.class.getDeclaredMethod("updateKAFKAConfigs");
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
     UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
         .addMockedMethod(updateKAFKAConfigs)
+        .addMockedMethod(addNewConfigurationsFromXml)
         .createMock();
+
+    upgradeCatalog251.addNewConfigurationsFromXml();
+    expectLastCall().once();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
     field.set(upgradeCatalog251, dbAccessor);
