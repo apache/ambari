@@ -110,4 +110,14 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.launch-command-line</name>
+    <value>slider-agent,LLAP</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.user</name>
+    <value>hive</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
