@@ -24,7 +24,7 @@
   <!-- Misc properties -->
   <property>
     <name>atlas.audit.hbase.zookeeper.quorum</name>
-    <value/>
+    <value>localhost</value>
     <description/>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -38,7 +38,7 @@
   </property>
   <property>
     <name>atlas.graph.storage.hostname</name>
-    <value/>
+    <value>localhost</value>
     <description/>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -66,7 +66,7 @@
   </property>
   <property>
     <name>atlas.graph.index.search.solr.zookeeper-url</name>
-    <value/>
+    <value>localhost:2181/infra-solr</value>
     <description>The ZooKeeper quorum setup for Solr as comma separated value.</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -145,7 +145,7 @@
   </property>
   <property>
     <name>atlas.kafka.bootstrap.servers</name>
-    <value/>
+    <value>localhost:6667</value>
     <description>Comma separated list of Kafka broker endpoints in host:port form</description>
     <depends-on>
      <property>
@@ -157,7 +157,7 @@
   </property>
   <property>
     <name>atlas.kafka.zookeeper.connect</name>
-    <value/>
+    <value>localhost:2181</value>
     <description>Comma separated list of servers forming Zookeeper quorum used by Kafka.</description>
     <on-ambari-upgrade add="false"/>
   </property>
