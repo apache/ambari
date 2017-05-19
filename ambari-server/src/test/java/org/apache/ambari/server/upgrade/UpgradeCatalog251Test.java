@@ -20,13 +20,16 @@ package org.apache.ambari.server.upgrade;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -162,5 +165,22 @@ public class UpgradeCatalog251Test {
     Assert.assertEquals(UpgradeCatalog251.HRC_IS_BACKGROUND_COLUMN, captured.getName());
     Assert.assertEquals(Integer.valueOf(0), captured.getDefaultValue());
     Assert.assertEquals(Short.class, captured.getType());
+  }
+
+  @Test
+  public void testExecuteDMLUpdates() throws Exception {
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
+    UpgradeCatalog251 upgradeCatalog251 = createMockBuilder(UpgradeCatalog251.class)
+            .addMockedMethod(addNewConfigurationsFromXml)
+            .createMock();
+
+    upgradeCatalog251.addNewConfigurationsFromXml();
+    expectLastCall().once();
+
+    replay(upgradeCatalog251);
+
+    upgradeCatalog251.executeDMLUpdates();
+
+    verify(upgradeCatalog251);
   }
 }
