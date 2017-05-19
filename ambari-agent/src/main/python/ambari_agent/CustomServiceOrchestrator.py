@@ -78,7 +78,7 @@ class CustomServiceOrchestrator():
   # Property name for credential store class path
   CREDENTIAL_STORE_CLASS_PATH_NAME = 'credentialStoreClassPath'
 
-  def __init__(self, config, controller):
+  def __init__(self, config):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
     self.force_https_protocol = config.get_force_https_protocol()
@@ -89,8 +89,8 @@ class CustomServiceOrchestrator():
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
     self.public_fqdn = hostname.public_hostname(config)
-    # cache reset will be called on every agent registration
-    controller.registration_listeners.append(self.file_cache.reset)
+    # TODO STOMP: cache reset should be called on every agent registration
+    #controller.registration_listeners.append(self.file_cache.reset)
 
     # Construct the hadoop credential lib JARs path
     self.credential_shell_lib_path = os.path.join(config.get('security', 'credential_lib_dir',

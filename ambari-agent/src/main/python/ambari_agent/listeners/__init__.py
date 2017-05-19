@@ -48,8 +48,10 @@ class EventListener(ambari_stomp.ConnectionListener):
 
       logger.info("Received event from {0}".format(destination))
       logger.debug("Received event from {0}: headers={1} ; message={2}".format(destination, headers, message))
-
-      self.on_event(headers, message_json)
+      try:
+        self.on_event(headers, message_json)
+      except:
+        logger.exception("Exception while handing event from {0}: headers={1} ; message={2}".format(destination, headers, message))
 
   def on_event(self, headers, message):
     """

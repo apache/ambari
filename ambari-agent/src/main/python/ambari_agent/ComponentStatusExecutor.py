@@ -88,6 +88,7 @@ class ComponentStatusExecutor(threading.Thread):
                 logging.info("Status for {0} has changed to {1}".format(component_name, status))
                 cluster_reports[cluster_id].append(result)
 
+        # TODO STOMP: what if not registered?
         self.send_updates_to_server(cluster_reports)
         self.stop_event.wait(Constants.STATUS_COMMANDS_PACK_INTERVAL_SECONDS)
       except:

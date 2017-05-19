@@ -18,11 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ambari_simplejson as json
 import logging
 import threading
 import copy
+import json
 from Grep import Grep
+
+from ambari_agent import Constants
 
 logger = logging.getLogger()
 
@@ -34,46 +36,29 @@ class CommandStatusDict():
     task_id -> (command, cmd_report)
   """
 
-  def __init__(self, callback_action):
+  def __init__(self, initializer_module):
     """
     callback_action is called every time when status of some command is
     updated
     """
     self.current_state = {} # Contains all statuses
-    self.callback_action = callback_action
     self.lock = threading.RLock()
+    self.initializer_module = initializer_module
 
 
   def put_command_status(self, command, new_report):
     """
     Stores new version of report for command (replaces previous)
     """
-    if 'taskId' in command:
-      key = command['taskId']
-      status_command = False
-    else: # Status command reports has no task id
-      key = id(command)
-      status_command = True
+    key = command['taskId']
     with self.lock: # Synchronized
       self.current_state[key] = (command, new_report)
-    if not status_command:
-      self.callback_action()
 
-  def update_command_status(self, command, delta):
-    """
-    Updates status of command without replacing (overwrites with delta value)
-    """
-    if 'taskId' in command:
-      key = command['taskId']
-      status_command = False
-    else: # Status command reports has no task id
-      key = id(command)
-      status_command = True
-    with self.lock: # Synchronized
-      self.current_state[key][1].update(delta)
-    if not status_command:
-      self.callback_action()
-  
+    self.force_update_to_server([new_report])
+
+  def force_update_to_server(self, reports):
+    self.initializer_module.connection.send(body=json.dumps(reports), destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+
   def get_command_status(self, taskId):
     with self.lock:
       c = copy.copy(self.current_state[taskId][1])
@@ -88,7 +73,6 @@ class CommandStatusDict():
     from ActionQueue import ActionQueue
     with self.lock: # Synchronized
       resultReports = []
-      resultComponentStatus = []
       for key, item in self.current_state.items():
         command = item[0]
         report = item[1]
@@ -100,19 +84,11 @@ class CommandStatusDict():
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
             resultReports.append(in_progress_report)
-        elif command ['commandType'] == ActionQueue.STATUS_COMMAND:
-          resultComponentStatus.append(report)
-          # Component status is useful once, removing it
-          del self.current_state[key]
         elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
           logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
           del self.current_state[key]
           pass
-      result = {
-        'reports': resultReports,
-        'componentStatus': resultComponentStatus
-      }
-      return result
+      return resultReports
 
 
   def generate_in_progress_report(self, command, report):

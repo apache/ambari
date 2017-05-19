@@ -112,6 +112,7 @@ from resource_management.core.logger import Logger
 from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
+from ambari_agent.CommandStatusReporter import CommandStatusReporter
 
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
@@ -360,6 +361,11 @@ def run_threads():
 
   component_status_executor = ComponentStatusExecutor(initializer_module)
   component_status_executor.start()
+
+  command_status_reporter = CommandStatusReporter(initializer_module)
+  command_status_reporter.start()
+
+  initializer_module.action_queue.start()
 
   while not initializer_module.stop_event.is_set():
     time.sleep(0.1)

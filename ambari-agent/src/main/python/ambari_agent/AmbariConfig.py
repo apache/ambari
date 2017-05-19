@@ -46,6 +46,7 @@ ping_port=8670
 cache_dir={ps}tmp
 parallel_execution=0
 system_resource_overrides={ps}etc{ps}resource_overrides
+tolerate_download_failures=false
 
 [services]
 

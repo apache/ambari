@@ -29,6 +29,7 @@ from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListen
 from ambari_agent.listeners.TopologyEventListener import TopologyEventListener
 from ambari_agent.listeners.ConfigurationEventListener import ConfigurationEventListener
 from ambari_agent.listeners.MetadataEventListener import MetadataEventListener
+from ambari_agent.listeners.CommandsEventListener import CommandsEventListener
 
 HEARTBEAT_INTERVAL = 10
 
@@ -49,10 +50,11 @@ class HeartbeatThread(threading.Thread):
 
     # listeners
     self.server_responses_listener = ServerResponsesListener()
+    self.commands_events_listener = CommandsEventListener(initializer_module.action_queue)
     self.metadata_events_listener = MetadataEventListener(initializer_module.metadata_cache)
     self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
     self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
-    self.listeners = [self.server_responses_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener]
+    self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener]
 
   def run(self):
     """

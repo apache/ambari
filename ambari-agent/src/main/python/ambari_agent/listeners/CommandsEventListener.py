@@ -26,21 +26,29 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
-class ConfigurationEventListener(EventListener):
+class CommandsEventListener(EventListener):
   """
   Listener of Constants.CONFIGURATIONS_TOPIC events from server.
   """
-  def __init__(self, configuration_cache):
-    self.configuration_cache = configuration_cache
+  def __init__(self, action_queue):
+    self.action_queue = action_queue
 
   def on_event(self, headers, message):
     """
-    Is triggered when an event to Constants.CONFIGURATIONS_TOPIC topic is received from server.
+    Is triggered when an event to Constants.COMMANDS_TOPIC topic is received from server.
 
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
-    self.configuration_cache.update_cache(message)
+    commands = []
+    for cluster_id in message.keys():
+      cluster_dict = message[cluster_id]
+      host_level_params = cluster_dict['hostLevelParams']
+      for command in cluster_dict['commands']:
+        command['hostLevelParams'] = host_level_params
+        commands.append(command)
+
+    self.action_queue.put(commands)
 
   def get_handled_path(self):
-    return Constants.CONFIGURATIONS_TOPIC
+    return Constants.COMMANDS_TOPIC
