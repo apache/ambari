@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <!-- hive-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>hive-env template</display-name>
+    <description>This is the jinja template for hive-env.sh file</description>
+    <value>
+ if [ "$SERVICE" = "cli" ]; then
+   if [ -z "$DEBUG" ]; then
+     export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:+UseNUMA -XX:+UseParallelGC -XX:-UseGCOverheadLimit"
+   else
+     export HADOOP_OPTS="$HADOOP_OPTS -XX:NewRatio=12 -XX:MaxHeapFreeRatio=40 -XX:MinHeapFreeRatio=15 -XX:-UseGCOverheadLimit"
+   fi
+ fi
+
+# The heap size of the jvm stared by hive shell script can be controlled via:
+
+if [ "$SERVICE" = "metastore" ]; then
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
+else
+  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client
+fi
+
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
+
+# Larger heap size may be required when running queries over large number of files or partitions.
+# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
+# appropriate for hive server (hwi etc).
+
+
+# Set HADOOP_HOME to point to a specific hadoop install directory
+HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+
+# Hive Configuration Directory can be controlled by:
+export HIVE_CONF_DIR={{hive_config_dir}}
+
+# Folder containing extra libraries required for hive compilation/execution can be controlled by:
+if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+  if [ -f "${HIVE_AUX_JARS_PATH}" ]; then
+    export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+  elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then
+    export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar
+  fi
+elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then
+  export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar
+fi
+
+export METASTORE_PORT={{hive_metastore_port}}
+
+export HADOOP_CLASSPATH={{atlas_conf_dir}}:{{atlas_home_dir}}/hook/hive:${HADOOP_CLASSPATH}
+
+{% if sqla_db_used or lib_dir_available %}
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
+export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
+{% endif %}
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_database</name>
+    <value>New MySQL Database</value>
+    <display-name>Hive Database</display-name>
+    <description>
+      Property that determines whether the HIVE DB is managed by Ambari.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>New MySQL Database</value>
+          <label>New MySQL</label>
+        </entry>
+        <entry>
+          <value>Existing MySQL / MariaDB Database</value>
+          <label>Existing MySQL / MariaDB</label>
+        </entry>
+        <entry>
+          <value>Existing PostgreSQL Database</value>
+          <label>Existing PostgreSQL</label>
+        </entry>
+        <entry>
+          <value>Existing Oracle Database</value>
+          <label>Existing Oracle</label>
+        </entry>
+        <entry>
+          <value>Existing SQL Anywhere Database</value>
+          <label>Existing SQL Anywhere</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
