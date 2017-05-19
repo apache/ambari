@@ -56,15 +56,52 @@ describe('App.UpdateController', function () {
   });
 
   describe('#updateAll()', function () {
+    beforeEach(function() {
+      sinon.stub(controller, 'subscribeToHostComponentsStatus');
+      sinon.stub(App.StompClient, 'unsubscribe');
+    });
+    afterEach(function() {
+      controller.subscribeToHostComponentsStatus.restore();
+      App.StompClient.unsubscribe.restore();
+    });
 
     it('isWorking = false', function () {
       controller.set('isWorking', false);
+      controller.updateAll();
       expect(App.updater.run.called).to.equal(false);
+      expect(App.StompClient.unsubscribe.calledWith('/events/hostcomponents')).to.be.true;
     });
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
       expect(App.updater.run.callCount).to.equal(13);
+      expect(controller.subscribeToHostComponentsStatus.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#subscribeToHostComponentsStatus', function() {
+    var hc = Em.Object.create({
+      workStatus: 'INSTALLED',
+      isLoaded: true
+    });
+    beforeEach(function() {
+      sinon.stub(App.StompClient, 'subscribe', function(topic, callback) {
+        callback({
+          componentName: 'C1',
+          hostName: 'host1',
+          currentState: 'STARTED'
+        });
+      });
+      sinon.stub(App.HostComponent, 'find').returns(hc);
+    });
+    afterEach(function() {
+      App.StompClient.subscribe.restore();
+      App.HostComponent.find.restore();
+    });
+
+    it('host-component should have STARTED status', function() {
+      controller.subscribeToHostComponentsStatus();
+      expect(hc.get('workStatus')).to.be.equal('STARTED');
     });
   });
 

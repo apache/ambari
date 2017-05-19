@@ -187,6 +187,8 @@ App.UpdateController = Em.Controller.extend({
    */
   updateAll: function () {
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
+      this.subscribeToHostComponentsStatus();
+
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
       App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval, '\/main\/(dashboard|services).*');
@@ -203,8 +205,20 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateClusterEnv', 'isWorking', App.clusterEnvUpdateInterval);
       App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
+    } else {
+      App.StompClient.unsubscribe('/events/hostcomponents');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
+
+  subscribeToHostComponentsStatus: function() {
+    //TODO limit updates by location
+    App.StompClient.subscribe('/events/hostcomponents', (event) => {
+      const hostComponent = App.HostComponent.find(event.componentName + '_' + event.hostName);
+      if (hostComponent.get('isLoaded')) {
+        hostComponent.set('workStatus', event.currentState);
+      }
+    });
+  },
 
   /**
    *
