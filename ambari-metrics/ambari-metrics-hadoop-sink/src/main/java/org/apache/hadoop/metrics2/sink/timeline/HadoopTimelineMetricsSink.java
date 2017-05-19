@@ -96,7 +96,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
 
     serviceName = getServiceName(conf);
-    instanceId = conf.getString(INSTANCE_ID_PROPERTY);
+    instanceId = conf.getString(INSTANCE_ID_PROPERTY, null);
     setInstanceId = conf.getBoolean(SET_INSTANCE_ID_PROPERTY, false);
 
     LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);

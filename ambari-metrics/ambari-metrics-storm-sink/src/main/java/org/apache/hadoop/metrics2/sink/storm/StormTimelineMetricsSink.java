@@ -135,7 +135,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
-    instanceId = configuration.getProperty(INSTANCE_ID_PROPERTY);
+    instanceId = configuration.getProperty(INSTANCE_ID_PROPERTY, null);
     setInstanceId = Boolean.valueOf(configuration.getProperty(SET_INSTANCE_ID_PROPERTY, "false"));
     // Initialize the collector write strategy
     super.init();

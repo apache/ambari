@@ -115,7 +115,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(1000).anyTimes();
     expect(conf.getBoolean(eq(SET_INSTANCE_ID_PROPERTY), eq(false))).andReturn(true).anyTimes();
-    expect(conf.getString(eq(INSTANCE_ID_PROPERTY))).andReturn("instanceId").anyTimes();
+    expect(conf.getString(eq(INSTANCE_ID_PROPERTY), anyString())).andReturn("instanceId").anyTimes();
 
     conf.setListDelimiter(eq(','));
     expectLastCall().anyTimes();

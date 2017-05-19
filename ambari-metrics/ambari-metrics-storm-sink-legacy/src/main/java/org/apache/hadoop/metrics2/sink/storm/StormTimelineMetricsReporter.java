@@ -135,8 +135,10 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
         DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = cf.get(APP_ID).toString();
-      setInstanceId = Boolean.getBoolean(cf.get(SET_INSTANCE_ID_PROPERTY).toString());
-      instanceId = cf.get(INSTANCE_ID_PROPERTY).toString();
+      if (cf.containsKey(SET_INSTANCE_ID_PROPERTY)) {
+        setInstanceId = Boolean.getBoolean(cf.get(SET_INSTANCE_ID_PROPERTY).toString());
+        instanceId = cf.get(INSTANCE_ID_PROPERTY).toString();
+      }
 
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify " +
