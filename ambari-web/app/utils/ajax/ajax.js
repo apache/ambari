@@ -1357,7 +1357,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/from_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
+    'real': `/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/versions,Upgrade/associated_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures`,
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {

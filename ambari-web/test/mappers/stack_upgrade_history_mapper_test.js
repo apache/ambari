@@ -37,7 +37,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463779266087,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -61,7 +61,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463779299440,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -85,7 +85,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463780757685,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -109,7 +109,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463780794009,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -133,7 +133,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463781341452,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -157,7 +157,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1463781371778,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -181,7 +181,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464120881477,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -205,7 +205,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464120918774,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -229,7 +229,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464121132856,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -253,7 +253,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464121167178,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -277,7 +277,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464121301821,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Upgrading to 2.4.0.0-169",
@@ -301,7 +301,7 @@ describe('App.stackUpgradeHistoryMapper', function () {
               "downgrade_allowed" : true,
               "end_time" : 1464121336149,
               "exclusive" : false,
-              "from_version" : "2.3.6.0-3712",
+              "associated_version" : "2.3.6.0-3712",
               "pack" : "nonrolling-upgrade-2.4",
               "progress_percent" : 100.0,
               "request_context" : "Downgrading to 2.3.6.0-3712",
@@ -325,13 +325,11 @@ describe('App.stackUpgradeHistoryMapper', function () {
         "direction" : "DOWNGRADE",
         "downgradeAllowed" : true,
         "endTime" : 1464121336149,
-        "fromVersion" : "2.3.6.0-3712",
         "requestId" : 18,
         "requestStatus" : "COMPLETED",
         "skipFailures" : false,
         "skipServiceCheckFailures" : false,
         "startTime" : 1464121302941,
-        "toVersion" : "2.3.6.0-3712",
         "upgradeType" : "NON_ROLLING"
     };
 
@@ -353,10 +351,10 @@ describe('App.stackUpgradeHistoryMapper', function () {
       var total_upgrades = 0;
       upgrades.forEach(function(upgrade){
         var direction = upgrade.get('direction')
-        if ('DOWNGRADE' == direction){
+        if ('DOWNGRADE' === direction){
           total_downgrades++;
         }
-        if ('UPGRADE' == direction){
+        if ('UPGRADE' === direction){
           total_upgrades++;
         }
       });

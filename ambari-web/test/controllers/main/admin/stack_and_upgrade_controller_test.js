@@ -1741,7 +1741,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     var data = {
       Upgrade: {
-        from_version: '1.1',
+        associated_version: '1.1',
         request_id: 1,
         direction: 'UPGRADE',
         request_status: 'PENDING',
@@ -1781,7 +1781,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('proper data is saved to the localDB', function () {
       expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
-        fromVersion: '1.1',
+        fromVersion: null,
         upgradeId: 1,
         isDowngrade: false,
         upgradeState: 'PENDING',
@@ -1797,9 +1797,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('models are saved', function () {
       expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
-    });
-    it('correct upgradeVersion is saved to the DB', function () {
-      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-1')).to.be.true;
     });
     it('initDBProperties is called', function () {
       expect(controller.initDBProperties.calledOnce).to.be.true;
