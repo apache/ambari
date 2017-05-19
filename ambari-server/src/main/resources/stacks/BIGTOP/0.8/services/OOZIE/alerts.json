@@ -1,0 +1,43 @@
+{
+  "OOZIE": {
+    "service": [],
+    "OOZIE_SERVER": [
+      {
+        "name": "oozie_server_webui",
+        "label": "Oozie Server Web UI",
+        "description": "This host-level alert is triggered if the Oozie server Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{oozie-site/oozie.base.url}}",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1}"
+            }
+          }
+        }
+      },
+      {
+        "name": "oozie_server_status",
+        "label": "Oozie Server Status",
+        "description": "This host-level alert is triggered if the Oozie server cannot be determined to be up and responding to client requests.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/OOZIE/package/files/alert_check_oozie_server.py"
+        }
+      }
+    ]
+  }
+}

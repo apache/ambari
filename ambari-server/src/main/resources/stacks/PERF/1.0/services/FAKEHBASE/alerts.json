@@ -1,0 +1,35 @@
+{
+  "FAKEHBASE": {
+
+    "FAKEHBASE_MASTER": [
+      {
+        "name": "hbase_master_process",
+        "label": "FAKEHBase Master Process",
+        "description": "This alert is triggered if the HBase master processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHBASE/package/alerts/hbase_master_process.py",
+          "parameters": []
+        }
+      }
+    ],
+    "FAKEHBASE_REGIONSERVER": [
+      {
+        "name": "hbase_regionserver_process",
+        "label": "HBase FAKERegionServer Process",
+        "description": "This host-level alert is triggered if the FAKERegionServer processes cannot be confirmed to be up and listening on the network for the configured critical threshold, given in seconds.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEHBASE/package/alerts/hbase_regionserver_process.py",
+          "parameters": []
+        }
+      }
+    ]
+  }
+}

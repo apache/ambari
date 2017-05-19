@@ -1,0 +1,179 @@
+{
+  "name": "default",
+  "description": "Default theme for FAKEHDFS service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-namenode",
+                  "display-name": "FAKEHNameNode",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-namenode-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-datanode",
+                  "display-name": "FAKEDataNode",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-datanode-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "hdfs-site/dfs.namenode.name.dir",
+          "subsection-name": "subsection-namenode-col1"
+        },
+        {
+          "config": "hadoop-env/namenode_heapsize",
+          "subsection-name": "subsection-namenode-col1"
+        },
+        {
+          "config": "hdfs-site/dfs.namenode.handler.count",
+          "subsection-name": "subsection-namenode-col1"
+        },
+        {
+          "config": "hdfs-site/dfs.namenode.safemode.threshold-pct",
+          "subsection-name": "subsection-namenode-col1"
+        },
+        {
+          "config": "hdfs-site/dfs.datanode.data.dir",
+          "subsection-name": "subsection-datanode-col1"
+        },
+        {
+          "config": "hdfs-site/dfs.datanode.failed.volumes.tolerated",
+          "subsection-name": "subsection-datanode-col1"
+        },
+        {
+          "config": "hadoop-env/dtnode_heapsize",
+          "subsection-name": "subsection-datanode-col1"
+        },
+        {
+          "config": "hdfs-site/dfs.datanode.max.transfer.threads",
+          "subsection-name": "subsection-datanode-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "hdfs-site/dfs.namenode.name.dir",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "hdfs-site/dfs.namenode.safemode.threshold-pct",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hdfs-site/dfs.namenode.handler.count",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hadoop-env/namenode_heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hdfs-site/dfs.datanode.failed.volumes.tolerated",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hdfs-site/dfs.datanode.data.dir",
+        "widget": {
+          "type": "directories"
+        }
+      },
+      {
+        "config": "hadoop-env/dtnode_heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hdfs-site/dfs.datanode.max.transfer.threads",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+

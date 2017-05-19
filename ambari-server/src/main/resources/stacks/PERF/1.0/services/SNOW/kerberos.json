@@ -1,0 +1,78 @@
+{
+  "services": [
+    {
+      "name": "SNOW",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "snow",
+          "principal": {
+            "value": "${snow-site/snow_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "snow-site/snow_principal_name",
+            "local_username": "${snow-site/snow_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/snow.headless.keytab",
+            "owner": {
+              "name": "${snow-site/snow_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "snow-site/snow_user_keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+      ],
+      "components": [
+        {
+          "name": "SNOW_WHITE",
+          "identities": [
+            {
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+            },
+            {
+              "name": "snow_white_snow",
+              "principal": {
+                "value": "snow/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "snow-site/snow.white.kerberos.principal",
+                "local_username": "${snow-site/snow_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/snow.service.keytab",
+                "owner": {
+                  "name": "${snow-site/snow_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "snow-site/snow.white.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "snow-site/snow.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "snow-site/snow.security.authentication.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

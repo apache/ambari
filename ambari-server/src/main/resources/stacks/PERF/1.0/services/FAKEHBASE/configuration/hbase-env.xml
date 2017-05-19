@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <!-- These properties exist in common services. -->
+  <property>
+    <name>hbase_log_dir</name>
+    <value>/var/log/hbase</value>
+    <display-name>HBase Log Dir Prefix</display-name>
+    <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_heapsize</name>
+    <value>4096</value>
+    <description>Maximum amount of memory each HBase FAKERegionServer can use.</description>
+    <display-name>HBase FAKERegionServer Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>6554</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_master_heapsize</name>
+    <value>4096</value>
+    <description>Maximum amount of memory each FAKEHBase Master can use.</description>
+    <display-name>FAKEHBase Master Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>16384</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_user_nofile_limit</name>
+    <value>32000</value>
+    <description>Max open files limit setting for FAKEHBASE user.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_user_nproc_limit</name>
+    <value>16000</value>
+    <description>Max number of processes limit setting for FAKEHBASE user.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_java_io_tmpdir</name>
+    <value>/tmp</value>
+    <description>Used in hbase-env.sh as FAKEHBASE_OPTS=-Djava.io.tmpdir=java_io_tmpdir</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_principal_name</name>
+    <description>HBase principal name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_user_keytab</name>
+    <description>HBase keytab path</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_shutdown_timeout</name>
+    <value>30</value>
+    <display-name>HBase FAKERegionServer shutdown timeout</display-name>
+    <description>
+      After this number of seconds waiting for graceful stop of FAKEHBase Master it will be forced to exit with SIGKILL.
+      The timeout is introduced because there is a known bug when from time to time HBase FAKERegionServer hangs forever on stop if NN safemode is on.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- These properties exist in HDP 2.2 and higher. -->
+  <property>
+    <name>hbase_log_dir</name>
+    <value>/var/log/hbase</value>
+    <display-name>HBase Log Dir Prefix</display-name>
+    <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_pid_dir</name>
+    <value>/var/run/hbase</value>
+    <display-name>HBase PID Dir</display-name>
+    <description>Pid Directory for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+      <editable-only-at-install>true</editable-only-at-install>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_xmn_max</name>
+    <value>512</value>
+    <description>
+      Sets the upper bound on HBase FAKEFAKERegionServers' young generation size.
+      This value is used in case the young generation size (-Xmn) calculated based on the max heapsize (hbase_regionserver_heapsize)
+      and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
+    </description>
+    <display-name>FAKEFAKERegionServers maximum value for -Xmn</display-name>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_xmn_ratio</name>
+    <value>0.2</value>
+    <display-name>FAKEFAKERegionServers -Xmn in -Xmx ratio</display-name>
+    <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_user</name>
+    <display-name>HBase User</display-name>
+    <value>hbase</value>
+    <property-type>USER</property-type>
+    <description>HBase User Name.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase_max_direct_memory_size</name>
+    <value/>
+    <display-name>HBase off-heap MaxDirectMemorySize</display-name>
+    <description>If not empty, adds '-XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m' to FAKEHBASE_REGIONSERVER_OPTS.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>phoenix_sql_enabled</name>
+    <value>false</value>
+    <description>Enable Phoenix SQL</description>
+    <display-name>Enable Phoenix</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- These properties exist in HDP 2.3 and higher. -->
+  <!-- hbase-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>hbase-env template</display-name>
+    <description>This is the jinja template for hbase-env.sh file</description>
+    <value>
+# Set environment variables here.
+
+# The java implementation to use. Java 1.6 required.
+export JAVA_HOME={{java64_home}}
+
+# HBase Configuration directory
+export FAKEHBASE_CONF_DIR=${FAKEHBASE_CONF_DIR:-{{hbase_conf_dir}}}
+
+# Extra Java CLASSPATH elements. Optional.
+export FAKEHBASE_CLASSPATH=${FAKEHBASE_CLASSPATH}
+
+
+# The maximum amount of heap to use, in MB. Default is 1000.
+# export FAKEHBASE_HEAPSIZE=1000
+
+# Extra Java runtime options.
+# Below are what we set by default. May only work with SUN JVM.
+# For more on why as well as other possible settings,
+# see http://wiki.apache.org/hadoop/PerformanceTuning
+export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
+# Uncomment below to enable java garbage collection logging.
+# export FAKEHBASE_OPTS="$FAKEHBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$FAKEHBASE_HOME/logs/gc-hbase.log"
+
+# Uncomment and adjust to enable JMX exporting
+# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.
+# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html
+#
+# export FAKEHBASE_JMX_BASE="-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+# If you want to configure BucketCache, specify '-XX: MaxDirectMemorySize=' with proper direct memory size
+# export FAKEHBASE_THRIFT_OPTS="$FAKEHBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103"
+# export FAKEHBASE_FAKEZOOKEEPER_OPTS="$FAKEHBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104"
+
+# File naming hosts on which HFAKEFAKERegionServers will run. $FAKEHBASE_HOME/conf/regionservers by default.
+export FAKEHBASE_REGIONSERVERS=${FAKEHBASE_CONF_DIR}/regionservers
+
+# Extra ssh options. Empty by default.
+# export FAKEHBASE_SSH_OPTS="-o ConnectTimeout=1 -o SendEnv=FAKEHBASE_CONF_DIR"
+
+# Where log files are stored. $FAKEHBASE_HOME/logs by default.
+export FAKEHBASE_LOG_DIR={{log_dir}}
+
+# A string representing this instance of hbase. $USER by default.
+# export FAKEHBASE_IDENT_STRING=$USER
+
+# The scheduling priority for daemon processes. See 'man nice'.
+# export FAKEHBASE_NICENESS=10
+
+# The directory where pid files are stored. /tmp by default.
+export FAKEHBASE_PID_DIR={{pid_dir}}
+
+# Seconds to sleep between slave commands. Unset by default. This
+# can be useful in large clusters, where, e.g., slave rsyncs can
+# otherwise arrive faster than the master can service them.
+# export FAKEHBASE_SLAVE_SLEEP=0.1
+
+# Tell HBase whether it should manage it's own instance of Zookeeper or not.
+export FAKEHBASE_MANAGES_ZK=false
+
+{% if java_version &lt; 8 %}
+JDK_DEPENDED_OPTS="-XX:PermSize=128m -XX:MaxPermSize=128m"
+{% endif %}
+      
+{% if security_enabled %}
+export FAKEHBASE_OPTS="$FAKEHBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.security.auth.login.config={{client_jaas_config_file}} -Djava.io.tmpdir={{java_io_tmpdir}}"
+export FAKEHBASE_MASTER_OPTS="$FAKEHBASE_MASTER_OPTS -Xmx{{master_heapsize}} -Djava.security.auth.login.config={{master_jaas_config_file}} $JDK_DEPENDED_OPTS"
+export FAKEHBASE_REGIONSERVER_OPTS="$FAKEHBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}} -Djava.security.auth.login.config={{regionserver_jaas_config_file}} $JDK_DEPENDED_OPTS"
+export PHOENIX_QUERYSERVER_OPTS="$PHOENIX_QUERYSERVER_OPTS -Djava.security.auth.login.config={{queryserver_jaas_config_file}}"
+{% else %}
+export FAKEHBASE_OPTS="$FAKEHBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{java_io_tmpdir}}"
+export FAKEHBASE_MASTER_OPTS="$FAKEHBASE_MASTER_OPTS -Xmx{{master_heapsize}} $JDK_DEPENDED_OPTS"
+export FAKEHBASE_REGIONSERVER_OPTS="$FAKEHBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}} $JDK_DEPENDED_OPTS"
+{% endif %}
+
+# HBase off-heap MaxDirectMemorySize
+export FAKEHBASE_REGIONSERVER_OPTS="$FAKEHBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}"
+export FAKEHBASE_MASTER_OPTS="$FAKEHBASE_MASTER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}"
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

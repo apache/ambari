@@ -27,12 +27,12 @@
     <module>ambari-metrics-hadoop-sink</module>
     <module>ambari-metrics-flume-sink</module>
     <module>ambari-metrics-kafka-sink</module>
+    <module>ambari-metrics-storm-sink</module>
+    <module>ambari-metrics-storm-sink-legacy</module>
     <module>ambari-metrics-timelineservice</module>
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
-    <module>ambari-metrics-storm-sink</module>
-    <module>ambari-metrics-storm-sink-legacy</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

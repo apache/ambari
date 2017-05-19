@@ -1,0 +1,246 @@
+{
+  "services": [
+    {
+      "name": "FAKEHDFS",
+      "identities": [
+        {
+          "name": "/spnego",
+          "principal": {
+            "configuration": "hdfs-site/dfs.web.authentication.kerberos.principal"
+          },
+          "keytab": {
+            "configuration": "hdfs-site/dfs.web.authentication.kerberos.keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "auth_to_local_properties" : [
+        "core-site/hadoop.security.auth_to_local"
+      ],
+      "configurations": [
+        {
+          "core-site": {
+            "hadoop.security.authentication": "kerberos",
+            "hadoop.security.authorization": "true",
+            "hadoop.proxyuser.HTTP.groups": "${hadoop-env/proxyuser_group}"
+          }
+        },
+        {
+          "ranger-hdfs-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name":  "FAKEHDFS_CLIENT",
+          "identities": [
+            {
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "FAKENAMENODE",
+          "identities": [
+            {
+              "name": "hdfs",
+              "principal": {
+                "value": "${hadoop-env/hdfs_user}${principal_suffix}@${realm}",
+                "type" : "user" ,
+                "configuration": "hadoop-env/hdfs_principal_name",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hdfs.headless.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": "r"
+                },
+                "configuration": "hadoop-env/hdfs_user_keytab"
+              }
+            },
+            {
+              "name": "namenode_nn",
+              "principal": {
+                "value": "nn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/dfs.namenode.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nn.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/dfs.namenode.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal"
+              }
+            },
+            {
+              "name": "/FAKEHDFS/FAKENAMENODE/namenode_nn",
+              "principal": {
+                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.principal"                
+              },
+              "keytab": {
+                "configuration": "ranger-hdfs-audit/xasecure.audit.jaas.Client.option.keyTab"
+              }
+            }
+          ],
+          "configurations": [
+            {
+              "hdfs-site": {
+                "dfs.block.access.token.enable": "true"
+              }
+            }
+          ]
+        },
+        {
+          "name": "FAKEDATANODE",
+          "identities": [
+            {
+              "name": "datanode_dn",
+              "principal": {
+                "value": "dn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/dfs.datanode.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/dn.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/dfs.datanode.keytab.file"
+              }
+            }
+          ],
+          "configurations" : [
+            {
+              "hdfs-site" : {
+                "dfs.datanode.address" : "0.0.0.0:1019",
+                "dfs.datanode.http.address": "0.0.0.0:1022"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SECONDARY_FAKENAMENODE",
+          "identities": [
+            {
+              "name": "secondary_namenode_nn",
+              "principal": {
+                "value": "nn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nn.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/dfs.secondary.namenode.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal"
+              }
+            }
+          ]
+        },
+        {
+          "name": "FAKENFS_GATEWAY",
+          "identities": [
+            {
+              "name": "nfsgateway",
+              "principal": {
+                "value": "nfs/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/nfs.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nfs.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/nfs.keytab.file"
+              }
+            }
+          ]
+        },
+        {
+          "name": "FAKEJOURNALNODE",
+          "identities": [
+            {
+              "name": "journalnode_jn",
+              "principal": {
+                "value": "jn/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/dfs.journalnode.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/jn.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/dfs.journalnode.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "hdfs-site/dfs.journalnode.kerberos.internal.spnego.principal"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

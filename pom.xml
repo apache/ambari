@@ -36,8 +36,8 @@
     </license>
   </licenses>
   <organization>
-    <name>Apache Software Foundation</name>
-    <url>http://www.apache.org</url>
+    <name>Arenadata</name>
+    <url>http://www.arenadata.io</url>
   </organization>
   <issueManagement>
     <system>jira</system>
@@ -47,11 +47,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <clover.license>${user.home}/clover.license</clover.license>
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
-    <deb.publisher>Arenadata</deb.publisher>
+    <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
-    <stack.distribution>ADH</stack.distribution>
+    <stack.distribution>HDP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
@@ -459,13 +459,13 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>contrib/views</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
-        <module>ambari-metrics</module>
       </modules>
     </profile>
     <profile>
@@ -481,12 +481,12 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>ambari-views/examples</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics</module>
       </modules>
     </profile>
     <profile>
@@ -495,13 +495,13 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
-        <module>ambari-metrics</module>
       </modules>
     </profile>
     <profile>
@@ -516,13 +516,13 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
-        <module>ambari-metrics</module>
         </modules>
     </profile>
     <profile>
@@ -543,12 +543,12 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics</module>
         <module>ambari-server</module>
         <module>ambari-funtest</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics</module>
         </modules>
     </profile>
     <profile>

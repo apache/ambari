@@ -1,0 +1,20 @@
+{
+    "SNOW": {
+
+        "SNOW_WHITE": [
+            {
+                "name": "snow_process",
+                "label": "Snow Process",
+                "description": "Alert for snow component process status",
+                "interval": 1,
+                "scope": "HOST",
+                "enabled": true,
+                "source": {
+                    "type": "SCRIPT",
+                    "path": "PERF/1.0/services/SNOW/package/alerts/alert_snow_process.py",
+                    "parameters": []
+                }
+            }
+        ]
+    }
+}

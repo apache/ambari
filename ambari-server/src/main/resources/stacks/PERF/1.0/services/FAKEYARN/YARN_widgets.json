@@ -1,0 +1,611 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_yarn_dashboard",
+      "display_name": "Standard FAKEYARN Dashboard",
+      "section_name": "FAKEYARN_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Memory Utilization",
+          "description": "Percentage of total memory allocated to containers running in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AllocatedMB",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedMB",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AvailableMB",
+              "metric_path": "metrics/yarn/Queue/root/AvailableMB",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Memory Utilization",
+              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedMB / (yarn.QueueMetrics.Queue=root.AllocatedMB + yarn.QueueMetrics.Queue=root.AvailableMB)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "CPU Utilization",
+          "description": "Percentage of total virtual cores allocated to containers running in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AllocatedVCores",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedVCores",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AvailableVCores",
+              "metric_path": "metrics/yarn/Queue/root/AvailableVCores",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable CPU Utilized across FAKENodeManager",
+              "value": "${(yarn.QueueMetrics.Queue=root.AllocatedVCores / (yarn.QueueMetrics.Queue=root.AllocatedVCores + yarn.QueueMetrics.Queue=root.AvailableVCores)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Container Failures",
+          "description": "Percentage of all containers failing in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersFailed._rate",
+              "metric_path": "metrics/yarn/ContainersFailed._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersCompleted._rate",
+              "metric_path": "metrics/yarn/ContainersCompleted._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersLaunched._rate",
+              "metric_path": "metrics/yarn/ContainersLaunched._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersIniting._sum",
+              "metric_path": "metrics/yarn/ContainersIniting._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersKilled._rate",
+              "metric_path": "metrics/yarn/ContainersKilled._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersRunning._sum",
+              "metric_path": "metrics/yarn/ContainersRunning._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Container Failures",
+              "value": "${(yarn.FAKENodeManagerMetrics.ContainersFailed._rate/(yarn.FAKENodeManagerMetrics.ContainersFailed._rate + yarn.FAKENodeManagerMetrics.ContainersCompleted._rate + yarn.FAKENodeManagerMetrics.ContainersLaunched._rate + yarn.FAKENodeManagerMetrics.ContainersIniting._sum + yarn.FAKENodeManagerMetrics.ContainersKilled._rate + yarn.FAKENodeManagerMetrics.ContainersRunning._sum)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "App Failures",
+          "description": "Percentage of all launched applications failing in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsFailed._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsFailed._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsKilled._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsKilled._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "metric_path": "metrics/yarn/Queue/root/AppsPending",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsRunning",
+              "metric_path": "metrics/yarn/Queue/root/AppsRunning",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsSubmitted._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsSubmitted._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsCompleted._rate",
+              "metric_path": "metrics/yarn/Queue/root/AppsCompleted._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            }
+          ],
+          "values": [
+            {
+              "name": "App Failures",
+              "value": "${(yarn.QueueMetrics.Queue=root.AppsFailed._rate/(yarn.QueueMetrics.Queue=root.AppsFailed._rate + yarn.QueueMetrics.Queue=root.AppsKilled._rate + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted._rate + yarn.QueueMetrics.Queue=root.AppsCompleted._rate)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Pending Apps",
+          "description": "Count of applications waiting for cluster resources to become available.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "metric_path": "metrics/yarn/Queue/root/AppsPending",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKERESOURCEMANAGER",
+              "host_component_criteria": "host_components/HostRoles/ha_state=ACTIVE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Pending Apps",
+              "value": "${yarn.QueueMetrics.Queue=root.AppsPending}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Apps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Memory",
+          "description": "Percentage of memory used across all FAKENodeManager hosts.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "mem_total._sum",
+              "metric_path": "metrics/memory/mem_total._avg",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "mem_free._sum",
+              "metric_path": "metrics/memory/mem_free._avg",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Memory utilization",
+              "value": "${((mem_total._sum - mem_free._sum)/mem_total._sum) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Disk",
+          "description": "Sum of disk throughput for all FAKENodeManager hosts.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "read_bps._sum",
+              "metric_path": "metrics/disk/read_bps._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "write_bps._sum",
+              "metric_path": "metrics/disk/write_bps._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Read throughput",
+              "value": "${read_bps._sum/1048576}"
+            },
+            {
+              "name": "Write throughput",
+              "value": "${write_bps._sum/1048576}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Mbps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Network",
+          "description": "Average of Network utilized across all FAKENodeManager hosts.",
+          "default_section_name": "FAKEYARN_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "pkts_in._avg",
+              "metric_path": "metrics/network/pkts_in._avg",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "pkts_out._avg",
+              "metric_path": "metrics/network/pkts_out._avg",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Packets In",
+              "value": "${pkts_in._avg}"
+            },
+            {
+              "name": "Packets Out",
+              "value": "${pkts_out._avg}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster CPU",
+          "description": "Percentage of CPU utilized across all FAKENodeManager hosts.",
+          "default_section_name": "FAKEYARN_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system._sum",
+              "metric_path": "metrics/cpu/cpu_system._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "cpu_user._sum",
+              "metric_path": "metrics/cpu/cpu_user._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "cpu_nice._sum",
+              "metric_path": "metrics/cpu/cpu_nice._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "cpu_idle._sum",
+              "metric_path": "metrics/cpu/cpu_idle._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "cpu_wio._sum",
+              "metric_path": "metrics/cpu/cpu_wio._sum",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization",
+              "value": "${((cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)) * 100}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
+        }
+      ]
+    },
+    {
+      "layout_name": "default_yarn_heatmap",
+      "display_name": "FAKEYARN Heatmaps",
+      "section_name": "FAKEYARN_HEATMAPS",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Total Allocatable RAM Utilized per FAKENodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AvailableGB",
+              "metric_path": "metrics/yarn/AvailableGB",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable RAM Utilized per FAKENodeManager",
+              "value": "${(yarn.FAKENodeManagerMetrics.AllocatedGB/(yarn.FAKENodeManagerMetrics.AvailableGB + yarn.FAKENodeManagerMetrics.AllocatedGB)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Total Allocatable CPU Utilized per FAKENodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AllocatedVCores",
+              "metric_path": "metrics/yarn/AllocatedVCores",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AvailableVCores",
+              "metric_path": "metrics/yarn/AvailableVCores",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable CPU Utilized per FAKENodeManager",
+              "value": "${(yarn.FAKENodeManagerMetrics.AllocatedVCores/(yarn.FAKENodeManagerMetrics.AllocatedVCores + yarn.FAKENodeManagerMetrics.AvailableVCores)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Container Failures",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersFailed._rate",
+              "metric_path": "metrics/yarn/ContainersFailed._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersCompleted._rate",
+              "metric_path": "metrics/yarn/ContainersCompleted._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersLaunched._rate",
+              "metric_path": "metrics/yarn/ContainersLaunched._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersIniting",
+              "metric_path": "metrics/yarn/ContainersIniting",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersKilled._rate",
+              "metric_path": "metrics/yarn/ContainersKilled._rate",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            },
+            {
+              "name": "yarn.FAKENodeManagerMetrics.ContainersRunning",
+              "metric_path": "metrics/yarn/ContainersRunning",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Container Failures",
+              "value": "${(yarn.FAKENodeManagerMetrics.ContainersFailed._rate/(yarn.FAKENodeManagerMetrics.ContainersFailed._rate + yarn.FAKENodeManagerMetrics.ContainersCompleted._rate + yarn.FAKENodeManagerMetrics.ContainersLaunched._rate + yarn.FAKENodeManagerMetrics.ContainersIniting + yarn.FAKENodeManagerMetrics.ContainersKilled._rate + yarn.FAKENodeManagerMetrics.ContainersRunning)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "FAKENodeManager GC Time",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKENodeManager,name=JvmMetrics.GcTimeMillis",
+              "metric_path": "metrics/jvm/gcTimeMillis",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKENodeManager Garbage Collection Time",
+              "value": "${Hadoop:service=FAKENodeManager,name=JvmMetrics.GcTimeMillis}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "max_limit": "10000"
+          }
+        },
+        {
+          "widget_name": "FAKENodeManager JVM Heap Memory Used",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=FAKENodeManager,name=JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKENodeManager JVM Heap Memory Used",
+              "value": "${Hadoop:service=FAKENodeManager,name=JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "Allocated Containers",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AllocatedContainers",
+              "metric_path": "metrics/yarn/AllocatedContainers",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Allocated Containers",
+              "value": "${yarn.FAKENodeManagerMetrics.AllocatedContainers}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "FAKENodeManager RAM Utilized",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKENodeManager RAM Utilized",
+              "value": "${yarn.FAKENodeManagerMetrics.AllocatedGB}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "FAKENodeManager CPU Utilized",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.FAKENodeManagerMetrics.AllocatedVCores",
+              "metric_path": "metrics/yarn/AllocatedVCores",
+              "service_name": "FAKEYARN",
+              "component_name": "FAKENODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "FAKENodeManager CPU Utilized",
+              "value": "${yarn.FAKENodeManagerMetrics.AllocatedVCores}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+    "SLEEPY": {
+
+        "SLEEPY": [
+            {
+                "name": "sleepy_process",
+                "label": "Sleepy Process",
+                "description": "Alert for sleepy component process status",
+                "interval": 1,
+                "scope": "HOST",
+                "enabled": true,
+                "source": {
+                    "type": "SCRIPT",
+                    "path": "PERF/1.0/services/SLEEPY/package/alerts/alert_sleepy_process.py",
+                    "parameters": []
+                }
+            }
+        ]
+    }
+}

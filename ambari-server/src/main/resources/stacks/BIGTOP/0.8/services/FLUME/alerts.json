@@ -1,0 +1,27 @@
+{
+  "FLUME": {
+    "service": [],
+    "FLUME_HANDLER": [
+      {
+        "name": "flume_agent_status",
+        "label": "Flume Agent Status",
+        "description": "This host-level alert is triggered if any of the expected flume agent processes are not available.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/FLUME/package/files/alert_flume_agent_status.py",
+          "parameters": [
+            {
+              "name": "run.directory",
+              "display_name": "Run Directory",
+              "value": "/var/run/flume",
+              "type": "STRING",
+              "description": "The directory where flume agent processes will place their PID files."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

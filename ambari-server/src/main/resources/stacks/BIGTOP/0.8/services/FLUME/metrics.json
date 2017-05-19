@@ -1,0 +1,720 @@
+{
+  "FLUME_HANDLER": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcCount": {
+              "metric": "jvm.metrics.gcCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcTimeMillis": {
+              "metric": "jvm.metrics.gcTimeMillis",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logError": {
+              "metric": "jvm.metrics.logError",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logFatal": {
+              "metric": "jvm.metrics.logFatal",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logInfo": {
+              "metric": "jvm.metrics.logInfo",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logWarn": {
+              "metric": "jvm.metrics.logWarn",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/maxMemoryM": {
+              "metric": "jvm.metrics.maxMemoryM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapCommittedM": {
+              "metric": "jvm.metrics.memHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapUsedM": {
+              "metric": "jvm.metrics.memHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapCommittedM": {
+              "metric": "jvm.metrics.memNonHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapUsedM": {
+              "metric": "jvm.metrics.memNonHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsBlocked": {
+              "metric": "jvm.metrics.threadsBlocked",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsNew": {
+              "metric": "jvm.metrics.threadsNew",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsRunnable": {
+              "metric": "jvm.metrics.threadsRunnable",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTerminated": {
+              "metric": "jvm.metrics.threadsTerminated",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTimedWaiting": {
+              "metric": "jvm.metrics.threadsTimedWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsWaiting": {
+              "metric": "jvm.metrics.threadsWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelCapacity": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelCapacity",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/StartTime": {
+              "metric": "(\\w+).CHANNEL.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventTakeAttemptCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventTakeSuccessCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventPutAttemptCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/StopTime": {
+              "metric": "(\\w+).CHANNEL.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelFillPercentage": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelFillPercentage",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelSize": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventPutSuccessCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionCreatedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionCreatedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchCompleteCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchCompleteCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/EventDrainSuccessCount": {
+              "metric": "(\\w+).SINK.(\\w+).EventDrainSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/StartTime": {
+              "metric": "(\\w+).SINK.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/EventDrainAttemptCount": {
+              "metric": "(\\w+).SINK.(\\w+).EventDrainAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionFailedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionFailedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchUnderflowCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchUnderflowCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionClosedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionClosedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/StopTime": {
+              "metric": "(\\w+).SINK.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchEmptyCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchEmptyCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendBatchReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendBatchReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/StartTime": {
+              "metric": "(\\w+).SOURCE.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/OpenConnectionCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).OpenConnectionCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendBatchAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendBatchAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/EventReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).EventReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/StopTime": {
+              "metric": "(\\w+).SOURCE.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/EventAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).EventAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._sum",
+              "pointInTime": false,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._sum",
+              "pointInTime": false,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._sum",
+              "pointInTime": false,
+              "temporal": true
+            }
+
+          }
+        }
+      }
+    ],
+    "HostComponent": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/boottime": {
+              "metric": "boottime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_aidle": {
+              "metric": "cpu_aidle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_idle": {
+              "metric": "cpu_idle",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_nice": {
+              "metric": "cpu_nice",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_num": {
+              "metric": "cpu_num",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_speed": {
+              "metric": "cpu_speed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_system": {
+              "metric": "cpu_system",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_user": {
+              "metric": "cpu_user",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/cpu/cpu_wio": {
+              "metric": "cpu_wio",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_free": {
+              "metric": "disk_free",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/disk_total": {
+              "metric": "disk_total",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/disk/part_max_used": {
+              "metric": "part_max_used",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcCount": {
+              "metric": "jvm.metrics.gcCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/gcTimeMillis": {
+              "metric": "jvm.metrics.gcTimeMillis",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logError": {
+              "metric": "jvm.metrics.logError",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logFatal": {
+              "metric": "jvm.metrics.logFatal",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logInfo": {
+              "metric": "jvm.metrics.logInfo",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/logWarn": {
+              "metric": "jvm.metrics.logWarn",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/maxMemoryM": {
+              "metric": "jvm.metrics.maxMemoryM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapCommittedM": {
+              "metric": "jvm.metrics.memHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memHeapUsedM": {
+              "metric": "jvm.metrics.memHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapCommittedM": {
+              "metric": "jvm.metrics.memNonHeapCommittedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/memNonHeapUsedM": {
+              "metric": "jvm.metrics.memNonHeapUsedM",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsBlocked": {
+              "metric": "jvm.metrics.threadsBlocked",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsNew": {
+              "metric": "jvm.metrics.threadsNew",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsRunnable": {
+              "metric": "jvm.metrics.threadsRunnable",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTerminated": {
+              "metric": "jvm.metrics.threadsTerminated",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsTimedWaiting": {
+              "metric": "jvm.metrics.threadsTimedWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/jvm/threadsWaiting": {
+              "metric": "jvm.metrics.threadsWaiting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelCapacity": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelCapacity",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/StartTime": {
+              "metric": "(\\w+).CHANNEL.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventTakeAttemptCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventTakeSuccessCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventPutAttemptCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/StopTime": {
+              "metric": "(\\w+).CHANNEL.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelFillPercentage": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelFillPercentage",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/ChannelSize": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/CHANNEL/$2/EventPutSuccessCount": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionCreatedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionCreatedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchCompleteCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchCompleteCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/EventDrainSuccessCount": {
+              "metric": "(\\w+).SINK.(\\w+).EventDrainSuccessCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/StartTime": {
+              "metric": "(\\w+).SINK.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/EventDrainAttemptCount": {
+              "metric": "(\\w+).SINK.(\\w+).EventDrainAttemptCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionFailedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionFailedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchUnderflowCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchUnderflowCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/ConnectionClosedCount": {
+              "metric": "(\\w+).SINK.(\\w+).ConnectionClosedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/StopTime": {
+              "metric": "(\\w+).SINK.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SINK/$2/BatchEmptyCount": {
+              "metric": "(\\w+).SINK.(\\w+).BatchEmptyCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendBatchReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendBatchReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/StartTime": {
+              "metric": "(\\w+).SOURCE.(\\w+).StartTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/OpenConnectionCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).OpenConnectionCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendBatchAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendBatchAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/AppendReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).AppendReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/EventReceivedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).EventReceivedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/StopTime": {
+              "metric": "(\\w+).SOURCE.(\\w+).StopTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/flume/$1/SOURCE/$2/EventAcceptedCount": {
+              "metric": "(\\w+).SOURCE.(\\w+).EventAcceptedCount",
+              "pointInTime": true,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventTakeSuccessCount/rate/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventTakeSuccessCount._rate._sum",
+              "pointInTime": false,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).EventPutSuccessCount._rate._sum",
+              "pointInTime": false,
+              "temporal": true
+            },
+
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/avg": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._avg",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/max": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._max",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/min": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._min",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")ChannelSize/sum": {
+              "metric": "(\\w+).CHANNEL.(\\w+).ChannelSize._sum",
+              "pointInTime": false,
+              "temporal": true
+            }
+
+          }
+        }
+      }
+    ]
+  }
+}

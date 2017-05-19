@@ -1,0 +1,637 @@
+{
+  "HDFS":{
+    "service": [
+      {
+        "name": "datanode_process_percent",
+        "label": "Percent DataNodes Available",
+        "description": "This alert is triggered if the number of down DataNodes in the cluster is greater than the configured critical threshold. It aggregates the results of DataNode process checks.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "datanode_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      },
+      {
+        "name": "datanode_storage_percent",
+        "label": "Percent DataNodes With Available Space",
+        "description": "This service-level alert is triggered if the storage on a certain percentage of DataNodes exceeds either the warning or critical threshold values.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "datanode_storage",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      },
+      {
+        "name": "journalnode_process_percent",
+        "label": "Percent JournalNodes Available",
+        "description": "This alert is triggered if the number of down JournalNodes in the cluster is greater than the configured critical threshold. It aggregates the results of JournalNode process checks.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "journalnode_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.33
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.50
+            }
+          }
+        }
+      }
+    ],
+    "NAMENODE": [
+      {
+        "name": "namenode_webui",
+        "label": "NameNode Web UI",
+        "description": "This host-level alert is triggered if the NameNode Web UI is unreachable.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
+            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      },
+      {
+        "name": "namenode_cpu",
+        "label": "NameNode Host CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the NameNode exceeds certain warning and critical thresholds. It checks the NameNode JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            },
+            "units" : "%"
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      },
+      {
+        "name": "namenode_hdfs_blocks_health",
+        "label": "NameNode Blocks Health",
+        "description": "This service-level alert is triggered if the number of corrupt or missing blocks exceeds the configured critical threshold. The threshold values are in blocks.",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]"
+            },
+            "warning": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
+              "value": 1
+            },
+            "critical": {
+              "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
+              "value": 1
+            },
+            "units" : "Blocks"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystem/MissingBlocks",
+              "Hadoop:service=NameNode,name=FSNamesystem/BlocksTotal"
+            ],
+            "value": "{0}"
+          }
+        }
+      },
+      {
+        "name": "namenode_hdfs_capacity_utilization",
+        "label": "HDFS Capacity Utilization",
+        "description": "This service-level alert is triggered if the HDFS capacity utilization exceeds the configured warning and critical thresholds. It checks the NameNode JMX Servlet for the CapacityUsed and CapacityRemaining properties. The threshold values are in percent.",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]"
+            },
+            "warning": {
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
+              "value": 80
+            },
+            "critical": {
+              "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
+              "value": 90
+            },
+            "units" : "%"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystemState/CapacityUsed",
+              "Hadoop:service=NameNode,name=FSNamesystemState/CapacityRemaining"
+            ],
+            "value": "{0}/({0} + {1}) * 100.0"
+          }
+        }
+      },
+      {
+        "name": "namenode_rpc_latency",
+        "label": "NameNode RPC Latency",
+        "description": "This host-level alert is triggered if the NameNode RPC latency exceeds the configured critical threshold. Typically an increase in the RPC processing time increases the RPC queue length, causing the average queue wait time to increase for NameNode operations. The threshold values are in milliseconds.",
+        "interval": 2,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]"
+            },
+            "warning": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 3000
+            },
+            "critical": {
+              "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
+              "value": 5000
+            },
+            "units" : "ms"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcQueueTimeAvgTime",
+              "Hadoop:service=NameNode,name=RpcActivityForPort*/RpcProcessingTimeAvgTime"
+            ],
+            "value": "{0}"
+          }
+        }
+      },
+      {
+        "name": "namenode_directory_status",
+        "label": "NameNode Directory Status",
+        "description": "This host-level alert is triggered if the NameNode NameDirStatuses metric (name=NameNodeInfo/NameDirStatuses) reports a failed directory. The threshold values are in the number of directories that are not healthy.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "Directories are healthy"
+            },
+            "warning": {
+              "text": "Failed directory count: {1}",
+              "value": 1
+            },
+            "critical": {
+              "text": "Failed directory count: {1}",
+              "value": 1
+            },
+            "units" : "Dirs"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=NameNodeInfo/NameDirStatuses"
+            ],
+            "value": "calculate(args)\ndef calculate(args):\n  import json\n  json_statuses = json.loads({0})\n  return len(json_statuses['failed']) if 'failed' in json_statuses else 0"
+          }
+        }
+      },
+      {
+        "name": "datanode_health_summary",
+        "label": "DataNode Health Summary",
+        "description": "This service-level alert is triggered if there are unhealthy DataNodes",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.namenode.http-address}}",
+            "https": "{{hdfs-site/dfs.namenode.https-address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0,
+            "high_availability": {
+              "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
+              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+            }
+          },
+          "reporting": {
+            "ok": {
+              "text": "All {2} DataNode(s) are healthy"
+            },
+            "warning": {
+              "text": "DataNode Health: [Live={2}, Stale={1}, Dead={0}]",
+              "value": 1
+            },
+            "critical": {
+              "text": "DataNode Health: [Live={2}, Stale={1}, Dead={0}]",
+              "value": 1
+            },
+            "units" : "DNs"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumDeadDataNodes",
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumStaleDataNodes",
+              "Hadoop:service=NameNode,name=FSNamesystemState/NumLiveDataNodes"
+            ],
+            "value": "{0} + {1}"
+          }
+        }
+      },
+      {
+        "name": "namenode_last_checkpoint",
+        "label": "NameNode Last Checkpoint",
+        "description": "This service-level alert will trigger if the last time that the NameNode performed a checkpoint was too long ago. It will also trigger if the number of uncommitted transactions is beyond a certain threshold.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/HDFS/package/files/alert_checkpoint_time.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            },
+            {
+              "name": "checkpoint_time_warning_threshold",
+              "display_name": "Checkpoint Warning",
+              "value": 2.0,
+              "type": "PERCENT",
+              "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a warning alert.",
+              "units": "%",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "checkpoint_time_critical_threshold",
+              "display_name": "Checkpoint Critical",
+              "value": 2.0,
+              "type": "PERCENT",
+              "description": "The percentage of the last checkpoint time greater than the interval in order to trigger a critical alert.",
+              "units": "%",
+              "threshold": "CRITICAL"
+            }           
+          ]
+        }
+      },
+      {
+        "name": "namenode_ha_health",
+        "label": "NameNode High Availability Health",
+        "description": "This service-level alert is triggered if either the Active NameNode or Standby NameNode are not running.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "ignore_host": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/HDFS/package/files/alert_ha_namenode_health.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
+    ],
+    "SECONDARY_NAMENODE": [
+      {
+        "name": "secondary_namenode_process",
+        "label": "Secondary NameNode Process",
+        "description": "This host-level alert is triggered if the Secondary NameNode process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.namenode.secondary.http-address}}",
+          "default_port": 50071,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "JOURNALNODE": [
+      {
+        "name": "journalnode_process",
+        "label": "JournalNode Process",
+        "description": "This host-level alert is triggered if the JournalNode process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.journalnode.http-address}}",
+          "default_port": 8480,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "DATANODE": [
+      {
+        "name": "datanode_process",
+        "label": "DataNode Process",
+        "description": "This host-level alert is triggered if the individual DataNode processes cannot be established to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.datanode.address}}",
+          "default_port": 50010,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "datanode_webui",
+        "label": "DataNode Web UI",
+        "description": "This host-level alert is triggered if the DataNode Web UI is unreachable.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "WEB",
+          "uri": {
+            "http": "{{hdfs-site/dfs.datanode.http.address}}",
+            "https": "{{hdfs-site/dfs.datanode.https.address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "kerberos_keytab": "{{hdfs-site/dfs.web.authentication.kerberos.keytab}}",
+            "kerberos_principal": "{{hdfs-site/dfs.web.authentication.kerberos.principal}}",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "HTTP {0} response in {2:.3f}s"
+            },
+            "warning":{
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
+            },
+            "critical": {
+              "text": "Connection failed to {1} ({3})"
+            }
+          }
+        }
+      },
+      {
+        "name": "datanode_storage",
+        "label": "DataNode Storage",
+        "description": "This host-level alert is triggered if storage capacity if full on the DataNode. It checks the DataNode JMX Servlet for the Capacity and Remaining properties. The threshold values are in percent.",
+        "interval": 2,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hdfs-site/dfs.datanode.http.address}}",
+            "https": "{{hdfs-site/dfs.datanode.https.address}}",
+            "https_property": "{{hdfs-site/dfs.http.policy}}",
+            "https_property_value": "HTTPS_ONLY",
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]"
+            },
+            "warning": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
+              "value": 80
+            },
+            "critical": {
+              "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
+              "value": 90
+            },
+            "units" : "%"
+          },
+          "jmx": {
+            "property_list": [
+              "Hadoop:service=DataNode,name=FSDatasetState-*/Remaining",
+              "Hadoop:service=DataNode,name=FSDatasetState-*/Capacity"
+            ],
+            "value": "({1} - {0})/{1} * 100.0"
+          }
+        }
+      }
+    ],
+    "ZKFC": [
+      {
+        "name": "hdfs_zookeeper_failover_controller_process",
+        "label": "ZooKeeper Failover Controller Process",
+        "description": "This host-level alert is triggered if the ZooKeeper Failover Controller process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/dfs.ha.zkfc.port}}",
+          "default_port": 8019,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <property>
+    <name>service_name</name>
+    <display-name>Service name</display-name>
+    <description>Service name for Logsearch Portal (label)</description>
+    <value>HBase</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>component_mappings</name>
+    <display-name>Component mapping</display-name>
+    <description>Logsearch component logid mapping list (e.g.: COMPONENT1:logid1,logid2;COMPONENT2:logid3)</description>
+    <value>FAKEHBASE_MASTER:hbase_master;FAKEHBASE_REGIONSERVER:hbase_regionserver;FAKEPHOENIX_QUERY_SERVER:hbase_phoenix_server</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>Logfeeder Config</display-name>
+    <description>Metadata jinja template for Logfeeder which contains grok patterns for reading service specific logs.</description>
+    <value>
+{
+  "input":[
+    {
+      "type":"hbase_master",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')}}/hbase-*-master-*.log"
+    },
+    {
+      "type":"hbase_regionserver",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')}}/hbase-*-regionserver-*.log"
+    },
+    {
+      "type":"hbase_phoenix_server",
+      "rowtype":"service",
+      "path":"{{default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')}}/phoenix-*-server.log"
+    }
+   ],
+  "filter":[
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hbase_master",
+            "hbase_regionserver"
+          ]
+         }
+       },
+      "log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\]%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+         }
+       }
+     },
+    {
+      "filter":"grok",
+      "conditions":{
+        "fields":{
+          "type":[
+            "hbase_phoenix_server"
+          ]
+         }
+      },
+      "log4j_format":"%d{ISO8601} %-5p [%t] %c{2}: %m%n",
+      "multiline_pattern":"^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern":"(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{JAVACLASS:logger_name}:%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values":{
+        "logtime":{
+          "map_date":{
+            "target_date_pattern":"yyyy-MM-dd HH:mm:ss,SSS"
+          }
+         }
+       }
+     }
+   ]
+ }
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

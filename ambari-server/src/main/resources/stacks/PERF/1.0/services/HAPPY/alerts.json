@@ -1,0 +1,20 @@
+{
+    "HAPPY": {
+
+        "HAPPY": [
+            {
+                "name": "happy_process",
+                "label": "Happy Process",
+                "description": "Alert for happy component process status",
+                "interval": 1,
+                "scope": "HOST",
+                "enabled": true,
+                "source": {
+                    "type": "SCRIPT",
+                    "path": "PERF/1.0/services/HAPPY/package/alerts/alert_happy_process.py",
+                    "parameters": []
+                }
+            }
+        ]
+    }
+}

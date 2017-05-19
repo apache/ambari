@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+
+  <!-- Define stack_tools property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_tools</name>
+    <value/>
+    <description>Stack specific tools</description>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>stack_tools.json</property-file-name>
+      <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <!-- Define stack_features property in the base stack. DO NOT override this property for each stack version -->
+  <property>
+    <name>stack_features</name>
+    <value/>
+    <description>List of features supported by the stack</description>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>stack_features.json</property-file-name>
+      <property-file-type>json</property-file-type>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>stack_root</name>
+    <value>/usr/perf</value>
+    <description>Stack root folder</description>
+    <value-attributes>
+      <read-only>true</read-only>
+      <overridable>false</overridable>
+      <visible>false</visible>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>security_enabled</name>
+    <value>false</value>
+    <description>Security</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>user_group</name>
+    <display-name>Hadoop Group</display-name>
+    <value>hadoop</value>
+    <property-type>GROUP</property-type>
+    <description>Hadoop user group.</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>smokeuser</name>
+    <display-name>Smoke User</display-name>
+    <value>ambari-qa</value>
+    <property-type>USER</property-type>
+    <description>User executing service checks</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

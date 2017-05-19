@@ -1,0 +1,78 @@
+{
+  "services": [
+    {
+      "name": "SLEEPY",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "sleepy",
+          "principal": {
+            "value": "${sleepy-site/sleepy_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "sleepy-site/sleepy_principal_name",
+            "local_username": "${sleepy-site/sleepy_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/sleepy.headless.keytab",
+            "owner": {
+              "name": "${sleepy-site/sleepy_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "sleepy-site/sleepy_user_keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+      ],
+      "components": [
+        {
+          "name": "SLEEPY",
+          "identities": [
+            {
+              "name": "/FAKEHDFS/FAKENAMENODE/hdfs"
+            },
+            {
+              "name": "sleepy_sleepy",
+              "principal": {
+                "value": "sleepy/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "sleepy-site/sleepy.sleepy.kerberos.principal",
+                "local_username": "${sleepy-site/sleepy_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/sleepy.service.keytab",
+                "owner": {
+                  "name": "${sleepy-site/sleepy_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "sleepy-site/sleepy.sleepy.keytab.file"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "sleepy-site/sleepy.security.authentication.spnego.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "sleepy-site/sleepy.security.authentication.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

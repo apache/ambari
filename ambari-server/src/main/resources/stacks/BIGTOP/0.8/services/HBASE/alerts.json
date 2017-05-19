@@ -1,0 +1,122 @@
+{
+  "HBASE": {
+    "service": [
+      {
+        "name": "hbase_regionserver_process_percent",
+        "label": "Percent RegionServers Available",
+        "description": "This service-level alert is triggered if the configured percentage of RegionServer processes cannot be determined to be up and listening on the network for the configured warning and critical thresholds. It aggregates the results of RegionServer process down checks.",
+        "interval": 1,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "hbase_regionserver_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.1
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 0.3
+            }
+          }
+        }
+      }    
+    ],
+    "HBASE_MASTER": [
+      {
+        "name": "hbase_master_process",
+        "label": "HBase Master Process",
+        "description": "This alert is triggered if the HBase master processes cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-site/hbase.master.port}}",
+          "default_port": 60000,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      },
+      {
+        "name": "hbase_master_cpu",
+        "label": "HBase Maser CPU Utilization",
+        "description": "This host-level alert is triggered if CPU utilization of the HBase Master exceeds certain warning and critical thresholds. It checks the HBase Master JMX Servlet for the SystemCPULoad property. The threshold values are in percent.",
+        "interval": 5,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "METRIC",
+          "uri": {
+            "http": "{{hbase-site/hbase.master.info.port}}",
+            "default_port": 60010,
+            "connection_timeout": 5.0
+          },
+          "reporting": {
+            "ok": {
+              "text": "{1} CPU, load {0:.1%}"
+            },
+            "warning": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 200
+            },
+            "critical": {
+              "text": "{1} CPU, load {0:.1%}",
+              "value": 250
+            },
+            "units" : "%"            
+          },
+          "jmx": {
+            "property_list": [
+              "java.lang:type=OperatingSystem/SystemCpuLoad",
+              "java.lang:type=OperatingSystem/AvailableProcessors"
+            ],
+            "value": "{0} * 100"
+          }
+        }
+      }
+    ],
+    "HBASE_REGIONSERVER": [
+      {
+        "name": "hbase_regionserver_process",
+        "label": "HBase RegionServer Process",
+        "description": "This host-level alert is triggered if the RegionServer processes cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-site/hbase.regionserver.info.port}}",
+          "default_port": 60030,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

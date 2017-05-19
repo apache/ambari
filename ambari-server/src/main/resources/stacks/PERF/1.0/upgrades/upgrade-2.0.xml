@@ -1,0 +1,331 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
+  <target>2.0.*.*</target>
+  <target-stack>PERF-2.0</target-stack>
+  <skip-failures>false</skip-failures>
+  <skip-service-check-failures>false</skip-service-check-failures>
+  <type>ROLLING</type>
+  <prerequisite-checks>
+
+    <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
+  </prerequisite-checks>
+
+  <order>
+
+    <group name="FAKEZOOKEEPER" title="FAKEZooKeeper">
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service name="FAKEZOOKEEPER">
+        <component>FAKEZOOKEEPER_SERVER</component>
+      </service>
+    </group>
+
+
+    <group name="CORE_MASTER" title="Core Masters">
+      <service-check>false</service-check>
+      <service name="FAKEHDFS">
+        <component>FAKENAMENODE</component>
+        <component>FAKEJOURNALNODE</component>
+        <component>FAKEZKFC</component>
+      </service>
+
+      <service name="FAKEYARN">
+        <component>FAKEAPP_TIMELINE_SERVER</component>
+        <component>FAKERESOURCEMANAGER</component>
+      </service>
+
+      <service name="FAKEHBASE">
+        <component>FAKEHBASE_MASTER</component>
+      </service>
+    </group>
+
+    <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
+      <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      <priority>
+        <service>FAKEZOOKEEPER</service>
+        <service>FAKEHDFS</service>
+        <service>FAKEYARN</service>
+        <service>GRUMPY</service>
+        <service>HAPPY</service>
+        <service>FAKEHBASE</service>
+        <service>SLEEPY</service>
+        <service>SNOW</service>
+      </priority>
+    </group>
+
+    <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="FAKEHDFS">
+        <component>FAKEDATANODE</component>
+        <component>FAKENFS_GATEWAY</component>
+      </service>
+
+      <service name="FAKEHBASE">
+        <component>FAKEHBASE_REGIONSERVER</component>
+        <component>FAKEPHOENIX_QUERY_SERVER</component>
+      </service>
+
+      <service name="FAKEYARN">
+        <component>FAKENODEMANAGER</component>
+      </service>
+
+      <batch>
+        <percent>20</percent>
+        <summary>Verification Required</summary>
+        <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
+      </batch>
+    </group>
+
+    <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
+      <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      <priority>
+        <service>FAKEZOOKEEPER</service>
+        <service>FAKEHDFS</service>
+        <service>FAKEYARN</service>
+        <service>GRUMPY</service>
+        <service>HAPPY</service>
+        <service>FAKEHBASE</service>
+        <service>SLEEPY</service>
+        <service>SNOW</service>
+      </priority>
+    </group>
+
+    <group name="CLIENTS" title="Client Components">
+      <service-check>false</service-check>
+      <service name="FAKEZOOKEEPER">
+        <component>FAKEZOOKEEPER_CLIENT</component>
+      </service>
+
+      <service name="FAKEHDFS">
+        <component>FAKEHDFS_CLIENT</component>
+      </service>
+
+      <service name="FAKEYARN">
+        <component>FAKEYARN_CLIENT</component>
+      </service>
+
+      <service name="FAKEHBASE">
+        <component>FAKEHBASE_CLIENT</component>
+      </service>
+
+    </group>
+
+    <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
+      <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      <priority>
+        <service>FAKEZOOKEEPER</service>
+        <service>FAKEHDFS</service>
+        <service>FAKEYARN</service>
+        <service>GRUMPY</service>
+        <service>HAPPY</service>
+        <service>FAKEHBASE</service>
+        <service>SLEEPY</service>
+        <service>SNOW</service>
+      </priority>
+    </group>
+
+    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <execute-stage title="Update remaining HDP stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>
+    </group>
+
+    <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
+      <direction>UPGRADE</direction>
+
+      <execute-stage title="Check Component Versions">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
+      </execute-stage>
+    </group>
+
+    <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
+      <execute-stage title="Confirm Finalize">
+        <direction>UPGRADE</direction>
+        <task xsi:type="manual">
+          <message>Please confirm you are ready to finalize.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="FAKEHDFS" component="FAKENAMENODE" title="Execute FAKEHDFS Finalize">
+        <task xsi:type="execute" hosts="master">
+          <script>scripts/namenode.py</script>
+          <function>finalize_rolling_upgrade</function>
+        </task>
+      </execute-stage>
+
+      <execute-stage title="Save Cluster State">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction" />
+      </execute-stage>
+
+    </group>
+  </order>
+
+  <processing>
+    <service name="FAKEZOOKEEPER">
+      <component name="FAKEZOOKEEPER_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEZOOKEEPER_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="FAKEHDFS">
+      <component name="FAKENAMENODE">
+        <upgrade>
+          <!-- Namenode does not advertise version. That is a hack to make Rolling Upgrade possible.
+          Otherwise, Rolling Upgrade code uses master host resolver to query namenode JMX regarding active/standby
+          namenode, and fails to generate restart tasks for Namenode. -->
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEDATANODE">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKENFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEHDFS_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEJOURNALNODE">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEZKFC">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="FAKEYARN">
+      <component name="FAKEAPP_TIMELINE_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKERESOURCEMANAGER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKENODEMANAGER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEYARN_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="FAKEHBASE">
+      <component name="FAKEHBASE_MASTER">
+
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEHBASE_REGIONSERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEHBASE_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+
+      <component name="FAKEPHOENIX_QUERY_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="GRUMPY">
+      <component name="GRUMPY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="HAPPY">
+      <component name="HAPPY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SLEEPY">
+      <component name="SLEEPY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="SNOW">
+      <component name="SNOW_WHITE">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+  </processing>
+</upgrade>

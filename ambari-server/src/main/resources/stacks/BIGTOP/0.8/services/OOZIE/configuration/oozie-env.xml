@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>oozie_user</name>
+    <display-name>Oozie User</display-name>
+    <value>oozie</value>
+    <property-type>USER</property-type>
+    <description>Oozie User.</description>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_database</name>
+    <value>New Derby Database</value>
+    <description>Oozie Server Database.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_derby_database</name>
+    <value>Derby</value>
+    <description>Oozie Derby Database</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_data_dir</name>
+    <value>/hadoop/oozie/data</value>
+    <description>Data directory in which the Oozie DB exists</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_log_dir</name>
+    <value>/var/log/oozie</value>
+    <description>Directory for oozie logs</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_pid_dir</name>
+    <value>/var/run/oozie</value>
+    <description>Directory in which the pid files for oozie reside.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie_admin_port</name>
+    <value>11001</value>
+    <description>The admin port Oozie server runs.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- oozie-env.sh -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for oozie-env.sh file</description>
+    <value>
+#!/bin/bash
+
+if [ -d "/usr/lib/bigtop-tomcat" ]; then
+  export OOZIE_CONFIG=${OOZIE_CONFIG:-/etc/oozie/conf}
+  export CATALINA_BASE=${CATALINA_BASE:-{{oozie_server_dir}}}
+  export CATALINA_TMPDIR=${CATALINA_TMPDIR:-/var/tmp/oozie}
+  export OOZIE_CATALINA_HOME=/usr/lib/bigtop-tomcat
+fi
+
+#Set JAVA HOME
+export JAVA_HOME={{java_home}}
+
+export JRE_HOME=${JAVA_HOME}
+
+# Set Oozie specific environment variables here.
+
+# Settings for the Embedded Tomcat that runs Oozie
+# Java System properties for Oozie should be specified in this variable
+#
+# export CATALINA_OPTS=
+
+# Oozie configuration file to load from Oozie configuration directory
+#
+# export OOZIE_CONFIG_FILE=oozie-site.xml
+
+# Oozie logs directory
+#
+export OOZIE_LOG={{oozie_log_dir}}
+
+# Oozie pid directory
+#
+export CATALINA_PID={{pid_file}}
+
+#Location of the data for oozie
+export OOZIE_DATA={{oozie_data_dir}}
+
+# Oozie Log4J configuration file to load from Oozie configuration directory
+#
+# export OOZIE_LOG4J_FILE=oozie-log4j.properties
+
+# Reload interval of the Log4J configuration file, in seconds
+#
+# export OOZIE_LOG4J_RELOAD=10
+
+# The port Oozie server runs
+#
+export OOZIE_HTTP_PORT={{oozie_server_port}}
+
+# The admin port Oozie server runs
+#
+export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
+
+# The host name Oozie server runs on
+#
+# export OOZIE_HTTP_HOSTNAME=`hostname -f`
+
+# The base URL for callback URLs to Oozie
+#
+# export OOZIE_BASE_URL="http://${OOZIE_HTTP_HOSTNAME}:${OOZIE_HTTP_PORT}/oozie"
+export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

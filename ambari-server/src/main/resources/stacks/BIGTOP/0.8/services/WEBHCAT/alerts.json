@@ -1,0 +1,18 @@
+{
+  "WEBHCAT": {
+    "service": [],
+    "WEBHCAT_SERVER": [
+      {
+        "name": "hive_webhcat_server_status",
+        "label": "WebHCat Server Status",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "BIGTOP/0.8/services/WEBHCAT/package/files/alert_webhcat_server.py"
+        }
+      }
+    ]
+  }
+}

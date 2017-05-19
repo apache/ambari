@@ -1,0 +1,77 @@
+{
+  "FAKEMAPREDUCE2": {
+    "FAKEHISTORYSERVER": [
+      {
+        "name": "mapreduce_history_process",
+        "label": "FAKEHistory Server process",
+        "description": "Alert for history server process status",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEYARN/package/alerts/alert_history_process.py",
+          "parameters": []
+        }
+      }
+    ]
+  },
+  "FAKEYARN": {
+
+    "FAKENODEMANAGER": [
+      {
+        "name": "yarn_nodemanager_health",
+        "label": "FAKENodeManager Health",
+        "description": "This host-level alert checks the node health property available from the FAKENodeManager component.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEYARN/package/alerts/alert_nodemanager_health.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
+        }
+      }
+    ],
+    "FAKERESOURCEMANAGER": [
+      {
+        "name": "yarn_resourcemanager_process",
+        "label": "FAKEResourceManager process",
+        "description": "Alert for resourcemanager process status",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEYARN/package/alerts/alert_resourcemanager_process.py",
+          "parameters": []
+        }
+      }
+    ],
+    "FAKEAPP_TIMELINE_SERVER": [
+      {
+        "name": "yarn_app_timeline_server_process",
+        "label": "App Timeline process",
+        "description": "Alert for app timeline server process status",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SCRIPT",
+          "path": "PERF/1.0/services/FAKEYARN/package/alerts/alert_timeline_process.py",
+          "parameters": []
+        }
+      }
+    ]
+  }
+}

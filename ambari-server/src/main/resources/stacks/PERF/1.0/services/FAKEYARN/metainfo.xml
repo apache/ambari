@@ -1,0 +1,355 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>FAKEYARN</name>
+      <displayName>FAKEYARN</displayName>
+      <comment>Apache Hadoop NextGen MapReduce (FAKEYARN)</comment>
+      <version>2.7.1.2.5</version>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <components>
+
+        <component>
+          <name>FAKEAPP_TIMELINE_SERVER</name>
+          <displayName>FAKEApp Timeline Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <reassignAllowed>true</reassignAllowed>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/application_timeline_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+
+          <!--
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SPARK/SPARK_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          -->
+        </component>
+
+        <component>
+          <name>FAKERESOURCEMANAGER</name>
+          <displayName>FAKEResourceManager</displayName>
+          <category>MASTER</category>
+          <cardinality>1-2</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+
+          <commandScript>
+            <script>scripts/resourcemanager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>yarn_resourcemanager</logId>
+              <primary>true</primary>
+            </log>
+            <log>
+              <logId>yarn_historyserver</logId>
+            </log>
+            <log>
+              <logId>yarn_jobsummary</logId>
+            </log>
+          </logs>
+
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/resourcemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>REFRESHQUEUES</name>
+              <commandScript>
+                <script>scripts/resourcemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+
+          <!--
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          -->
+
+          <configuration-dependencies>
+            <config-type>yarn-alert-config</config-type>
+            <config-type>capacity-scheduler</config-type>
+            <config-type>hdfs-site</config-type>
+          </configuration-dependencies>
+        </component>
+
+        <component>
+          <name>FAKENODEMANAGER</name>
+          <displayName>FAKENodeManager</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <commandScript>
+            <script>scripts/nodemanager.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <bulkCommands>
+            <displayName>FAKENodeManagers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>FAKERESOURCEMANAGER</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>yarn_nodemanager</logId>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKEYARN_CLIENT</name>
+          <displayName>FAKEYARN Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/yarn_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>yarn-site.xml</fileName>
+              <dictionaryName>yarn-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>yarn-env.sh</fileName>
+              <dictionaryName>yarn-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hdfs-log4j,yarn-log4j</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>capacity-scheduler.xml</fileName>
+              <dictionaryName>capacity-scheduler</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <configuration-dependencies>
+        <config-type>yarn-alert-config</config-type>
+        <config-type>yarn-site</config-type>
+        <config-type>yarn-env</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>core-site</config-type>
+        <config-type>mapred-site</config-type>
+        <config-type>yarn-log4j</config-type>
+        <config-type>ranger-yarn-plugin-properties</config-type>
+        <config-type>ranger-yarn-audit</config-type>
+        <config-type>ranger-yarn-policymgr-ssl</config-type>
+        <config-type>ranger-yarn-security</config-type>
+      </configuration-dependencies>
+      <widgetsFileName>FAKEYARN_widgets.json</widgetsFileName>
+      <metricsFileName>FAKEYARN_metrics.json</metricsFileName>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>FAKEHDFS</service>
+        <service>FAKEMAPREDUCE2</service>
+      </requiredServices>
+
+      <!-- No packages to install. -->
+      <osSpecifics></osSpecifics>
+    </service>
+
+    <service>
+      <name>FAKEMAPREDUCE2</name>
+      <version>2.7.1.2.5</version>
+      <displayName>FAKEMapReduce2</displayName>
+      <comment>Apache Hadoop NextGen MapReduce (FAKEYARN)</comment>
+      <configuration-dir>configuration-mapred</configuration-dir>
+
+      <components>
+        <component>
+          <name>FAKEHISTORYSERVER</name>
+          <displayName>FAKEHistory Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <reassignAllowed>true</reassignAllowed>
+          <auto-deploy>
+            <enabled>true</enabled>
+            <co-locate>FAKEYARN/FAKERESOURCEMANAGER</co-locate>
+          </auto-deploy>
+          <dependencies>
+            <dependency>
+              <name>FAKEHDFS/FAKEHDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+
+            <!--
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SLIDER/SLIDER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            -->
+          </dependencies>
+          <commandScript>
+            <script>scripts/historyserver.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>mapred_historyserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>FAKEMAPREDUCE2_CLIENT</name>
+          <displayName>FAKEMapReduce2 Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <commandScript>
+            <script>scripts/mapreduce2_client.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>mapred-site.xml</fileName>
+              <dictionaryName>mapred-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>core-site.xml</fileName>
+              <dictionaryName>core-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>mapred-env.sh</fileName>
+              <dictionaryName>mapred-env</dictionaryName>
+            </configFile>
+          </configFiles>
+        </component>
+      </components>
+
+      <commandScript>
+        <script>scripts/mapred_service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <requiredServices>
+        <service>FAKEYARN</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>yarn-alert-config</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>core-site</config-type>
+        <config-type>mapred-site</config-type>
+        <config-type>mapred-env</config-type>
+        <config-type>ssl-client</config-type>
+        <config-type>ssl-server</config-type>
+      </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
+      <widgetsFileName>FAKEMAPREDUCE2_widgets.json</widgetsFileName>
+      <metricsFileName>FAKEMAPREDUCE2_metrics.json</metricsFileName>
+
+      <quickLinksConfigurations-dir>quicklinks-mapred</quickLinksConfigurations-dir>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <!-- No packages to install. -->
+      <osSpecifics></osSpecifics>
+    </service>
+  </services>
+</metainfo>
