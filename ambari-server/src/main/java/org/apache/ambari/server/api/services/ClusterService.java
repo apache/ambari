@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Clusters;
@@ -43,7 +44,6 @@ import org.apache.ambari.server.state.Clusters;
 /**
  * Service responsible for cluster resource requests.
  */
-@Path("/clusters/")
 public class ClusterService extends BaseService {
 
   /**
@@ -57,7 +57,8 @@ public class ClusterService extends BaseService {
   /**
    * Construct a ClusterService.
    */
-  public ClusterService() {
+  public ClusterService(ApiVersion apiVersion) {
+    super(apiVersion);
     clusters = AmbariServer.getController().getClusters();
   }
 
@@ -66,7 +67,8 @@ public class ClusterService extends BaseService {
    *
    * @param clusters  the clusters utilities
    */
-  protected ClusterService(Clusters clusters) {
+  protected ClusterService(ApiVersion apiVersion, Clusters clusters) {
+    super(apiVersion);
     this.clusters = clusters;
   }
 
@@ -326,7 +328,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/hosts")
   public HostService getHostHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new HostService(clusterName);
+    return new HostService(m_apiVersion, clusterName);
   }
 
   /**
@@ -339,7 +341,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/services")
   public ServiceService getServiceHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new ServiceService(clusterName);
+    return new ServiceService(m_apiVersion, clusterName);
   }
 
   /**
@@ -352,7 +354,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/configurations")
   public ConfigurationService getConfigurationHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new ConfigurationService(clusterName);
+    return new ConfigurationService(m_apiVersion, clusterName);
   }
 
   /**
@@ -365,7 +367,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/requests")
   public RequestService getRequestHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new RequestService(clusterName);
+    return new RequestService(m_apiVersion, clusterName);
   }
 
   /**
@@ -379,7 +381,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/host_components")
   public HostComponentService getHostComponentHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new HostComponentService(clusterName, null);
+    return new HostComponentService(m_apiVersion, clusterName, null);
   }
 
   /**
@@ -393,7 +395,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/kerberos_identities")
   public HostKerberosIdentityService getHostKerberosIdentityHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new HostKerberosIdentityService(clusterName, null);
+    return new HostKerberosIdentityService(m_apiVersion, clusterName, null);
   }
 
   /**
@@ -407,7 +409,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/components")
   public ComponentService getComponentHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new ComponentService(clusterName, null);
+    return new ComponentService(m_apiVersion, clusterName, null);
   }
 
   /**
@@ -420,7 +422,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/workflows")
   public WorkflowService getWorkflowHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new WorkflowService(clusterName);
+    return new WorkflowService(m_apiVersion, clusterName);
   }
 
   /**
@@ -433,7 +435,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/config_groups")
   public ConfigGroupService getConfigGroupService(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new ConfigGroupService(clusterName);
+    return new ConfigGroupService(m_apiVersion, clusterName);
   }
 
   /**
@@ -447,7 +449,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/request_schedules")
   public RequestScheduleService getRequestScheduleService
                              (@Context javax.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
-    return new RequestScheduleService(clusterName);
+    return new RequestScheduleService(m_apiVersion, clusterName);
   }
 
   /**
@@ -461,7 +463,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/alert_definitions")
   public AlertDefinitionService getAlertDefinitionService(
       @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new AlertDefinitionService(clusterName);
+    return new AlertDefinitionService(m_apiVersion, clusterName);
   }
 
   /**
@@ -477,7 +479,7 @@ public class ClusterService extends BaseService {
   public AlertGroupService getAlertGroups(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new AlertGroupService(clusterName);
+    return new AlertGroupService(m_apiVersion, clusterName);
   }
 
   /**
@@ -492,7 +494,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/privileges")
   public PrivilegeService getPrivilegeService(@Context javax.ws.rs.core.Request request, @PathParam ("clusterName") String clusterName) {
-    return new ClusterPrivilegeService(clusterName);
+    return new ClusterPrivilegeService(m_apiVersion, clusterName);
   }
 
   /**
@@ -506,7 +508,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/alerts")
   public AlertService getAlertService(
       @Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new AlertService(clusterName, null, null);
+    return new AlertService(m_apiVersion, clusterName, null, null);
   }
 
   /**
@@ -523,7 +525,7 @@ public class ClusterService extends BaseService {
   public AlertHistoryService getAlertHistoryService(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new AlertHistoryService(clusterName, null, null);
+    return new AlertHistoryService(m_apiVersion, clusterName, null, null);
   }
 
   /**
@@ -540,7 +542,7 @@ public class ClusterService extends BaseService {
   public AlertNoticeService getAlertNoticeService(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new AlertNoticeService(clusterName);
+    return new AlertNoticeService(m_apiVersion, clusterName);
   }
 
   /**
@@ -556,7 +558,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/stack_versions")
   public ClusterStackVersionService getClusterStackVersionService(@Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new ClusterStackVersionService(clusterName);
+    return new ClusterStackVersionService(m_apiVersion, clusterName);
   }
 
   /**
@@ -571,7 +573,7 @@ public class ClusterService extends BaseService {
   public UpgradeService getUpgradeService(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new UpgradeService(clusterName);
+    return new UpgradeService(m_apiVersion, clusterName);
   }
 
   /**
@@ -586,7 +588,7 @@ public class ClusterService extends BaseService {
   public UpgradeSummaryService getUpgradeSummaryService(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new UpgradeSummaryService(clusterName);
+    return new UpgradeSummaryService(m_apiVersion, clusterName);
   }
   
   /**
@@ -599,7 +601,7 @@ public class ClusterService extends BaseService {
    */
   @Path("{clusterName}/rolling_upgrades_check")
   public PreUpgradeCheckService getPreUpgradeCheckService(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
-    return new PreUpgradeCheckService(clusterName);
+    return new PreUpgradeCheckService(m_apiVersion, clusterName);
   }
 
   /**
@@ -609,7 +611,7 @@ public class ClusterService extends BaseService {
   public WidgetLayoutService getWidgetLayoutService(@Context javax.ws.rs.core.Request request,
                                                     @PathParam ("clusterName") String clusterName) {
 
-    return new WidgetLayoutService(clusterName);
+    return new WidgetLayoutService(m_apiVersion, clusterName);
   }
 
   /**
@@ -619,7 +621,7 @@ public class ClusterService extends BaseService {
   public WidgetService getWidgetService(@Context javax.ws.rs.core.Request request,
                                                     @PathParam ("clusterName") String clusterName) {
 
-    return new WidgetService(clusterName);
+    return new WidgetService(m_apiVersion, clusterName);
   }
 
   /**
@@ -633,7 +635,7 @@ public class ClusterService extends BaseService {
   public CredentialService getCredentials(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new CredentialService(clusterName);
+    return new CredentialService(m_apiVersion, clusterName);
   }
 
   /**
@@ -648,7 +650,7 @@ public class ClusterService extends BaseService {
   public ClusterKerberosDescriptorService getCompositeKerberosDescriptor(
       @Context javax.ws.rs.core.Request request,
       @PathParam("clusterName") String clusterName) {
-    return new ClusterKerberosDescriptorService(clusterName);
+    return new ClusterKerberosDescriptorService(m_apiVersion, clusterName);
   }
 
   /**
@@ -662,7 +664,7 @@ public class ClusterService extends BaseService {
   @Path("{clusterName}/logging")
   public LoggingService getLogging(@Context javax.ws.rs.core.Request request,
                                    @PathParam("clusterName") String clusterName) {
-    return AmbariServer.getController().getLoggingService(clusterName);
+    return AmbariServer.getController().getLoggingService(m_apiVersion, clusterName);
   }
 
   // ----- helper methods ----------------------------------------------------

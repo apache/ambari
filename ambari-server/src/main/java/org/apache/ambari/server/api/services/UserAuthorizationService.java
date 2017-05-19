@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
 
@@ -53,7 +54,8 @@ public class UserAuthorizationService extends BaseService {
    *
    * @param username the username of the user to link thi UserAuthorizationService to
    */
-  public UserAuthorizationService(String username) {
+  public UserAuthorizationService(ApiVersion apiVersion, String username) {
+    super(apiVersion);
     this.username = username;
   }
 

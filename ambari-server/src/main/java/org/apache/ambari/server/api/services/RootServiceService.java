@@ -32,11 +32,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
-@Path("/services/")
 public class RootServiceService extends BaseService {
-  
+
+  public RootServiceService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
+
   @GET
   @Produces("text/plain")
   public Response getServices(String body, @Context HttpHeaders headers, @Context UriInfo ui) {

@@ -33,14 +33,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
 /**
  * Service responsible for permission resource requests.
  */
-@Path("/permissions/")
 public class PermissionService extends BaseService {
+
+  public PermissionService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   /**
    * Handles: GET /permissions/{permissionID}
@@ -143,7 +147,7 @@ public class PermissionService extends BaseService {
   @Path("{permissionId}/authorizations")
   public RoleAuthorizationService getRoleAuthorizations(
       @Context javax.ws.rs.core.Request request, @PathParam("permissionId") String permissionId) {
-    return new RoleAuthorizationService(permissionId);
+    return new RoleAuthorizationService(m_apiVersion, permissionId);
   }
 
   // ----- helper methods ----------------------------------------------------

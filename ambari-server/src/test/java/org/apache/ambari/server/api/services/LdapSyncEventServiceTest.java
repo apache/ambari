@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -70,7 +71,7 @@ public class LdapSyncEventServiceTest extends BaseServiceTest {
   private class TestLdapSyncEventService extends LdapSyncEventService {
 
     private TestLdapSyncEventService() {
-      super();
+      super(ApiVersion.Default);
     }
 
     @Override

@@ -35,14 +35,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.internal.VersionDefinitionResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.codec.binary.Base64;
 
 import com.google.gson.JsonObject;
 
-@Path("/version_definitions/")
 public class VersionDefinitionService extends BaseService {
+
+  public VersionDefinitionService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   @GET
   @Produces(MediaType.TEXT_PLAIN)
@@ -72,7 +76,7 @@ public class VersionDefinitionService extends BaseService {
   public OperatingSystemService getOperatingSystemsHandler(@PathParam("versionNumber") String versionNumber) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();
     mapIds.put(Resource.Type.VersionDefinition, versionNumber);
-    return new OperatingSystemService(mapIds);
+    return new OperatingSystemService(m_apiVersion, mapIds);
   }
 
 

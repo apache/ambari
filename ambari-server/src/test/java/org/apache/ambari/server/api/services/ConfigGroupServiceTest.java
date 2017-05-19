@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 public class ConfigGroupServiceTest extends BaseServiceTest {
 
@@ -85,7 +86,7 @@ public class ConfigGroupServiceTest extends BaseServiceTest {
     private String m_groupId;
 
     public TestConfigGroupService(String m_clusterName, String groupId) {
-      super(m_clusterName);
+      super(ApiVersion.Default, m_clusterName);
       this.m_clusterName = m_clusterName;
       this.m_groupId = groupId;
     }

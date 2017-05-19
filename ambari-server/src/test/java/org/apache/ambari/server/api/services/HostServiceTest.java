@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for HostService.
@@ -90,7 +91,7 @@ public class HostServiceTest extends BaseServiceTest {
     private String m_hostId;
 
     private TestHostService(String clusterId, String hostId) {
-      super(clusterId);
+      super(ApiVersion.Default, clusterId);
       m_clusterId = clusterId;
       m_hostId = hostId;
     }

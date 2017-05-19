@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
@@ -32,7 +33,7 @@ public class ViewExternalSubResourceServiceTest {
     Resource.Type type = new Resource.Type("resource");
 
     ViewInstanceEntity definition = ViewInstanceEntityTest.getViewInstanceEntity();
-    ViewExternalSubResourceService service = new ViewExternalSubResourceService(type, definition);
+    ViewExternalSubResourceService service = new ViewExternalSubResourceService(ApiVersion.Default, type, definition);
 
     Object fooService = new Object();
 

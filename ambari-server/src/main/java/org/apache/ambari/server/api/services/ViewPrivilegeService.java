@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -33,7 +34,8 @@ public class ViewPrivilegeService extends PrivilegeService {
   private final String viewVersion;
   private final String instanceName;
 
-  public ViewPrivilegeService(String viewName, String viewVersion, String instanceName) {
+  public ViewPrivilegeService(ApiVersion apiVersion, String viewName, String viewVersion, String instanceName) {
+    super(apiVersion);
     this.viewName = viewName;
     this.viewVersion = viewVersion;
     this.instanceName = instanceName;

@@ -36,6 +36,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
@@ -75,11 +76,12 @@ public class LoggingService extends BaseService {
 
   private final String clusterName;
 
-  public LoggingService(String clusterName) {
-    this(clusterName, new DefaultControllerFactory());
+  public LoggingService(ApiVersion apiVersion, String clusterName) {
+    this(apiVersion, clusterName, new DefaultControllerFactory());
   }
 
-  public LoggingService(String clusterName, ControllerFactory controllerFactory) {
+  public LoggingService(ApiVersion apiVersion, String clusterName, ControllerFactory controllerFactory) {
+    super(apiVersion);
     this.clusterName = clusterName;
     this.controllerFactory = controllerFactory;
   }

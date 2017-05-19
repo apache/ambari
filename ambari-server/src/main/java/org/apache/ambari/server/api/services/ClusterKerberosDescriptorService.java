@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -54,7 +55,8 @@ public class ClusterKerberosDescriptorService extends BaseService {
    *
    * @param clusterName cluster id
    */
-  public ClusterKerberosDescriptorService(String clusterName) {
+  public ClusterKerberosDescriptorService(ApiVersion apiVersion, String clusterName) {
+    super(apiVersion);
     this.clusterName = clusterName;
   }
 

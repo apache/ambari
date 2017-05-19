@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -66,7 +67,8 @@ public class RepositoryService extends BaseService {
    *
    * @param parentKeyProperties extra properties to be inserted into created resource
    */
-  public RepositoryService(Map<Resource.Type, String> parentKeyProperties) {
+  public RepositoryService(ApiVersion apiVersion, Map<Resource.Type, String> parentKeyProperties) {
+    super(apiVersion);
     this.parentKeyProperties = parentKeyProperties;
   }
 

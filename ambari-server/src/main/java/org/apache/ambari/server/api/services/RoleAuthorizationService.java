@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -39,15 +40,14 @@ import org.apache.ambari.server.controller.spi.Resource;
  * The result sets returned by this service are either the full set of available authorizations or
  * those related to a particular permission.
  */
-@Path("/authorizations/")
 public class RoleAuthorizationService extends BaseService {
   private String permissionId;
 
   /**
    * Constructs a new RoleAuthorizationService that is not linked to any role (or permission)
    */
-  public RoleAuthorizationService() {
-    this(null);
+  public RoleAuthorizationService(ApiVersion apiVersion) {
+    this(apiVersion, null);
   }
 
   /**
@@ -55,7 +55,8 @@ public class RoleAuthorizationService extends BaseService {
    *
    * @param permissionId the permission id of a permission (or role)
    */
-  public RoleAuthorizationService(String permissionId) {
+  public RoleAuthorizationService(ApiVersion apiVersion, String permissionId) {
+    super(apiVersion);
     this.permissionId = permissionId;
   }
 

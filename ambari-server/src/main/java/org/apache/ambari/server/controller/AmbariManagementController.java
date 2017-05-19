@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
@@ -878,11 +879,12 @@ public interface AmbariManagementController {
   /**
    * Gets the LoggingService instance from the dependency injection framework.
    *
+   * @param apiVersion API version
    * @param clusterName the cluster name associated with this LoggingService instance
    *
    * @return an instance of LoggingService associated with the specified cluster.
    */
-  LoggingService getLoggingService(String clusterName);
+  LoggingService getLoggingService(ApiVersion apiVersion, String clusterName);
 
 
   /**

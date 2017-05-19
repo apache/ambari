@@ -33,13 +33,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * DR feed service.
  */
-@Path("/feeds/")
 public class FeedService extends BaseService {
+
+  public FeedService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   /**
    * Handles: GET /feeds/{feedName}
@@ -135,7 +139,7 @@ public class FeedService extends BaseService {
    */
   @Path("{feedName}/instances")
   public InstanceService getHostHandler(@PathParam("feedName") String feedName) {
-    return new InstanceService(feedName);
+    return new InstanceService(m_apiVersion, feedName);
   }
 
   /**

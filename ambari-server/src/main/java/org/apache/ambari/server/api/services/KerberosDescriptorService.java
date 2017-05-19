@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -34,8 +35,11 @@ import org.apache.ambari.server.controller.spi.Resource;
  * limitations under the License.
  */
 
-@Path("/kerberos_descriptors/")
 public class KerberosDescriptorService extends BaseService {
+
+  public KerberosDescriptorService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   /**
    * Handles: GET  /kerberos_descriptors

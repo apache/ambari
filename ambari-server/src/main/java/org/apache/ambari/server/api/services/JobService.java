@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -48,7 +49,8 @@ public class JobService extends BaseService {
    * @param workflowId
    *          workflow id
    */
-  public JobService(String clusterName, String workflowId) {
+  public JobService(ApiVersion apiVersion, String clusterName, String workflowId) {
+    super(apiVersion);
     this.clusterName = clusterName;
     this.workflowId = workflowId;
   }
@@ -95,7 +97,7 @@ public class JobService extends BaseService {
   @Path("{jobId}/taskattempts")
   public TaskAttemptService getTaskAttemptHandler(
       @PathParam("jobId") String jobId) {
-    return new TaskAttemptService(clusterName, workflowId, jobId);
+    return new TaskAttemptService(m_apiVersion, clusterName, workflowId, jobId);
   }
 
   /**

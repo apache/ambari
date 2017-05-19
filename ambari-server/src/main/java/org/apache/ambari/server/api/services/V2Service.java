@@ -12,31 +12,17 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing privileges and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package org.apache.ambari.server.api.services;
 
-import java.util.Collections;
-
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.util.ApiVersion;
-import org.apache.ambari.server.controller.spi.Resource;
+import javax.ws.rs.Path;
 
 /**
- *  Service responsible for Ambari privilege resource requests.
+ * Entry point for v2 API version
  */
-public class AmbariPrivilegeService extends PrivilegeService {
-  public AmbariPrivilegeService(ApiVersion apiVersion) {
-    super(apiVersion);
-  }
-
-  // ----- PrivilegeService --------------------------------------------------
-
-  @Override
-  protected ResourceInstance createPrivilegeResource(String privilegeId) {
-    return createResource(Resource.Type.AmbariPrivilege,
-        Collections.singletonMap(Resource.Type.AmbariPrivilege, privilegeId));
-  }
+@Path("/{apiVersion : v2}")
+public class V2Service extends AbstractVersionService {
 }

@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -41,7 +42,8 @@ public class AlertService extends BaseService {
   private String serviceName = null;
   private String hostName = null;
 
-  AlertService(String clusterName, String serviceName, String hostName) {
+  AlertService(ApiVersion apiVersion, String clusterName, String serviceName, String hostName) {
+    super(apiVersion);
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.hostName = hostName;

@@ -25,6 +25,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * {@link StackAdvisorCommand} implementation for component-layout
@@ -33,13 +34,13 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 public class ComponentLayoutRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public ComponentLayoutRecommendationCommand(File recommendationsDir,
+  public ComponentLayoutRecommendationCommand(ApiVersion apiVersion, File recommendationsDir,
                                               String recommendationsArtifactsLifetime,
                                               String stackAdvisorScript,
                                               int requestId,
                                               StackAdvisorRunner saRunner,
                                               AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
+    super(apiVersion, recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override

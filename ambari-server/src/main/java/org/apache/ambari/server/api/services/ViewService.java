@@ -33,14 +33,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 
 /**
  * Service responsible for view resource requests.
  */
-@Path("/views/")
 public class ViewService extends BaseService {
+
+  public ViewService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   /**
    * Handles: GET /views/{viewID}
@@ -142,7 +146,7 @@ public class ViewService extends BaseService {
    */
   @Path("{viewName}/versions")
   public ViewVersionService getInstanceHandler(@PathParam("viewName") String viewName) {
-    return new ViewVersionService(viewName);
+    return new ViewVersionService(m_apiVersion, viewName);
   }
 
 

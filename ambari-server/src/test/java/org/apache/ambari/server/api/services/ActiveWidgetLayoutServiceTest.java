@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.junit.Test;
@@ -46,7 +47,7 @@ public class ActiveWidgetLayoutServiceTest {
 
   private class TestActiveWidgetLayoutService extends ActiveWidgetLayoutService {
     public TestActiveWidgetLayoutService(String username) {
-      super(username);
+      super(ApiVersion.Default, username);
     }
 
     @Override

@@ -34,12 +34,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for instances resource requests.
  */
-@Path("/instances/")
 public class InstanceService extends BaseService {
 
   /**
@@ -50,7 +50,8 @@ public class InstanceService extends BaseService {
   /**
    * Constructor.
    */
-  public InstanceService() {
+  public InstanceService(ApiVersion apiVersion) {
+    super(apiVersion);
   }
 
   /**
@@ -58,7 +59,8 @@ public class InstanceService extends BaseService {
    *
    * @param feedName feed id
    */
-  public InstanceService(String feedName) {
+  public InstanceService(ApiVersion apiVersion, String feedName) {
+    super(apiVersion);
     m_feedName = feedName;
   }
 

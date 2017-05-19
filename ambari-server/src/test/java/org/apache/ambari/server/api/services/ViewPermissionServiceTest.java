@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for ViewPermissionService.
@@ -73,7 +74,7 @@ public class ViewPermissionServiceTest extends BaseServiceTest {
 
     private TestViewPermissionService(String viewName, String version, String permissionId) {
 
-      super(viewName, version);
+      super(ApiVersion.Default, viewName, version);
       this.permissionId = permissionId;
     }
 

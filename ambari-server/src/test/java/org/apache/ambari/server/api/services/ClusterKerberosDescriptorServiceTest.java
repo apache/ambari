@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for CredentialService.
@@ -64,7 +65,7 @@ public class ClusterKerberosDescriptorServiceTest extends BaseServiceTest {
     private String type;
 
     private TestService(String type) {
-      super("C1");
+      super(ApiVersion.Default, "C1");
       this.type = type;
     }
 

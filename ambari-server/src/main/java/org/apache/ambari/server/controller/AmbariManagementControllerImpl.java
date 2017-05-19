@@ -90,6 +90,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
@@ -5202,14 +5203,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return injector.getInstance(MetricPropertyProviderFactory.class);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public LoggingSearchPropertyProvider getLoggingSearchPropertyProvider() {
     return injector.getInstance(LoggingSearchPropertyProvider.class);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public LoggingService getLoggingService(String clusterName) {
-    LoggingService loggingService = new LoggingService(clusterName);
+  public LoggingService getLoggingService(ApiVersion apiVersion, String clusterName) {
+    LoggingService loggingService = new LoggingService(apiVersion, clusterName);
     injector.injectMembers(loggingService);
     return loggingService;
   }

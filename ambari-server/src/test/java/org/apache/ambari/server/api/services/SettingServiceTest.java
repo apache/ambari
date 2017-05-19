@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit test for {@link SettingService}
@@ -75,6 +76,7 @@ public class SettingServiceTest extends BaseServiceTest {
     private String settingName;
 
     private TestSettingService(String settingName) {
+      super(ApiVersion.Default);
       this.settingName = settingName;
     }
 

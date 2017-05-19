@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -52,7 +53,8 @@ public class HostStackVersionService extends BaseService {
    *
    * @param hostName name of the host
    */
-  public HostStackVersionService(String hostName, String clusterName) {
+  public HostStackVersionService(ApiVersion apiVersion, String hostName, String clusterName) {
+    super(apiVersion);
     this.hostName = hostName;
     this.clusterName = clusterName;
   }
@@ -116,7 +118,7 @@ public class HostStackVersionService extends BaseService {
     final Map<Resource.Type, String> stackVersionProperties = new HashMap<>();
     stackVersionProperties.put(Resource.Type.Host, hostName);
     stackVersionProperties.put(Resource.Type.HostStackVersion, stackVersionId);
-    return new RepositoryVersionService(stackVersionProperties);
+    return new RepositoryVersionService(m_apiVersion, stackVersionProperties);
   }
 
   /**

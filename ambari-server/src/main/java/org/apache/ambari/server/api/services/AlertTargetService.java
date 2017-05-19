@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.alert.AlertTarget;
 
@@ -40,8 +41,11 @@ import org.apache.ambari.server.state.alert.AlertTarget;
  * The {@link AlertTargetService} handles CRUD operation requests for alert
  * targets.
  */
-@Path("/alert_targets/")
 public class AlertTargetService extends BaseService {
+
+  public AlertTargetService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   @GET
   @Produces("text/plain")

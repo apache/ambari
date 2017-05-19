@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.commons.lang.StringUtils;
 /**
@@ -36,7 +38,8 @@ public class UserPrivilegeService extends PrivilegeService {
 
   private final String userName;
 
-  public UserPrivilegeService(String userName) {
+  public UserPrivilegeService(ApiVersion apiVersion, String userName) {
+    super(apiVersion);
     this.userName = userName;
   }
 

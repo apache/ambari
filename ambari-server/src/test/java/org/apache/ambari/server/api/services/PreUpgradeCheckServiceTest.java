@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
 /**
@@ -56,7 +57,7 @@ public class PreUpgradeCheckServiceTest extends BaseServiceTest {
   private class TestPreUpgradeCheckService extends PreUpgradeCheckService {
 
     public TestPreUpgradeCheckService(String clusterName) {
-      super(clusterName);
+      super(ApiVersion.Default, clusterName);
     }
 
     @Override

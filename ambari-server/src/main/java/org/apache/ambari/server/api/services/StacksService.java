@@ -32,13 +32,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service for stacks management.
  */
-@Path("/stacks/")
 public class StacksService extends BaseService {
+
+  public StacksService(ApiVersion apiVersion) {
+    super(apiVersion);
+  }
 
   @GET
   @Produces("text/plain")
@@ -345,7 +349,33 @@ public class StacksService extends BaseService {
     final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new OperatingSystemService(stackProperties);
+    return new OperatingSystemService(m_apiVersion, stackProperties);
+  }
+
+  /**
+   * Returns host-layout recommendations for list of hosts and services.
+   *
+   * @param stackName stack name
+   * @param stackVersion stack version
+   * @return recommendations for host-layout
+   */
+  @Path("{stackName}/versions/{stackVersion}/recommendations")
+  public RecommendationService getRecommendationHandler(@PathParam("stackName") String stackName,
+          @PathParam("stackVersion") String stackVersion) {
+    return new RecommendationService(m_apiVersion, stackName, stackVersion);
+  }
+
+  /**
+   * Returns validation of host-layout.
+   *
+   * @param stackName stack name
+   * @param stackVersion stack version
+   * @return validation items if any
+   */
+  @Path("{stackName}/versions/{stackVersion}/validations")
+  public ValidationService getValidationHandler(@PathParam("stackName") String stackName,
+          @PathParam("stackVersion") String stackVersion) {
+    return new ValidationService(m_apiVersion, stackName, stackVersion);
   }
 
   /**
@@ -360,7 +390,7 @@ public class StacksService extends BaseService {
     final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new RepositoryVersionService(stackProperties);
+    return new RepositoryVersionService(m_apiVersion, stackProperties);
   }
 
   /**
@@ -377,7 +407,7 @@ public class StacksService extends BaseService {
     final Map<Resource.Type, String> stackProperties = new HashMap<>();
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
-    return new CompatibleRepositoryVersionService(stackProperties);
+    return new CompatibleRepositoryVersionService(m_apiVersion, stackProperties);
   }
 
   ResourceInstance createStackServiceComponentResource(

@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -40,7 +41,8 @@ public class UpgradeGroupService extends BaseService {
   private String m_clusterName = null;
   private String m_upgradeId = null;
 
-  UpgradeGroupService(String clusterName, String upgradeId) {
+  UpgradeGroupService(ApiVersion apiVersion, String clusterName, String upgradeId) {
+    super(apiVersion);
     m_clusterName = clusterName;
     m_upgradeId = upgradeId;
   }
@@ -68,7 +70,7 @@ public class UpgradeGroupService extends BaseService {
   public UpgradeItemService getUpgradeItemService(
       @Context HttpHeaders headers,
       @PathParam("upgradeGroupId") Long groupId) {
-    return new UpgradeItemService(m_clusterName, m_upgradeId, groupId.toString());
+    return new UpgradeItemService(m_apiVersion, m_clusterName, m_upgradeId, groupId.toString());
   }
 
   /**

@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for ValidationService.
@@ -42,8 +43,8 @@ public class ValidationServiceTest extends BaseServiceTest {
 
     //getValidation
     ValidationService service = new TestValidationService("stackName", "stackVersion");
-    Method m = service.getClass().getMethod("getValidation", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
-    Object[] args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "stackName", "stackVersion"};
+    Method m = service.getClass().getMethod("getValidation", String.class, HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[] {"body", getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.POST, service, m, args, "body"));
 
     return listInvocations;
@@ -54,7 +55,7 @@ public class ValidationServiceTest extends BaseServiceTest {
     private String stackVersion;
 
     private TestValidationService(String stackName, String stackVersion) {
-      super();
+      super(ApiVersion.Default, stackName, stackVersion);
       this.stackName = stackName;
       this.stackVersion = stackVersion;
     }

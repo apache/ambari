@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.util.ApiVersion;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -51,7 +52,8 @@ public class AlertGroupService extends BaseService {
    *
    * @param clusterName
    */
-  AlertGroupService(String clusterName) {
+  AlertGroupService(ApiVersion apiVersion, String clusterName) {
+    super(apiVersion);
     m_clusterName = clusterName;
   }
 

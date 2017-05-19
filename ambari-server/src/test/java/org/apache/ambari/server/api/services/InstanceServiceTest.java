@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.util.ApiVersion;
 
 /**
  * Unit tests for InstanceService.
@@ -78,7 +79,7 @@ public class InstanceServiceTest extends BaseServiceTest {
     private String m_instanceId;
 
     private TestInstanceService(String feedName, String instanceId) {
-      super(feedName);
+      super(ApiVersion.Default, feedName);
       m_feedName = feedName;
       m_instanceId = instanceId;
     }
