@@ -18,10 +18,16 @@
 
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
+import {HttpModule, Http} from '@angular/http';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {HttpClientService} from '../http-client.service';
 
 import {LoginFormComponent} from './login-form.component';
+
+export function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
 
 describe('LoginFormComponent', () => {
   let component: LoginFormComponent;
@@ -49,7 +55,15 @@ describe('LoginFormComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [LoginFormComponent],
-      imports: [HttpModule, FormsModule],
+      imports: [
+        HttpModule,
+        FormsModule,
+        TranslateModule.forRoot({
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [Http]
+        })
+      ],
       providers: [
         {
           provide: HttpClientService,

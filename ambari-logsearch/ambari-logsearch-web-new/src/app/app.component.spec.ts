@@ -18,9 +18,16 @@
 
 import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {TestBed, async} from '@angular/core/testing';
+import {Http} from '@angular/http';
+import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {HttpClientService} from './http-client.service';
 
 import {AppComponent} from './app.component';
+
+export function HttpLoaderFactory(http: Http) {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
@@ -29,6 +36,11 @@ describe('AppComponent', () => {
     };
     TestBed.configureTestingModule({
       declarations: [AppComponent],
+      imports: [TranslateModule.forRoot({
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [Http]
+      })],
       providers: [
         {
           provide: HttpClientService,
@@ -43,13 +55,5 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.debugElement.componentInstance;
     expect(app).toBeTruthy();
-  }));
-
-  it('should render title in a h1 tag', async(() => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.debugElement.componentInstance;
-    fixture.detectChanges();
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.querySelector('h1').textContent).toContain(app.title);
   }));
 });
