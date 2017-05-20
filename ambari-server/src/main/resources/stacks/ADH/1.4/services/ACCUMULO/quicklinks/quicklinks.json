@@ -1,0 +1,40 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"monitor.ssl.keyStore",
+          "desired":"EXIST",
+          "site":"accumulo-site"
+        },
+        {
+          "property":"monitor.ssl.trustStore",
+          "desired":"EXIST",
+          "site":"accumulo-site"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "accumulo_monitor_ui",
+        "label": "Accumulo Monitor UI",
+        "requires_user_name": "false",
+        "component_name": "ACCUMULO_MONITOR",
+        "url": "%@://%@:%@/",
+        "port":{
+          "http_property": "monitor.port.client",
+          "http_default_port": "50095",
+          "https_property": "monitor.port.client",
+          "https_default_port": "50095",
+          "regex": "^(\\d+)$",
+          "site": "accumulo-site"
+        }
+      }
+    ]
+  }
+}

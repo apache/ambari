@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 class ADH13StackAdvisor(ADH12StackAdvisor):
 
   def getServiceConfigurationRecommenderDict(self):
