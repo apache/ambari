@@ -696,7 +696,6 @@
 
       <component name="NODEMANAGER">
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env"/>
           <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->

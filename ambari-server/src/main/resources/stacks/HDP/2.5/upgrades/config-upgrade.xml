@@ -207,14 +207,6 @@
           </definition>
         </changes>
       </component>
-      <component name="NODEMANAGER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
-            <type>yarn-site</type>
-            <insert key="yarn.nodemanager.admin-env" value=",PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:$PATH" insert-type="append" newline-before="false" newline-after="false" />
-          </definition>
-        </changes>
-      </component>
     </service>
 
     <service name="MAPREDUCE2">

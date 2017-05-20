@@ -353,12 +353,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM admin env">
-        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
-          <summary>Updating YARN NodeManager admin env config</summary>
-        </task>
-      </execute-stage>
-
       <!--Yarn Apptimeline server-->
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for App timeline server">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixYarnWebServiceUrl">

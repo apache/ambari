@@ -331,12 +331,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="YARN" component="NODEMANAGER" title="Apply config changes for YARN NM admin env">
-        <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_admin_env">
-          <summary>Updating YARN NodeManager admin env config</summary>
-        </task>
-      </execute-stage>
-
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="configure" id="hdp_2_6_0_0_mapreduce_job_queuename">
           <summary>Adding queue customization property</summary>
