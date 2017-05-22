@@ -797,7 +797,6 @@ def init_action_parser(action, parser):
     RESET_ACTION: init_empty_parser_options,
     STATUS_ACTION: init_empty_parser_options,
     UPGRADE_ACTION: init_empty_parser_options,
-    UPGRADE_STACK_ACTION:init_empty_parser_options,
     LDAP_SETUP_ACTION: init_ldap_setup_parser_options,
     LDAP_SYNC_ACTION: init_ldap_sync_parser_options,
     SET_CURRENT_ACTION: init_set_current_parser_options,
