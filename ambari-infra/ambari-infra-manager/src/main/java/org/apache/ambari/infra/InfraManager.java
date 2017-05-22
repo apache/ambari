@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
@@ -48,6 +49,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import static org.apache.ambari.infra.common.InfraManagerConstants.DATA_FOLDER_LOCATION_PARAM;
+import static org.apache.ambari.infra.common.InfraManagerConstants.DEFAULT_DATA_FOLDER_LOCATION;
 import static org.apache.ambari.infra.common.InfraManagerConstants.DEFAULT_PORT;
 import static org.apache.ambari.infra.common.InfraManagerConstants.DEFAULT_PROTOCOL;
 import static org.apache.ambari.infra.common.InfraManagerConstants.INFRA_MANAGER_SESSION_ID;
@@ -78,6 +81,13 @@ public class InfraManager {
       .argName("port_number")
       .build();
 
+    final Option dataFolderOption = Option.builder("df")
+      .longOpt("data-folder")
+      .desc("Infra Manager data folder location")
+      .numberOfArgs(1)
+      .argName("data_folder")
+      .build();
+
     final Option protocolOption = Option.builder("t")
       .longOpt("tls-enabled")
       .desc("TLS enabled for Infra Manager")
@@ -86,17 +96,21 @@ public class InfraManager {
     options.addOption(helpOption);
     options.addOption(portOption);
     options.addOption(protocolOption);
+    options.addOption(dataFolderOption);
 
     try {
       CommandLineParser cmdLineParser = new DefaultParser();
       CommandLine cli = cmdLineParser.parse(options, args);
       int port = cli.hasOption('p') ? Integer.parseInt(cli.getOptionValue('p')) : DEFAULT_PORT;
       String protocol = cli.hasOption("t") ? PROTOCOL_SSL : DEFAULT_PROTOCOL;
+      String dataFolder = cli.hasOption("df") ? cli.getOptionValue("df"): DEFAULT_DATA_FOLDER_LOCATION;
+
+      System.setProperty(DATA_FOLDER_LOCATION_PARAM, dataFolder); // be able to access it from jobs
 
       Server server = buildServer(port, protocol);
       HandlerList handlers = new HandlerList();
       handlers.addHandler(createSwaggerContext());
-      handlers.addHandler(createBaseWebappContext());
+      handlers.addHandler(createBaseWebappContext(dataFolder));
 
       server.setHandler(handlers);
       server.start();
@@ -124,12 +138,21 @@ public class InfraManager {
     return server;
   }
 
-  private static WebAppContext createBaseWebappContext() throws MalformedURLException {
+  private static WebAppContext createBaseWebappContext(String dataFolder) throws MalformedURLException {
     URI webResourceBase = findWebResourceBase();
     WebAppContext context = new WebAppContext();
-    context.setBaseResource(Resource.newResource(webResourceBase));
+    ResourceCollection resources = new ResourceCollection(Resource.newResource(webResourceBase));
+    context.setBaseResource(resources);
     context.setContextPath(ROOT_CONTEXT);
     context.setParentLoaderPriority(true);
+
+    // Data folder servlet
+    ServletHolder dataServlet = new ServletHolder("static-data", DefaultServlet.class);
+    dataServlet.setInitParameter("dirAllowed","true");
+    dataServlet.setInitParameter("pathInfoOnly","true");
+    dataServlet.setInitParameter("resourceBase", dataFolder);
+
+    context.addServlet(dataServlet,"/files/*");
 
     // Configure Spring
     context.addEventListener(new ContextLoaderListener());
