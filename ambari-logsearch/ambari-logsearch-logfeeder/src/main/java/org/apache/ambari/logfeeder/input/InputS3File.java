@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.ambari.logfeeder.util.S3Util;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.solr.common.util.Base64;
 
@@ -78,8 +79,8 @@ public class InputS3File extends AbstractInputFile {
 
   @Override
   protected BufferedReader openLogFile(File logPathFile) throws IOException {
-    String s3AccessKey = getStringValue("s3_access_key");
-    String s3SecretKey = getStringValue("s3_secret_key");
+    String s3AccessKey = ((InputS3FileDescriptor)inputDescriptor).getS3AccessKey();
+    String s3SecretKey = ((InputS3FileDescriptor)inputDescriptor).getS3SecretKey();
     BufferedReader br = S3Util.getReader(logPathFile.getPath(), s3AccessKey, s3SecretKey);
     fileKey = getFileKey(logPathFile);
     base64FileKey = Base64.byteArrayToBase64(fileKey.toString().getBytes());

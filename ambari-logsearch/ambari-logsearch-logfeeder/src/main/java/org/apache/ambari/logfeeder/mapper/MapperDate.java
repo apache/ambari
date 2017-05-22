@@ -26,6 +26,8 @@ import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -39,18 +41,11 @@ public class MapperDate extends Mapper {
   private SimpleDateFormat srcDateFormatter=null;
 
   @Override
-  public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
+  public boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor) {
     init(inputDesc, fieldName, mapClassCode);
-    if (!(mapConfigs instanceof Map)) {
-      LOG.fatal("Can't initialize object. mapConfigs class is not of type Map. " + mapConfigs.getClass().getName() +
-        ", map=" + this);
-      return false;
-    }
     
-    @SuppressWarnings("unchecked")
-    Map<String, Object> mapObjects = (Map<String, Object>) mapConfigs;
-    String targetDateFormat = (String) mapObjects.get("target_date_pattern");
-    String srcDateFormat = (String) mapObjects.get("src_date_pattern");
+    String targetDateFormat = ((MapDateDescriptor)mapFieldDescriptor).getTargetDatePattern();
+    String srcDateFormat = ((MapDateDescriptor)mapFieldDescriptor).getSourceDatePattern();
     if (StringUtils.isEmpty(targetDateFormat)) {
       LOG.fatal("Date format for map is empty. " + this);
     } else {

@@ -21,6 +21,8 @@ package org.apache.ambari.logfeeder.output;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.cache.LRUCache;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +51,7 @@ public class OutputLineFilterTest {
   public void testApplyWithFilterOutByDedupInterval() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache(DEFAULT_DUMMY_MESSAGE, 100L, false));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     // WHEN
@@ -63,7 +65,7 @@ public class OutputLineFilterTest {
   public void testApplyDoNotFilterOutDataByDedupInterval() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache(DEFAULT_DUMMY_MESSAGE, 10L, false));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     // WHEN
@@ -77,7 +79,7 @@ public class OutputLineFilterTest {
   public void testApplyWithFilterOutByDedupLast() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache(DEFAULT_DUMMY_MESSAGE, 10L, true));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     // WHEN
@@ -91,7 +93,7 @@ public class OutputLineFilterTest {
   public void testApplyDoNotFilterOutDataByDedupLast() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache("myMessage2", 10L, true));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     // WHEN
@@ -117,7 +119,7 @@ public class OutputLineFilterTest {
   public void testApplyWithoutInMemoryTimestamp() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache(DEFAULT_DUMMY_MESSAGE, 100L, true));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     Map<String, Object> lineMap = generateLineMap();
@@ -133,7 +135,7 @@ public class OutputLineFilterTest {
   public void testApplyWithoutLogMessage() {
     // GIVEN
     EasyMock.expect(inputMock.getCache()).andReturn(createLruCache(DEFAULT_DUMMY_MESSAGE, 100L, true));
-    EasyMock.expect(inputMock.getConfigs()).andReturn(generateInputConfigs());
+    EasyMock.expect(inputMock.getInputDescriptor()).andReturn(generateInputDescriptor());
     EasyMock.expect(inputMock.getCacheKeyField()).andReturn(CACHE_KEY_FIELD);
     EasyMock.replay(inputMock);
     Map<String, Object> lineMap = generateLineMap();
@@ -152,10 +154,10 @@ public class OutputLineFilterTest {
     return lineMap;
   }
 
-  private Map<String, Object> generateInputConfigs() {
-    Map<String, Object> inputConfigs = new HashMap<>();
-    inputConfigs.put(LogFeederConstants.ROW_TYPE, "service");
-    return inputConfigs;
+  private InputDescriptor generateInputDescriptor() {
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setRowtype("service");
+    return inputDescriptor;
   }
 
   private LRUCache createLruCache(String defaultKey, long defaultValue, boolean lastDedupEanabled) {

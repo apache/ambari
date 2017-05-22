@@ -26,6 +26,7 @@ import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 public class LogSearchConfigClass2 implements LogSearchConfig {
   @Override
@@ -52,7 +53,7 @@ public class LogSearchConfigClass2 implements LogSearchConfig {
   }
 
   @Override
-  public String getInputConfig(String clusterName, String serviceName) {
+  public InputConfig getInputConfig(String clusterName, String serviceName) {
     return null;
   }
 

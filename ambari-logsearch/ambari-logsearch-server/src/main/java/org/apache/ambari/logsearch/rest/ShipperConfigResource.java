@@ -33,6 +33,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import org.apache.ambari.logsearch.manager.ShipperConfigManager;
+import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
 import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.springframework.context.annotation.Scope;
 
@@ -65,7 +66,8 @@ public class ShipperConfigResource {
   @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
   @ApiOperation(GET_SHIPPER_CONFIG_OD)
-  public String getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName") String serviceName) {
+  public LSServerInputConfig getShipperConfig(@PathParam("clusterName") String clusterName, @PathParam("serviceName")
+    String serviceName) {
     return shipperConfigManager.getInputConfig(clusterName, serviceName);
   }
 
@@ -99,7 +101,7 @@ public class ShipperConfigResource {
   @Path("/filters/{clusterName}/level")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_LOG_LEVEL_FILTER_OD)
-  public Response setogLevelFilter(LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
+  public Response setLogLevelFilter(LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
     return shipperConfigManager.setLogLevelFilters(clusterName, request);
   }
 
