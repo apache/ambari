@@ -56,7 +56,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -614,25 +613,6 @@ public class HeartbeatProcessor extends AbstractService{
                       + " has changed from " + prevState + " to " + liveState
                       + " at host " + hostname
                       + " according to STATUS_COMMAND report");
-                }
-              }
-
-              SecurityState prevSecurityState = scHost.getSecurityState();
-              SecurityState currentSecurityState = SecurityState.valueOf(status.getSecurityState());
-              if((prevSecurityState != currentSecurityState)) {
-                if(prevSecurityState.isEndpoint()) {
-                  scHost.setSecurityState(currentSecurityState);
-                  LOG.info(String.format("Security of service component %s of service %s of cluster %s " +
-                          "has changed from %s to %s on host %s",
-                      componentName, status.getServiceName(), status.getClusterName(), prevSecurityState,
-                      currentSecurityState, hostname));
-                }
-                else {
-                  LOG.debug(String.format("Security of service component %s of service %s of cluster %s " +
-                          "has changed from %s to %s on host %s but will be ignored since %s is a " +
-                          "transitional state",
-                      componentName, status.getServiceName(), status.getClusterName(),
-                      prevSecurityState, currentSecurityState, hostname, prevSecurityState));
                 }
               }
 

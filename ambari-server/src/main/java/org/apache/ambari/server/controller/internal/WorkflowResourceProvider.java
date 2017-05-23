@@ -173,7 +173,7 @@ public class WorkflowResourceProvider extends
   /**
    * Simple interface for fetching workflows from db.
    */
-  public static interface WorkflowFetcher {
+  public interface WorkflowFetcher {
     /**
      * Fetch workflow resources.
      * 
@@ -185,8 +185,8 @@ public class WorkflowResourceProvider extends
      *          the workflow id
      * @return a set of workflow resources
      */
-    public Set<Resource> fetchWorkflows(Set<String> requestedIds,
-        String clusterName, String workflowId);
+    Set<Resource> fetchWorkflows(Set<String> requestedIds,
+                                 String clusterName, String workflowId);
   }
 
   /**
@@ -292,7 +292,7 @@ public class WorkflowResourceProvider extends
   /**
    * Enumeration of db fields for the workflow table.
    */
-  static enum WorkflowFields {
+  enum WorkflowFields {
     WORKFLOWID,
     WORKFLOWNAME,
     USERNAME,

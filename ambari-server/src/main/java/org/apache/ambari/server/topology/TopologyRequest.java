@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,21 +27,21 @@ public interface TopologyRequest {
   /**
    * Request types.
    */
-  public enum Type { PROVISION, SCALE, EXPORT }
+  enum Type { PROVISION, SCALE, EXPORT }
 
   /**
    * Get the cluster id associated with the request. Can be <code>null</code>.
    *
    * @return associated cluster id
    */
-  public Long getClusterId();
+  Long getClusterId();
 
   /**
    * Get the request type.
    *
    * @return the type of request
    */
-  public Type getType();
+  Type getType();
 
   //todo: only a single BP may be specified so all host groups have the same bp.
   //todo: BP really needs to be associated with the HostGroupInfo, even for create which will have a single BP
@@ -53,33 +52,26 @@ public interface TopologyRequest {
    *
    * @return associated blueprint instance
    */
-  public Blueprint getBlueprint();
+  Blueprint getBlueprint();
 
   /**
    * Get the cluster scoped configuration for the request.
    *
    * @return cluster scoped configuration
    */
-  public Configuration getConfiguration();
+  Configuration getConfiguration();
 
   /**
    * Get host group info.
    *
    * @return map of host group name to group info
    */
-  public Map<String, HostGroupInfo> getHostGroupInfo();
-
-  /**
-   * Get request topology validators.
-   *
-   * @return list of topology validators
-   */
-  public List<TopologyValidator> getTopologyValidators();
+  Map<String, HostGroupInfo> getHostGroupInfo();
 
   /**
    * Get request description.
    *
    * @return string description of the request
    */
-  public String getDescription();
+  String getDescription();
 }

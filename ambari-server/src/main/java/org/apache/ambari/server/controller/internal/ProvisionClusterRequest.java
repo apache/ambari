@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,17 +35,12 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.SecurityConfiguration;
-import org.apache.ambari.server.topology.TopologyValidator;
-import org.apache.ambari.server.topology.validators.ClusterConfigTypeValidator;
-import org.apache.ambari.server.topology.validators.HiveServiceValidator;
-import org.apache.ambari.server.topology.validators.RequiredPasswordValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 
 /**
  * Request for provisioning a cluster.
@@ -146,8 +140,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private final String quickLinksProfileJson;
 
-  private final List<TopologyValidator> topologyValidators;
-
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
@@ -197,9 +189,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
     }
-
-    topologyValidators = ImmutableList.of(new RequiredPasswordValidator(defaultPassword),
-      new ClusterConfigTypeValidator(), new HiveServiceValidator());
   }
 
   private String processQuickLinksProfile(Map<String, Object> properties) throws QuickLinksProfileEvaluationException {
@@ -270,11 +259,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   @Override
   public Type getType() {
     return Type.PROVISION;
-  }
-
-  @Override
-  public List<TopologyValidator> getTopologyValidators() {
-    return topologyValidators;
   }
 
   @Override
@@ -480,4 +464,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public String getQuickLinksProfileJson() {
     return quickLinksProfileJson;
   }
+
+  public String getDefaultPassword() {
+    return defaultPassword;
+  }
+
 }

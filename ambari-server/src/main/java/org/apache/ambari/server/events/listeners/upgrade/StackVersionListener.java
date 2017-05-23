@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -37,7 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -60,12 +56,6 @@ public class StackVersionListener {
   private final static Logger LOG = LoggerFactory.getLogger(StackVersionListener.class);
   public static final String UNKNOWN_VERSION = State.UNKNOWN.toString();
 
-  /**
-   * Used to prevent multiple threads from trying to create host alerts
-   * simultaneously.
-   */
-  private Lock m_stackVersionLock = new ReentrantLock();
-
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
 
@@ -83,7 +73,6 @@ public class StackVersionListener {
   }
 
   @Subscribe
-  @AllowConcurrentEvents
   public void onAmbariEvent(HostComponentVersionAdvertisedEvent event) {
     LOG.debug("Received event {}", event);
 
@@ -95,8 +84,6 @@ public class StackVersionListener {
     if (StringUtils.isEmpty(newVersion)) {
       return;
     }
-
-    m_stackVersionLock.lock();
 
     // if the cluster is upgrading, there's no need to update the repo version -
     // it better be right
@@ -120,6 +107,7 @@ public class StackVersionListener {
       ComponentInfo componentInfo = metaInfo.getComponent(cluster.getDesiredStackVersion().getStackName(),
       cluster.getDesiredStackVersion().getStackVersion(), sch.getServiceName(), sch.getServiceComponentName());
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
+
       if (componentInfo.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
           && !UNKNOWN_VERSION.equalsIgnoreCase(newVersion)) {
         processComponentAdvertisedVersion(cluster, sch, newVersion, sc);
@@ -135,12 +123,11 @@ public class StackVersionListener {
           processComponentAdvertisedVersion(cluster, sch, newVersion, sc);
         }
       }
+
     } catch (Exception e) {
       LOG.error(
           "Unable to propagate version for ServiceHostComponent on component: {}, host: {}. Error: {}",
           sch.getServiceComponentName(), sch.getHostName(), e.getMessage());
-    } finally {
-      m_stackVersionLock.unlock();
     }
   }
 
@@ -158,6 +145,7 @@ public class StackVersionListener {
     if (StringUtils.isBlank(newVersion)) {
       return;
     }
+
     String previousVersion = sch.getVersion();
     if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
       // value may be "UNKNOWN" when upgrading from older Ambari versions
@@ -168,6 +156,8 @@ public class StackVersionListener {
     } else if (!StringUtils.equals(previousVersion, newVersion)) {
       processComponentVersionChange(cluster, sc, sch, newVersion);
     }
+
+    sc.updateRepositoryState(newVersion);
   }
 
   /**

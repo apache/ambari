@@ -281,6 +281,10 @@
         <task xsi:type="configure" id="hdfs_securitylogger_additivity"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
@@ -465,6 +469,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Env gc-worker configuration">
+        <task xsi:type="configure" id="atlas_env_gc_worker">
+          <summary>Updating Atlas Env gc-worker configuration</summary>
+        </task>
+      </execute-stage>
+
       <!--KAFKA-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Parameterizing Kafka Log4J Properties">
         <task xsi:type="configure" id="kafka_log4j_parameterize">
@@ -538,6 +548,42 @@
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Appending heap dump options for Tez config 'tez.am.launch.cmd-opts">
         <task xsi:type="configure" id="hdp_2_6_0_0_tez_append_heap_dump_options_for_tez_am"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update headroom for LLAP">
+        <task xsi:type="configure" id="llap_update_headroom">
+          <summary>Updating headroom for LLAP</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update Hash Aggregation settings for LLAP">
+        <task xsi:type="configure" id="llap_update_hashaggregation">
+          <summary>Updating Hash Aggregation settings for LLAP</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP settings">
+        <task xsi:type="configure" id="llap_update_settings">
+          <summary>Update additional LLAP settings</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update additional LLAP-Tez settings">
+        <task xsi:type="configure" id="llap_update_tez_settings">
+          <summary>Update additional LLAP-Tez settings</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update JVM stack size for LLAP">
+        <task xsi:type="configure" id="llap_append_stack_size_java_opts">
+          <summary>Updating JVM stack size for LLAP</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update tez shuffle parallel copies for LLAP">
+        <task xsi:type="configure" id="llap_update_shuffle_parallel_copies">
+          <summary>Updating tez shuffle parallel copies for LLAP</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Copying hive.tez.container.size to HIVE SERVER INTERACTIVE's hive-site">
@@ -650,16 +696,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -696,19 +732,16 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+    </group>
 
-      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update headroom for LLAP">
-        <task xsi:type="configure" id="llap_update_headroom">
-          <summary>Updating the Hive Log4J2 properties to include parameterizations</summary>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update Hash Aggregation settings for LLAP">
-        <task xsi:type="configure" id="llap_update_hashaggregation">
-          <summary>Updating Hash Aggregation settings for LLAP</summary>
-        </task>
-      </execute-stage>
-
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">
@@ -1142,30 +1175,6 @@
       </component>
     </service>
 
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Upgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-upgrade>
-
-        <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Downgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-downgrade>
-
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -1204,6 +1213,30 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

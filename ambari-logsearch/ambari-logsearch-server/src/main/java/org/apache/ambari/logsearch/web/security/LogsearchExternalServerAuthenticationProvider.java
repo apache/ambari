@@ -122,8 +122,9 @@ public class LogsearchExternalServerAuthenticationProvider extends LogsearchAbst
 
     List<String> values = new ArrayList<>();
     JSONUtil.getValuesOfKey(responseJson, PrivilegeInfo.PERMISSION_NAME.toString(), values);
-    if (values.isEmpty())
-      return true;
+    if (values.isEmpty()) {
+      return false;
+    }
     
     if (allowedRoleList.length > 0 && responseJson != null) {
       for (String allowedRole : allowedRoleList) {

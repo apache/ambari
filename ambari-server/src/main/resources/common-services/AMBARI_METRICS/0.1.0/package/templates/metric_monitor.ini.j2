@@ -25,6 +25,8 @@ enable_value_threshold = false
 skip_disk_patterns = {{skip_disk_metrics_patterns}}
 skip_virtual_interfaces = {{skip_virtual_interfaces}}
 skip_network_interfaces_patterns = {{skip_network_interfaces_patterns}}
+instanceId={{cluster_name}}
+set.instanceId={{set_instanceId}}
 
 [emitter]
 send_interval = {{metrics_report_interval}}
@@ -36,3 +38,10 @@ failover_strategy = {{failover_strategy}}
 failover_strategy_blacklisted_interval_seconds = {{failover_strategy_blacklisted_interval_seconds}}
 port = {{metric_collector_port}}
 https_enabled = {{metric_collector_https_enabled}}
+
+[aggregation]
+host_in_memory_aggregation = {{host_in_memory_aggregation}}
+host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+java_home = {{java64_home}}
+jvm_arguments = {{host_in_memory_aggregation_jvm_arguments}}
+ams_monitor_log_dir = {{ams_monitor_log_dir}}

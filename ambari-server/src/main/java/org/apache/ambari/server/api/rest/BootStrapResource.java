@@ -100,7 +100,7 @@ public class BootStrapResource {
   /**
    * Gets a list of bootstrapped hosts.
    *
-   * @param info  the host info, with no SSL key information
+   * @param uriInfo the host info, with no SSL key information
    */
   @GET
   @Path("/hosts")

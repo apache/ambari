@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -80,6 +81,7 @@ public interface TimelineMetricStore {
    */
   Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadata(String query) throws SQLException, IOException;
 
+  TimelinePutResponse putHostAggregatedMetrics(AggregationResult aggregationResult) throws SQLException, IOException;
   /**
    * Returns all hosts that have written metrics with the apps on the host
    * @return { hostname : [ appIds ] }
@@ -87,6 +89,14 @@ public interface TimelineMetricStore {
    * @throws IOException
    */
   Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException;
+
+  /**
+   * Returns all instances and the set of hosts each instance is present on
+   * @return { instanceId : [ hosts ] }
+   * @throws SQLException
+   * @throws IOException
+   */
+  Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId) throws SQLException, IOException;
 
   /**
    * Return a list of known live collector nodes

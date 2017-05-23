@@ -30,7 +30,7 @@ public enum JPATableGenerationStrategy {
 
   private String value;
 
-  private JPATableGenerationStrategy(String value) {
+  JPATableGenerationStrategy(String value) {
     this.value = value;
   }
 

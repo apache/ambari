@@ -133,6 +133,56 @@ class TestNodeManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
+      owner = 'mapred',
+      group = 'hadoop',
+      create_parents = True,
+      cd_access = 'a',
+    )
+    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
+      owner = 'yarn',
+      group = 'hadoop',
+      create_parents = True,
+      ignore_failures = True,
+      cd_access = 'a',
+    )
+
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
         create_parents = True,
         mode = 0755,
@@ -185,55 +235,7 @@ class TestNodeManager(RMFTestCase):
         group = 'hadoop',
         mode = 0644,
     )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      create_parents = True,
-      cd_access = 'a',
-    )
-    self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
-      owner = 'yarn',
-      group = 'hadoop',
-      create_parents = True,
-      ignore_failures = True,
-      cd_access = 'a',
-    )
+
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
@@ -340,53 +342,6 @@ class TestNodeManager(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-                              action = ['delete']
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-                              action = ['delete']
-    )
-    self.assertResourceCalled('Directory', '/var/lib/hadoop-yarn',)
-    self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
-                              content= 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated'
-    )
-    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
-        create_parents = True,
-        mode = 0755,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              create_parents = True,
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a',
-                              )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist',
-        content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
-        owner = 'hdfs',
-        group = 'hadoop',
-        mode = 0644,
-    )
-    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
-        create_parents = True,
-        mode = 0755,
-    )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              create_parents = True,
-                              ignore_failures = True,
-                              mode = 0755,
-                              cd_access='a',
-                              recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
-                              )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist',
-        content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
-        owner = 'hdfs',
-        group = 'hadoop',
-        mode = 0644,
-    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -436,6 +391,55 @@ class TestNodeManager(RMFTestCase):
       ignore_failures = True,
       cd_access = 'a',
     )
+
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Directory', '/var/lib/hadoop-yarn',)
+    self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
+                              content= 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated'
+    )
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
+        create_parents = True,
+        mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/log',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              create_parents = True,
+                              ignore_failures = True,
+                              mode = 0775,
+                              cd_access='a',
+                              )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist',
+        content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
+        owner = 'hdfs',
+        group = 'hadoop',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/yarn',
+        create_parents = True,
+        mode = 0755,
+    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              create_parents = True,
+                              ignore_failures = True,
+                              mode = 0755,
+                              cd_access='a',
+                              recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
+                              )
+    self.assertResourceCalled('File', '/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist',
+        content = '\n# This file keeps track of the last known mount-point for each dir.\n# It is safe to delete, since it will get regenerated the next time that the component of the service starts.\n# However, it is not advised to delete this file since Ambari may\n# re-create a dir that used to be mounted on a drive but is now mounted on the root.\n# Comments begin with a hash (#) symbol\n# dir,mount_point\n',
+        owner = 'hdfs',
+        group = 'hadoop',
+        mode = 0644,
+    )
+
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
       owner = 'hdfs',
       group = 'hadoop',
@@ -628,115 +632,6 @@ class TestNodeManager(RMFTestCase):
       self.assertTrue(mocks_dict['call'].called)
       self.assertEqual(mocks_dict['call'].call_count,1)
 
-  @patch("resource_management.libraries.functions.security_commons.build_expectations")
-  @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
-  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
-  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
-    # Test that function works when is called with correct parameters
-
-    security_params = {
-      'yarn-site': {
-        'yarn.nodemanager.keytab': 'path/to/nodemanager/keytab',
-        'yarn.nodemanager.principal': 'nodemanager_principal',
-        'yarn.nodemanager.webapp.spnego-keytab-file': 'path/to/nodemanager/webapp/keytab',
-        'yarn.nodemanager.webapp.spnego-principal': 'nodemanager_webapp_principal'
-      }
-    }
-    result_issues = []
-    props_value_check = {"yarn.timeline-service.http-authentication.type": "kerberos",
-                         "yarn.acl.enable": "true"}
-    props_empty_check = ["yarn.nodemanager.principal",
-                         "yarn.nodemanager.keytab",
-                         "yarn.nodemanager.webapp.spnego-principal",
-                         "yarn.nodemanager.webapp.spnego-keytab-file"]
-
-    props_read_check = ["yarn.nodemanager.keytab",
-                        "yarn.nodemanager.webapp.spnego-keytab-file"]
-
-    get_params_mock.return_value = security_params
-    validate_security_config_mock.return_value = result_issues
-
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command="security_status",
-                       config_file="secured.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-
-    build_exp_mock.assert_called_with('yarn-site', props_value_check, props_empty_check, props_read_check)
-    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
-    self.assertTrue(cached_kinit_executor_mock.call_count, 2)
-    cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',
-                                                  self.config_dict['configurations']['yarn-env']['yarn_user'],
-                                                  security_params['yarn-site']['yarn.nodemanager.webapp.spnego-keytab-file'],
-                                                  security_params['yarn-site']['yarn.nodemanager.webapp.spnego-principal'],
-                                                  self.config_dict['hostname'],
-                                                  '/tmp')
-
-    # Testing that the exception throw by cached_executor is caught
-    cached_kinit_executor_mock.reset_mock()
-    cached_kinit_executor_mock.side_effect = Exception("Invalid command")
-
-    try:
-          self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command="security_status",
-                       config_file="secured.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-          )
-    except:
-      self.assertTrue(True)
-
-    # Testing with a security_params which doesn't contains yarn-site
-    empty_security_params = {}
-    cached_kinit_executor_mock.reset_mock()
-    get_params_mock.reset_mock()
-    put_structured_out_mock.reset_mock()
-    get_params_mock.return_value = empty_security_params
-
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command="security_status",
-                       config_file="secured.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    put_structured_out_mock.assert_called_with({"securityIssuesFound": "Keytab file or principal are not set property."})
-
-    # Testing with not empty result_issues
-    result_issues_with_params = {
-      'yarn-site': "Something bad happened"
-    }
-
-    validate_security_config_mock.reset_mock()
-    get_params_mock.reset_mock()
-    validate_security_config_mock.return_value = result_issues_with_params
-    get_params_mock.return_value = security_params
-
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command="security_status",
-                       config_file="secured.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
-
-    # Testing with security_enable = false
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
-                       classname="Nodemanager",
-                       command="security_status",
-                       config_file="default.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
-
-  
   @patch.object(resource_management.libraries.functions, "get_stack_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"

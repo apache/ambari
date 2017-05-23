@@ -120,14 +120,12 @@ import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.ExtensionEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -309,10 +307,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
-  @Inject
-  private ExtensionLinkDAO linkDAO;
+  private AmbariManagementHelper helper;
+
   @Inject
   private ExtensionDAO extensionDAO;
+  @Inject
+  private ExtensionLinkDAO linkDAO;
   @Inject
   private StackDAO stackDAO;
 
@@ -392,6 +392,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       mysqljdbcUrl = null;
       serverDB = null;
     }
+    helper = new AmbariManagementHelper(stackDAO, extensionDAO, linkDAO);
   }
 
   @Override
@@ -1041,14 +1042,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private Stage createNewStage(long id, Cluster cluster, long requestId,
-                               String requestContext, String clusterHostInfo,
+                               String requestContext,
                                String commandParamsStage, String hostParamsStage) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
     Stage stage =
         stageFactory.createNew(requestId, logDir,
           null == cluster ? null : cluster.getClusterName(),
           null == cluster ? -1L : cluster.getClusterId(),
-          requestContext, clusterHostInfo, commandParamsStage,
+          requestContext, commandParamsStage,
           hostParamsStage);
     stage.setStageId(id);
     return stage;
@@ -2630,8 +2631,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           customCommandExecutionHelper.createDefaultHostParams(cluster));
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
-          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          clusterHostInfoJson, "{}", hostParamsJson);
+          requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),"{}", hostParamsJson);
       boolean skipFailure = false;
       if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
         skipFailure = true;
@@ -2981,6 +2981,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
       rg.build(stage);
+      requestStages.setClusterHostInfo(clusterHostInfoJson);
       requestStages.addStages(rg.getStages());
 
       if (!componentsToEnableKerberos.isEmpty()) {
@@ -3066,9 +3067,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(cluster);
-    Stage stage = createNewStage(0, cluster,
-                                 1, "",
-                                 clusterHostInfoJson, "{}", "");
+    Stage stage = createNewStage(0, cluster,1, "","{}", "");
 
 
     Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
@@ -4036,7 +4035,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParamsForStage = gson.toJson(commandParamsStage);
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
-        jsons.getClusterHostInfo(), commandParamsForStage, jsons.getHostParamsForStage());
+        commandParamsForStage, jsons.getHostParamsForStage());
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
@@ -4057,6 +4056,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
+      requestStageContainer.setClusterHostInfo(jsons.getClusterHostInfo());
       requestStageContainer.addStages(stages);
     }
 
@@ -5448,7 +5448,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void createExtensionLink(ExtensionLinkRequest request) throws AmbariException {
-    validateCreateExtensionLinkRequest(request);
+    if (StringUtils.isBlank(request.getStackName())
+            || StringUtils.isBlank(request.getStackVersion())
+            || StringUtils.isBlank(request.getExtensionName())
+            || StringUtils.isBlank(request.getExtensionVersion())) {
+
+      throw new IllegalArgumentException("Stack name, stack version, extension name and extension version should be provided");
+    }
 
     StackInfo stackInfo = ambariMetaInfo.getStack(request.getStackName(), request.getStackVersion());
 
@@ -5462,24 +5468,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new StackAccessException("extensionName=" + request.getExtensionName() + ", extensionVersion=" + request.getExtensionVersion());
     }
 
-    ExtensionHelper.validateCreateLink(stackInfo, extensionInfo);
-    ExtensionLinkEntity linkEntity = createExtensionLinkEntity(request);
-    ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
-
-    try {
-      linkDAO.create(linkEntity);
-      linkEntity = linkDAO.merge(linkEntity);
-    } catch (RollbackException e) {
-      String message = "Unable to create extension link";
-      LOG.debug(message, e);
-      String errorMessage = message
-              + ", stackName=" + request.getStackName()
-              + ", stackVersion=" + request.getStackVersion()
-              + ", extensionName=" + request.getExtensionName()
-              + ", extensionVersion=" + request.getExtensionVersion();
-      LOG.warn(errorMessage);
-      throw new AmbariException(errorMessage, e);
-    }
+    helper.createExtensionLink(ambariMetaInfo.getStackManager(), stackInfo, extensionInfo);
   }
 
   /**
@@ -5528,37 +5517,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
-  }
-
-  private void validateCreateExtensionLinkRequest(ExtensionLinkRequest request) throws AmbariException {
-    if (request.getStackName() == null
-            || request.getStackVersion() == null
-            || request.getExtensionName() == null
-            || request.getExtensionVersion() == null) {
-
-      throw new IllegalArgumentException("Stack name, stack version, extension name and extension version should be provided");
-    }
-
-    ExtensionLinkEntity entity = linkDAO.findByStackAndExtension(request.getStackName(), request.getStackVersion(),
-            request.getExtensionName(), request.getExtensionVersion());
-
-    if (entity != null) {
-      throw new AmbariException("The stack and extension are already linked"
-                + ", stackName=" + request.getStackName()
-                + ", stackVersion=" + request.getStackVersion()
-                + ", extensionName=" + request.getExtensionName()
-                + ", extensionVersion=" + request.getExtensionVersion());
-    }
-  }
-
-  private ExtensionLinkEntity createExtensionLinkEntity(ExtensionLinkRequest request) throws AmbariException {
-    StackEntity stack = stackDAO.find(request.getStackName(), request.getStackVersion());
-    ExtensionEntity extension = extensionDAO.find(request.getExtensionName(), request.getExtensionVersion());
-
-    ExtensionLinkEntity linkEntity = new ExtensionLinkEntity();
-    linkEntity.setStack(stack);
-    linkEntity.setExtension(extension);
-    return linkEntity;
   }
 
   @Override

@@ -26,6 +26,8 @@ import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 import org.apache.ambari.server.Role;
@@ -33,6 +35,9 @@ import org.apache.ambari.server.Role;
 @IdClass(org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntityPK.class)
 @Table(name = "role_success_criteria")
 @Entity
+@NamedQueries({
+  @NamedQuery(name = "RoleSuccessCriteriaEntity.removeByRequestStageIds", query = "DELETE FROM RoleSuccessCriteriaEntity criteria WHERE criteria.stageId = :stageId AND criteria.requestId = :requestId")
+})
 public class RoleSuccessCriteriaEntity {
 
   @Id

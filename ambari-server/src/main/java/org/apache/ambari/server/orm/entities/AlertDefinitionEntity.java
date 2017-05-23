@@ -538,7 +538,7 @@ public class AlertDefinitionEntity {
    * value from {@link #getRepeatTolerance()} should be used to calculate retry
    * tolerance.
    *
-   * @param repeatToleranceEnabled
+   * @param enabled
    *          {@code true} to override the defautlt value and use the value
    *          returned from {@link #getRepeatTolerance()}.
    */

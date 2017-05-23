@@ -408,9 +408,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
   private void addExtensionServices() throws AmbariException {
     for (ExtensionModule extension : extensionModules.values()) {
-      stackInfo.getExtensions().add(extension.getModuleInfo());
-      Collection<ServiceModule> services = extension.getServiceModules().values();
-      addServices(services);
+      stackInfo.addExtension(extension.getModuleInfo());
     }
   }
 
@@ -1046,7 +1044,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * Finds an upgrade pack that:
    * <ul>
    *   <li>Is found in the $SERVICENAME/upgrades/$STACKNAME folder</li>
-   *   <li>Matches the same {@link UpgradeType#getType()}as the {@code base} upgrade pack</li>
+   *   <li>Matches the same {@link UpgradeType} as the {@code base} upgrade pack</li>
    *   <li>Has the {@link UpgradePack#getTarget()} value equals to "*"</li>
    *   <li>Has the {@link UpgradePack#getTargetStack()} value equals to "*"</li>
    * </ul>

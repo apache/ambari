@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -77,7 +76,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -90,6 +89,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -349,10 +349,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       stackId = currentStackVersion;
     }
 
-    RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(
+    RepositoryVersionEntity repoVersionEntity = repositoryVersionDAO.findByStackAndVersion(
         stackId, desiredRepoVersion);
 
-    if (repoVersionEnt == null) {
+    if (repoVersionEntity == null) {
       throw new IllegalArgumentException(String.format(
               "Repo version %s is not available for stack %s",
               desiredRepoVersion, stackId));
@@ -360,14 +360,40 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     VersionDefinitionXml desiredVersionDefinition = null;
     try {
-      desiredVersionDefinition = repoVersionEnt.getRepositoryXml();
+      desiredVersionDefinition = repoVersionEntity.getRepositoryXml();
     } catch (Exception e) {
       throw new IllegalArgumentException(
           String.format("Version %s is backed by a version definition, but it could not be parsed", desiredRepoVersion), e);
     }
 
-    // get all of the host eligible for stack distribution
-    List<Host> hosts = getHostsForStackDistribution(cluster);
+    // if true, then we need to force all new host versions into the INSTALLED state
+    boolean forceInstalled = Boolean.parseBoolean((String)propertyMap.get(
+        CLUSTER_STACK_VERSION_FORCE));
+
+    try {
+      // either create the necessary host version entries, or set them to INSTALLING when attempting to re-distribute an existing version
+      return createOrUpdateHostVersions(cluster, repoVersionEntity, desiredVersionDefinition,
+          stackId, forceInstalled, propertyMap);
+    } catch (AmbariException e) {
+      throw new SystemException("Can not persist request", e);
+    }
+  }
+
+  @Transactional
+  RequestStatus createOrUpdateHostVersions(Cluster cluster,
+      RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
+      StackId stackId, boolean forceInstalled, Map<String, Object> propertyMap)
+      throws AmbariException, SystemException {
+
+    final String clusterName = cluster.getClusterName();
+    final String authName = getManagementController().getAuthName();
+    final String desiredRepoVersion = repoVersionEntity.getVersion();
+
+    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
+        clusterName, stackId, desiredRepoVersion);
+
+    // get all of the hosts eligible for stack distribution
+    List<Host> hosts = Lists.newArrayList(cluster.getHosts());
 
     /*
     If there is a repository that is already ATTEMPTED to be installed and the version
@@ -383,7 +409,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     install by name.  if the package-version is not known, then the 'newest' is ALWAYS installed.
     In this case, 2.5.0.0.  2.4 is never picked up.
     */
-    for (ClusterVersionEntity clusterVersion : clusterVersionDAO.findByCluster(clName)) {
+    for (ClusterVersionEntity clusterVersion : clusterVersionDAO.findByCluster(cluster.getClusterName())) {
       RepositoryVersionEntity clusterRepoVersion = clusterVersion.getRepositoryVersion();
 
       int compare = compareVersions(clusterRepoVersion.getVersion(), desiredRepoVersion);
@@ -396,18 +422,18 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // !!! the version is greater to the one to install
 
       // if the stacks are different, then don't fail (further check same-stack version strings)
-      if (!StringUtils.equals(clusterRepoVersion.getStackName(), repoVersionEnt.getStackName())) {
+      if (!StringUtils.equals(clusterRepoVersion.getStackName(), repoVersionEntity.getStackName())) {
         continue;
       }
 
       // if there is no backing VDF for the desired version, allow the operation (legacy behavior)
-      if (null == desiredVersionDefinition) {
+      if (null == versionDefinitionXml) {
         continue;
       }
 
       // backing VDF does not define the package version for any of the hosts, cannot install (allows a VDF with package-version)
       for (Host host : hosts) {
-        if (StringUtils.isBlank(desiredVersionDefinition.getPackageVersion(host.getOsFamily()))) {
+        if (StringUtils.isBlank(versionDefinitionXml.getPackageVersion(host.getOsFamily()))) {
           String msg = String.format("Ambari cannot install version %s.  Version %s is already installed.",
             desiredRepoVersion, clusterRepoVersion.getVersion());
           throw new IllegalArgumentException(msg);
@@ -415,49 +441,17 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
     }
 
-    // if true, then we need to force all new host versions into the INSTALLED state
-    boolean forceInstalled = Boolean.parseBoolean((String)propertyMap.get(
-        CLUSTER_STACK_VERSION_FORCE));
-
-    final RequestStatusResponse response;
-
-    try {
-      if (forceInstalled) {
-        createHostVersions(cluster, hosts, stackId, desiredRepoVersion, RepositoryVersionState.INSTALLED);
-        response = null;
-      } else {
-        createHostVersions(cluster, hosts, stackId, desiredRepoVersion,
-            RepositoryVersionState.INSTALLING);
-
-        RequestStageContainer installRequest = createOrchestration(cluster, stackId, hosts,
-            repoVersionEnt, propertyMap);
-
-        response = installRequest.getRequestStatusResponse();
-      }
-    } catch (AmbariException e) {
-      throw new SystemException("Can not persist request", e);
+    RepositoryVersionState repositoryVersionState = RepositoryVersionState.INSTALLING;
+    if (forceInstalled) {
+      repositoryVersionState = RepositoryVersionState.INSTALLED;
     }
 
-    return getRequestStatus(response);
-  }
-
-  @Transactional
-  void createHostVersions(Cluster cluster, List<Host> hosts, StackId stackId,
-      String desiredRepoVersion, RepositoryVersionState repoState)
-      throws AmbariException, SystemException {
-    final String clusterName = cluster.getClusterName();
-    final String authName = getManagementController().getAuthName();
-
-    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
-        clusterName, stackId, desiredRepoVersion);
-
+    // if there is no cluster version entity, then create one
     if (clusterVersionEntity == null) {
       try {
         // Create/persist new cluster stack version
-        cluster.createClusterVersion(stackId, desiredRepoVersion, authName, repoState);
-
-        clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
-            stackId, desiredRepoVersion);
+        clusterVersionEntity = cluster.createClusterVersion(stackId, desiredRepoVersion, authName,
+            repositoryVersionState);
       } catch (AmbariException e) {
         throw new SystemException(
             String.format("Can not create cluster stack version %s for cluster %s",
@@ -465,25 +459,27 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
     } else {
       // Move cluster version into the specified state (retry installation)
-      cluster.transitionClusterVersion(stackId, desiredRepoVersion, repoState);
+      cluster.transitionClusterVersion(stackId, desiredRepoVersion, repositoryVersionState);
     }
 
-    // Will also initialize all Host Versions to the specified state state.
-    cluster.transitionHosts(clusterVersionEntity, repoState);
+    // the cluster will create/update all of the host versions to the correct state
+    List<Host> hostsNeedingInstallCommands = cluster.transitionHostsToInstalling(
+        clusterVersionEntity, repoVersionEntity, versionDefinitionXml, forceInstalled);
 
-    // Directly transition host versions to NOT_REQUIRED for hosts that don't
-    // have versionable components
-    for (Host host : hosts) {
-      if (!host.hasComponentsAdvertisingVersions(stackId)) {
-        transitionHostVersionToNotRequired(host, cluster,
-            clusterVersionEntity.getRepositoryVersion());
-      }
+    RequestStatusResponse response = null;
+    if (!forceInstalled) {
+      RequestStageContainer installRequest = createOrchestration(cluster, stackId,
+          hostsNeedingInstallCommands, repoVersionEntity, versionDefinitionXml, propertyMap);
+
+      response = installRequest.getRequestStatusResponse();
     }
+
+    return getRequestStatus(response);
   }
 
   @Transactional
   RequestStageContainer createOrchestration(Cluster cluster, StackId stackId,
-      List<Host> hosts, RepositoryVersionEntity repoVersionEnt, Map<String, Object> propertyMap)
+      List<Host> hosts, RepositoryVersionEntity repoVersionEnt, VersionDefinitionXml desiredVersionDefinition, Map<String, Object> propertyMap)
       throws AmbariException, SystemException {
     final AmbariManagementController managementController = getManagementController();
     final AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
@@ -546,7 +542,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
-          cluster.getClusterId(), stageName, clusterHostInfoJson, "{}", hostParamsJson);
+          cluster.getClusterId(), stageName, "{}", hostParamsJson);
 
       // if you have 1000 hosts (10 stages with 100 installs), we want to ensure
       // that a single failure doesn't cause all other stages to abort; set the
@@ -564,8 +560,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
 
-      // !!! TODO for patch upgrades, we need to limit the serviceNames to those
-      // that are detailed for the repository
+      // !!! limit the serviceNames to those that are detailed for the repository.
+      // TODO packages don't have component granularity
+      if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
+        serviceNames.addAll(desiredVersionDefinition.getAvailableServiceNames());
+      }
 
       // Populate with commands for host
       for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {
@@ -591,6 +590,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               repoVersionEnt.getDisplayName()));
     }
 
+    req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(stages);
     req.persist();
 
@@ -610,6 +610,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         osFamily, repoVersion.getVersion(), stackId));
     }
 
+    if (repoInfo.isEmpty()){
+      LOG.error(String.format("Repository list is empty. Ambari may not be managing the repositories for %s", osFamily));
+    }
 
     // determine packages for all services that are installed on host
     List<ServiceOsSpecific.Package> packages = new ArrayList<>();
@@ -624,6 +627,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (servicesOnHost.isEmpty()) {
       return null;
     }
+
     List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
     for (String serviceName : servicesOnHost) {
       try{
@@ -899,29 +903,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
-  }
-
-  /**
-   * Gets all of the hosts in a cluster which are not in "maintenance mode" and
-   * are considered to be healthy. In the case of stack distribution, a host
-   * must be explicitely marked as being in maintenance mode for it to be
-   * considered as unhealthy.
-   *
-   * @param cluster
-   *          the cluster (not {@code null}).
-   * @return the list of hosts that are not in maintenance mode and are
-   *         elidgable to have a stack distributed to them.
-   */
-  private List<Host> getHostsForStackDistribution(Cluster cluster) {
-    Collection<Host> hosts = cluster.getHosts();
-    List<Host> healthyHosts = new ArrayList<>(hosts.size());
-    for (Host host : hosts) {
-      if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
-        healthyHosts.add(host);
-      }
-    }
-
-    return healthyHosts;
   }
 
   /**

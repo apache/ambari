@@ -29,6 +29,7 @@ angular.module('ambariAdminConsole')
   $scope.stackIds = [];
   $scope.allVersions = [];
   $scope.networkLost = false;
+  $scope.stackRepoUpdateLinkExists = true;
   $scope.skipValidation = false;
   $scope.useRedhatSatellite = false;
 
@@ -543,6 +544,23 @@ angular.module('ambariAdminConsole')
     })[0];
   };
 
+  /**
+   * Return true if at least one stacks have the repo URL link in the repoinfo.xml
+   * @return boolean
+   * */
+  $scope.setStackRepoUpdateLinkExists = function (versions) {
+    var stackRepoUpdateLinkExists = versions.find(function(_version){
+      return _version.stackRepoUpdateLinkExists;
+    });
+
+    //Found at least one version with the stack repo update link
+    if (stackRepoUpdateLinkExists){
+      $scope.stackRepoUpdateLinkExists = true;
+    } else {
+      $scope.stackRepoUpdateLinkExists = false;
+    }
+  };
+
   $scope.setNetworkIssues = function (versions) {
    $scope.networkLost = !versions.find(function(_version){
      return !_version.stackDefault;
@@ -576,6 +594,7 @@ angular.module('ambariAdminConsole')
         $scope.selectedPublicRepoVersion = $scope.activeStackVersion;
         $scope.setVersionSelected($scope.activeStackVersion);
         $scope.setNetworkIssues(versions);
+        $scope.setStackRepoUpdateLinkExists(versions);
         $scope.validateRepoUrl();
         $scope.availableStackRepoList = versions.length == 1 ? [] : versions;
       }

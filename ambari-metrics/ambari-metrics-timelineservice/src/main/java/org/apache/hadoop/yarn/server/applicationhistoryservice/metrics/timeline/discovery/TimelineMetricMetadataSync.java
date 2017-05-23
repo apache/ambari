@@ -45,11 +45,15 @@ public class TimelineMetricMetadataSync implements Runnable {
     persistMetricMetadata();
     LOG.debug("Persisting hosted apps metadata...");
     persistHostAppsMetadata();
+    LOG.debug("Persisting hosted instance metadata...");
+    persistHostInstancesMetadata();
     if (cacheManager.isDistributedModeEnabled()) {
       LOG.debug("Refreshing metric metadata...");
       refreshMetricMetadata();
       LOG.debug("Refreshing hosted apps metadata...");
       refreshHostAppsMetadata();
+      LOG.debug("Refreshing hosted instances metadata...");
+      refreshHostedInstancesMetadata();
     }
   }
 
@@ -147,6 +151,41 @@ public class TimelineMetricMetadataSync implements Runnable {
   }
 
   /**
+   * Sync apps instances data if needed
+   */
+  private void persistHostInstancesMetadata() {
+    if (cacheManager.syncHostedInstanceMetadata()) {
+      Map<String, Set<String>> persistedData = null;
+      try {
+        persistedData = cacheManager.getHostedInstancesFromStore();
+      } catch (SQLException e) {
+        LOG.warn("Failed on fetching hosted instances data from store.", e);
+        return; // Something wrong with store
+      }
+
+      Map<String, Set<String>> cachedData = cacheManager.getHostedInstanceCache();
+      Map<String, Set<String>> dataToSync = new HashMap<>();
+      if (cachedData != null && !cachedData.isEmpty()) {
+        for (Map.Entry<String, Set<String>> cacheEntry : cachedData.entrySet()) {
+          // No persistence / stale data in store
+          if (persistedData == null || persistedData.isEmpty() ||
+            !persistedData.containsKey(cacheEntry.getKey()) ||
+            !persistedData.get(cacheEntry.getKey()).containsAll(cacheEntry.getValue())) {
+            dataToSync.put(cacheEntry.getKey(), cacheEntry.getValue());
+          }
+        }
+        try {
+          cacheManager.persistHostedInstanceMetadata(dataToSync);
+          cacheManager.markSuccessOnSyncHostedInstanceMetadata();
+
+        } catch (SQLException e) {
+          LOG.warn("Error persisting hosted apps metadata.", e);
+        }
+      }
+
+    }
+  }
+  /**
    * Read all hosted apps metadata and update cached values - HA
    */
   private void refreshHostAppsMetadata() {
@@ -160,6 +199,24 @@ public class TimelineMetricMetadataSync implements Runnable {
       Map<String, Set<String>> cachedData = cacheManager.getHostedAppsCache();
 
       for (Map.Entry<String, Set<String>> storeEntry : hostedAppsDataFromStore.entrySet()) {
+        if (!cachedData.containsKey(storeEntry.getKey())) {
+          cachedData.put(storeEntry.getKey(), storeEntry.getValue());
+        }
+      }
+    }
+  }
+
+  private void refreshHostedInstancesMetadata() {
+    Map<String, Set<String>> hostedInstancesFromStore = null;
+    try {
+      hostedInstancesFromStore = cacheManager.getHostedInstancesFromStore();
+    } catch (SQLException e) {
+      LOG.warn("Error refreshing metadata from store.", e);
+    }
+    if (hostedInstancesFromStore != null) {
+      Map<String, Set<String>> cachedData = cacheManager.getHostedInstanceCache();
+
+      for (Map.Entry<String, Set<String>> storeEntry : hostedInstancesFromStore.entrySet()) {
         if (!cachedData.containsKey(storeEntry.getKey())) {
           cachedData.put(storeEntry.getKey(), storeEntry.getValue());
         }

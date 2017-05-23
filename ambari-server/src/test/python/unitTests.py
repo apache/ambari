@@ -125,7 +125,7 @@ def resolve_paths_to_import_from_common_services(metainfo_file, base_stack_folde
   @param base_stack_folder: Path to stacks folder that does not include the version number. This can potentially be None.
   @param common_services_parent_dir: Path to the common-services directory for a specified service, not including the version.
   @param service: Service name
-  :return A list of paths to insert to sys.path by following the chain of inheritence.
+  :return A list of paths to insert to sys.path by follwing the chain of inheritence.
   """
   paths_to_import = []
 

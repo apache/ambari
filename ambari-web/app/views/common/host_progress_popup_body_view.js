@@ -532,7 +532,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @param {string} levelName
    * @method switchLevel
    */
-  switchLevel: function (levelName) {
+  switchLevel: function (levelName, isBackToLevel = false) {
     var dataSourceController = this.get('controller.dataSourceController');
     var args = [].slice.call(arguments);
     this.get('hostComponentLogs').clear();
@@ -543,7 +543,9 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       levelInfo.set('name', levelName);
       if (levelName === 'HOSTS_LIST') {
         this.set('isLevelLoaded', dataSourceController.requestMostRecent());
-        this.set('hostCategory', this.get('categories').findProperty('value', 'all'));
+        if (!isBackToLevel) {
+          this.set('hostCategory', this.get('categories').findProperty('value', 'all'));
+        }
       }
       else {
         if (levelName === 'TASK_DETAILS') {
@@ -552,12 +554,16 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         }
         else {
           if (levelName === 'REQUESTS_LIST') {
-            this.set('serviceCategory', this.get('categories').findProperty('value', 'all'));
+            if (!isBackToLevel) {
+              this.set('serviceCategory', this.get('categories').findProperty('value', 'all'));
+            }
             this.get('controller.hosts').clear();
             dataSourceController.requestMostRecent();
           }
           else {
-            this.set('taskCategory', this.get('categories').findProperty('value', 'all'));
+            if (!isBackToLevel) {
+              this.set('taskCategory', this.get('categories').findProperty('value', 'all'));
+            }
           }
         }
       }
@@ -630,7 +636,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set("openedTaskId", 0);
     this.set("parentView.isLogWrapHidden", true);
     this.set("parentView.isTaskListHidden", false);
-    this.switchLevel("TASKS_LIST");
+    this.switchLevel("TASKS_LIST", true);
   },
 
   /**
@@ -643,7 +649,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set("parentView.isTaskListHidden", true);
     this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
     this.get("controller").set("operationInfo", this.get('controller.servicesInfo').findProperty('name', this.get('controller.serviceName')));
-    this.switchLevel("HOSTS_LIST");
+    this.switchLevel("HOSTS_LIST", true);
   },
 
   /**
@@ -659,7 +665,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     this.set("parentView.isLogWrapHidden", true);
     this.set("hosts", null);
     this.get("controller").setBackgroundOperationHeader(false);
-    this.switchLevel("REQUESTS_LIST");
+    this.switchLevel("REQUESTS_LIST", true);
   },
 
   /**

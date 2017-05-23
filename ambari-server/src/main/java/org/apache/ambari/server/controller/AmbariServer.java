@@ -310,6 +310,7 @@ public class AmbariServer {
     initDB();
     server = new Server();
     server.setSessionIdManager(sessionIdManager);
+    server.setSendServerVersion(false);
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
@@ -454,7 +455,6 @@ public class AmbariServer {
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
       viewRegistry.readViewArchives();
-      viewDirectoryWatcher.start();
 
       //Check and load requestlog handler.
       loadRequestlogHandler(handlerList, serverForAgent, configsMap);
@@ -562,6 +562,11 @@ public class AmbariServer {
       serverForAgent.start();
       LOG.info("********* Started Server **********");
 
+      if( !configs.isViewDirectoryWatcherServiceDisabled()) {
+        LOG.info("Starting View Directory Watcher");
+        viewDirectoryWatcher.start();
+      }
+
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
@@ -571,7 +576,7 @@ public class AmbariServer {
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
 
-      if (!Configuration.AMBARISERVER_METRICS_DISABLE.equals(true)) {
+      if (!configs.isMetricsServiceDisabled()) {
         metricsService.start();
       } else {
         LOG.info("AmbariServer Metrics disabled.");

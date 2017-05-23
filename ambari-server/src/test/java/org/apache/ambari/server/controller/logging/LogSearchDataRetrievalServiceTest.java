@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
@@ -25,11 +27,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
@@ -166,6 +172,161 @@ public class LogSearchDataRetrievalServiceTest {
 
     assertTrue("Incorrect HostComponent set on request set",
                 retrievalService.getCurrentRequests().contains(expectedComponentName + "+" + expectedHostName));
+    assertEquals("Incorrect size for failure counts for components, should be 0",
+                 0, retrievalService.getComponentRequestFailureCounts().size());
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testGetLogFileNamesExistingFailuresLessThanThreshold() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedComponentName = "DATANODE";
+    final String expectedClusterName = "clusterone";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    Executor executorMock = mockSupport.createMock(Executor.class);
+
+    Injector injectorMock =
+      mockSupport.createMock(Injector.class);
+
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
+    // expect the executor to be called to execute the LogSearch request
+    executorMock.execute(isA(LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable.class));
+    // executor should only be called once
+    expectLastCall().once();
+
+    expect(injectorMock.getInstance(LoggingRequestHelperFactory.class)).andReturn(helperFactoryMock);
+
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
+    retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setInjector(injectorMock);
+    retrievalService.setConfiguration(configurationMock);
+    // call the initialization routine called by the Google framework
+    retrievalService.doStart();
+    retrievalService.setExecutor(executorMock);
+    // initialize the comopnent-based failure count to have a count > 0, but less than threshold (10)
+    retrievalService.getComponentRequestFailureCounts().put(expectedComponentName, new AtomicInteger(5));
+
+
+    assertEquals("Default request set should be empty", 0, retrievalService.getCurrentRequests().size());
+
+    Set<String> resultSet = retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
+
+    assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
+    assertEquals("Incorrect number of entries in the current request set", 1, retrievalService.getCurrentRequests().size());
+
+    assertTrue("Incorrect HostComponent set on request set",
+      retrievalService.getCurrentRequests().contains(expectedComponentName + "+" + expectedHostName));
+    assertEquals("Incorrect size for failure counts for components, should be 0",
+      1, retrievalService.getComponentRequestFailureCounts().size());
+    assertEquals("Incorrect failure count for component",
+      5, retrievalService.getComponentRequestFailureCounts().get(expectedComponentName).get());
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testGetLogFileNamesExistingFailuresAtThreshold() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedComponentName = "DATANODE";
+    final String expectedClusterName = "clusterone";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    Executor executorMock = mockSupport.createMock(Executor.class);
+
+    Injector injectorMock =
+      mockSupport.createMock(Injector.class);
+
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
+    retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setInjector(injectorMock);
+    retrievalService.setConfiguration(configurationMock);
+    // call the initialization routine called by the Google framework
+    retrievalService.doStart();
+    retrievalService.setExecutor(executorMock);
+    // initialize the comopnent-based failure count to have a count at the threshold
+    retrievalService.getComponentRequestFailureCounts().put(expectedComponentName, new AtomicInteger(10));
+
+    assertEquals("Default request set should be empty", 0, retrievalService.getCurrentRequests().size());
+
+    Set<String> resultSet =
+      retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
+
+    assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
+    assertEquals("Incorrect number of entries in the current request set", 0, retrievalService.getCurrentRequests().size());
+
+    assertEquals("Incorrect size for failure counts for components, should be 0",
+      1, retrievalService.getComponentRequestFailureCounts().size());
+    assertEquals("Incorrect failure count for component",
+      10, retrievalService.getComponentRequestFailureCounts().get(expectedComponentName).get());
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testGetLogFileNamesExistingFailuresOverThreshold() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedComponentName = "DATANODE";
+    final String expectedClusterName = "clusterone";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    Executor executorMock = mockSupport.createMock(Executor.class);
+
+    Injector injectorMock =
+      mockSupport.createMock(Injector.class);
+
+    Configuration configurationMock =
+      mockSupport.createMock(Configuration.class);
+
+    expect(configurationMock.getLogSearchMetadataCacheExpireTimeout()).andReturn(1).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    LogSearchDataRetrievalService retrievalService = new LogSearchDataRetrievalService();
+    retrievalService.setLoggingRequestHelperFactory(helperFactoryMock);
+    retrievalService.setInjector(injectorMock);
+    retrievalService.setConfiguration(configurationMock);
+    // call the initialization routine called by the Google framework
+    retrievalService.doStart();
+    retrievalService.setExecutor(executorMock);
+    // initialize the comopnent-based failure count to have a count over the threshold
+    retrievalService.getComponentRequestFailureCounts().put(expectedComponentName, new AtomicInteger(20));
+
+    assertEquals("Default request set should be empty", 0, retrievalService.getCurrentRequests().size());
+
+    Set<String> resultSet =
+      retrievalService.getLogFileNames(expectedComponentName, expectedHostName, expectedClusterName);
+
+    assertNull("Inital query on the retrieval service should be null, since cache is empty by default", resultSet);
+    assertEquals("Incorrect number of entries in the current request set", 0, retrievalService.getCurrentRequests().size());
+
+    assertEquals("Incorrect size for failure counts for components, should be 0",
+      1, retrievalService.getComponentRequestFailureCounts().size());
+    assertEquals("Incorrect failure count for component",
+      20, retrievalService.getComponentRequestFailureCounts().get(expectedComponentName).get());
 
     mockSupport.verifyAll();
   }
@@ -225,6 +386,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
     Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+    Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(Collections.singleton("/this/is/just/a/test/directory"));
@@ -237,7 +399,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, componentFailureCounts, controllerMock);
     loggingRunnable.run();
 
     mockSupport.verifyAll();
@@ -258,6 +420,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
     Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+    Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
 
     // return null to simulate an error during helper instance creation
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(null);
@@ -269,7 +432,7 @@ public class LogSearchDataRetrievalServiceTest {
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, componentFailureCounts, controllerMock);
     loggingRunnable.run();
 
     mockSupport.verifyAll();
@@ -283,6 +446,7 @@ public class LogSearchDataRetrievalServiceTest {
     final String expectedComponentName = "DATANODE";
     final String expectedClusterName = "clusterone";
     final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
+    final AtomicInteger testInteger = new AtomicInteger(0);
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
@@ -292,6 +456,9 @@ public class LogSearchDataRetrievalServiceTest {
 
     Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
     Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+    Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
+
+    Capture<AtomicInteger> captureFailureCount = EasyMock.newCapture();
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
@@ -299,13 +466,71 @@ public class LogSearchDataRetrievalServiceTest {
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
+    // expect that the component failure map is initially empty
+    expect(componentFailureCounts.containsKey(expectedComponentName)).andReturn(false);
+    // expect that the component map is updated with a new count
+    expect(componentFailureCounts.put(eq(expectedComponentName), capture(captureFailureCount))).andReturn(new AtomicInteger(0));
+    // expect that the runnable will obtain an increment the failure count
+    expect(componentFailureCounts.get(expectedComponentName)).andReturn(testInteger);
+
 
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, componentFailureCounts, controllerMock);
     loggingRunnable.run();
+
+    assertEquals("Initial count set by Runnable should be 0",
+                 0, captureFailureCount.getValue().get());
+    assertEquals("Failure count should have been incremented",
+                 1, testInteger.get());
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testRunnableWithFailedCallNullResultExistingFailureCount() throws Exception {
+    final String expectedHostName = "c6401.ambari.apache.org";
+    final String expectedComponentName = "DATANODE";
+    final String expectedClusterName = "clusterone";
+    final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
+    final AtomicInteger testFailureCount = new AtomicInteger(2);
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    LoggingRequestHelperFactory helperFactoryMock = mockSupport.createMock(LoggingRequestHelperFactory.class);
+    AmbariManagementController controllerMock = mockSupport.createMock(AmbariManagementController.class);
+    LoggingRequestHelper helperMock = mockSupport.createMock(LoggingRequestHelper.class);
+
+    Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
+    Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+    Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
+
+    expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
+    // return null to simulate an error occurring during the LogSearch data request
+    expect(helperMock.sendGetLogFileNamesRequest(expectedComponentName, expectedHostName)).andReturn(null);
+    // expect that the completed request is removed from the current request set,
+    // even in the event of a failure to obtain the LogSearch data
+    expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
+    // expect that the component failure map is initially empty
+    expect(componentFailureCounts.containsKey(expectedComponentName)).andReturn(true);
+    // expect that the runnable will obtain an increment the existing failure count
+    expect(componentFailureCounts.get(expectedComponentName)).andReturn(testFailureCount);
+
+    mockSupport.replayAll();
+
+    assertEquals("Initial count should be 2",
+                 2, testFailureCount.get());
+
+    LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
+      new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
+        cacheMock, currentRequestsMock, helperFactoryMock, componentFailureCounts, controllerMock);
+    loggingRunnable.run();
+
+    assertEquals("Failure count should have been incremented",
+                 3, testFailureCount.get());
 
     mockSupport.verifyAll();
   }
@@ -317,6 +542,7 @@ public class LogSearchDataRetrievalServiceTest {
     final String expectedComponentName = "DATANODE";
     final String expectedClusterName = "clusterone";
     final String expectedComponentAndHostName = expectedComponentName + "+" + expectedHostName;
+    final AtomicInteger testInteger = new AtomicInteger(0);
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 
@@ -326,6 +552,9 @@ public class LogSearchDataRetrievalServiceTest {
 
     Cache<String, Set<String>> cacheMock = mockSupport.createMock(Cache.class);
     Set<String> currentRequestsMock = mockSupport.createMock(Set.class);
+    Map<String, AtomicInteger> componentFailureCounts = mockSupport.createMock(Map.class);
+
+    Capture<AtomicInteger> captureFailureCount = EasyMock.newCapture();
 
     expect(helperFactoryMock.getHelper(controllerMock, expectedClusterName)).andReturn(helperMock);
     // return null to simulate an error occurring during the LogSearch data request
@@ -333,13 +562,24 @@ public class LogSearchDataRetrievalServiceTest {
     // expect that the completed request is removed from the current request set,
     // even in the event of a failure to obtain the LogSearch data
     expect(currentRequestsMock.remove(expectedComponentAndHostName)).andReturn(true).once();
+    // expect that the component failure map is initially empty
+    expect(componentFailureCounts.containsKey(expectedComponentName)).andReturn(false);
+    // expect that the component map is updated with a new count
+    expect(componentFailureCounts.put(eq(expectedComponentName), capture(captureFailureCount))).andReturn(new AtomicInteger(0));
+    // expect that the runnable will obtain an increment the failure count
+    expect(componentFailureCounts.get(expectedComponentName)).andReturn(testInteger);
 
     mockSupport.replayAll();
 
     LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable loggingRunnable =
       new LogSearchDataRetrievalService.LogSearchFileNameRequestRunnable(expectedHostName, expectedComponentName, expectedClusterName,
-          cacheMock, currentRequestsMock, helperFactoryMock, controllerMock);
+          cacheMock, currentRequestsMock, helperFactoryMock, componentFailureCounts, controllerMock);
     loggingRunnable.run();
+
+    assertEquals("Initial count set by Runnable should be 0",
+      0, captureFailureCount.getValue().get());
+    assertEquals("Failure count should have been incremented",
+      1, testInteger.get());
 
     mockSupport.verifyAll();
   }

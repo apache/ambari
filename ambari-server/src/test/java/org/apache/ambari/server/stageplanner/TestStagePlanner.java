@@ -126,7 +126,7 @@ public class TestStagePlanner {
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "execution command wrapper test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
     stage.addServerActionCommand("RESTART", null, Role.HIVE_METASTORE,
       RoleCommand.CUSTOM_COMMAND, "cluster1",

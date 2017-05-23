@@ -75,6 +75,7 @@ CREATE TABLE clusterconfig (
   config_data TEXT NOT NULL,
   config_attributes TEXT,
   create_timestamp NUMERIC(19) NOT NULL,
+  service_deleted SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp NUMERIC(19) NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -182,6 +183,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   recovery_enabled SMALLINT NOT NULL DEFAULT 0,
+  repo_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
   CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
@@ -338,6 +340,7 @@ CREATE TABLE request (
   start_time NUMERIC(19) NOT NULL,
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  cluster_host_info IMAGE,
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -349,7 +352,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
-  cluster_host_info IMAGE,
   command_params IMAGE,
   host_params IMAGE,
   command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
@@ -382,7 +384,8 @@ CREATE TABLE host_role_command (
   structured_out IMAGE,
   command_detail VARCHAR(255),
   custom_command_name VARCHAR(255),
-  is_background_command SMALLINT DEFAULT 0 NOT NULL,
+  is_background SMALLINT DEFAULT 0 NOT NULL,
+  ops_display_name VARCHAR(255),
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id));

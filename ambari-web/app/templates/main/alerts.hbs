@@ -33,15 +33,15 @@
   <table class="table advanced-header-table table-hover alerts-table" id="alert-definitions-table">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-      {{view view.parentView.nameSort class="first name-sorting"}}
-      {{view view.parentView.statusSort class="status-sorting"}}
+      {{view view.parentView.statusSort class="first status-sorting"}}
+      {{view view.parentView.nameSort class="name-sorting"}}
       {{view view.parentView.serviceSort class="service-sorting"}}
       {{view view.parentView.lastTriggeredSort class="last-triggred-sorting"}}
       {{view view.parentView.enabledSort class="enabled-sorting"}}
     {{/view}}
     <tr class="filter-row">
-      <th class="first">{{view view.nameFilterView class="name-filter"}}</th>
-      <th>{{view view.stateFilterView class="status-filter"}}</th>
+      <th class="first">{{view view.stateFilterView class="status-filter"}}</th>
+      <th>{{view view.nameFilterView class="name-filter"}}</th>
       <th>{{view view.serviceFilterView class="service-filter"}}</th>
       <th>{{view view.triggeredFilterView class="last-triggered-filter"}}</th>
       <th>{{view view.enabledFilterView class="enabled-filter"}}</th>
@@ -52,12 +52,12 @@
       {{#if view.pageContent}}
         {{#each alertDefinition in view.pageContent}}
           <tr>
-            <td class="first alert-name">
+            <td class="first alert-status">
+              {{view App.AlertDefinitionSummary contentBinding="alertDefinition"}}
+            </td>
+            <td class="alert-name">
               <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
               <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
-            </td>
-            <td class="alert-status">
-              {{view App.AlertDefinitionSummary contentBinding="alertDefinition"}}
             </td>
             <td class="alert-service">{{alertDefinition.serviceDisplayName}}</td>
             <td class="alert-time">

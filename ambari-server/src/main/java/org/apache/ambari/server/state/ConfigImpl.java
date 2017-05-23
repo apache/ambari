@@ -52,7 +52,7 @@ public class ConfigImpl implements Config {
   private final static Logger LOG = LoggerFactory.getLogger(ConfigImpl.class);
 
   /**
-   * A label for {@link #hostLock} to use with the {@link LockFactory}.
+   * A label for {@link #propertyLock} to use with the {@link LockFactory}.
    */
   private static final String PROPERTY_LOCK_LABEL = "configurationPropertyLock";
 

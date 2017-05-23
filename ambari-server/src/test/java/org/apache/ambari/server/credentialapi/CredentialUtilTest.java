@@ -28,7 +28,6 @@ import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

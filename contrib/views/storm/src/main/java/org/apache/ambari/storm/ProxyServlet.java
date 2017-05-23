@@ -38,6 +38,10 @@ import java.io.*;
 public class ProxyServlet extends HttpServlet {
 
   private ViewContext viewContext;
+  private static final String STORM_HOST = "storm.host";
+  private static final String STORM_PORT = "storm.port";
+  private static final String STORM_SSL_ENABLED = "storm.sslEnabled";
+  private String stormURL;
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -45,12 +49,16 @@ public class ProxyServlet extends HttpServlet {
 
     ServletContext context = config.getServletContext();
     viewContext = (ViewContext) context.getAttribute(ViewContext.CONTEXT_ATTRIBUTE);
+    String sslEnabled = viewContext.getProperties().get(STORM_SSL_ENABLED);
+    String hostname = viewContext.getProperties().get(STORM_HOST);
+    String port = viewContext.getProperties().get(STORM_PORT);
+    stormURL = (sslEnabled.equals("true") ? "https" : "http") + "://" + hostname + ":" + port;
   }
 
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     InputStream body = null;
-    String urlToRead = URLDecoder.decode(request.getParameter("url"));
+    String urlToRead = stormURL + URLDecoder.decode(request.getParameter("url"));
     HashMap<String,String> headersMap = this.getHeaders(request);
     InputStream resultStream = viewContext.getURLStreamProvider().readAsCurrent(urlToRead, "GET", body, headersMap);
     this.setResponse(request, response, resultStream);
@@ -59,7 +67,7 @@ public class ProxyServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     InputStream stream = request.getInputStream();
-    String urlToRead = URLDecoder.decode(request.getParameter("url"));
+    String urlToRead = stormURL + URLDecoder.decode(request.getParameter("url"));
     HashMap<String,String> headersMap = this.getHeaders(request);
     InputStream resultStream = viewContext.getURLStreamProvider().readAsCurrent(urlToRead, "POST", stream, headersMap);
     this.setResponse(request, response, resultStream);

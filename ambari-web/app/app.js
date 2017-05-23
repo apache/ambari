@@ -69,10 +69,23 @@ module.exports = Em.Application.create({
   upgradeState: 'INIT',
 
   /**
+   * Check if upgrade is in INIT state
+   * 'INIT' is set on upgrade start and when it's finished
+   * @type {boolean}
+   */
+  upgradeInit: Em.computed.equal('upgradeState', 'INIT'),
+
+  /**
    * flag is true when upgrade process is running
    * @returns {boolean}
    */
   upgradeInProgress: Em.computed.equal('upgradeState', 'IN_PROGRESS'),
+
+  /**
+   * Checks if update process is completed
+   * @type {boolean}
+   */
+  upgradeCompleted: Em.computed.equal('upgradeState', 'COMPLETED'),
 
   /**
    * flag is true when upgrade process is waiting for user action

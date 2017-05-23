@@ -97,4 +97,19 @@ public interface ServiceComponent {
       String hostName) throws AmbariException;
 
   void delete() throws AmbariException;
+
+  /**
+   * This method computes the state of the repository that's associated with the desired
+   * version.  It is used, for example, when a host component reports its version and the
+   * state can be in flux.
+   *
+   * @param reportedVersion
+   * @throws AmbariException
+   */
+  void updateRepositoryState(String reportedVersion) throws AmbariException;
+
+  /**
+   * @return the repository state for the desired version
+   */
+  RepositoryVersionState getRepositoryState();
 }

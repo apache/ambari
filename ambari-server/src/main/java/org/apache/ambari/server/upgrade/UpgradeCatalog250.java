@@ -46,10 +46,12 @@ import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -62,6 +64,7 @@ import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.view.ViewArchiveUtility;
+import org.apache.ambari.server.view.ViewInstanceOperationHandler;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +112,12 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected static final String HOST_COMPONENT_DESIREDSTATE_TABLE = "hostcomponentdesiredstate";
   protected static final String HOST_COMPONENT_DESIREDSTATE_ID_COL = "id";
   protected static final String HOST_COMPONENT_DESIREDSTATE_INDEX = "UQ_hcdesiredstate_name";
+
+  @Inject
+  ViewInstanceDAO viewInstanceDAO;
+
+  @Inject
+  ViewInstanceOperationHandler viewInstanceOperationHandler;
 
   @Inject
   protected ViewArchiveUtility archiveUtility;
@@ -191,8 +200,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateHadoopEnvConfigs();
     updateKafkaConfigs();
     updateHIVEInteractiveConfigs();
-    updateHiveLlapConfigs();
-    updateTablesForZeppelinViewRemoval();
+    unInstallAllZeppelinViews();
     updateZeppelinConfigs();
     updateAtlasConfigs();
     updateLogSearchConfigs();
@@ -486,56 +494,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void updateHiveLlapConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-
-          if (installedServices.contains("HIVE")) {
-            Config hiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
-            if (hiveSite != null) {
-              Map<String, String> hiveSiteProperties = hiveSite.getProperties();
-              String schedulerDelay = hiveSiteProperties.get("hive.llap.task.scheduler.locality.delay");
-              if (schedulerDelay != null) {
-                // Property exists. Change to new default if set to -1.
-                if (schedulerDelay.length() != 0) {
-                  try {
-                    int schedulerDelayInt = Integer.parseInt(schedulerDelay);
-                    if (schedulerDelayInt == -1) {
-                      // Old default. Set to new default.
-                      updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
-                                                        .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
-                                                    false);
-                    }
-                  } catch (NumberFormatException e) {
-                    // Invalid existing value. Set to new default.
-                    updateConfigurationProperties(HIVE_INTERACTIVE_SITE, Collections
-                                                      .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
-                                                  false);
-                  }
-                }
-              }
-              updateConfigurationProperties(HIVE_INTERACTIVE_SITE,
-                                            Collections.singletonMap("hive.mapjoin.hybridgrace.hashtable", "true"), true,
-                                            false);
-              updateConfigurationProperties("tez-interactive-site",
-                                            Collections.singletonMap("tez.session.am.dag.submit.timeout.secs", "1209600"), true,
-                                            false);
-              // Explicitly skipping hive.llap.allow.permanent.fns during upgrades, since it's related to security,
-              // and we don't know if the value is set by the user or as a result of the previous default.
-            }
-          }
-        }
-      }
-    }
-  }
-
   protected void updateAMSConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -732,10 +690,19 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void updateTablesForZeppelinViewRemoval() throws SQLException {
-    dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
-    dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
-    dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  protected void unInstallAllZeppelinViews(){
+    LOG.info("Removing all Zeppelin views.");
+    List<ViewInstanceEntity> viewInstanceList =  viewInstanceDAO.findAll();
+    for( ViewInstanceEntity viewInstanceEntity : viewInstanceList ){
+      if(viewInstanceEntity.getViewName().equalsIgnoreCase("ZEPPELIN{1.0.0}")){
+        LOG.info("Uninstalling zeppelin view : {}", viewInstanceEntity);
+        try {
+          viewInstanceOperationHandler.uninstallViewInstance(viewInstanceEntity);
+        }catch(Exception e){
+          LOG.error("Exception occurred while uninstalling view {}. Ignored for now.", viewInstanceEntity);
+        }
+      }
+    }
   }
 
   /**
@@ -1032,7 +999,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
-  private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
   private static final String HIVE_INTERACTIVE_ENV = "hive-interactive-env";
   private static final String HIVE_ENV = "hive-env";
   protected void updateHIVEInteractiveConfigs() throws AmbariException {
@@ -1043,26 +1009,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config hiveInteractiveSite = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_SITE);
-          if (hiveInteractiveSite != null) {
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("hive.auto.convert.join.noconditionaltask.size", "1000000000");
-
-            String llapRpcPortString = hiveInteractiveSite.getProperties().get("hive.llap.daemon.rpc.port");
-            if (StringUtils.isNotBlank(llapRpcPortString)) {
-              try {
-                int llapRpcPort = Integer.parseInt(llapRpcPortString);
-                if (llapRpcPort == 15001) {
-                  newProperties.put("hive.llap.daemon.rpc.port", "0");
-                  LOG.info("Updating HSI hive.llap.daemon.rpc.port to: 0");
-                }
-              } catch (NumberFormatException e) {
-                LOG.warn("Unable to parse llap.rpc.port as integer: " + llapRpcPortString);
-              }
-            }
-            updateConfigurationProperties(HIVE_INTERACTIVE_SITE, newProperties, true, true);
-          }
-
           Config hiveInteractiveEnv = cluster.getDesiredConfigByType(HIVE_INTERACTIVE_ENV);
           Config hiveEnv = cluster.getDesiredConfigByType(HIVE_ENV);
           if (hiveInteractiveEnv != null) {

@@ -20,7 +20,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +29,6 @@ import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,11 +85,6 @@ public class ScaleClusterRequest extends BaseClusterRequest {
   @Override
   public Type getType() {
     return Type.SCALE;
-  }
-
-  @Override
-  public List<TopologyValidator> getTopologyValidators() {
-    return Collections.emptyList();
   }
 
   @Override

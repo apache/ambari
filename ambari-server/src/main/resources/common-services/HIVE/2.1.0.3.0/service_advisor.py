@@ -568,8 +568,15 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
     hive_hooks = [x for x in hive_hooks if x != ""]
     is_atlas_present_in_cluster = "ATLAS" in servicesList
 
+    enable_external_atlas_for_hive = False
     enable_atlas_hook = False
+
+    if 'hive-atlas-application.properties' in services['configurations'] and 'enable.external.atlas.for.hive' in services['configurations']['hive-atlas-application.properties']['properties']:
+      enable_external_atlas_for_hive = services['configurations']['hive-atlas-application.properties']['properties']['enable.external.atlas.for.hive'].lower() == "true"
+
     if is_atlas_present_in_cluster:
+      putHiveEnvProperty("hive.atlas.hook", "true")
+    elif enable_external_atlas_for_hive:
       putHiveEnvProperty("hive.atlas.hook", "true")
     else:
       putHiveEnvProperty("hive.atlas.hook", "false")

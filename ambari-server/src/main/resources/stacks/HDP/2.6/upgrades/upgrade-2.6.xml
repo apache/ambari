@@ -607,10 +607,11 @@
       <component name="NAMENODE">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_hdfs_plugin_cluster_name"/>
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -685,6 +686,7 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_yarn_plugin_cluster_name"/>
+          <task xsi:type="configure" id="hdp_2_6_yarn_preemption" />
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
@@ -693,6 +695,10 @@
       </component>
 
       <component name="NODEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem"/>
+        </pre-upgrade>
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -1017,6 +1023,7 @@
       <component name="ATLAS_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_6_maint_ranger_atlas_plugin_cluster_name"/>
+          <task xsi:type="configure" id="atlas_env_gc_worker"/>
         </pre-upgrade>
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>

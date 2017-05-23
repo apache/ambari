@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.quicklinks.Check;
@@ -37,9 +38,18 @@ import org.apache.ambari.server.state.quicklinks.QuickLinks;
 import org.apache.ambari.server.state.quicklinks.QuickLinksConfiguration;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class QuickLinksConfigurationModuleTest {
+
+  @Test
+  public void testAddErrors() {
+    Set<String> errors = ImmutableSet.of("one error", "two errors");
+    QuickLinksConfigurationModule module = new QuickLinksConfigurationModule((File) null);
+    module.addErrors(errors);
+    assertEquals(errors, ImmutableSet.copyOf(module.getErrors()));
+  }
 
   @Test
   public void testResolveInherit() throws Exception{

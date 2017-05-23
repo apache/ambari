@@ -45,11 +45,13 @@ class Hardware:
   LINUX_PATH_SEP = "/"
 
   def __init__(self, config):
+    logger.info("Initializing host system information.")
     self.hardware = {
       'mounts': Hardware.osdisks()
     }
     self.config = config
     self.hardware.update(Facter(self.config).facterInfo())
+    logger.info("Host system information: %s", self.hardware)
 
   @classmethod
   def _parse_df_line(cls, line):

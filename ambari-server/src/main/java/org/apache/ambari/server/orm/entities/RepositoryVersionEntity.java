@@ -249,8 +249,8 @@ public class RepositoryVersionEntity {
       try {
         return repositoryVersionHelperProvider.get().parseOperatingSystems(operatingSystems);
       } catch (Exception ex) {
-        // Should never happen as we validate json before storing it to DB
-        LOG.error("Could not parse operating systems json stored in database:" + operatingSystems, ex);
+        String msg = String.format("Failed to parse repository from OS/Repo information in the database: %s. Required fields: repo_name, repo_id, base_url", operatingSystems);
+        LOG.error(msg, ex);
       }
     }
     return Collections.emptyList();
@@ -349,7 +349,7 @@ public class RepositoryVersionEntity {
    * @return the XSD name extracted from the XML.
    */
   public String getVersionXsd() {
-    return versionXml;
+    return versionXsd;
   }
 
   /**

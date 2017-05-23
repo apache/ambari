@@ -59,8 +59,8 @@
         "ServiceComponentInfo/cluster_name",
         "ServiceComponentInfo/display_name",
         "ServiceComponentInfo/state",
-        "ServiceComponents/display_name",
-        "ServiceComponents/description",
+        "ServiceComponentInfo/display_name",
+        "ServiceComponentInfo/description",
         "ServiceComponentInfo/category",
         "ServiceComponentInfo/total_count",
         "ServiceComponentInfo/started_count",
@@ -69,6 +69,8 @@
         "ServiceComponentInfo/init_count",
         "ServiceComponentInfo/unknown_count",
         "ServiceComponentInfo/recovery_enabled",
+        "ServiceComponentInfo/desired_version",
+        "ServiceComponentInfo/repository_state",
         "params/run_smoke_test",
         "_"
     ],
@@ -135,6 +137,9 @@
         "Requests/queued_task_count",
         "Requests/progress_percent",
         "Requests/abort_reason",
+        "Requests/remove_pending_host_requests",
+        "Requests/pending_host_request_count",
+        "Requests/cluster_host_info",
         "_"
     ],
     "RequestSchedule" : [
@@ -167,6 +172,7 @@
         "Tasks/attempt_cnt",
         "Tasks/custom_command_name",
         "Tasks/command_detail",
+        "Tasks/ops_display_name",
         "_"
     ],
     "User":[

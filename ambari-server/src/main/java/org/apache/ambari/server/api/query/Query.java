@@ -45,7 +45,7 @@ public interface Query {
    * @param propertyId    the property id
    * @param temporalInfo  temporal information for the property
    */
-  public void addProperty(String propertyId, TemporalInfo temporalInfo);
+  void addProperty(String propertyId, TemporalInfo temporalInfo);
 
   /**
    * Add a local (not sub-resource) property to the query.
@@ -54,7 +54,7 @@ public interface Query {
    * @param property the property id which contains the group, property name
    *                 and whether the property is temporal
    */
-  public void addLocalProperty(String property);
+  void addLocalProperty(String property);
 
   /**
    * Obtain the properties of the query.
@@ -63,7 +63,7 @@ public interface Query {
    *
    * @return the query properties
    */
-  public Set<String> getProperties();
+  Set<String> getProperties();
 
   /**
    * Execute the query.
@@ -75,7 +75,7 @@ public interface Query {
    * @throws NoSuchResourceException the query didn't match any resources
    * @throws NoSuchParentResourceException a specified parent resource doesn't exist
    */
-  public Result execute()
+  Result execute()
       throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException;
 
   /**
@@ -84,7 +84,7 @@ public interface Query {
    *
    * @return the predicate used to identify the associated resource
    */
-  public Predicate getPredicate();
+  Predicate getPredicate();
 
   /**
    * Set the user provided predicated on this query.
@@ -92,21 +92,21 @@ public interface Query {
    *
    * @param predicate  the user provided predicate
    */
-  public void setUserPredicate(Predicate predicate);
+  void setUserPredicate(Predicate predicate);
 
   /**
    * Set the page request information for this query.
    *
    * @param pageRequest  the page request information
    */
-  public void setPageRequest(PageRequest pageRequest);
+  void setPageRequest(PageRequest pageRequest);
 
   /**
    * Set the order request information on the query
    *
    * @param sortRequest the ordering info
    */
-  public void setSortRequest(SortRequest sortRequest);
+  void setSortRequest(SortRequest sortRequest);
 
   /**
    * Set the corresponding renderer.
@@ -115,7 +115,7 @@ public interface Query {
    *
    * @param renderer  renderer for the query
    */
-  public void setRenderer(Renderer renderer);
+  void setRenderer(Renderer renderer);
 
   /**
    * Set this Query's requestInfoProperties from the original request.  This will contain information

@@ -39,6 +39,7 @@ import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -599,5 +600,19 @@ public class BlueprintImpl implements Blueprint {
       }
       blueprintEntity.setSettings(settingEntityMap.values());
     }
+  }
+
+  /**
+   * A config type is valid if there are services related to except cluster-env and global.
+   */
+  public boolean isValidConfigType(String configType) {
+    if (ConfigHelper.CLUSTER_ENV.equals(configType) || "global".equals(configType)) {
+      return true;
+    }
+    String service = getStack().getServiceForConfigType(configType);
+    if (getServices().contains(service)) {
+        return true;
+    }
+    return false;
   }
 }

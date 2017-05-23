@@ -74,6 +74,7 @@ import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTask;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,9 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class TopologyManager {
 
-  /** internal token for topology related async tasks */
+  /**
+   * internal token for topology related async tasks
+   */
   public static final String INTERNAL_AUTH_TOKEN = "internal_topology_token";
 
   public static final String INITIAL_CONFIG_TAG = "INITIAL";
@@ -134,6 +137,9 @@ public class TopologyManager {
 
   @Inject
   private SettingDAO settingDAO;
+
+  @Inject
+  private TopologyValidatorService topologyValidatorService;
 
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
@@ -264,32 +270,35 @@ public class TopologyManager {
     // get the id prior to creating ambari resources which increments the counter
     final Long provisionId = ambariContext.getNextRequestId();
 
-    boolean configureSecurity = false;
+    SecurityType securityType = null;
+    Credential credential = null;
 
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-      configureSecurity = true;
+      securityType = SecurityType.KERBEROS;
       addKerberosClient(topology);
 
       // refresh default stack config after adding KERBEROS_CLIENT component to topology
-      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint
-        ().getServices()));
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint().getServices()));
 
-      // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
-      // upon host install task execution
-      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS, repoVersion);
-      if (securityConfiguration.getDescriptor() != null) {
-        submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
-      }
-
-      Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
+      credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
         throw new InvalidTopologyException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
       }
+    }
+
+    topologyValidatorService.validateTopologyConfiguration(topology);
+
+    // create resources
+    ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
+
+    if (securityConfiguration != null && securityConfiguration.getDescriptor() != null) {
+      submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
+    }
+
+    if (credential != null) {
       submitCredential(clusterName, credential);
-    } else {
-      ambariContext.createAmbariResources(topology, clusterName, null, repoVersion);
     }
 
     long clusterId = ambariContext.getClusterId(clusterName);
@@ -312,8 +321,8 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    addClusterConfigRequest(topology, new ClusterConfigurationRequest(
-      ambariContext, topology, true, stackAdvisorBlueprintProcessor, configureSecurity));
+    addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
+      stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
 
 
     // Notify listeners that cluster configuration finished
@@ -425,7 +434,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+            "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
@@ -476,18 +485,53 @@ public class TopologyManager {
 
     final Long requestId = ambariContext.getNextRequestId();
     LogicalRequest logicalRequest = RetryHelper.executeWithRetry(new Callable<LogicalRequest>() {
-        @Override
-        public LogicalRequest call() throws Exception {
-          LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
+         @Override
+         public LogicalRequest call() throws Exception {
+           LogicalRequest logicalRequest = processAndPersistTopologyRequest(request, topology, requestId);
 
-          return logicalRequest;
-        }
-      }
+           return logicalRequest;
+         }
+       }
     );
-
     processRequest(request, topology, logicalRequest);
-
     return getRequestStatus(logicalRequest.getRequestId());
+  }
+
+  public void removePendingHostRequests(String clusterName, long requestId) {
+    ensureInitialized();
+    LOG.info("TopologyManager.removePendingHostRequests: Entering");
+
+    long clusterId = 0;
+    try {
+      clusterId = ambariContext.getClusterId(clusterName);
+    } catch (AmbariException e) {
+      LOG.error("Unable to retrieve clusterId", e);
+      throw new IllegalArgumentException("Unable to retrieve clusterId");
+    }
+    ClusterTopology topology = clusterTopologyMap.get(clusterId);
+    if (topology == null) {
+      throw new IllegalArgumentException("Unable to retrieve cluster topology for cluster");
+    }
+
+    LogicalRequest logicalRequest = allRequests.get(requestId);
+    if (logicalRequest == null) {
+      throw new IllegalArgumentException("No Logical Request found for requestId: " + requestId);
+    }
+
+    Collection<HostRequest> pendingHostRequests = logicalRequest.removePendingHostRequests(null);
+
+    if (!logicalRequest.hasPendingHostRequests()) {
+      outstandingRequests.remove(logicalRequest);
+    }
+
+    persistedState.removeHostRequests(pendingHostRequests);
+
+    // set current host count to number of currently connected hosts
+    for (HostGroupInfo currentHostGroupInfo : topology.getHostGroupInfo().values()) {
+      currentHostGroupInfo.setRequestedCount(currentHostGroupInfo.getHostNames().size());
+    }
+
+    LOG.info("TopologyManager.removePendingHostRequests: Exit");
   }
 
   /**
@@ -928,7 +972,7 @@ public class TopologyManager {
 
       for (LogicalRequest logicalRequest : requestEntry.getValue()) {
         allRequests.put(logicalRequest.getRequestId(), logicalRequest);
-        if (!logicalRequest.hasCompleted()) {
+        if (logicalRequest.hasPendingHostRequests()) {
           outstandingRequests.add(logicalRequest);
           for (String reservedHost : logicalRequest.getReservedHosts()) {
             reservedHosts.put(reservedHost, logicalRequest);
@@ -959,6 +1003,7 @@ public class TopologyManager {
         }
       }
     }
+    LOG.info("TopologyManager.replayRequests: Exit");
   }
 
   /**

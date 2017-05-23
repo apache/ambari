@@ -45,8 +45,16 @@ export default Ember.Route.extend(UILoggerMixin, {
   },
 
   actions: {
-    deleteTable(table) {
-      this.deleteTable(table);
+    deleteTable() {
+      this.deleteTable(this.currentModel);
+    },
+
+    deleteTableWarning(){
+      this.deleteTableWarning();
+    },
+
+    cancelDeleteTableWarning(){
+      this.cancelDeleteTableWarning();
     },
 
     editTable(table) {
@@ -58,7 +66,16 @@ export default Ember.Route.extend(UILoggerMixin, {
     }
   },
 
+  deleteTableWarning(){
+    this.controller.set('showDeleteTableWarningModal', true);
+  },
+
+  cancelDeleteTableWarning(){
+    this.controller.set('showDeleteTableWarningModal', false);
+  },
+
   deleteTable(tableInfo) {
+    this.controller.set('showDeleteTableWarningModal', false);
     this.controller.set('showDeleteTableModal', true);
     this.controller.set('deleteTableMessage', 'Submitting request to delete table');
     let databaseModel = this.controllerFor('databases.database').get('model');
@@ -88,6 +105,7 @@ export default Ember.Route.extend(UILoggerMixin, {
         this.get('logger').danger(`Failed to delete table '${tableInfo.get('table')}'`, this.extractError(error));
         this.controller.set('showDeleteTableModal', true);
       });
+
   },
 
   _removeTableLocally(database, table) {

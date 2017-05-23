@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.common.collect.Sets;
@@ -104,6 +105,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_SOURCE_SCHEDULE_HREF = REQUESTS + "/request_schedule/href";
   public static final String REQUEST_TYPE_ID = REQUESTS + "/type";
   public static final String REQUEST_INPUTS_ID = REQUESTS + "/inputs";
+  public static final String REQUEST_CLUSTER_HOST_INFO_ID = REQUESTS + "/cluster_host_info";
   public static final String REQUEST_RESOURCE_FILTER_ID = REQUESTS + "/resource_filters";
   public static final String REQUEST_OPERATION_LEVEL_ID = REQUESTS + "/operation_level";
   public static final String REQUEST_CREATE_TIME_ID = REQUESTS + "/create_time";
@@ -117,6 +119,8 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String REQUEST_COMPLETED_TASK_CNT_ID = REQUESTS + "/completed_task_count";
   public static final String REQUEST_QUEUED_TASK_CNT_ID = REQUESTS + "/queued_task_count";
   public static final String REQUEST_PROGRESS_PERCENT_ID = REQUESTS + "/progress_percent";
+  public static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = REQUESTS + "/remove_pending_host_requests";
+  public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
   public static final String COMMAND_ID = "command";
   public static final String SERVICE_ID = "service_name";
   public static final String COMPONENT_ID = "component_name";
@@ -125,6 +129,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public static final String ACTION_ID = "action";
   public static final String INPUTS_ID = "parameters";
   public static final String EXLUSIVE_ID = "exclusive";
+
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       REQUEST_ID_PROPERTY_ID}));
@@ -154,7 +159,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_TIMED_OUT_TASK_CNT_ID,
     REQUEST_COMPLETED_TASK_CNT_ID,
     REQUEST_QUEUED_TASK_CNT_ID,
-    REQUEST_PROGRESS_PERCENT_ID);
+    REQUEST_PROGRESS_PERCENT_ID,
+    REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
+    REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
+    REQUEST_CLUSTER_HOST_INFO_ID
+  );
 
   // ----- Constructors ----------------------------------------------------
 
@@ -299,6 +308,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   public RequestStatus updateResources(Request requestInfo, Predicate predicate)
           throws SystemException, UnsupportedPropertyException,
           NoSuchResourceException, NoSuchParentResourceException {
+
     AmbariManagementController amc = getManagementController();
     final Set<RequestRequest> requests = new HashSet<>();
 
@@ -321,33 +331,48 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
       // There should be only one request with this id (or no request at all)
       org.apache.ambari.server.actionmanager.Request internalRequest = internalRequests.get(0);
-      // Validate update request (check constraints on state value and presence of abort reason)
-      if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
-        throw new IllegalArgumentException("Abort reason can not be empty.");
-      }
 
-      if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
-        throw new IllegalArgumentException(
-                String.format("%s is wrong value. The only allowed value " +
-                                "for updating request status is ABORTED",
-                        updateRequest.getStatus()));
-      }
-
-      HostRoleStatus internalRequestStatus =
-          CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
-
-      if (internalRequestStatus.isCompletedState()) {
-        // Ignore updates to completed requests to avoid throwing exception on race condition
+      if (updateRequest.isRemovePendingHostRequests()) {
+        if (internalRequest instanceof LogicalRequest) {
+          targets.add(internalRequest);
+        } else {
+          throw new IllegalArgumentException("Request with id: " + internalRequest.getRequestId() + "is not a Logical Request.");
+        }
       } else {
-        // Validation passed
-        targets.add(internalRequest);
+        // Validate update request (check constraints on state value and presence of abort reason)
+        if (updateRequest.getAbortReason() == null || updateRequest.getAbortReason().isEmpty()) {
+          throw new IllegalArgumentException("Abort reason can not be empty.");
+        }
+
+        if (updateRequest.getStatus() != HostRoleStatus.ABORTED) {
+          throw new IllegalArgumentException(
+                  String.format("%s is wrong value. The only allowed value " +
+                                  "for updating request status is ABORTED",
+                          updateRequest.getStatus()));
+        }
+
+        HostRoleStatus internalRequestStatus =
+                CalculatedStatus.statusFromStages(internalRequest.getStages()).getStatus();
+
+        if (internalRequestStatus.isCompletedState()) {
+          // Ignore updates to completed requests to avoid throwing exception on race condition
+        } else {
+          // Validation passed
+          targets.add(internalRequest);
+        }
       }
+
     }
+
     // Perform update
     Iterator<RequestRequest> reqIterator = requests.iterator();
     for (org.apache.ambari.server.actionmanager.Request target : targets) {
-      String reason = reqIterator.next().getAbortReason();
-      amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      if (target instanceof LogicalRequest) {
+        topologyManager.removePendingHostRequests(target.getClusterName(), target.getRequestId());
+      } else {
+        String reason = reqIterator.next().getAbortReason();
+        amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+      }
     }
     return getRequestStatus(null);
   }
@@ -365,9 +390,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       requestStatus = HostRoleStatus.valueOf(requestStatusStr);
     }
     String abortReason = (String) propertyMap.get(REQUEST_ABORT_REASON_PROPERTY_ID);
+    String removePendingHostRequests = (String) propertyMap.get(REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID);
+
     RequestRequest requestRequest = new RequestRequest(clusterNameStr, requestId);
     requestRequest.setStatus(requestStatus);
     requestRequest.setAbortReason(abortReason);
+    if (removePendingHostRequests != null) {
+      requestRequest.setRemovePendingHostRequests(Boolean.valueOf(removePendingHostRequests));
+    }
+
     return requestRequest;
 
   }
@@ -716,7 +747,20 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_INPUTS_ID, entity.getInputs(), requestedPropertyIds);
+
+    // Mask any sensitive data fields in the inputs data structure
+    if (isPropertyRequested(REQUEST_INPUTS_ID, requestedPropertyIds)) {
+      String value = entity.getInputs();
+      if (!StringUtils.isBlank(value)) {
+        value = SecretReference.maskPasswordInPropertyMap(value);
+      }
+      resource.setProperty(REQUEST_INPUTS_ID, value);
+    }
+
+    if (isPropertyRequested(REQUEST_CLUSTER_HOST_INFO_ID, requestedPropertyIds)) {
+      resource.setProperty(REQUEST_CLUSTER_HOST_INFO_ID, entity.getClusterHostInfo());
+    }
+
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,
         org.apache.ambari.server.actionmanager.Request.filtersFromEntity(entity),
         requestedPropertyIds);
@@ -755,11 +799,19 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       // in this case, it appears that there are no tasks but this is a logical
       // topology request, so it's a matter of hosts simply not registering yet
       // for tasks to be created
-      status = CalculatedStatus.PENDING;
+      if (logicalRequest.hasPendingHostRequests()) {
+        status = CalculatedStatus.PENDING;
+      } else {
+        status = CalculatedStatus.COMPLETED;
+      }
     } else {
       // there are either tasks or this is not a logical request, so do normal
       // status calculations
       status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    }
+
+    if (null != logicalRequest) {
+      setResourceProperty(resource, REQUEST_PENDING_HOST_REQUEST_COUNT_ID, logicalRequest.getPendingHostRequestCount(), requestedPropertyIds);
     }
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);

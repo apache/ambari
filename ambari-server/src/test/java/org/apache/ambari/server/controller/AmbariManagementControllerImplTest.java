@@ -2359,8 +2359,10 @@ public class AmbariManagementControllerImplTest {
     expect(cluster.getDesiredStackVersion()).andReturn(new StackId("HDP-2.1")).atLeastOnce();
 
     // this getting called one time means the cluster version is getting created
-    cluster.createClusterVersion(anyObject(StackId.class), anyObject(String.class), anyObject(String.class), anyObject(RepositoryVersionState.class));
-    expectLastCall().once();
+    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
+    expect(cluster.createClusterVersion(anyObject(StackId.class), anyObject(String.class),
+        anyObject(String.class), anyObject(RepositoryVersionState.class))).andReturn(
+            clusterVersionEntity).once();
 
     expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
 

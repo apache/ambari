@@ -50,8 +50,7 @@
       Zookeeper also allows you to add a "chroot" path which will make all kafka data for this cluster appear under a particular path.
       This is a way to setup multiple Kafka clusters or other applications on the same zookeeper cluster. To do this give a connection
      string in the form hostname1:port1,hostname2:port2,hostname3:port3/chroot/path which would put all this cluster's data under the
-      path /chroot/path. Note that you must create this path yourself prior to starting the broker and consumers must use the
-      same connection string.
+      path /chroot/path. Note that consumers must use the same connection string.
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -157,6 +156,15 @@
     <name>log.cleanup.interval.mins</name>
     <value>10</value>
     <description>The frequency in minutes that the log cleaner checks whether any log segment is eligible for deletion to meet the retention policies.
+    </description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>log.retention.check.interval.ms</name>
+    <value>600000</value>
+    <description>
+      The frequency in milliseconds that the log cleaner checks whether any log segment is eligible for deletion to meet the retention policies.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -402,6 +410,17 @@
     <name>kafka.timeline.metrics.maxRowCacheSize</name>
     <value>10000</value>
     <description>Timeline metrics reporter send interval</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.host_in_memory_aggregation</name>
+    <value>{{host_in_memory_aggregation}}</value>
+    <description>if set to "true" host metrics will be aggregated in memory on each host</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>kafka.timeline.metrics.host_in_memory_aggregation_port</name>
+    <value>{{host_in_memory_aggregation_port}}</value>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

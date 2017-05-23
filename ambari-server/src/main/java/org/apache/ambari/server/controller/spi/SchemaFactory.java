@@ -28,5 +28,5 @@ public interface SchemaFactory {
    * @param type  resource type
    * @return schema instance for the specified type
    */
-  public Schema getSchema(Resource.Type type);
+  Schema getSchema(Resource.Type type);
 }

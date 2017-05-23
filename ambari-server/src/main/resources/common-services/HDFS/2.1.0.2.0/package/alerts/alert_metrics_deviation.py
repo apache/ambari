@@ -34,7 +34,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from ambari_commons.ambari_metrics_helper import select_metric_collector_for_sink
-
+from ambari_agent.AmbariConfig import AmbariConfig
 
 RESULT_STATE_OK = 'OK'
 RESULT_STATE_CRITICAL = 'CRITICAL'
@@ -320,7 +320,13 @@ def execute(configurations={}, parameters={}, host_name=None):
   metric_collector_https_enabled = str(configurations[AMS_HTTP_POLICY]) == "HTTPS_ONLY"
 
   try:
-    conn = network.get_http_connection(collector_host, int(collector_port), metric_collector_https_enabled, ca_certs)
+    conn = network.get_http_connection(
+      collector_host,
+      int(collector_port),
+      metric_collector_https_enabled,
+      ca_certs,
+      ssl_version=AmbariConfig.get_resolved_config().get_force_https_protocol_value()
+    )
     conn.request("GET", AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()
     data = response.read()

@@ -271,6 +271,11 @@
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
 
+      <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
@@ -307,21 +312,21 @@
         <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS" title="Updating Storm Worker Log4J Path">
-        <task xsi:type="configure" id="storm_worker_log4j_update_path">
-          <summary>Updating the Storm worker Log4J path</summary>
-        </task>
-      </execute-stage>
-
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas TLS Exclude Protocols">
         <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol">
           <summary>Updating Atlas TLS Exclude Protocols to exclude TLS v1.2</summary>
         </task>
       </execute-stage>
 
-      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas zookeeper timeout valuesProtocols">
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas zookeeper timeout values">
         <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts">
           <summary>Updating Atlas zookeeper timeout values</summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas Env gc-worker configuration">
+        <task xsi:type="configure" id="atlas_env_gc_worker">
+          <summary>Updating Atlas Env gc-worker configuration</summary>
         </task>
       </execute-stage>
     </group>
@@ -378,16 +383,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -424,6 +419,16 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">
@@ -826,30 +831,6 @@
       </component>
     </service>
 
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Upgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-upgrade>
-
-        <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Downgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-downgrade>
-
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -888,6 +869,30 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

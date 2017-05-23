@@ -18,85 +18,82 @@
 
 package org.apache.ambari.logfeeder.logconfig;
 
-import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.loglevelfilter.FilterLogData;
+import org.apache.ambari.logfeeder.loglevelfilter.LogLevelFilterHandler;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.junit.AfterClass;
+import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class LogConfigHandlerTest {
   
-  private static LogConfigFetcher mockFetcher;
-  
   private static InputMarker inputMarkerAudit;
   private static InputMarker inputMarkerService;
   static {
-    Map<String, Object> auditMap = new HashMap<String, Object>();
-    auditMap.put(LogFeederConstants.ROW_TYPE, "audit");
+    InputDescriptorImpl auditInputDescriptor = new InputDescriptorImpl() {};
+    auditInputDescriptor.setRowtype("audit");
+    
     Input auditInput = strictMock(Input.class);
-    expect(auditInput.getConfigs()).andReturn(auditMap).anyTimes();
+    expect(auditInput.getInputDescriptor()).andReturn(auditInputDescriptor).anyTimes();
     inputMarkerAudit = new InputMarker(auditInput, null, 0);
     
-    Map<String, Object> serviceMap = new HashMap<String, Object>();
-    serviceMap.put(LogFeederConstants.ROW_TYPE, "service");
+    InputDescriptorImpl serviceInputDescriptor = new InputDescriptorImpl() {};
+    serviceInputDescriptor.setRowtype("service");
+    
     Input serviceInput = strictMock(Input.class);
-    expect(serviceInput.getConfigs()).andReturn(serviceMap).anyTimes();
+    expect(serviceInput.getInputDescriptor()).andReturn(serviceInputDescriptor).anyTimes();
     inputMarkerService = new InputMarker(serviceInput, null, 0);
     
     replay(auditInput, serviceInput);
   }
   
-  private static final Map<String, Object> CONFIG_MAP = new HashMap<>();
-  static {
-    CONFIG_MAP.put("jsons",
-        "{'filter':{" +
-          "'configured_log_file':{" +
-            "'label':'configured_log_file'," +
-            "'hosts':[]," +
-            "'defaultLevels':['FATAL','ERROR','WARN','INFO']," +
-            "'overrideLevels':[]}," +
-          "'configured_log_file2':{" +
-            "'label':'configured_log_file2'," +
-            "'hosts':['host1']," +
-            "'defaultLevels':['FATAL','ERROR','WARN','INFO']," +
-            "'overrideLevels':['FATAL','ERROR','WARN','INFO','DEBUG','TRACE']," +
-            "'expiryTime':'3000-01-01T00:00:00.000Z'}," +
-          "'configured_log_file3':{" +
-            "'label':'configured_log_file3'," +
-            "'hosts':['host1']," +
-            "'defaultLevels':['FATAL','ERROR','WARN','INFO']," +
-            "'overrideLevels':['FATAL','ERROR','WARN','INFO','DEBUG','TRACE']," +
-            "'expiryTime':'1000-01-01T00:00:00.000Z'}" +
-          "}}");
-  }
-  
   @BeforeClass
   public static void init() throws Exception {
-    mockFetcher = strictMock(LogConfigFetcher.class);
-    Field f = LogConfigFetcher.class.getDeclaredField("instance");
-    f.setAccessible(true);
-    f.set(null, mockFetcher);
-    expect(mockFetcher.getConfigDoc()).andReturn(CONFIG_MAP).anyTimes();
-    replay(mockFetcher);
-    
     LogFeederUtil.loadProperties("logfeeder.properties", null);
-    LogConfigHandler.handleConfig();
-    Thread.sleep(1000);
+    
+    LogSearchConfig config = strictMock(LogSearchConfig.class);
+    config.createLogLevelFilter(anyString(), anyString(), anyObject(LogLevelFilter.class));
+    expectLastCall().anyTimes();
+    LogLevelFilterHandler.init(config);
+    
+    LogLevelFilter logLevelFilter1 = new LogLevelFilter();
+    logLevelFilter1.setHosts(Collections.<String> emptyList());
+    logLevelFilter1.setDefaultLevels(Arrays.asList("FATAL", "ERROR", "WARN", "INFO"));
+    logLevelFilter1.setOverrideLevels(Collections.<String> emptyList());
+    
+    LogLevelFilter logLevelFilter2 = new LogLevelFilter();
+    logLevelFilter2.setHosts(Arrays.asList("host1"));
+    logLevelFilter2.setDefaultLevels(Arrays.asList("FATAL", "ERROR", "WARN", "INFO"));
+    logLevelFilter2.setOverrideLevels(Arrays.asList("FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"));
+    logLevelFilter2.setExpiryTime(DateUtils.addDays(new Date(), 1));
+    
+    LogLevelFilter logLevelFilter3 = new LogLevelFilter();
+    logLevelFilter3.setHosts(Arrays.asList("host1"));
+    logLevelFilter3.setDefaultLevels(Arrays.asList("FATAL", "ERROR", "WARN", "INFO"));
+    logLevelFilter3.setOverrideLevels(Arrays.asList("FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"));
+    logLevelFilter3.setExpiryTime(DateUtils.addDays(new Date(), -1));
+    
+    LogLevelFilterHandler h = new LogLevelFilterHandler();
+    h.setLogLevelFilter("configured_log_file1", logLevelFilter1);
+    h.setLogLevelFilter("configured_log_file2", logLevelFilter2);
+    h.setLogLevelFilter("configured_log_file3", logLevelFilter3);
   }
   
   @Test
   public void testLogConfigHandler_auditAllowed() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'DEBUG'}",
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file1', 'level':'DEBUG'}",
         inputMarkerAudit));
   }
   
@@ -109,19 +106,25 @@ public class LogConfigHandlerTest {
   
   @Test
   public void testLogConfigHandler_notConfiguredLogAllowed() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'not_configured_log_file', 'level':'INFO'}",
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'not_configured_log_file1', 'level':'WARN'}",
+        inputMarkerService));
+  }
+  
+  @Test
+  public void testLogConfigHandler_notConfiguredLogNotAllowed() throws Exception {
+    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'not_configured_log_file1', 'level':'TRACE'}",
         inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_configuredDataAllow() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'INFO'}",
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file1', 'level':'INFO'}",
         inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_configuredDataDontAllow() throws Exception {
-    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'DEBUG'}",
+    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file1', 'level':'DEBUG'}",
         inputMarkerService));
   }
   
@@ -141,10 +144,5 @@ public class LogConfigHandlerTest {
   public void testLogConfigHandler_overridenConfiguredDataExpired() throws Exception {
     assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file3', 'level':'DEBUG'}",
         inputMarkerService));
-  }
-  
-  @AfterClass
-  public static void finish() {
-    verify(mockFetcher);
   }
 }

@@ -257,6 +257,8 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
       } else {
         this.set('value', (parseFloat(val) > maxVal)? parseFloat(maxVal) : parseFloat(val));
       }
+    } else {
+      this.set('value', (!Em.isBlank(this.get('value')) && !isNaN(parseFloat(this.get('value')))) ? parseFloat(val) : null);
     }
   }.observes('value').on('change')
 });

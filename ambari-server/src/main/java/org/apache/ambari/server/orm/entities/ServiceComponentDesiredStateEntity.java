@@ -40,6 +40,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
 
 @Entity
@@ -83,6 +84,10 @@ public class ServiceComponentDesiredStateEntity {
 
   @Column(name = "recovery_enabled", nullable = false, insertable = true, updatable = true)
   private Integer recoveryEnabled = 0;
+
+  @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
+  @Enumerated(EnumType.STRING)
+  private RepositoryVersionState repoState = RepositoryVersionState.INIT;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -295,6 +300,20 @@ public class ServiceComponentDesiredStateEntity {
 
   public void setHostComponentDesiredStateEntities(Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities) {
     this.hostComponentDesiredStateEntities = hostComponentDesiredStateEntities;
+  }
+
+  /**
+   * @param state the repository state for {@link #getDesiredVersion()}
+   */
+  public void setRepositoryState(RepositoryVersionState state) {
+    repoState = state;
+  }
+
+  /**
+   * @return the state of the repository for {@link #getDesiredVersion()}
+   */
+  public RepositoryVersionState getRepositoryState() {
+    return repoState;
   }
 
 }

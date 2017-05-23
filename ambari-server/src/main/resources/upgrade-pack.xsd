@@ -276,6 +276,7 @@
       <xs:element name="summary" minOccurs="0" />
     </xs:sequence>
     <xs:attribute name="sequential" use="optional" type="xs:boolean" />
+    <xs:attribute name="timeout-config" use="optional" type="xs:string" />
   </xs:complexType>
   
   <xs:complexType name="restart-task">

@@ -27,7 +27,6 @@ import java.util.List;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.UserConfigSolrDao;
-import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
 import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
 import org.apache.ambari.logsearch.model.response.UserConfigData;
 import org.apache.ambari.logsearch.model.response.UserConfigDataListResponse;
@@ -174,29 +173,6 @@ public class UserConfigManager extends JsonManagerBase {
 
     return response;
 
-  }
-
-  // ////////////////////////////LEVEL FILTER/////////////////////////////////////
-
-  public LogFeederDataMap getUserFilter() {
-    LogFeederDataMap userFilter;
-    try {
-      userFilter = userConfigSolrDao.getUserFilter();
-    } catch (SolrServerException | IOException e) {
-      logger.error(e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
-    return userFilter;
-  }
-
-  public LogFeederDataMap saveUserFiter(LogFeederDataMap logfeederFilters) {
-    try {
-      userConfigSolrDao.saveUserFilter(logfeederFilters);
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("user config not able to save", e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
-    return getUserFilter();
   }
 
   public List<String> getAllUserName() {

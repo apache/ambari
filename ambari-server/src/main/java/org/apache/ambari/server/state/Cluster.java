@@ -36,6 +36,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
 import com.google.common.collect.ListMultimap;
@@ -200,7 +201,7 @@ public interface Cluster {
    * @param stackId the stack id
    * @param cascade {@code true} to cascade the desired version
    */
-  public void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
+  void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
 
 
   /**
@@ -229,25 +230,40 @@ public interface Cluster {
   /**
    * Creates or updates host versions for all of the hosts within a cluster
    * based on state of cluster stack version. This is used to transition all
-   * hosts into the specified state.
+   * hosts into the correct state (which may not be
+   * {@link RepositoryVersionState#INSTALLING}).
    * <p/>
    * The difference between this method compared to
    * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
    * missing hosts).
    * <p/>
    * Hosts that are in maintenance mode will be transititioned directly into
-   * {@link RepositoryVersionState#OUT_OF_SYNC} instead.
+   * {@link RepositoryVersionState#OUT_OF_SYNC} instead. Hosts which do not need
+   * the version distributed to them will move into the
+   * {@link RepositoryVersionState#NOT_REQUIRED} state.
    *
    * @param sourceClusterVersion
    *          cluster version to be queried for a stack name/version info and
    *          desired RepositoryVersionState. The only valid state of a cluster
    *          version is {@link RepositoryVersionState#INSTALLING}
-   * @param state
-   *          the state to transition the cluster's hosts to.
+   * @param repoVersionEntity
+   *          the repository that the hosts are being transitioned for (not
+   *          {@code null}).
+   * @param versionDefinitionXml
+   *          the VDF, or {@code null} if none.
+   * @param forceInstalled
+   *          if {@code true}, then this will transition everything directly to
+   *          {@link RepositoryVersionState#INSTALLED} instead of
+   *          {@link RepositoryVersionState#INSTALLING}. Hosts which should
+   *          received other states (like
+   *          {@link RepositoryVersionState#NOT_REQUIRED} will continue to
+   *          receive those states.
+   * @return a list of hosts which need the repository installed.
    * @throws AmbariException
    */
-  void transitionHosts(ClusterVersionEntity sourceClusterVersion, RepositoryVersionState state)
-      throws AmbariException;
+  List<Host> transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion,
+      RepositoryVersionEntity repoVersionEntity, VersionDefinitionXml versionDefinitionXml,
+      boolean forceInstalled) throws AmbariException;
 
   /**
    * For a given host, will either either update an existing Host Version Entity for the given version, or create
@@ -280,8 +296,9 @@ public interface Cluster {
    * Create a cluster version for the given stack and version, whose initial
    * state must either be either {@link RepositoryVersionState#UPGRADING} (if no
    * other cluster version exists) or {@link RepositoryVersionState#INSTALLING}
-   * (if at exactly one CURRENT cluster version already exists) or {@link RepositoryVersionState#INIT}
-   * (if the cluster is being created using a specific repository version).
+   * (if at exactly one CURRENT cluster version already exists) or
+   * {@link RepositoryVersionState#INIT} (if the cluster is being created using
+   * a specific repository version).
    *
    * @param stackId
    *          Stack ID
@@ -291,9 +308,10 @@ public interface Cluster {
    *          User performing the operation
    * @param state
    *          Initial state
+   * @return the newly created and persisted {@link ClusterVersionEntity}.
    * @throws AmbariException
    */
-  void createClusterVersion(StackId stackId, String version,
+  ClusterVersionEntity createClusterVersion(StackId stackId, String version,
       String userName, RepositoryVersionState state) throws AmbariException;
 
   /**
@@ -437,7 +455,7 @@ public interface Cluster {
    * @param serviceName service name
    * @return
    */
-  public List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
+  List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
 
   /**
    * Get service config version history
@@ -675,10 +693,10 @@ public interface Cluster {
    * Gets an {@link UpgradeEntity} if there is an upgrade in progress or an
    * upgrade that has been suspended. This will return the associated
    * {@link UpgradeEntity} if it exists.
-   * 
+   *
    * @return an upgrade which will either be in progress or suspended, or
    *         {@code null} if none.
-   * 
+   *
    */
   UpgradeEntity getUpgradeInProgress();
 
@@ -695,8 +713,7 @@ public interface Cluster {
    * Gets whether there is an upgrade which has been suspended and not yet
    * finalized.
    *
-   * @return {@code true} if the last upgrade is in the
-   *         {@link UpgradeState#SUSPENDED}.
+   * @return {@code true} if the last upgrade is suspended
    */
   boolean isUpgradeSuspended();
 
@@ -754,4 +771,11 @@ public interface Cluster {
    */
   void addSuspendedUpgradeParameters(Map<String, String> commandParams,
       Map<String, String> roleParams);
+
+  /**
+   * Invalidates any cached effective cluster versions for upgrades.
+   *
+   * @see #getEffectiveClusterVersion()
+   */
+  void invalidateUpgradeEffectiveVersion();
 }

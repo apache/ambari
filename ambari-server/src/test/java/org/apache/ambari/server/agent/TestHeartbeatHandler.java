@@ -316,7 +316,6 @@ public class TestHeartbeatHandler {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
-    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus1.setComponentName(DATANODE);
     componentStatuses.add(componentStatus1);
 
@@ -325,7 +324,6 @@ public class TestHeartbeatHandler {
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.INSTALLED.name());
-    componentStatus2.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus2.setComponentName(NAMENODE);
     componentStatuses.add(componentStatus2);
 
@@ -866,7 +864,7 @@ public class TestHeartbeatHandler {
     serviceComponentHost1.setState(State.INSTALLING);
 
     Stage s = stageFactory.createNew(1, "/a/b", "cluster1", 1L, "action manager test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(1);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL,
       new ServiceComponentHostInstallEvent(Role.DATANODE.toString(),
@@ -874,7 +872,7 @@ public class TestHeartbeatHandler {
           DummyCluster, "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "clusterHostInfo", clusters);
     actionDBAccessor.persistActions(request);
     actionDBAccessor.abortHostRole(DummyHostname1, 1, 1, Role.DATANODE.name());
 
@@ -1128,14 +1126,12 @@ public class TestHeartbeatHandler {
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("STARTED");
-    dataNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(dataNodeStatus);
     ComponentStatus nameNodeStatus = new ComponentStatus();
     nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
-    nameNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(nameNodeStatus);
     hb1.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb1);
@@ -1153,14 +1149,12 @@ public class TestHeartbeatHandler {
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
-    dataNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
     nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
-    nameNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(nameNodeStatus);
     hb2.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb2);
@@ -1180,14 +1174,12 @@ public class TestHeartbeatHandler {
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
-    dataNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
     nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("STARTED");
-    nameNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(nameNodeStatus);
     hb2a.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb2a);
@@ -1208,14 +1200,12 @@ public class TestHeartbeatHandler {
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("INSTALLED");
-    dataNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(dataNodeStatus);
     nameNodeStatus = new ComponentStatus();
     nameNodeStatus.setClusterName(cluster.getClusterName());
     nameNodeStatus.setServiceName(HDFS);
     nameNodeStatus.setComponentName(NAMENODE);
     nameNodeStatus.setStatus("INSTALLED");
-    nameNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(nameNodeStatus);
     hb3.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb3);
@@ -1247,7 +1237,6 @@ public class TestHeartbeatHandler {
     dataNodeStatus.setServiceName(HDFS);
     dataNodeStatus.setComponentName(DATANODE);
     dataNodeStatus.setStatus("STARTED");
-    dataNodeStatus.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus.add(dataNodeStatus);
     hb4.setComponentStatus(componentStatus);
     handler.handleHeartBeat(hb4);
@@ -1405,7 +1394,6 @@ public class TestHeartbeatHandler {
     componentStatus1.setServiceName(serviceName);
     componentStatus1.setMessage(message);
     componentStatus1.setStatus(state.name());
-    componentStatus1.setSecurityState(securityState.name());
     componentStatus1.setComponentName(componentName);
     componentStatus1.setStackVersion(stackVersion);
     return componentStatus1;
@@ -1434,7 +1422,6 @@ public class TestHeartbeatHandler {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
-    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus1.setComponentName(DATANODE);
 
     componentStatuses.add(componentStatus1);

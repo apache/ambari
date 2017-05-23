@@ -29,7 +29,7 @@ public interface BlueprintValidator {
    *
    * @throws InvalidTopologyException if the topology is invalid
    */
-  public void validateTopology() throws InvalidTopologyException;
+  void validateTopology() throws InvalidTopologyException;
 
   /**
    * Validate that required properties are provided.
@@ -37,5 +37,5 @@ public interface BlueprintValidator {
    *
    * @throws InvalidTopologyException if required properties are not set in blueprint
    */
-  public void validateRequiredProperties() throws InvalidTopologyException;
+  void validateRequiredProperties() throws InvalidTopologyException;
 }

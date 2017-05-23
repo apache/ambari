@@ -811,10 +811,6 @@ public class ClustersImpl implements Clusters {
       }
     }
 
-
-    entity.setHostRoleCommandEntities(null);
-    hostRoleCommandDAO.removeByHostId(entity.getHostId());
-
     entity.setHostStateEntity(null);
     hostStateDAO.removeByHostId(entity.getHostId());
     hostConfigMappingDAO.removeByHostId(entity.getHostId());

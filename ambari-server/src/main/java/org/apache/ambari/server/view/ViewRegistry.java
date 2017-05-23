@@ -329,6 +329,8 @@ public class ViewRegistry {
   @Inject
   ViewURLDAO viewURLDAO;
 
+  @Inject
+  ViewInstanceOperationHandler viewInstanceOperationHandler;
   // ----- Constructors -----------------------------------------------------
 
   /**
@@ -556,6 +558,7 @@ public class ViewRegistry {
   }
 
   /**
+   * TODO : This should move to {@link ViewInstanceOperationHandler}
    * Install the given view instance with its associated view.
    *
    * @param instanceEntity the view instance entity
@@ -661,33 +664,21 @@ public class ViewRegistry {
    */
   @Transactional
   public void uninstallViewInstance(ViewInstanceEntity instanceEntity) throws IllegalStateException {
-    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
-
-    if (viewEntity != null) {
-      String instanceName = instanceEntity.getName();
-      String viewName = viewEntity.getCommonName();
-      String version = viewEntity.getVersion();
-
-      if (getInstanceDefinition(viewName, version, instanceName) != null) {
-        if (instanceEntity.isXmlDriven()) {
-          throw new IllegalStateException("View instances defined via xml can't be deleted through api requests");
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Deleting view instance " + viewName + "/" +
-              version + "/" + instanceName);
-        }
-        List<PrivilegeEntity> instancePrivileges = privilegeDAO.findByResourceId(instanceEntity.getResource().getId());
-        for (PrivilegeEntity privilegeEntity : instancePrivileges) {
-          removePrivilegeEntity(privilegeEntity);
-        }
-        instanceDAO.remove(instanceEntity);
-        viewEntity.removeInstanceDefinition(instanceName);
-        removeInstanceDefinition(viewEntity, instanceName);
-
-        // remove the web app context
-        handlerList.removeViewInstance(instanceEntity);
-      }
+    try {
+      viewInstanceOperationHandler.uninstallViewInstance(instanceEntity);
+      updateCaches(instanceEntity);
+    } catch (IllegalStateException illegalStateExcpetion) {
+      LOG.error("Exception occurred while uninstalling view : {}", instanceEntity, illegalStateExcpetion);
+      throw illegalStateExcpetion;
     }
+  }
+
+  private void updateCaches(ViewInstanceEntity instanceEntity) {
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
+    viewEntity.removeInstanceDefinition(instanceEntity.getInstanceName());
+    removeInstanceDefinition(viewEntity, instanceEntity.getInstanceName());
+    // remove the web app context
+    handlerList.removeViewInstance(instanceEntity);
   }
 
   /**
@@ -1621,18 +1612,6 @@ public class ViewRegistry {
     }
   }
 
-  // remove a privilege entity.
-  private void removePrivilegeEntity(PrivilegeEntity privilegeEntity) {
-
-    PrincipalEntity principalEntity = privilegeEntity.getPrincipal();
-    if (principalEntity != null) {
-      principalEntity.removePrivilege(privilegeEntity);
-    }
-
-    privilegeDAO.remove(privilegeEntity);
-  }
-
-
   /**
    * Extract a view archive at the specified path
    *
@@ -1811,7 +1790,7 @@ public class ViewRegistry {
   }
 
   // read a view archive
-  private void readViewArchive(ViewEntity viewDefinition,
+  private synchronized void readViewArchive(ViewEntity viewDefinition,
                                File archiveFile,
                                File extractedArchiveDirFile,
                                String serverVersion) {

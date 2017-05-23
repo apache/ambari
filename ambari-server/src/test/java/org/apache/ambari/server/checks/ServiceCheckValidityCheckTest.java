@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

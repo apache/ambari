@@ -102,22 +102,22 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
 
     if(!Strings.isNullOrEmpty(numFiles) && !Strings.isNullOrEmpty(numFiles.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setNumFiles(Integer.valueOf(numFiles.trim()));
+      tableStats.setNumFiles(Long.valueOf(numFiles.trim()));
     }
 
     if(!Strings.isNullOrEmpty(numRows) && !Strings.isNullOrEmpty(numRows.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setNumRows(Integer.valueOf(numRows.trim()));
+      tableStats.setNumRows(Long.valueOf(numRows.trim()));
     }
 
     if(!Strings.isNullOrEmpty(rawDataSize) && !Strings.isNullOrEmpty(rawDataSize.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setRawDataSize(Integer.valueOf(rawDataSize.trim()));
+      tableStats.setRawDataSize(Long.valueOf(rawDataSize.trim()));
     }
 
     if(!Strings.isNullOrEmpty(totalSize) && !Strings.isNullOrEmpty(totalSize.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setTotalSize(Integer.valueOf(totalSize.trim()));
+      tableStats.setTotalSize(Long.valueOf(totalSize.trim()));
     }
 
     if(!Strings.isNullOrEmpty(columnStatsAccurate) && !Strings.isNullOrEmpty(columnStatsAccurate.trim())) {

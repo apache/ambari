@@ -50,7 +50,11 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
         query = "SELECT stage.requestId, MIN(stage.stageId) from StageEntity stage, HostRoleCommandEntity hrc WHERE hrc.status IN :statuses AND hrc.stageId = stage.stageId AND hrc.requestId = stage.requestId GROUP by stage.requestId ORDER BY stage.requestId"),
     @NamedQuery(
         name = "StageEntity.findByRequestIdAndCommandStatuses",
-        query = "SELECT stage from StageEntity stage WHERE stage.status IN :statuses AND stage.requestId = :requestId ORDER BY stage.stageId") })
+        query = "SELECT stage from StageEntity stage WHERE stage.status IN :statuses AND stage.requestId = :requestId ORDER BY stage.stageId"),
+    @NamedQuery(
+        name = "StageEntity.removeByRequestStageIds",
+        query = "DELETE FROM StageEntity stage WHERE stage.stageId = :stageId AND stage.requestId = :requestId")
+})
 public class StageEntity {
 
   @Basic
@@ -85,16 +89,6 @@ public class StageEntity {
   @Enumerated(value = EnumType.STRING)
   @Column(name = "command_execution_type", nullable = false)
   private CommandExecutionType commandExecutionType = CommandExecutionType.STAGE;
-
-  /**
-   * On large clusters, this value can be in the 10,000's of kilobytes. During
-   * an upgrade, all stages are loaded in memory for every request, which can
-   * lead to an OOM. As a result, lazy load this since it's barely ever
-   * requested or used.
-   */
-  @Column(name = "cluster_host_info")
-  @Basic(fetch = FetchType.LAZY)
-  private byte[] clusterHostInfo;
 
   /**
    * On large clusters, this value can be in the 10,000's of kilobytes. During
@@ -181,14 +175,6 @@ public class StageEntity {
 
   public String getRequestContext() {
     return defaultString(requestContext);
-  }
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo == null ? new String() : new String(clusterHostInfo);
-  }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.clusterHostInfo = clusterHostInfo.getBytes();
   }
 
   public String getCommandParamsStage() {

@@ -1,0 +1,182 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_kafka_dashboard",
+      "display_name": "Standard Kafka Dashboard",
+      "section_name": "KAFKA_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Broker Topics",
+          "description": "Broker Topics",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "kafka.server.BrokerTopicMetrics.BytesInPerSec.1MinuteRate",
+              "metric_path": "metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesInPerSec/1MinuteRate",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            },
+            {
+              "name": "kafka.server.BrokerTopicMetrics.BytesOutPerSec.1MinuteRate",
+              "metric_path": "metrics/kafka/server/BrokerTopicMetrics/AllTopicsBytesOutPerSec/1MinuteRate",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            },
+            {
+              "name": "kafka.server.BrokerTopicMetrics.MessagesInPerSec.1MinuteRate",
+              "metric_path": "metrics/kafka/server/BrokerTopicMetrics/AllTopicsMessagesInPerSec/1MinuteRate",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Bytes In",
+              "value": "${kafka.server.BrokerTopicMetrics.BytesInPerSec.1MinuteRate}"
+            },
+            {
+              "name": "Bytes Out",
+              "value": "${kafka.server.BrokerTopicMetrics.BytesOutPerSec.1MinuteRate}"
+            },
+            {
+              "name": "Messages In",
+              "value": "${kafka.server.BrokerTopicMetrics.MessagesInPerSec.1MinuteRate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Active Controller Count",
+          "description": "Active Controller Count",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "kafka.controller.KafkaController.ActiveControllerCount._sum",
+              "metric_path": "metrics/kafka/controller/KafkaController/ActiveControllerCount._sum",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Active Controller Count",
+              "value": "${kafka.controller.KafkaController.ActiveControllerCount._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Controller Status",
+          "description": "Controller Status",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.1MinuteRate",
+              "metric_path": "metrics/kafka/controller/ControllerStats/LeaderElectionRateAndTimeMs/1MinuteRate",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            },
+            {
+              "name": "kafka.controller.ControllerStats.UncleanLeaderElectionsPerSec.1MinuteRate",
+              "metric_path": "metrics/kafka/controller/ControllerStats/UncleanLeaderElectionsPerSec/1MinuteRate",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Leader Election Rate And Time",
+              "value": "${kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.1MinuteRate}"
+            },
+            {
+              "name": "Unclean Leader Election",
+              "value": "${kafka.controller.ControllerStats.UncleanLeaderElectionsPerSec.1MinuteRate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Replica MaxLag",
+          "description": "Replica MaxLag",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "kafka.server.ReplicaFetcherManager.MaxLag.clientId.Replica",
+              "metric_path": "metrics/kafka/server/ReplicaFetcherManager/Replica-MaxLag",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Replica MaxLag",
+              "value": "${kafka.server.ReplicaFetcherManager.MaxLag.clientId.Replica}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Replica Manager",
+          "description": "Replica Manager",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "kafka.server.ReplicaManager.PartitionCount._sum",
+              "metric_path": "metrics/kafka/server/ReplicaManager/PartitionCount._sum",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            },
+            {
+              "name": "kafka.server.ReplicaManager.UnderReplicatedPartitions",
+              "metric_path": "metrics/kafka/server/ReplicaManager/UnderReplicatedPartitions",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            },
+            {
+              "name": "kafka.server.ReplicaManager.LeaderCount._sum",
+              "metric_path": "metrics/kafka/server/ReplicaManager/LeaderCount._sum",
+              "service_name": "KAFKA",
+              "component_name": "KAFKA_BROKER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Partitions count",
+              "value": "${kafka.server.ReplicaManager.PartitionCount._sum}"
+            },
+            {
+              "name": "Under Replicated Partitions",
+              "value": "${kafka.server.ReplicaManager.UnderReplicatedPartitions}"
+            },
+            {
+              "name": "Leader Count",
+              "value": "${kafka.server.ReplicaManager.LeaderCount._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        }
+
+      ]
+    }
+  ]
+}

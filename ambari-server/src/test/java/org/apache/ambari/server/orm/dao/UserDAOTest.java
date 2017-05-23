@@ -34,6 +34,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.junit.Test;
 
@@ -114,7 +115,7 @@ public class UserDAOTest {
 
   private static final UserEntity user(String name, UserType type) {
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName(name);
+    userEntity.setUserName(UserName.fromString(name));
     userEntity.setUserType(type);
     return userEntity;
   }

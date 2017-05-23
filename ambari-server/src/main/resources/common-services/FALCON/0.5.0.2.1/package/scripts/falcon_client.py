@@ -59,16 +59,6 @@ class FalconClientLinux(FalconClient):
     conf_select.select(params.stack_name, "falcon", params.version)
     stack_select.select("falcon-client", params.version)
 
-  def security_status(self, env):
-    import status_params
-    env.set_params(status_params)
-
-    if status_params.security_enabled:
-      self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
-
-
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class FalconClientWindows(FalconClient):
   def install(self, env):

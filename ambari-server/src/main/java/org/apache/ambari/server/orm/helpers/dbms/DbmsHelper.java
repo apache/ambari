@@ -66,7 +66,6 @@ public interface DbmsHelper {
    *
    * @param indexName
    * @param tableName
-   * @param columnNames
    * @return
    */
   String getDropIndexStatement(String indexName, String tableName);
@@ -126,6 +125,27 @@ public interface DbmsHelper {
    * @return the statement (never {@code null}).
    */
   String getSetNullableStatement(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable);
+
+  /**
+   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
+   * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
+   *
+   * @param sourceTable
+   *          the source table name
+   * @param sourceColumnName
+   *          the source column name
+   * @param sourceIDColumnName
+   *          source key id column which would be used to math right rows for {@code targetTable}
+   * @param targetTable
+   *          the destination table name
+   * @param targetColumnName
+   *          the destination column name
+   * @param targetIDColumnName
+   *          destination key id column name which should math {@code sourceIDColumnName}
+   * @return
+   */
+  String getCopyColumnToAnotherTableStatement(String sourceTable, String sourceColumnName, String sourceIDColumnName,
+                                              String targetTable, String targetColumnName, String targetIDColumnName);
 
   /**
    * Gets whether the database platform supports adding contraints after the

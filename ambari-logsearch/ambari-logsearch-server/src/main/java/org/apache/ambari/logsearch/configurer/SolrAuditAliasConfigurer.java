@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class SolrAuditAliasConfigurer implements SolrConfigurer {
+public class SolrAuditAliasConfigurer implements Configurer {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrAuditAliasConfigurer.class);
 

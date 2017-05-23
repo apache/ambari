@@ -231,7 +231,7 @@ var urls = {
   },
 
   'common.request.polling': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status,tasks/Tasks/structured_out,Requests/*&tasks/Tasks/stage_id={stageId}',
     'mock': '/data/background_operations/host_upgrade_tasks.json'
   },
 
@@ -539,12 +539,14 @@ var urls = {
     'mock': '/data/alerts/alert_instances_history.json'
   },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=Requests',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size={operationsCount}&fields=' +
+    'Requests/end_time,Requests/id,Requests/progress_percent,Requests/request_context,' +
+    'Requests/request_status,Requests/start_time,Requests/cluster_name&minimal_response=true',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
   'background_operations.get_by_request': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/background_operations/task_by_request{requestId}.json',
     'testInProduction': true
   },
@@ -1684,7 +1686,7 @@ var urls = {
     'mock': '/data/stack_versions/upgrade_item.json'
   },
   'admin.upgrade.service_checks': {
-    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,upgrade_items/tasks/Tasks/status&minimal_response=true'
   },
   'admin.upgrade.update.options': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
@@ -1707,6 +1709,7 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
+        timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
             "repository_version": data.value,
@@ -1968,7 +1971,7 @@ var urls = {
     'mock': '/data/wizard/deploy/5_hosts/get_host_state.json'
   },
   'wizard.step9.load_log': {
-    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
+    'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true',
     'mock': '/data/wizard/deploy/5_hosts/poll_{numPolls}.json',
     'format': function () {
       return {
@@ -2240,7 +2243,7 @@ var urls = {
   },
 
   'wizard.stacks_versions_definitions': {
-    'real': '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+    'real': '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
       '&VersionDefinition/show_available=true&VersionDefinition/stack_name={stackName}',
     'mock': '/data/wizard/stack/{stackName}_version_definitions.json'
   },
@@ -2693,6 +2696,10 @@ var urls = {
   },
   'hosts.config_groups': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.info.install': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
   'hosts.host_components.pre_load': {

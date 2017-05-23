@@ -198,7 +198,7 @@ dfs_type = default("/commandParams/dfs_type", "")
 # livy for spark2 is only supported from HDP 2.6
 has_livyserver = False
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted):
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and "livy2-env" in config['configurations']:
   livy2_component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "LIVY2_SERVER")
   livy2_conf = format("{stack_root}/current/{livy2_component_directory}/conf")
   livy2_log_dir = config['configurations']['livy2-env']['livy2_log_dir']
@@ -229,6 +229,7 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, sta
     livy_kerberos_principal = config['configurations']['livy2-conf']['livy.server.launch.kerberos.principal']
 
   livy2_livyserver_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
+  livy2_http_scheme = 'https' if 'livy.keystore' in config['configurations']['livy2-conf'] else 'http'
 
   # ats 1.5 properties
   entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']

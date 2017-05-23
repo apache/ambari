@@ -26,7 +26,7 @@ public interface Action {
    * Get the Action ID for the action
    * @return ActionId
    */
-  public ActionId getId();
+  ActionId getId();
 
   // TODO requires some form of ActionType to ensure only one running
   // action per action type
@@ -38,38 +38,38 @@ public interface Action {
    * Get Start Time of the action
    * @return Start time as a unix timestamp
    */
-  public long getStartTime();
+  long getStartTime();
 
   /**
    * Get the last update time of the Action when its progress status
    * was updated
    * @return Last Update Time as a unix timestamp
    */
-  public long getLastUpdateTime();
+  long getLastUpdateTime();
 
   /**
    * Time when the Action completed
    * @return Completion Time as a unix timestamp
    */
-  public long getCompletionTime();
+  long getCompletionTime();
 
   /**
    * Get the current state of the Action
    * @return ActionState
    */
-  public ActionState getState();
+  ActionState getState();
 
   /**
    * Set the State of the Action
    * @param state ActionState
    */
-  public void setState(ActionState state);
+  void setState(ActionState state);
 
   /**
    * Send a ActionEvent to the Action's StateMachine
    * @param event ActionEvent
    * @throws InvalidStateTransitionException
    */
-  public void handleEvent(ActionEvent event)
+  void handleEvent(ActionEvent event)
       throws InvalidStateTransitionException;
 }

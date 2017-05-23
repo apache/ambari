@@ -75,10 +75,12 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -174,6 +176,9 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
+
+  @Inject
+  private RequestDAO requestDAO;
 
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
@@ -374,6 +379,9 @@ public class AmbariCustomCommandExecutionHelper {
       if (cmd != null) {
         cmd.setCommandDetail(commandDetail);
         cmd.setCustomCommandName(commandName);
+        if (customCommandDefinition != null){
+          cmd.setOpsDisplayName(customCommandDefinition.getOpsDisplayName());
+        }
       }
 
       //set type background
@@ -441,7 +449,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
-      String commandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
+      int commandTimeout = Short.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand)).intValue();
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
           stackId.getStackName(), stackId.getStackVersion(),
@@ -455,7 +463,7 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
           if (script.getTimeout() > 0) {
-            commandTimeout = String.valueOf(script.getTimeout());
+            commandTimeout = script.getTimeout();
           }
         } else {
           String message = String.format("Component %s has not command script " +
@@ -466,7 +474,13 @@ public class AmbariCustomCommandExecutionHelper {
         // We don't need package/repo information to perform service check
       }
 
-      commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+      // !!! the action execution context timeout is the final say, but make sure it's at least 60 seconds
+      if (null != actionExecutionContext.getTimeout()) {
+        commandTimeout = actionExecutionContext.getTimeout().intValue();
+        commandTimeout = Math.max(60, commandTimeout);
+      }
+
+      commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
       commandParams.put(SERVICE_PACKAGE_FOLDER, serviceInfo.getServicePackageFolder());
       commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
@@ -1005,7 +1019,12 @@ public class AmbariCustomCommandExecutionHelper {
           StageUtils.getClusterHostInfo(cluster));
 
       // Reset cluster host info as it has changed
-      stage.setClusterHostInfo(clusterHostInfoJson);
+      RequestEntity requestEntity = requestDAO.findByPK(stage.getRequestId());
+
+      if (requestEntity != null) {
+        requestEntity.setClusterHostInfo(clusterHostInfoJson);
+        requestDAO.merge(requestEntity);
+      }
 
       Map<String, String> commandParams = new HashMap<>();
       if (serviceName.equals(Service.Type.HBASE.name())) {

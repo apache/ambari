@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.MapDateDescriptorImpl;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -40,11 +41,11 @@ public class MapperDateTest {
   public void testMapperDate_epoch() {
     LOG.info("testMapperDate_epoch()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", "epoch");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
+    mapDateDescriptor.setTargetDatePattern("epoch");
 
     MapperDate mapperDate = new MapperDate();
-    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
 
@@ -61,11 +62,11 @@ public class MapperDateTest {
   public void testMapperDate_pattern() throws Exception {
     LOG.info("testMapperDate_pattern()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
+    mapDateDescriptor.setTargetDatePattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     MapperDate mapperDate = new MapperDate();
-    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
     String dateString = "2016-04-08 15:55:23.548";
@@ -80,44 +81,35 @@ public class MapperDateTest {
   }
 
   @Test
-  public void testMapperDate_configNotMap() {
-    LOG.info("testMapperDate_configNotMap()");
-
-    MapperDate mapperDate = new MapperDate();
-    assertFalse("Was able to initialize!", mapperDate.init(null, "someField", null, ""));
-  }
-
-  @Test
   public void testMapperDate_noDatePattern() {
     LOG.info("testMapperDate_noDatePattern()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("some_param", "some_value");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
 
     MapperDate mapperDate = new MapperDate();
-    assertFalse("Was able to initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertFalse("Was not able to initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
   }
 
   @Test
   public void testMapperDate_notParsableDatePattern() {
     LOG.info("testMapperDate_notParsableDatePattern()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", "not_parsable_content");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
+    mapDateDescriptor.setTargetDatePattern("not_parsable_content");
 
     MapperDate mapperDate = new MapperDate();
-    assertFalse("Was able to initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertFalse("Was not able to initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
   }
 
   @Test
   public void testMapperDate_invalidEpochValue() {
     LOG.info("testMapperDate_invalidEpochValue()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", "epoch");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
+    mapDateDescriptor.setTargetDatePattern("epoch");
 
     MapperDate mapperDate = new MapperDate();
-    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
     String invalidValue = "abc";
@@ -131,11 +123,11 @@ public class MapperDateTest {
   public void testMapperDate_invalidDateStringValue() {
     LOG.info("testMapperDate_invalidDateStringValue()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
+    MapDateDescriptorImpl mapDateDescriptor = new MapDateDescriptorImpl();
+    mapDateDescriptor.setTargetDatePattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     MapperDate mapperDate = new MapperDate();
-    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapDateDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
     String invalidValue = "abc";

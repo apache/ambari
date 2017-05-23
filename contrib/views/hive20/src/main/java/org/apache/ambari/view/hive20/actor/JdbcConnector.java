@@ -578,12 +578,6 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void checkTerminationInactivity() {
-    if (!isAsync()) {
-      // Should not terminate if job is sync. Will terminate after the job is finished.
-      stopTerminateInactivityScheduler();
-      return;
-    }
-
     LOG.debug("Termination check, executing status: {}", executing);
     if (executing) {
       keepAlive();

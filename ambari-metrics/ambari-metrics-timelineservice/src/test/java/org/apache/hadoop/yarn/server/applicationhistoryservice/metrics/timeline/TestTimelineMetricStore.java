@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
 import org.apache.hadoop.metrics2.sink.timeline.ContainerMetric;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -92,7 +93,17 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
+  public TimelinePutResponse putHostAggregatedMetrics(AggregationResult aggregationResult) throws SQLException, IOException {
+    return null;
+  }
+
+  @Override
   public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
+    return Collections.emptyMap();
+  }
+
+  @Override
+  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId) throws SQLException, IOException {
     return Collections.emptyMap();
   }
 

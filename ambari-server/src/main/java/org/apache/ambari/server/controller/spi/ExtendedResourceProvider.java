@@ -41,7 +41,7 @@ public interface ExtendedResourceProvider extends ResourceProvider {
    * @throws NoSuchResourceException the requested resource instance doesn't exist
    * @throws NoSuchParentResourceException a parent resource of the requested resource doesn't exist
    */
-  public QueryResponse queryForResources(Request request, Predicate predicate)
+  QueryResponse queryForResources(Request request, Predicate predicate)
       throws SystemException,
       UnsupportedPropertyException,
       NoSuchResourceException,

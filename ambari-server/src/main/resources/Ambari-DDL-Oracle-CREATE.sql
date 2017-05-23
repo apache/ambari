@@ -76,6 +76,7 @@ CREATE TABLE clusterconfig (
   config_data CLOB NOT NULL,
   config_attributes CLOB,
   create_timestamp NUMBER(19) NOT NULL,
+  service_deleted SMALLINT NOT NULL DEFAULT 0,
   selected_timestamp NUMBER(19) DEFAULT 0 NOT NULL,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
@@ -184,6 +185,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_version VARCHAR(255) DEFAULT 'UNKNOWN' NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
+  repo_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
   CONSTRAINT FK_scds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
@@ -340,6 +342,7 @@ CREATE TABLE request (
   start_time NUMBER(19) NOT NULL,
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  cluster_host_info BLOB NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -351,7 +354,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure NUMBER(1) DEFAULT 0 NOT NULL,
   log_info VARCHAR2(255) NULL,
   request_context VARCHAR2(255) NULL,
-  cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
   command_execution_type VARCHAR2(32) DEFAULT 'STAGE' NOT NULL,
@@ -384,7 +386,8 @@ CREATE TABLE host_role_command (
   structured_out BLOB NULL,
   command_detail VARCHAR2(255) NULL,
   custom_command_name VARCHAR2(255) NULL,
-  is_background_command SMALLINT DEFAULT 0 NOT NULL,
+  ops_display_name VARCHAR2(255),
+  is_background SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id));

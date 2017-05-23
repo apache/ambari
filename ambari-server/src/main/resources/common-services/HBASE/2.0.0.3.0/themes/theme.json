@@ -1,0 +1,407 @@
+{
+  "name": "default",
+  "description": "Default theme for HBASE service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "3",
+              "tab-rows": "3",
+              "sections": [
+                {
+                  "name": "section-hbase-memory",
+                  "display-name": "Server",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-memory-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-hbase-memory-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-hbase-client",
+                  "display-name": "Client",
+                  "row-index": "0",
+                  "column-index": "2",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-client-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-hbase-disk",
+                  "display-name": "Disk",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "3",
+                  "section-columns": "3",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-disk-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-hbase-disk-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-hbase-disk-col3",
+                      "row-index": "0",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-hbase-timeouts",
+                  "display-name": "Timeouts",
+                  "row-index": "2",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-timeouts-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-hbase-security",
+                  "display-name": "Security",
+                  "row-index": "2",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-security-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-hbase-phoenix",
+                  "display-name": "Phoenix SQL",
+                  "row-index": "2",
+                  "column-index": "2",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-hbase-phoenix-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "hbase-env/hbase_master_heapsize",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
+          "config": "hbase-env/hbase_regionserver_heapsize",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
+          "config": "hbase-site/hfile.block.cache.size",
+          "subsection-name": "subsection-hbase-memory-col1"
+        },
+        {
+          "config": "hbase-site/hbase.hregion.memstore.flush.size",
+          "subsection-name": "subsection-hbase-memory-col2"
+        },
+        {
+          "config": "hbase-site/hbase.hregion.memstore.block.multiplier",
+          "subsection-name": "subsection-hbase-memory-col2"
+        },
+        {
+          "config": "hbase-site/hbase.regionserver.handler.count",
+          "subsection-name": "subsection-hbase-memory-col2"
+        },
+        {
+          "config": "hbase-site/hbase.client.retries.number",
+          "subsection-name": "subsection-hbase-client-col1"
+        },
+        {
+          "config": "hbase-site/hbase.client.keyvalue.maxsize",
+          "subsection-name": "subsection-hbase-client-col1"
+        },
+        {
+          "config": "hbase-site/hbase.hregion.max.filesize",
+          "subsection-name": "subsection-hbase-disk-col1"
+        },
+        {
+          "config": "hbase-site/hbase.hregion.majorcompaction",
+          "subsection-name": "subsection-hbase-disk-col2"
+        },
+        {
+          "config": "hbase-site/hbase.hstore.compaction.max",
+          "subsection-name": "subsection-hbase-disk-col3"
+        },
+        {
+          "config": "hbase-site/zookeeper.session.timeout",
+          "subsection-name": "subsection-hbase-timeouts-col1"
+        },
+        {
+          "config": "hbase-site/hbase.rpc.timeout",
+          "subsection-name": "subsection-hbase-timeouts-col1"
+        },
+        {
+          "config": "hbase-site/hbase.security.authentication",
+          "subsection-name": "subsection-hbase-security-col1"
+        },
+        {
+          "config": "hbase-site/hbase.security.authorization",
+          "subsection-name": "subsection-hbase-security-col1"
+        },
+        {
+          "config": "hbase-env/phoenix_sql_enabled",
+          "subsection-name": "subsection-hbase-phoenix-col1"
+        },
+        {
+          "config": "hbase-site/phoenix.query.timeoutMs",
+          "subsection-name": "subsection-hbase-phoenix-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "hbase-site/hbase.regionserver.global.memstore.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-env/hbase_master_heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-env/hbase_regionserver_heapsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hfile.block.cache.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.hregion.memstore.flush.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.hregion.memstore.block.multiplier",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.regionserver.handler.count",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.client.retries.number",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.client.keyvalue.maxsize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.hregion.max.filesize",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.hregion.majorcompaction",
+        "widget": {
+          "type": "time-interval-spinner",
+          "units": [
+            {
+              "unit-name": "days,hours"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.hstore.compaction.max",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hbase-site/zookeeper.session.timeout",
+        "widget": {
+          "type": "time-interval-spinner",
+          "units": [
+            {
+              "unit-name": "minutes,seconds"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.rpc.timeout",
+        "widget": {
+          "type": "time-interval-spinner",
+          "units": [
+            {
+              "unit-name": "minutes,seconds"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hbase-site/hbase.security.authentication",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hbase-site/hbase.security.authorization",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hbase-env/phoenix_sql_enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hbase-site/phoenix.query.timeoutMs",
+        "widget": {
+          "type": "time-interval-spinner",
+          "units": [
+            {
+              "unit-name": "minutes,seconds"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+

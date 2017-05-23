@@ -217,7 +217,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         return;
       }
       var rq = this.get("services").findProperty('id', request.Requests.id);
-      var isRunning = this.isRequestRunning(request);
+      var isRunning = request.Requests.request_status === 'IN_PROGRESS';
       var requestParams = this.parseRequestContext(request.Requests.request_context);
       this.assignScheduleId(request, requestParams);
       currentRequestIds.push(request.Requests.id);
@@ -281,16 +281,6 @@ App.BackgroundOperationsController = Em.Controller.extend({
     }
   },
 
-  /**
-   * identify whether request is running by task counters
-   * @param request
-   * @return {Boolean}
-   */
-  isRequestRunning: function (request) {
-    return (request.Requests.task_count -
-      (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
-        + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
-  },
   /**
    * identify whether there is only one host in request
    * @param inputs

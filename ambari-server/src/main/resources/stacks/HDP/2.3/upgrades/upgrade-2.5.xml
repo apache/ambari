@@ -158,7 +158,7 @@
       </service>
     </group>
 
-    <group name="HBASE" title="Update HBase Configuration">
+    <group xsi:type="cluster" name="HBASE" title="Update HBase Configuration">
       <skippable>true</skippable>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
@@ -673,12 +673,13 @@
           <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
         </pre-upgrade>
 
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -1091,6 +1092,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
           <task xsi:type="configure" id="storm_worker_log4j_parameterize" />
           <task xsi:type="configure" id="storm_cluster_log4j_parameterize" />
+          <task xsi:type="configure" id="storm_worker_log4j_directory" />
         </pre-upgrade>
 
         <pre-downgrade>

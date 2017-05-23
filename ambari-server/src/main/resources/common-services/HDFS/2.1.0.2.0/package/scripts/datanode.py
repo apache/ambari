@@ -21,10 +21,13 @@ import datanode_upgrade
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 
 from hdfs_datanode import datanode
+from resource_management import Script, Fail, shell, Logger
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select, stack_select
-from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from resource_management.core.logger import Logger
@@ -32,6 +35,7 @@ from hdfs import hdfs
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from utils import get_hdfs_binary
+from utils import get_dfsadmin_base_command
 
 class DataNode(Script):
 
@@ -75,11 +79,50 @@ class DataNode(Script):
         datanode(action="stop")
     else:
       datanode(action="stop")
+    # verify that the datanode is down
+    self.check_datanode_shutdown(hdfs_binary)
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
     datanode(action = "status")
+
+  @retry(times=24, sleep_time=5, err_class=Fail)
+  def check_datanode_shutdown(self, hdfs_binary):
+    """
+    Checks that a DataNode is down by running "hdfs dfsamin getDatanodeInfo"
+    several times, pausing in between runs. Once the DataNode stops responding
+    this method will return, otherwise it will raise a Fail(...) and retry
+    automatically.
+    The stack defaults for retrying for HDFS are also way too slow for this
+    command; they are set to wait about 45 seconds between client retries. As
+    a result, a single execution of dfsadmin will take 45 seconds to retry and
+    the DataNode may be marked as dead, causing problems with HBase.
+    https://issues.apache.org/jira/browse/HDFS-8510 tracks reducing the
+    times for ipc.client.connect.retry.interval. In the meantime, override them
+    here, but only for RU.
+    :param hdfs_binary: name/path of the HDFS binary to use
+    :return:
+    """
+    import params
+
+    # override stock retry timeouts since after 30 seconds, the datanode is
+    # marked as dead and can affect HBase during RU
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    command = format('{dfsadmin_base_command} -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
+
+    is_datanode_deregistered = False
+    try:
+      shell.checked_call(command, user=params.hdfs_user, tries=1)
+    except:
+      is_datanode_deregistered = True
+
+    if not is_datanode_deregistered:
+      Logger.info("DataNode has not yet deregistered from the NameNode...")
+      raise Fail('DataNode has not yet deregistered from the NameNode...')
+
+    Logger.info("DataNode has successfully shutdown.")
+    return True
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -100,64 +143,6 @@ class DataNodeDefault(DataNode):
     hdfs_binary = self.get_hdfs_binary()
     # ensure the DataNode has started and rejoined the cluster
     datanode_upgrade.post_upgrade_check(hdfs_binary)
-
-  def security_status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    props_value_check = {"hadoop.security.authentication": "kerberos",
-                         "hadoop.security.authorization": "true"}
-    props_empty_check = ["hadoop.security.auth_to_local"]
-    props_read_check = None
-    core_site_expectations = build_expectations('core-site', props_value_check, props_empty_check,
-                                                props_read_check)
-    props_value_check = None
-    props_empty_check = ['dfs.datanode.keytab.file',
-                         'dfs.datanode.kerberos.principal']
-    props_read_check = ['dfs.datanode.keytab.file']
-    hdfs_site_expectations = build_expectations('hdfs-site', props_value_check, props_empty_check,
-                                                props_read_check)
-
-    hdfs_expectations = {}
-    hdfs_expectations.update(core_site_expectations)
-    hdfs_expectations.update(hdfs_site_expectations)
-
-    security_params = get_params_from_filesystem(status_params.hadoop_conf_dir,
-                                                 {'core-site.xml': FILE_TYPE_XML,
-                                                  'hdfs-site.xml': FILE_TYPE_XML})
-
-    if 'core-site' in security_params and 'hadoop.security.authentication' in security_params['core-site'] and \
-        security_params['core-site']['hadoop.security.authentication'].lower() == 'kerberos':
-      result_issues = validate_security_config_properties(security_params, hdfs_expectations)
-      if not result_issues:  # If all validations passed successfully
-        try:
-          # Double check the dict before calling execute
-          if ('hdfs-site' not in security_params or
-                  'dfs.datanode.keytab.file' not in security_params['hdfs-site'] or
-                  'dfs.datanode.kerberos.principal' not in security_params['hdfs-site']):
-            self.put_structured_out({"securityState": "UNSECURED"})
-            self.put_structured_out(
-              {"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.hdfs_user,
-                                security_params['hdfs-site']['dfs.datanode.keytab.file'],
-                                security_params['hdfs-site']['dfs.datanode.kerberos.principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        except Exception as e:
-          self.put_structured_out({"securityState": "ERROR"})
-          self.put_structured_out({"securityStateErrorInfo": str(e)})
-      else:
-        issues = []
-        for cf in result_issues:
-          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-        self.put_structured_out({"securityState": "UNSECURED"})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
       
   def get_log_folder(self):
     import params

@@ -531,9 +531,8 @@ public interface DBAccessor {
    *          the name of the table (not {@code null}).
    * @param columnName
    *          the name of the column to retrieve type for (not {@code null}).
-   * @return the integer representation of the column type from {@link Types}.
+   * @return the integer representation of the column type
    * @throws SQLException
-   * @see {@link Types}
    */
   int getColumnType(String tableName, String columnName)
       throws SQLException;
@@ -623,6 +622,30 @@ public interface DBAccessor {
    */
   void addDefaultConstraint(String tableName, DBColumnInfo column) throws SQLException;
 
+  /**
+   * Move column data from {@code sourceTableName} to {@code targetTableName} using {@code sourceIDFieldName} and
+   * {@code targetIDFieldName} keys to match right rows
+   *
+   * @param sourceTableName
+   *          the source table name
+   * @param sourceColumn
+   *          the source column name
+   * @param sourceIDFieldName
+   *          the source id key filed name matched with {@code targetIDFieldName}
+   * @param targetTableName
+   *          the target table name
+   * @param targetColumn
+   *          the target column name
+   * @param targetIDFieldName
+   *          the target id key name matched with {@code sourceIDFieldName}
+   * @param isColumnNullable
+   *          should be target column nullable or not
+   *
+   * @throws SQLException
+   */
+  void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
+       String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName, boolean isColumnNullable) throws SQLException;
+
   enum DbType {
     ORACLE,
     MYSQL,
@@ -637,6 +660,12 @@ public interface DBAccessor {
    * @return @DbType
    */
   DbType getDbType();
+
+  /**
+   * Get database schema name
+   * @return @dbSchema
+   */
+  String getDbSchema();
 
   /**
    * Capture column type

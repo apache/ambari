@@ -30,6 +30,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 # Abstraction for OS-dependent configuration defaults
 #
 class ConfigDefaults(object):
+  def get_config_dir(self):
+    pass
   def get_config_file_path(self):
     pass
   def get_metric_file_path(self):
@@ -40,11 +42,14 @@ class ConfigDefaults(object):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ConfigDefaultsWindows(ConfigDefaults):
   def __init__(self):
+    self._CONFIG_DIR = "conf"
     self._CONFIG_FILE_PATH = "conf\\metric_monitor.ini"
     self._METRIC_FILE_PATH = "conf\\metric_groups.conf"
     self._METRIC_FILE_PATH = "conf\\ca.pem"
     pass
 
+  def get_config_dir(self):
+    return self._CONFIG_DIR
   def get_config_file_path(self):
     return self._CONFIG_FILE_PATH
   def get_metric_file_path(self):
@@ -55,11 +60,13 @@ class ConfigDefaultsWindows(ConfigDefaults):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ConfigDefaultsLinux(ConfigDefaults):
   def __init__(self):
+    self._CONFIG_DIR = "/etc/ambari-metrics-monitor/conf/"
     self._CONFIG_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_monitor.ini"
     self._METRIC_FILE_PATH = "/etc/ambari-metrics-monitor/conf/metric_groups.conf"
     self._CA_CERTS_FILE_PATH = "/etc/ambari-metrics-monitor/conf/ca.pem"
     pass
-
+  def get_config_dir(self):
+    return self._CONFIG_DIR
   def get_config_file_path(self):
     return self._CONFIG_FILE_PATH
   def get_metric_file_path(self):
@@ -71,6 +78,7 @@ configDefaults = ConfigDefaults()
 
 config = ConfigParser.RawConfigParser()
 
+CONFIG_DIR = configDefaults.get_config_dir()
 CONFIG_FILE_PATH = configDefaults.get_config_file_path()
 METRIC_FILE_PATH = configDefaults.get_metric_file_path()
 CA_CERTS_FILE_PATH = configDefaults.get_ca_certs_file_path()
@@ -191,6 +199,8 @@ class Configuration:
         # No hostname script identified in the ambari agent conf
         pass
     pass
+  def get_config_dir(self):
+    return CONFIG_DIR
 
   def getConfig(self):
     return self.config
@@ -214,9 +224,13 @@ class Configuration:
   def get_hostname_config(self):
     return self.get("default", "hostname", None)
 
-  def get_metrics_collector_hosts(self):
+  def get_metrics_collector_hosts_as_list(self):
     hosts = self.get("default", "metrics_servers", "localhost")
     return hosts.split(",")
+
+  def get_metrics_collector_hosts_as_string(self):
+    hosts = self.get("default", "metrics_servers", "localhost")
+    return hosts
 
   def get_failover_strategy(self):
     return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
@@ -239,8 +253,31 @@ class Configuration:
   def is_server_https_enabled(self):
     return "true" == str(self.get("collector", "https_enabled")).lower()
 
+  def get_java_home(self):
+    return self.get("aggregation", "java_home")
+
+  def is_inmemory_aggregation_enabled(self):
+    return "true" == str(self.get("aggregation", "host_in_memory_aggregation")).lower()
+
+  def get_inmemory_aggregation_port(self):
+    return self.get("aggregation", "host_in_memory_aggregation_port")
+
+  def get_aggregator_jvm_agrs(self):
+    hosts = self.get("aggregation", "jvm_arguments", "-Xmx256m -Xms128m -XX:PermSize=68m")
+    return hosts
+
+  def ams_monitor_log_dir(self):
+    hosts = self.get("aggregation", "ams_monitor_log_dir", "/var/log/ambari-metrics-monitor")
+    return hosts
+
+  def is_set_instanceid(self):
+    return "true" == str(self.get("default", "set.instanceId", 'false')).lower()
+
   def get_server_host(self):
     return self.get("collector", "host")
+
+  def get_instanceid(self):
+    return self.get("default", "instanceid")
 
   def get_server_port(self):
     try:

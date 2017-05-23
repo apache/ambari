@@ -34,11 +34,11 @@ public class TableStats {
 
   private DatabaseMetadataWrapper databaseMetadata;
   private Boolean isTableStatsEnabled;
-  private Integer numFiles;
-  private Integer numRows;
+  private Long numFiles;
+  private Long numRows;
   private String columnStatsAccurate;
-  private Integer rawDataSize;
-  private Integer totalSize;
+  private Long rawDataSize;
+  private Long totalSize;
 
   public Boolean getTableStatsEnabled() {
     return isTableStatsEnabled;
@@ -48,11 +48,11 @@ public class TableStats {
     isTableStatsEnabled = tableStatsEnabled;
   }
 
-  public Integer getNumFiles() {
+  public Long getNumFiles() {
     return numFiles;
   }
 
-  public void setNumFiles(Integer numFiles) {
+  public void setNumFiles(Long numFiles) {
     this.numFiles = numFiles;
   }
 
@@ -64,27 +64,27 @@ public class TableStats {
     this.columnStatsAccurate = columnStatsAccurate;
   }
 
-  public Integer getRawDataSize() {
+  public Long getRawDataSize() {
     return rawDataSize;
   }
 
-  public void setRawDataSize(Integer rawDataSize) {
+  public void setRawDataSize(Long rawDataSize) {
     this.rawDataSize = rawDataSize;
   }
 
-  public Integer getTotalSize() {
+  public Long getTotalSize() {
     return totalSize;
   }
 
-  public void setTotalSize(Integer totalSize) {
+  public void setTotalSize(Long totalSize) {
     this.totalSize = totalSize;
   }
 
-  public Integer getNumRows() {
+  public Long getNumRows() {
     return numRows;
   }
 
-  public void setNumRows(Integer numRows) {
+  public void setNumRows(Long numRows) {
     this.numRows = numRows;
   }
 

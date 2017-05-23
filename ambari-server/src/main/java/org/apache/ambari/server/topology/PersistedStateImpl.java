@@ -20,7 +20,6 @@ package org.apache.ambari.server.topology;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
@@ -117,6 +117,15 @@ public class PersistedStateImpl implements PersistedState {
     //logicalRequestDAO.create(entity);
 
     topologyRequestDAO.merge(topologyRequestEntity);
+  }
+
+  @Override
+  @Transactional
+  public void removeHostRequests(Collection<HostRequest> hostRequests) {
+    for(HostRequest hostRequest :  hostRequests) {
+      TopologyHostRequestEntity hostRequestEntity = hostRequestDAO.findById(hostRequest.getId());
+      hostRequestDAO.remove(hostRequestEntity);
+    }
   }
 
   @Override
@@ -399,10 +408,6 @@ public class PersistedStateImpl implements PersistedState {
       return hostGroupInfoMap;
     }
 
-    @Override
-    public List<TopologyValidator> getTopologyValidators() {
-      return Collections.emptyList();
-    }
 
     @Override
     public String getDescription() {

@@ -78,10 +78,12 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
+import org.apache.ambari.server.utils.SecretReference;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -97,6 +99,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * RequestResourceProvider tests.
@@ -140,6 +144,10 @@ public class RequestResourceProviderTest {
     field = RequestResourceProvider.class.getDeclaredField("topologyManager");
     field.setAccessible(true);
     field.set(null, topologyManager);
+
+    field = SecretReference.class.getDeclaredField("gson");
+    field.setAccessible(true);
+    field.set(null, new Gson());
 
     AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
   }
@@ -257,12 +265,38 @@ public class RequestResourceProviderTest {
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
+    String storedInputs = "{" +
+        " \"hosts\": \"host1\"," +
+        " \"check_execute_list\": \"last_agent_env_check,installed_packages,existing_repos,transparentHugePage\"," +
+        " \"jdk_location\": \"http://ambari_server.home:8080/resources/\"," +
+        " \"threshold\": \"20\"," +
+        " \"password\": \"for your eyes only\"," +
+        " \"foo_password\": \"for your eyes only\"," +
+        " \"passwd\": \"for your eyes only\"," +
+        " \"foo_passwd\": \"for your eyes only\"" +
+        " }";
+    String cleanedInputs = SecretReference.maskPasswordInPropertyMap(storedInputs);
+
+    // Make sure SecretReference.maskPasswordInPropertyMap properly masked the password fields in cleanedInputs...
+    Gson gson = new Gson();
+    Map<String, String> map = gson.fromJson(cleanedInputs, new TypeToken<Map<String, String>>() {}.getType());
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+      String name = entry.getKey();
+      if (name.contains("password") || name.contains("passwd")) {
+        Assert.assertEquals("SECRET", entry.getValue());
+      }
+      else {
+        Assert.assertFalse("SECRET".equals(entry.getValue()));
+      }
+    }
+
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     ActionManager actionManager = createNiceMock(ActionManager.class);
     RequestEntity requestMock = createNiceMock(RequestEntity.class);
 
     expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
+    expect(requestMock.getInputs()).andReturn(storedInputs).anyTimes();
 
     Capture<Collection<Long>> requestIdsCapture = newCapture();
 
@@ -286,6 +320,7 @@ public class RequestResourceProviderTest {
 
     propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_INPUTS_ID);
 
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
       toPredicate();
@@ -296,6 +331,7 @@ public class RequestResourceProviderTest {
     for (Resource resource : resources) {
       Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
       Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+      Assert.assertEquals(cleanedInputs, resource.getPropertyValue(RequestResourceProvider.REQUEST_INPUTS_ID));
     }
 
     // verify
@@ -1649,7 +1685,12 @@ public class RequestResourceProviderTest {
 
 
     ClusterTopology topology = createNiceMock(ClusterTopology.class);
+
+    HostGroup hostGroup = createNiceMock(HostGroup.class);
+    expect(hostGroup.getName()).andReturn("host_group_1").anyTimes();
+
     Blueprint blueprint = createNiceMock(Blueprint.class);
+    expect(blueprint.getHostGroup("host_group_1")).andReturn(hostGroup).anyTimes();
     expect(topology.getClusterId()).andReturn(2L).anyTimes();
 
     Long clusterId = 2L;
@@ -1666,8 +1707,13 @@ public class RequestResourceProviderTest {
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(
       Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
 
+    Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+    HostGroupInfo hostGroupInfo = new HostGroupInfo("host_group_1");
+    hostGroupInfo.setRequestedCount(1);
+    hostGroupInfoMap.put("host_group_1", hostGroupInfo);
+
     TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
-    expect(topologyRequest.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
+    expect(topologyRequest.getHostGroupInfo()).andReturn(hostGroupInfoMap).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 
@@ -1677,24 +1723,28 @@ public class RequestResourceProviderTest {
     expect(AmbariServer.getController()).andReturn(managementController).anyTimes();
 
     PowerMock.replayAll(
-      topologyRequest,
-      topology,
-      blueprint,
-      managementController,
-      clusters);
+            topologyRequest,
+            topology,
+            blueprint,
+            managementController,
+            clusters);
 
 
-    LogicalRequest logicalRequest = new LogicalRequest(200L, topologyRequest, topology);
+    LogicalRequest logicalRequest = createNiceMock(LogicalRequest.class);
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
+    expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
 
     reset(topologyManager);
 
     expect(topologyManager.getRequest(100L)).andReturn(logicalRequest).anyTimes();
+
+
     expect(topologyManager.getRequests(eq(Collections.singletonList(100L)))).andReturn(
       Collections.singletonList(logicalRequest)).anyTimes();
     expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
       Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
 
-    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+    replay(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
       type,
@@ -1722,7 +1772,7 @@ public class RequestResourceProviderTest {
 
     // verify
     PowerMock.verifyAll();
-    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager);
+    verify(actionManager, requestMock, requestDAO, hrcDAO, topologyManager, logicalRequest);
 
     Assert.assertEquals(1, resources.size());
     for (Resource resource : resources) {

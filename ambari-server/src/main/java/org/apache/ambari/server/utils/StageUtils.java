@@ -194,20 +194,20 @@ public class StageUtils {
     return requestStageIds;
   }
 
-  public static Stage getATestStage(long requestId, long stageId, String clusterHostInfo, String commandParamsStage, String hostParamsStage) {
+  public static Stage getATestStage(long requestId, long stageId, String commandParamsStage, String hostParamsStage) {
     String hostname;
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
       hostname = "host-dummy";
     }
-    return getATestStage(requestId, stageId, hostname, clusterHostInfo, commandParamsStage, hostParamsStage);
+    return getATestStage(requestId, stageId, hostname, commandParamsStage, hostParamsStage);
   }
 
   //For testing only
   @Inject
-  public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo, String commandParamsStage, String hostParamsStage) {
-    Stage s = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo, commandParamsStage, hostParamsStage);
+  public static Stage getATestStage(long requestId, long stageId, String hostname, String commandParamsStage, String hostParamsStage) {
+    Stage s = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, "context", commandParamsStage, hostParamsStage);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,

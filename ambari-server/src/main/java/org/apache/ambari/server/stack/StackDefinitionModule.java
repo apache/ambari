@@ -41,33 +41,33 @@ public interface StackDefinitionModule <T, I> {
    *
    * @throws AmbariException if resolution fails
    */
-  public void resolve(T parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException;
+  void resolve(T parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions) throws AmbariException;
 
   /**
    * Obtain the associated module information.
    *
    * @return associated module information
    */
-  public I getModuleInfo();
+  I getModuleInfo();
 
   /**
    * Determine whether the module has been marked for deletion.
    *
    * @return true if the module is marked for deletion; otherwise false
    */
-  public boolean isDeleted();
+  boolean isDeleted();
 
   /**
    * Obtain the id of the module.
    *
    * @return module id
    */
-  public String getId();
+  String getId();
 
   /**
    * Lifecycle even which is called when the associated stack has been fully resolved.
    */
-  public void finalizeModule();
+  void finalizeModule();
 
   /**
    * Module state.
@@ -77,17 +77,17 @@ public interface StackDefinitionModule <T, I> {
    *
    * @return the module state
    */
-  public ModuleState getModuleState();
+  ModuleState getModuleState();
   
   /**
    * 
    * @return valid module flag
    */
-  public boolean isValid();
+  boolean isValid();
 
   /**
    * 
    * @param valid set validity flag
    */
-  public void setValid(boolean valid);
+  void setValid(boolean valid);
 }

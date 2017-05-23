@@ -495,7 +495,6 @@ public class HeartbeatProcessorTest {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
-    componentStatus1.setSecurityState(SecurityState.SECURED_KERBEROS.name());
     componentStatus1.setComponentName(DATANODE);
     componentStatuses.add(componentStatus1);
     ComponentStatus componentStatus2 = new ComponentStatus();
@@ -503,7 +502,6 @@ public class HeartbeatProcessorTest {
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.STARTED.name());
-    componentStatus2.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus2.setComponentName(SECONDARY_NAMENODE);
     componentStatuses.add(componentStatus2);
     hb.setComponentStatus(componentStatuses);
@@ -526,7 +524,6 @@ public class HeartbeatProcessorTest {
     State componentState2 = serviceComponentHost2.getState();
     State componentState3 = serviceComponentHost3.getState();
     assertEquals(State.STARTED, componentState1);
-    assertEquals(SecurityState.SECURED_KERBEROS, serviceComponentHost1.getSecurityState());
     assertEquals(State.INSTALLED, componentState2);
     assertEquals(SecurityState.SECURING, serviceComponentHost2.getSecurityState());
     //starting state will not be overridden by status command
@@ -837,7 +834,6 @@ public class HeartbeatProcessorTest {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
-    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus1.setComponentName(DATANODE);
 
     componentStatus1.setExtra(extra);
@@ -873,7 +869,6 @@ public class HeartbeatProcessorTest {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.STARTED.name());
-    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus1.setComponentName(DATANODE);
     hb.setComponentStatus(Collections.singletonList(componentStatus1));
 
@@ -992,7 +987,7 @@ public class HeartbeatProcessorTest {
     serviceComponentHost2.setStackVersion(stack120);
 
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action manager test",
-        "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+        "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(),
@@ -1004,7 +999,7 @@ public class HeartbeatProcessorTest {
         DummyCluster, "HDFS", false, false);
     List<Stage> stages = new ArrayList<>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "clusterHostInfo", clusters);
     actionDBAccessor.persistActions(request);
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
@@ -1328,7 +1323,6 @@ public class HeartbeatProcessorTest {
     componentStatus1.setServiceName(HDFS);
     componentStatus1.setMessage(DummyHostStatus);
     componentStatus1.setStatus(State.INSTALLED.name());
-    componentStatus1.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus1.setComponentName(DATANODE);
     componentStatuses.add(componentStatus1);
 
@@ -1337,7 +1331,6 @@ public class HeartbeatProcessorTest {
     componentStatus2.setServiceName(HDFS);
     componentStatus2.setMessage(DummyHostStatus);
     componentStatus2.setStatus(State.INSTALLED.name());
-    componentStatus2.setSecurityState(SecurityState.UNSECURED.name());
     componentStatus2.setComponentName(NAMENODE);
     componentStatuses.add(componentStatus2);
 

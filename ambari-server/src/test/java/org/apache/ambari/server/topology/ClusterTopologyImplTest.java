@@ -19,20 +19,15 @@
 package org.apache.ambari.server.topology;
 
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.notNull;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.createStrictMock;
 import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.reset;
 import static org.powermock.api.easymock.PowerMock.verify;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,7 +51,7 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
   private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
-  private final List<TopologyValidator> topologyValidators = new ArrayList<>();
+
   private Configuration configuration;
   private Configuration bpconfiguration;
 
@@ -64,9 +59,9 @@ public class ClusterTopologyImplTest {
   public void setUp() throws Exception {
 
     configuration = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<String, Map<String, Map<String, String>>>());
     bpconfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
-            new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<String, Map<String, Map<String, String>>>());
 
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");
@@ -148,7 +143,7 @@ public class ClusterTopologyImplTest {
     verify(blueprint, group1, group2, group3, group4);
     reset(blueprint, group1, group2, group3, group4);
 
-    topologyValidators.clear();
+
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
   }
@@ -157,36 +152,7 @@ public class ClusterTopologyImplTest {
     replay(blueprint, group1, group2, group3, group4);
   }
 
-  @Test(expected = InvalidTopologyException.class)
-  public void testCreate_validatorFails() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-    expectLastCall().andThrow(new InvalidTopologyException("test"));
-
-    replayAll();
-    replay(validator);
-    // should throw exception due to validation failure
-    new ClusterTopologyImpl(null, request);
-  }
-
-  @Test
-     public void testCreate_validatorSuccess() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-
-    replayAll();
-    replay(validator);
-
-    new ClusterTopologyImpl(null, request);
-  }
 
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_duplicateHosts() throws Exception {
@@ -204,16 +170,11 @@ public class ClusterTopologyImplTest {
   public void test_GetHostAssigmentForComponents() throws Exception {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-
     replayAll();
-    replay(validator);
 
     new ClusterTopologyImpl(null, request).getHostAssignmentsForComponent("component1");
   }
+
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_NNHAInvaid() throws Exception {
     bpconfiguration.setProperty("hdfs-site", "dfs.nameservices", "val");
@@ -224,6 +185,7 @@ public class ClusterTopologyImplTest {
     new ClusterTopologyImpl(null, request);
     hostGroupInfoMap.get("group4").addHost("host5");
   }
+
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandby() throws Exception {
     expect(group4.getName()).andReturn("group4");
@@ -234,6 +196,7 @@ public class ClusterTopologyImplTest {
     replayAll();
     new ClusterTopologyImpl(null, request);
   }
+
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForActive() throws Exception {
     expect(group4.getName()).andReturn("group4");
@@ -244,6 +207,7 @@ public class ClusterTopologyImplTest {
     replayAll();
     new ClusterTopologyImpl(null, request);
   }
+
   @Test(expected = IllegalArgumentException.class)
   public void testCreate_NNHAHostNameNotCorrectForStandbyWithActiveAsVariable() throws Exception {
     expect(group4.getName()).andReturn("group4");
@@ -289,11 +253,6 @@ public class ClusterTopologyImplTest {
     @Override
     public Map<String, HostGroupInfo> getHostGroupInfo() {
       return hostGroupInfoMap;
-    }
-
-    @Override
-    public List<TopologyValidator> getTopologyValidators() {
-      return topologyValidators;
     }
 
     @Override

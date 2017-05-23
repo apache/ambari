@@ -315,6 +315,18 @@
     {{/if}}
     {{! alert-notification Custom SNMP end }}
 
+    {{! alert-notification Alert Script }}
+    {{#if view.isAlertScriptMethodSelected}}
+    <div class="form-group">
+      <label class="control-label col-md-2">{{controller.inputFields.scriptDispatchProperty.label}}</label>
+
+      <div class="col-md-10">
+         {{view Em.TextField valueBinding="controller.inputFields.scriptDispatchProperty.value" class="form-control"}}
+      </div>
+    </div>
+    {{/if}}
+    {{! alert-notification Alert Script end}}
+
     {{! alert-notification custom properties }}
     {{#each customProperty in controller.inputFields.customProperties}}
       <div class="form-group">

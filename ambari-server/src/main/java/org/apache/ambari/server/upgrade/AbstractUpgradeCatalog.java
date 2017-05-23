@@ -150,9 +150,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     registerCatalog(this);
   }
 
-  protected AbstractUpgradeCatalog() {
-  }
-
   /**
    * Every subclass needs to register itself
    */
@@ -695,7 +692,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     private final String description;
 
 
-    private ConfigUpdateType(String description) {
+    ConfigUpdateType(String description) {
       this.description = description;
     }
 

@@ -39,6 +39,8 @@ public class RequestRequest {
 
   private String abortReason;
 
+  private boolean removePendingHostRequests = false;
+
 
   @ApiModelProperty(name = "request_status", notes = "Only valid value is ABORTED.")
   public HostRoleStatus getStatus() {
@@ -76,6 +78,14 @@ public class RequestRequest {
     this.abortReason = abortReason;
   }
 
+  public boolean isRemovePendingHostRequests() {
+    return removePendingHostRequests;
+  }
+
+  public void setRemovePendingHostRequests(boolean removePendingHostRequests) {
+    this.removePendingHostRequests = removePendingHostRequests;
+  }
+
   @Override
   public String toString() {
     return "RequestRequest{" +
@@ -83,6 +93,7 @@ public class RequestRequest {
             ", requestId=" + requestId +
             ", status=" + status +
             ", abortReason='" + abortReason + '\'' +
+            ", removePendingHostRequests='" + removePendingHostRequests + '\'' +
             '}';
   }
 }

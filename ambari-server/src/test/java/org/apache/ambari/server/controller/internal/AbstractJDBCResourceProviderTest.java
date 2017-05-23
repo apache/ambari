@@ -88,7 +88,7 @@ public class AbstractJDBCResourceProviderTest {
     verify(rs);
   }
 
-  private static enum TestFields {
+  private enum TestFields {
     field1, field2
   }
 

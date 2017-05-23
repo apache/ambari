@@ -38,6 +38,12 @@
             <set key="ranger.plugin.hdfs.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-hdfs-plugin-properties" if-key="ranger-hdfs-plugin-enabled" if-key-state="present"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics" summary="Prevent Garbage Collection Heuristics">
+            <type>hadoop-env</type>
+            <replace  key="content" find="-XX:+PrintGCDateStamps -Xms{{namenode_heapsize}}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{namenode_heapsize}}"/>
+            <replace  key="content" find="-XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE}" replace-with="-XX:+PrintGCDateStamps -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly ${HADOOP_NAMENODE_INIT_HEAPSIZE}"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -98,6 +104,26 @@
             <set key="ranger.plugin.yarn.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-yarn-plugin-properties" if-key="ranger-yarn-plugin-enabled" if-key-state="present"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_6_yarn_preemption" summary="Resource Manager Preemption Settings">
+            <type>yarn-site</type>
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round" value="0.1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round"
+              if-key-state="absent" />
+            <set key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor" value="1"
+              if-type="yarn-site"
+              if-key="yarn.resourcemanager.monitor.capacity.preemption.natural_termination_factor"
+              if-key-state="absent" />
+          </definition>
+        </changes>
+      </component>
+      <component name="NODEMANAGER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_yarn_nodemanager_llap_mem">
+            <type>yarn-site</type>
+            <set key="yarn.nodemanager.kill-escape.launch-command-line" value="slider-agent,LLAP"/>
+            <set key="yarn.nodemanager.kill-escape.user" value="hive"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -121,6 +147,10 @@
             <type>ranger-atlas-audit</type>
             <set key="ranger.plugin.atlas.ambari.cluster.name" value="{{cluster_name}}"
               if-type="ranger-atlas-plugin-properties" if-key="ranger-atlas-plugin-enabled" if-key-state="present"/>
+          </definition>
+          <definition xsi:type="configure" id="atlas_env_gc_worker" summary="Updating Atlas Env gc-worker configuration">
+            <type>atlas-env</type>
+            <replace key="content" find="-Xloggc:$ATLAS_LOG_DIRgc-worker.log" replace-with="-Xloggc:$ATLAS_LOG_DIR/gc-worker.log"/>
           </definition>
         </changes>
       </component>

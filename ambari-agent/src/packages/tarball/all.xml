@@ -44,21 +44,25 @@
   <fileSets>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>src/main/python/ambari_agent</directory>
       <outputDirectory>${agent.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${project.basedir}/../ambari-common/src/main/python/ambari_commons</directory>
       <outputDirectory>${ambari_commons.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${resourceManagementSrcLocation}</directory>
       <outputDirectory>${resource_management.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</directory>
       <outputDirectory>${jinja.install.dir}</outputDirectory>
       <excludes>
@@ -67,11 +71,13 @@
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</directory>
       <outputDirectory>${simplejson.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
     </fileSet>
@@ -92,7 +98,8 @@
 	  </excludes>
     </fileSet>
     <fileSet>
-      <directoryMode>755</directoryMode>
+      <directoryMode>700</directoryMode>
+      <fileMode>700</fileMode>
       <directory>${empty.dir}</directory>
       <outputDirectory>/var/lib/${project.artifactId}/keys</outputDirectory>
 	  <excludes>
@@ -117,11 +124,13 @@
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${target.cache.dir}</directory>
       <outputDirectory>/var/lib/ambari-agent/cache</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
       <directory>${pluggableStackDefinitionOutput}/custom_actions</directory>
       <outputDirectory>/var/lib/ambari-agent/cache/custom_actions</outputDirectory>
     </fileSet>

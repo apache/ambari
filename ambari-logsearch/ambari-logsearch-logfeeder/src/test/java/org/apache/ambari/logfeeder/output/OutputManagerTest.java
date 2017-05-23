@@ -32,30 +32,28 @@ import java.util.Map;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Test;
 
 public class OutputManagerTest {
 
   @Test
-  public void testOutputManager_addAndRemoveOutputs() {
+  public void testOutputManager_addOutputs() {
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
-    Output output4 = strictMock(Output.class);
     
-    replay(output1, output2, output3, output4);
+    replay(output1, output2, output3);
     
     OutputManager manager = new OutputManager();
     manager.add(output1);
     manager.add(output2);
     manager.add(output3);
     
-    manager.retainUsedOutputs(Arrays.asList(output1, output2, output4));
-    
-    verify(output1, output2, output3, output4);
+    verify(output1, output2, output3);
     
     List<Output> outputs = manager.getOutputs();
-    assertEquals(outputs.size(), 2);
+    assertEquals(outputs.size(), 3);
     assertEquals(outputs.get(0), output1);
     assertEquals(outputs.get(1), output2);
   }
@@ -94,15 +92,17 @@ public class OutputManagerTest {
     
     Input mockInput = strictMock(Input.class);
     InputMarker inputMarker = new InputMarker(mockInput, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setAddFields(Collections.<String, String> emptyMap());
     
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
     
-    expect(mockInput.getContextFields()).andReturn(Collections.<String, String> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.isUseEventMD5()).andReturn(false);
     expect(mockInput.isGenEventMD5()).andReturn(false);
-    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.getCache()).andReturn(null);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
 
@@ -128,12 +128,13 @@ public class OutputManagerTest {
     
     Input mockInput = strictMock(Input.class);
     InputMarker inputMarker = new InputMarker(mockInput, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
     
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
     
-    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonString, inputMarker); expectLastCall();

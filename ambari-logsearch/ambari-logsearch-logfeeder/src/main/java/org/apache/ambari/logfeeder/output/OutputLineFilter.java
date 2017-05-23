@@ -41,7 +41,7 @@ public class OutputLineFilter {
   public Boolean apply(Map<String, Object> lineMap, Input input) {
     boolean isLogFilteredOut = false;
     LRUCache inputLruCache = input.getCache();
-    if (inputLruCache != null && "service".equals(input.getConfigs().get(LogFeederConstants.ROW_TYPE))) {
+    if (inputLruCache != null && "service".equals(input.getInputDescriptor().getRowtype())) {
       String logMessage = (String) lineMap.get(input.getCacheKeyField());
       Long timestamp = null;
       if (lineMap.containsKey((LogFeederConstants.IN_MEMORY_TIMESTAMP))) {

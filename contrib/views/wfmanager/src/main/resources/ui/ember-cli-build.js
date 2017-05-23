@@ -47,7 +47,7 @@ module.exports = function(defaults) {
     app.import('bower_components/bootstrap/dist/css/bootstrap.css');
     app.import('bower_components/bootstrap/dist/js/bootstrap.js');
 
-    app.import('bower_components/jsPlumb/dist/js/jsPlumb-2.0.7.js');
+    
 
     app.import('bower_components/bootstrap/dist/fonts/glyphicons-halflings-regular.woff', {
         destDir: 'fonts'

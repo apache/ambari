@@ -45,7 +45,7 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private String type;
   private String units;
   private TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
-  private Map<String, String> metadata = new HashMap<>();
+  private HashMap<String, String> metadata = new HashMap<>();
 
   // default
   public TimelineMetric() {
@@ -151,11 +151,11 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   }
 
   @XmlElement(name = "metadata")
-  public Map<String,String> getMetadata () {
+  public HashMap<String,String> getMetadata () {
     return metadata;
   }
 
-  public void setMetadata (Map<String,String> metadata) {
+  public void setMetadata (HashMap<String,String> metadata) {
     this.metadata = metadata;
   }
 

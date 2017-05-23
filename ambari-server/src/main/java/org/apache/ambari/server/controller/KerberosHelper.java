@@ -680,6 +680,6 @@ public interface KerberosHelper {
      * @return the response
      * @throws AmbariException thrown if a problem occurred during invocation
      */
-    public T invoke(A arg) throws AmbariException;
+    T invoke(A arg) throws AmbariException;
   }
 }

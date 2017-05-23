@@ -66,6 +66,11 @@ public class FixCapacitySchedulerOrderingPolicy extends AbstractServerAction {
     Cluster cluster = clusters.getCluster(clusterName);
     Config config = cluster.getDesiredConfigByType(SOURCE_CONFIG_TYPE);
 
+    if (null == config) {
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+          String.format("The cluster does not have %s defined.", SOURCE_CONFIG_TYPE), "");
+    }
+
     Map<String, String> properties = config.getProperties();
 
     Set<String> parentQueueNames = new HashSet<>();

@@ -427,6 +427,9 @@ public class AmbariContext {
       for (String actualConfigType : updatedConfigTypes) {
         // get the actual cluster config for comparison
         DesiredConfig actualConfig = cluster.getDesiredConfigs().get(actualConfigType);
+        if (actualConfig == null && actualConfigType.equals("core-site")) {
+          continue;
+        }
         if (!actualConfig.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG)) {
           // if any expected config is not resolved, deployment must wait
           LOG.info("Config type " + actualConfigType + " not resolved yet, Blueprint deployment will wait until configuration update is completed");

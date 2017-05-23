@@ -23,8 +23,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -36,6 +39,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -43,11 +47,13 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -67,9 +73,12 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
   protected static final String CLUSTER_CONFIG_SELECTED_COLUMN = "selected";
   protected static final String CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN = "selected_timestamp";
   protected static final String CLUSTER_CONFIG_MAPPING_TABLE = "clusterconfigmapping";
+  protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  protected static final String HRC_OPS_DISPLAY_NAME_COLUMN = "ops_display_name";
 
   @Inject
   DaoUtils daoUtils;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -110,8 +119,10 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    addServiceComponentColumn();
     updateStageTable();
     updateClusterConfigurationTable();
+    addOpsDisplayNameColumnToHostRoleCommand();
   }
 
   protected void updateStageTable() throws SQLException {
@@ -139,6 +150,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     showHcatDeletedUserMessage();
     setStatusOfStagesAndRequests();
+    updateLogSearchConfigs();
   }
 
   protected void showHcatDeletedUserMessage() {
@@ -162,6 +174,16 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
   }
 
+  /**
+   * Updates the {@code servicecomponentdesiredstate} table.
+   *
+   * @throws SQLException
+   */
+  protected void addServiceComponentColumn() throws SQLException {
+    dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
+        new DBColumnInfo("repo_state", String.class, 255, RepositoryVersionState.INIT.name(), false));
+
+  }
   protected void setStatusOfStagesAndRequests() {
     executeInTransaction(new Runnable() {
       @Override
@@ -205,7 +227,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    * <ul>
    * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_COLUMN} to
    * {@link #CLUSTER_CONFIG_TABLE}.
-   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_TIMESTAMP} to
+   * <li>Adds the {@link #CLUSTER_CONFIG_SELECTED_TIMESTAMP_COLUMN} to
    * {@link #CLUSTER_CONFIG_TABLE}.
    * </ul>
    */
@@ -273,5 +295,61 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
     // if the above execution and committed the transaction, then we can remove
     // the cluster configuration mapping table
     dbAccessor.dropTable(CLUSTER_CONFIG_MAPPING_TABLE);
+  }
+
+  /**
+   * Adds the {@value #HRC_OPS_DISPLAY_NAME_COLUMN} column to the
+   * {@value #HOST_ROLE_COMMAND_TABLE} table.
+   *
+   * @throws SQLException
+   */
+  private void addOpsDisplayNameColumnToHostRoleCommand() throws SQLException {
+    dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
+        new DBAccessor.DBColumnInfo(HRC_OPS_DISPLAY_NAME_COLUMN, String.class, 255, null, true));
+  }
+
+  /**
+   * Updates Log Search configs.
+   *
+   * @throws AmbariException
+   */
+  protected void updateLogSearchConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Collection<Config> configs = cluster.getAllConfigs();
+          for (Config config : configs) {
+            String configType = config.getType();
+            if (!configType.endsWith("-logsearch-conf")) {
+              continue;
+            }
+
+            Set<String> removeProperties = new HashSet<>();
+            removeProperties.add("service_name");
+            removeProperties.add("component_mappings");
+            removeProperties.add("content");
+
+            removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
+          }
+          
+          Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
+          Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
+          if (logSearchProperties != null && logFeederProperties != null) {
+            String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
+            
+            Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
+            removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
+            
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("logfeeder.include.default.level", defaultLogLevels);
+            updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
+          }
+        }
+      }
+    }
   }
 }

@@ -1127,6 +1127,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     HostResponse response = createNiceMock(HostResponse.class);
 
     Set<Cluster> setCluster = Collections.singleton(cluster);
+    Map<String, DesiredConfig> desiredConfigs = new HashMap<>();
+    Map<String, HostConfig> desiredHostConfigs = new HashMap<>();
 
     // requests
     HostRequest request1 = new HostRequest("host1", "cluster1");
@@ -1142,7 +1144,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     expect(clusters.getClustersForHost("host1")).andReturn(setCluster);
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-    expect(cluster.getDesiredConfigs()).andReturn(new HashMap<String, DesiredConfig>()).anyTimes();
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigs);
+    expect(host.getDesiredHostConfigs(cluster, desiredConfigs)).andReturn(desiredHostConfigs);
     expect(host.getHostName()).andReturn("host1").anyTimes();
     expect(host.convertToResponse()).andReturn(response);
     response.setClusterName("cluster1");

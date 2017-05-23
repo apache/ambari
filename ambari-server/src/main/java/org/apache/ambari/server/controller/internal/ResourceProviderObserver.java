@@ -27,5 +27,5 @@ public interface ResourceProviderObserver {
    *
    * @param event the event
    */
-  public void update(ResourceProviderEvent event);
+  void update(ResourceProviderEvent event);
 }

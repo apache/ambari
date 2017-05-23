@@ -36,10 +36,15 @@ mvn -Dbuild-deb clean package
 
 ## Running Integration Tests
 
-By default integration tests are not a part of the build process, you need to set ${it.skip} variable to true (docker needed here too)
+By default integration tests are not a part of the build process, you need to set -Dbackend-tests or -Dselenium-tests (or you can use -Dall-tests to run both). To running the tests you will need docker here as well (right now docker-for-mac and unix are supported by default, for boot2docker you need to pass -Ddocker.host parameter to the build).
 
 ```bash
 # from ambari-logsearch folder
-mvn clean integration-test -Dit.skip=false
+mvn clean integration-test -Dbackend-tests failsafe:verify
+# or run selenium tests with docker for mac, but before that you nedd to start xquartz
+xquartz
+# then in an another window you can start ui tests
+mvn clean integration-test -Dselenium-tests failsafe:verify
+# you can specify story file folde location with -Dbackend.stories.location and -Dui.stories.location (absolute file path) in the commands
 ```
 Also you can run from the IDE, but make sure all of the ambari logsearch modules are built.

@@ -127,7 +127,7 @@ class InstallPackages(Script):
     Logger.info("Will install packages for repository version {0}".format(self.repository_version))
 
     if 0 == len(base_urls):
-      Logger.info("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
+      Logger.warning("Repository list is empty. Ambari may not be managing the repositories for {0}.".format(self.repository_version))
 
     try:
       append_to_file = False

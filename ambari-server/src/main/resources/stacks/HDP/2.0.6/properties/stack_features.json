@@ -397,6 +397,27 @@
       "name": "ranger_kms_ssl",
       "description": "Ranger KMS SSL properties in ambari stack",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "nifi_encrypt_config",
+      "description": "Encrypt sensitive properties written to nifi property file",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "toolkit_config_update",
+      "description": "Support separate input and output for toolkit configuration",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "admin_toolkit_support",
+      "description": "Supports the nifi admin toolkit",
+      "min_version": "2.6.0.0"
+    },
+    {
+      "name": "tls_toolkit_san",
+      "description": "Support subject alternative name flag",
+      "min_version": "2.6.0.0"
     }
+
   ]
 }

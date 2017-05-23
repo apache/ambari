@@ -112,7 +112,7 @@ public class DownloadService extends HdfsService {
       ResponseBuilder result = Response.ok(fs);
       if (download) {
         result.header("Content-Disposition",
-          "inline; filename=\"" + status.getPath().getName() + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
+          "attachment; filename=\"" + status.getPath().getName() + "\"").type(MediaType.APPLICATION_OCTET_STREAM);
       } else {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         String mimeType = fileNameMap.getContentTypeFor(status.getPath().getName());
@@ -278,7 +278,7 @@ public class DownloadService extends HdfsService {
       };
       ResponseBuilder response = Response.ok(result);
       if (request.download) {
-        response.header("Content-Disposition", "inline; filename=\"concatResult.txt\"").type(MediaType.APPLICATION_OCTET_STREAM);
+        response.header("Content-Disposition", "attachment; filename=\"concatResult.txt\"").type(MediaType.APPLICATION_OCTET_STREAM);
       } else {
         response.header("Content-Disposition", "filename=\"concatResult.txt\"").type(MediaType.TEXT_PLAIN);
       }

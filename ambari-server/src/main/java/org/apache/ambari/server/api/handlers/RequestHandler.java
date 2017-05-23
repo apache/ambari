@@ -31,5 +31,5 @@ public interface RequestHandler {
    * @param request the request to handle
    * @return the result of the request
    */
-  public Result handleRequest(Request request);
+  Result handleRequest(Request request);
 }

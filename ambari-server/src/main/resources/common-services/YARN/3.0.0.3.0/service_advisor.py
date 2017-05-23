@@ -420,6 +420,7 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
 
   def recommendYARNConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
 
     if "yarn-site" in services["configurations"] and \
                     "yarn.resourcemanager.scheduler.monitor.enable" in services["configurations"]["yarn-site"]["properties"]:
@@ -428,6 +429,10 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "true")
       else:
         putYarnSiteProperty('yarn.scheduler.capacity.ordering-policy.priority-utilization.underutilized-preemption.enabled', "false")
+
+    # calculate total_preemption_per_round
+    total_preemption_per_round = str(round(max(float(1)/len(hosts['items']), 0.1),2))
+    putYarnSiteProperty('yarn.resourcemanager.monitor.capacity.preemption.total_preemption_per_round', total_preemption_per_round)
 
     if 'yarn-env' in services['configurations'] and 'yarn_user' in services['configurations']['yarn-env']['properties']:
       yarn_user = services['configurations']['yarn-env']['properties']['yarn_user']
@@ -466,6 +471,81 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Yarn Repo user for Ranger.")
 
+    yarn_timeline_app_cache_size = None
+    host_mem = None
+    for host in hosts["items"]:
+      host_mem = host["Hosts"]["total_mem"]
+      break
+    # Check if 'yarn.timeline-service.entity-group-fs-store.app-cache-size' in changed configs.
+    changed_configs_has_ats_cache_size = self.isConfigPropertiesChanged(
+      services, "yarn-site", ['yarn.timeline-service.entity-group-fs-store.app-cache-size'], False)
+    # Check if it's : 1. 'apptimelineserver_heapsize' changed detected in changed-configurations)
+    # OR 2. cluster initialization (services['changed-configurations'] should be empty in this case)
+    if changed_configs_has_ats_cache_size:
+      yarn_timeline_app_cache_size = self.read_yarn_apptimelineserver_cache_size(services)
+    elif 0 == len(services['changed-configurations']):
+      # Fetch host memory from 1st host, to be used for ATS config calculations below.
+      if host_mem is not None:
+        yarn_timeline_app_cache_size = self.calculate_yarn_apptimelineserver_cache_size(host_mem)
+        putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.app-cache-size', yarn_timeline_app_cache_size)
+        self.logger.info("Updated YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size' as : {0}, "
+                         "using 'host_mem' = {1}".format(yarn_timeline_app_cache_size, host_mem))
+      else:
+        self.logger.info("Couldn't update YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size' as "
+                         "'host_mem' read = {0}".format(host_mem))
+
+    if yarn_timeline_app_cache_size is not None:
+      # Calculation for 'ats_heapsize' is in MB.
+      ats_heapsize = self.calculate_yarn_apptimelineserver_heapsize(host_mem, yarn_timeline_app_cache_size)
+      putYarnEnvProperty('apptimelineserver_heapsize', ats_heapsize) # Value in MB
+      self.logger.info("Updated YARN config 'apptimelineserver_heapsize' as : {0}, ".format(ats_heapsize))
+
+  """
+  Calculate YARN config 'apptimelineserver_heapsize' in MB.
+  """
+  def calculate_yarn_apptimelineserver_heapsize(self, host_mem, yarn_timeline_app_cache_size):
+    ats_heapsize = None
+    if host_mem < 4096:
+      ats_heapsize = 1024
+    else:
+      ats_heapsize = long(min(math.floor(host_mem/2), long(yarn_timeline_app_cache_size) * 500 + 3072))
+    return ats_heapsize
+
+  """
+  Calculates for YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size', based on YARN's NodeManager size.
+  """
+  def calculate_yarn_apptimelineserver_cache_size(self, host_mem):
+    yarn_timeline_app_cache_size = None
+    if host_mem < 4096:
+      yarn_timeline_app_cache_size = 3
+    elif host_mem >= 4096 and host_mem < 8192:
+      yarn_timeline_app_cache_size = 7
+    elif host_mem >= 8192:
+      yarn_timeline_app_cache_size = 10
+    self.logger.info("Calculated and returning 'yarn_timeline_app_cache_size' : {0}".format(yarn_timeline_app_cache_size))
+    return yarn_timeline_app_cache_size
+
+
+  """
+  Reads YARN config 'yarn.timeline-service.entity-group-fs-store.app-cache-size'.
+  """
+  def read_yarn_apptimelineserver_cache_size(self, services):
+    """
+    :type services dict
+    :rtype str
+    """
+    yarn_ats_app_cache_size = None
+    yarn_ats_app_cache_size_config = "yarn.timeline-service.entity-group-fs-store.app-cache-size"
+    yarn_site_in_services = self.getServicesSiteProperties(services, "yarn-site")
+
+    if yarn_site_in_services and yarn_ats_app_cache_size_config in yarn_site_in_services:
+      yarn_ats_app_cache_size = yarn_site_in_services[yarn_ats_app_cache_size_config]
+      self.logger.info("'yarn.scheduler.minimum-allocation-mb' read from services as : {0}".format(yarn_ats_app_cache_size))
+
+    if not yarn_ats_app_cache_size:
+      self.logger.error("'{0}' was not found in the services".format(yarn_ats_app_cache_size_config))
+
+    return yarn_ats_app_cache_size
 
   #region LLAP
   def updateLlapConfigs(self, configurations, services, hosts, llap_queue_name):
@@ -829,6 +909,7 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
                 "{2}".format(llap_mem_daemon_size, llap_mem_for_tezAm_and_daemons, tez_am_memory_required))
 
     llap_daemon_mem_per_node = self._normalizeDown(llap_mem_daemon_size / num_llap_nodes_requested, yarn_min_container_size)
+    # This value takes into account total cluster capacity, and may not have left enough capcaity on each node to launch an AM.
     self.logger.info("DBG: Calculated 'llap_daemon_mem_per_node' : {0}, using following : llap_mem_daemon_size : {1}, num_llap_nodes_requested : {2}, "
                 "yarn_min_container_size: {3}".format(llap_daemon_mem_per_node, llap_mem_daemon_size, num_llap_nodes_requested, yarn_min_container_size))
     if llap_daemon_mem_per_node == 0:
@@ -847,6 +928,31 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
       # All good. We have a proper value for memoryPerNode.
       num_llap_nodes = num_llap_nodes_requested
       self.logger.info("DBG: num_llap_nodes : {0}".format(num_llap_nodes))
+
+    # Make sure we have enough memory on each node to run AMs.
+    # If nodes vs nodes_requested is different - AM memory is already factored in.
+    # If llap_node_count < total_cluster_nodes - assuming AMs can run on a different node.
+    # Else factor in min_concurrency_per_node * tez_am_size, and slider_am_size
+    # Also needs to factor in whether num_llap_nodes = cluster_node_count
+    min_mem_reserved_per_node = 0
+    if num_llap_nodes == num_llap_nodes_requested and num_llap_nodes == node_manager_cnt:
+      min_mem_reserved_per_node = max(normalized_tez_am_container_size, slider_am_container_size)
+      tez_AMs_per_node = llap_concurrency / num_llap_nodes
+      tez_AMs_per_node_low = int(math.floor(tez_AMs_per_node))
+      tez_AMs_per_node_high = int(math.ceil(tez_AMs_per_node))
+      min_mem_reserved_per_node = int(max(tez_AMs_per_node_high * normalized_tez_am_container_size, tez_AMs_per_node_low * normalized_tez_am_container_size + slider_am_container_size))
+      self.logger.info("DBG: Determined 'AM reservation per node': {0}, using following : concurrency: {1}, num_llap_nodes: {2}, AMsPerNode: {3}"
+                  .format(min_mem_reserved_per_node, llap_concurrency, num_llap_nodes,  tez_AMs_per_node))
+
+    max_single_node_mem_available_for_daemon = self._normalizeDown(yarn_nm_mem_in_mb_normalized - min_mem_reserved_per_node, yarn_min_container_size)
+    if max_single_node_mem_available_for_daemon <=0 or max_single_node_mem_available_for_daemon < mem_per_thread_for_llap:
+      self.logger.warning("Not enough capacity available per node for daemons after factoring in AM memory requirements. NM Mem: {0}, "
+                     "minAMMemPerNode: {1}, available: {2}".format(yarn_nm_mem_in_mb_normalized, min_mem_reserved_per_node, max_single_node_mem_available_for_daemon))
+      self.recommendDefaultLlapConfiguration(configurations, services, hosts)
+
+    llap_daemon_mem_per_node = min(max_single_node_mem_available_for_daemon, llap_daemon_mem_per_node)
+    self.logger.info("DBG: Determined final memPerDaemon: {0}, using following: concurrency: {1}, numNMNodes: {2}, numLlapNodes: {3} "
+                .format(llap_daemon_mem_per_node, llap_concurrency, node_manager_cnt, num_llap_nodes))
 
     num_executors_per_node_max = self.get_max_executors_per_node(yarn_nm_mem_in_mb_normalized, cpu_per_nm_host, mem_per_thread_for_llap)
     if num_executors_per_node_max < 1:
@@ -868,6 +974,8 @@ class YARNRecommender(service_advisor.ServiceAdvisor):
     # Now figure out how much of the memory will be used by the executors, and how much will be used by the cache.
     total_mem_for_executors_per_node = num_executors_per_node * mem_per_thread_for_llap
     cache_mem_per_node = llap_daemon_mem_per_node - total_mem_for_executors_per_node
+    self.logger.info("DBG: Calculated 'Cache per node' : {0}, using following : llap_daemon_mem_per_node : {1}, total_mem_for_executors_per_node : {2}"
+            .format(cache_mem_per_node, llap_daemon_mem_per_node, total_mem_for_executors_per_node))
 
     tez_runtime_io_sort_mb = (long((0.8 * mem_per_thread_for_llap) / 3))
     tez_runtime_unordered_output_buffer_size = long(0.8 * 0.075 * mem_per_thread_for_llap)

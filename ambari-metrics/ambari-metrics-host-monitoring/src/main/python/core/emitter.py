@@ -44,8 +44,16 @@ class Emitter(threading.Thread):
     self._stop_handler = stop_handler
     self.application_metric_map = application_metric_map
     self.collector_port = config.get_server_port()
-    self.all_metrics_collector_hosts = config.get_metrics_collector_hosts()
+    self.all_metrics_collector_hosts = config.get_metrics_collector_hosts_as_list()
     self.is_server_https_enabled = config.is_server_https_enabled()
+    self.set_instanceid = config.is_set_instanceid()
+    self.instanceid = config.get_instanceid()
+    self.is_inmemory_aggregation_enabled = config.is_inmemory_aggregation_enabled()
+
+    if self.is_inmemory_aggregation_enabled:
+      self.collector_port = config.get_inmemory_aggregation_port()
+      self.all_metrics_collector_hosts = ['localhost']
+      self.is_server_https_enabled = False
 
     if self.is_server_https_enabled:
       self.ca_certs = config.get_ca_certs()
@@ -74,7 +82,7 @@ class Emitter(threading.Thread):
     # This call will acquire lock on the map and clear contents before returning
     # After configured number of retries the data will not be sent to the
     # collector
-    json_data = self.application_metric_map.flatten(None, True)
+    json_data = self.application_metric_map.flatten(None, True, set_instanceid=self.set_instanceid, instanceid=self.instanceid)
     if json_data is None:
       logger.info("Nothing to emit, resume waiting.")
       return

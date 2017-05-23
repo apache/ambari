@@ -22,6 +22,8 @@ package org.apache.ambari.logfeeder.mapper;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldNameDescriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -35,16 +37,10 @@ public class MapperFieldName extends Mapper {
   private String newValue = null;
 
   @Override
-  public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
+  public boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor) {
     init(inputDesc, fieldName, mapClassCode);
-    if (!(mapConfigs instanceof Map)) {
-      LOG.fatal("Can't initialize object. mapConfigs class is not of type Map. " + mapConfigs.getClass().getName());
-      return false;
-    }
-    
-    @SuppressWarnings("unchecked")
-    Map<String, Object> mapObjects = (Map<String, Object>) mapConfigs;
-    newValue = (String) mapObjects.get("new_fieldname");
+
+    newValue = ((MapFieldNameDescriptor)mapFieldDescriptor).getNewFieldName();
     if (StringUtils.isEmpty(newValue)) {
       LOG.fatal("Map field value is empty.");
       return false;

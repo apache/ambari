@@ -287,7 +287,6 @@ public class HostOrderGrouping extends Grouping {
 
     /**
      * @param upgradeContext  the context
-     * @param hosts           the list of hostnames
      * @return  the wrappers for a host
      */
     private List<StageWrapper> buildServiceChecks(UpgradeContext upgradeContext, List<String> serviceChecks) {

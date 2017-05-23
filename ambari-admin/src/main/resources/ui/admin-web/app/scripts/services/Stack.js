@@ -88,7 +88,7 @@ angular.module('ambariAdminConsole')
     },
 
     allPublicStackVersions: function() {
-      var url = '/version_definitions?fields=VersionDefinition/stack_default,operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
+      var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
         '&VersionDefinition/show_available=true';
       var deferred = $q.defer();
       $http.get(Settings.baseUrl + url, {mock: 'version/versions.json'})
@@ -100,6 +100,7 @@ angular.module('ambariAdminConsole')
               stackName: version.VersionDefinition.stack_name,
               stackVersion: version.VersionDefinition.stack_version,
               stackDefault: version.VersionDefinition.stack_default,
+              stackRepoUpdateLinkExists: version.VersionDefinition.stack_repo_update_link_exists,
               stackNameVersion:  version.VersionDefinition.stack_name + '-' + version.VersionDefinition.stack_version,
               displayName: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version.split('-')[0], //HDP-2.3.4.0
               displayNameFull: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version, //HDP-2.3.4.0-23

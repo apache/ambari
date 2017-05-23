@@ -116,7 +116,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -147,7 +146,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group1
     // host info
@@ -176,7 +174,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group2
     // host info
@@ -203,7 +200,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group2
     // host info
@@ -226,7 +222,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group3
     // host info
@@ -253,7 +248,6 @@ public class ScaleClusterRequestTest {
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
     assertEquals(3, hostGroupInfo.size());
-    assertEquals(0, scaleClusterRequest.getTopologyValidators().size());
 
     // group
     // host info

@@ -32,12 +32,12 @@ public interface SecurityHelper {
    *
    * @return the current user.
    */
-  public String getCurrentUserName();
+  String getCurrentUserName();
 
   /**
    * Get the granted authorities for the current user.
    *
    * @return the granted authorities
    */
-  public Collection<? extends GrantedAuthority> getCurrentAuthorities();
+  Collection<? extends GrantedAuthority> getCurrentAuthorities();
 }

@@ -143,7 +143,7 @@ public class RequestStageContainerTest {
     stages.add(stage2);
 
     //expectations
-    expect(requestFactory.createNewFromStages(stages)).andReturn(request);
+    expect(requestFactory.createNewFromStages(stages, "{}")).andReturn(request);
     expect(request.getStages()).andReturn(stages).anyTimes();
     actionManager.sendActions(request, null);
 

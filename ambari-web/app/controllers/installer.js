@@ -203,24 +203,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
     for (var hostName in rawHosts) {
       var host = rawHosts[hostName];
-      var disksOverallCapacity = 0;
-      var diskFree = 0;
-      host.disk_info.forEach(function (disk) {
-        disksOverallCapacity += parseFloat(disk.size);
-        diskFree += parseFloat(disk.available);
-      });
       hosts.pushObject(Em.Object.create({
           id: host.name,
-          ip: host.ip,
-          osType: host.os_type,
-          osArch: host.os_arch,
           hostName: host.name,
-          publicHostName: host.name,
-          cpu: host.cpu,
-          memory: host.memory,
-          diskInfo: host.disk_info,
-          diskTotal: disksOverallCapacity / (1024 * 1024),
-          diskFree: diskFree / (1024 * 1024),
           hostComponents: host.hostComponents || []
         }
       ))
@@ -707,6 +692,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
    */
   getSupportedOSListSuccessCallback: function (response, request, data) {
     var self = this;
+    var stack_default = data.versionDefinition.VersionDefinition.stack_default;
     var existedOS = data.versionDefinition.operating_systems;
     var existedMap = {};
     existedOS.map(function (existedOS) {
@@ -720,8 +706,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
           repo.Repositories.base_url = '';
         });
         existedOS.push(supportedOS);
-      }
-      if(existedMap[supportedOS.OperatingSystems.os_type]) {
+      } else if (stack_default) { // only overwrite if it is stack default, otherwise use url from /version_definition
         existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
           supportedOS.repositories.forEach(function (supportedRepo) {
             if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
@@ -753,16 +738,6 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         } else {
           this.setSelected(data.stackInfo.isStacksExistInDb);
         }
-      }
-      // log diagnosis data for abnormal number of repos
-      var post_diagnosis = false;
-      data.versionDefinition.operating_systems.map(function(item) {
-        if (item.repositories.length > 2) {
-          post_diagnosis = true;
-        }
-      });
-      if (post_diagnosis) {
-        this.postUserPref('stack_response_diagnosis', data);
       }
     }
   },

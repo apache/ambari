@@ -51,7 +51,7 @@ def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_t
   @retry(times=times, sleep_time=sleep_time, backoff_factor=backoff_factor, err_class=Fail)
   def doRetries(hdfs_site, security_enabled, run_user):
     doRetries.attempt += 1
-    active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user)
+    active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user, doRetries.attempt == times)
     Logger.info(
       "NameNode HA states: active_namenodes = {0}, standby_namenodes = {1}, unknown_namenodes = {2}".format(
         active_namenodes, standby_namenodes, unknown_namenodes))
@@ -65,7 +65,7 @@ def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_t
   doRetries.attempt = 0
   return doRetries(hdfs_site, security_enabled, run_user)
 
-def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
+def get_namenode_states_noretries(hdfs_site, security_enabled, run_user, last_retry=True):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
   """
@@ -102,7 +102,7 @@ def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
 
       jmx_uri = JMX_URI_FRAGMENT.format(protocol, value)
       
-      state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled)
+      state = get_value_from_jmx(jmx_uri, 'tag.HAState', security_enabled, run_user, is_https_enabled, last_retry)
       # If JMX parsing failed
       if not state:
         check_service_cmd = "hdfs haadmin -ns {0} -getServiceState {1}".format(get_nameservice(hdfs_site), nn_unique_id)

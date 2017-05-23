@@ -616,10 +616,11 @@
           <task xsi:type="configure" id="hdfs_log4j_parameterize" />
           <task xsi:type="configure" id="hadoop_env_zkfc_security_opts" />
           <task xsi:type="configure" id="hdfs_securitylogger_additivity" />
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -842,6 +843,10 @@
           <task xsi:type="configure" id="llap_cli_log4j2_parameterize"/>
           <task xsi:type="configure" id="llap_update_headroom"/>
           <task xsi:type="configure" id="llap_update_hashaggregation"/>
+          <task xsi:type="configure" id="llap_append_stack_size_java_opts"/>
+          <task xsi:type="configure" id="llap_update_shuffle_parallel_copies"/>
+          <task xsi:type="configure" id="llap_update_settings"/>
+          <task xsi:type="configure" id="llap_update_tez_settings"/>
         </pre-upgrade>
         
         <pre-downgrade />
@@ -1094,6 +1099,7 @@
           <task xsi:type="configure" id="atlas_log4j_parameterize" />
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
           <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
+          <task xsi:type="configure" id="atlas_env_gc_worker"/>
         </pre-upgrade>
         <pre-downgrade />
         <upgrade>

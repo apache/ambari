@@ -1,0 +1,232 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HBASE</name>
+      <displayName>HBase</displayName>
+      <comment>Non-relational distributed database and centralized service for configuration management &amp;
+        synchronization
+      </comment>
+      <!-- For Alpha-1 release, it will be version 1.1.2. -->
+      <version>2.0.0.3.0</version>
+      <components>
+        <component>
+          <name>HBASE_MASTER</name>
+          <displayName>HBase Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <timelineAppid>HBASE</timelineAppid>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HBASE/HBASE_MASTER</co-locate>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/hbase_master.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_master</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+          <customCommands>
+            <customCommand>
+              <name>DECOMMISSION</name>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
+        </component>
+
+        <component>
+          <name>HBASE_REGIONSERVER</name>
+          <displayName>RegionServer</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <decommissionAllowed>true</decommissionAllowed>
+          <timelineAppid>HBASE</timelineAppid>
+          <commandScript>
+            <script>scripts/hbase_regionserver.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <bulkCommands>
+            <displayName>RegionServers</displayName>
+            <!-- Used by decommission and recommission -->
+            <masterComponent>HBASE_MASTER</masterComponent>
+          </bulkCommands>
+          <logs>
+            <log>
+              <logId>hbase_regionserver</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+
+        <component>
+          <name>HBASE_CLIENT</name>
+          <displayName>HBase Client</displayName>
+          <category>CLIENT</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/hbase_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <configFiles>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-site.xml</fileName>
+              <dictionaryName>hbase-site</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>hbase-env.sh</fileName>
+              <dictionaryName>hbase-env</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>xml</type>
+              <fileName>hbase-policy.xml</fileName>
+              <dictionaryName>hbase-policy</dictionaryName>
+            </configFile>
+            <configFile>
+              <type>env</type>
+              <fileName>log4j.properties</fileName>
+              <dictionaryName>hbase-log4j</dictionaryName>
+            </configFile>            
+          </configFiles>
+        </component>
+
+        <component>
+          <name>PHOENIX_QUERY_SERVER</name>
+          <displayName>Phoenix Query Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/phoenix_queryserver.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>hbase_phoenix_server</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+      </components>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>hbase</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+        <service>HDFS</service>
+      </requiredServices>
+
+      <configuration-dependencies>
+        <config-type>core-site</config-type> <!-- hbase puts core-site in it's folder -->
+        <config-type>hbase-policy</config-type>
+        <config-type>hbase-site</config-type>
+        <config-type>hbase-env</config-type>
+        <config-type>hbase-log4j</config-type>
+        <config-type>ranger-hbase-plugin-properties</config-type>
+        <config-type>ranger-hbase-audit</config-type>
+        <config-type>ranger-hbase-policymgr-ssl</config-type>
+        <config-type>ranger-hbase-security</config-type>
+      </configuration-dependencies>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>hbase_${stack_version}</name>
+            </package>
+            <package>
+              <name>phoenix_${stack_version}</name>
+              <condition>should_install_phoenix</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>hbase-${stack_version}</name>
+            </package>
+            <package>
+              <name>phoenix-${stack_version}</name>
+              <condition>should_install_phoenix</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+    </service>
+  </services>
+</metainfo>

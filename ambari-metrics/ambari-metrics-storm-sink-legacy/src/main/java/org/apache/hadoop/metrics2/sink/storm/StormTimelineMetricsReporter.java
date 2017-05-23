@@ -50,9 +50,13 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
+  private boolean setInstanceId;
+  private String instanceId;
   private NimbusClient nimbusClient;
   private String applicationId;
   private int timeoutSeconds;
+  private boolean hostInMemoryAggregationEnabled;
+  private int hostInMemoryAggregationPort;
 
   public StormTimelineMetricsReporter() {
 
@@ -94,6 +98,16 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
+  protected boolean isHostInMemoryAggregationEnabled() {
+    return hostInMemoryAggregationEnabled;
+  }
+
+  @Override
+  protected int getHostInMemoryAggregationPort() {
+    return hostInMemoryAggregationPort;
+  }
+
+  @Override
   public void prepare(Map conf) {
     LOG.info("Preparing Storm Metrics Reporter");
     try {
@@ -126,6 +140,12 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
           Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
           DEFAULT_POST_TIMEOUT_SECONDS;
       applicationId = cf.get(APP_ID).toString();
+      if (cf.containsKey(SET_INSTANCE_ID_PROPERTY)) {
+        setInstanceId = Boolean.getBoolean(cf.get(SET_INSTANCE_ID_PROPERTY).toString());
+        instanceId = cf.get(INSTANCE_ID_PROPERTY).toString();
+      }
+      hostInMemoryAggregationEnabled = Boolean.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_ENABLED_PROPERTY).toString());
+      hostInMemoryAggregationPort = Integer.valueOf(cf.get(HOST_IN_MEMORY_AGGREGATION_PORT_PROPERTY).toString());
 
       collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
       if (protocol.contains("https")) {
@@ -196,6 +216,9 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostname);
+    if (setInstanceId) {
+      timelineMetric.setInstanceId(instanceId);
+    }
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
     timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));

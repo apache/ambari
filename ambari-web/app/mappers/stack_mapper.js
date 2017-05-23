@@ -28,6 +28,7 @@ App.stackMapper = App.QuickDataMapper.create({
     stack_name: 'stack_name',
     stack_version: 'stack_version',
     stack_default: 'stack_default',
+    stack_repo_update_link_exists: 'stack_repo_update_link_exists',
     show_available: 'show_available',
     type: 'type',
     repository_version: 'repository_version',

@@ -23,13 +23,13 @@ package org.apache.ambari.server.serveraction.kerberos;
  * for the Kerberos configuration data files.
  */
 public interface KerberosConfigDataFile extends KerberosDataFile {
-  public static final String DATA_FILE_NAME = "configs.dat";
+  String DATA_FILE_NAME = "configs.dat";
 
-  public static final String CONFIGURATION_TYPE = "config";
-  public static final String KEY = "key";
-  public static final String VALUE = "value";
-  public static final String OPERATION = "operation";
+  String CONFIGURATION_TYPE = "config";
+  String KEY = "key";
+  String VALUE = "value";
+  String OPERATION = "operation";
 
-  public static final String OPERATION_TYPE_SET = "SET";
-  public static final String OPERATION_TYPE_REMOVE = "REMOVE";
+  String OPERATION_TYPE_SET = "SET";
+  String OPERATION_TYPE_REMOVE = "REMOVE";
 }

@@ -575,6 +575,15 @@ public class UpgradeContext {
   }
 
   /**
+   * @return the set of supported services, or an empty set if ALL services
+   * are supported
+   */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  public Set<String> getSupportedServices() {
+    return Collections.unmodifiableSet(m_supported);
+  }
+
+  /**
    * Gets if a service is supported.  If there are no services marked for the context,
    * then ALL services are supported
    * @param serviceName the service name to check.

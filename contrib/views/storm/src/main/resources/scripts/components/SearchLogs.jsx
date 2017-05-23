@@ -25,7 +25,7 @@ define(['react',
 		getInitialState: function() {
 			return null;
 		},
-		render: function() {			
+		render: function() {
 			return (
 				<div className="col-md-3 pull-right searchbar">
                     <div className="input-group">
@@ -60,26 +60,30 @@ define(['react',
             var searchBoxEl = document.getElementById('searchBox');
             var searchArchivedLogsEl = document.getElementById('searchArchivedLogs');
             var deepSearchEl = document.getElementById('deepSearch');
+            var topologyId = this.props.id;
 
-            var url = App.baseURL.split('?url=')[1]+'/';
-            if(deepSearchEl.checked == true){
-                url += "deep_search_result.html";
-            }else{
-                url += "search_result.html";
-            }
-            url += '?search='+searchBoxEl.value+'&id='+ this.props.id +'&count=1';
-            if(searchArchivedLogsEl.checked == true){
+            $.get(App.baseURL.replace('proxy?url=', 'storm_details'))
+              .success(function(response){
+                var url = JSON.parse(response).hostdata+'/';
                 if(deepSearchEl.checked == true){
-                    url += "&search-archived=on";
+                    url += "deep_search_result.html";
                 }else{
-                    url += "&searchArchived=checked";
+                    url += "search_result.html";
                 }
-            }
-            window.open(url, '_blank');
+                url += '?search='+searchBoxEl.value+'&id='+ topologyId +'&count=1';
+                if(searchArchivedLogsEl.checked == true){
+                    if(deepSearchEl.checked == true){
+                        url += "&search-archived=on";
+                    }else{
+                        url += "&searchArchived=checked";
+                    }
+                }
+                window.open(url, '_blank');
 
-            searchBoxEl.value = '';
-            searchArchivedLogsEl.checked = false;
-            deepSearchEl.checked = false;
+                searchBoxEl.value = '';
+                searchArchivedLogsEl.checked = false;
+                deepSearchEl.checked = false;
+              });
         },
-    }); 
+    });
 });

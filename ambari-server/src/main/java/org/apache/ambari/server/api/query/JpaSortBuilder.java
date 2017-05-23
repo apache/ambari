@@ -56,7 +56,7 @@ public class JpaSortBuilder<T> {
    * Builds the list of sort orders based on the supplied request and JPA
    * predicate visitor.
    *
-   * @param sortRequests
+   * @param sortRequest
    *          the Ambari sort request properties to turn into a JPA sort
    *          request. If {@code null} or the {@link SortRequestProperty} list
    *          is null, an empty list is returned.

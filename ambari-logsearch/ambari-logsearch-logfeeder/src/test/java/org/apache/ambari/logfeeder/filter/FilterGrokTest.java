@@ -18,12 +18,13 @@
 
 package org.apache.ambari.logfeeder.filter;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterGrokDescriptorImpl;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -43,12 +44,12 @@ public class FilterGrokTest {
   private OutputManager mockOutputManager;
   private Capture<Map<String, Object>> capture;
 
-  public void init(Map<String, Object> config) throws Exception {
+  public void init(FilterGrokDescriptor filterGrokDescriptor) throws Exception {
     mockOutputManager = EasyMock.strictMock(OutputManager.class);
     capture = EasyMock.newCapture(CaptureType.LAST);
 
     filterGrok = new FilterGrok();
-    filterGrok.loadConfig(config);
+    filterGrok.loadConfig(filterGrokDescriptor);
     filterGrok.setOutputManager(mockOutputManager);
     filterGrok.setInput(EasyMock.mock(Input.class));
     filterGrok.init();
@@ -58,10 +59,10 @@ public class FilterGrokTest {
   public void testFilterGrok_parseMessage() throws Exception {
     LOG.info("testFilterGrok_parseMessage()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("message_pattern", "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
-    config.put("multiline_pattern", "^(%{TIMESTAMP_ISO8601:logtime})");
-    init(config);
+    FilterGrokDescriptorImpl filterGrokDescriptor = new FilterGrokDescriptorImpl();
+    filterGrokDescriptor.setMessagePattern("(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
+    filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
+    init(filterGrokDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -84,10 +85,10 @@ public class FilterGrokTest {
   public void testFilterGrok_parseMultiLineMessage() throws Exception {
     LOG.info("testFilterGrok_parseMultiLineMessage()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("message_pattern", "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
-    config.put("multiline_pattern", "^(%{TIMESTAMP_ISO8601:logtime})");
-    init(config);
+    FilterGrokDescriptorImpl filterGrokDescriptor = new FilterGrokDescriptorImpl();
+    filterGrokDescriptor.setMessagePattern("(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
+    filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
+    init(filterGrokDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -114,10 +115,10 @@ public class FilterGrokTest {
   public void testFilterGrok_notMatchingMesagePattern() throws Exception {
     LOG.info("testFilterGrok_notMatchingMesagePattern()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("message_pattern", "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
-    config.put("multiline_pattern", "^(%{TIMESTAMP_ISO8601:logtime})");
-    init(config);
+    FilterGrokDescriptorImpl filterGrokDescriptor = new FilterGrokDescriptorImpl();
+    filterGrokDescriptor.setMessagePattern("(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}%{LOGLEVEL:level}%{SPACE}%{GREEDYDATA:log_message}");
+    filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
+    init(filterGrokDescriptor);
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall().anyTimes();
@@ -134,9 +135,9 @@ public class FilterGrokTest {
   public void testFilterGrok_noMesagePattern() throws Exception {
     LOG.info("testFilterGrok_noMesagePattern()");
 
-    Map<String, Object> config = new HashMap<String, Object>();
-    config.put("multiline_pattern", "^(%{TIMESTAMP_ISO8601:logtime})");
-    init(config);
+    FilterGrokDescriptorImpl filterGrokDescriptor = new FilterGrokDescriptorImpl();
+    filterGrokDescriptor.setMultilinePattern("^(%{TIMESTAMP_ISO8601:logtime})");
+    init(filterGrokDescriptor);
 
     EasyMock.replay(mockOutputManager);
 

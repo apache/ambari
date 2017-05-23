@@ -158,6 +158,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -173,8 +174,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import junit.framework.Assert;
 
 public class AmbariManagementControllerTest {
 
@@ -8253,7 +8252,7 @@ public class AmbariManagementControllerTest {
 
     List<Stage> stages = new ArrayList<>();
     stages.add(stageFactory.createNew(requestId1, "/a1", cluster1, clusterId, context,
-        CLUSTER_HOST_INFO, "", ""));
+        "", ""));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -8262,7 +8261,7 @@ public class AmbariManagementControllerTest {
             cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a2", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -8270,19 +8269,19 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a3", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     stages.clear();
     stages.add(stageFactory.createNew(requestId2, "/a4", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(0).setStageId(4);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -8290,14 +8289,14 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId2, "/a5", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(1).setStageId(5);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
-    request = new Request(stages, clusters);
+    request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     // Add a stage to execute a task as server-side action on the Ambari server
@@ -8305,12 +8304,12 @@ public class AmbariManagementControllerTest {
         new ServiceComponentHostServerActionEvent(Role.AMBARI_SERVER_ACTION.toString(), null, System.currentTimeMillis());
     stages.clear();
     stages.add(stageFactory.createNew(requestId3, "/a6", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(0).setStageId(6);
     stages.get(0).addServerActionCommand("some.action.class.name", null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE, cluster1, serviceComponentHostServerActionEvent, null, null, null, null, false, false);
     assertEquals("_internal_ambari", stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
-    request = new Request(stages, clusters);
+    request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     org.apache.ambari.server.controller.spi.Request spiRequest = PropertyHelper.getReadRequest(
@@ -8998,6 +8997,8 @@ public class AmbariManagementControllerTest {
 
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
 
+    Long firstHostId = clusters.getHost(host1).getHostId();
+
     // Deletion without specifying cluster should be successful
     requests.clear();
     requests.add(new HostRequest(host1, null));
@@ -9010,6 +9011,10 @@ public class AmbariManagementControllerTest {
     Assert.assertFalse(clusters.getHostsForCluster(cluster1).containsKey(host1));
     Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
     Assert.assertNull(topologyHostInfoDAO.findByHostname(host1));
+
+    // verify there are no host role commands for the host
+    List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByHostId(firstHostId);
+    assertEquals(0, tasks.size());
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();

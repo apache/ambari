@@ -435,18 +435,20 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
       </execute-stage>
 
-      <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Parameterizing Hdfs Log4J Properties">
         <task xsi:type="configure" id="hdfs_log4j_parameterize">
           <summary>Updating the Hdfs Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
 
-      <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Adding HDFS ZKFC Security ACLs">
         <task xsi:type="configure" id="hadoop_env_zkfc_security_opts">
           <summary>Adding HDFS ZKFC Security ACLs</summary>
         </task>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Prevent Garbage Collection Heuristics">
+        <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
       </execute-stage>
 
       <!--SPARK-->
@@ -584,6 +586,11 @@
           <summary>Updating the Storm cluster Log4J properties to include parameterizations</summary>
         </task>
       </execute-stage>
+      <execute-stage service="STORM" component="NIMBUS" title="Update Storm log directory">
+        <task xsi:type="configure" id="storm_worker_log4j_directory">
+          <summary>Update Storm log directory in storm worker log4j</summary>
+        </task>
+      </execute-stage>
 
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">
@@ -687,16 +694,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -733,6 +730,16 @@
           <function>wait_for_safemode_off</function>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="KAFKA" title="Kafka">
@@ -1093,30 +1100,6 @@
       </component>
     </service>
 
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Upgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-upgrade>
-
-        <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true">
-            <summary>Downgrading Ranger KMS database schema</summary>
-            <script>scripts/kms_server.py</script>
-            <function>setup_ranger_kms_database</function>
-          </task>
-        </pre-downgrade>
-
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -1155,6 +1138,30 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
+            <script>scripts/kms_server.py</script>
+            <function>setup_ranger_kms_database</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

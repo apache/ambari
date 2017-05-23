@@ -64,6 +64,13 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>${aggregator.dir}/conf/windows</directory>
+      <outputDirectory>conf</outputDirectory>
+      <includes>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>${monitor.dir}/conf/windows</directory>
       <outputDirectory>/</outputDirectory>
       <includes>

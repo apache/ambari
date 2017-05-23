@@ -68,6 +68,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -245,13 +246,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", serviceComponentStateCountMap,
-              true /* recovery enabled */, "Component100 Client"));
+              true /* recovery enabled */, "Component100 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component101 Client"));
+              false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", serviceComponentStateCountMap,
-              true /* recovery enabled */, "Component102 Client"));
+              true /* recovery enabled */, "Component102 Client", "1.1", RepositoryVersionState.CURRENT));
 
     expect(ambariMetaInfo.getComponent(null, null, null, "Component100")).andReturn(componentInfo1);
     expect(ambariMetaInfo.getComponent(null, null, null, "Component101")).andReturn(componentInfo2);
@@ -284,6 +285,8 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_DESIRED_VERSION);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE);
 
     Predicate predicate = new PredicateBuilder()
       .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
@@ -316,6 +319,17 @@ public class ComponentResourceProviderTest {
           ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID));
       Assert.assertEquals(String.valueOf(true), resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID));
+
+      if (resource.getPropertyValue(
+          ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component102")) {
+        Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
+        Assert.assertNotNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
+        Assert.assertEquals(RepositoryVersionState.CURRENT, resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
+        Assert.assertEquals("1.1", resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
+      } else {
+        Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_REPOSITORY_STATE));
+        Assert.assertNull(resource.getPropertyValue(ComponentResourceProvider.COMPONENT_DESIRED_VERSION));
+      }
     }
 
     // verify
@@ -407,13 +421,13 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component101 Client"));
+              false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent2.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component102 Client"));
+              false /* recovery not enabled */, "Component102 Client", null, null));
     expect(serviceComponent3.convertToResponse()).andReturn(
       new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", serviceComponentStateCountMap,
-              false /* recovery not enabled */, "Component103 Client"));
+              false /* recovery not enabled */, "Component103 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -723,7 +737,7 @@ public class ComponentResourceProviderTest {
 
     expect(serviceComponent1.convertToResponse()).andReturn(
         new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
-            false /* recovery not enabled */, "Component101 Client"));
+            false /* recovery not enabled */, "Component101 Client", null, null));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
 
     expect(serviceComponentHost.getState()).andReturn(State.INSTALLED).anyTimes();

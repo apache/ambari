@@ -83,7 +83,8 @@ class TestLogSearch(RMFTestCase):
                               action = ['delete']
     )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
-                              properties = {'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
+                              properties = {'common-property': 'common-value',
+                                            'hadoop.security.credential.provider.path': 'jceks://file/etc/ambari-logsearch-portal/conf/logsearch.jceks',
                                             'logsearch.audit.logs.split.interval.mins': '1',
                                             'logsearch.auth.external_auth.enabled': 'false',
                                             'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
@@ -96,6 +97,7 @@ class TestLogSearch(RMFTestCase):
                                             'logsearch.collection.history.replication.factor': '1',
                                             'logsearch.collection.service.logs.numshards': '10',
                                             'logsearch.collection.service.logs.replication.factor': '1',
+                                            'logsearch.config.zk_connect_string': 'c6401.ambari.apache.org:2181',
                                             'logsearch.login.credentials.file': 'logsearch-admin.json',
                                             'logsearch.protocol': 'http',
                                             'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR,CLUSTER.ADMINISTRATOR',

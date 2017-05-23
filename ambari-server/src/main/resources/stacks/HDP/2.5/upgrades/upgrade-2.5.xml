@@ -573,8 +573,14 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdfs_namenode_prevent_gc_heuristics"/>
+        </pre-upgrade>
+
+        <pre-downgrade/>
+
         <upgrade>
-          <task xsi:type="restart-task" />
+          <task xsi:type="restart-task" timeout-config="upgrade.parameter.nn-restart.timeout"/>
         </upgrade>
       </component>
 
@@ -881,7 +887,6 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
           <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
-          <task xsi:type="configure" id="storm_worker_log4j_update_path" />
         </pre-upgrade>
         
         <pre-downgrade />
@@ -953,6 +958,7 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_4_0_atlas_exclude_tls_protocol"/>
           <task xsi:type="configure" id="increase_atlas_zookeeper_timeouts"/>
+          <task xsi:type="configure" id="atlas_env_gc_worker"/>
         </pre-upgrade>
         
         <pre-downgrade/>

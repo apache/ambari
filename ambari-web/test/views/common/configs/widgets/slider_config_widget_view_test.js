@@ -137,7 +137,15 @@ describe('App.SliderConfigWidgetView', function () {
     });
   });
 
-  describe('#mirrorValueObs', function () {
+  describe('#mirrorValueObsOnce', function () {
+
+    beforeEach(function () {
+      sinon.stub(Em.run, 'once', Em.tryInvoke);
+    });
+
+    afterEach(function () {
+      Em.run.once.restore();
+    });
 
     describe('check int', function () {
 
@@ -306,6 +314,19 @@ describe('App.SliderConfigWidgetView', function () {
     it('returns max value for group1', function() {
       viewInt.set('config.group', {name: 'group1'});
       expect(viewInt.getValueAttributeByGroup('maximum')).to.equal('3072');
+    });
+
+    it('minimum is missing', function () {
+      viewInt.set('config.stackConfigProperty.valueAttributes.minimum', undefined);
+      expect(viewInt.getValueAttributeByGroup('minimum')).to.equal('486');
+    });
+
+    it('minimum is missing, value is invalid', function () {
+      viewInt.get('config').setProperties({
+        'value': 3072,
+        'stackConfigProperty.valueAttributes.minimum': undefined
+      });
+      expect(viewInt.getValueAttributeByGroup('minimum')).to.equal('2096');
     });
   });
 

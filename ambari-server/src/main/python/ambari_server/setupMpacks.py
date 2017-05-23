@@ -29,7 +29,7 @@ from ambari_server.serverClassPath import ServerClassPath
 from ambari_commons.exceptions import FatalException
 from ambari_commons.inet_utils import download_file
 from ambari_commons.logging_utils import print_info_msg, print_error_msg, print_warning_msg
-from ambari_commons.os_utils import copy_file, run_os_command
+from ambari_commons.os_utils import copy_file, run_os_command, change_owner, set_file_permissions
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
   get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location, \
   get_java_exe_path, read_ambari_user, parse_properties_file, JDBC_DATABASE_PROPERTY, get_dashboard_location
@@ -243,6 +243,7 @@ def create_symlink_using_path(src_path, dest_link, force=False):
   """
   if force and os.path.islink(dest_link):
     sudo.unlink(dest_link)
+
   sudo.symlink(src_path, dest_link)
   print_info_msg("Symlink: " + dest_link)
 
@@ -713,10 +714,13 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     _execute_hook(mpack_metadata, BEFORE_INSTALL_HOOK_NAME, tmp_root_dir)
 
   # Purge previously installed stacks and management packs
-  if options.purge and options.purge_list:
+  if not is_upgrade and options.purge and options.purge_list:
     purge_resources = options.purge_list.split(",")
     validate_purge(options, purge_resources, tmp_root_dir, mpack_metadata, replay_mode)
     purge_stacks_and_mpacks(purge_resources, replay_mode)
+
+  adjust_ownership_list = []
+  change_ownership_list = []
 
   # Get ambari mpack properties
   stack_location, extension_location, service_definitions_location, mpacks_staging_location, dashboard_location = get_mpack_properties()
@@ -724,18 +728,30 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
   # Create directories
   if not os.path.exists(stack_location):
     sudo.makedir(stack_location, 0755)
+  adjust_ownership_list.append((stack_location, "0755", "{0}", True))
+  change_ownership_list.append((stack_location,"{0}",True))
   if not os.path.exists(extension_location):
     sudo.makedir(extension_location, 0755)
+  adjust_ownership_list.append((extension_location, "0755", "{0}", True))
+  change_ownership_list.append((extension_location,"{0}",True))
   if not os.path.exists(service_definitions_location):
     sudo.makedir(service_definitions_location, 0755)
+  adjust_ownership_list.append((service_definitions_location, "0755", "{0}", True))
+  change_ownership_list.append((service_definitions_location,"{0}",True))
   if not os.path.exists(mpacks_staging_location):
     sudo.makedir(mpacks_staging_location, 0755)
+  adjust_ownership_list.append((mpacks_staging_location, "0755", "{0}", True))
+  change_ownership_list.append((mpacks_staging_location,"{0}",True))
   if not os.path.exists(mpacks_cache_location):
     sudo.makedir(mpacks_cache_location, 0755)
+  adjust_ownership_list.append((mpacks_cache_location, "0755", "{0}", True))
+  change_ownership_list.append((mpacks_cache_location,"{0}",True))
   if not os.path.exists(dashboard_location):
     sudo.makedir(dashboard_location, 0755)
     sudo.makedir(os.path.join(dashboard_location, GRAFANA_DASHBOARDS_DIRNAME), 0755)
     sudo.makedir(os.path.join(dashboard_location, SERVICE_METRICS_DIRNAME), 0755)
+  adjust_ownership_list.append((dashboard_location, "0755", "{0}", True))
+  change_ownership_list.append((dashboard_location,"{0}",True))
 
   # Stage management pack (Stage at /var/lib/ambari-server/resources/mpacks/mpack_name-mpack_version)
   mpack_name = mpack_metadata.name
@@ -780,7 +796,27 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     else:
       print_info_msg("Unknown artifact {0} of type {1}".format(artifact_name, artifact_type))
 
-  print_info_msg("Management pack {0}-{1} successfully installed!".format(mpack_name, mpack_version))
+  ambari_user = read_ambari_user()
+
+  if ambari_user:
+     # This is required when a non-admin user is configured to setup ambari-server
+    print_info_msg("Adjusting file permissions and ownerships")
+    for pack in adjust_ownership_list:
+      file = pack[0]
+      mod = pack[1]
+      user = pack[2].format(ambari_user)
+      recursive = pack[3]
+      logger.info("Setting file permissions: {0} {1} {2} {3}".format(file, mod, user, recursive))
+      set_file_permissions(file, mod, user, recursive)
+
+    for pack in change_ownership_list:
+      path = pack[0]
+      user = pack[1].format(ambari_user)
+      recursive = pack[2]
+      logger.info("Changing ownership: {0} {1} {2}".format(path, user, recursive))
+      change_owner(path, user, recursive)
+
+  print_info_msg("Management pack {0}-{1} successfully installed! Please restart ambari-server.".format(mpack_name, mpack_version))
   return mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
 
 def _execute_hook(mpack_metadata, hook_name, base_dir):
@@ -898,9 +934,6 @@ def upgrade_mpack(options, replay_mode=False):
   """
   logger.info("Upgrade mpack.")
   mpack_path = options.mpack_path
-  if options.purge:
-    print_error_msg("Purge is not supported with upgrade_mpack action!")
-    raise FatalException(-1, "Purge is not supported with upgrade_mpack action!")
 
   if not mpack_path:
     print_error_msg("Management pack not specified!")
@@ -926,7 +959,7 @@ def upgrade_mpack(options, replay_mode=False):
 
   print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
   if not replay_mode:
-    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
+    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, False, [], options.force, options.verbose)
 
 def replay_mpack_logs():
   """

@@ -87,6 +87,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -114,13 +115,14 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
-    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY).anyTimes();
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -149,13 +151,14 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
     expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
-    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY).anyTimes();
+    expect(clusterTopology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();
@@ -165,9 +168,7 @@ public class StackAdvisorBlueprintProcessorTest {
     underTest.adviseConfiguration(clusterTopology, props);
     // THEN
     assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey1"));
-    assertTrue(advisedConfigurations.get("core-site").getProperties().containsKey("dummyKey3"));
     assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey2"));
-    assertTrue(advisedConfigurations.get("core-site").getPropertyValueAttributes().containsKey("dummyKey3"));
     assertEquals("dummyValue", advisedConfigurations.get("core-site").getProperties().get("dummyKey1"));
     assertEquals(Boolean.toString(true), advisedConfigurations.get("core-site")
       .getPropertyValueAttributes().get("dummyKey2").getDelete());
@@ -191,6 +192,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getConfiguration(Arrays.asList("HDFS", "YARN", "HIVE"))).andReturn(createStackDefaults()).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
+    expect(blueprint.isValidConfigType("core-site")).andReturn(true).anyTimes();
     expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(props).anyTimes();

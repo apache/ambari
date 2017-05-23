@@ -27,14 +27,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.ambari.logfeeder.LogFeeder;
-import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.metrics.MetricData;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -80,6 +77,9 @@ public class LogFeederUtil {
   }
   
   private static Properties props;
+  public static Properties getProperties() {
+    return props;
+  }
 
   /**
    * This method will read the properties from System, followed by propFile and finally from the map
@@ -203,55 +203,6 @@ public class LogFeederUtil {
     return retValue;
   }
 
-  @SuppressWarnings("unchecked")
-  public static boolean isEnabled(Map<String, Object> conditionConfigs, Map<String, Object> valueConfigs) {
-    Map<String, Object> conditions = (Map<String, Object>) conditionConfigs.get("conditions");
-    if (MapUtils.isEmpty(conditions)) {
-      return toBoolean((String) valueConfigs.get("is_enabled"), true);
-    }
-    
-    for (String conditionType : conditions.keySet()) {
-      if (!conditionType.equalsIgnoreCase("fields")) {
-        continue;
-      }
-      
-      Map<String, Object> fields = (Map<String, Object>) conditions.get("fields");
-      for (Map.Entry<String, Object> field : fields.entrySet()) {
-        if (field.getValue() instanceof String) {
-          if (isFieldConditionMatch(valueConfigs, field.getKey(), (String) field.getValue())) {
-            return true;
-          }
-        } else {
-          for (String stringValue : (List<String>) field.getValue()) {
-            if (isFieldConditionMatch(valueConfigs, field.getKey(), stringValue)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    
-    return false;
-  }
-
-  private static boolean isFieldConditionMatch(Map<String, Object> configs, String fieldName, String stringValue) {
-    boolean allow = false;
-    String fieldValue = (String) configs.get(fieldName);
-    if (fieldValue != null && fieldValue.equalsIgnoreCase(stringValue)) {
-      allow = true;
-    } else {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> addFields = (Map<String, Object>) configs.get("add_fields");
-      if (addFields != null && addFields.get(fieldName) != null) {
-        String addFieldValue = (String) addFields.get(fieldName);
-        if (stringValue.equalsIgnoreCase(addFieldValue)) {
-          allow = true;
-        }
-      }
-    }
-    return allow;
-  }
-
   public static void logStatForMetric(MetricData metric, String prefixStr, String postFix) {
     long currStat = metric.value;
     long currMS = System.currentTimeMillis();
@@ -307,24 +258,6 @@ public class LogFeederUtil {
       log.counter++;
       return false;
     }
-  }
-
-  public static boolean isListContains(List<String> list, String str, boolean caseSensitive) {
-    if (list == null) {
-      return false;
-    }
-    
-    for (String value : list) {
-      if (value == null) {
-        continue;
-      }
-      
-      if (caseSensitive ? value.equals(str) : value.equalsIgnoreCase(str) ||
-          value.equalsIgnoreCase(LogFeederConstants.ALL)) {
-        return true;
-      }
-    }
-    return false;
   }
   
   private static String logfeederTempDir = null;
