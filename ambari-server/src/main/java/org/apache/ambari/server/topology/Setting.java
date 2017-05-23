@@ -43,6 +43,8 @@ public class Setting {
 
   public static final String SETTING_NAME_NAME = "name";
 
+  public static final String SETTING_NAME_REPOSITORY_SETTINGS = "repository_settings";
+
   /**
    * When specified under the "service_settings" section, it indicates whether credential store
    * use is enabled for that service. Value is "true" or "false". Specify a value of "true"

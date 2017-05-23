@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
@@ -167,4 +168,6 @@ public interface Blueprint {
    * @return entity representation of the blueprint
    */
   BlueprintEntity toEntity();
+
+  List<RepositorySetting> getRepositorySettings();
 }

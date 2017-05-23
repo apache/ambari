@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,6 +57,7 @@ public class BlueprintImpl implements Blueprint {
   private BlueprintValidator validator;
   private SecurityConfiguration security;
   private Setting setting;
+  private List<RepositorySetting> repoSettings;
 
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
@@ -72,6 +74,7 @@ public class BlueprintImpl implements Blueprint {
     configuration.setParentConfiguration(stack.getConfiguration(getServices()));
     validator = new BlueprintValidatorImpl(this);
     processSetting(entity.getSettings());
+    processRepoSettings();
   }
 
   public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration,
@@ -363,7 +366,7 @@ public class BlueprintImpl implements Blueprint {
     } catch (StackAccessException e) {
       throw new NoSuchStackException(stackEntity.getStackName(), stackEntity.getStackVersion());
     } catch (AmbariException e) {
-    //todo:
+      //todo:
       throw new RuntimeException("An error occurred parsing the stack information.", e);
     }
   }
@@ -614,5 +617,33 @@ public class BlueprintImpl implements Blueprint {
         return true;
     }
     return false;
+  }
+
+  /**
+   * Parse stack repo info stored in the blueprint_settings table
+   * @return set of repositories
+   * */
+  private void processRepoSettings(){
+    repoSettings = new ArrayList<RepositorySetting>();
+    if (setting != null){
+      Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_REPOSITORY_SETTINGS);
+      for (Map<String, String> setting : settingValue) {
+        RepositorySetting rs = parseRepositorySetting(setting);
+        repoSettings.add(rs);
+      }
+    }
+  }
+
+  private RepositorySetting parseRepositorySetting(Map<String, String> setting){
+    RepositorySetting result = new RepositorySetting();
+    result.setOperatingSystem(setting.get(RepositorySetting.OPERATING_SYSTEM));
+    result.setOverrideStrategy(setting.get(RepositorySetting.OVERRIDE_STRATEGY));
+    result.setRepoId(setting.get(RepositorySetting.REPO_ID));
+    result.setBaseUrl(setting.get(RepositorySetting.BASE_URL));
+    return result;
+  }
+
+  public List<RepositorySetting> getRepositorySettings(){
+    return repoSettings;
   }
 }
