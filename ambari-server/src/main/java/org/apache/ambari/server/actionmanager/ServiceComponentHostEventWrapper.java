@@ -58,9 +58,7 @@ public class ServiceComponentHostEventWrapper {
       try {
         eventJson = StageUtils.jaxbToString(event);
         return eventJson;
-      } catch (JAXBException e) {
-        throw new RuntimeException("Couldn't get json", e);
-      } catch (IOException e) {
+      } catch (JAXBException | IOException e) {
         throw new RuntimeException("Couldn't get json", e);
       }
     } else {

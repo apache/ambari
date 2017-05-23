@@ -1073,9 +1073,7 @@ public class DatabaseConsistencyCheckHelper {
           error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
         }
       }
-    } catch (SQLException e) {
-      LOG.error("Exception occurred during complex service check procedure: ", e);
-    } catch (AmbariException e) {
+    } catch (SQLException | AmbariException e) {
       LOG.error("Exception occurred during complex service check procedure: ", e);
     } finally {
       if (rs != null) {

@@ -123,11 +123,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       try {
         resources.addAll(getDependencyResources(properties,
             getRequestPropertyIds(request, predicate)));
-      } catch (NoSuchResourceException e) {
-        if (requestProps.size() == 1) {
-          throw e;
-        }
-      } catch (NoSuchParentResourceException e) {
+      } catch (NoSuchResourceException | NoSuchParentResourceException e) {
         if (requestProps.size() == 1) {
           throw e;
         }

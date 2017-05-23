@@ -3637,30 +3637,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (ServiceComponentHostRequest request : requests) {
       try {
         response.addAll(getHostComponents(request));
-      } catch (ServiceComponentHostNotFoundException e) {
+      } catch (ServiceComponentHostNotFoundException | ServiceComponentNotFoundException | ServiceNotFoundException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
-          throw e;
-        } else {
-          LOG.debug("Ignoring not found exception due to other requests", e);
-        }
-      } catch (ServiceNotFoundException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          // In 'OR' case, a host_component may be included in predicate
-          // that has no corresponding service
-          throw e;
-        } else {
-          LOG.debug("Ignoring not found exception due to other requests", e);
-        }
-      } catch (ServiceComponentNotFoundException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          // In 'OR' case, a host_component may be included in predicate
-          // that has no corresponding component
           throw e;
         } else {
           LOG.debug("Ignoring not found exception due to other requests", e);

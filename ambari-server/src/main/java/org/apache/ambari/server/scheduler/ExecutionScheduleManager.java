@@ -131,9 +131,7 @@ public class ExecutionScheduleManager {
 
     try {
       buildApiClient();
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    } catch (KeyManagementException e) {
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
       throw new RuntimeException(e);
     }
   }

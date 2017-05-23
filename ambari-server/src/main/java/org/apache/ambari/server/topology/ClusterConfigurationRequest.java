@@ -332,9 +332,7 @@ public class ClusterConfigurationRequest {
         }
       }
 
-    } catch (KerberosInvalidConfigurationException e) {
-      LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
-    } catch (AmbariException e) {
+    } catch (KerberosInvalidConfigurationException | AmbariException e) {
       LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
     }
     return requiredHostGroups;

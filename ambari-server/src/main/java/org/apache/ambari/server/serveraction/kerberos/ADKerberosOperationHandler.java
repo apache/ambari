@@ -554,10 +554,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     } catch (ParseErrorException e) {
       LOG.warn("Failed to parse Active Directory create principal template", e);
       throw new KerberosOperationException("Failed to parse Active Directory create principal template", e);
-    } catch (MethodInvocationException e) {
-      LOG.warn("Failed to process Active Directory create principal template", e);
-      throw new KerberosOperationException("Failed to process Active Directory create principal template", e);
-    } catch (ResourceNotFoundException e) {
+    } catch (MethodInvocationException | ResourceNotFoundException e) {
       LOG.warn("Failed to process Active Directory create principal template", e);
       throw new KerberosOperationException("Failed to process Active Directory create principal template", e);
     }

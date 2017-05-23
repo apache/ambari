@@ -103,10 +103,7 @@ public class LocalAgentSimulator implements Runnable {
     RegistrationResponse response;
     try {
       response = handler.handleRegistration(reg);
-    } catch (AmbariException e) {
-      LOG.info("Registration failed", e);
-      return;
-    } catch (InvalidStateTransitionException e) {
+    } catch (AmbariException | InvalidStateTransitionException e) {
       LOG.info("Registration failed", e);
       return;
     }

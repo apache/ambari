@@ -286,9 +286,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
                 key = new String(master);
               }
               FileUtils.deleteQuietly(keyFile);
-            } catch (IOException e) {
-              LOG.error("Cannot read master key from file: " + keyPath);
-              e.printStackTrace();
             } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
@@ -310,9 +307,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
           Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
           "UTF8").toCharArray();
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw e;
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

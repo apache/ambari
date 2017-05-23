@@ -1085,11 +1085,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
         process.waitFor();
 
         LOG.debug("done subprocess");
-      } catch (IOException e) {
-        String message = String.format("Failed to execute the command: %s", e.getLocalizedMessage());
-        LOG.error(message, e);
-        throw new KerberosOperationException(message, e);
-      } catch (InterruptedException e) {
+      } catch (IOException | InterruptedException e) {
         String message = String.format("Failed to execute the command: %s", e.getLocalizedMessage());
         LOG.error(message, e);
         throw new KerberosOperationException(message, e);

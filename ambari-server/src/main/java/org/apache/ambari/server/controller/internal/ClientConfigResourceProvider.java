@@ -478,8 +478,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
-      } catch (AmbariException e) {
-        throw new SystemException("Controller error ", e);
       } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }

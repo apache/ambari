@@ -188,11 +188,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     ClusterTopology topology;
     try {
       topology = createClusterTopology(clusterNode);
-    } catch (InvalidTopologyTemplateException e) {
+    } catch (InvalidTopologyTemplateException | InvalidTopologyException e) {
       //todo
-      throw new RuntimeException("Unable to process blueprint export request: " + e, e);
-    } catch (InvalidTopologyException e) {
-      //todo:
       throw new RuntimeException("Unable to process blueprint export request: " + e, e);
     }
 
