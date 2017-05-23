@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.UserAuthorizationResponse;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -251,7 +252,10 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
 
     for (RoleAuthorizationEntity entity : authorizationEntities) {
       Resource resource = new ResourceImpl(Type.UserAuthorization);
-      setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, entity.getAuthorizationId(), requestedIds);
+      String clusterName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
+      UserAuthorizationResponse userAuthorizationResponse = getResponse(entity.getAuthorizationId(),
+        entity.getAuthorizationName(), clusterName, resourceType, username);
+      setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, userAuthorizationResponse.getAuthorizationId(), requestedIds);
       setResourceProperty(resource, USERNAME_PROPERTY_ID, username, requestedIds);
       setResourceProperty(resource, AUTHORIZATION_NAME_PROPERTY_ID, entity.getAuthorizationName(), requestedIds);
       setResourceProperty(resource, AUTHORIZATION_RESOURCE_TYPE_PROPERTY_ID, resourceType, requestedIds);
@@ -262,6 +266,7 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
       resources.add(resource);
     }
   }
+
 
   /**
    * Creates and adds resources to the results where each resource properly identities the view
@@ -291,21 +296,58 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
                                 Set<String> requestedIds) {
     for (RoleAuthorizationEntity entity : authorizationEntities) {
       Resource resource = new ResourceImpl(Type.UserAuthorization);
-      setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, entity.getAuthorizationId(), requestedIds);
-      setResourceProperty(resource, USERNAME_PROPERTY_ID, username, requestedIds);
-      setResourceProperty(resource, AUTHORIZATION_NAME_PROPERTY_ID, entity.getAuthorizationName(), requestedIds);
-      setResourceProperty(resource, AUTHORIZATION_RESOURCE_TYPE_PROPERTY_ID, resourceType, requestedIds);
-      setResourceProperty(resource, AUTHORIZATION_VIEW_NAME_PROPERTY_ID,
-          privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID),
+      String viewName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID);
+      String viewVersion = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID);
+      String viewInstanceName = (String)privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
+      UserAuthorizationResponse userAuthorizationResponse = getResponse(entity.getAuthorizationId(),
+        entity.getAuthorizationName(), resourceType, username, viewName, viewVersion, viewInstanceName);
+      setResourceProperty(resource, AUTHORIZATION_ID_PROPERTY_ID, userAuthorizationResponse.getAuthorizationId(), requestedIds);
+      setResourceProperty(resource, USERNAME_PROPERTY_ID, userAuthorizationResponse.getUserName(), requestedIds);
+      setResourceProperty(resource, AUTHORIZATION_NAME_PROPERTY_ID, userAuthorizationResponse.getAuthorizationName(), requestedIds);
+      setResourceProperty(resource, AUTHORIZATION_RESOURCE_TYPE_PROPERTY_ID, userAuthorizationResponse.getResourceType(), requestedIds);
+      setResourceProperty(resource, AUTHORIZATION_VIEW_NAME_PROPERTY_ID, userAuthorizationResponse.getViewName(),
           requestedIds);
-      setResourceProperty(resource, AUTHORIZATION_VIEW_VERSION_PROPERTY_ID,
-          privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID),
+      setResourceProperty(resource, AUTHORIZATION_VIEW_VERSION_PROPERTY_ID, userAuthorizationResponse.getViewVersion(),
           requestedIds);
-      setResourceProperty(resource, AUTHORIZATION_VIEW_INSTANCE_NAME_PROPERTY_ID,
-          privilegeResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID),
+      setResourceProperty(resource, AUTHORIZATION_VIEW_INSTANCE_NAME_PROPERTY_ID, userAuthorizationResponse.getViewInstanceName(),
           requestedIds);
 
       resources.add(resource);
     }
+  }
+
+  /**
+   *  Returns user authorization response instance that represents the response schema
+   *  for /users/{userName}/authorizations REST endpoint
+   * @param authorizationId     authorization id
+   * @param authorizationName   authorization name
+   * @param clusterName         cluster name
+   * @param resourceType        resource type
+   * @param userName            user name
+   * @return {@link UserAuthorizationResponse}
+   */
+  private UserAuthorizationResponse getResponse(String authorizationId, String authorizationName,
+                                                                     String clusterName, String resourceType, String userName) {
+    return new UserAuthorizationResponse(authorizationId, authorizationName, clusterName, resourceType, userName);
+
+  }
+
+  /**
+   * Returns user authorization response instance that represents the response schema
+   * for /users/{userName}/authorizations REST endpoint
+   * @param authorizationId      authorization id
+   * @param authorizationName    authorization name
+   * @param resourceType         resource type
+   * @param userName             user name
+   * @param viewName             view name
+   * @param viewVersion          view version
+   * @param viewInstanceName     view instance name
+   * @return  {@link UserAuthorizationResponse}
+   */
+  private UserAuthorizationResponse getResponse(String authorizationId, String authorizationName,
+                                                                     String resourceType, String userName, String viewName,
+                                                                     String viewVersion, String viewInstanceName) {
+    return new UserAuthorizationResponse(authorizationId, authorizationName, resourceType, userName, viewName, viewVersion, viewInstanceName);
+
   }
 }

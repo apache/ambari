@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller;
 
 
+import io.swagger.annotations.ApiModelProperty;
 
 public class ServiceRequest {
 
@@ -48,6 +49,7 @@ public class ServiceRequest {
   /**
    * @return the serviceName
    */
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -62,6 +64,7 @@ public class ServiceRequest {
   /**
    * @return the desiredState
    */
+  @ApiModelProperty(name = "state")
   public String getDesiredState() {
     return desiredState;
   }
@@ -76,6 +79,7 @@ public class ServiceRequest {
   /**
    * @return the clusterName
    */
+  @ApiModelProperty(name = "cluster_name")
   public String getClusterName() {
     return clusterName;
   }
@@ -97,6 +101,7 @@ public class ServiceRequest {
   /**
    * @return the maintenance state
    */
+  @ApiModelProperty(name = "maintenance_state")
   public String getMaintenanceState() {
     return maintenanceState;
   }
@@ -104,6 +109,7 @@ public class ServiceRequest {
   /**
    * @return credential store enabled
    */
+  @ApiModelProperty(name = "credential_store_enabled")
   public String getCredentialStoreEnabled() {
     return credentialStoreEnabled;
   }
@@ -126,6 +132,7 @@ public class ServiceRequest {
   /**
    * @param credentialStoreSupported the new credential store supported
    */
+  @ApiModelProperty(name = "credential_store_supporteds")
   public void setCredentialStoreSupported(String credentialStoreSupported) {
     this.credentialStoreSupported = credentialStoreSupported;
   }
@@ -139,4 +146,5 @@ public class ServiceRequest {
       .append(", credentialStoreSupported=").append(credentialStoreSupported);
     return sb.toString();
   }
+
 }

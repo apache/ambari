@@ -20,10 +20,11 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-public class RequestResourceFilter {
+public class RequestResourceFilter implements ApiModel {
   private String serviceName;
   private String componentName;
   private final List<String> hostNames = new ArrayList<>();

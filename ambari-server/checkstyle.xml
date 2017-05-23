@@ -13,6 +13,7 @@
 <module name="Checker">
   <module name="TreeWalker">
     <module name="AvoidTransactionalOnPrivateMethodsCheck"/>
+    <!-- <module name="UndocumentedRestApiOperationCheck"/> Swagger - uncomment when API documentation is done -->
 
     <module name="FallThrough"/>
 

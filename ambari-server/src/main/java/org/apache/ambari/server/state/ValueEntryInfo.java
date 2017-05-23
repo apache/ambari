@@ -21,16 +21,20 @@ package org.apache.ambari.server.state;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import io.swagger.annotations.ApiModelProperty;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class ValueEntryInfo {
+public class ValueEntryInfo implements ApiModel {
 
   private String value;
   private String label;
   private String description;
 
+  @ApiModelProperty(name = "value")
   public String getValue() {
     return value;
   }
@@ -39,6 +43,7 @@ public class ValueEntryInfo {
     this.value = value;
   }
 
+  @ApiModelProperty(name = "label")
   public String getLabel() {
     return label;
   }
@@ -47,6 +52,7 @@ public class ValueEntryInfo {
     this.label = label;
   }
 
+  @ApiModelProperty(name = "description")
   public String getDescription() {
     return description;
   }

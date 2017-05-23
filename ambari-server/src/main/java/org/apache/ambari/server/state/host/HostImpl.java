@@ -939,24 +939,21 @@ public class HostImpl implements Host {
     HostResponse r = new HostResponse(getHostName());
 
     r.setAgentVersion(getAgentVersion());
-    r.setAvailableMemBytes(getAvailableMemBytes());
     r.setPhCpuCount(getPhCpuCount());
     r.setCpuCount(getCpuCount());
     r.setDisksInfo(getDisksInfo());
     r.setHealthStatus(getHealthStatus());
     r.setHostAttributes(getHostAttributes());
     r.setIpv4(getIPv4());
-    r.setIpv6(getIPv6());
     r.setLastHeartbeatTime(getLastHeartbeatTime());
     r.setLastAgentEnv(lastAgentEnv);
     r.setLastRegistrationTime(getLastRegistrationTime());
     r.setOsArch(getOsArch());
-    r.setOsInfo(getOsInfo());
     r.setOsType(getOsType());
     r.setRackInfo(getRackInfo());
     r.setTotalMemBytes(getTotalMemBytes());
     r.setPublicHostName(getPublicHostName());
-    r.setHostState(getState().toString());
+    r.setHostState(getState());
     r.setStatus(getStatus());
     r.setRecoveryReport(getRecoveryReport());
     r.setRecoverySummary(getRecoveryReport().getSummary());

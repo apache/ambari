@@ -25,23 +25,31 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
+
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConfigPlacement {
-	@JsonProperty("config")
+  private static final String PROPERTY_VALUE_ATTRIBUTES = "property_value_attributes";
+  private static final String CONFIG = "config";
+  private static final String SUBSECTION_NAME = "subsection-name";
+  private static final String SUBSECTION_TAB_NAME = "subsection-tab-name";
+  private static final String DEPENDS_ON = "depends-on";
+
+  @JsonProperty(CONFIG)
 	private String config;
-	@JsonProperty("subsection-name")
+	@JsonProperty(SUBSECTION_NAME)
 	private String subsectionName;
-  @JsonProperty("subsection-tab-name")
+  @JsonProperty(SUBSECTION_TAB_NAME)
   private String subsectionTabName;
 
-  @JsonProperty("property_value_attributes")
+  @JsonProperty(PROPERTY_VALUE_ATTRIBUTES)
   private ValueAttributesInfo propertyValueAttributes;
 
-  @JsonProperty("depends-on")
+  @JsonProperty(DEPENDS_ON)
   private List<ConfigCondition> dependsOn;
 
-
+  @ApiModelProperty(name = CONFIG)
   public String getConfig() {
     return config;
   }
@@ -50,6 +58,7 @@ public class ConfigPlacement {
     this.config = config;
   }
 
+  @ApiModelProperty(name = SUBSECTION_NAME)
   public String getSubsectionName() {
     return subsectionName;
   }
@@ -58,6 +67,7 @@ public class ConfigPlacement {
     this.subsectionName = subsectionName;
   }
 
+  @ApiModelProperty(name = SUBSECTION_TAB_NAME)
   public String getSubsectionTabName() {
     return subsectionTabName;
   }
@@ -66,6 +76,7 @@ public class ConfigPlacement {
     this.subsectionTabName = subsectionTabName;
   }
 
+  @ApiModelProperty(name = PROPERTY_VALUE_ATTRIBUTES)
   public ValueAttributesInfo getPropertyValueAttributes() {
     return propertyValueAttributes;
   }
@@ -74,6 +85,7 @@ public class ConfigPlacement {
     this.propertyValueAttributes = propertyValueAttributes;
   }
 
+  @ApiModelProperty(name = DEPENDS_ON)
   public List<ConfigCondition> getDependsOn() {
     return dependsOn;
   }
@@ -82,6 +94,7 @@ public class ConfigPlacement {
     this.dependsOn = dependsOn;
   }
 
+  @ApiModelProperty(name = "removed")
   public boolean isRemoved() {
     return subsectionName == null;
   }

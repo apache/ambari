@@ -42,7 +42,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Files;
 
-public class StackInfo implements Comparable<StackInfo>, Validable{
+public class StackInfo implements Comparable<StackInfo>, Validable {
   private String minJdk;
   private String maxJdk;
   private String name;

@@ -79,7 +79,7 @@ public class SettingServiceTest extends BaseServiceTest {
     }
 
     @Override
-    ResourceInstance createSettingResource(String settingName) {
+    protected ResourceInstance createSettingResource(String settingName) {
       assertEquals(this.settingName, settingName);
       return getTestResource();
     }

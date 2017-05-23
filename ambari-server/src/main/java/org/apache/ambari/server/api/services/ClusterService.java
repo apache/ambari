@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,20 +31,36 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.ClusterArtifactResponse;
+import org.apache.ambari.server.controller.ClusterResponse.ClusterResponseWrapper;
+import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.http.HttpStatus;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 /**
  * Service responsible for cluster resource requests.
  */
-@Path("/clusters/")
+@Path("/clusters")
+@Api(value = "/clusters", description = "Endpoint for cluster-specific operations")
 public class ClusterService extends BaseService {
+
+  private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.api.services.ClusterRequestSwagger";
+  private static final String ARTIFACT_REQUEST_TYPE = "org.apache.ambari.server.controller.ClusterArtifactRequest";
 
   /**
    * The clusters utilities.
@@ -85,10 +101,24 @@ public class ClusterService extends BaseService {
    */
   @GET
   @Path("{clusterName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Returns information about a specific cluster", response = ClusterResponseWrapper.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY,
+      defaultValue = ClusterResourceProvider.ALL_PROPERTIES),
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response getCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                             @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createClusterResource(clusterName));
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createClusterResource(clusterName);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -101,9 +131,27 @@ public class ClusterService extends BaseService {
    * @return cluster collection resource representation
    */
   @GET
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Returns all clusters",
+    response = ClusterResponseWrapper.class, responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY,
+      defaultValue = ClusterResourceProvider.CLUSTER_NAME),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response getClusters(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createClusterResource(null));
+    ResourceInstance resource = createClusterResource(null);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -118,10 +166,25 @@ public class ClusterService extends BaseService {
    */
    @POST
    @Path("{clusterName}")
-   @Produces("text/plain")
+   @Produces(MediaType.TEXT_PLAIN)
+   @ApiOperation(value = "Creates a cluster")
+   @ApiImplicitParams({
+     @ApiImplicitParam(dataType = CLUSTER_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+   })
+   @ApiResponses({
+     @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+     @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+     @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+     @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+     @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+     @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+     @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+   })
    public Response createCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                 @PathParam("clusterName") String clusterName) {
-     return handleRequest(headers, body, ui, Request.Type.POST, createClusterResource(clusterName));
+     @ApiParam(required = true) @PathParam("clusterName") String clusterName
+   ) {
+     ResourceInstance resource = createClusterResource(clusterName);
+     return handleRequest(headers, body, ui, Request.Type.POST, resource);
   }
 
   /**
@@ -136,10 +199,25 @@ public class ClusterService extends BaseService {
    */
   @PUT
   @Path("{clusterName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates a cluster")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = CLUSTER_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response updateCluster(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, body, ui, Request.Type.PUT, createClusterResource(clusterName));
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createClusterResource(clusterName);
+    return handleRequest(headers, body, ui, Request.Type.PUT, resource);
   }
 
   /**
@@ -154,10 +232,20 @@ public class ClusterService extends BaseService {
    */
   @DELETE
   @Path("{clusterName}")
-  @Produces("text/plain")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a cluster")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
   public Response deleteCluster(@Context HttpHeaders headers, @Context UriInfo ui,
-                                @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, null, ui, Request.Type.DELETE, createClusterResource(clusterName));
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createClusterResource(clusterName);
+    return handleRequest(headers, null, ui, Request.Type.DELETE, resource);
   }
 
   /**
@@ -173,13 +261,28 @@ public class ClusterService extends BaseService {
    */
   @GET
   @Path("{clusterName}/artifacts")
-  @Produces("text/plain")
-  public Response getArtifacts(String body,
-                               @Context HttpHeaders headers,
-                               @Context UriInfo ui,
-                               @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
-        createArtifactResource(clusterName, null));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Returns all artifacts associated with the cluster",
+    response = ClusterArtifactResponse.class, responseContainer = RESPONSE_CONTAINER_LIST)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, allowableValues = QUERY_FROM_VALUES, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, allowableValues = QUERY_TO_VALUES, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response getClusterArtifacts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, null);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -196,13 +299,27 @@ public class ClusterService extends BaseService {
    */
   @GET
   @Path("{clusterName}/artifacts/{artifactName}")
-  @Produces("text/plain")
-  public Response getArtifact(String body,
-                              @Context HttpHeaders headers,
-                              @Context UriInfo ui,
-                              @PathParam("clusterName") String clusterName,
-                              @PathParam("artifactName") String artifactName) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createArtifactResource(clusterName, artifactName));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Get the details of a cluster artifact",
+    response = ClusterArtifactResponse.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = QUERY_FIELDS, value = QUERY_FILTER_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_SORT, value = QUERY_SORT_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_PAGE_SIZE, value = QUERY_PAGE_SIZE_DESCRIPTION, defaultValue = DEFAULT_PAGE_SIZE, dataType = DATA_TYPE_INT, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_FROM, value = QUERY_FROM_DESCRIPTION, defaultValue = DEFAULT_FROM, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY),
+    @ApiImplicitParam(name = QUERY_TO, value = QUERY_TO_DESCRIPTION, dataType = DATA_TYPE_STRING, paramType = PARAM_TYPE_QUERY)
+  })
+  @ApiResponses(value = {
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR)
+  })
+  public Response getClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+    @ApiParam(required = true) @PathParam("artifactName") String artifactName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, artifactName);
+    return handleRequest(headers, body, ui, Request.Type.GET, resource);
   }
 
   /**
@@ -214,18 +331,30 @@ public class ClusterService extends BaseService {
    * @param ui            uri info
    * @param clusterName   cluster name
    * @param artifactName  artifact name
-   * @return
    */
   @POST
   @Path("{clusterName}/artifacts/{artifactName}")
-  @Produces("text/plain")
-  public Response createArtifact(String body,
-                                 @Context HttpHeaders headers,
-                                 @Context UriInfo ui,
-                                 @PathParam("clusterName") String clusterName,
-                                 @PathParam("artifactName") String artifactName) {
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createArtifactResource(clusterName, artifactName));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Creates a cluster artifact")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_CREATED, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_CONFLICT, message = MSG_RESOURCE_ALREADY_EXISTS),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response createClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+    @ApiParam(required = true) @PathParam("artifactName") String artifactName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, artifactName);
+    return handleRequest(headers, body, ui, Request.Type.POST, resource);
   }
 
   /**
@@ -240,13 +369,25 @@ public class ClusterService extends BaseService {
    */
   @PUT
   @Path("{clusterName}/artifacts")
-  @Produces("text/plain")
-  public Response updateArtifacts(String body,
-                                  @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
-                                  @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createArtifactResource(clusterName, null));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates multiple artifacts")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY, allowMultiple = true)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response updateClusterArtifacts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, null);
+    return handleRequest(headers, body, ui, Request.Type.PUT, resource);
   }
 
   /**
@@ -262,14 +403,26 @@ public class ClusterService extends BaseService {
    */
   @PUT
   @Path("{clusterName}/artifacts/{artifactName}")
-  @Produces("text/plain")
-  public Response updateArtifact(String body,
-                                 @Context HttpHeaders headers,
-                                @Context UriInfo ui,
-                                @PathParam("clusterName") String clusterName,
-                                @PathParam("artifactName") String artifactName) {
-    return handleRequest(headers, body, ui, Request.Type.PUT,
-        createArtifactResource(clusterName, artifactName));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Updates a single artifact")
+  @ApiImplicitParams({
+    @ApiImplicitParam(dataType = ARTIFACT_REQUEST_TYPE, paramType = PARAM_TYPE_BODY)
+  })
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_ACCEPTED, message = MSG_REQUEST_ACCEPTED),
+    @ApiResponse(code = HttpStatus.SC_BAD_REQUEST, message = MSG_INVALID_ARGUMENTS),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response updateClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+    @ApiParam(required = true) @PathParam("artifactName") String artifactName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, artifactName);
+    return handleRequest(headers, body, ui, Request.Type.PUT, resource);
   }
 
   /**
@@ -285,14 +438,21 @@ public class ClusterService extends BaseService {
    */
   @DELETE
   @Path("{clusterName}/artifacts/{artifactName}")
-  @Produces("text/plain")
-  public Response deleteArtifact(String body,
-                                 @Context HttpHeaders headers,
-                                 @Context UriInfo ui,
-                                 @PathParam("clusterName") String clusterName,
-                                 @PathParam("artifactName") String artifactName) {
-    return handleRequest(headers, body, ui, Request.Type.DELETE,
-        createArtifactResource(clusterName, artifactName));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes a single artifact")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response deleteClusterArtifact(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName,
+    @ApiParam(required = true) @PathParam("artifactName") String artifactName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, artifactName);
+    return handleRequest(headers, body, ui, Request.Type.DELETE, resource);
   }
 
   /**
@@ -307,13 +467,20 @@ public class ClusterService extends BaseService {
    */
   @DELETE
   @Path("{clusterName}/artifacts")
-  @Produces("text/plain")
-  public Response deleteArtifacts(String body,
-                                  @Context HttpHeaders headers,
-                                  @Context UriInfo ui,
-                                  @PathParam("clusterName") String clusterName) {
-    return handleRequest(headers, body, ui, Request.Type.DELETE,
-        createArtifactResource(clusterName, null));
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Deletes all artifacts of a cluster that match the provided predicate")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response deleteClusterArtifacts(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+    @ApiParam(required = true) @PathParam("clusterName") String clusterName
+  ) {
+    ResourceInstance resource = createArtifactResource(clusterName, null);
+    return handleRequest(headers, body, ui, Request.Type.DELETE, resource);
   }
 
   /**

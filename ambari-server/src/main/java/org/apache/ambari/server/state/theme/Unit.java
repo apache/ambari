@@ -18,18 +18,21 @@
 
 package org.apache.ambari.server.state.theme;
 
-
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Unit {
+public class Unit implements ApiModel {
+
 	@JsonProperty("unit-name")
 	private String unitName;
 
+  @ApiModelProperty(name = "unit-name")
   public String getUnitName() {
     return unitName;
   }

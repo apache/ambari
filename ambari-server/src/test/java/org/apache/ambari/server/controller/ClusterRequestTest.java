@@ -50,22 +50,6 @@ public class ClusterRequestTest {
     Assert.assertEquals(stackVersion.getStackId(),
         r1.getStackVersion());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
-
-    r1.setClusterId(++clusterId);
-    r1.setHostNames(hostNames);
-    r1.setClusterName("foo1");
-    r1.setStackVersion("HDP-1.2.0");
-    r1.setProvisioningState(State.INSTALLED.name());
-    r1.setSecurityType(SecurityType.KERBEROS);
-
-    hostNames.add("h2");
-
-    Assert.assertEquals(clusterId, r1.getClusterId());
-    Assert.assertEquals("foo1", r1.getClusterName());
-    Assert.assertEquals(State.INSTALLED.name(), r1.getProvisioningState());
-    Assert.assertEquals(SecurityType.KERBEROS, r1.getSecurityType());
-    Assert.assertEquals("HDP-1.2.0", r1.getStackVersion());
-    Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
   }
 
   @Test

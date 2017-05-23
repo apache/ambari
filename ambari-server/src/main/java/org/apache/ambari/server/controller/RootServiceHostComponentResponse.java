@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,20 +19,25 @@
 package org.apache.ambari.server.controller;
 
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.ambari.server.controller.internal.RootServiceHostComponentResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class RootServiceHostComponentResponse {
 
-  private String serviceName;
-  private String hostName;
-  private String componentName;
-  private String componentState;
-  private String componentVersion;
-  private Map<String, String> properties;
+  private final String serviceName;
+  private final String hostName;
+  private final String componentName;
+  private final String componentState;
+  private final String componentVersion;
+  private final Map<String, String> properties;
 
-
-  public RootServiceHostComponentResponse(String hostName, String componentName, String componentState,
+  public RootServiceHostComponentResponse(String serviceName, String hostName, String componentName, String componentState,
       String componentVersion,
       Map<String, String> properties) {
+    this.serviceName = serviceName;
     this.hostName = hostName;
     this.componentName = componentName;
     this.componentState = componentState;
@@ -40,63 +45,54 @@ public class RootServiceHostComponentResponse {
     this.properties = properties;
   }
 
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.SERVICE_NAME)
   public String getServiceName() {
     return serviceName;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.HOST_NAME)
   public String getHostName() {
     return hostName;
   }
 
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.COMPONENT_NAME)
   public String getComponentName() {
     return componentName;
   }
 
-  public void setComponentName(String componentName) {
-    this.componentName = componentName;
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.COMPONENT_STATE)
+  public String getComponentState() {
+    return componentState;
   }
 
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.COMPONENT_VERSION)
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  @ApiModelProperty(name = RootServiceHostComponentResourceProvider.PROPERTIES)
   public Map<String, String> getProperties() {
     return properties;
   }
 
-  public void setProperties(Map<String, String> properties) {
-    this.properties = properties;
-  }
-  
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RootServiceHostComponentResponse that = (RootServiceHostComponentResponse) o;
+    RootServiceHostComponentResponse other = (RootServiceHostComponentResponse) o;
 
-    return !(hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) &&
-        !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) &&
-        !(componentState != null ? !componentState.equals(that.componentState) : that.componentState != null) &&
-        !(componentVersion != null ? !componentVersion.equals(that.componentVersion) : that.componentVersion != null) &&
-        !(properties != null ? !properties.equals(that.properties) : that.properties != null);
-
+    return Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(hostName, other.hostName) &&
+      Objects.equals(componentName, other.componentName) &&
+      Objects.equals(componentState, other.componentState) &&
+      Objects.equals(componentVersion, other.componentVersion) &&
+      Objects.equals(properties, other.properties);
   }
 
   @Override
   public int hashCode() {
-    int result = 31 + (hostName != null ? hostName.hashCode() : 0);
-    result = result + (componentName != null ? componentName.hashCode() : 0);
-    result = result + (componentState != null ? componentState.hashCode() : 0);
-    result = result + (componentVersion != null ? componentVersion.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceName, hostName, componentName, componentVersion, componentState);
   }
 
-  public String getComponentState() {
-    return componentState;
-  }
-
-  public String getComponentVersion() {
-    return componentVersion;
-  }
 }

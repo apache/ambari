@@ -18,27 +18,32 @@
 
 package org.apache.ambari.server.state.theme;
 
-
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.controller.ApiModel;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Widget{
+public class Widget implements ApiModel {
 	@JsonProperty("type")
 	private String type;
+
 	@JsonProperty("units")
 	private List<Unit> units;
+
   @JsonProperty("required-properties")
   private Map<String,String> requiredProperties;
+
   @JsonProperty("display-name")
   private String displayName;
 
+  @ApiModelProperty(name = "type")
   public String getType() {
     return type;
   }
@@ -47,6 +52,7 @@ public class Widget{
     this.type = type;
   }
 
+  @ApiModelProperty(name = "units")
   public List<Unit> getUnits() {
     return units;
   }
@@ -55,6 +61,7 @@ public class Widget{
     this.units = units;
   }
 
+  @ApiModelProperty(name = "required-properties")
   public Map<String, String> getRequiredProperties() {
     return requiredProperties;
   }
@@ -63,6 +70,7 @@ public class Widget{
     this.requiredProperties = requiredProperties;
   }
 
+  @ApiModelProperty(name = "display-name")
   public String getDisplayName() {
     return displayName;
   }
