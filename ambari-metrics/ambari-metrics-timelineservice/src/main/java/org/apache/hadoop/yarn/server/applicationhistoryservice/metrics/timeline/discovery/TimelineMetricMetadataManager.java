@@ -27,8 +27,11 @@ import org.apache.hadoop.metrics2.sink.timeline.MetadataException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,15 +72,19 @@ public class TimelineMetricMetadataManager {
   // Filter metrics names matching given patterns, from metadata
   final List<String> metricNameFilters = new ArrayList<>();
 
-  public TimelineMetricMetadataManager(PhoenixHBaseAccessor hBaseAccessor,
-                                       Configuration metricsConf) {
-    this.hBaseAccessor = hBaseAccessor;
+  // Test friendly construction since mock instrumentation is difficult to get
+  // working with hadoop mini cluster
+  public TimelineMetricMetadataManager(Configuration metricsConf, PhoenixHBaseAccessor hBaseAccessor) {
     this.metricsConf = metricsConf;
-
+    this.hBaseAccessor = hBaseAccessor;
     String patternStrings = metricsConf.get(TIMELINE_METRIC_METADATA_FILTERS);
     if (!StringUtils.isEmpty(patternStrings)) {
       metricNameFilters.addAll(Arrays.asList(patternStrings.split(",")));
     }
+  }
+
+  public TimelineMetricMetadataManager(PhoenixHBaseAccessor hBaseAccessor) throws MalformedURLException, URISyntaxException {
+    this(TimelineMetricConfiguration.getInstance().getMetricsConf(), hBaseAccessor);
   }
 
   /**
