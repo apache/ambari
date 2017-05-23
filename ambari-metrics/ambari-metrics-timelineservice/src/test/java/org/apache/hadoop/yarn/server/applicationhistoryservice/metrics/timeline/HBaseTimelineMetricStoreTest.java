@@ -33,7 +33,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function.PostProcessingFunction.RATE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HBaseTimelineMetricStoreTest {
+public class HBaseTimelineMetricsServiceTest {
 
   public static final String MEM_METRIC = "mem";
   public static final String BYTES_IN_METRIC = "bytes_in";
@@ -51,7 +51,7 @@ public class HBaseTimelineMetricStoreTest {
 
     //when
     Multimap<String, List<Function>> multimap =
-      HBaseTimelineMetricStore.parseMetricNamesToAggregationFunctions(metricNames);
+      HBaseTimelineMetricsService.parseMetricNamesToAggregationFunctions(metricNames);
 
     //then
     Assert.assertEquals(multimap.keySet().size(), 3);
@@ -104,7 +104,7 @@ public class HBaseTimelineMetricStoreTest {
     metricValues.put(1454016728371L, 1011.25);
 
     // Calculate rate
-    Map<Long, Double> rates = HBaseTimelineMetricStore.updateValuesAsRate(new TreeMap<>(metricValues), false);
+    Map<Long, Double> rates = HBaseTimelineMetricsService.updateValuesAsRate(new TreeMap<>(metricValues), false);
 
     // Make sure rate is zero
     for (Map.Entry<Long, Double> rateEntry : rates.entrySet()) {
@@ -122,7 +122,7 @@ public class HBaseTimelineMetricStoreTest {
     metricValues.put(1454016548371L, 1010.25);
     metricValues.put(1454016608371L, 1010.25);
 
-    Map<Long, Double> rates = HBaseTimelineMetricStore.updateValuesAsRate(new TreeMap<>(metricValues), true);
+    Map<Long, Double> rates = HBaseTimelineMetricsService.updateValuesAsRate(new TreeMap<>(metricValues), true);
 
     Assert.assertTrue(rates.size()==4);
     Assert.assertTrue(rates.containsValue(-1.0));

@@ -83,7 +83,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap = aggregateMetricsFromResultSet(rs, endTime);
 
     LOG.info("Saving " + hostAggregateMap.size() + " metric aggregates.");
-    hBaseAccessor.saveClusterTimeAggregateRecords(hostAggregateMap, outputTableName);
+    hBaseAccessor.saveClusterAggregateRecordsSecond(hostAggregateMap, outputTableName);
   }
 
   private Map<TimelineClusterMetric, MetricHostAggregate> aggregateMetricsFromResultSet(ResultSet rs, long endTime)

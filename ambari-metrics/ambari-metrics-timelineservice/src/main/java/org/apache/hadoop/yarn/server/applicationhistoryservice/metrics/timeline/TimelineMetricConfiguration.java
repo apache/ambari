@@ -17,15 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
-
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -36,6 +29,21 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.sink.ExternalSinkProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.DefaultInternalMetricsSourceProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.source.InternalSourceProvider.SOURCE_NAME;
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Logger;
 
 /**
  * Configuration class that reads properties from ams-site.xml. All values
@@ -55,6 +63,12 @@ public class TimelineMetricConfiguration {
 
   public static final String TIMELINE_METRIC_AGGREGATOR_SINK_CLASS =
     "timeline.metrics.service.aggregator.sink.class";
+
+  public static final String TIMELINE_METRICS_SOURCE_PROVIDER_CLASS =
+    "timeline.metrics.service.source.provider.class";
+
+  public static final String TIMELINE_METRICS_SINK_PROVIDER_CLASS =
+    "timeline.metrics.service.sink.provider.class";
 
   public static final String TIMELINE_METRICS_CACHE_SIZE =
     "timeline.metrics.cache.size";
@@ -297,38 +311,63 @@ public class TimelineMetricConfiguration {
   public static final String AMSHBASE_METRICS_WHITESLIST_FILE = "amshbase_metrics_whitelist";
 
   public static final String TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION = "timeline.metrics.host.inmemory.aggregation";
+  public static final String INTERNAL_CACHE_HEAP_PERCENT =
+    "timeline.metrics.service.cache.%s.heap.percent";
+
+  public static final String EXTERNAL_SINK_INTERVAL =
+    "timeline.metrics.service.external.sink.%s.interval";
+
+  public static final String DEFAULT_EXTERNAL_SINK_DIR =
+    "timeline.metrics.service.external.sink.dir";
 
   private Configuration hbaseConf;
   private Configuration metricsConf;
   private Configuration amsEnvConf;
   private volatile boolean isInitialized = false;
 
+  private static TimelineMetricConfiguration instance = new TimelineMetricConfiguration();
+
+  private TimelineMetricConfiguration() {}
+
+  public static TimelineMetricConfiguration getInstance() {
+    return instance;
+  }
+
+  // Tests
+  public TimelineMetricConfiguration(Configuration hbaseConf, Configuration metricsConf) {
+    this.hbaseConf = hbaseConf;
+    this.metricsConf = metricsConf;
+    this.isInitialized = true;
+  }
+
   public void initialize() throws URISyntaxException, MalformedURLException {
-    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    if (classLoader == null) {
-      classLoader = getClass().getClassLoader();
+    if (!isInitialized) {
+      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+      if (classLoader == null) {
+        classLoader = getClass().getClassLoader();
+      }
+      URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
+      URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
+      LOG.info("Found hbase site configuration: " + hbaseResUrl);
+      LOG.info("Found metric service configuration: " + amsResUrl);
+
+      if (hbaseResUrl == null) {
+        throw new IllegalStateException("Unable to initialize the metrics " +
+          "subsystem. No hbase-site present in the classpath.");
+      }
+
+      if (amsResUrl == null) {
+        throw new IllegalStateException("Unable to initialize the metrics " +
+          "subsystem. No ams-site present in the classpath.");
+      }
+
+      hbaseConf = new Configuration(true);
+      hbaseConf.addResource(hbaseResUrl.toURI().toURL());
+      metricsConf = new Configuration(true);
+      metricsConf.addResource(amsResUrl.toURI().toURL());
+
+      isInitialized = true;
     }
-    URL hbaseResUrl = classLoader.getResource(HBASE_SITE_CONFIGURATION_FILE);
-    URL amsResUrl = classLoader.getResource(METRICS_SITE_CONFIGURATION_FILE);
-    LOG.info("Found hbase site configuration: " + hbaseResUrl);
-    LOG.info("Found metric service configuration: " + amsResUrl);
-
-    if (hbaseResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No hbase-site present in the classpath.");
-    }
-
-    if (amsResUrl == null) {
-      throw new IllegalStateException("Unable to initialize the metrics " +
-        "subsystem. No ams-site present in the classpath.");
-    }
-
-    hbaseConf = new Configuration(true);
-    hbaseConf.addResource(hbaseResUrl.toURI().toURL());
-    metricsConf = new Configuration(true);
-    metricsConf.addResource(amsResUrl.toURI().toURL());
-
-    isInitialized = true;
   }
 
   public Configuration getHbaseConf() throws URISyntaxException, MalformedURLException {
@@ -346,31 +385,19 @@ public class TimelineMetricConfiguration {
   }
 
   public String getZKClientPort() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return hbaseConf.getTrimmed("hbase.zookeeper.property.clientPort", "2181");
+    return getHbaseConf().getTrimmed("hbase.zookeeper.property.clientPort", "2181");
   }
 
   public String getZKQuorum() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return hbaseConf.getTrimmed("hbase.zookeeper.quorum");
+    return getHbaseConf().getTrimmed("hbase.zookeeper.quorum");
   }
 
   public String getClusterZKClientPort() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return metricsConf.getTrimmed("cluster.zookeeper.property.clientPort", "2181");
+    return getMetricsConf().getTrimmed("cluster.zookeeper.property.clientPort", "2181");
   }
 
   public String getClusterZKQuorum() throws MalformedURLException, URISyntaxException {
-    if (!isInitialized) {
-      initialize();
-    }
-    return metricsConf.getTrimmed("cluster.zookeeper.quorum");
+    return getMetricsConf().getTrimmed("cluster.zookeeper.quorum");
   }
 
   public String getInstanceHostnameFromEnv() throws UnknownHostException {
@@ -390,12 +417,9 @@ public class TimelineMetricConfiguration {
     return DEFAULT_INSTANCE_PORT;
   }
 
-  public String getWebappAddress() {
+  public String getWebappAddress() throws MalformedURLException, URISyntaxException {
     String defaultHttpAddress = "0.0.0.0:6188";
-    if (metricsConf != null) {
-      return metricsConf.get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
-    }
-    return defaultHttpAddress;
+    return getMetricsConf().get(WEBAPP_HTTP_ADDRESS, defaultHttpAddress);
   }
 
   public int getTimelineMetricsServiceHandlerThreadCount() {
@@ -450,8 +474,8 @@ public class TimelineMetricConfiguration {
 
   public boolean isDistributedCollectorModeDisabled() {
     try {
-      if (metricsConf != null) {
-        return Boolean.parseBoolean(metricsConf.get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
+      if (getMetricsConf() != null) {
+        return Boolean.parseBoolean(getMetricsConf().get("timeline.metrics.service.distributed.collector.mode.disabled", "false"));
       }
       return false;
     } catch (Exception e) {
@@ -496,5 +520,51 @@ public class TimelineMetricConfiguration {
     }
 
     return whitelist;
+  }
+
+  public int getExternalSinkInterval(SOURCE_NAME sourceName) {
+    return Integer.parseInt(metricsConf.get(String.format(EXTERNAL_SINK_INTERVAL, sourceName), "-1"));
+  }
+
+  public InternalSourceProvider getInternalSourceProvider() {
+    Class<? extends InternalSourceProvider> providerClass =
+      metricsConf.getClass(TIMELINE_METRICS_SOURCE_PROVIDER_CLASS,
+        DefaultInternalMetricsSourceProvider.class, InternalSourceProvider.class);
+    return ReflectionUtils.newInstance(providerClass, metricsConf);
+  }
+
+  public ExternalSinkProvider getExternalSinkProvider() {
+    Class<?> providerClass = metricsConf.getClassByNameOrNull(TIMELINE_METRICS_SINK_PROVIDER_CLASS);
+    if (providerClass != null) {
+      return (ExternalSinkProvider) ReflectionUtils.newInstance(providerClass, metricsConf);
+    }
+    return null;
+  }
+
+  public String getInternalCacheHeapPercent(String instanceName) {
+    String heapPercent = metricsConf.get(String.format(INTERNAL_CACHE_HEAP_PERCENT, instanceName));
+    if (StringUtils.isEmpty(heapPercent)) {
+      return "5%";
+    } else {
+      return heapPercent.endsWith("%") ? heapPercent : heapPercent + "%";
+    }
+  }
+
+  public String getDefaultMetricsSinkDir() {
+    String dirPath = metricsConf.get(DEFAULT_EXTERNAL_SINK_DIR);
+    if (dirPath == null) {
+      // Only one logger at the time of writing
+      Appender appender = (Appender) Logger.getRootLogger().getAllAppenders().nextElement();
+      if (appender instanceof FileAppender) {
+        File f = new File(((FileAppender) appender).getFile());
+        if (f.exists()) {
+          dirPath = f.getParent();
+        } else {
+          dirPath = "/tmp";
+        }
+      }
+    }
+
+    return dirPath;
   }
 }

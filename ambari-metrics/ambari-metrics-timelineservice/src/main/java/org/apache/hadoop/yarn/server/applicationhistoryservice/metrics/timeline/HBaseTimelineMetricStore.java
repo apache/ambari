@@ -51,6 +51,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunctionFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -71,9 +73,9 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.ACTUAL_AGGREGATOR_NAMES;
 
-public class HBaseTimelineMetricStore extends AbstractService implements TimelineMetricStore {
+public class HBaseTimelineMetricsService extends AbstractService implements TimelineMetricStore {
 
-  static final Log LOG = LogFactory.getLog(HBaseTimelineMetricStore.class);
+  static final Log LOG = LogFactory.getLog(HBaseTimelineMetricsService.class);
   private final TimelineMetricConfiguration configuration;
   private PhoenixHBaseAccessor hBaseAccessor;
   private static volatile boolean isInitialized = false;
@@ -87,25 +89,28 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
    * Construct the service.
    *
    */
-  public HBaseTimelineMetricStore(TimelineMetricConfiguration configuration) {
-    super(HBaseTimelineMetricStore.class.getName());
+  public HBaseTimelineMetricsService(TimelineMetricConfiguration configuration) {
+    super(HBaseTimelineMetricsService.class.getName());
     this.configuration = configuration;
   }
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
     super.serviceInit(conf);
-    initializeSubsystem(configuration.getHbaseConf(), configuration.getMetricsConf());
+    initializeSubsystem();
   }
 
-  private synchronized void initializeSubsystem(Configuration hbaseConf,
-                                                Configuration metricsConf) {
+  private synchronized void initializeSubsystem() {
     if (!isInitialized) {
-      hBaseAccessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf);
+      hBaseAccessor = new PhoenixHBaseAccessor(null);
       // Initialize schema
       hBaseAccessor.initMetricSchema();
       // Initialize metadata from store
-      metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor, metricsConf);
+      try {
+        metricMetadataManager = new TimelineMetricMetadataManager(hBaseAccessor);
+      } catch (MalformedURLException | URISyntaxException e) {
+        throw new ExceptionInInitializerError("Unable to initialize metadata manager");
+      }
       metricMetadataManager.initializeMetadata();
       // Initialize policies before TTL update
       hBaseAccessor.initPoliciesAndTTL();
@@ -126,6 +131,13 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       //Initialize whitelisting & blacklisting if needed
       TimelineMetricsFilter.initializeMetricFilter(configuration);
+
+      Configuration metricsConf = null;
+      try {
+        metricsConf = configuration.getMetricsConf();
+      } catch (Exception e) {
+        throw new ExceptionInInitializerError("Cannot initialize configuration.");
+      }
 
       defaultTopNHostsLimit = Integer.parseInt(metricsConf.get(DEFAULT_TOPN_HOSTS_LIMIT, "20"));
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {

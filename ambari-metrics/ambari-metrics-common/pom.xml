@@ -70,43 +70,47 @@
               <relocations>
                 <relocation>
                   <pattern>com.google</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.google</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.google</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.commons.io</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.io</shadedPattern>StormTimelineMetricsReporter
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.commons.io</shadedPattern>StormTimelineMetricsReporter
                 </relocation>
                 <relocation>
                   <pattern>org.apache.commons.lang</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.relocated.commons.lang</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.curator</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.curator</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.curator</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.jute</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jute</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.jute</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.zookeeper</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.zookeeper</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.zookeeper</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.slf4j</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.slf4j</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.slf4j</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.log4j</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.log4j</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.log4j</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>jline</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jline</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.jline</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.jboss</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jboss</shadedPattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.jboss</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.sf.ehcache</pattern>
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.ehcache</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -117,6 +121,11 @@
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>2.10.0</version>
+    </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>

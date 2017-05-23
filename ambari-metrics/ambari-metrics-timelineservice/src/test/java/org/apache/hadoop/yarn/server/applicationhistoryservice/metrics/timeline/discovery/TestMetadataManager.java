@@ -45,7 +45,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   @Before
   public void insertDummyRecords() throws IOException, SQLException, URISyntaxException {
     // Initialize new manager
-    metadataManager = new TimelineMetricMetadataManager(hdb, new Configuration());
+    metadataManager = new TimelineMetricMetadataManager(new Configuration(), hdb);
     final long now = System.currentTimeMillis();
 
     TimelineMetrics timelineMetrics = new TimelineMetrics();

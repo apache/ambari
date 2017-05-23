@@ -68,8 +68,7 @@ public class TestMetadataSync {
 
     replay(configuration, hBaseAccessor);
 
-    TimelineMetricMetadataManager metadataManager = new
-      TimelineMetricMetadataManager(hBaseAccessor, configuration);
+    TimelineMetricMetadataManager metadataManager = new TimelineMetricMetadataManager(new Configuration(), hBaseAccessor);
 
     metadataManager.metricMetadataSync = new TimelineMetricMetadataSync(metadataManager);
 
@@ -110,8 +109,7 @@ public class TestMetadataSync {
 
     replay(configuration, hBaseAccessor);
 
-    TimelineMetricMetadataManager metadataManager = new
-      TimelineMetricMetadataManager(hBaseAccessor, configuration);
+    TimelineMetricMetadataManager metadataManager = new TimelineMetricMetadataManager(configuration, hBaseAccessor);
 
     metadataManager.putIfModifiedTimelineMetricMetadata(metadata1);
     metadataManager.putIfModifiedTimelineMetricMetadata(metadata2);
