@@ -25,7 +25,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricStore;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricsService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
@@ -73,7 +73,7 @@ import static org.powermock.api.support.membermodification.MemberMatcher.method;
 import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ PhoenixHBaseAccessor.class, HBaseTimelineMetricStore.class, UserGroupInformation.class,
+@PrepareForTest({ PhoenixHBaseAccessor.class, HBaseTimelineMetricsService.class, UserGroupInformation.class,
   ClientCnxn.class, DefaultPhoenixDataSource.class, ConnectionFactory.class,
   TimelineMetricConfiguration.class, ApplicationHistoryServer.class })
 @PowerMockIgnore( {"javax.management.*"})
