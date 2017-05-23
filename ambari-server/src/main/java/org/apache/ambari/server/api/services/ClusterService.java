@@ -59,7 +59,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "/clusters", description = "Endpoint for cluster-specific operations")
 public class ClusterService extends BaseService {
 
-  private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.controller.ClusterRequest";
+  private static final String CLUSTER_REQUEST_TYPE = "org.apache.ambari.server.api.services.ClusterRequestSwagger";
   private static final String ARTIFACT_REQUEST_TYPE = "org.apache.ambari.server.controller.ClusterArtifactRequest";
 
   /**
