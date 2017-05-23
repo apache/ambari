@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -154,9 +154,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
   Gson gson = new Gson();
 
-  /**
-   * set resource properties, pk and fk's
-   */
+  // set resource properties, pk and fk's
   static {
     // resource properties
     propertyIds.add(STACK_NAME_PROPERTY_ID);

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -365,7 +365,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       // Already checked that service does not exist
       Service s = cluster.addService(request.getServiceName());
 
-      /**
+      /*
        * Get the credential_store_supported field only from the stack definition.
        * Not possible to update the value through a request.
        */
@@ -379,7 +379,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       LOG.info("Service: {}, credential_store_supported = {} and credential_store_required = {} from stack definition",
                request.getServiceName(), credentialStoreSupported, credentialStoreRequired);
-      /**
+      /*
        * If request does not have credential_store_enabled field,
        * then get the default from the stack definition.
        */
@@ -580,12 +580,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
       }
 
-      /**
+      /*
        * Get the credential_store_supported field only from the stack definition during creation.
        * Not possible to update the value of credential_store_supported through a request.
        */
 
-      /**
+      /*
        * Gather the credential_store_enabled field per service.
        */
       if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
@@ -784,7 +784,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             !newState.isValidClientComponentState()) {
           continue;
         }
-        /**
+        /*
          * This is hack for now wherein we don't fail if the
          * sch is in INSTALL_FAILED
          */

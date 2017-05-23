@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -624,7 +624,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Object> requestMap = upgradeContext.getUpgradeRequest();
     UpgradeType upgradeType = upgradeContext.getType();
 
-    /**
+    /*
      * For the unit tests tests, there are multiple upgrade packs for the same type, so
      * allow picking one of them. In prod, this is empty.
      */
@@ -824,7 +824,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackId sourceStackId = upgradeContext.getOriginalStackId();
     StackId targetStackId = upgradeContext.getTargetStackId();
 
-    /**
+    /*
     During a Rolling Upgrade, change the desired Stack Id if jumping across
     major stack versions (e.g., HDP 2.2 -> 2.3), and then set config changes
     so they are applied on the newer stack.
@@ -833,7 +833,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stopping all services), and the configs are applied immediately before starting the services.
     The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction}
     at the appropriate moment during the orchestration.
-    **/
+    */
     if (pack.getType() == UpgradeType.ROLLING) {
       // Desired configs must be set before creating stages because the config tag
       // names are read and set on the command for filling in later

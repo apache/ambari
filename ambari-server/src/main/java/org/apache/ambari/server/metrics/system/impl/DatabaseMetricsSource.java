@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -113,7 +113,7 @@ public class DatabaseMetricsSource extends AbstractMetricsSource {
             double value = metricsMap.get(metricName).doubleValue();
             metrics.add(new SingleMetric(metricName, value, currentTime));
 
-            /**
+            /*
              * Add computed (Timer/Counter) metric.
              * Example
              * Counter Metric : Counter.ReadAllQuery.HostRoleCommandEntity = 10000

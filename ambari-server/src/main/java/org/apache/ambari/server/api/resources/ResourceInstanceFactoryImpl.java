@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -54,10 +54,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
 
   @Override
   public ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
-
-    /**
-     * The resource definition for the specified type.
-     */
 
     // this code changes hot name to lower case
     try {

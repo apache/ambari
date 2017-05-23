@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,12 +24,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-@JsonIgnoreProperties(ignoreUnknown = true)
-
 
 /**
  * Data structure for temporal data returned from Ganglia Web.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GangliaMetric {
 
   // Note that the member names correspond to the names in the JSON returned from Ganglia Web.

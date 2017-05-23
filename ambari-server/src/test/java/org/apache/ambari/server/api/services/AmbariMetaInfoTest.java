@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -616,17 +616,16 @@ public class AmbariMetaInfoTest {
   }
 
 
-  @Test
   /**
    * Make sure global mapping is avaliable when global.xml is
    * in the path.
-   * @throws Exception
    */
+  @Test
   public void testGlobalMapping() throws Exception {
     ServiceInfo sinfo = metaInfo.getService("HDP",
         "0.2", "HDFS");
     List<PropertyInfo> pinfo = sinfo.getProperties();
-    /** check all the config knobs and make sure the global one is there **/
+    // check all the config knobs and make sure the global one is there
     boolean checkforglobal = false;
 
     for (PropertyInfo pinfol: pinfo) {

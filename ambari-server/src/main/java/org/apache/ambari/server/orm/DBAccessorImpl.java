@@ -961,11 +961,11 @@ public class DBAccessorImpl implements DBAccessor {
     dropPKConstraint(tableName, constraintName, false, cascade);
   }
 
-  @Override
   /**
    * Execute script with autocommit and error tolerance, like psql and sqlplus
    * do by default
    */
+  @Override
   public void executeScript(String filePath) throws SQLException, IOException {
     BufferedReader br = new BufferedReader(new FileReader(filePath));
     try {

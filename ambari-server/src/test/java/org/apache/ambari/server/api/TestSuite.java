@@ -1,6 +1,4 @@
-package org.apache.ambari.server.api;
-
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,10 +15,7 @@ package org.apache.ambari.server.api;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * All api unit tests.
- */
+package org.apache.ambari.server.api;
 
 import org.apache.ambari.server.api.handlers.CreateHandlerTest;
 import org.apache.ambari.server.api.handlers.DeleteHandlerTest;
@@ -56,6 +51,9 @@ import org.apache.ambari.server.api.services.serializers.JsonSerializerTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
+/**
+ * All api unit tests.
+ */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ClusterServiceTest.class, HostServiceTest.class, ServiceServiceTest.class,
     ComponentServiceTest.class, HostComponentServiceTest.class, ReadHandlerTest.class, QueryImplTest.class,

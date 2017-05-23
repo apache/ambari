@@ -847,7 +847,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
     }
   }
 
-  /**
+  /*
    * Creates a key tab by using the ipa commandline utilities.
    *
    * @param principal a String containing the principal to test

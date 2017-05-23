@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -361,7 +361,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         sc.setDesiredState(s.getDesiredState());
       }
 
-      /**
+      /*
        * If request does not have recovery_enabled field,
        * then get the default from the stack definition.
        */

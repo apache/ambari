@@ -382,7 +382,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
   // *********** Inner Classes that represent sections of the DDL ***********
   // ************************************************************************
 
-  /**
+  /*
    * Example *SectionDDL class
    */
   /*

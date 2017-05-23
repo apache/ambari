@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -227,10 +227,9 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
-     *
      *
      * TODO: Handle the case when a host is a part of multiple clusters.
      */
@@ -444,7 +443,7 @@ public class HeartBeatHandler {
       LOG.debug("Agent configuration map set to " + response.getAgentConfig());
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
      *

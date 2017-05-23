@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -2270,13 +2270,13 @@ public class ClusterTest {
     assertEquals(1, entities.size());
   }
 
+  /**
+   * Checks case when there are 2 cluster stack versions present (CURRENT and OUT_OF_SYNC),
+   * and we add a new host to cluster. On a new host, both CURRENT and OUT_OF_SYNC host
+   * versions should be present
+   */
   @Test
   public void testTransitionHostVersionState_OutOfSync_BlankCurrent() throws Exception {
-    /**
-     * Checks case when there are 2 cluster stack versions present (CURRENT and OUT_OF_SYNC),
-     * and we add a new host to cluster. On a new host, both CURRENT and OUT_OF_SYNC host
-     * versions should be present
-     */
     StackId stackId = new StackId("HDP-2.0.5");
     String clusterName = "c1";
     clusters.addCluster(clusterName, stackId);
