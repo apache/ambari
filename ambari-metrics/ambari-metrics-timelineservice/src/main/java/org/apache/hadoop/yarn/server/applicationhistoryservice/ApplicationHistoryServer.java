@@ -34,7 +34,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.YarnUncaughtExceptionHandler;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricStore;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.HBaseTimelineMetricsService;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricStore;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.timeline.MemoryTimelineStore;
@@ -71,7 +71,7 @@ public class ApplicationHistoryServer extends CompositeService {
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
-    metricConfiguration = new TimelineMetricConfiguration();
+    metricConfiguration = TimelineMetricConfiguration.getInstance();
     metricConfiguration.initialize();
     historyManager = createApplicationHistory();
     ahsClientService = createApplicationHistoryClientService(historyManager);
@@ -164,11 +164,16 @@ public class ApplicationHistoryServer extends CompositeService {
 
   protected TimelineMetricStore createTimelineMetricStore(Configuration conf) {
     LOG.info("Creating metrics store.");
-    return new HBaseTimelineMetricStore(metricConfiguration);
+    return new HBaseTimelineMetricsService(metricConfiguration);
   }
 
   protected void startWebApp() {
-    String bindAddress = metricConfiguration.getWebappAddress();
+    String bindAddress = null;
+    try {
+      bindAddress = metricConfiguration.getWebappAddress();
+    } catch (Exception e) {
+      throw new ExceptionInInitializerError("Cannot find bind address");
+    }
     LOG.info("Instantiating AHSWebApp at " + bindAddress);
     try {
       Configuration conf = metricConfiguration.getMetricsConf();
