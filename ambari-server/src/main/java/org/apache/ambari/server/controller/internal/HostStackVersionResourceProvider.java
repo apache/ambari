@@ -463,7 +463,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
             cluster.getClusterName(),
             cluster.getClusterId(),
             caption,
-            clusterHostInfoJson,
             "{}",
             StageUtils.getGson().toJson(hostLevelParams));
 
@@ -472,6 +471,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       stageId = 1L;
     }
     stage.setStageId(stageId);
+    req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(Collections.singletonList(stage));
 
     try {
@@ -510,7 +510,6 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       cluster.getClusterName(),
       cluster.getClusterId(),
       caption,
-      clusterHostInfoJson,
       StageUtils.getGson().toJson(commandParams),
       StageUtils.getGson().toJson(hostLevelParams));
 
@@ -519,6 +518,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
       stageId = 1L;
     }
     stage.setStageId(stageId);
+    req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(Collections.singletonList(stage));
 
     actionContext = new ActionExecutionContext(

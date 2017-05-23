@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -69,28 +69,41 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   // ----- Property ID constants ---------------------------------------------
 
   // Clusters
-  public static final String CLUSTER_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "cluster_id");
-  public static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "cluster_name");
-  public static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
-  public static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
-  public static final String CLUSTER_SECURITY_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "security_type");
-  public static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_configs");
-  public static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "desired_service_config_versions");
-  public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "total_hosts");
-  public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
-  public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "credential_store_properties");
-  public static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
-  public static final String SECURITY_PROPERTY_ID = PropertyHelper.getPropertyId(null, "security");
-  public static final String CREDENTIALS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "credentials");
-  public static final String QUICKLINKS_PROFILE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "quicklinks_profile");
-  public static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
+  public static final String RESPONSE_KEY = "Clusters";
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
+  public static final String CLUSTER_ID = "cluster_id";
+  public static final String CLUSTER_NAME = "cluster_name";
+  public static final String VERSION = "version";
+  public static final String PROVISIONING_STATE = "provisioning_state";
+  public static final String SECURITY_TYPE = "security_type";
+  public static final String DESIRED_CONFIGS = "desired_configs";
+  public static final String DESIRED_SERVICE_CONFIG_VERSIONS = "desired_service_config_versions";
+  public static final String TOTAL_HOSTS = "total_hosts";
+  public static final String HEALTH_REPORT = "health_report";
+  public static final String CREDENTIAL_STORE_PROPERTIES = "credential_store_properties";
+  public static final String REPO_VERSION = "repository_version";
+  public static final String CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_ID;
+  public static final String CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
+  public static final String CLUSTER_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + VERSION;
+  public static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + PROVISIONING_STATE;
+  public static final String CLUSTER_SECURITY_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SECURITY_TYPE;
+  public static final String CLUSTER_DESIRED_CONFIGS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + DESIRED_CONFIGS;
+  public static final String CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + DESIRED_SERVICE_CONFIG_VERSIONS;
+  public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_HOSTS;
+  public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HEALTH_REPORT;
+  public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREDENTIAL_STORE_PROPERTIES;
+  public static final String CLUSTER_REPO_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + REPO_VERSION;
 
-  public static final String CLUSTER_REPO_VERSION = "Clusters/repository_version";
+  static final String BLUEPRINT = "blueprint";
+  private static final String SECURITY = "security";
+  static final String CREDENTIALS = "credentials";
+  private static final String QUICKLINKS_PROFILE = "quicklinks_profile";
+  private static final String SESSION_ATTRIBUTES = "session_attributes";
 
   /**
    * The session attributes property prefix.
    */
-  private static final String SESSION_ATTRIBUTES_PROPERTY_PREFIX = SESSION_ATTRIBUTES_PROPERTY_ID + "/";
+  private static final String SESSION_ATTRIBUTES_PROPERTY_PREFIX = SESSION_ATTRIBUTES + "/";
 
   /**
    * Request info property ID.  Allow internal getResources call to bypass permissions check.
@@ -148,12 +161,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(CLUSTER_TOTAL_HOSTS_PROPERTY_ID);
     propertyIds.add(CLUSTER_HEALTH_REPORT_PROPERTY_ID);
     propertyIds.add(CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID);
-    propertyIds.add(BLUEPRINT_PROPERTY_ID);
-    propertyIds.add(SESSION_ATTRIBUTES_PROPERTY_ID);
-    propertyIds.add(SECURITY_PROPERTY_ID);
-    propertyIds.add(CREDENTIALS_PROPERTY_ID);
+    propertyIds.add(BLUEPRINT);
+    propertyIds.add(SESSION_ATTRIBUTES);
+    propertyIds.add(SECURITY);
+    propertyIds.add(CREDENTIALS);
     propertyIds.add(CLUSTER_REPO_VERSION);
-    propertyIds.add(QUICKLINKS_PROFILE_PROPERTY_ID);
+    propertyIds.add(QUICKLINKS_PROFILE);
   }
 
 
@@ -265,23 +278,17 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     // Allow internal call to bypass permissions check.
     for (ClusterResponse response : responses) {
-
-      String clusterName = response.getClusterName();
-
       Resource resource = new ResourceImpl(Resource.Type.Cluster);
       setResourceProperty(resource, CLUSTER_ID_PROPERTY_ID, response.getClusterId(), requestedIds);
-      setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
-      setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState(), requestedIds);
-      setResourceProperty(resource, CLUSTER_SECURITY_TYPE_PROPERTY_ID, response.getSecurityType(), requestedIds);
+      setResourceProperty(resource, CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
+      setResourceProperty(resource, CLUSTER_PROVISIONING_STATE_PROPERTY_ID, response.getProvisioningState().name(), requestedIds);
+      setResourceProperty(resource, CLUSTER_SECURITY_TYPE_PROPERTY_ID, response.getSecurityType().name(), requestedIds);
       setResourceProperty(resource, CLUSTER_DESIRED_CONFIGS_PROPERTY_ID, response.getDesiredConfigs(), requestedIds);
-      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID,
-        response.getDesiredServiceConfigVersions(), requestedIds);
+      setResourceProperty(resource, CLUSTER_DESIRED_SERVICE_CONFIG_VERSIONS_PROPERTY_ID, response.getDesiredServiceConfigVersions(), requestedIds);
       setResourceProperty(resource, CLUSTER_TOTAL_HOSTS_PROPERTY_ID, response.getTotalHosts(), requestedIds);
       setResourceProperty(resource, CLUSTER_HEALTH_REPORT_PROPERTY_ID, response.getClusterHealthReport(), requestedIds);
       setResourceProperty(resource, CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID, response.getCredentialStoreServiceProperties(), requestedIds);
-
-      resource.setProperty(CLUSTER_VERSION_PROPERTY_ID,
-          response.getDesiredStackVersion());
+      setResourceProperty(resource, CLUSTER_VERSION_PROPERTY_ID, response.getDesiredStackVersion(), requestedIds);
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Adding ClusterResponse to resource"
@@ -424,13 +431,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       cr.setRepositoryVersion(properties.get(CLUSTER_REPO_VERSION).toString());
     }
 
-    List<ConfigurationRequest> configRequests = getConfigurationRequests("Clusters", properties);
-
-    ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest("Clusters", properties);
-
-    if (!configRequests.isEmpty())
+    List<ConfigurationRequest> configRequests = getConfigurationRequests(RESPONSE_KEY, properties);
+    if (!configRequests.isEmpty()) {
       cr.setDesiredConfig(configRequests);
+    }
 
+    ServiceConfigVersionRequest serviceConfigVersionRequest = getServiceConfigVersionRequest(RESPONSE_KEY, properties);
     if (serviceConfigVersionRequest != null) {
       cr.setServiceConfigVersionRequest(serviceConfigVersionRequest);
     }
@@ -464,7 +470,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   /**
    * Helper method for creating rollback request
    */
-  protected ServiceConfigVersionRequest getServiceConfigVersionRequest(String parentCategory, Map<String, Object> properties) {
+  protected static ServiceConfigVersionRequest getServiceConfigVersionRequest(String parentCategory, Map<String, Object> properties) {
     ServiceConfigVersionRequest serviceConfigVersionRequest = null;
 
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
@@ -519,7 +525,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       NoSuchParentResourceException {
 
     LOG.info("Creating Cluster '" + properties.get(CLUSTER_NAME_PROPERTY_ID) +
-        "' based on blueprint '" + String.valueOf(properties.get(BLUEPRINT_PROPERTY_ID)) + "'.");
+        "' based on blueprint '" + String.valueOf(properties.get(BLUEPRINT)) + "'.");
 
     String rawRequestBody = requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY);
     Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);

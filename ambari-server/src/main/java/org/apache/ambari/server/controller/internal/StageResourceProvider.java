@@ -91,7 +91,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   public static final String STAGE_REQUEST_ID = "Stage/request_id";
   public static final String STAGE_LOG_INFO = "Stage/log_info";
   public static final String STAGE_CONTEXT = "Stage/context";
-  public static final String STAGE_CLUSTER_HOST_INFO = "Stage/cluster_host_info";
   public static final String STAGE_COMMAND_PARAMS = "Stage/command_params";
   public static final String STAGE_HOST_PARAMS = "Stage/host_params";
   public static final String STAGE_SKIPPABLE = "Stage/skippable";
@@ -119,7 +118,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     PROPERTY_IDS.add(STAGE_REQUEST_ID);
     PROPERTY_IDS.add(STAGE_LOG_INFO);
     PROPERTY_IDS.add(STAGE_CONTEXT);
-    PROPERTY_IDS.add(STAGE_CLUSTER_HOST_INFO);
     PROPERTY_IDS.add(STAGE_COMMAND_PARAMS);
     PROPERTY_IDS.add(STAGE_HOST_PARAMS);
     PROPERTY_IDS.add(STAGE_SKIPPABLE);
@@ -307,12 +305,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
 
-    // this property is lazy loaded in JPA; don't use it unless requested
-    if (isPropertyRequested(STAGE_CLUSTER_HOST_INFO, requestedIds)) {
-      resource.setProperty(STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo());
-    }
-
-    // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
       String value = entity.getCommandParamsStage();
       if (!StringUtils.isBlank(value)) {

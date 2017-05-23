@@ -21,6 +21,7 @@ package org.apache.ambari.logfeeder.mapper;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.MapFieldNameDescriptorImpl;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
@@ -35,11 +36,11 @@ public class MapperFieldNameTest {
   public void testMapperFieldName_replaceField() {
     LOG.info("testMapperFieldName_replaceField()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("new_fieldname", "someOtherField");
+    MapFieldNameDescriptorImpl mapFieldNameDescriptor = new MapFieldNameDescriptorImpl();
+    mapFieldNameDescriptor.setNewFieldName("someOtherField");
 
     MapperFieldName mapperFieldName = new MapperFieldName();
-    assertTrue("Could not initialize!", mapperFieldName.init(null, "someField", null, mapConfigs));
+    assertTrue("Could not initialize!", mapperFieldName.init(null, "someField", null, mapFieldNameDescriptor));
 
     Map<String, Object> jsonObj = new HashMap<>();
     jsonObj.put("someField", "someValue");
@@ -52,20 +53,12 @@ public class MapperFieldNameTest {
   }
 
   @Test
-  public void testMapperFieldName_configNotMap() {
-    LOG.info("testMapperFieldName_configNotMap()");
-
-    MapperFieldName mapperFieldName = new MapperFieldName();
-    assertFalse("Was able to initialize!", mapperFieldName.init(null, "someField", null, ""));
-  }
-
-  @Test
   public void testMapperFieldName_noNewFieldName() {
     LOG.info("testMapperFieldName_noNewFieldName()");
 
-    Map<String, Object> mapConfigs = new HashMap<>();
+    MapFieldNameDescriptorImpl mapFieldNameDescriptor = new MapFieldNameDescriptorImpl();
 
     MapperFieldName mapperFieldName = new MapperFieldName();
-    assertFalse("Was able to initialize!", mapperFieldName.init(null, "someField", null, mapConfigs));
+    assertFalse("Was able to initialize!", mapperFieldName.init(null, "someField", null, mapFieldNameDescriptor));
   }
 }

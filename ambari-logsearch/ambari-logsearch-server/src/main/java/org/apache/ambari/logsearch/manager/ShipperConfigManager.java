@@ -21,7 +21,9 @@ package org.apache.ambari.logsearch.manager;
 
 import java.util.List;
 
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
+import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
 import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.apache.log4j.Logger;
 
@@ -50,8 +52,9 @@ public class ShipperConfigManager extends JsonManagerBase {
     return LogSearchConfigConfigurer.getConfig().getServices(clusterName);
   }
 
-  public String getInputConfig(String clusterName, String serviceName) {
-    return LogSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
+  public LSServerInputConfig getInputConfig(String clusterName, String serviceName) {
+    InputConfig inputConfig = LogSearchConfigConfigurer.getConfig().getInputConfig(clusterName, serviceName);
+    return new LSServerInputConfig(inputConfig);
   }
 
   public Response createInputConfig(String clusterName, String serviceName, String inputConfig) {

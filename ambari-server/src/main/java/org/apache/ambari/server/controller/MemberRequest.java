@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Represents a member maintenance request.
  */
@@ -29,10 +31,12 @@ public class MemberRequest {
     this.userName  = userName;
   }
 
+  @ApiModelProperty(name = "MemberInfo/group_name", required = true)
   public String getGroupName() {
     return groupName;
   }
 
+  @ApiModelProperty(name = "MemberInfo/user_name", required = true)
   public String getUserName() {
     return userName;
   }

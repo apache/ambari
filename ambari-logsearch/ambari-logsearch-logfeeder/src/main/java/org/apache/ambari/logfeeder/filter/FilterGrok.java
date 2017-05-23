@@ -38,6 +38,8 @@ import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -75,11 +77,10 @@ public class FilterGrok extends Filter {
     super.init();
 
     try {
-      messagePattern = escapePattern(getStringValue("message_pattern"));
-      multilinePattern = escapePattern(getStringValue("multiline_pattern"));
-      sourceField = getStringValue("source_field");
-      removeSourceField = getBooleanValue("remove_source_field",
-        removeSourceField);
+      messagePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMessagePattern());
+      multilinePattern = escapePattern(((FilterGrokDescriptor)filterDescriptor).getMultilinePattern());
+      sourceField = ((FilterGrokDescriptor)filterDescriptor).getSourceField();
+      removeSourceField = BooleanUtils.toBooleanDefaultIfNull(filterDescriptor.isRemoveSourceField(), removeSourceField);
 
       LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
       getShortDescription());

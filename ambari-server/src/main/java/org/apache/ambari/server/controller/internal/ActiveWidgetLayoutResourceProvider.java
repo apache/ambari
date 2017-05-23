@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.ActiveWidgetLayoutResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.WidgetResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -168,34 +169,44 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
     }
 
     for (WidgetLayoutEntity layoutEntity : layoutEntities) {
+      ActiveWidgetLayoutResponse activeWidgetLayoutResponse  = getResponse(layoutEntity);
       Resource resource = new ResourceImpl(Type.ActiveWidgetLayout);
-      resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, layoutEntity.getId());
-      String clusterName = null;
-      try {
-        clusterName = getManagementController().getClusters().getClusterById(layoutEntity.getClusterId()).getClusterName();
-      } catch (AmbariException e) {
-        throw new SystemException(e.getMessage());
-      }
-      resource.setProperty(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, clusterName);
-      resource.setProperty(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, layoutEntity.getLayoutName());
-      resource.setProperty(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID, layoutEntity.getSectionName());
-      resource.setProperty(WIDGETLAYOUT_SCOPE_PROPERTY_ID, layoutEntity.getScope());
-      resource.setProperty(WIDGETLAYOUT_USERNAME_PROPERTY_ID, layoutEntity.getUserName());
-      resource.setProperty(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, layoutEntity.getDisplayName());
-
-      List<HashMap> widgets = new ArrayList<>();
-      List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = layoutEntity.getListWidgetLayoutUserWidgetEntity();
-      for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
-        WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
-        HashMap<String, Object> widgetInfoMap = new HashMap<>();
-        widgetInfoMap.put("WidgetInfo",WidgetResponse.coerce(widgetEntity));
-        widgets.add(widgetInfoMap);
-      }
-      resource.setProperty(WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgets);
-
+      resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, activeWidgetLayoutResponse.getId());
+      resource.setProperty(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, activeWidgetLayoutResponse.getClusterName());
+      resource.setProperty(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, activeWidgetLayoutResponse.getLayoutName());
+      resource.setProperty(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID, activeWidgetLayoutResponse.getSectionName());
+      resource.setProperty(WIDGETLAYOUT_SCOPE_PROPERTY_ID, activeWidgetLayoutResponse.getScope());
+      resource.setProperty(WIDGETLAYOUT_USERNAME_PROPERTY_ID, activeWidgetLayoutResponse.getUserName());
+      resource.setProperty(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, activeWidgetLayoutResponse.getDisplayName());
+      resource.setProperty(WIDGETLAYOUT_WIDGETS_PROPERTY_ID, activeWidgetLayoutResponse.getWidgets());
       resources.add(resource);
     }
     return resources;
+  }
+
+  /**
+   * Returns the response for the active widget layout that should be returned for the active widget layout REST endpoint
+   * @param layoutEntity {@link WidgetLayoutEntity}
+   * @return  {@link ActiveWidgetLayoutResponse}
+   * @throws SystemException
+   */
+  private ActiveWidgetLayoutResponse getResponse(WidgetLayoutEntity layoutEntity) throws SystemException {
+    String clusterName = null;
+    try {
+      clusterName = getManagementController().getClusters().getClusterById(layoutEntity.getClusterId()).getClusterName();
+    } catch (AmbariException e) {
+      throw new SystemException(e.getMessage());
+    }
+    List<HashMap<String,WidgetResponse>> widgets = new ArrayList<>();
+    List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = layoutEntity.getListWidgetLayoutUserWidgetEntity();
+    for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
+      WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
+      HashMap<String, WidgetResponse> widgetInfoMap = new HashMap<>();
+      widgetInfoMap.put("WidgetInfo",WidgetResponse.coerce(widgetEntity));
+      widgets.add(widgetInfoMap);
+    }
+   return  new ActiveWidgetLayoutResponse(layoutEntity.getId(), clusterName, layoutEntity.getDisplayName(), layoutEntity.getLayoutName(),
+      layoutEntity.getSectionName(), layoutEntity.getScope(), layoutEntity.getUserName(),  widgets);
   }
 
   @Override

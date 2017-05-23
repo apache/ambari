@@ -58,6 +58,7 @@ public class Request {
   private long createTime;
   private long startTime;
   private long endTime;
+  private String clusterHostInfo;
 
   /**
    * If true, this request can not be executed in parallel with any another
@@ -94,6 +95,7 @@ public class Request {
     this.startTime = -1;
     this.endTime = -1;
     this.exclusive = false;
+    this.clusterHostInfo = "{}";
 
     if (-1L != this.clusterId) {
       try {
@@ -110,7 +112,7 @@ public class Request {
    * Construct new entity from stages provided
    */
   //TODO remove when not needed
-  public Request(@Assisted Collection<Stage> stages, Clusters clusters){
+  public Request(@Assisted Collection<Stage> stages, @Assisted String clusterHostInfo, Clusters clusters){
     if (stages != null && !stages.isEmpty()) {
       this.stages.addAll(stages);
       Stage stage = stages.iterator().next();
@@ -129,6 +131,7 @@ public class Request {
       this.createTime = System.currentTimeMillis();
       this.startTime = -1;
       this.endTime = -1;
+      this.clusterHostInfo = clusterHostInfo;
       this.requestType = RequestType.INTERNAL_REQUEST;
       this.exclusive = false;
     } else {
@@ -143,9 +146,9 @@ public class Request {
    * Construct new entity from stages provided
    */
   //TODO remove when not needed
-  public Request(@Assisted Collection<Stage> stages, @Assisted ExecuteActionRequest actionRequest,
+  public Request(@Assisted Collection<Stage> stages, @Assisted String clusterHostInfo, @Assisted ExecuteActionRequest actionRequest,
                  Clusters clusters, Gson gson) throws AmbariException {
-    this(stages, clusters);
+    this(stages, clusterHostInfo, clusters);
     if (actionRequest != null) {
       this.resourceFilters = actionRequest.getResourceFilters();
       this.operationLevel = actionRequest.getOperationLevel();
@@ -183,6 +186,7 @@ public class Request {
     this.exclusive = entity.isExclusive();
     this.requestContext = entity.getRequestContext();
     this.inputs = entity.getInputs();
+    this.clusterHostInfo = entity.getClusterHostInfo();
 
     this.requestType = entity.getRequestType();
     this.commandName = entity.getCommandName();
@@ -245,6 +249,7 @@ public class Request {
     requestEntity.setRequestScheduleId(requestScheduleId);
     requestEntity.setStatus(status);
     requestEntity.setDisplayStatus(displayStatus);
+    requestEntity.setClusterHostInfo(clusterHostInfo);
     //TODO set all fields
 
     if (resourceFilters != null) {
@@ -281,6 +286,13 @@ public class Request {
     return requestEntity;
   }
 
+  public String getClusterHostInfo() {
+    return clusterHostInfo;
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo;
+  }
 
   public Long getClusterId() {
     return Long.valueOf(clusterId);

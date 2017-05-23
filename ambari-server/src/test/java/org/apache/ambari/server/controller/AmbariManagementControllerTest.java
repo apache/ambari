@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -676,45 +676,29 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(clusters.getCluster(cluster1));
   }
 
-  @Test
-  public void testCreateClusterWithInvalidRequest() {
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest1() throws Exception {
     ClusterRequest r = new ClusterRequest(null, null, null, null);
-    r.toString();
+    controller.createCluster(r);
+  }
 
-    try {
-      controller.createCluster(r);
-      fail("Expected create cluster for invalid request");
-    } catch (Exception e) {
-      // Expected
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest2() throws Exception {
+    ClusterRequest r = new ClusterRequest(1L, null, null, null);
+    controller.createCluster(r);
+  }
 
-    r.setClusterId(1L);
-    try {
-      controller.createCluster(r);
-      fail("Expected create cluster for invalid request");
-    } catch (Exception e) {
-      // Expected
-    }
-    r.setClusterId(null);
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest3() throws Exception {
+    ClusterRequest r = new ClusterRequest(null, getUniqueName(), null, null);
+    controller.createCluster(r);
+  }
 
-    r.setClusterName(getUniqueName());
-    try {
-      controller.createCluster(r);
-     fail("Expected create cluster for invalid request - no stack version");
-    } catch (Exception e) {
-      // Expected
-    }
-
-    r.setStackVersion("HDP-1.2.0");
-    r.setProvisioningState(State.INSTALLING.name());
-    try {
-      controller.createCluster(r);
-      controller.updateClusters(Collections.singleton(r), null);
-
-     fail("Expected create cluster for invalid request - invalid provisioning state");
-    } catch (Exception e) {
-      // Expected
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateClusterWithInvalidRequest4() throws Exception {
+    ClusterRequest r = new ClusterRequest(null, null, State.INSTALLING.name(), null, "HDP-1.2.0", null);
+    controller.createCluster(r);
+    controller.updateClusters(Collections.singleton(r), null);
   }
 
   @Test
@@ -1827,7 +1811,7 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> hostAttributes = null;
 
-    HostRequest r1 = new HostRequest(host1, null, hostAttributes);
+    HostRequest r1 = new HostRequest(host1, null);
     r1.toString();
 
     Set<HostRequest> requests = new HashSet<>();
@@ -1844,7 +1828,7 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
 
-    HostRequest request = new HostRequest(host2, "foo", new HashMap<String, String>());
+    HostRequest request = new HostRequest(host2, "foo");
     requests.add(request);
 
     try {
@@ -1894,9 +1878,9 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
     setOsFamily(clusters.getHost(host3), "redhat", "5.9");
 
-    HostRequest r1 = new HostRequest(host1, cluster1, null);
-    HostRequest r2 = new HostRequest(host2, cluster1, null);
-    HostRequest r3 = new HostRequest(host3, null, null);
+    HostRequest r1 = new HostRequest(host1, cluster1);
+    HostRequest r2 = new HostRequest(host2, cluster1);
+    HostRequest r3 = new HostRequest(host3, null);
 
     Set<HostRequest> set1 = new HashSet<>();
     set1.add(r1);
@@ -1922,7 +1906,7 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid =
-          new HostRequest(host1, null, null);
+          new HostRequest(host1, null);
       set1.add(rInvalid);
       HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid host");
@@ -1935,23 +1919,23 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       HostRequest rInvalid =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       set1.add(rInvalid);
       HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid cluster");
     } catch (Exception e) {
       // Expected
     }
-
+    
     clusters.addCluster(cluster1, new StackId("HDP-0.1"));
-
+    
     try {
       set1.clear();
       HostRequest rInvalid1 =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       rInvalid1.setRackInfo(UUID.randomUUID().toString());
       HostRequest rInvalid2 =
-          new HostRequest(host1, cluster1, null);
+          new HostRequest(host1, cluster1);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       HostResourceProviderTest.createHosts(controller, set1);
@@ -1959,7 +1943,6 @@ public class AmbariManagementControllerTest {
     } catch (Exception e) {
       // Expected
     }
-
   }
 
   @Test
@@ -2244,7 +2227,7 @@ public class AmbariManagementControllerTest {
     boolean found = false;
     for (ClusterResponse cr : resp) {
       if (cr.getClusterName().equals(cluster1)) {
-        Assert.assertEquals(c1.getClusterId(), cr.getClusterId().longValue());
+        Assert.assertEquals(c1.getClusterId(), cr.getClusterId());
         Assert.assertEquals(c1.getDesiredStackVersion().getStackId(), cr.getDesiredStackVersion());
         found = true;
         break;
@@ -2266,19 +2249,15 @@ public class AmbariManagementControllerTest {
     clusters.addCluster(cluster3, new StackId("HDP-1.2.0"));
     clusters.addCluster(cluster4, new StackId("HDP-0.1"));
 
-    Cluster c1 = clusters.getCluster(cluster1);
-    Cluster c2 = clusters.getCluster(cluster2);
-    Cluster c3 = clusters.getCluster(cluster3);
-    Cluster c4 = clusters.getCluster(cluster4);
-
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
+    Assert.assertTrue(resp.size() >= 4);
 
     r = new ClusterRequest(null, cluster1, null, null);
     resp = controller.getClusters(Collections.singleton(r));
     Assert.assertEquals(1, resp.size());
-    Assert.assertEquals(c1.getClusterId(),
-        resp.iterator().next().getClusterId().longValue());
+    Cluster c1 = clusters.getCluster(cluster1);
+    Assert.assertEquals(c1.getClusterId(), resp.iterator().next().getClusterId());
 
     r = new ClusterRequest(null, null, "HDP-0.1", null);
     resp = controller.getClusters(Collections.singleton(r));
@@ -3122,7 +3101,7 @@ public class AmbariManagementControllerTest {
     attrs.put("a2", "b2");
     clusters.getHost(host4).setHostAttributes(attrs);
 
-    HostRequest r = new HostRequest(null, null, null);
+    HostRequest r = new HostRequest(null, null);
 
     Set<HostResponse> resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
 
@@ -3155,7 +3134,7 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(4, foundHosts.size());
 
-    r = new HostRequest(host1, null, null);
+    r = new HostRequest(host1, null);
     resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
     HostResponse resp = resps.iterator().next();
@@ -7669,7 +7648,7 @@ public class AmbariManagementControllerTest {
 
     List<Stage> stages = new ArrayList<>();
     stages.add(stageFactory.createNew(requestId1, "/a1", cluster1, clusterId, context,
-        CLUSTER_HOST_INFO, "", ""));
+        "", ""));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -7678,7 +7657,7 @@ public class AmbariManagementControllerTest {
             cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a2", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -7686,19 +7665,19 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId1, "/a3", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     stages.clear();
     stages.add(stageFactory.createNew(requestId2, "/a4", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(0).setStageId(4);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -7706,14 +7685,14 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
     stages.add(stageFactory.createNew(requestId2, "/a5", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(1).setStageId(5);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), cluster1, "HBASE", false, false);
 
-    request = new Request(stages, clusters);
+    request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     // Add a stage to execute a task as server-side action on the Ambari server
@@ -7721,12 +7700,12 @@ public class AmbariManagementControllerTest {
         new ServiceComponentHostServerActionEvent(Role.AMBARI_SERVER_ACTION.toString(), null, System.currentTimeMillis());
     stages.clear();
     stages.add(stageFactory.createNew(requestId3, "/a6", cluster1, clusterId, context,
-      CLUSTER_HOST_INFO, "", ""));
+      "", ""));
     stages.get(0).setStageId(6);
     stages.get(0).addServerActionCommand("some.action.class.name", null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE, cluster1, serviceComponentHostServerActionEvent, null, null, null, null, false, false);
     assertEquals("_internal_ambari", stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
-    request = new Request(stages, clusters);
+    request = new Request(stages, "", clusters);
     actionDB.persistActions(request);
 
     org.apache.ambari.server.controller.spi.Request spiRequest = PropertyHelper.getReadRequest(
@@ -8280,7 +8259,7 @@ public class AmbariManagementControllerTest {
     // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
-    requests.add(new HostRequest(host1, cluster1, null));
+    requests.add(new HostRequest(host1, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests, false, false);
       fail("Expect failure deleting hosts when components exist and have not been deleted.");
@@ -8389,7 +8368,7 @@ public class AmbariManagementControllerTest {
     // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<>();
     requests.clear();
-    requests.add(new HostRequest(host1, cluster1, null));
+    requests.add(new HostRequest(host1, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       fail("Expect failure deleting hosts when components exist and have not been deleted.");
@@ -8418,7 +8397,7 @@ public class AmbariManagementControllerTest {
 
     // Deletion without specifying cluster should be successful
     requests.clear();
-    requests.add(new HostRequest(host1, null, null));
+    requests.add(new HostRequest(host1, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
     } catch (Exception e) {
@@ -8435,7 +8414,7 @@ public class AmbariManagementControllerTest {
 
     // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
     requests.clear();
-    requests.add(new HostRequest(host2, cluster1, null));
+    requests.add(new HostRequest(host2, cluster1));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
     } catch (Exception e) {
@@ -8448,7 +8427,7 @@ public class AmbariManagementControllerTest {
 
     // Case 4: Attempt to delete a host that has already been deleted
     requests.clear();
-    requests.add(new HostRequest(host1, null, null));
+    requests.add(new HostRequest(host1, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       Assert.fail("Expected a HostNotFoundException trying to remove a host that was already deleted.");
@@ -8466,7 +8445,7 @@ public class AmbariManagementControllerTest {
 
     // Case 5: Attempt to delete a host that was never added to the cluster
     requests.clear();
-    requests.add(new HostRequest(host3, null, null));
+    requests.add(new HostRequest(host3, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
       Assert.fail("Expected a HostNotFoundException trying to remove a host that was never added.");
@@ -8699,17 +8678,17 @@ public class AmbariManagementControllerTest {
     ClusterRequest cr = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(cr);
 
-    Long CLUSTER_ID = clusters.getCluster(CLUSTER_NAME).getClusterId();
+    long clusterId = clusters.getCluster(CLUSTER_NAME).getClusterId();
 
     ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
         new HashMap<String, String>() {{ put("a", "b"); }}, null);
-    cr.setDesiredConfig(Collections.singletonList(configRequest));
-    cr.setClusterId(CLUSTER_ID);
-    amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+    ClusterRequest ur = new ClusterRequest(clusterId, CLUSTER_NAME, STACK_ID, null);
+    ur.setDesiredConfig(Collections.singletonList(configRequest));
+    amc.updateClusters(Collections.singleton(ur), new HashMap<String, String>());
 
     // add some hosts
     Set<HostRequest> hrs = new HashSet<>();
-    hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+    hrs.add(new HostRequest(HOST1, CLUSTER_NAME));
     HostResourceProviderTest.createHosts(amc, hrs);
 
     Set<ServiceRequest> serviceRequests = new HashSet<>();
@@ -8750,8 +8729,8 @@ public class AmbariManagementControllerTest {
     // change mind, delete the cluster
     amc.deleteCluster(cr);
 
-      assertNotNull(clusters.getHost(HOST1));
-      assertNotNull(clusters.getHost(HOST2));
+    assertNotNull(clusters.getHost(HOST1));
+    assertNotNull(clusters.getHost(HOST2));
 
     HostDAO dao = injector.getInstance(HostDAO.class);
 
@@ -8824,9 +8803,9 @@ public class AmbariManagementControllerTest {
     ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
     Set<HostRequest> hostRequests = new HashSet<>();
-    hostRequests.add(new HostRequest(host1, cluster1, null));
-    hostRequests.add(new HostRequest(host2, cluster1, null));
-    hostRequests.add(new HostRequest(host3, cluster1, null));
+    hostRequests.add(new HostRequest(host1, cluster1));
+    hostRequests.add(new HostRequest(host2, cluster1));
+    hostRequests.add(new HostRequest(host3, cluster1));
 
     HostResourceProviderTest.createHosts(amc, hostRequests);
 
@@ -9105,7 +9084,7 @@ public class AmbariManagementControllerTest {
     ComponentResourceProviderTest.createComponents(amc, serviceComponentRequests);
 
     Set<HostRequest> hostRequests = new HashSet<>();
-    hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+    hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME));
 
     HostResourceProviderTest.createHosts(amc, hostRequests);
 
@@ -9633,7 +9612,7 @@ public class AmbariManagementControllerTest {
     }
 
     // passivate a host
-    HostRequest hr = new HostRequest(host1, cluster1, requestProperties);
+    HostRequest hr = new HostRequest(host1, cluster1);
     hr.setMaintenanceState(MaintenanceState.ON.name());
     HostResourceProviderTest.updateHosts(controller, Collections.singleton(hr)
     );
@@ -9675,9 +9654,9 @@ public class AmbariManagementControllerTest {
     }
 
     // passivate several hosts
-    HostRequest hr1 = new HostRequest(host1, cluster1, requestProperties);
+    HostRequest hr1 = new HostRequest(host1, cluster1);
     hr1.setMaintenanceState(MaintenanceState.ON.name());
-    HostRequest hr2 = new HostRequest(host2, cluster1, requestProperties);
+    HostRequest hr2 = new HostRequest(host2, cluster1);
     hr2.setMaintenanceState(MaintenanceState.ON.name());
     Set<HostRequest> set = new HashSet<>();
     set.add(hr1);
@@ -9693,9 +9672,9 @@ public class AmbariManagementControllerTest {
         host.getMaintenanceState(cluster.getClusterId()));
 
     // reset
-    hr1 = new HostRequest(host1, cluster1, requestProperties);
+    hr1 = new HostRequest(host1, cluster1);
     hr1.setMaintenanceState(MaintenanceState.OFF.name());
-    hr2 = new HostRequest(host2, cluster1, requestProperties);
+    hr2 = new HostRequest(host2, cluster1);
     hr2.setMaintenanceState(MaintenanceState.OFF.name());
     set = new HashSet<>();
     set.add(hr1);

@@ -414,8 +414,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (currentVersion) {
       this.set('currentVersion', {
         repository_version: currentVersion.get('repositoryVersion.repositoryVersion'),
-        repository_name: currentVersion.get('repositoryVersion.displayName'),
-        id: currentVersion.get('repositoryVersion.id')
+        repository_name: currentVersion.get('repositoryVersion.displayName')
       });
     }
   },
@@ -736,7 +735,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       data: {
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
-        id: currentVersion.id,
         isDowngrade: true,
         upgradeType: this.get('upgradeType')
       },
@@ -1379,8 +1377,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       label: version.get('displayName'),
       type: version.get('upgradeType'),
       skipComponentFailures: version.get('skipComponentFailures') ? 'true' : 'false',
-      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false',
-      id: version.get('id')
+      skipSCFailures: version.get('skipSCFailures') ? 'true' : 'false'
     };
     if (App.get('supports.preUpgradeCheck')) {
       this.set('requestInProgress', true);

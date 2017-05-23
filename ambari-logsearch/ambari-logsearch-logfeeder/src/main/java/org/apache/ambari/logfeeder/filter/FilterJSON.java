@@ -25,12 +25,9 @@ import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.log4j.Logger;
 
 public class FilterJSON extends Filter {
   
-  private static final Logger LOG  = Logger.getLogger(FilterJSON.class);
-
   @Override
   public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
     Map<String, Object> jsonMap = null;

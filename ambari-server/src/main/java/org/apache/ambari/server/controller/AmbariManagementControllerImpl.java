@@ -1048,7 +1048,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         stageFactory.createNew(requestId, logDir,
           null == cluster ? null : cluster.getClusterName(),
           null == cluster ? -1L : cluster.getClusterId(),
-          requestContext, clusterHostInfo, commandParamsStage,
+          requestContext, commandParamsStage,
           hostParamsStage);
     stage.setStageId(id);
     return stage;
@@ -1778,7 +1778,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       ClusterResponse clusterResponse =
-          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, null, null, null);
+          new ClusterResponse(cluster.getClusterId(), cluster.getClusterName(), null, null, null, 0, null, null);
 
       Map<String, Collection<ServiceConfigVersionResponse>> map =
         new HashMap<>();
@@ -2965,6 +2965,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
       }
       rg.build(stage);
+      requestStages.setClusterHostInfo(clusterHostInfoJson);
       requestStages.addStages(rg.getStages());
 
       if (!componentsToEnableKerberos.isEmpty()) {
@@ -3054,10 +3055,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(
         cluster, scHost.getServiceComponent().getDesiredRepositoryVersion());
 
-    Stage stage = createNewStage(0, cluster,
-                                 1, "",
-                                 clusterHostInfoJson, "{}", "");
-
+    Stage stage = createNewStage(0, cluster, 1, "", clusterHostInfoJson, "{}", "");
 
     Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
     Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
@@ -4081,6 +4079,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     List<Stage> stages = rg.getStages();
 
     if (stages != null && !stages.isEmpty()) {
+      requestStageContainer.setClusterHostInfo(jsons.getClusterHostInfo());
       requestStageContainer.addStages(stages);
     }
 
@@ -4863,11 +4862,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String serviceName  = request.getServiceName();
       try {
         Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
-
-        for (RootServiceComponentResponse serviceComponentResponse : rootServiceComponents) {
-          serviceComponentResponse.setServiceName(serviceName);
-        }
-
         response.addAll(rootServiceComponents);
       } catch (AmbariException e) {
         if (requests.size() == 1) {

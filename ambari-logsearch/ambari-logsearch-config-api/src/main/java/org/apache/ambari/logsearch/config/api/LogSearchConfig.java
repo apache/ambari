@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 
 /**
  * Log Search Configuration, which uploads, retrieves configurations, and monitors it's changes.
@@ -71,7 +72,7 @@ public interface LogSearchConfig extends Closeable {
    * @param serviceName The name of the service looked for.
    * @return The input configuration for the service if it exists, null otherwise.
    */
-  String getInputConfig(String clusterName, String serviceName);
+  InputConfig getInputConfig(String clusterName, String serviceName);
 
   /**
    * Uploads the input configuration for a service in a cluster.

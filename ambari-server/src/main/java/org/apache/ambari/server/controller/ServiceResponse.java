@@ -21,6 +21,8 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class ServiceResponse {
 
   private Long clusterId;
@@ -54,6 +56,7 @@ public class ServiceResponse {
   /**
    * @return the serviceName
    */
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -68,6 +71,7 @@ public class ServiceResponse {
   /**
    * @return the clusterId
    */
+  @ApiModelProperty(hidden = true)
   public Long getClusterId() {
     return clusterId;
   }
@@ -82,6 +86,7 @@ public class ServiceResponse {
   /**
    * @return the clusterName
    */
+  @ApiModelProperty(name = "cluster_name")
   public String getClusterName() {
     return clusterName;
   }
@@ -96,6 +101,7 @@ public class ServiceResponse {
   /**
    * @return the desiredState
    */
+  @ApiModelProperty(name = "state")
   public String getDesiredState() {
     return desiredState;
   }
@@ -110,8 +116,10 @@ public class ServiceResponse {
   /**
    * @return the desired stack ID.
    */
+  @ApiModelProperty(hidden = true)
   public String getDesiredStackId() {
     return desiredStackId.getStackId();
+ 
   }
 
   /**
@@ -164,6 +172,7 @@ public class ServiceResponse {
     maintenanceState = state;
   }
 
+  @ApiModelProperty(name = "maintenance_state")
   public String getMaintenanceState() {
     return maintenanceState;
   }
@@ -174,6 +183,7 @@ public class ServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_supported")
   public boolean isCredentialStoreSupported() {
     return credentialStoreSupported;
   }
@@ -194,6 +204,7 @@ public class ServiceResponse {
    *
    * @return true or false
    */
+  @ApiModelProperty(name = "credential_store_enabled")
   public boolean isCredentialStoreEnabled() {
     return credentialStoreEnabled;
   }
@@ -216,4 +227,11 @@ public class ServiceResponse {
     return result;
   }
 
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface ServiceResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "ServiceInfo")
+    ServiceResponse getServiceResponse();
+  }
 }

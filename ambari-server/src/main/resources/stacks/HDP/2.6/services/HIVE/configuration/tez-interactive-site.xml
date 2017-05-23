@@ -126,5 +126,17 @@
     <description>Whether rescheduled tasks should be treated at higher priority</description>
     <on-ambari-upgrade add="false"/>
   </property>
+  <property>
+    <name>tez.runtime.shuffle.connect.timeout</name>
+    <value>30000</value>
+    <description>Shuffle connect timeouts (ms)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>tez.runtime.shuffle.read.timeout</name>
+    <value>30000</value>
+    <description>Shuffle read timeout (ms)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
 
 </configuration>

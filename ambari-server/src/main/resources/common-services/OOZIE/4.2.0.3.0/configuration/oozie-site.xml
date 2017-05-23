@@ -1,0 +1,254 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+        
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+      Refer to the oozie-default.xml file for the complete list of
+      Oozie configuration properties and their default values.
+  -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <property>
+    <name>oozie.authentication.simple.anonymous.allowed</name>
+    <value>true</value>
+    <description>
+      Indicates if anonymous requests are allowed.
+      This setting is meaningful only when using 'simple' authentication.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
+  <property>
+    <name>oozie.authentication.kerberos.name.rules</name>
+    <description>The mapping from kerberos principal names to local OS user names.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.authentication.type</name>
+    <value>simple</value>
+    <description>
+      Authentication used for Oozie HTTP endpoint, the supported values are: simple | kerberos |
+      #AUTHENTICATION_HANDLER_CLASSNAME#.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.base.url</name>
+    <value>http://localhost:11000/oozie</value>
+    <description>Base Oozie URL.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.credentials.credentialclasses</name>
+    <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials</value>
+    <description>
+      Credential Class to be used for HCat.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+    <value>*={{hadoop_conf_dir}}</value>
+    <description>
+      Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+      the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+      used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+      the relevant Hadoop *-site.xml files. If the path is relative is looked within
+      the Oozie configuration directory; though the path can be absolute (i.e. to point
+      to Hadoop client conf/ directories in the local filesystem.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.kerberos.enabled</name>
+    <value>false</value>
+    <description>
+      Indicates if Oozie is configured to use Kerberos.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.URIHandlerService.uri.handlers</name>
+    <value>org.apache.oozie.dependency.FSURIHandler,org.apache.oozie.dependency.HCatURIHandler
+    </value>
+    <description>
+      Enlist the different uri handlers supported for data availability checks.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.services.ext</name>
+    <value>
+      org.apache.oozie.service.JMSAccessorService,org.apache.oozie.service.PartitionDependencyManagerService,org.apache.oozie.service.HCatAccessorService
+    </value>
+    <description>
+      To add/replace services defined in 'oozie.services' with custom implementations.
+      Class names must be separated by commas.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.db.schema.name</name>
+    <value>oozie</value>
+    <display-name>Database Name</display-name>
+    <description>
+      Oozie DataBase Name
+    </description>
+    <value-attributes>
+      <type>database</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.username</name>
+    <value>oozie</value>
+    <display-name>Database Username</display-name>
+    <description>
+      Database user name to use to connect to the database
+    </description>
+    <value-attributes>
+      <type>db_user</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property require-input="true">
+    <name>oozie.service.JPAService.jdbc.password</name>
+    <value/>
+    <display-name>Database Password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>
+      DB user password.
+
+      IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
+      if empty Configuration assumes it is NULL.
+    </description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+      <keystore>true</keystore>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.driver</name>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+    <display-name>JDBC Driver Class</display-name>
+    <description>
+      JDBC driver class.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>oozie-env</type>
+        <name>oozie_database</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.JPAService.jdbc.url</name>
+    <value>jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true</value>
+    <display-name>Database URL</display-name>
+    <description>
+      JDBC URL.
+    </description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>oozie-env</type>
+        <name>oozie_database</name>
+      </property>
+      <property>
+        <type>oozie-site</type>
+        <name>oozie.db.schema.name</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.AuthorizationService.security.enabled</name>
+    <value>true</value>
+    <description>
+      Specifies whether security (user name/admin role) is enabled or not.
+      If disabled any user can manage Oozie system and manage any job.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.authentication.simple.anonymous.allowed</name>
+    <value>true</value>
+    <description>
+      Indicates if anonymous requests are allowed when using 'simple' authentication.
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.service.SparkConfigurationService.spark.configurations</name>
+    <value>*={{spark_conf_dir}}</value>
+    <description>
+      Comma separated AUTHORITY=SPARK_CONF_DIR, where AUTHORITY is the
+      HOST:PORT of the ResourceManager of a YARN cluster. The wildcard '*'
+      configuration is used when there is no exact match for an authority.
+      The SPARK_CONF_DIR contains the relevant spark-defaults.conf properties
+      file. If the path is relative is looked within the Oozie configuration
+      directory; though the path can be absolute.  This is only used when the
+      Spark master is set to either "yarn-client" or "yarn-cluster".
+    </description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>oozie.action.retry.interval</name>
+    <value>30</value>
+    <description>
+      The interval between retries of an action in case of failure
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

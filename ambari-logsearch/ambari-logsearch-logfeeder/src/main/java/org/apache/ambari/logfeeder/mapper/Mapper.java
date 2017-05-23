@@ -21,12 +21,14 @@ package org.apache.ambari.logfeeder.mapper;
 
 import java.util.Map;
 
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldDescriptor;
+
 public abstract class Mapper {
   private String inputDesc;
   protected String fieldName;
   private String mapClassCode;
 
-  public abstract boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs);
+  public abstract boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor);
 
   protected void init(String inputDesc, String fieldName, String mapClassCode) {
     this.inputDesc = inputDesc;

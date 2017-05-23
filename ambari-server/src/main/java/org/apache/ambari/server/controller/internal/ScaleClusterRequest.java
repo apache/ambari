@@ -105,7 +105,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("Blueprint name must be specified for all host groups");
     }
 
-    String hgName = String.valueOf(properties.get(HostResourceProvider.HOSTGROUP_PROPERTY_ID));
+    String hgName = String.valueOf(properties.get(HostResourceProvider.HOST_GROUP_PROPERTY_ID));
     if (hgName == null || hgName.equals("null")) {
       throw new InvalidTopologyTemplateException("A name must be specified for all host groups");
     }
@@ -180,8 +180,8 @@ public class ScaleClusterRequest extends BaseClusterRequest {
     String rackInfo = null;
     if (properties.containsKey(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID)) {
       rackInfo = (String) properties.get(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID);
-    } else if (properties.containsKey(HostResourceProvider.HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID)) {
-      rackInfo = (String) properties.get(HostResourceProvider.HOST_RACK_INFO_NO_CATEGORY_PROPERTY_ID);
+    } else if (properties.containsKey(HostResourceProvider.RACK_INFO_PROPERTY_ID)) {
+      rackInfo = (String) properties.get(HostResourceProvider.RACK_INFO_PROPERTY_ID);
     } else {
       LOGGER.debug("No rack info provided");
     }
@@ -219,9 +219,9 @@ public class ScaleClusterRequest extends BaseClusterRequest {
    */
   //todo: this was copied exactly from HostResourceProvider
   private String getHostNameFromProperties(Map<String, Object> properties) {
-    String hostName = (String) properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID);
+    String hostName = (String) properties.get(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID);
     if (hostName == null) {
-      hostName = (String) properties.get(HostResourceProvider.HOST_NAME_NO_CATEGORY_PROPERTY_ID);
+      hostName = (String) properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID);
     }
     return hostName;
   }

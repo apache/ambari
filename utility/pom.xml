@@ -52,7 +52,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>19.0</version> <!-- required for checkstyle -->
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -95,6 +94,10 @@
           <description>Maven Recipe: RPM Package.</description>
           <mappings/>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

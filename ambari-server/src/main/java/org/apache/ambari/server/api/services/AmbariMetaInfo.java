@@ -964,6 +964,27 @@ public class AmbariMetaInfo {
     }
   }
 
+  public void createRepo(String stackName, String stackVersion, String osType, String repoId, String baseUrl, String mirrorsList) throws AmbariException {
+    if (!stackRoot.exists()) {
+      throw new StackAccessException("Create repo - Stack root does not exist.");
+    }
+
+    if (null != baseUrl) {
+      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, baseUrl, REPOSITORY_XML_PROPERTY_BASEURL);
+    } else if (null != mirrorsList) {
+      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, mirrorsList, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
+    }
+  }
+
+  private void createRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, String repositoryXmlProperty) {
+    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
+        repoId, repositoryXmlProperty);
+    MetainfoEntity entity = new MetainfoEntity();
+    entity.setMetainfoName(metaKey);
+    entity.setMetainfoValue(value);
+    metaInfoDAO.create(entity);
+  }
+
   public File getStackRoot() {
     return stackRoot;
   }

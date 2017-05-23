@@ -109,8 +109,7 @@ public class RootServiceResponseFactoryTest {
     RootServiceResponseFactory.Components ambariServerComponent = RootServiceResponseFactory.Components.AMBARI_SERVER;
 
     // Request null service name, not-null component name
-    request = new RootServiceComponentRequest(null,
-        ambariServerComponent.name());
+    request = new RootServiceComponentRequest(null, ambariServerComponent.name());
 
     try {
       rootServiceComponents = responseFactory.getRootServiceComponents(request);
@@ -119,8 +118,8 @@ public class RootServiceResponseFactoryTest {
     }
 
     // Request existent service name, null component name
-    request = new RootServiceComponentRequest(
-        RootServiceResponseFactory.Services.AMBARI.name(), null);
+    String serviceName = RootServiceResponseFactory.Services.AMBARI.name();
+    request = new RootServiceComponentRequest(serviceName, null);
 
     rootServiceComponents = responseFactory.getRootServiceComponents(request);
     assertEquals(
@@ -142,7 +141,7 @@ public class RootServiceResponseFactoryTest {
         }
       } else {
         assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
-            component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
+            serviceName, component.name(), RootServiceResponseFactory.NOT_APPLICABLE,
             Collections.<String, String> emptyMap())));
       }
     }

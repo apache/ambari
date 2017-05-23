@@ -283,7 +283,7 @@ public class RoleGraph {
     Stage newStage = stageFactory.createNew(origStage.getRequestId(),
         origStage.getLogDir(), origStage.getClusterName(),
         origStage.getClusterId(),
-        origStage.getRequestContext(), origStage.getClusterHostInfo(),
+        origStage.getRequestContext(),
         origStage.getCommandParamsStage(), origStage.getHostParamsStage());
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     newStage.setSkippable(origStage.isSkippable());

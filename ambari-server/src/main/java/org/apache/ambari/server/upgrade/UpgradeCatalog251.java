@@ -30,6 +30,8 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -43,6 +45,17 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
   static final String HRC_IS_BACKGROUND_COLUMN = "is_background";
 
   protected static final String KAFKA_BROKER_CONFIG = "kafka-broker";
+
+  private static final String STAGE_TABLE = "stage";
+  private static final String REQUEST_TABLE = "request";
+  private static final String CLUSTER_HOST_INFO_COLUMN = "cluster_host_info";
+  private static final String REQUEST_ID_COLUMN = "request_id";
+
+
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog251.class);
 
   /**
    * Constructor.
@@ -76,6 +89,7 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     addBackgroundColumnToHostRoleCommand();
+    moveClusterHostColumnFromStageToRequest();
   }
 
   /**
@@ -90,6 +104,7 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    addNewConfigurationsFromXml();
     updateKAFKAConfigs();
   }
 
@@ -135,5 +150,20 @@ public class UpgradeCatalog251 extends AbstractUpgradeCatalog {
   private void addBackgroundColumnToHostRoleCommand() throws SQLException {
     dbAccessor.addColumn(HOST_ROLE_COMMAND_TABLE,
         new DBColumnInfo(HRC_IS_BACKGROUND_COLUMN, Short.class, null, 0, false));
+  }
+
+  /**
+   * Moves the {@value #CLUSTER_HOST_INFO_COLUMN} column from {@value #STAGE_TABLE} table to the
+   * {@value #REQUEST_TABLE} table
+   *
+   *
+   * @throws SQLException
+   */
+  private void moveClusterHostColumnFromStageToRequest() throws SQLException {
+    DBColumnInfo sourceColumn = new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false);
+    DBColumnInfo targetColumn = new DBColumnInfo(CLUSTER_HOST_INFO_COLUMN, byte[].class, null, null, false);
+
+    dbAccessor.moveColumnToAnotherTable(STAGE_TABLE, sourceColumn, REQUEST_ID_COLUMN, REQUEST_TABLE, targetColumn,
+      REQUEST_ID_COLUMN, false);
   }
 }

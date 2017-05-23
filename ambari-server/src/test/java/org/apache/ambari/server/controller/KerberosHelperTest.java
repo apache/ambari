@@ -1097,36 +1097,50 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Create Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
+    requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
 
     if (identitiesManaged) {
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
+      requestStageContainer.addStages(anyObject(List.class));
       expectLastCall().once();
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
+      requestStageContainer.addStages(anyObject(List.class));
       expectLastCall().once();
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
-      requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
+      requestStageContainer.addStages(anyObject(List.class));
       expectLastCall().once();
     }
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
+    requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
     // TODO: Add more of these when more stages are added.
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
+
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
+
+    requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
 
     replayAll();
@@ -1280,42 +1294,58 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Hook Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
     // StopZk Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
     // Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Destroy Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
 
     // Cleanup Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
 
@@ -1486,31 +1516,43 @@ public class KerberosHelperTest extends EasyMockSupport {
       // Create Preparation Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Update Configurations Stage
       expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Clean-up/Finalize Stage
       expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
     } else {
@@ -2611,7 +2653,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private void setupStageFactory() {
     final StageFactory stageFactory = injector.getInstance(StageFactory.class);
     expect(stageFactory.createNew(anyLong(), anyObject(String.class), anyObject(String.class),
-        anyLong(), anyObject(String.class), anyObject(String.class), anyObject(String.class),
+        anyLong(), anyObject(String.class), anyObject(String.class),
         anyObject(String.class)))
         .andAnswer(new IAnswer<Stage>() {
           @Override
@@ -2866,26 +2908,36 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Create Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Create Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Distribute Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
 
@@ -3061,21 +3113,29 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
 
@@ -3231,26 +3291,37 @@ public class KerberosHelperTest extends EasyMockSupport {
       // Preparation Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Create Principals Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
+
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Create Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Distribute Keytabs Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
       // Clean-up/Finalize Stage
       expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
       expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.setClusterHostInfo(anyString());
+      expectLastCall().once();
       requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
       expectLastCall().once();
     }
@@ -3396,21 +3467,29 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Preparation Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Delete Principals Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Delete Keytabs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
     // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.setClusterHostInfo(anyString());
+    expectLastCall().once();
     requestStageContainer.addStages(EasyMock.<List<Stage>>anyObject());
     expectLastCall().once();
 

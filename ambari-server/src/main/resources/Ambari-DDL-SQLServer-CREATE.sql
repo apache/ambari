@@ -329,6 +329,7 @@ CREATE TABLE request (
   start_time BIGINT NOT NULL,
   status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
   display_status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
+  cluster_host_info VARBINARY(MAX) NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY CLUSTERED (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -340,7 +341,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
-  cluster_host_info VARBINARY(MAX) NOT NULL,
   command_params VARBINARY(MAX),
   host_params VARBINARY(MAX),
   command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',

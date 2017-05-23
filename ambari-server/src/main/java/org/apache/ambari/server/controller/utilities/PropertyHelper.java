@@ -49,7 +49,7 @@ public class PropertyHelper {
   private static final String SQLSERVER_PROPERTIES_FILE = "sqlserver_properties.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
-  private static final char EXTERNAL_PATH_SEP = '/';
+  public static final char EXTERNAL_PATH_SEP = '/';
 
   /**
    * Aggregate functions implicitly supported by the Metrics Service

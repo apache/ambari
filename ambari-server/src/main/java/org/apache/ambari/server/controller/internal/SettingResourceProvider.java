@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,6 +29,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.SettingResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -46,6 +47,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 /**
@@ -54,14 +56,20 @@ import com.google.inject.Inject;
 @StaticallyInject
 public class SettingResourceProvider extends AbstractAuthorizedResourceProvider {
 
-  private static final String SETTINGS = "Settings";
+  public static final String RESPONSE_KEY = "Settings";
   protected static final String ID = "id";
   protected static final String SETTING = "Setting";
-  protected static final String SETTING_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(SETTINGS, "name");
-  protected static final String SETTING_SETTING_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(SETTINGS, "setting_type");
-  protected static final String SETTING_CONTENT_PROPERTY_ID = PropertyHelper.getPropertyId(SETTINGS, "content");
-  protected static final String SETTING_UPDATED_BY_PROPERTY_ID = PropertyHelper.getPropertyId(SETTINGS, "updated_by");
-  protected static final String SETTING_UPDATE_TIMESTAMP_PROPERTY_ID = PropertyHelper.getPropertyId(SETTINGS, "update_timestamp");
+  public static final String NAME = "name";
+  public static final String SETTING_TYPE = "setting_type";
+  public static final String CONTENT = "content";
+  public static final String UPDATED_BY = "updated_by";
+  public static final String UPDATE_TIMESTAMP = "update_timestamp";
+  public static final String SETTING_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + NAME;
+  public static final String SETTING_SETTING_TYPE_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + SETTING_TYPE;
+  public static final String SETTING_CONTENT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CONTENT;
+  public static final String SETTING_UPDATED_BY_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + UPDATED_BY;
+  public static final String SETTING_UPDATE_TIMESTAMP_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + UPDATE_TIMESTAMP;
+  public static final String ALL_PROPERTIES = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "*";
 
   /**
    * The property ids for setting resource.
@@ -73,7 +81,11 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
    */
   private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<>();
 
-  private static final Set<String> requiredProperties = new HashSet<>();
+  private static final Set<String> REQUIRED_PROPERTIES = ImmutableSet.of(
+    SETTING_NAME_PROPERTY_ID,
+    SETTING_SETTING_TYPE_PROPERTY_ID,
+    SETTING_CONTENT_PROPERTY_ID
+  );
 
   @Inject
   private static SettingDAO dao;
@@ -88,10 +100,6 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
     propertyIds.add(SETTING);
 
     keyPropertyIds.put(Resource.Type.Setting, SETTING_NAME_PROPERTY_ID);
-
-    requiredProperties.add(SETTING_NAME_PROPERTY_ID);
-    requiredProperties.add(SETTING_SETTING_TYPE_PROPERTY_ID);
-    requiredProperties.add(SETTING_CONTENT_PROPERTY_ID);
   }
 
   protected SettingResourceProvider() {
@@ -113,9 +121,9 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
     Set<Resource> associatedResources = new HashSet<>();
 
     for (Map<String, Object> properties : request.getProperties()) {
-      SettingEntity settingEntity = createResources(newCreateCommand(request, properties));
+      SettingResponse setting = createResources(newCreateCommand(request, properties));
       Resource resource = new ResourceImpl(Resource.Type.Setting);
-      resource.setProperty(SETTING_NAME_PROPERTY_ID, settingEntity.getName());
+      resource.setProperty(SETTING_NAME_PROPERTY_ID, setting.getName());
       associatedResources.add(resource);
     }
 
@@ -145,7 +153,7 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources = new HashSet<>();
     for(SettingEntity entity : entities) {
-      resources.add(toResource(entity, requestedIds));
+      resources.add(toResource(toResponse(entity), requestedIds));
     }
     return resources;
   }
@@ -169,10 +177,10 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
   }
 
 
-  private Command<SettingEntity> newCreateCommand(final Request request, final Map<String, Object> properties) {
-    return new Command<SettingEntity>() {
+  private Command<SettingResponse> newCreateCommand(final Request request, final Map<String, Object> properties) {
+    return new Command<SettingResponse>() {
       @Override
-      public SettingEntity invoke() throws AmbariException, AuthorizationException {
+      public SettingResponse invoke() throws AmbariException, AuthorizationException {
         SettingEntity entity = toEntity(properties);
         if (dao.findByName(entity.getName()) != null) {
           throw new DuplicateResourceException(
@@ -180,7 +188,7 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
         }
         dao.create(entity);
         notifyCreate(Resource.Type.Setting, request);
-        return entity;
+        return toResponse(entity);
       }
     };
   }
@@ -224,18 +232,18 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
     entity.setUpdateTimestamp(System.currentTimeMillis());
   }
 
-  private Resource toResource(final SettingEntity settingEntity, final Set<String> requestedIds) {
+  private Resource toResource(final SettingResponse setting, final Set<String> requestedIds) {
     Resource resource = new ResourceImpl(Resource.Type.Setting);
-    setResourceProperty(resource, SETTING_NAME_PROPERTY_ID, settingEntity.getName(), requestedIds);
-    setResourceProperty(resource, SETTING_SETTING_TYPE_PROPERTY_ID, settingEntity.getSettingType(), requestedIds);
-    setResourceProperty(resource, SETTING_CONTENT_PROPERTY_ID, settingEntity.getContent(), requestedIds);
-    setResourceProperty(resource, SETTING_UPDATED_BY_PROPERTY_ID, settingEntity.getUpdatedBy(), requestedIds);
-    setResourceProperty(resource, SETTING_UPDATE_TIMESTAMP_PROPERTY_ID, settingEntity.getUpdateTimestamp(), requestedIds);
+    setResourceProperty(resource, SETTING_NAME_PROPERTY_ID, setting.getName(), requestedIds);
+    setResourceProperty(resource, SETTING_SETTING_TYPE_PROPERTY_ID, setting.getSettingType(), requestedIds);
+    setResourceProperty(resource, SETTING_CONTENT_PROPERTY_ID, setting.getContent(), requestedIds);
+    setResourceProperty(resource, SETTING_UPDATED_BY_PROPERTY_ID, setting.getUpdatedBy(), requestedIds);
+    setResourceProperty(resource, SETTING_UPDATE_TIMESTAMP_PROPERTY_ID, setting.getUpdateTimestamp(), requestedIds);
     return resource;
   }
 
   private SettingEntity toEntity(final Map<String, Object> properties) throws AmbariException {
-    for (String propertyName: requiredProperties) {
+    for (String propertyName: REQUIRED_PROPERTIES) {
       if (properties.get(propertyName) == null) {
         throw new AmbariException(String.format("Property %s should be provided", propertyName));
       }
@@ -248,5 +256,9 @@ public class SettingResourceProvider extends AbstractAuthorizedResourceProvider 
     entity.setUpdatedBy(AuthorizationHelper.getAuthenticatedName());
     entity.setUpdateTimestamp(System.currentTimeMillis());
     return entity;
+  }
+
+  private static SettingResponse toResponse(SettingEntity entity) {
+    return new SettingResponse(entity.getName(), entity.getSettingType(), entity.getContent(), entity.getUpdatedBy(), entity.getUpdateTimestamp());
   }
 }

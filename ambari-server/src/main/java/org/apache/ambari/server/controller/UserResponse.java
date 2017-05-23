@@ -22,10 +22,12 @@ import java.util.Set;
 
 import org.apache.ambari.server.security.authorization.UserType;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Represents a user maintenance request.
  */
-public class UserResponse {
+public class UserResponse implements ApiModel {
 
   private final String userName;
   private final UserType userType;
@@ -50,16 +52,41 @@ public class UserResponse {
     this.userType = UserType.LOCAL;
   }
 
+  @ApiModelProperty(name = "Users/user_name",required = true)
   public String getUsername() {
     return userName;
   }
 
+  @ApiModelProperty(name = "Users/groups")
   public Set<String> getGroups() {
     return groups;
   }
 
   public void setGroups(Set<String> groups) {
     this.groups = groups;
+  }
+
+  /**
+   * @return the isLdapUser
+   */
+  @ApiModelProperty(name = "Users/ldap_user")
+  public boolean isLdapUser() {
+    return isLdapUser;
+  }
+
+  @ApiModelProperty(name = "Users/active")
+  public boolean isActive() {
+    return isActive;
+  }
+
+  @ApiModelProperty(name = "Users/admin")
+  public boolean isAdmin() {
+    return isAdmin;
+  }
+
+  @ApiModelProperty(name = "Users/user_type")
+  public UserType getUserType() {
+    return userType;
   }
 
   @Override
@@ -79,24 +106,5 @@ public class UserResponse {
     int result = userName != null ? userName.hashCode() : 0;
     result = 31 * result + (userType != null ? userType.hashCode() : 0);
     return result;
-  }
-
-  /**
-   * @return the isLdapUser
-   */
-  public boolean isLdapUser() {
-    return isLdapUser;
-  }
-
-  public boolean isActive() {
-    return isActive;
-  }
-
-  public boolean isAdmin() {
-    return isAdmin;
-  }
-
-  public UserType getUserType() {
-    return userType;
   }
 }

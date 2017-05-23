@@ -268,6 +268,7 @@
             <exclude>public/**</exclude>
             <exclude>public-static/**</exclude>
             <exclude>app/assets/**</exclude>
+            <exclude>api-docs/**</exclude>
             <exclude>vendor/**</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>node/**</exclude>

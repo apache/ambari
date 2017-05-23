@@ -34,7 +34,7 @@ import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.metrics.MetricsManager;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.SSLUtil;
-import org.apache.curator.shaded.com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.log4j.Logger;
 

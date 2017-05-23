@@ -72,9 +72,8 @@ public class HostStatusHelper {
     HostResponse hostResponse;
 
     try {
-      HostRequest hostRequest = new HostRequest(hostName, clusterName,
-        Collections.<String, String>emptyMap());
-      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
+      HostRequest hostRequest = new HostRequest(hostName, clusterName);
+      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest, null);
 
       hostResponse = hosts.size() == 1 ? hosts.iterator().next() : null;
     } catch (AmbariException e) {
@@ -83,6 +82,6 @@ public class HostStatusHelper {
     }
     //Cluster without host
     return hostResponse != null &&
-      !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST.name());
+      !hostResponse.getHostState().equals(HostState.HEARTBEAT_LOST);
   }
 }

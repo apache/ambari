@@ -82,6 +82,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
 public class ClusterInstallWithoutStartTest extends EasyMockSupport {
+
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
@@ -249,6 +250,7 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
+    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<RepositorySetting>()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -287,11 +289,10 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
     expect(request.getProvisionAction()).andReturn(INSTALL_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
-
+    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
 
     expect(group1.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
@@ -336,7 +337,7 @@ public class ClusterInstallWithoutStartTest extends EasyMockSupport {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), eq("1"));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

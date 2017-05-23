@@ -92,41 +92,44 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
-  public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
-  public static final String REQUEST_CLUSTER_ID_PROPERTY_ID = "Requests/cluster_id";
-  public static final String REQUEST_ID_PROPERTY_ID = "Requests/id";
-  protected static final String REQUEST_STATUS_PROPERTY_ID = "Requests/request_status";
-  protected static final String REQUEST_ABORT_REASON_PROPERTY_ID = "Requests/abort_reason";
-  protected static final String REQUEST_CONTEXT_ID = "Requests/request_context";
-  public static final String REQUEST_SOURCE_SCHEDULE = "Requests/request_schedule";
-  public static final String REQUEST_SOURCE_SCHEDULE_ID = "Requests/request_schedule/schedule_id";
-  public static final String REQUEST_SOURCE_SCHEDULE_HREF = "Requests/request_schedule/href";
-  protected static final String REQUEST_TYPE_ID = "Requests/type";
-  protected static final String REQUEST_INPUTS_ID = "Requests/inputs";
-  protected static final String REQUEST_RESOURCE_FILTER_ID = "Requests/resource_filters";
-  protected static final String REQUEST_OPERATION_LEVEL_ID = "Requests/operation_level";
-  protected static final String REQUEST_CREATE_TIME_ID = "Requests/create_time";
-  protected static final String REQUEST_START_TIME_ID = "Requests/start_time";
-  protected static final String REQUEST_END_TIME_ID = "Requests/end_time";
-  protected static final String REQUEST_EXCLUSIVE_ID = "Requests/exclusive";
-  protected static final String REQUEST_TASK_CNT_ID = "Requests/task_count";
-  protected static final String REQUEST_FAILED_TASK_CNT_ID = "Requests/failed_task_count";
-  protected static final String REQUEST_ABORTED_TASK_CNT_ID = "Requests/aborted_task_count";
-  protected static final String REQUEST_TIMED_OUT_TASK_CNT_ID = "Requests/timed_out_task_count";
-  protected static final String REQUEST_COMPLETED_TASK_CNT_ID = "Requests/completed_task_count";
-  protected static final String REQUEST_QUEUED_TASK_CNT_ID = "Requests/queued_task_count";
-  protected static final String REQUEST_PROGRESS_PERCENT_ID = "Requests/progress_percent";
-  protected static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = "Requests/remove_pending_host_requests";
-  protected static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = "Requests/pending_host_request_count";
+  public static final String REQUESTS = "Requests";
+  public static final String REQUEST_INFO = "RequestInfo";
+  public static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = REQUESTS + "/cluster_name";
+  public static final String REQUEST_CLUSTER_ID_PROPERTY_ID = REQUESTS + "/cluster_id";
+  public static final String REQUEST_ID_PROPERTY_ID = REQUESTS + "/id";
+  public static final String REQUEST_STATUS_PROPERTY_ID = REQUESTS + "/request_status";
+  public static final String REQUEST_ABORT_REASON_PROPERTY_ID = REQUESTS + "/abort_reason";
+  public static final String REQUEST_CONTEXT_ID = REQUESTS + "/request_context";
+  public static final String REQUEST_SOURCE_SCHEDULE = REQUESTS + "/request_schedule";
+  public static final String REQUEST_SOURCE_SCHEDULE_ID = REQUESTS + "/request_schedule/schedule_id";
+  public static final String REQUEST_SOURCE_SCHEDULE_HREF = REQUESTS + "/request_schedule/href";
+  public static final String REQUEST_TYPE_ID = REQUESTS + "/type";
+  public static final String REQUEST_INPUTS_ID = REQUESTS + "/inputs";
+  public static final String REQUEST_CLUSTER_HOST_INFO_ID = REQUESTS + "/cluster_host_info";
+  public static final String REQUEST_RESOURCE_FILTER_ID = REQUESTS + "/resource_filters";
+  public static final String REQUEST_OPERATION_LEVEL_ID = REQUESTS + "/operation_level";
+  public static final String REQUEST_CREATE_TIME_ID = REQUESTS + "/create_time";
+  public static final String REQUEST_START_TIME_ID = REQUESTS + "/start_time";
+  public static final String REQUEST_END_TIME_ID = REQUESTS + "/end_time";
+  public static final String REQUEST_EXCLUSIVE_ID = REQUESTS + "/exclusive";
+  public static final String REQUEST_TASK_CNT_ID = REQUESTS + "/task_count";
+  public static final String REQUEST_FAILED_TASK_CNT_ID = REQUESTS + "/failed_task_count";
+  public static final String REQUEST_ABORTED_TASK_CNT_ID = REQUESTS + "/aborted_task_count";
+  public static final String REQUEST_TIMED_OUT_TASK_CNT_ID = REQUESTS + "/timed_out_task_count";
+  public static final String REQUEST_COMPLETED_TASK_CNT_ID = REQUESTS + "/completed_task_count";
+  public static final String REQUEST_QUEUED_TASK_CNT_ID = REQUESTS + "/queued_task_count";
+  public static final String REQUEST_PROGRESS_PERCENT_ID = REQUESTS + "/progress_percent";
+  public static final String REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID = REQUESTS + "/remove_pending_host_requests";
+  public static final String REQUEST_PENDING_HOST_REQUEST_COUNT_ID = REQUESTS + "/pending_host_request_count";
+  public static final String COMMAND_ID = "command";
+  public static final String SERVICE_ID = "service_name";
+  public static final String COMPONENT_ID = "component_name";
+  public static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
+  public static final String HOSTS_PREDICATE = "hosts_predicate";
+  public static final String ACTION_ID = "action";
+  public static final String INPUTS_ID = "parameters";
+  public static final String EXLUSIVE_ID = "exclusive";
 
-  protected static final String COMMAND_ID = "command";
-  protected static final String SERVICE_ID = "service_name";
-  protected static final String COMPONENT_ID = "component_name";
-  protected static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
-  protected static final String HOSTS_PREDICATE = "hosts_predicate";
-  protected static final String ACTION_ID = "action";
-  protected static final String INPUTS_ID = "parameters";
-  protected static final String EXLUSIVE_ID = "exclusive";
   private static Set<String> pkPropertyIds =
     new HashSet<>(Arrays.asList(new String[]{
       REQUEST_ID_PROPERTY_ID}));
@@ -158,7 +161,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     REQUEST_QUEUED_TASK_CNT_ID,
     REQUEST_PROGRESS_PERCENT_ID,
     REQUEST_REMOVE_PENDING_HOST_REQUESTS_ID,
-    REQUEST_PENDING_HOST_REQUEST_COUNT_ID);
+    REQUEST_PENDING_HOST_REQUEST_COUNT_ID,
+    REQUEST_CLUSTER_HOST_INFO_ID
+  );
 
   // ----- Constructors ----------------------------------------------------
 
@@ -750,6 +755,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         value = SecretReference.maskPasswordInPropertyMap(value);
       }
       resource.setProperty(REQUEST_INPUTS_ID, value);
+    }
+
+    if (isPropertyRequested(REQUEST_CLUSTER_HOST_INFO_ID, requestedPropertyIds)) {
+      resource.setProperty(REQUEST_CLUSTER_HOST_INFO_ID, entity.getClusterHostInfo());
     }
 
     setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,
