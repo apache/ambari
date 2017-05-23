@@ -19,6 +19,8 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * Encapsulates all data about update request that came to RequestResourceProvider
  */
@@ -38,10 +40,12 @@ public class RequestRequest {
   private String abortReason;
 
 
+  @ApiModelProperty(name = "request_status", notes = "Only valid value is ABORTED.")
   public HostRoleStatus getStatus() {
     return status;
   }
 
+  @ApiModelProperty(name = "cluster_name")
   public String getClusterName() {
     return clusterName;
   }
@@ -50,6 +54,7 @@ public class RequestRequest {
     this.clusterName = clusterName;
   }
 
+  @ApiModelProperty(name = "id")
   public long getRequestId() {
     return requestId;
   }
@@ -62,6 +67,7 @@ public class RequestRequest {
     this.status = status;
   }
 
+  @ApiModelProperty(name = "abort_reason")
   public String getAbortReason() {
     return abortReason;
   }
