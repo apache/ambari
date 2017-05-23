@@ -374,7 +374,7 @@ angular.module('ambariAdminConsole')
 
     'versions.deregister': 'Deregister Version',
     'versions.deregisterConfirmation': 'Are you sure you want to deregister version <strong>{{versionName}}</strong> ?',
-    'versions.placeholder': 'Version Number (0.0)',
+    'versions.placeholder': 'Version Number {{pattern}}',
     'versions.repos': 'Repositories',
     'versions.os': 'OS',
     'versions.baseURL': 'Base URL',

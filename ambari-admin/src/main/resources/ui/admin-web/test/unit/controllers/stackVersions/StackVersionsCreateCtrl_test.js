@@ -30,7 +30,7 @@ describe('#Cluster', function () {
       it('1 digit', function() {
         var input = "1";
         var input2 = "11";
-        var regex = scope.subversionPattern;
+        var regex = /^\d+\.\d+(-\d+)?$/;
         expect(regex.test(input)).toBe(false);
         expect(regex.test(input2)).toBe(false);
       });
@@ -38,7 +38,7 @@ describe('#Cluster', function () {
       it('1 digit dot 1 digit', function() {
         var input = "1.2";
         var input2 = "1.22";
-        var regex = scope.subversionPattern;
+        var regex = /^\d+\.\d+(-\d+)?$/;
         expect(regex.test(input)).toBe(true);
         expect(regex.test(input2)).toBe(true);
       });
@@ -49,7 +49,7 @@ describe('#Cluster', function () {
         var input3 = "1.1-123";
         var invalidInput = "1.1-abcd";
         var invalidInput2 = "1.2.3";
-        var regex = scope.subversionPattern;
+        var regex = /^\d+\.\d+(-\d+)?$/;
         expect(regex.test(input)).toBe(true);
         expect(regex.test(input2)).toBe(true);
         expect(regex.test(input3)).toBe(true);
