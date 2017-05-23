@@ -611,7 +611,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
       if (!clusterCollectorHostLive) {
         if (printSkipPopulateMsgHostCounter.getAndIncrement() == 0) {
-          LOG.info("METRICS_COLLECTOR host is not live. Skip populating " +
+          LOG.debug("METRICS_COLLECTOR host is not live. Skip populating " +
             "resources with metrics, next message will be logged after 1000 " +
             "attempts.");
         } else {
