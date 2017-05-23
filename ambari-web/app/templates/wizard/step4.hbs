@@ -34,17 +34,17 @@
         </tr>
         </thead>
         <tbody>
-        {{#each controller}}
+        {{#each service in controller}}
           {{#unless isHiddenOnSelectServicePage}}
-            <tr {{QAAttr "service-row"}} {{bindAttr class="isSelected:active isSelected:service-selected"}}>
-              <td {{QAAttr "service-name"}}>{{displayNameOnSelectServicePage}}</td>
-              <td {{QAAttr "service-version"}}>{{serviceVersionDisplay}}</td>
-              <td {{QAAttr "service-description"}}>{{{comments}}}</td>
+            <tr {{QAAttr "service-row"}} {{bindAttr class="service.isSelected:active service.isSelected:service-selected"}} {{action toggleCheckBox service target="view"}}>
+              <td {{QAAttr "service-name"}}>{{service.displayNameOnSelectServicePage}}</td>
+              <td {{QAAttr "service-version"}}>{{service.serviceVersionDisplay}}</td>
+              <td {{QAAttr "service-description"}}>{{{service.comments}}}</td>
               <td>
                 <div class="checkbox">
-                  {{view App.CheckboxView checkboxClassNamesBinding="serviceName" data-qa="toggle-service"
-                  disabledBinding="isDisabled"
-                  checkedBinding="isSelected"
+                  {{view App.CheckboxView checkboxClassNamesBinding="service.serviceName" data-qa="toggle-service"
+                  disabledBinding="service.isDisabled"
+                  checkedBinding="service.isSelected"
                   }}
                 </div>
               </td>
