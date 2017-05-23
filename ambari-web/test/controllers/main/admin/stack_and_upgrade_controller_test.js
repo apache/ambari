@@ -1143,7 +1143,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
     it('request-data is valid', function () {
       expect(this.callArgs.data).to.eql({
-        from: '2.3',
         id: '1',
         value: '2.2',
         label: 'HDP-2.2',
