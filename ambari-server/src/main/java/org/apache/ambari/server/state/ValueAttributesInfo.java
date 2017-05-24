@@ -35,12 +35,12 @@ import io.swagger.annotations.ApiModelProperty;
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class ValueAttributesInfo implements ApiModel {
-  public static final String EMPTY_VALUE_VALID = "empty-value-valid";
-  public static final String UI_ONLY_PROPERTY = "ui-only-property";
-  public static final String READ_ONLY = "read-only";
-  public static final String EDITABLE_ONLY_AT_INSTALL = "editable-only-at-install";
-  public static final String SHOW_PROPERTY_NAME = "show-property-name";
-  public static final String INCREMENT_STEP = "increment-step";
+  public static final String EMPTY_VALUE_VALID = "empty_value_valid";
+  public static final String UI_ONLY_PROPERTY = "ui_only_property";
+  public static final String READ_ONLY = "read_only";
+  public static final String EDITABLE_ONLY_AT_INSTALL = "editable_only_at_install";
+  public static final String SHOW_PROPERTY_NAME = "show_property_name";
+  public static final String INCREMENT_STEP = "increment_step";
   public static final String SELECTION_CARDINALITY = "selection_cardinality";
   public static final String PROPERTY_FILE_NAME = "property-file-name";
   public static final String PROPERTY_FILE_TYPE = "property-file-type";
@@ -58,27 +58,27 @@ public class ValueAttributesInfo implements ApiModel {
   private Boolean overridable;
   private String copy;
 
-  @XmlElement(name = EMPTY_VALUE_VALID)
+  @XmlElement(name = "empty-value-valid")
   @JsonProperty(EMPTY_VALUE_VALID)
   private Boolean emptyValueValid;
 
-  @XmlElement(name = UI_ONLY_PROPERTY)
+  @XmlElement(name = "ui-only-property")
   @JsonProperty(UI_ONLY_PROPERTY)
   private Boolean uiOnlyProperty;
 
-  @XmlElement(name = READ_ONLY)
+  @XmlElement(name = "read-only")
   @JsonProperty(READ_ONLY)
   private Boolean readOnly;
 
-  @XmlElement(name = EDITABLE_ONLY_AT_INSTALL)
+  @XmlElement(name = "editable-only-at-install")
   @JsonProperty(EDITABLE_ONLY_AT_INSTALL)
   private Boolean editableOnlyAtInstall;
 
-  @XmlElement(name = SHOW_PROPERTY_NAME)
+  @XmlElement(name = "show-property-name")
   @JsonProperty(SHOW_PROPERTY_NAME)
   private Boolean showPropertyName;
 
-  @XmlElement(name = INCREMENT_STEP)
+  @XmlElement(name = "increment-step")
   @JsonProperty(INCREMENT_STEP)
   private String incrementStep;
 
@@ -92,7 +92,7 @@ public class ValueAttributesInfo implements ApiModel {
   @XmlElement(name = ENTRIES_EDITABLE)
   private Boolean entriesEditable;
 
-  @XmlElement(name = SELECTION_CARDINALITY)
+  @XmlElement(name = "selection-cardinality")
   @JsonProperty(SELECTION_CARDINALITY)
   private String selectionCardinality;
 
