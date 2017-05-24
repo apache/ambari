@@ -400,6 +400,7 @@
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
+            <exclude>utility/target/**</exclude>
           </excludes>
         </configuration>
         <executions>
