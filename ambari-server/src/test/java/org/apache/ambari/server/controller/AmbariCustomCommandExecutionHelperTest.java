@@ -423,7 +423,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
     Stage stage = EasyMock.niceMock(Stage.class);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
 
     Assert.fail("Expected an exception since there are no hosts which can run the Flume service check");
   }
@@ -458,7 +458,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
     EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
     Map<String, String> configMap = timeOutCapture.getValues().get(0);
     for (Map.Entry<String, String> config : configMap.entrySet()) {
       if (config.getKey().equals(ExecutionCommand.KeyNames.COMMAND_TIMEOUT)) {
@@ -508,7 +508,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
     EasyMock.replay(configHelper, stage, execCmdWrapper, execCmd);
 
-    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>(), null);
   }
 
   @Test
