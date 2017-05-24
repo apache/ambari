@@ -1694,10 +1694,6 @@ describe('App.WizardController', function () {
       expect(ctrl.finish.calledOnce).to.be.true;
     });
 
-    it("isWorking should be true", function () {
-      expect(mock.get('isWorking')).to.be.true;
-    });
-
     it("App.clusterStatus.setClusterStatus should be called", function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
