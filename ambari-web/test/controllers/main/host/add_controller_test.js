@@ -1207,39 +1207,20 @@ describe('App.AddHostController', function () {
   });
 
   describe("#finish()", function () {
-    var mock = {
-      updateAll: Em.K,
-      getAllHostNames: Em.K
-    };
     beforeEach(function () {
       sinon.stub(controller, 'clearAllSteps', Em.K);
       sinon.stub(controller, 'clearStorageData', Em.K);
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.spy(mock, 'updateAll');
-      sinon.spy(mock, 'getAllHostNames');
       controller.finish();
     });
     afterEach(function () {
       controller.clearAllSteps.restore();
       controller.clearStorageData.restore();
-      App.router.get.restore();
-      mock.updateAll.restore();
-      mock.getAllHostNames.restore();
     });
     it("clearAllSteps called once", function () {
       expect(controller.clearAllSteps.calledOnce).to.be.true;
     });
     it('clearStorageData called once', function () {
       expect(controller.clearStorageData.calledOnce).to.be.true;
-    });
-    it('updateAll called once', function () {
-      expect(mock.updateAll.calledOnce).to.be.true;
-    });
-    it('App.updater.immediateRun called with valid arguments', function () {
-      expect(App.updater.immediateRun.calledWith('updateHost')).to.be.true;
-    });
-    it('getAllHostNames called once', function () {
-      expect(mock.getAllHostNames.calledOnce).to.be.true;
     });
   });
 });

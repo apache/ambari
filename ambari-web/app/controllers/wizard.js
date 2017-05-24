@@ -871,14 +871,15 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   /**
    * Save cluster status before going to deploy step
    * @param name cluster state. Unique for every wizard
+   * @param callbackObj can have additional params for ajax callBacks and sender
    */
-  saveClusterState: function (name) {
+  saveClusterState: function (name, callbackObj) {
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: name,
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
-    });
+    }, callbackObj);
   },
 
   /**
@@ -1458,10 +1459,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    * @param {App.WizardController} controller - wizard controller
    * @param {string} route - preferable path to go after wizard finished
    */
-  resetOnClose: function(controller, route) {
+  resetOnClose: function(controller, route, router) {
     App.router.get('wizardWatcherController').resetUser();
     controller.finish();
-    App.router.get('updateController').set('isWorking', true);
     App.clusterStatus.setClusterStatus({
       clusterName: App.get('clusterName'),
       clusterState: 'DEFAULT',
@@ -1469,6 +1469,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     },
     {
       alwaysCallback: function () {
+        router && router.set('nextBtnClickInProgress', false);
         controller.get('popup').hide();
         App.router.transitionTo(route);
         Em.run.next(function() {
