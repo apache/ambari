@@ -1049,7 +1049,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer .menu-item-name {
   display: inline-block;
   vertical-align: bottom;
-  max-width: 94px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   -o-text-overflow: ellipsis;
