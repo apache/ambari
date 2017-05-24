@@ -182,7 +182,7 @@ public class UpgradeHelper {
    * {@link StageWrapperBuilder} has finished building out all of the stages.
    */
   @Inject
-  private Provider<ConfigHelper> m_configHelperProvider;
+  Provider<ConfigHelper> m_configHelperProvider;
 
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfoProvider;
@@ -203,7 +203,7 @@ public class UpgradeHelper {
    * Used to get configurations by service name.
    */
   @Inject
-  private ServiceConfigDAO m_serviceConfigDAO;
+  ServiceConfigDAO m_serviceConfigDAO;
 
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type

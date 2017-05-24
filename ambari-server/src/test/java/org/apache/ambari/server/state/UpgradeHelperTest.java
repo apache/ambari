@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,7 +52,10 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
@@ -80,6 +85,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Before;
@@ -94,13 +100,14 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.util.Modules;
 
 /**
  * Tests the {@link UpgradeHelper} class
  */
-public class UpgradeHelperTest {
+public class UpgradeHelperTest extends EasyMockSupport {
 
   private static final StackId STACK_ID_HDP_211 = new StackId("HDP-2.1.1");
   private static final StackId STACK_ID_HDP_220 = new StackId("HDP-2.2.0");
@@ -460,7 +467,7 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     MasterHostResolver masterHostResolver = new MasterHostResolver(cluster, null, context);
 
-    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
@@ -1560,7 +1567,7 @@ public class UpgradeHelperTest {
         UpgradeType.HOST_ORDERED, repositoryVersion2110);
 
     MasterHostResolver resolver = new MasterHostResolver(c, m_configHelper, context);
-    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
     HostsType ht = resolver.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
@@ -1635,7 +1642,7 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     MasterHostResolver mhr = new MockMasterHostResolver(c, m_configHelper, context);
 
-    EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
+    expect(context.getResolver()).andReturn(mhr).anyTimes();
     replay(context);
 
 
@@ -1704,7 +1711,7 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     MasterHostResolver mhr = new BadMasterHostResolver(c, m_configHelper, context);
 
-    EasyMock.expect(context.getResolver()).andReturn(mhr).anyTimes();
+    expect(context.getResolver()).andReturn(mhr).anyTimes();
     replay(context);
 
     HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
@@ -1842,7 +1849,7 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     MasterHostResolver masterHostResolver = new MasterHostResolver(c, m_configHelper, context);
 
-    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
@@ -1858,7 +1865,7 @@ public class UpgradeHelperTest {
     // use a "real" master host resolver here so that we can actually test MM
     masterHostResolver = new MasterHostResolver(c, m_configHelper, context);
 
-    EasyMock.expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
+    expect(context.getResolver()).andReturn(masterHostResolver).anyTimes();
     replay(context);
 
     groups = m_upgradeHelper.createSequence(upgradePack, context);
@@ -2124,7 +2131,7 @@ public class UpgradeHelperTest {
         UpgradeType.HOST_ORDERED, repoVersion220);
 
     MasterHostResolver resolver = new MasterHostResolver(c, m_configHelper, context);
-    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
 
@@ -2168,7 +2175,7 @@ public class UpgradeHelperTest {
         repoVersion211);
 
     resolver = new MasterHostResolver(c, m_configHelper, context);
-    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
     groups = m_upgradeHelper.createSequence(upgradePack, context);
@@ -2185,7 +2192,7 @@ public class UpgradeHelperTest {
         repoVersion211);
 
     resolver = new MasterHostResolver(c, m_configHelper, context);
-    EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+    expect(context.getResolver()).andReturn(resolver).anyTimes();
     replay(context);
 
     groups = m_upgradeHelper.createSequence(upgradePack, context);
@@ -2240,6 +2247,182 @@ public class UpgradeHelperTest {
 
     groups = m_upgradeHelper.createSequence(upgrade, context);
     assertEquals(3, groups.size());
+  }
+
+  /**
+   * Tests merging configurations between existing and new stack values on
+   * upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testMergeConfigurations() throws Exception {
+    RepositoryVersionEntity repoVersion211 = createNiceMock(RepositoryVersionEntity.class);
+    RepositoryVersionEntity repoVersion220 = createNiceMock(RepositoryVersionEntity.class);
+
+    StackId stack211 = new StackId("HDP-2.1.1");
+    StackId stack220 = new StackId("HDP-2.2.0");
+
+    String version211 = "2.1.1.0-1234";
+    String version220 = "2.2.0.0-1234";
+
+    expect(repoVersion211.getStackId()).andReturn(stack211).atLeastOnce();
+    expect(repoVersion211.getVersion()).andReturn(version211).atLeastOnce();
+
+    expect(repoVersion220.getStackId()).andReturn(stack220).atLeastOnce();
+    expect(repoVersion220.getVersion()).andReturn(version220).atLeastOnce();
+
+    Map<String, Map<String, String>> stack211Configs = new HashMap<>();
+    Map<String, String> stack211FooType = new HashMap<>();
+    Map<String, String> stack211BarType = new HashMap<>();
+    Map<String, String> stack211BazType = new HashMap<>();
+    stack211Configs.put("foo-site", stack211FooType);
+    stack211Configs.put("bar-site", stack211BarType);
+    stack211Configs.put("baz-site", stack211BazType);
+    stack211FooType.put("1", "one");
+    stack211FooType.put("1A", "one-A");
+    stack211BarType.put("2", "two");
+    stack211BazType.put("3", "three");
+
+    Map<String, Map<String, String>> stack220Configs = new HashMap<>();
+    Map<String, String> stack220FooType = new HashMap<>();
+    Map<String, String> stack220BazType = new HashMap<>();
+    stack220Configs.put("foo-site", stack220FooType);
+    stack220Configs.put("baz-site", stack220BazType);
+    stack220FooType.put("1", "one-new");
+    stack220FooType.put("1A1", "one-A-one");
+    stack220BazType.put("3", "three-new");
+
+    Map<String, String> existingFooType = new HashMap<>();
+    Map<String, String> existingBarType = new HashMap<>();
+    Map<String, String> existingBazType = new HashMap<>();
+
+    ClusterConfigEntity fooConfigEntity = createNiceMock(ClusterConfigEntity.class);
+    ClusterConfigEntity barConfigEntity = createNiceMock(ClusterConfigEntity.class);
+    ClusterConfigEntity bazConfigEntity = createNiceMock(ClusterConfigEntity.class);
+
+    expect(fooConfigEntity.getType()).andReturn("foo-site");
+    expect(barConfigEntity.getType()).andReturn("bar-site");
+    expect(bazConfigEntity.getType()).andReturn("baz-site");
+
+    Config fooConfig = createNiceMock(Config.class);
+    Config barConfig = createNiceMock(Config.class);
+    Config bazConfig = createNiceMock(Config.class);
+
+    existingFooType.put("1", "one");
+    existingFooType.put("1A", "one-A");
+    existingBarType.put("2", "two");
+    existingBazType.put("3", "three-changed");
+
+    expect(fooConfig.getType()).andReturn("foo-site").atLeastOnce();
+    expect(barConfig.getType()).andReturn("bar-site").atLeastOnce();
+    expect(bazConfig.getType()).andReturn("baz-site").atLeastOnce();
+    expect(fooConfig.getProperties()).andReturn(existingFooType);
+    expect(barConfig.getProperties()).andReturn(existingBarType);
+    expect(bazConfig.getProperties()).andReturn(existingBazType);
+
+    Map<String, DesiredConfig> desiredConfigurations = new HashMap<>();
+    desiredConfigurations.put("foo-site", null);
+    desiredConfigurations.put("bar-site", null);
+    desiredConfigurations.put("baz-site", null);
+
+    Service zookeeper = createNiceMock(Service.class);
+    expect(zookeeper.getName()).andReturn("ZOOKEEPER").atLeastOnce();
+    expect(zookeeper.getServiceComponents()).andReturn(
+        new HashMap<String, ServiceComponent>()).once();
+    zookeeper.setDesiredRepositoryVersion(repoVersion220);
+    expectLastCall().once();
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getCurrentStackVersion()).andReturn(stack211).atLeastOnce();
+    expect(cluster.getDesiredStackVersion()).andReturn(stack220);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigurations);
+    expect(cluster.getDesiredConfigByType("foo-site")).andReturn(fooConfig);
+    expect(cluster.getDesiredConfigByType("bar-site")).andReturn(barConfig);
+    expect(cluster.getDesiredConfigByType("baz-site")).andReturn(bazConfig);
+    expect(cluster.getService("ZOOKEEPER")).andReturn(zookeeper);
+    expect(cluster.getDesiredConfigByType("foo-type")).andReturn(fooConfig);
+    expect(cluster.getDesiredConfigByType("bar-type")).andReturn(barConfig);
+    expect(cluster.getDesiredConfigByType("baz-type")).andReturn(bazConfig);
+
+    // setup the config helper for placeholder resolution
+    @SuppressWarnings("unchecked")
+    Provider<ConfigHelper> configHelperProvider = EasyMock.createNiceMock(Provider.class);
+    ConfigHelper configHelper = EasyMock.createNiceMock(ConfigHelper.class);
+
+    expect(configHelperProvider.get()).andStubReturn(configHelper);
+
+    expect(configHelper.getDefaultProperties(stack211, "ZOOKEEPER")).andReturn(
+        stack211Configs).anyTimes();
+
+    expect(configHelper.getDefaultProperties(stack220, "ZOOKEEPER")).andReturn(
+        stack220Configs).anyTimes();
+
+    Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
+
+    configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
+        EasyMock.anyObject(AmbariManagementController.class), EasyMock.anyObject(StackId.class),
+        EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
+        EasyMock.anyObject(String.class));
+
+    expectLastCall().once();
+    EasyMock.replay(configHelperProvider, configHelper);
+
+    // mock the service config DAO and replay it
+    ServiceConfigEntity zookeeperServiceConfig = createNiceMock(ServiceConfigEntity.class);
+    expect(zookeeperServiceConfig.getClusterConfigEntities()).andReturn(
+        Lists.newArrayList(fooConfigEntity, barConfigEntity, bazConfigEntity));
+
+    ServiceConfigDAO serviceConfigDAOMock;
+    serviceConfigDAOMock = EasyMock.createNiceMock(ServiceConfigDAO.class);
+
+    List<ServiceConfigEntity> latestServiceConfigs = Lists.newArrayList(zookeeperServiceConfig);
+    expect(serviceConfigDAOMock.getLastServiceConfigsForService(EasyMock.anyLong(),
+        eq("ZOOKEEPER"))).andReturn(latestServiceConfigs).once();
+
+    replay(serviceConfigDAOMock);
+
+    Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    UpgradePack upgradePack = upgradePacks.get("upgrade_to_new_stack");
+
+    UpgradeContext context = createNiceMock(UpgradeContext.class);
+    expect(context.getCluster()).andReturn(cluster).atLeastOnce();
+    expect(context.getType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
+    expect(context.getDirection()).andReturn(Direction.UPGRADE).atLeastOnce();
+    expect(context.getRepositoryVersion()).andReturn(repoVersion220).anyTimes();
+    expect(context.getSupportedServices()).andReturn(Sets.newHashSet("ZOOKEEPER")).atLeastOnce();
+    expect(context.getSourceRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion211).atLeastOnce();
+    expect(context.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion220).atLeastOnce();
+    expect(context.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));
+    expect(context.getRoleGraphFactory()).andStubReturn(injector.getInstance(RoleGraphFactory.class));
+    expect(context.getUpgradePack()).andReturn(upgradePack).atLeastOnce();
+
+    replayAll();
+
+    UpgradeHelper upgradeHelper = injector.getInstance(UpgradeHelper.class);
+    upgradeHelper.m_serviceConfigDAO = serviceConfigDAOMock;
+    upgradeHelper.m_configHelperProvider = configHelperProvider;
+    upgradeHelper.updateDesiredRepositoriesAndConfigs(context);
+
+    Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
+    Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");
+    Map<String, String> expectedBarType = expectedConfigurations.get("bar-site");
+    Map<String, String> expectedBazType = expectedConfigurations.get("baz-site");
+
+    // As the upgrade pack did not have any Flume updates, its configs should
+    // not be updated.
+    assertEquals(3, expectedConfigurations.size());
+
+    // the really important values are one-new and three-changed; one-new
+    // indicates that the new stack value is changed since it was not customized
+    // while three-changed represents that the customized value was preserved
+    // even though the stack value changed
+    assertEquals("one-new", expectedFooType.get("1"));
+    assertEquals("one-A", expectedFooType.get("1A"));
+    assertEquals("two", expectedBarType.get("2"));
+    assertEquals("three-changed", expectedBazType.get("3"));
   }
 
   /**
@@ -2304,19 +2487,21 @@ public class UpgradeHelperTest {
       UpgradeType type, RepositoryVersionEntity repositoryVersion, final RepositoryType repositoryType,
       Set<String> services, MasterHostResolver resolver, boolean replay) {
     UpgradeContext context = EasyMock.createNiceMock(UpgradeContext.class);
-    EasyMock.expect(context.getCluster()).andReturn(cluster).anyTimes();
-    EasyMock.expect(context.getType()).andReturn(type).anyTimes();
-    EasyMock.expect(context.getDirection()).andReturn(direction).anyTimes();
-    EasyMock.expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
-    EasyMock.expect(context.getSupportedServices()).andReturn(services).anyTimes();
-    EasyMock.expect(context.getRepositoryType()).andReturn(repositoryType).anyTimes();
-    EasyMock.expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    EasyMock.expect(context.getHostRoleCommandFactory()).andStubReturn(injector.getInstance(HostRoleCommandFactory.class));
-    EasyMock.expect(context.getRoleGraphFactory()).andStubReturn(injector.getInstance(RoleGraphFactory.class));
+    expect(context.getCluster()).andReturn(cluster).anyTimes();
+    expect(context.getType()).andReturn(type).anyTimes();
+    expect(context.getDirection()).andReturn(direction).anyTimes();
+    expect(context.getRepositoryVersion()).andReturn(repositoryVersion).anyTimes();
+    expect(context.getSupportedServices()).andReturn(services).anyTimes();
+    expect(context.getRepositoryType()).andReturn(repositoryType).anyTimes();
+    expect(context.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(context.getHostRoleCommandFactory()).andStubReturn(
+        injector.getInstance(HostRoleCommandFactory.class));
+    expect(context.getRoleGraphFactory()).andStubReturn(
+        injector.getInstance(RoleGraphFactory.class));
 
     // only set this if supplied
     if (null != resolver) {
-      EasyMock.expect(context.getResolver()).andReturn(resolver).anyTimes();
+      expect(context.getResolver()).andReturn(resolver).anyTimes();
     }
 
     final Map<String, RepositoryVersionEntity> targetRepositoryVersions = new HashMap<>();
@@ -2325,7 +2510,7 @@ public class UpgradeHelperTest {
     }
 
     final Capture<String> repoVersionServiceName = EasyMock.newCapture();
-    EasyMock.expect(
+    expect(
         context.getTargetRepositoryVersion(EasyMock.capture(repoVersionServiceName))).andAnswer(
             new IAnswer<RepositoryVersionEntity>() {
               @Override
@@ -2335,7 +2520,7 @@ public class UpgradeHelperTest {
             }).anyTimes();
 
     final Capture<String> serviceNameSupported = EasyMock.newCapture();
-    EasyMock.expect(context.isServiceSupported(EasyMock.capture(serviceNameSupported))).andAnswer(
+    expect(context.isServiceSupported(EasyMock.capture(serviceNameSupported))).andAnswer(
         new IAnswer<Boolean>() {
           @Override
           public Boolean answer() {
@@ -2349,7 +2534,7 @@ public class UpgradeHelperTest {
     final Capture<String> serviceDisplayNameArg2 = EasyMock.newCapture();
 
     context.setServiceDisplay(EasyMock.capture(serviceDisplayNameArg1), EasyMock.capture(serviceDisplayNameArg2));
-    EasyMock.expectLastCall().andAnswer(
+    expectLastCall().andAnswer(
         new IAnswer<Object>() {
           @Override
           public Object answer() {
@@ -2367,7 +2552,7 @@ public class UpgradeHelperTest {
     context.setComponentDisplay(EasyMock.capture(componentDisplayNameArg1),
         EasyMock.capture(componentDisplayNameArg2), EasyMock.capture(componentDisplayNameArg3));
 
-    EasyMock.expectLastCall().andAnswer(new IAnswer<Object>() {
+    expectLastCall().andAnswer(new IAnswer<Object>() {
       @Override
       public Object answer() {
         componentNames.put(
@@ -2378,7 +2563,7 @@ public class UpgradeHelperTest {
     }).anyTimes();
 
     final Capture<String> getServiceDisplayArgument1 = EasyMock.newCapture();
-    EasyMock.expect(
+    expect(
         context.getServiceDisplay(EasyMock.capture(getServiceDisplayArgument1))).andAnswer(
             new IAnswer<String>() {
               @Override
@@ -2389,7 +2574,7 @@ public class UpgradeHelperTest {
 
     final Capture<String> getComponentDisplayArgument1 = EasyMock.newCapture();
     final Capture<String> getComponentDisplayArgument2 = EasyMock.newCapture();
-    EasyMock.expect(context.getComponentDisplay(EasyMock.capture(getComponentDisplayArgument1),
+    expect(context.getComponentDisplay(EasyMock.capture(getComponentDisplayArgument1),
         EasyMock.capture(getComponentDisplayArgument2))).andAnswer(new IAnswer<String>() {
           @Override
           public String answer() {
@@ -2399,7 +2584,7 @@ public class UpgradeHelperTest {
         }).anyTimes();
 
     final Capture<UpgradeScope> isScopedCapture = EasyMock.newCapture();
-    EasyMock.expect(context.isScoped(EasyMock.capture(isScopedCapture))).andStubAnswer(
+    expect(context.isScoped(EasyMock.capture(isScopedCapture))).andStubAnswer(
         new IAnswer<Boolean>() {
           @Override
           public Boolean answer() throws Throwable {
