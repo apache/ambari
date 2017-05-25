@@ -1,0 +1,31 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true}">
+  <span (mousedown)="onMouseDown()" (mouseup)="onMouseUp($event)" (click)="$event.stopPropagation()">
+    <a *ngIf="title" class="icon" [ngClass]="iconClassNames"></a>
+    <span *ngIf="!title" class="icon" [ngClass]="iconClassNames"></span>
+  </span>
+  <a #dropdownToggle [ngClass]="{'dropdown-toggle': hasSubItems, 'caret': true}" [attr.data-toggle]="hasSubItems ? 'dropdown': null" *ngIf="hasSubItems"></a>
+  <br>
+  <span class="icon-title" *ngIf="title" (mousedown)="onMouseDown()" (mouseup)="onMouseUp($event)" (click)="$event.stopPropagation()">{{title | translate}}</span>
+  <ul class="dropdown-menu" *ngIf="hasSubItems">
+    <li *ngFor="let item of subItems">
+      <a href="#">{{item.title}}</a>
+    </li>
+  </ul>
+</div>

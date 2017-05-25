@@ -21,14 +21,17 @@ import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {HttpModule, Http} from '@angular/http';
 import {InMemoryWebApiModule} from 'angular-in-memory-web-api';
-import {mockApiDataService} from './mock-api-data.service'
+import {mockApiDataService} from './services/mock-api-data.service'
 import {AlertModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClientService} from './http-client.service';
+import {HttpClientService} from './services/http-client.service';
+import {ActionsService} from './services/actions.service';
 
 import {AppComponent} from './app.component';
 import {LoginFormComponent} from './login-form/login-form.component';
+import {TopMenuComponent} from './top-menu/top-menu.component';
+import {MenuButtonComponent} from './menu-button/menu-button.component';
 
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -37,7 +40,9 @@ export function HttpLoaderFactory(http: Http) {
 @NgModule({
   declarations: [
     AppComponent,
-    LoginFormComponent
+    LoginFormComponent,
+    TopMenuComponent,
+    MenuButtonComponent
   ],
   imports: [
     BrowserModule,
@@ -55,7 +60,10 @@ export function HttpLoaderFactory(http: Http) {
       }
     })
   ],
-  providers: [HttpClientService],
+  providers: [
+    HttpClientService,
+    ActionsService
+  ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

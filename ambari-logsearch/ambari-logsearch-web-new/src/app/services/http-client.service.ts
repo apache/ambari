@@ -29,11 +29,13 @@ export class HttpClientService extends Http {
     super(backend, defaultOptions);
   }
 
-  readonly apiPrefix = 'api/v1/';
+  private readonly apiPrefix = 'api/v1/';
 
-  readonly urls = {
+  private readonly urls = {
     status: 'status'
   };
+
+  private readonly unauthorizedStatuses = [401, 403, 419];
 
   isAuthorized: boolean;
 
@@ -54,7 +56,7 @@ export class HttpClientService extends Http {
 
   handleError(request: Observable<Response>) {
     request.subscribe(null, (error: any) => {
-      if ([401, 403, 419].indexOf(error.status) > -1) {
+      if (this.unauthorizedStatuses.indexOf(error.status) > -1) {
         this.isAuthorized = false;
       }
     });

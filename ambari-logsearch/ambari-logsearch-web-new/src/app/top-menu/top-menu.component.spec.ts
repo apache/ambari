@@ -16,24 +16,30 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {HttpClientService} from './services/http-client.service';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
-})
+import {TopMenuComponent} from './top-menu.component';
 
-export class AppComponent {
+describe('TopMenuComponent', () => {
+  let component: TopMenuComponent;
+  let fixture: ComponentFixture<TopMenuComponent>;
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
-    translate.setDefaultLang('en');
-    translate.use('en');
-  }
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [TopMenuComponent],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    })
+    .compileComponents();
+  }));
 
-  ngOnInit() {
-    this.httpClient.get('status');
-  }
-}
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TopMenuComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

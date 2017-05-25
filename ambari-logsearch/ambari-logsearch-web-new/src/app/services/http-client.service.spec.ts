@@ -32,22 +32,22 @@ describe('HttpClientService', () => {
     expect(service).toBeTruthy();
   }));
 
-  describe('generateUrlString()', () => {
-    it('should generate URL from presets', inject([HttpClientService], (service:HttpClientService) => {
+  describe('#generateUrlString()', () => {
+    it('should generate URL from presets', inject([HttpClientService], (service: HttpClientService) => {
       expect(service.generateUrlString('status')).toEqual('api/v1/status');
     }));
 
-    it('should return explicit URL', inject([HttpClientService], (service:HttpClientService) => {
+    it('should return explicit URL', inject([HttpClientService], (service: HttpClientService) => {
       expect(service.generateUrlString('login')).toEqual('login');
     }));
   });
 
-  describe('generateUrl()', () => {
-    it('string parameter', inject([HttpClientService], (service:HttpClientService) => {
+  describe('#generateUrl()', () => {
+    it('string parameter', inject([HttpClientService], (service: HttpClientService) => {
       expect(service.generateUrl('status')).toEqual('api/v1/status');
     }));
 
-    it('request object parameter', inject([HttpClientService], (service:HttpClientService) => {
+    it('request object parameter', inject([HttpClientService], (service: HttpClientService) => {
       let request = new Request({
         url: 'status'
       });

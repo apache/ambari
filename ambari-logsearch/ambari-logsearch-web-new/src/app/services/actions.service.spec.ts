@@ -16,24 +16,18 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {HttpClientService} from './services/http-client.service';
+import {TestBed, inject} from '@angular/core/testing';
 
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
-})
+import {ActionsService} from './actions.service';
 
-export class AppComponent {
+describe('ActionsService', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [ActionsService]
+    });
+  });
 
-  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
-    translate.setDefaultLang('en');
-    translate.use('en');
-  }
-
-  ngOnInit() {
-    this.httpClient.get('status');
-  }
-}
+  it('should create service', inject([ActionsService], (service: ActionsService) => {
+    expect(service).toBeTruthy();
+  }));
+});

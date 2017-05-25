@@ -1,8 +1,13 @@
 {
-  "common.title": "Ambari Log Search",
+  "common.title": "Log Search",
 
   "authorization.name": "Username",
   "authorization.password": "Password",
   "authorization.signIn": "Sign In",
-  "authorization.error": "<strong>Error!</strong> Invalid User credentials.<br>Please try again."
+  "authorization.error": "<strong>Error!</strong> Invalid User credentials.<br>Please try again.",
+
+  "topMenu.undo": "Undo",
+  "topMenu.redo": "Redo",
+  "topMenu.refresh": "Refresh",
+  "topMenu.history": "History"
 }

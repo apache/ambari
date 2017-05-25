@@ -21,7 +21,7 @@ import {FormsModule} from '@angular/forms';
 import {HttpModule, Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClientService} from '../http-client.service';
+import {HttpClientService} from '../services/http-client.service';
 
 import {LoginFormComponent} from './login-form.component';
 
@@ -84,8 +84,8 @@ describe('LoginFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('login()', () => {
-    let cases = [
+  describe('#login()', () => {
+    const cases = [
       {
         isError: true,
         isLoginAlertDisplayed: true,

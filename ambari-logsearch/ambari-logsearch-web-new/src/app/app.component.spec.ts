@@ -21,7 +21,7 @@ import {TestBed, async} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClientService} from './http-client.service';
+import {HttpClientService} from './services/http-client.service';
 
 import {AppComponent} from './app.component';
 

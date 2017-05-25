@@ -15,10 +15,4 @@
   limitations under the License.
 -->
 
-<nav class="navbar">
-  <div class="container-fluid">
-    <h1 [ngClass]="{'full-flex-width': !httpClient.isAuthorized, 'navbar-left': true}">{{'common.title' | translate}}</h1>
-    <top-menu *ngIf="httpClient.isAuthorized" class="navbar-right"></top-menu>
-  </div>
-</nav>
-<login-form *ngIf="!httpClient.isAuthorized"></login-form>
+<menu-button *ngFor="let item of items" [title]="item.title" [action]="item.action" [iconClassNames]="item.iconClassNames" [subItems]="item.subItems"></menu-button>

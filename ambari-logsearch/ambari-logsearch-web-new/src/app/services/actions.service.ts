@@ -16,24 +16,32 @@
  * limitations under the License.
  */
 
-import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {HttpClientService} from './services/http-client.service';
+import {Injectable} from '@angular/core';
 
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.less']
-})
+@Injectable()
+export class ActionsService {
 
-export class AppComponent {
-
-  constructor(private httpClient: HttpClientService, private translate: TranslateService) {
-    translate.setDefaultLang('en');
-    translate.use('en');
+  constructor() {
   }
 
-  ngOnInit() {
-    this.httpClient.get('status');
+  //TODO implement actions
+
+  undo() {
   }
+
+  redo() {
+  }
+
+  refresh() {
+  }
+
+  openHistory() {
+  }
+
+  openAlerts() {
+  }
+
+  openUserDetails() {
+  }
+
 }

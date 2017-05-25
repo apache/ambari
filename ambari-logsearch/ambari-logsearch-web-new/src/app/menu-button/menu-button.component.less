@@ -15,28 +15,15 @@
  * limitations under the License.
  */
 
-.navbar {
-  border-radius: 0;
-  background-color: #323544;
-  color: #fff;
+:host {
+  display: inline-block;
+  cursor: pointer;
 
-  .container-fluid {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  a:hover, a:focus {
+    text-decoration: none;
   }
 
-  h1 {
-    flex-basis: 70%;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-
-    &.full-flex-width {
-      flex-basis: 100%;
-    }
-  }
-
-  /deep/ top-menu {
-    flex-basis: 30%;
+  .icon {
+    padding: 5px;
   }
 }
