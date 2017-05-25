@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 var date = require('utils/date/date');
+const arrayUtils = require('utils/array_utils');
 
 App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
@@ -98,8 +98,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
   filteredCount: function () {
-    var filteredContent = this.get('filteredContent').toArray();
-    return filteredContent.length;
+    return this.get('filteredContent').map(item => Object.keys(item.get('versions') || {}).length).reduce(Em.sum, 0);
   }.property('filteredContent'),
 
   /**
@@ -115,7 +114,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   }.property('selectedCategory'),
 
   /**
-   * sort and slice recieved content by pagination parameters
+   * sort and slice received content by pagination parameters
    */
   pageContent: function () {
     var content = this.get('filteredContent').toArray();
@@ -125,21 +124,23 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
   }.property('filteredContent', 'startIndex', 'endIndex'),
 
   processForDisplay: function (content) {
-    var processedContent = [];
-
-    content.forEach(function (item) {
-      var direction = item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade');
-      var method = this.get('upgradeMethods').findProperty('type', item.get('upgradeType'));
-      item.setProperties({
-        directionLabel: direction,
-        upgradeTypeLabel: method ? method.get('displayName') : method,
-        startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
-        endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
-        duration: date.durationSummary(item.get('startTime'), item.get('endTime'))
+    return arrayUtils.flatten(content.map(item => {
+      const versions = item.get('versions');
+      const method = this.get('upgradeMethods').findProperty('type', item.get('upgradeType'));
+      return Object.keys(versions).map(serviceName => {
+        return {
+          version: versions[serviceName].to_repository_version,
+          serviceName: App.format.role(serviceName),
+          directionLabel: item.get('direction') === 'UPGRADE' ? Em.I18n.t('common.upgrade') : Em.I18n.t('common.downgrade'),
+          upgradeTypeLabel: method ? method.get('displayName') : method,
+          startTimeLabel: date.startTime(App.dateTimeWithTimeZone(item.get('startTime'))),
+          endTimeLabel: date.endTime(App.dateTimeWithTimeZone(item.get('endTime'))),
+          duration: date.durationSummary(item.get('startTime'), item.get('endTime')),
+          displayStatus: item.get('displayStatus'),
+          stackUpgradeHistoryItem: item
+        };
       });
-      processedContent.push(item);
-    }, this);
-    return processedContent;
+    }));
   },
 
   paginationLeftClass: function () {
@@ -293,7 +294,7 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
     var associatedVersion = record.get('associatedVersion');
     var type = this.get('upgradeMethods').findProperty('type', record.get('upgradeType'));
     var displayName = type ? type.get('displayName') : App.format.normalizeName(record.get('upgradeType'));
-    const i18nKeySuffix = direction === 'UPGRADE' ? 'upgrade' : 'downgrade';
+    const i18nKeySuffix = direction.toLowerCase() === 'upgrade' ? 'upgrade' : 'downgrade';
 
     this.get('controller').set('currentUpgradeRecord', record);
 

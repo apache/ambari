@@ -33,6 +33,7 @@ App.StackUpgradeHistory = DS.Model.extend({
   endTime: DS.attr('number'),
   startTime: DS.attr('number'),
   createTime: DS.attr('number'),
+  versions: DS.attr('object'),
   displayStatus: function() {
     return stringUtils.upperUnderscoreToText(this.get('requestStatus'));
   }.property('requestStatus')
