@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -103,10 +103,7 @@ public class LocalAgentSimulator implements Runnable {
     RegistrationResponse response;
     try {
       response = handler.handleRegistration(reg);
-    } catch (AmbariException e) {
-      LOG.info("Registration failed", e);
-      return;
-    } catch (InvalidStateTransitionException e) {
+    } catch (AmbariException | InvalidStateTransitionException e) {
       LOG.info("Registration failed", e);
       return;
     }

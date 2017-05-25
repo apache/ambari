@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -245,9 +245,7 @@ public class BlueprintImpl implements Blueprint {
     if (setting == null)
       return null;
 
-    /**
-     * Look up the service and return the credential_store_enabled value.
-     */
+    // Look up the service and return the credential_store_enabled value.
     Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_SERVICE_SETTINGS);
     for (Map<String, String> setting : settingValue) {
       String name = setting.get(Setting.SETTING_NAME_NAME);

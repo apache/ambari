@@ -38,7 +38,7 @@ from resource_management.libraries.script.script import Script
 from ambari_commons.inet_utils import ensure_ssl_using_protocol
 from zkfc_slave import ZkfcSlaveDefault
 
-ensure_ssl_using_protocol(Script.get_force_https_protocol())
+ensure_ssl_using_protocol(Script.get_force_https_protocol_name())
 
 def safe_zkfc_op(action, env):
   """

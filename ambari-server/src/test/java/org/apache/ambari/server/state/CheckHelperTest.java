@@ -52,13 +52,10 @@ import junit.framework.Assert;
 
 /**
  * Tests the {@link CheckHelper} class
+ * Makes sure that people don't forget to add new checks to registry.
  */
 
 public class CheckHelperTest {
-
-/**
-   * Makes sure that people don't forget to add new checks to registry.
-   */
 
   /**
    * Sunny case when applicable.

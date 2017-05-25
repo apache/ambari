@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -389,7 +389,7 @@ public class ClusterImpl implements Cluster {
               new ConcurrentHashMap<String, ServiceComponentHost>());
         }
 
-        /** Get Service Host Components **/
+        // Get Service Host Components
         for (Entry<String, ServiceComponentHost> svchost : comp.getServiceComponentHosts().entrySet()) {
           String hostname = svchost.getKey();
           ServiceComponentHost svcHostComponent = svchost.getValue();

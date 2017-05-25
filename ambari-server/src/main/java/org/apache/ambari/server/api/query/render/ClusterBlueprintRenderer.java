@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -188,11 +188,8 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     ClusterTopology topology;
     try {
       topology = createClusterTopology(clusterNode);
-    } catch (InvalidTopologyTemplateException e) {
+    } catch (InvalidTopologyTemplateException | InvalidTopologyException e) {
       //todo
-      throw new RuntimeException("Unable to process blueprint export request: " + e, e);
-    } catch (InvalidTopologyException e) {
-      //todo:
       throw new RuntimeException("Unable to process blueprint export request: " + e, e);
     }
 

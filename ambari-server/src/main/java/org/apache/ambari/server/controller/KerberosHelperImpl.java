@@ -2981,7 +2981,7 @@ public class KerberosHelperImpl implements KerberosHelper {
             requestResourceFilters,
             requestParams);
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
-            requestParams);
+            requestParams, null);
       }
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
@@ -3049,7 +3049,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                 "DISABLE_SECURITY",
                 singletonList(new RequestResourceFilter(service.getName(), component.getName(), singletonList(firstHost))),
                 Collections.<String, String>emptyMap());
-              customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap());
+              customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap(), null);
           }
         }
       }
@@ -3082,7 +3082,7 @@ public class KerberosHelperImpl implements KerberosHelper {
             "STOP",
             singletonList(new RequestResourceFilter(zookeeper.getName(), component.getName(), new ArrayList<>(hosts))),
             Collections.<String, String>emptyMap());
-          customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap());
+          customCommandExecutionHelper.addExecutionCommandsToStage(exec, stage, Collections.<String, String>emptyMap(), null);
       }
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -3124,7 +3124,7 @@ public class KerberosHelperImpl implements KerberosHelper {
               requestResourceFilters,
               requestParams);
           customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
-              requestParams);
+              requestParams, null);
         }
       }
 

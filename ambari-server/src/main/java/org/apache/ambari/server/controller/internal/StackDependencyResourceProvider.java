@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -123,11 +123,7 @@ public class StackDependencyResourceProvider extends AbstractResourceProvider {
       try {
         resources.addAll(getDependencyResources(properties,
             getRequestPropertyIds(request, predicate)));
-      } catch (NoSuchResourceException e) {
-        if (requestProps.size() == 1) {
-          throw e;
-        }
-      } catch (NoSuchParentResourceException e) {
+      } catch (NoSuchResourceException | NoSuchParentResourceException e) {
         if (requestProps.size() == 1) {
           throw e;
         }

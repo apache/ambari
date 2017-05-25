@@ -803,7 +803,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          /***
+          /*
            * Append "ulimit -l" from hadoop-env.sh
            */
           String content = null;

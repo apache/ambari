@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -665,7 +665,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // possible changes to the desired version for components
     addComponentHistoryToUpgrade(cluster, upgrade, upgradeContext);
 
-    /**
+    /*
     During a Rolling Upgrade, change the desired Stack Id if jumping across
     major stack versions (e.g., HDP 2.2 -> 2.3), and then set config changes
     so they are applied on the newer stack.
@@ -674,7 +674,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stopping all services), and the configs are applied immediately before starting the services.
     The Upgrade Pack is responsible for calling {@link org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction}
     at the appropriate moment during the orchestration.
-    **/
+    */
     if (pack.getType() == UpgradeType.ROLLING) {
       s_upgradeHelper.updateDesiredRepositoriesAndConfigs(upgradeContext);
     }
@@ -1005,7 +1005,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       requestParams.put(KeyNames.COMMAND_RETRY_ENABLED, Boolean.TRUE.toString().toLowerCase());
     }
 
-    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, jsons);
 
     request.addStages(Collections.singletonList(stage));
   }
@@ -1058,7 +1058,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setStageId(Long.valueOf(stageId));
 
     Map<String, String> requestParams = getNewParameterMap(request, context);
-    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
+    s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams, jsons);
 
     request.addStages(Collections.singletonList(stage));
   }

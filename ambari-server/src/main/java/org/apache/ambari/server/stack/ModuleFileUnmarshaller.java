@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -149,9 +149,7 @@ public class ModuleFileUnmarshaller {
     }
   }
 
-  /**
-   * statically register the JAXB contexts
-   */
+  // statically register the JAXB contexts
   static {
     try {
       // three classes define the top-level element "metainfo", so we need 3 contexts for them

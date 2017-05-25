@@ -1463,7 +1463,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          /***
+          /*
            * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
            */
           content = null;
@@ -1479,7 +1479,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
                 prop, true, false);
           }
-          /***
+          /*
            * Update dfs.namenode.rpc-address set hostname instead of localhost
            */
           if (cluster.getDesiredConfigByType(HDFS_SITE_CONFIG) != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {

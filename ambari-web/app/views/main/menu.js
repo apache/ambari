@@ -162,6 +162,7 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
     App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+    App.tooltip($("[rel='serviceHealthTooltip']"), {html:true, placement:"right"});
   },
 
   willDestroyElement: function() {

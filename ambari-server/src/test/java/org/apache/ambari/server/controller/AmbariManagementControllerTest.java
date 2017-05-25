@@ -1945,10 +1945,10 @@ public class AmbariManagementControllerTest {
     }
   }
 
-  @Test
   /**
    * Create a cluster with a service, and verify that the request tasks have the correct output log and error log paths.
    */
+  @Test
   public void testRequestStatusLogs() throws Exception {
     String cluster1 = getUniqueName();
 
@@ -5285,7 +5285,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(mapRedCmdHost2);
     Assert.assertNotNull(mapRedCmdHost3);
 
-    /**
+    /*
      * Test for lost host
      */
     // Stop HDFS & MAPREDUCE

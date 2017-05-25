@@ -80,10 +80,10 @@ public class GsonJsonProvider implements MessageBodyReader<Object>,
     return true;
   }
 
-  @Override
   /**
    * Not known
    */
+  @Override
   public long getSize(Object o, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     return -1;
   }

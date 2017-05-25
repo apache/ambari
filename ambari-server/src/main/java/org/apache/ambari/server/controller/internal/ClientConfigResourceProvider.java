@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -484,8 +484,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
-      } catch (AmbariException e) {
-        throw new SystemException("Controller error ", e);
       } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }

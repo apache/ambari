@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -83,12 +83,12 @@ public class StackServiceDirectory extends ServiceDirectory {
     return repoDir;
   }
 
-  @Override
   /**
    * Obtain the advisor name.
    *
    * @return advisor name
    */
+  @Override
   public String getAdvisorName(String serviceName) {
     if (getAdvisorFile() == null || serviceName == null)
       return null;
@@ -127,30 +127,29 @@ public class StackServiceDirectory extends ServiceDirectory {
     parseRepoFile(subDirs);
   }
 
-  @Override
   /**
    * @return the resources directory
    */
+  @Override
   protected File getResourcesDirectory() {
     File serviceDir = new File(getAbsolutePath());
     return serviceDir.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
   }
 
-
-  @Override
   /**
    * @return the service name (will be used for logging purposes by superclass)
    */
+  @Override
   public String getService() {
     File serviceDir = new File(getAbsolutePath());
 
     return serviceDir.getName();
   }
 
-  @Override
   /**
    * @return the stack name-version (will be used for logging purposes by superclass)
    */
+  @Override
   public String getStack() {
     File serviceDir = new File(getAbsolutePath());
     File stackVersionDir = serviceDir.getParentFile().getParentFile();

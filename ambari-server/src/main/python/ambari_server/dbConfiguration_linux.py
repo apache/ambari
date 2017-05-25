@@ -46,7 +46,7 @@ from ambari_server.serverConfiguration import encrypt_password, store_password_f
     PERSISTENCE_TYPE_PROPERTY, JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
     JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
     JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, JDBC_SQLA_SERVER_NAME, LOCAL_DATABASE_ADMIN_PROPERTY
-
+from ambari_commons.inet_utils import wait_for_port_opened
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
@@ -58,6 +58,10 @@ ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 ORACLE_SNAME_PATTERN = "jdbc:oracle:thin:@.+:.+:.+"
 
 JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
+
+PG_PORT_CHECK_TRIES_COUNT = 30
+PG_PORT_CHECK_INTERVAL = 1
+PG_PORT = 5432
 
 class LinuxDBMSConfig(DBMSConfig):
   def __init__(self, options, properties, storage_type):
@@ -622,19 +626,14 @@ class PGConfig(LinuxDBMSConfig):
                                    stdin=subprocess.PIPE,
                                    stderr=subprocess.PIPE
         )
-        if OSCheck.is_suse_family():
-          time.sleep(20)
-          result = process.poll()
-          print_info_msg("Result of postgres start cmd: " + str(result))
-          if result is None:
-            process.kill()
-            pg_status, retcode, out, err = PGConfig._get_postgre_status()
-          else:
-            retcode = result
-        else:
-          out, err = process.communicate()
-          retcode = process.returncode
-          pg_status, retcode, out, err = PGConfig._get_postgre_status()
+        out, err = process.communicate()
+        retcode = process.returncode
+
+        print_info_msg("Waiting for postgres to start at port {0}...".format(PG_PORT))
+        wait_for_port_opened('127.0.0.1', PG_PORT, PG_PORT_CHECK_TRIES_COUNT, PG_PORT_CHECK_INTERVAL)
+
+        pg_status, retcode, out, err = PGConfig._get_postgre_status()
+
         if pg_status == PGConfig.PG_STATUS_RUNNING:
           print_info_msg("Postgres process is running. Returning...")
           return pg_status, 0, out, err
