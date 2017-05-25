@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.5.2.3</version>
+      <version>1.4.5.2.2</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -28,11 +28,12 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql_connector</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>sqoop</name>
@@ -40,10 +41,10 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
-              <name>sqoop</name>
+              <name>sqoop-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

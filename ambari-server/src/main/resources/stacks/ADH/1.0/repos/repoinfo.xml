@@ -18,14 +18,30 @@
 <reposinfo>
   <os family="redhat6">
     <repo>
-      <baseurl>http://FQDN/ADH-1.0.0.1</baseurl>
-      <repoid>ADH-1.0.0.1</repoid>
-      <reponame>ADH-1.0.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.1</baseurl>
+      <repoid>HDP-2.0.6</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
-      <baseurl>http://FQDN/ADH-UTILS-1.0.0.1</baseurl>
-      <repoid>ADH-UTILS-1.1.0.1</repoid>
-      <reponame>ADH-UTILS-1.1.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.17</repoid>
+      <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="suse11">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.1</baseurl>
+      <repoid>HDP-2.0.6</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
+      <repo>
+        <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
+        <repoid>HDP-UTILS-1.1.0.17</repoid>
+        <reponame>HDP-UTILS</reponame>
+        <unique>false</unique>
+      </repo>
     </repo>
   </os>
 </reposinfo>

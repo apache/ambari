@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-job-submit-instances</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,
+      latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+      future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-create-inst</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph2_now_inst,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph2_today_inst,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday_inst,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth_inst,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth_inst,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear_inst,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear_inst,
+      latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+      future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-create</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,
+      latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+      future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_formatTime,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-job-submit-data</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,
+      dataIn=org.apache.oozie.extensions.OozieELExtensions#ph1_dataIn_echo,
+      instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_wrap,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,
+      dateOffset=org.apache.oozie.coord.CoordELFunctions#ph1_coord_dateOffset_echo,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL constant declarations, separated by commas, format is [PREFIX:]NAME=CLASS#CONSTANT.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-action-start</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph2_now,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph2_today,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph2_yesterday,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_currentMonth,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph2_lastMonth,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph2_currentYear,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph2_lastYear,
+      latest=org.apache.oozie.coord.CoordELFunctions#ph3_coord_latest,
+      future=org.apache.oozie.coord.CoordELFunctions#ph3_coord_future,
+      dataIn=org.apache.oozie.extensions.OozieELExtensions#ph3_dataIn,
+      instanceTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_nominalTime,
+      dateOffset=org.apache.oozie.coord.CoordELFunctions#ph3_coord_dateOffset,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph3_coord_formatTime,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-sla-submit</name>
+    <value>
+      instanceTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_nominalTime_echo_fixed,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.ELService.ext.functions.coord-sla-create</name>
+    <value>
+      instanceTime=org.apache.oozie.coord.CoordELFunctions#ph2_coord_nominalTime,
+      user=org.apache.oozie.coord.CoordELFunctions#coord_user
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>oozie.service.HadoopAccessorService.supported.filesystems</name>
+    <value>*</value>
+    <description>
+      Enlist the different filesystems supported for federation. If wildcard "*" is specified, then ALL file schemes will be allowed.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
+  <!--<property>-->
+  <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.hosts</name>-->
+  <!--<value>*</value>-->
+  <!--<description>Falcon proxyuser hosts</description>-->
+  <!--</property>-->
+  <!--<property>-->
+  <!--<name>oozie.service.ProxyUserService.proxyuser.#FALCON_USER#.groups</name>-->
+  <!--<value>*</value>-->
+  <!--<description>Falcon proxyuser groups</description>-->
+  <!--</property>-->
+</configuration>

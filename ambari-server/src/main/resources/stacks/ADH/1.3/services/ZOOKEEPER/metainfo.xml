@@ -20,7 +20,8 @@
   <services>
     <service>
       <name>ZOOKEEPER</name>
-      <version>3.4.6.2.3</version>
+      <displayName>ZooKeeper</displayName>
+      <version>3.4.6.2.2</version>
     </service>
   </services>
 </metainfo>

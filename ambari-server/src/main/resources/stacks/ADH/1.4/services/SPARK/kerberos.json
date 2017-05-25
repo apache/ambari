@@ -1,0 +1,126 @@
+{
+  "services": [
+    {
+      "name": "SPARK",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "sparkuser",
+          "principal": {
+            "value": "${spark-env/spark_user}${principal_suffix}@${realm}",
+            "type" : "user",
+            "configuration": "spark-defaults/spark.history.kerberos.principal",
+            "local_username" : "${spark-env/spark_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/spark.headless.keytab",
+            "owner": {
+              "name": "${spark-env/spark_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+               "access": ""
+            },
+            "configuration": "spark-defaults/spark.history.kerberos.keytab"
+           }
+        }
+      ],
+      "configurations": [
+        {
+          "spark-defaults": {
+            "spark.history.kerberos.enabled": "true"
+          }
+        },
+        {
+          "spark-thrift-sparkconf": {
+            "spark.yarn.keytab": "${spark-env/hive_kerberos_keytab}",
+            "spark.yarn.principal": "${spark-env/hive_kerberos_principal}"
+          }
+        },
+        {
+          "livy-conf": {
+            "livy.server.auth.type": "kerberos",
+            "livy.impersonation.enabled": "true",
+            "livy.superusers": "zeppelin${principal_suffix}"
+          }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.${livy-env/livy_user}.groups": "*",
+            "hadoop.proxyuser.${livy-env/livy_user}.hosts": "*"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "SPARK_JOBHISTORYSERVER",
+          "identities": [
+            {
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        },
+        {
+          "name": "SPARK_CLIENT"
+        },
+        {
+          "name": "SPARK_THRIFTSERVER",
+          "identities": [
+            {
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "hive_server_hive",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive"
+            }
+          ]
+        },
+        {
+          "name": "LIVY_SERVER",
+          "identities": [
+            {
+              "name": "hdfs",
+              "reference": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "livyuser",
+              "principal": {
+                "value": "${livy-env/livy_user}/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "livy-conf/livy.server.launch.kerberos.principal",
+                "local_username": "${livy-env/livy_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/livy.service.keytab",
+                "owner": {
+                  "name": "${livy-env/livy_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "livy-conf/livy.server.launch.kerberos.keytab"
+              }
+            },
+            {
+              "name": "livy_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "livy-conf/livy.server.auth.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "livy-conf/livy.server.auth.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

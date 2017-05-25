@@ -1,0 +1,20 @@
+{
+  "configuration" : {
+    "placement" : {
+      "configs" : [
+        {
+          "config": "hive-env/enable_heap_dump",
+          "subsection-name": "optimization-row2-col2"
+        }
+      ]
+    },
+    "widgets" : [
+      {
+        "config": "hive-env/enable_heap_dump",
+        "widget": {
+          "type": "toggle"
+        }
+      }
+    ]
+  }
+}

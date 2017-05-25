@@ -19,6 +19,7 @@ limitations under the License.
 
 import os
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
+from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
 
 from resource_management import *
 
@@ -35,22 +36,23 @@ def setup_hadoop():
   )
 
   #directories
-  if params.has_namenode:
+  if params.has_namenode or params.dfs_type == 'HCFS':
     Directory(params.hdfs_log_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               mode=0775,
               cd_access='a',
     )
-    Directory(params.hadoop_pid_dir_prefix,
-              recursive=True,
+    if params.has_namenode:
+      Directory(params.hadoop_pid_dir_prefix,
+              create_parents = True,
               owner='root',
               group='root',
               cd_access='a',
-    )
+      )
     Directory(params.hadoop_tmp_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.hdfs_user,
               cd_access='a',
               )
@@ -60,8 +62,10 @@ def setup_hadoop():
     else:
       tc_owner = params.hdfs_user
       
-    # if WebHDFS is not enabled we need this jar to create hadoop folders.
-    if not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+    # if WebHDFS is not enabled we need this jar to create hadoop folders and copy tarballs to HDFS.
+    if params.sysprep_skip_copy_fast_jar_hdfs:
+      print "Skipping copying of fast-hdfs-resource.jar as host is sys prepped"
+    elif params.dfs_type == 'HCFS' or not WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
       # for source-code of jar goto contrib/fast-hdfs-resource
       File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
            mode=0644,
@@ -86,7 +90,7 @@ def setup_hadoop():
              mode=0644,
              group=params.user_group,
              owner=params.hdfs_user,
-             content=params.log4j_props
+             content=InlineTemplate(params.log4j_props)
         )
       elif (os.path.exists(format("{params.hadoop_conf_dir}/log4j.properties"))):
         File(log4j_filename,
@@ -95,10 +99,23 @@ def setup_hadoop():
              owner=params.hdfs_user,
         )
 
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hdfs_user,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
+      if params.hadoop_metrics2_properties_content:
+        File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
+             owner=params.hdfs_user,
+             group=params.user_group,
+             content=InlineTemplate(params.hadoop_metrics2_properties_content)
+             )
+      else:
+        File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
+             owner=params.hdfs_user,
+             group=params.user_group,
+             content=Template("hadoop-metrics2.properties.j2")
+             )
+
+    if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
+       create_dirs()
+
+    create_microsoft_r_dir()
 
 
 def setup_configs():
@@ -107,7 +124,7 @@ def setup_configs():
   """
   import params
 
-  if params.has_namenode:
+  if params.has_namenode or params.dfs_type == 'HCFS':
     if os.path.exists(params.hadoop_conf_dir):
       File(params.task_log4j_properties_location,
            content=StaticFile("task-log4j.properties"),
@@ -142,9 +159,104 @@ def generate_include_file():
 def create_javahome_symlink():
   if os.path.exists("/usr/jdk/jdk1.6.0_31") and not os.path.exists("/usr/jdk64/jdk1.6.0_31"):
     Directory("/usr/jdk64/",
-         recursive=True,
+         create_parents = True,
     )
     Link("/usr/jdk/jdk1.6.0_31",
          to="/usr/jdk64/jdk1.6.0_31",
     )
 
+def create_dirs():
+   import params
+   params.HdfsResource(params.hdfs_tmp_dir,
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.hdfs_user,
+                       mode=0777
+   )
+   params.HdfsResource(params.smoke_hdfs_user_dir,
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.smoke_user,
+                       mode=params.smoke_hdfs_user_mode
+   )
+   params.HdfsResource(None,
+                      action="execute"
+   )
+
+def create_microsoft_r_dir():
+  import params
+  if 'MICROSOFT_R_NODE_CLIENT' in params.component_list and params.default_fs:
+    directory = '/user/RevoShare'
+    try:
+      params.HdfsResource(directory,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.hdfs_user,
+                          mode=0777)
+      params.HdfsResource(None, action="execute")
+    except Exception as exception:
+      Logger.warning("Could not check the existence of {0} on DFS while starting {1}, exception: {2}".format(directory, params.current_service, str(exception)))
+
+
+def setup_unlimited_key_jce_policy():
+  """
+  Sets up the unlimited key JCE policy if needed.
+
+  The following criteria must be met:
+
+    * The cluster has not been previously prepared (sys preped) - cluster-env/sysprep_skip_setup_jce = False
+    * Ambari is managing the host's JVM - /hostLevelParams/jdk_name is set
+    * Either security is enabled OR a service requires it - /hostLevelParams/unlimited_key_jce_required = True
+    * The unlimited key JCE policy has not already been installed
+
+  If the conditions are met, the following steps are taken to install the unlimited key JCE policy JARs
+
+    1. The unlimited key JCE policy ZIP file is downloaded from the Ambari server and stored in the
+        Ambari agent's temporary directory
+    2. The existing JCE policy JAR files are deleted
+    3. The downloaded ZIP file is unzipped into the proper JCE policy directory
+
+  :return: None
+  """
+  import params
+
+  if params.sysprep_skip_setup_jce:
+    Logger.info("Skipping unlimited key JCE policy check and setup since the host is sys prepped")
+
+  elif not params.jdk_name:
+    Logger.debug("Skipping unlimited key JCE policy check and setup since the Java VM is not managed by Ambari")
+
+  elif not params.unlimited_key_jce_required:
+    Logger.debug("Skipping unlimited key JCE policy check and setup since it is not required")
+
+  else:
+    jcePolicyInfo = JcePolicyInfo(java_exec=params.java_exec, java_home=params.java_home)
+
+    if jcePolicyInfo.is_unlimited_key_jce_policy():
+      Logger.info("The unlimited key JCE policy is required, and appears to have been installed.")
+
+    elif params.jce_policy_zip is None:
+      raise Fail("The unlimited key JCE policy needs to be installed; however the JCE policy zip is not specified.")
+
+    else:
+      Logger.info("The unlimited key JCE policy is required, and needs to be installed.")
+
+      jce_zip_target = format("{artifact_dir}/{jce_policy_zip}")
+      jce_zip_source = format("{ambari_server_resources_url}/{jce_policy_zip}")
+      java_security_dir = format("{java_home}/jre/lib/security")
+
+      Logger.debug("Downloading the unlimited key JCE policy files from {0} to {1}.".format(jce_zip_source, jce_zip_target))
+      Directory(params.artifact_dir, create_parents=True)
+      File(jce_zip_target, content=DownloadSource(jce_zip_source))
+
+      Logger.debug("Removing existing JCE policy JAR files: {0}.".format(java_security_dir))
+      File(format("{java_security_dir}/US_export_policy.jar"), action="delete")
+      File(format("{java_security_dir}/local_policy.jar"), action="delete")
+
+      Logger.debug("Unzipping the unlimited key JCE policy files from {0} into {1}.".format(jce_zip_target, java_security_dir))
+      extract_cmd = ("unzip", "-o", "-j", "-q", jce_zip_target, "-d", java_security_dir)
+      Execute(extract_cmd,
+              only_if=format("test -e {java_security_dir} && test -f {jce_zip_target}"),
+              path=['/bin/', '/usr/bin'],
+              sudo=True
+              )

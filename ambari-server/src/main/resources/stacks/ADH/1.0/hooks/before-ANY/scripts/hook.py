@@ -27,7 +27,7 @@ class BeforeAnyHook(Hook):
     env.set_params(params)
 
     setup_users()
-    if params.has_namenode:
+    if params.has_namenode or params.dfs_type == 'HCFS':
       setup_hadoop_env()
     setup_java()
 

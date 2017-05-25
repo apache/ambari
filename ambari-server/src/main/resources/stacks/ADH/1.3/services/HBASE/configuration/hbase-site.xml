@@ -1,0 +1,327 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property>
+    <name>hbase.bulkload.staging.dir</name>
+    <value>/apps/hbase/staging</value>
+    <description>A staging directory in default file system (HDFS)
+    for bulk loading.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.hstore.flush.retries.number</name>
+    <value>120</value>
+    <description>
+    The number of times the region flush operation will be retried.
+    </description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction</name>
+    <value>604800000</value>
+    <description>Time between major compactions, expressed in milliseconds. Set to 0 to disable
+      time-based automatic major compactions. User-requested and size-based major compactions will
+      still run. This value is multiplied by hbase.hregion.majorcompaction.jitter to cause
+      compaction to start at a somewhat-random time during a given window of time. The default value
+      is 7 days, expressed in milliseconds. If major compactions are causing disruption in your
+      environment, you can configure them to run at off-peak times for your deployment, or disable
+      time-based major compactions by setting this parameter to 0, and run major compactions in a
+      cron job or by another external mechanism.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2592000000</maximum>
+      <unit>milliseconds</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction.jitter</name>
+    <value>0.50</value>
+    <description>A multiplier applied to hbase.hregion.majorcompaction to cause compaction to occur
+      a given amount of time either side of hbase.hregion.majorcompaction. The smaller the number,
+      the closer the compactions will happen to the hbase.hregion.majorcompaction
+      interval.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.hregion.memstore.block.multiplier</name>
+    <value>4</value>
+    <description>
+    Block updates if memstore has hbase.hregion.memstore.block.multiplier
+    times hbase.hregion.memstore.flush.size bytes.  Useful preventing
+    runaway memstore during spikes in update traffic.  Without an
+    upper-bound, memstore fills such that when it flushes the
+    resultant flush files take a long time to compact or split, or
+    worse, we OOME.
+    </description>
+    <display-name>HBase Region Block Multiplier</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+        <entry>
+          <value>8</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.ioengine</name>
+    <value/>
+    <description>Where to store the contents of the bucketcache. One of: onheap,
+      offheap, or file. If a file, set it to file:PATH_TO_FILE.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.size</name>
+    <value/>
+    <description>The size of the buckets for the bucketcache if you only use a single size.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.bucketcache.percentage.in.combinedcache</name>
+    <value/>
+    <description>Value to be set between 0.0 and 1.0</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.wal.codec</name>
+    <display-name>RegionServer WAL Codec</display-name>
+    <value>org.apache.hadoop.hbase.regionserver.wal.WALCellCodec</value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.region.server.rpc.scheduler.factory.class</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.rpc.controllerfactory.class</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>phoenix.functions.allowUserDefinedFunctions</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.regionserver.classes</name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.max</name>
+    <value>10</value>
+    <description>The maximum number of StoreFiles which will be selected for a single minor
+      compaction, regardless of the number of eligible StoreFiles. Effectively, the value of
+      hbase.hstore.compaction.max controls the length of time it takes a single compaction to
+      complete. Setting it larger means that more StoreFiles are included in a compaction. For most
+      cases, the default value is appropriate.
+    </description>
+    <display-name>Maximum Files for Compaction</display-name>
+    <value-attributes>
+      <type>int</type>
+      <entries>
+        <entry>
+          <value>8</value>
+        </entry>
+        <entry>
+          <value>9</value>
+        </entry>
+        <entry>
+          <value>10</value>
+        </entry>
+        <entry>
+          <value>11</value>
+        </entry>
+        <entry>
+          <value>12</value>
+        </entry>
+        <entry>
+          <value>13</value>
+        </entry>
+        <entry>
+          <value>14</value>
+        </entry>
+        <entry>
+          <value>15</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.size</name>
+    <value>0.4</value>
+    <description>Percentage of RegionServer memory to allocate to write buffers.
+      Each column family within each region is allocated a smaller pool (the memstore) within this shared write pool.
+      If this buffer is full, updates are blocked and data is flushed from memstores until a global low watermark
+      (hbase.regionserver.global.memstore.size.lower.limit) is reached.
+    </description>
+    <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.master.classes</name>
+    <value/>
+    <description>A comma-separated list of
+      org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
+      loaded by default on the active HMaster process. For any implemented
+      coprocessor methods, the listed classes will be called in order. After
+      implementing your own MasterObserver, just put it in HBase's classpath
+      and add the fully qualified class name here.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.coprocessor.region.classes</name>
+    <value>org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint</value>
+    <description>A comma-separated list of Coprocessors that are loaded by
+      default on all tables. For any override coprocessor method, these classes
+      will be called in order. After implementing your own Coprocessor, just put
+      it in HBase's classpath and add the fully qualified class name here.
+      A coprocessor can also be loaded on demand by setting HTableDescriptor.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authentication</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase.security.authorization</name>
+    <value>false</value>
+    <description> Set Authorization Method.</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Native</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

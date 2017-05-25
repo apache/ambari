@@ -21,6 +21,13 @@
     <service>
       <name>HDFS</name>
       <extends>common-services/HDFS/2.1.0.2.0</extends>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

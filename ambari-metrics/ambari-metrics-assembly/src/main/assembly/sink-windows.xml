@@ -34,7 +34,6 @@
       <directory>${flume-sink.dir}/src/main/conf</directory>
       <outputDirectory>hadoop-sink/conf</outputDirectory>
     </fileSet>
-    <!--
     <fileSet>
       <directory>${storm-sink.dir}/src/main/conf</directory>
       <outputDirectory>hadoop-sink/conf</outputDirectory>
@@ -43,7 +42,6 @@
       <directory>${storm-sink-legacy.dir}/src/main/conf</directory>
       <outputDirectory>hadoop-sink/conf</outputDirectory>
     </fileSet>
-  -->
     <fileSet>
       <directory>${kafka-sink.dir}/target/lib</directory>
       <outputDirectory>hadoop-sink/lib</outputDirectory>
@@ -59,7 +57,6 @@
       <source>${flume-sink.dir}/target/ambari-metrics-flume-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
-    <!--
     <file>
       <source>${storm-sink.dir}/target/ambari-metrics-storm-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
@@ -68,7 +65,6 @@
       <source>${storm-sink-legacy.dir}/target/ambari-metrics-storm-sink-legacy-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
     </file>
-  -->
     <file>
       <source>${kafka-sink.dir}/target/ambari-metrics-kafka-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>

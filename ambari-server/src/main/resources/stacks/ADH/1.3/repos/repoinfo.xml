@@ -16,29 +16,47 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest></latest>
+  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
-      <baseurl>http://FQDN/ADH-1.3.0.1</baseurl>
-      <repoid>ADH-1.3.0.1</repoid>
-      <reponame>ADH-1.3.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0</baseurl>
+      <repoid>HDP-2.2</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
-      <baseurl>http://FQDN/ADH-UTILS-1.3.0.1</baseurl>
-      <repoid>ADH-UTILS-1.3.0.1</repoid>
-      <reponame>ADH-UTILS-1.3.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
-  <os family="redhat7">
+  <os family="suse11">
     <repo>
-      <baseurl>http://FQDN/ADH-1.3.0.1</baseurl>
-      <repoid>ADH-1.3.0.1</repoid>
-      <reponame>ADH-1.3.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.2.6.0</baseurl>
+      <repoid>HDP-2.2</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
-      <baseurl>http://FQDN/ADH-UTILS-1.3.0.1</baseurl>
-      <repoid>ADH-UTILS-1.3.0.1</repoid>
-      <reponame>ADH-UTILS-1.3.0.1</reponame>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
+    </repo>
+  </os>
+  <os family="ubuntu12">
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.6.0</baseurl>
+      <repoid>HDP-2.2</repoid>
+      <reponame>HDP</reponame>
+      <unique>true</unique>
+    </repo>
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
 </reposinfo>

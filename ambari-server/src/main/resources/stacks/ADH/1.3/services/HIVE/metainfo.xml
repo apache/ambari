@@ -20,8 +20,42 @@
   <services>
     <service>
       <name>HIVE</name>
-      <version>1.2.1.2.3</version>
+      <version>0.14.0.2.2</version>
+      <components>
+        <component>
+            <name>HIVE_METASTORE</name>
+            <displayName>Hive Metastore</displayName>
+            <category>MASTER</category>
+            <cardinality>1+</cardinality>
+            <clientsToUpdateConfigs></clientsToUpdateConfigs>
+            <auto-deploy>
+                <enabled>true</enabled>
+                <co-locate>HIVE/HIVE_SERVER</co-locate>
+            </auto-deploy>
+            <commandScript>
+                <script>scripts/hive_metastore.py</script>
+                <scriptType>PYTHON</scriptType>
+              <timeout>1200</timeout>
+            </commandScript>
+            <configuration-dependencies>
+                <config-type>hive-site</config-type>
+            </configuration-dependencies>
+        </component>
+        <component>
+          <name>HIVE_SERVER</name>
+          <cardinality>1+</cardinality>
+          <configuration-dependencies>
+              <config-type>hiveserver2-site</config-type>
+              <config-type>hive-site</config-type>
+          </configuration-dependencies>
+        </component>
+        <component>
+          <name>WEBHCAT_SERVER</name>
+          <cardinality>1+</cardinality>
+        </component>
 
+      </components>
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -29,11 +63,12 @@
             <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql_connector</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>hive</name>
@@ -47,7 +82,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -61,46 +96,61 @@
             <package>
               <name>mysql-community-release</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
             <package>
               <name>mysql-community-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
-              <name>hive</name>
+              <name>hive-${stack_version}</name>
             </package>
             <package>
-              <name>hive-hcatalog</name>
+              <name>hive-${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive-webhcat</name>
+              <name>hive-${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql-client</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
+      <requiredServices>
+        <service>PIG</service>
+      </requiredServices>
 
     </service>
   </services>

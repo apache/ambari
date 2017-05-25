@@ -1,0 +1,45 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"https",
+      "checks":[
+        {
+          "property":"oozie.https.port",
+          "desired":"EXISTS",
+          "site":"oozie-site"
+        },
+        {
+          "property":"oozie.https.keystore.file",
+          "desired":"EXISTS",
+          "site":"oozie-site"
+        },
+        {
+          "property":"oozie.https.keystore.pass",
+          "desired":"EXISTS",
+          "site":"oozie-site"
+        }
+      ]
+    },
+
+    "links": [
+      {
+        "name": "oozie_server_ui",
+        "label": "Oozie Web UI",
+        "requires_user_name": "true",
+        "component_name": "OOZIE_SERVER",
+        "url":"%@://%@:%@/oozie?user.name=%@",
+        "port":{
+          "http_property": "oozie.base.url",
+          "http_default_port": "11000",
+          "https_property": "oozie.base.url",
+          "https_default_port": "11443",
+          "regex": "\\w*:(\\d+)",
+          "site": "oozie-site"
+        }
+      }
+    ]
+  }
+}

@@ -1,13 +1,13 @@
 {
-  "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions?fields=services/StackServices,Versions",
+  "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions?fields=services/StackServices,Versions",
   "items" : [
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
         "parent_stack_version" : "2.0.6",
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.0",
         "config_types" : {
           "cluster-env" : {
@@ -20,7 +20,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -31,7 +31,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.4.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -57,7 +57,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -66,7 +66,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -80,7 +80,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -92,7 +92,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.96.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -124,7 +124,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -135,7 +135,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.1.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -173,7 +173,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -186,7 +186,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.12.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -236,7 +236,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -247,7 +247,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.1.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -267,7 +267,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -278,7 +278,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.0.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -304,7 +304,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -315,7 +315,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.12.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -341,7 +341,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -352,7 +352,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.4.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -366,7 +366,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -377,7 +377,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.1.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -409,7 +409,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -418,7 +418,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0",
             "user_name" : null,
             "config_types" : {
@@ -440,12 +440,12 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
         "parent_stack_version" : null,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.0.6",
         "config_types" : {
           "cluster-env" : {
@@ -458,7 +458,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -469,7 +469,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.4.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -495,7 +495,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -504,7 +504,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -518,7 +518,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -530,7 +530,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.96.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -562,7 +562,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -573,7 +573,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.1.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -611,7 +611,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -624,7 +624,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.12.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -674,7 +674,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -685,7 +685,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.1.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -705,7 +705,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -716,7 +716,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.0.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -742,7 +742,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -753,7 +753,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.12.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -779,7 +779,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -790,7 +790,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.4.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -804,7 +804,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -815,7 +815,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.1.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -847,7 +847,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -856,7 +856,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6",
             "user_name" : null,
             "config_types" : {
@@ -878,12 +878,12 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
         "parent_stack_version" : "2.0.6",
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.0.6.GlusterFS",
         "config_types" : {
           "cluster-env" : {
@@ -896,7 +896,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -907,7 +907,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.4.0.2.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -933,7 +933,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -942,7 +942,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -956,7 +956,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/GLUSTERFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/GLUSTERFS",
           "StackServices" : {
             "comments" : "An Hadoop Compatible File System",
             "custom_commands" : [ ],
@@ -965,7 +965,7 @@
             "service_check_supported" : true,
             "service_name" : "GLUSTERFS",
             "service_version" : "3.4.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -985,7 +985,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -997,7 +997,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.96.1.2.0.6.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1029,7 +1029,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -1040,7 +1040,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.2.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1084,7 +1084,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -1097,7 +1097,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.12.0.2.0.6.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1147,7 +1147,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1158,7 +1158,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.2.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1178,7 +1178,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -1189,7 +1189,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.0.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1215,7 +1215,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -1226,7 +1226,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.12.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1252,7 +1252,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -1263,7 +1263,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.4.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1277,7 +1277,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1288,7 +1288,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.2.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1320,7 +1320,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.0.6.GlusterFS/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.0.6.GlusterFS/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed\n        coordination.",
             "custom_commands" : [ ],
@@ -1329,7 +1329,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.0.6.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1351,12 +1351,12 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
         "parent_stack_version" : "2.0.6",
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.1",
         "config_types" : {
           "cluster-env" : {
@@ -1369,7 +1369,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1380,7 +1380,7 @@
             "service_check_supported" : true,
             "service_name" : "FALCON",
             "service_version" : "0.5.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1406,7 +1406,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1417,7 +1417,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1443,7 +1443,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -1452,7 +1452,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1466,7 +1466,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -1478,7 +1478,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.98.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1510,7 +1510,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -1521,7 +1521,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1559,7 +1559,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -1572,7 +1572,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.13.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1622,7 +1622,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1633,7 +1633,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.1.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1653,7 +1653,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -1664,7 +1664,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.0.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1690,7 +1690,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -1701,7 +1701,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.12.1.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1727,7 +1727,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -1738,7 +1738,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.4.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1752,7 +1752,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -1763,7 +1763,7 @@
             "service_check_supported" : true,
             "service_name" : "STORM",
             "service_version" : "0.9.1.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1783,7 +1783,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -1794,7 +1794,7 @@
             "service_check_supported" : false,
             "service_name" : "TEZ",
             "service_version" : "0.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1814,7 +1814,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -1825,7 +1825,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1857,7 +1857,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -1866,7 +1866,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1",
             "user_name" : null,
             "config_types" : {
@@ -1888,12 +1888,12 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS",
       "Versions" : {
         "active" : false,
         "min_upgrade_version" : null,
         "parent_stack_version" : "2.0.6",
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.1.GlusterFS",
         "config_types" : {
           "cluster-env" : {
@@ -1906,7 +1906,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1917,7 +1917,7 @@
             "service_check_supported" : true,
             "service_name" : "FALCON",
             "service_version" : "0.5.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1949,7 +1949,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -1960,7 +1960,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -1986,7 +1986,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -1995,7 +1995,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2009,7 +2009,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/GLUSTERFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/GLUSTERFS",
           "StackServices" : {
             "comments" : "An Hadoop Compatible File System",
             "custom_commands" : [ ],
@@ -2018,7 +2018,7 @@
             "service_check_supported" : true,
             "service_name" : "GLUSTERFS",
             "service_version" : "2.1.3.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2038,7 +2038,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -2050,7 +2050,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.98.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2082,7 +2082,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -2093,7 +2093,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2131,7 +2131,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -2144,7 +2144,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.13.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2194,7 +2194,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2205,7 +2205,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.1.0.2.0.6.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2225,7 +2225,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -2236,7 +2236,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.0.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2262,7 +2262,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -2273,7 +2273,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.12.1.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2299,7 +2299,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -2310,7 +2310,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.4.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2324,7 +2324,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -2333,7 +2333,7 @@
             "service_check_supported" : true,
             "service_name" : "STORM",
             "service_version" : "0.9.1.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2353,7 +2353,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -2364,7 +2364,7 @@
             "service_check_supported" : false,
             "service_name" : "TEZ",
             "service_version" : "0.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2384,7 +2384,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2395,7 +2395,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.4.0.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2427,7 +2427,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1.GlusterFS/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.1.GlusterFS/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed\n        coordination.",
             "custom_commands" : [ ],
@@ -2436,7 +2436,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.1",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.1.GlusterFS",
             "user_name" : null,
             "config_types" : {
@@ -2458,12 +2458,12 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2",
       "Versions" : {
         "active" : true,
         "min_upgrade_version" : null,
         "parent_stack_version" : "2.1",
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_version" : "2.2",
         "config_types" : {
           "cluster-env" : {
@@ -2476,7 +2476,7 @@
       },
       "services" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/FALCON",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/FALCON",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2487,7 +2487,7 @@
             "service_check_supported" : true,
             "service_name" : "FALCON",
             "service_version" : "0.6.0.2.2.9.9",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2513,7 +2513,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/FLUME",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/FLUME",
           "StackServices" : {
             "comments" : "Data management and processing platform",
             "custom_commands" : [ ],
@@ -2524,7 +2524,7 @@
             "service_check_supported" : true,
             "service_name" : "FLUME",
             "service_version" : "1.5.0.1.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2550,7 +2550,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/GANGLIA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/GANGLIA",
           "StackServices" : {
             "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
             "custom_commands" : [ ],
@@ -2559,7 +2559,7 @@
             "service_check_supported" : false,
             "service_name" : "GANGLIA",
             "service_version" : "3.5.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2573,7 +2573,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/HBASE",
           "StackServices" : {
             "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
             "custom_commands" : [ ],
@@ -2585,7 +2585,7 @@
             "service_check_supported" : true,
             "service_name" : "HBASE",
             "service_version" : "0.98.4.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2617,7 +2617,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/HDFS",
           "StackServices" : {
             "comments" : "Apache Hadoop Distributed File System",
             "custom_commands" : [ ],
@@ -2628,7 +2628,7 @@
             "service_check_supported" : true,
             "service_name" : "HDFS",
             "service_version" : "2.6.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2666,7 +2666,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/HIVE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/HIVE",
           "StackServices" : {
             "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
             "custom_commands" : [ ],
@@ -2677,7 +2677,7 @@
             "service_check_supported" : true,
             "service_name" : "HIVE",
             "service_version" : "0.14.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2727,7 +2727,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/KAFKA",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/KAFKA",
           "StackServices" : {
             "comments" : "A high-throughput distributed messaging system",
             "custom_commands" : [ ],
@@ -2738,7 +2738,7 @@
             "service_check_supported" : true,
             "service_name" : "KAFKA",
             "service_version" : "0.8.1.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2764,7 +2764,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/KNOX",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/KNOX",
           "StackServices" : {
             "comments" : "Provides a single point of authentication and access for Apache Hadoop services in a cluster",
             "custom_commands" : [ ],
@@ -2773,7 +2773,7 @@
             "service_check_supported" : true,
             "service_name" : "KNOX",
             "service_version" : "0.5.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2817,7 +2817,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/MAPREDUCE2",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/MAPREDUCE2",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -2828,7 +2828,7 @@
             "service_check_supported" : true,
             "service_name" : "MAPREDUCE2",
             "service_version" : "2.6.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2848,7 +2848,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/OOZIE",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/OOZIE",
           "StackServices" : {
             "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
             "custom_commands" : [ ],
@@ -2859,7 +2859,7 @@
             "service_check_supported" : true,
             "service_name" : "OOZIE",
             "service_version" : "4.1.0.2.2.9.9",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2885,7 +2885,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/PIG",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/PIG",
           "StackServices" : {
             "comments" : "Scripting platform for analyzing large datasets",
             "custom_commands" : [ ],
@@ -2896,7 +2896,7 @@
             "service_check_supported" : true,
             "service_name" : "PIG",
             "service_version" : "0.14.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2922,7 +2922,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/SLIDER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/SLIDER",
           "StackServices" : {
             "comments" : "A framework for deploying, managing and monitoring existing distributed applications on YARN.",
             "custom_commands" : [ ],
@@ -2935,7 +2935,7 @@
             "service_check_supported" : true,
             "service_name" : "SLIDER",
             "service_version" : "0.60.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2961,7 +2961,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/SQOOP",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/SQOOP",
           "StackServices" : {
             "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
             "custom_commands" : [ ],
@@ -2972,7 +2972,7 @@
             "service_check_supported" : true,
             "service_name" : "SQOOP",
             "service_version" : "1.4.5.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -2986,7 +2986,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/STORM",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/STORM",
           "StackServices" : {
             "comments" : "Apache Hadoop Stream processing framework",
             "custom_commands" : [ ],
@@ -2997,7 +2997,7 @@
             "service_check_supported" : true,
             "service_name" : "STORM",
             "service_version" : "0.9.3.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -3017,7 +3017,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/TEZ",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/TEZ",
           "StackServices" : {
             "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
             "custom_commands" : [ ],
@@ -3028,7 +3028,7 @@
             "service_check_supported" : false,
             "service_name" : "TEZ",
             "service_version" : "0.6.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -3048,7 +3048,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/YARN",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/YARN",
           "StackServices" : {
             "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
             "custom_commands" : [ ],
@@ -3059,7 +3059,7 @@
             "service_check_supported" : true,
             "service_name" : "YARN",
             "service_version" : "2.6.0.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {
@@ -3091,7 +3091,7 @@
           }
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.2/services/ZOOKEEPER",
+          "href" : "http://192.168.56.101:8080/api/v1/stacks/ADH/versions/2.2/services/ZOOKEEPER",
           "StackServices" : {
             "comments" : "Centralized service which provides highly reliable distributed coordination",
             "custom_commands" : [ ],
@@ -3100,7 +3100,7 @@
             "service_check_supported" : true,
             "service_name" : "ZOOKEEPER",
             "service_version" : "3.4.5.2.2.0.0",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
             "user_name" : null,
             "config_types" : {

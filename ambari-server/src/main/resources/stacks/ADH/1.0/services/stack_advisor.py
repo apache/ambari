@@ -16,24 +16,35 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import random
 import re
 import os
+import string
 import sys
-from math import ceil, floor
+import socket
+
+from math import ceil, floor, log
+
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 
 from stack_advisor import DefaultStackAdvisor
 
 
-class ADH10StackAdvisor(DefaultStackAdvisor):
+class HDP206StackAdvisor(DefaultStackAdvisor):
+
+  def __init__(self):
+    super(HDP206StackAdvisor, self).__init__()
+    Logger.initialize_logger()
 
   def getComponentLayoutValidations(self, services, hosts):
     """Returns array of Validation objects about issues with hostnames components assigned to"""
-    items = []
+    items = super(HDP206StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
     # Validating NAMENODE and SECONDARY_NAMENODE are on different hosts if possible
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    hostsCount = len(hostsList)
+    # Use a set for fast lookup
+    hostsSet =  set(super(HDP206StackAdvisor, self).getActiveHosts([host["Hosts"] for host in hosts["items"]]))  #[host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostsCount = len(hostsSet)
 
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
@@ -45,36 +56,38 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       if component["StackServiceComponents"]["cardinality"] is not None:
          componentName = component["StackServiceComponents"]["component_name"]
          componentDisplayName = component["StackServiceComponents"]["display_name"]
-         componentHostsCount = 0
+         componentHosts = []
          if component["StackServiceComponents"]["hostnames"] is not None:
-           componentHostsCount = len(component["StackServiceComponents"]["hostnames"])
+           componentHosts = [componentHost for componentHost in component["StackServiceComponents"]["hostnames"] if componentHost in hostsSet]
+         componentHostsCount = len(componentHosts)
          cardinality = str(component["StackServiceComponents"]["cardinality"])
          # cardinality types: null, 1+, 1-2, 1, ALL
          message = None
          if "+" in cardinality:
            hostsMin = int(cardinality[:-1])
            if componentHostsCount < hostsMin:
-             message = "At least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
+             message = "at least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
          elif "-" in cardinality:
            nums = cardinality.split("-")
            hostsMin = int(nums[0])
            hostsMax = int(nums[1])
            if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
-             message = "Between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
+             message = "between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
          elif "ALL" == cardinality:
            if componentHostsCount != hostsCount:
              message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
          else:
            if componentHostsCount != int(cardinality):
-             message = "Exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
+             message = "exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
 
          if message is not None:
+           message = "You have selected {0} {1} components. Please consider that {2}".format(componentHostsCount, componentDisplayName, message)
            items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
 
     # Validating host-usage
     usedHostsListList = [component["StackServiceComponents"]["hostnames"] for component in componentsList if not self.isComponentNotValuable(component)]
     usedHostsList = [item for sublist in usedHostsListList for item in sublist]
-    nonUsedHostsList = [item for item in hostsList if item not in usedHostsList]
+    nonUsedHostsList = [item for item in hostsSet if item not in usedHostsList]
     for host in nonUsedHostsList:
       items.append( { "type": 'host-component', "level": 'ERROR', "message": 'Host is not used', "host": str(host) } )
 
@@ -88,62 +101,82 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       "HBASE": self.recommendHbaseConfigurations,
       "STORM": self.recommendStormConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
-      "RANGER": self.recommendRangerConfigurations
+      "RANGER": self.recommendRangerConfigurations,
+      "ZOOKEEPER": self.recommendZookeeperConfigurations,
+      "OOZIE": self.recommendOozieConfigurations
     }
 
-  def putProperty(self, config, configType, services=None):
-    userConfigs = {}
-    changedConfigs = []
-    # if services parameter, prefer values, set by user
-    if services:
-      if 'configurations' in services.keys():
-        userConfigs = services['configurations']
-      if 'changed-configurations' in services.keys():
-        changedConfigs = services["changed-configurations"]
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
+    oozie_mount_properties = [
+      ("oozie_data_dir", "OOZIE_SERVER", "/hadoop/oozie/data", "single"),
+    ]
+    self.updateMountProperties("oozie-env", oozie_mount_properties, configurations, services, hosts)
 
-    if configType not in config:
-      config[configType] = {}
-    if"properties" not in config[configType]:
-      config[configType]["properties"] = {}
-    def appendProperty(key, value):
-      # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
-        config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
-      else:
-        config[configType]["properties"][key] = str(value)
-    return appendProperty
-
-  def __isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
-    for changedConfig in changedConfigs:
-      if changedConfig['type']==configType and changedConfig['name']==propertyName:
-        return True
-    return False
-
-  def putPropertyAttribute(self, config, configType):
-    if configType not in config:
-      config[configType] = {}
-    def appendPropertyAttribute(key, attribute, attributeValue):
-      if "property_attributes" not in config[configType]:
-        config[configType]["property_attributes"] = {}
-      if key not in config[configType]["property_attributes"]:
-        config[configType]["property_attributes"][key] = {}
-      config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
-    return appendPropertyAttribute
+  def recommendZookeeperConfigurations(self, configurations, clusterData, services, hosts):
+    zk_mount_properties = [
+      ("dataDir", "ZOOKEEPER_SERVER", "/hadoop/zookeeper", "single"),
+    ]
+    self.updateMountProperties("zoo.cfg", zk_mount_properties, configurations, services, hosts)
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     nodemanagerMinRam = 1048576 # 1TB in mb
     if "referenceNodeManagerHost" in clusterData:
       nodemanagerMinRam = min(clusterData["referenceNodeManagerHost"]["total_mem"]/1024, nodemanagerMinRam)
+
+    callContext = getCallContext(services)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
-    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
+    # read from the supplied config
+    #if 'recommendConfigurations' != callContext and \
+    #        "yarn-site" in services["configurations"] and \
+    #        "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+    #    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+    if 'recommendConfigurations' == callContext:
+      putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
+    else:
+      # read from the supplied config
+      if "yarn-site" in services["configurations"] and "yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
+      else:
+        putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
+      pass
+    pass
+
+    putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['yarnMinContainerSize']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
+
+    yarn_mount_properties = [
+      ("yarn.nodemanager.local-dirs", "NODEMANAGER", "/hadoop/yarn/local", "multi"),
+      ("yarn.nodemanager.log-dirs", "NODEMANAGER", "/hadoop/yarn/log", "multi"),
+      ("yarn.timeline-service.leveldb-timeline-store.path", "APP_TIMELINE_SERVER", "/hadoop/yarn/timeline", "single"),
+      ("yarn.timeline-service.leveldb-state-store.path", "APP_TIMELINE_SERVER", "/hadoop/yarn/timeline", "single")
+    ]
+
+    self.updateMountProperties("yarn-site", yarn_mount_properties, configurations, services, hosts)
+
+    sc_queue_name = self.recommendYarnQueue(services, "yarn-env", "service_check.queue.name")
+    if sc_queue_name is not None:
+      putYarnEnvProperty("service_check.queue.name", sc_queue_name)
+
     containerExecutorGroup = 'hadoop'
     if 'cluster-env' in services['configurations'] and 'user_group' in services['configurations']['cluster-env']['properties']:
       containerExecutorGroup = services['configurations']['cluster-env']['properties']['user_group']
     putYarnProperty("yarn.nodemanager.linux-container-executor.group", containerExecutorGroup)
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "TEZ" in servicesList:
+        ambari_user = self.getAmbariUser(services)
+        ambariHostName = socket.getfqdn()
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
+        putYarnProperty("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(ambari_user), "*")
+        old_ambari_user = self.getOldAmbariUser(services)
+        if old_ambari_user is not None:
+            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+            putYarnPropertyAttribute("yarn.timeline-service.http-authentication.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
+
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
@@ -154,6 +187,147 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+
+    mapred_mounts = [
+      ("mapred.local.dir", ["TASKTRACKER", "NODEMANAGER"], "/hadoop/mapred", "multi")
+    ]
+
+    self.updateMountProperties("mapred-site", mapred_mounts, configurations, services, hosts)
+
+    mr_queue = self.recommendYarnQueue(services, "mapred-site", "mapreduce.job.queuename")
+    if mr_queue is not None:
+      putMapredProperty("mapreduce.job.queuename", mr_queue)
+
+  def getAmbariUser(self, services):
+    ambari_user = services['ambari-server-properties']['ambari-server.user']
+    if "cluster-env" in services["configurations"] \
+          and "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"] \
+                and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+                    and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+      ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+      ambari_user = ambari_user.split('@')[0]
+    return ambari_user
+
+  def getOldAmbariUser(self, services):
+    ambari_user = None
+    if "cluster-env" in services["configurations"]:
+      if "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+              and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true":
+         ambari_user = services['ambari-server-properties']['ambari-server.user']
+      elif "ambari_principal_name" in services["configurations"]["cluster-env"]["properties"]:
+         ambari_user = services["configurations"]["cluster-env"]["properties"]["ambari_principal_name"]
+         ambari_user = ambari_user.split('@')[0]
+    return ambari_user
+
+  PROXYUSER_SPECIAL_RE = [r"\$\{(?:([\w\-\.]+)/)?([\w\-\.]+)(?:\s*\|\s*(.+?))?\}"]
+
+  @classmethod
+  def preserve_special_values(cls, value):
+    """
+    Replace matches of PROXYUSER_SPECIAL_RE with random strings.
+
+    :param value: input string
+    :return: result string and dictionary that contains mapping random string to original value
+    """
+    def gen_random_str():
+      return ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(20))
+
+    result = value
+    replacements_dict = {}
+    for regexp in cls.PROXYUSER_SPECIAL_RE:
+      for match in re.finditer(regexp, value):
+        matched_string = match.string[match.start():match.end()]
+        rand_str = gen_random_str()
+        result = result.replace(matched_string, rand_str)
+        replacements_dict[rand_str] = matched_string
+    return result, replacements_dict
+
+  @staticmethod
+  def restore_special_values(data, replacement_dict):
+    """
+    Replace random strings in data set to their original values using replacement_dict.
+
+    :param data:
+    :param replacement_dict:
+    :return:
+    """
+    for replacement, original in replacement_dict.iteritems():
+      data.remove(replacement)
+      data.add(original)
+
+  def get_data_for_proxyuser(self, user_name, services, configurations, groups=False):
+    """
+    Returns values of proxyuser properties for given user. Properties can be
+    hadoop.proxyuser.username.groups or hadoop.proxyuser.username.hosts
+
+    :param user_name:
+    :param services:
+    :param configurations:
+    :param groups: if true, will return values for group property, not hosts
+    :return: tuple (wildcard_value, set[values]), where wildcard_value indicates if property value was *
+    """
+    if "core-site" in services["configurations"]:
+      coreSite = services["configurations"]["core-site"]['properties']
+    else:
+      coreSite = {}
+    if groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+    if property_name in coreSite:
+      property_value = coreSite[property_name]
+      if property_value == "*":
+        return True, set()
+      else:
+        property_value, replacement_map = self.preserve_special_values(property_value)
+        result_values = set([v.strip() for v in property_value.split(",")])
+        if "core-site" in configurations:
+          if property_name in configurations["core-site"]['properties']:
+            additional_value, additional_replacement_map = self.preserve_special_values(configurations["core-site"]['properties'][property_name])
+            replacement_map.update(additional_replacement_map)
+            result_values = result_values.union([v.strip() for v in additional_value.split(",")])
+        self.restore_special_values(result_values, replacement_map)
+        return False, result_values
+    return False, set()
+
+  def put_proxyuser_value(self, user_name, value, is_groups=False, services=None, configurations=None, put_function=None):
+    is_wildcard_value, current_value = self.get_data_for_proxyuser(user_name, services, configurations, is_groups)
+    result_value = "*"
+    result_values_set = self.merge_proxyusers_values(current_value, value)
+    if len(result_values_set) > 0:
+      result_value = ",".join(sorted([val for val in result_values_set if val]))
+
+    if is_groups:
+      property_name = "hadoop.proxyuser.{0}.groups".format(user_name)
+    else:
+      property_name = "hadoop.proxyuser.{0}.hosts".format(user_name)
+
+    put_function(property_name, result_value)
+
+  def merge_proxyusers_values(self, first, second):
+    result = set()
+    def append(data):
+      if isinstance(data, str) or isinstance(data, unicode):
+        if data != "*":
+          result.update(data.split(","))
+      else:
+        result.update(data)
+    append(first)
+    append(second)
+    return result
+
+  def recommendAmbariProxyUsersForHDFS(self, services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
+      if "HDFS" in servicesList:
+          ambari_user = self.getAmbariUser(services)
+          ambariHostName = socket.getfqdn()
+
+          self.put_proxyuser_value(ambari_user,ambariHostName,services=services, configurations=configurations, put_function=putCoreSiteProperty)
+          self.put_proxyuser_value(ambari_user, "*", is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
+
+          old_ambari_user = self.getOldAmbariUser(services)
+          if old_ambari_user is not None:
+            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
   def recommendHadoopProxyUsers (self, configurations, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -173,26 +347,65 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       oozie_user = None
       if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
         oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-        oozieServerrHost = self.getHostWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
-        if oozieServerrHost is not None:
-          oozieServerHostName = oozieServerrHost["Hosts"]["public_host_name"]
+        oozieServerHostsNameSet = set()
+        oozieServerHosts = self.getHostsWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
+        if oozieServerHosts is not None:
+          for oozieServerHost in oozieServerHosts:
+            oozieServerHostsNameSet.add(oozieServerHost["Hosts"]["host_name"])
+          oozieServerHostsNames = ",".join(sorted(oozieServerHostsNameSet))
           if not oozie_user in users and oozie_user is not None:
-            users[oozie_user] = {"propertyHosts" : oozieServerHostName,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
+            users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
 
+    hive_user = None
     if "HIVE" in servicesList:
-      hive_user = None
       webhcat_user = None
       if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"] \
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
-        hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
-        if hiveServerrHost is not None:
-          hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
+        hiveServerHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+        hiveServerInteractiveHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER_INTERACTIVE", services, hosts)
+        webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
+
+        if hiveServerHosts is not None:
+          hiveServerHostsNameSet = set()
+          for hiveServerHost in hiveServerHosts:
+            hiveServerHostsNameSet.add(hiveServerHost["Hosts"]["host_name"])
+          # Append Hive Server Interactive host as well, as it is Hive2/HiveServer2 component.
+          if hiveServerInteractiveHosts:
+            for hiveServerInteractiveHost in hiveServerInteractiveHosts:
+              hiveServerInteractiveHostName = hiveServerInteractiveHost["Hosts"]["host_name"]
+              if hiveServerInteractiveHostName not in hiveServerHostsNameSet:
+                hiveServerHostsNameSet.add(hiveServerInteractiveHostName)
+                Logger.info("Appended (if not exiting), Hive Server Interactive Host : '{0}', to Hive Server Host List : '{1}'".format(hiveServerInteractiveHostName, hiveServerHostsNameSet))
+
+          hiveServerHostsNames = ",".join(sorted(hiveServerHostsNameSet))  # includes Hive Server interactive host also.
+          Logger.info("Hive Server and Hive Server Interactive (if enabled) Host List : {0}".format(hiveServerHostsNameSet))
           if not hive_user in users and hive_user is not None:
-            users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+            users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
+
+        if webHcatServerHosts is not None:
+          webHcatServerHostsNameSet = set()
+          for webHcatServerHost in webHcatServerHosts:
+            webHcatServerHostsNameSet.add(webHcatServerHost["Hosts"]["host_name"])
+          webHcatServerHostsNames = ",".join(sorted(webHcatServerHostsNameSet))
           if not webhcat_user in users and webhcat_user is not None:
-            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
+            users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
+
+    if "YARN" in servicesList:
+      yarn_user = None
+      if "yarn-env" in services["configurations"] and "yarn_user" in services["configurations"]["yarn-env"]["properties"]:
+        yarn_user = services["configurations"]["yarn-env"]["properties"]["yarn_user"]
+        rmHosts = self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)
+
+        if len(rmHosts) > 1:
+          rmHostsNameSet = set()
+          for rmHost in rmHosts:
+            rmHostsNameSet.add(rmHost["Hosts"]["host_name"])
+          rmHostsNames = ",".join(sorted(rmHostsNameSet))
+          if not yarn_user in users and yarn_user is not None:
+            users[yarn_user] = {"propertyHosts" : rmHostsNames, "config" : "yarn-env", "propertyName" : "yarn_user"}
+
 
     if "FALCON" in servicesList:
       falconUser = None
@@ -201,23 +414,39 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         if not falconUser in users and falconUser is not None:
           users[falconUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "falcon-env", "propertyName" : "falcon_user"}
 
+    if "SPARK" in servicesList:
+      livyUser = None
+      if "livy-env" in services["configurations"] and "livy_user" in services["configurations"]["livy-env"]["properties"]:
+        livyUser = services["configurations"]["livy-env"]["properties"]["livy_user"]
+        if not livyUser in users and livyUser is not None:
+          users[livyUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "livy-env", "propertyName" : "livy_user"}
+
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
     for user_name, user_properties in users.iteritems():
+      if hive_user and hive_user == user_name:
+        if "propertyHosts" in user_properties:
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
-      putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
+      self.put_proxyuser_value(user_name, user_properties["propertyHosts"], services=services, configurations=configurations, put_function=putCoreSiteProperty)
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
+      if "propertyGroups" in user_properties:
+        self.put_proxyuser_value(user_name, user_properties["propertyGroups"], is_groups=True, services=services, configurations=configurations, put_function=putCoreSiteProperty)
 
       # Remove old properties if user was renamed
       userOldValue = getOldValue(self, services, user_properties["config"], user_properties["propertyName"])
       if userOldValue is not None and userOldValue != user_name:
         putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(userOldValue), 'delete', 'true')
-        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(userOldValue)})
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
         services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(user_name)})
-        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
+
+        if "propertyGroups" in user_properties:
+          putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(userOldValue), 'delete', 'true')
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(userOldValue)})
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
+
+    self.recommendAmbariProxyUsersForHDFS(services, configurations, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
@@ -232,21 +461,82 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     # Check if NN HA is enabled and recommend removing dfs.namenode.rpc-address
     hdfsSiteProperties = getServicesSiteProperties(services, "hdfs-site")
     nameServices = None
-    if hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
+    if hdfsSiteProperties and 'dfs.internal.nameservices' in hdfsSiteProperties:
+      nameServices = hdfsSiteProperties['dfs.internal.nameservices']
+    if nameServices is None and hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
       nameServices = hdfsSiteProperties['dfs.nameservices']
     if nameServices and "dfs.ha.namenodes.%s" % nameServices in hdfsSiteProperties:
       namenodes = hdfsSiteProperties["dfs.ha.namenodes.%s" % nameServices]
       if len(namenodes.split(',')) > 1:
         putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
 
+    hdfs_mount_properties = [
+      ("dfs.datanode.data.dir", "DATANODE", "/hadoop/hdfs/data", "multi"),
+      ("dfs.namenode.name.dir", "DATANODE", "/hadoop/hdfs/namenode", "multi"),
+      ("dfs.namenode.checkpoint.dir", "SECONDARY_NAMENODE", "/hadoop/hdfs/namesecondary", "single")
+    ]
+
+    self.updateMountProperties("hdfs-site", hdfs_mount_properties, configurations, services, hosts)
+
+    if configurations and "hdfs-site" in configurations and \
+            "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"] and \
+                    configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"] is not None:
+      dataDirs = configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"].split(",")
+
+    elif hdfsSiteProperties and "dfs.datanode.data.dir" in hdfsSiteProperties and \
+                    hdfsSiteProperties["dfs.datanode.data.dir"] is not None:
+      dataDirs = hdfsSiteProperties["dfs.datanode.data.dir"].split(",")
+
+    # dfs.datanode.du.reserved should be set to 10-15% of volume size
+    # For each host selects maximum size of the volume. Then gets minimum for all hosts.
+    # This ensures that each host will have at least one data dir with available space.
+    reservedSizeRecommendation = 0l #kBytes
+    for host in hosts["items"]:
+      mountPoints = []
+      mountPointDiskAvailableSpace = [] #kBytes
+      for diskInfo in host["Hosts"]["disk_info"]:
+        mountPoints.append(diskInfo["mountpoint"])
+        mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
+
+      maxFreeVolumeSizeForHost = 0l #kBytes
+      for dataDir in dataDirs:
+        mp = getMountPointForDir(dataDir, mountPoints)
+        for i in range(len(mountPoints)):
+          if mp == mountPoints[i]:
+            if mountPointDiskAvailableSpace[i] > maxFreeVolumeSizeForHost:
+              maxFreeVolumeSizeForHost = mountPointDiskAvailableSpace[i]
+
+      if not reservedSizeRecommendation or maxFreeVolumeSizeForHost and maxFreeVolumeSizeForHost < reservedSizeRecommendation:
+        reservedSizeRecommendation = maxFreeVolumeSizeForHost
+
+    if reservedSizeRecommendation:
+      reservedSizeRecommendation = max(reservedSizeRecommendation * 1024 / 8, 1073741824) # At least 1Gb is reserved
+      putHDFSSiteProperty('dfs.datanode.du.reserved', reservedSizeRecommendation) #Bytes
+
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
   def recommendHbaseConfigurations(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
+
+    # If cluster size is < 100, hbase master heap = 2G
+    # else If cluster size is < 500, hbase master heap = 4G
+    # else hbase master heap = 8G
+    # for small test clusters use 1 gb
+    hostsCount = 0
+    if hosts and "items" in hosts:
+      hostsCount = len(hosts["items"])
+
+    hbaseMasterRam = {
+      hostsCount < 20: 1,
+      20 <= hostsCount < 100: 2,
+      100 <= hostsCount < 500: 4,
+      500 <= hostsCount: 8
+    }[True]
+
     putHbaseProperty = self.putProperty(configurations, "hbase-env", services)
     putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
-    putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
+    putHbaseProperty('hbase_master_heapsize', hbaseMasterRam * 1024)
 
     # recommendations for HBase site config
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
@@ -258,27 +548,15 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
-    ranger_sql_connector_dict = {
-      'MYSQL': '/usr/share/java/mysql-connector-java.jar',
-      'ORACLE': '/usr/share/java/ojdbc6.jar',
-      'POSTGRES': '/usr/share/java/postgresql.jar',
-      'MSSQL': '/usr/share/java/sqljdbc4.jar',
-      'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
-    }
 
     putRangerAdminProperty = self.putProperty(configurations, "admin-properties", services)
-
-    if 'admin-properties' in services['configurations'] and 'DB_FLAVOR' in services['configurations']['admin-properties']['properties']:
-      rangerDbFlavor = services['configurations']["admin-properties"]["properties"]["DB_FLAVOR"]
-      rangerSqlConnectorProperty = ranger_sql_connector_dict.get(rangerDbFlavor, ranger_sql_connector_dict['MYSQL'])
-      putRangerAdminProperty('SQL_CONNECTOR_JAR', rangerSqlConnectorProperty)
 
     # Build policymgr_external_url
     protocol = 'http'
     ranger_admin_host = 'localhost'
     port = '6080'
 
-    # Check if http is disabled. For ADH-1.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
+    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
     # For Ranger-0.4.0 this can be checked in ranger-site/http.enabled
     if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
       and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
@@ -311,7 +589,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         and services['configurations'] \
         and 'admin-properties' in services['configurations'] and 'policymgr_external_url' in services['configurations']['admin-properties']['properties'] \
         and services['configurations']['admin-properties']['properties']['policymgr_external_url'] \
-        and not services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip().isempty():
+        and services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip():
 
         # in case of HA deployment keep the policymgr_external_url specified in the config
         policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
@@ -320,7 +598,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         ranger_admin_host = ranger_admin_hosts[0]
         policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
 
-    putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
+      putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
     rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
     if rangerServiceVersion == '0.4.0':
@@ -454,21 +732,62 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
-    putTimelineServiceProperty = self.putProperty(configurations, "ams-site", services)
+    putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env", services)
+    putGrafanaProperty = self.putProperty(configurations, "ams-grafana-env", services)
+    putGrafanaPropertyAttribute = self.putPropertyAttribute(configurations, "ams-grafana-env")
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
+    # TODO set "timeline.metrics.service.webapp.address" to 0.0.0.0:port in upgrade catalog
+    timeline_metrics_service_webapp_address = '0.0.0.0'
+
+    putAmsSiteProperty("timeline.metrics.service.webapp.address", str(timeline_metrics_service_webapp_address) + ":6188")
+
+    log_dir = "/var/log/ambari-metrics-collector"
+    if "ams-env" in services["configurations"]:
+      if "metrics_collector_log_dir" in services["configurations"]["ams-env"]["properties"]:
+        log_dir = services["configurations"]["ams-env"]["properties"]["metrics_collector_log_dir"]
+      putHbaseEnvProperty("hbase_log_dir", log_dir)
+
+    defaultFs = 'file:///'
+    if "core-site" in services["configurations"] and \
+      "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:
+      defaultFs = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
+
+    operatingMode = "embedded"
+    if "ams-site" in services["configurations"]:
+      if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
+        operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
+
+    if len(amsCollectorHosts) > 1 :
+      operatingMode = "distributed"
+      putAmsSiteProperty("timeline.metrics.service.operation.mode", operatingMode)
+
+    if operatingMode == "distributed":
+      putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'true')
+      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+    else:
+      putAmsSiteProperty("timeline.metrics.service.watcher.disabled", 'false')
+      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
+
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
-    hbaseClusterDistributed = False
+    zk_port_default = []
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
       if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
-      if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
-        hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
+      if "hbase.zookeeper.property.clientPort" in services["configurations"]["ams-hbase-site"]["properties"]:
+        zk_port_default = services["configurations"]["ams-hbase-site"]["properties"]["hbase.zookeeper.property.clientPort"]
+
+      # Skip recommendation item if default value is present
+    if operatingMode == "distributed" and not "{{zookeeper_clientPort}}" in zk_port_default:
+      zkPort = self.getZKPort(services)
+      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", zkPort)
+    elif operatingMode == "embedded" and not "{{zookeeper_clientPort}}" in zk_port_default:
+      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", "61181")
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:
@@ -476,27 +795,38 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         if host["Hosts"]["host_name"] == collectorHostName:
           mountpoints = self.getPreferredMountPoints(host["Hosts"])
           break
-    if not rootDir.startswith("hdfs://"):
+    isLocalRootDir = rootDir.startswith("file://") or (defaultFs.startswith("file://") and rootDir.startswith("/"))
+    if isLocalRootDir:
       rootDir = re.sub("^file:///|/", "", rootDir, count=1)
       rootDir = "file://" + os.path.join(mountpoints[0], rootDir)
     tmpDir = re.sub("^file:///|/", "", tmpDir, count=1)
-    if len(mountpoints) > 1 and not rootDir.startswith("hdfs://"):
+    if len(mountpoints) > 1 and isLocalRootDir:
       tmpDir = os.path.join(mountpoints[1], tmpDir)
     else:
       tmpDir = os.path.join(mountpoints[0], tmpDir)
-    putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
     putAmsHbaseSiteProperty("hbase.tmp.dir", tmpDir)
+
+    if operatingMode == "distributed":
+      putAmsHbaseSiteProperty("hbase.rootdir", "/user/ams/hbase")
+
+    if operatingMode == "embedded":
+      if isLocalRootDir:
+        putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
+      else:
+        putAmsHbaseSiteProperty("hbase.rootdir", "file:///var/lib/ambari-metrics-collector/hbase")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
 
     putAmsEnvProperty("metrics_collector_heapsize", collector_heapsize)
+
+    putAmsSiteProperty("timeline.metrics.cache.size", max(100, int(log(total_sinks_count)) * 100))
+    putAmsSiteProperty("timeline.metrics.cache.commit.interval", min(10, max(12 - int(log(total_sinks_count)), 2)))
 
     # blockCache = 0.3, memstore = 0.35, phoenix-server = 0.15, phoenix-client = 0.25
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
     putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 134217728)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.35)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
-    putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
     if len(amsCollectorHosts) > 1:
       pass
@@ -510,45 +840,55 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.3)
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
-        putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 81920000)
+        putAmsSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
+        putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 10000)
       elif total_sinks_count >= 500:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 40960000)
+        putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 5000)
       else:
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 20480000)
       pass
 
+    metrics_api_handlers = min(50, max(20, int(total_sinks_count / 100)))
+    putAmsSiteProperty("timeline.metrics.service.handler.thread.count", metrics_api_handlers)
+
     # Distributed mode heap size
-    if hbaseClusterDistributed:
+    if operatingMode == "distributed":
+      hbase_heapsize = max(hbase_heapsize, 768)
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
       putHbaseEnvProperty("regionserver_xmn_size", round_to_n(0.15*hbase_heapsize,64))
     else:
       # Embedded mode heap size : master + regionserver
-      hbase_rs_heapsize = 512
+      hbase_rs_heapsize = 768
+      putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_rs_heapsize)
       putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
       putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
-    if rootDir.startswith("hdfs://"):
+    if operatingMode == "distributed":
       dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-      if set(amsCollectorHosts).intersection(dn_hosts):
-        collector_cohosted_with_dn = "true"
-      else:
-        collector_cohosted_with_dn = "false"
-      putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
+      # call by Kerberos wizard sends only the service being affected
+      # so it is possible for dn_hosts to be None but not amsCollectorHosts
+      if dn_hosts and len(dn_hosts) > 0:
+        if set(amsCollectorHosts).intersection(dn_hosts):
+          collector_cohosted_with_dn = "true"
+        else:
+          collector_cohosted_with_dn = "false"
+        putAmsHbaseSiteProperty("dfs.client.read.shortcircuit", collector_cohosted_with_dn)
 
     #split points
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
+    customServiceMetricsDir = os.path.join(scriptDir, '../../../../dashboards/service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
-    mode = 'distributed' if hbaseClusterDistributed else 'embedded'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
@@ -569,7 +909,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       ams_hbase_env = configurations["ams-hbase-env"]["properties"]
 
     split_point_finder = FindSplitPointsForAMSRegions(
-      ams_hbase_site, ams_hbase_env, serviceMetricsDir, mode, servicesList)
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, customServiceMetricsDir, operatingMode, servicesList)
 
     result = split_point_finder.get_split_points()
     precision_splits = ' '
@@ -578,8 +918,23 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       precision_splits = result.precision
     if result.aggregate:
       aggregate_splits = result.aggregate
-    putTimelineServiceProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
-    putTimelineServiceProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
+    putAmsSiteProperty("timeline.metrics.host.aggregate.splitpoints", ','.join(precision_splits))
+    putAmsSiteProperty("timeline.metrics.cluster.aggregate.splitpoints", ','.join(aggregate_splits))
+
+    component_grafana_exists = False
+    for service in services['services']:
+      if 'components' in service:
+        for component in service['components']:
+          if 'StackServiceComponents' in component:
+            # If Grafana is installed the hostnames would indicate its location
+            if 'METRICS_GRAFANA' in component['StackServiceComponents']['component_name'] and\
+              len(component['StackServiceComponents']['hostnames']) != 0:
+              component_grafana_exists = True
+              break
+    pass
+
+    if not component_grafana_exists:
+      putGrafanaPropertyAttribute("metrics_grafana_password", "visible", "false")
 
     pass
 
@@ -620,10 +975,11 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
                               and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
     return components
 
-  def getZKHostPortString(self, services):
+  def getZKHostPortString(self, services, include_port=True):
     """
     Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
     Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
+    include_port boolean param -> If port is also needed.
     """
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     include_zookeeper = "ZOOKEEPER" in servicesList
@@ -631,15 +987,24 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
     if include_zookeeper:
       zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
-      zookeeper_port = '2181'     #default port
-      if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
-        zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
-
       zookeeper_host_port_arr = []
-      for i in range(len(zookeeper_hosts)):
-        zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
+
+      if include_port:
+        zookeeper_port = self.getZKPort(services)
+        for i in range(len(zookeeper_hosts)):
+          zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
+      else:
+        for i in range(len(zookeeper_hosts)):
+          zookeeper_host_port_arr.append(zookeeper_hosts[i])
+
       zookeeper_host_port = ",".join(zookeeper_host_port_arr)
     return zookeeper_host_port
+
+  def getZKPort(self, services):
+    zookeeper_port = '2181'     #default port
+    if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
+      zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
+    return zookeeper_port
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
@@ -683,7 +1048,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       {"os":12, "hbase":16},
       {"os":24, "hbase":24},
       {"os":32, "hbase":32},
-      {"os":64, "hbase":64}
+      {"os":64, "hbase":32}
     ]
     index = {
       cluster["ram"] <= 4: 0,
@@ -698,11 +1063,15 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       128 < cluster["ram"] <= 256: 9,
       256 < cluster["ram"]: 10
     }[1]
+
+
     cluster["reservedRam"] = ramRecommendations[index]["os"]
     cluster["hbaseRam"] = ramRecommendations[index]["hbase"]
 
+
     cluster["minContainerSize"] = {
-      cluster["ram"] <= 4: 256,
+      cluster["ram"] <= 3: 128,
+      3 < cluster["ram"] <= 4: 256,
       4 < cluster["ram"] <= 8: 512,
       8 < cluster["ram"] <= 24: 1024,
       24 < cluster["ram"]: 2048
@@ -712,67 +1081,96 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     if cluster["hBaseInstalled"]:
       totalAvailableRam -= cluster["hbaseRam"]
     cluster["totalAvailableRam"] = max(512, totalAvailableRam * 1024)
+    Logger.info("Memory for YARN apps - cluster[totalAvailableRam]: " + str(cluster["totalAvailableRam"]))
+
+    suggestedMinContainerRam = 1024   # new smaller value for YARN min container
+    callContext = getCallContext(services)
+
+    operation = getUserOperationContext(services, DefaultStackAdvisor.OPERATION)
+    adding_yarn = isServiceBeingAdded(services, 'YARN')
+    if operation:
+      Logger.info("user operation context : " + str(operation))
+
+    if services:  # its never None but some unit tests pass it as None
+      # If min container value is changed (user is changing it)
+      # if its a validation call - just use what ever value is set
+      # If its a recommend attribute call (when UI lands on a page)
+      # If add service but YARN is not being added
+      if getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb") or \
+              'recommendConfigurations' != callContext or \
+              operation == DefaultStackAdvisor.RECOMMEND_ATTRIBUTE_OPERATION or \
+          (operation == DefaultStackAdvisor.ADD_SERVICE_OPERATION and not adding_yarn):
+
+        Logger.info("Full context: callContext = " + str(callContext) +
+                    " and operation = " + str(operation) + " and adding YARN = " + str(adding_yarn) +
+                    " and old value exists = " +
+                    str(getOldValue(self, services, "yarn-site", "yarn.scheduler.minimum-allocation-mb")))
+
+        '''yarn.scheduler.minimum-allocation-mb has changed - then pick this value up'''
+        if "yarn-site" in services["configurations"] and \
+                "yarn.scheduler.minimum-allocation-mb" in services["configurations"]["yarn-site"]["properties"] and \
+                str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]).isdigit():
+          Logger.info("Using user provided yarn.scheduler.minimum-allocation-mb = " +
+                      str(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+          cluster["yarnMinContainerSize"] = int(services["configurations"]["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+          Logger.info("Minimum ram per container due to user input - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+          if cluster["yarnMinContainerSize"] > cluster["totalAvailableRam"]:
+            cluster["yarnMinContainerSize"] = cluster["totalAvailableRam"]
+            Logger.info("Minimum ram per container after checking against limit - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+            pass
+          cluster["minContainerSize"] = cluster["yarnMinContainerSize"]    # set to what user has suggested as YARN min container size
+          suggestedMinContainerRam = cluster["yarnMinContainerSize"]
+          pass
+        pass
+      pass
+
+
     '''containers = max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))'''
-    cluster["containers"] = round(max(3,
+    cluster["containers"] = int(round(max(3,
                                 min(2 * cluster["cpu"],
                                     min(ceil(1.8 * cluster["disk"]),
-                                            cluster["totalAvailableRam"] / cluster["minContainerSize"]))))
+                                            cluster["totalAvailableRam"] / cluster["minContainerSize"])))))
+    Logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
-    '''ramPerContainers = max(2GB, RAM - reservedRam - hBaseRam) / containers'''
-    cluster["ramPerContainer"] = abs(cluster["totalAvailableRam"] / cluster["containers"])
-    '''If greater than 1GB, value will be in multiples of 512.'''
-    if cluster["ramPerContainer"] > 1024:
-      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / 512) * 512
+    if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
+      cluster["containers"] = ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"])
+      Logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
+      pass
+
+    cluster["ramPerContainer"] = int(abs(cluster["totalAvailableRam"] / cluster["containers"]))
+    cluster["yarnMinContainerSize"] = min(suggestedMinContainerRam, cluster["ramPerContainer"])
+    Logger.info("Ram per containers before normalization - cluster[ramPerContainer]: " + str(cluster["ramPerContainer"]))
+
+    '''If greater than cluster["yarnMinContainerSize"], value will be in multiples of cluster["yarnMinContainerSize"]'''
+    if cluster["ramPerContainer"] > cluster["yarnMinContainerSize"]:
+      cluster["ramPerContainer"] = int(cluster["ramPerContainer"] / cluster["yarnMinContainerSize"]) * cluster["yarnMinContainerSize"]
+
 
     cluster["mapMemory"] = int(cluster["ramPerContainer"])
     cluster["reduceMemory"] = cluster["ramPerContainer"]
     cluster["amMemory"] = max(cluster["mapMemory"], cluster["reduceMemory"])
 
+    Logger.info("Min container size - cluster[yarnMinContainerSize]: " + str(cluster["yarnMinContainerSize"]))
+    Logger.info("Available memory for map - cluster[mapMemory]: " + str(cluster["mapMemory"]))
+    Logger.info("Available memory for reduce - cluster[reduceMemory]: " + str(cluster["reduceMemory"]))
+    Logger.info("Available memory for am - cluster[amMemory]: " + str(cluster["amMemory"]))
+
+
     return cluster
-
-  def getConfigurationsValidationItems(self, services, hosts):
-    """Returns array of Validation objects about issues with configuration values provided in services"""
-    items = []
-
-    recommendations = self.recommendConfigurations(services, hosts)
-    recommendedDefaults = recommendations["recommendations"]["blueprint"]["configurations"]
-
-    configurations = services["configurations"]
-    for service in services["services"]:
-      serviceName = service["StackServices"]["service_name"]
-      validator = self.validateServiceConfigurations(serviceName)
-      if validator is not None:
-        for siteName, method in validator.items():
-          if siteName in recommendedDefaults:
-            siteProperties = getSiteProperties(configurations, siteName)
-            if siteProperties is not None:
-              siteRecommendations = recommendedDefaults[siteName]["properties"]
-              print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
-              print("Site properties: %s\n" % str(siteProperties))
-              print("Recommendations: %s\n********\n" % str(siteRecommendations))
-              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
-              items.extend(resultItems)
-
-    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
-    items.extend(clusterWideItems)
-    self.validateMinMax(items, recommendedDefaults, configurations)
-    return items
-
-  def validateClusterConfigurations(self, configurations, services, hosts):
-    validationItems = []
-
-    return self.toConfigurationValidationProblems(validationItems, "")
 
   def getServiceConfigurationValidators(self):
     return {
-      "HDFS": {"hadoop-env": self.validateHDFSConfigurationsEnv},
+      "HDFS": { "hdfs-site": self.validateHDFSConfigurations,
+                "hadoop-env": self.validateHDFSConfigurationsEnv},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
-      "YARN": {"yarn-site": self.validateYARNConfigurations},
+      "YARN": {"yarn-site": self.validateYARNConfigurations,
+               "yarn-env": self.validateYARNEnvConfigurations},
       "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations},
       "STORM": {"storm-site": self.validateStormConfigurations},
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
-              "ams-site": self.validateAmsSiteConfigurations}
+              "ams-site": self.validateAmsSiteConfigurations,
+              "ams-env": self.validateAmsEnvConfigurations}
     }
 
   def validateMinMax(self, items, recommendedDefaults, configurations):
@@ -812,7 +1210,8 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     if op_mode not in ("embedded", "distributed"):
       correct_op_mode_item = self.getErrorItem("Correct value should be set.")
       pass
-
+    elif len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")) > 1 and op_mode != 'distributed':
+      correct_op_mode_item = self.getErrorItem("Correct value should be 'distributed' for clusters with more then 1 Metrics collector")
     validationItems.extend([{"config-name":'timeline.metrics.service.operation.mode', "item": correct_op_mode_item }])
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
@@ -820,6 +1219,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     ams_site = getSiteProperties(configurations, "ams-site")
+    core_site = getSiteProperties(configurations, "core-site")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
     recommendedDiskSpace = 10485760
@@ -838,29 +1238,55 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
     rootdir_item = None
     op_mode = ams_site.get("timeline.metrics.service.operation.mode")
+    default_fs = core_site.get("fs.defaultFS") if core_site else "file:///"
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
-    if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
+    distributed = properties.get("hbase.cluster.distributed")
+    is_local_root_dir = hbase_rootdir.startswith("file://") or (default_fs.startswith("file://") and hbase_rootdir.startswith("/"))
+
+    if op_mode == "distributed" and is_local_root_dir:
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
+    elif op_mode == "embedded":
+      if distributed.lower() == "false" and hbase_rootdir.startswith('/') or hbase_rootdir.startswith("hdfs://"):
+        rootdir_item = self.getWarnItem("In embedded mode hbase.rootdir cannot point to schemaless values or HDFS, "
+                                        "Example - file:// for localFS")
       pass
 
     distributed_item = None
-    distributed = properties.get("hbase.cluster.distributed")
-    if hbase_rootdir and hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
-      distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
+    if op_mode == "distributed" and not distributed.lower() == "true":
+      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to true for "
+                                           "distributed mode")
+    if op_mode == "embedded" and distributed.lower() == "true":
+      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to false for embedded mode")
+
+    hbase_zk_client_port = properties.get("hbase.zookeeper.property.clientPort")
+    zkPort = self.getZKPort(services)
+    hbase_zk_client_port_item = None
+    if distributed.lower() == "true" and op_mode == "distributed" and \
+        hbase_zk_client_port != zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
+      hbase_zk_client_port_item = self.getErrorItem("In AMS distributed mode, hbase.zookeeper.property.clientPort "
+                                                    "should be the cluster zookeeper server port : {0}".format(zkPort))
+
+    if distributed.lower() == "false" and op_mode == "embedded" and \
+        hbase_zk_client_port == zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
+      hbase_zk_client_port_item = self.getErrorItem("In AMS embedded mode, hbase.zookeeper.property.clientPort "
+                                                    "should be a different port than cluster zookeeper port."
+                                                    "(default:61181)")
 
     validationItems.extend([{"config-name":'hbase.rootdir', "item": rootdir_item },
-                            {"config-name":'hbase.cluster.distributed', "item": distributed_item }])
+                            {"config-name":'hbase.cluster.distributed', "item": distributed_item },
+                            {"config-name":'hbase.zookeeper.property.clientPort', "item": hbase_zk_client_port_item }])
 
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
-          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
-          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
-          validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
+          if op_mode == 'embedded' or is_local_root_dir:
+            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
+            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
+            validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
           dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-          if not hbase_rootdir.startswith("hdfs"):
+          if is_local_root_dir:
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
               mountPoints.append(mountPoint["mountpoint"])
@@ -906,7 +1332,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # Storm AMS integration
-    if 'AMBARI_METRICS' in servicesList and \
+    if 'AMBARI_METRICS' in servicesList and "metrics.reporter.register" in properties and \
       "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter" not in properties.get("metrics.reporter.register"):
 
       validationItems.append({"config-name": 'metrics.reporter.register',
@@ -935,7 +1361,6 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     if logDirItem:
       validationItems.extend([{"config-name": "hbase_log_dir", "item": logDirItem}])
 
-    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
     hbase_master_heapsize = to_number(properties["hbase_master_heapsize"])
     hbase_master_xmn_size = to_number(properties["hbase_master_xmn_size"])
     hbase_regionserver_heapsize = to_number(properties["hbase_regionserver_heapsize"])
@@ -951,35 +1376,35 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       maxMasterXmn = 0.2 * hbase_master_heapsize
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
-                                         "(12% of hbase_master_heapsize)".format(int(math.ceil(minMasterXmn))))
+                                         "(12% of hbase_master_heapsize)".format(int(ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
-                                         "(20% of hbase_master_heapsize)".format(int(math.floor(maxMasterXmn))))
+                                         "(20% of hbase_master_heapsize)".format(int(floor(maxMasterXmn))))
 
       minRegionServerXmn = 0.12 * hbase_regionserver_heapsize
       maxRegionServerXmn = 0.2 * hbase_regionserver_heapsize
       if hbase_regionserver_xmn_size < minRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                                "(12% of hbase_regionserver_heapsize)"
-                                               .format(int(math.ceil(minRegionServerXmn))))
+                                               .format(int(ceil(minRegionServerXmn))))
 
       if hbase_regionserver_xmn_size > maxRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                                "(20% of hbase_regionserver_heapsize)"
-                                               .format(int(math.floor(maxRegionServerXmn))))
+                                               .format(int(floor(maxRegionServerXmn))))
     else:
       minMasterXmn = 0.12 * (hbase_master_heapsize + hbase_regionserver_heapsize)
       maxMasterXmn = 0.2 *  (hbase_master_heapsize + hbase_regionserver_heapsize)
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                          "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(math.ceil(minMasterXmn))))
+                                         .format(int(ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                          "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(math.floor(maxMasterXmn))))
+                                         .format(int(floor(maxMasterXmn))))
     if masterXmnItem:
       validationItems.extend([{"config-name": "hbase_master_xmn_size", "item": masterXmnItem}])
 
@@ -1026,27 +1451,25 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
             requiredMemory = getMemorySizeRequired(hostComponents, configurations)
             unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-            if unusedMemory > 4*gb:  # warn user, if more than 4GB RAM is unused
-              heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
-              xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
-              recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize*mb
+
+            heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
+            xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
+            hbase_needs_increase = to_number(properties[heapPropertyToIncrease]) * mb < 32 * gb
+
+            if unusedMemory > 4*gb and hbase_needs_increase:  # warn user, if more than 4GB RAM is unused
+
               recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + to_number(properties.get(heapPropertyToIncrease))*mb
               recommended_hbase_heapsize = min(32*gb, recommended_hbase_heapsize) #Make sure heapsize <= 32GB
-              recommended_xmn_size = round_to_n(0.12*recommended_hbase_heapsize/mb,128)
-
-              if collector_heapsize < recommended_collector_heapsize or \
-                  to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
-                collectorHeapsizeItem = self.getWarnItem("{0} MB RAM is unused on the host {1} based on components " \
-                                                         "assigned. Consider allocating  {2} MB to " \
-                                                         "metrics_collector_heapsize in ams-env, " \
-                                                         "{3} MB to {4} in ams-hbase-env"
-                                                         .format(unusedMemory/mb, collectorHostName,
-                                                                 recommended_collector_heapsize/mb,
-                                                                 recommended_hbase_heapsize/mb,
+              recommended_hbase_heapsize = round_to_n(recommended_hbase_heapsize/mb,128) # Round to 128m multiple
+              if to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
+                hbaseHeapsizeItem = self.getWarnItem("Consider allocating {0} MB to {1} in ams-hbase-env to use up some "
+                                                     "unused memory on host"
+                                                         .format(recommended_hbase_heapsize,
                                                                  heapPropertyToIncrease))
-                validationItems.extend([{"config-name": heapPropertyToIncrease, "item": collectorHeapsizeItem}])
+                validationItems.extend([{"config-name": heapPropertyToIncrease, "item": hbaseHeapsizeItem}])
 
-              if to_number(properties[xmnPropertyToIncrease]) < recommended_hbase_heapsize:
+              recommended_xmn_size = round_to_n(0.15*recommended_hbase_heapsize,128)
+              if to_number(properties[xmnPropertyToIncrease]) < recommended_xmn_size:
                 xmnPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
                                                              "on host".format(recommended_xmn_size))
                 validationItems.extend([{"config-name": xmnPropertyToIncrease, "item": xmnPropertyToIncreaseItem}])
@@ -1054,25 +1477,68 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
+  def validateAmsEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 
-  def validateServiceConfigurations(self, serviceName):
-    return self.getServiceConfigurationValidators().get(serviceName, None)
+    ams_env = getSiteProperties(configurations, "ams-env")
+    mb = 1024 * 1024
+    gb = 1024 * mb
+    validationItems = []
+    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
+    amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
+    for collectorHostName in amsCollectorHosts:
+      for host in hosts["items"]:
+        if host["Hosts"]["host_name"] == collectorHostName:
+          hostComponents = []
+          for service in services["services"]:
+            for component in service["components"]:
+              if component["StackServiceComponents"]["hostnames"] is not None:
+                if collectorHostName in component["StackServiceComponents"]["hostnames"]:
+                  hostComponents.append(component["StackServiceComponents"]["component_name"])
 
-  def toConfigurationValidationProblems(self, validationProblems, siteName):
-    result = []
-    for validationProblem in validationProblems:
-      validationItem = validationProblem.get("item", None)
-      if validationItem is not None:
-        problem = {"type": 'configuration', "level": validationItem["level"], "message": validationItem["message"],
-                   "config-type": siteName, "config-name": validationProblem["config-name"] }
-        result.append(problem)
-    return result
+          requiredMemory = getMemorySizeRequired(hostComponents, configurations)
+          unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
+          collector_needs_increase = collector_heapsize * mb < 16 * gb
 
-  def getWarnItem(self, message):
-    return {"level": "WARN", "message": message}
+          if unusedMemory > 4*gb and collector_needs_increase:  # warn user, if more than 4GB RAM is unused
+            recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize * mb
+            recommended_collector_heapsize = min(16*gb, recommended_collector_heapsize) #Make sure heapsize <= 16GB
+            recommended_collector_heapsize = round_to_n(recommended_collector_heapsize/mb,128) # Round to 128m multiple
+            if collector_heapsize < recommended_collector_heapsize:
+              validation_msg = "Consider allocating {0} MB to metrics_collector_heapsize in ams-env to use up some " \
+                               "unused memory on host"
+              collectorHeapsizeItem = self.getWarnItem(validation_msg.format(recommended_collector_heapsize))
+              validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeItem}])
+    pass
+    return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
-  def getErrorItem(self, message):
-    return {"level": "ERROR", "message": message}
+  def get_yarn_nm_mem_in_mb(self, services, configurations):
+    """
+    Gets YARN NodeManager memory in MB (yarn.nodemanager.resource.memory-mb).
+    Reads from:
+      - configurations (if changed as part of current Stack Advisor invocation (output)), and services["changed-configurations"]
+        is empty, else
+      - services['configurations'] (input).
+
+    services["changed-configurations"] would be empty is Stack Advisor call if made from Blueprints (1st invocation). Subsequent
+    Stack Advisor calls will have it non-empty. We do this because in subsequent invocations, even if Stack Advsior calculates this
+    value (configurations), it is finally not recommended, making 'input' value to survive.
+    """
+    yarn_nm_mem_in_mb = None
+
+    yarn_site = getServicesSiteProperties(services, "yarn-site")
+    yarn_site_properties = getSiteProperties(configurations, "yarn-site")
+
+    # Check if services["changed-configurations"] is empty and 'yarn.nodemanager.resource.memory-mb' is modified in current ST invocation.
+    if not ("changed-configurations" in services and services["changed-configurations"]) and yarn_site_properties and 'yarn.nodemanager.resource.memory-mb' in yarn_site_properties:
+      yarn_nm_mem_in_mb = float(yarn_site_properties['yarn.nodemanager.resource.memory-mb'])
+    elif yarn_site and 'yarn.nodemanager.resource.memory-mb' in yarn_site:
+      # Check if 'yarn.nodemanager.resource.memory-mb' is input in services array.
+      yarn_nm_mem_in_mb = float(yarn_site['yarn.nodemanager.resource.memory-mb'])
+
+    if yarn_nm_mem_in_mb <= 0.0:
+      Logger.warning("'yarn.nodemanager.resource.memory-mb' current value : {0}. Expected value : > 0".format(yarn_nm_mem_in_mb))
+
+    return yarn_nm_mem_in_mb
 
   def getPreferredMountPoints(self, hostInfo):
 
@@ -1098,7 +1564,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if dir.startswith("hdfs://") or dir == recommendedDefaults.get(propertyName):
+    if not dir.startswith("file://") or dir == recommendedDefaults.get(propertyName):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1116,7 +1582,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if dir.startswith("hdfs://"):
+    if not dir.startswith("file://"):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1150,6 +1616,24 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
       return None
     if value < defaultValue:
       return self.getWarnItem("Value is less than the recommended default of {0}".format(defaultValue))
+    return None
+
+  def validatorGreaterThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if propertyName not in recommendedDefaults:
+      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
+      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
+      return None
+
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    value = to_number(properties[propertyName])
+    if value is None:
+      return self.getErrorItem("Value should be integer")
+    defaultValue = to_number(recommendedDefaults[propertyName])
+    if defaultValue is None:
+      return None
+    if value > defaultValue:
+      return self.getWarnItem("Value is greater than the recommended default of {0}".format(defaultValue))
     return None
 
   def validatorEqualsPropertyItem(self, properties1, propertyName1,
@@ -1204,6 +1688,38 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
 
     return None
 
+  def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
+    if propertyName not in properties:
+      return None
+
+    capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+    leaf_queue_names = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    queue_name = properties[propertyName]
+
+    if len(leaf_queue_names) == 0:
+      return None
+    elif queue_name not in leaf_queue_names:
+      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+
+    return None
+
+  def recommendYarnQueue(self, services, catalog_name=None, queue_property=None):
+    old_queue_name = None
+
+    if services and 'configurations' in services:
+        configurations = services["configurations"]
+        if catalog_name in configurations and queue_property in configurations[catalog_name]["properties"]:
+          old_queue_name = configurations[catalog_name]["properties"][queue_property]
+
+        capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+        leaf_queues = sorted(self.getAllYarnLeafQueues(capacity_scheduler_properties))
+
+        if leaf_queues and (old_queue_name is None or old_queue_name not in leaf_queues):
+          return leaf_queues.pop()
+        elif old_queue_name and old_queue_name in leaf_queues:
+          return None
+
+    return "default"
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:
@@ -1232,16 +1748,47 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
                         {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
                         {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')} ]
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')},
+                        {"config-name": 'mapreduce.job.queuename', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'mapreduce.job.queuename', services)} ]
     return self.toConfigurationValidationProblems(validationItems, "mapred-site")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     clusterEnv = getSiteProperties(configurations, "cluster-env")
-    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
+    validationItems = [ {"config-name": 'yarn.nodemanager.resource.memory-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.nodemanager.resource.memory-mb')},
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.nodemanager.linux-container-executor.group', "item": self.validatorEqualsPropertyItem(properties, "yarn.nodemanager.linux-container-executor.group", clusterEnv, "user_group")},
-                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+                        {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorGreaterThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
+    nmMemory = int(self.get_yarn_nm_mem_in_mb(services, configurations))
+    if "items" in hosts and len(hosts["items"]) > 0:
+      nodeManagerHosts = self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts)
+      nmLowMemoryHosts = []
+      # NodeManager host with least memory is generally used in calculations as it will work in larger hosts.
+      if nodeManagerHosts is not None and len(nodeManagerHosts) > 0:
+        for nmHost in nodeManagerHosts:
+          nmHostName = nmHost["Hosts"]["host_name"]
+          componentNames = []
+          for service in services["services"]:
+            for component in service["components"]:
+              if not self.isClientComponent(component) and component["StackServiceComponents"]["hostnames"] is not None:
+                if nmHostName in component["StackServiceComponents"]["hostnames"]:
+                  componentNames.append(component["StackServiceComponents"]["component_name"])
+          requiredMemory = getMemorySizeRequired(componentNames, configurations)
+          unusedMemory = int((nmHost["Hosts"]["total_mem"] * 1024 - requiredMemory)/ (1024 * 1024)) # in MB
+          if nmMemory > unusedMemory:
+            nmLowMemoryHosts.append(nmHostName)
+
+        if len(nmLowMemoryHosts) > 0:
+          validationItems.append({"config-name": "yarn.nodemanager.resource.memory-mb",
+            "item": self.getWarnItem(
+                "Node manager hosts with high memory usage found (examples : {0}). Consider reducing the allocated "
+                "memory for containers or moving other co-located components "
+                "to a different host.".format(",".join(nmLowMemoryHosts[:3])))})
+
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
+
+  def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [{"config-name": 'service_check.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'service_check.queue.name', services)} ]
+    return self.toConfigurationValidationProblems(validationItems, "yarn-env")
 
   def validateHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = getSiteProperties(configurations, "hbase-site")
@@ -1250,11 +1797,56 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
                         {"config-name": "hbase_user", "item": self.validatorEqualsPropertyItem(properties, "hbase_user", hbase_site, "hbase.superuser")} ]
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
+  def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    clusterEnv = getSiteProperties(configurations, "cluster-env")
+    validationItems = [{"config-name": 'dfs.datanode.du.reserved', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'dfs.datanode.du.reserved')},
+                       {"config-name": 'dfs.datanode.data.dir', "item": self.validatorOneDataDirPerPartition(properties, 'dfs.datanode.data.dir', services, hosts, clusterEnv)}]
+    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+
   def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+
+  def validatorOneDataDirPerPartition(self, properties, propertyName, services, hosts, clusterEnv):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    dirs = properties[propertyName]
+
+    if not (clusterEnv and "one_dir_per_partition" in clusterEnv and clusterEnv["one_dir_per_partition"].lower() == "true"):
+      return None
+
+    dataNodeHosts = self.getDataNodeHosts(services, hosts)
+
+    warnings = set()
+    for host in dataNodeHosts:
+      hostName = host["Hosts"]["host_name"]
+
+      mountPoints = []
+      for diskInfo in host["Hosts"]["disk_info"]:
+        mountPoints.append(diskInfo["mountpoint"])
+
+      if get_mounts_with_multiple_data_dirs(mountPoints, dirs):
+        # A detailed message can be too long on large clusters:
+        # warnings.append("Host: " + hostName + "; Mount: " + mountPoint + "; Data directories: " + ", ".join(dirList))
+        warnings.add(hostName)
+        break;
+
+    if len(warnings) > 0:
+      return self.getWarnItem("cluster-env/one_dir_per_partition is enabled but there are multiple data directories on the same mount. Affected hosts: {0}".format(", ".join(sorted(warnings))))
+
+    return None
+
+  """
+  Returns the list of Data Node hosts.
+  """
+  def getDataNodeHosts(self, services, hosts):
+    if len(hosts["items"]) > 0:
+      dataNodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+      if dataNodeHosts is not None:
+        return dataNodeHosts
+    return []
 
   def getMastersWithMultipleInstances(self):
     return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']
@@ -1265,7 +1857,7 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
   def getNotPreferableOnServerComponents(self):
     return ['GANGLIA_SERVER', 'METRICS_COLLECTOR']
 
-  def getCardinalitiesDict(self):
+  def getCardinalitiesDict(self, hosts):
     return {
       'ZOOKEEPER_SERVER': {"min": 3},
       'HBASE_MASTER': {"min": 1},
@@ -1328,6 +1920,189 @@ class ADH10StackAdvisor(DefaultStackAdvisor):
         parentValidators[service] = {}
       parentValidators[service].update(configsDict)
 
+  def checkSiteProperties(self, siteProperties, *propertyNames):
+    """
+    Check if properties defined in site properties.
+    :param siteProperties: config properties dict
+    :param *propertyNames: property names to validate
+    :returns: True if all properties defined, in other cases returns False
+    """
+    if siteProperties is None:
+      return False
+    for name in propertyNames:
+      if not (name in siteProperties):
+        return False
+    return True
+
+  """
+  Returns the dictionary of configs for 'capacity-scheduler'.
+  """
+  def getCapacitySchedulerProperties(self, services):
+    capacity_scheduler_properties = dict()
+    received_as_key_value_pair = True
+    if "capacity-scheduler" in services['configurations']:
+      if "capacity-scheduler" in services['configurations']["capacity-scheduler"]["properties"]:
+        cap_sched_props_as_str = services['configurations']["capacity-scheduler"]["properties"]["capacity-scheduler"]
+        if cap_sched_props_as_str:
+          cap_sched_props_as_str = str(cap_sched_props_as_str).split('\n')
+          if len(cap_sched_props_as_str) > 0 and cap_sched_props_as_str[0] != 'null':
+            # Received confgs as one "\n" separated string
+            for property in cap_sched_props_as_str:
+              key, sep, value = property.partition("=")
+              capacity_scheduler_properties[key] = value
+            Logger.info("'capacity-scheduler' configs is passed-in as a single '\\n' separated string. "
+                        "count(services['configurations']['capacity-scheduler']['properties']['capacity-scheduler']) = "
+                        "{0}".format(len(capacity_scheduler_properties)))
+            received_as_key_value_pair = False
+          else:
+            Logger.info("Passed-in services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'] is 'null'.")
+        else:
+          Logger.info("'capacity-schdeuler' configs not passed-in as single '\\n' string in "
+                      "services['configurations']['capacity-scheduler']['properties']['capacity-scheduler'].")
+      if not capacity_scheduler_properties:
+        # Received configs as a dictionary (Generally on 1st invocation).
+        capacity_scheduler_properties = services['configurations']["capacity-scheduler"]["properties"]
+        Logger.info("'capacity-scheduler' configs is passed-in as a dictionary. "
+                    "count(services['configurations']['capacity-scheduler']['properties']) = {0}".format(len(capacity_scheduler_properties)))
+    else:
+      Logger.error("Couldn't retrieve 'capacity-scheduler' from services.")
+
+    Logger.info("Retrieved 'capacity-scheduler' received as dictionary : '{0}'. configs : {1}" \
+                .format(received_as_key_value_pair, capacity_scheduler_properties.items()))
+    return capacity_scheduler_properties, received_as_key_value_pair
+
+  """
+  Gets all YARN leaf queues.
+  """
+  def getAllYarnLeafQueues(self, capacitySchedulerProperties):
+    config_list = capacitySchedulerProperties.keys()
+    yarn_queues = None
+    leafQueueNames = set()
+    if 'yarn.scheduler.capacity.root.queues' in config_list:
+      yarn_queues = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.queues')
+
+    if yarn_queues:
+      toProcessQueues = yarn_queues.split(",")
+      while len(toProcessQueues) > 0:
+        queue = toProcessQueues.pop()
+        queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
+        if queueKey in capacitySchedulerProperties:
+          # If parent queue, add children
+          subQueues = capacitySchedulerProperties[queueKey].split(",")
+          for subQueue in subQueues:
+            toProcessQueues.append(queue + "." + subQueue)
+        else:
+          # Leaf queues
+          # We only take the leaf queue name instead of the complete path, as leaf queue names are unique in YARN.
+          # Eg: If YARN queues are like :
+          #     (1). 'yarn.scheduler.capacity.root.a1.b1.c1.d1',
+          #     (2). 'yarn.scheduler.capacity.root.a1.b1.c2',
+          #     (3). 'yarn.scheduler.capacity.root.default,
+          # Added leaf queues names are as : d1, c2 and default for the 3 leaf queues.
+          leafQueuePathSplits = queue.split(".")
+          if leafQueuePathSplits > 0:
+            leafQueueName = leafQueuePathSplits[-1]
+            leafQueueNames.add(leafQueueName)
+    return leafQueueNames
+
+  def get_service_component_meta(self, service, component, services):
+    """
+    Function retrieve service component meta information as dict from services.json
+    If no service or component found, would be returned empty dict
+
+    Return value example:
+        "advertise_version" : true,
+        "bulk_commands_display_name" : "",
+        "bulk_commands_master_component_name" : "",
+        "cardinality" : "1+",
+        "component_category" : "CLIENT",
+        "component_name" : "HBASE_CLIENT",
+        "custom_commands" : [ ],
+        "decommission_allowed" : false,
+        "display_name" : "HBase Client",
+        "has_bulk_commands_definition" : false,
+        "is_client" : true,
+        "is_master" : false,
+        "reassign_allowed" : false,
+        "recovery_enabled" : false,
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "stack_version" : "2.5",
+        "hostnames" : [ "host1", "host2" ]
+
+    :type service str
+    :type component str
+    :type services dict
+    :rtype dict
+    """
+    __stack_services = "StackServices"
+    __stack_service_components = "StackServiceComponents"
+
+    if not services:
+      return {}
+
+    service_meta = [item for item in services["services"] if item[__stack_services]["service_name"] == service]
+    if len(service_meta) == 0:
+      return {}
+
+    service_meta = service_meta[0]
+    component_meta = [item for item in service_meta["components"] if item[__stack_service_components]["component_name"] == component]
+
+    if len(component_meta) == 0:
+      return {}
+
+    return component_meta[0][__stack_service_components]
+
+  def is_secured_cluster(self, services):
+    """
+    Detects if cluster is secured or not
+    :type services dict
+    :rtype bool
+    """
+    return services and "cluster-env" in services["configurations"] and\
+           "security_enabled" in services["configurations"]["cluster-env"]["properties"] and\
+           services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+
+  def get_services_list(self, services):
+    """
+    Returns available services as list
+
+    :type services dict
+    :rtype list
+    """
+    if not services:
+      return []
+
+    return [service["StackServices"]["service_name"] for service in services["services"]]
+
+  def get_components_list(self, service, services):
+    """
+    Return list of components for specific service
+    :type service str
+    :type services dict
+    :rtype list
+    """
+    __stack_services = "StackServices"
+    __stack_service_components = "StackServiceComponents"
+
+    if not services:
+      return []
+
+    service_meta = [item for item in services["services"] if item[__stack_services]["service_name"] == service]
+    if len(service_meta) == 0:
+      return []
+
+    service_meta = service_meta[0]
+    return [item[__stack_service_components]["component_name"] for item in service_meta["components"]]
+
+def getCallContext(services):
+  if services:
+    if DefaultStackAdvisor.ADVISOR_CONTEXT in services:
+      Logger.info("call type context : " + str(services[DefaultStackAdvisor.ADVISOR_CONTEXT]))
+      return services[DefaultStackAdvisor.ADVISOR_CONTEXT][DefaultStackAdvisor.CALL_TYPE]
+  return ""
+
+
 def getOldValue(self, services, configType, propertyName):
   if services:
     if 'changed-configurations' in services.keys():
@@ -1336,6 +2111,26 @@ def getOldValue(self, services, configType, propertyName):
         if changedConfig["type"] == configType and changedConfig["name"]== propertyName and "old_value" in changedConfig:
           return changedConfig["old_value"]
   return None
+
+def getUserOperationContext(services, contextName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if contextName in userContext:
+        return userContext[contextName]
+  return None
+
+# if serviceName is being added
+def isServiceBeingAdded(services, serviceName):
+  if services:
+    if 'user-context' in services.keys():
+      userContext = services["user-context"]
+      if DefaultStackAdvisor.OPERATION in userContext and \
+              'AddService' == userContext[DefaultStackAdvisor.OPERATION] and \
+              DefaultStackAdvisor.OPERATION_DETAILS in userContext:
+        if -1 != userContext["operation_details"].find(serviceName):
+          return True
+  return False
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
@@ -1426,16 +2221,21 @@ def getMountPointForDir(dir, mountPoints):
     # "/", "/hadoop/hdfs", and "/hadoop/hdfs/data".
     # So take the one with the greatest number of segments.
     for mountPoint in mountPoints:
-      if dir.startswith(mountPoint):
+      # Ensure that the mount path and the dir path ends with "/"
+      # The mount point "/hadoop" should not match with the path "/hadoop1"
+      if os.path.join(dir, "").startswith(os.path.join(mountPoint, "")):
         if bestMountFound is None:
           bestMountFound = mountPoint
-        elif bestMountFound.count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
+        elif os.path.join(bestMountFound, "").count(os.path.sep) < os.path.join(mountPoint, "").count(os.path.sep):
           bestMountFound = mountPoint
 
   return bestMountFound
 
 def getHeapsizeProperties():
   return { "NAMENODE": [{"config-name": "hadoop-env",
+                         "property": "namenode_heapsize",
+                         "default": "1024m"}],
+           "SECONDARY_NAMENODE": [{"config-name": "hadoop-env",
                          "property": "namenode_heapsize",
                          "default": "1024m"}],
            "DATANODE": [{"config-name": "hadoop-env",
@@ -1447,9 +2247,15 @@ def getHeapsizeProperties():
            "HBASE_MASTER": [{"config-name": "hbase-env",
                              "property": "hbase_master_heapsize",
                              "default": "1024m"}],
-           "HIVE_CLIENT": [{"config-name": "hive-site",
-                            "property": "hive.heapsize",
-                            "default": "1024m"}],
+           "HIVE_CLIENT": [{"config-name": "hive-env",
+                            "property": "hive.client.heapsize",
+                            "default": "1024"}],
+           "HIVE_METASTORE": [{"config-name": "hive-env",
+                            "property": "hive.metastore.heapsize",
+                            "default": "1024"}],
+           "HIVE_SERVER": [{"config-name": "hive-env",
+                               "property": "hive.heapsize",
+                               "default": "1024"}],
            "HISTORYSERVER": [{"config-name": "mapred-env",
                               "property": "jobhistory_heapsize",
                               "default": "1024m"}],
@@ -1466,14 +2272,32 @@ def getHeapsizeProperties():
                                     "property": "apptimelineserver_heapsize",
                                     "default": "1024m"}],
            "ZOOKEEPER_SERVER": [{"config-name": "zookeeper-env",
-                                 "property": "zookeeper_heapsize",
+                                 "property": "zk_server_heapsize",
                                  "default": "1024m"}],
            "METRICS_COLLECTOR": [{"config-name": "ams-hbase-env",
                                    "property": "hbase_master_heapsize",
                                    "default": "1024"},
+                                 {"config-name": "ams-hbase-env",
+                                  "property": "hbase_regionserver_heapsize",
+                                  "default": "1024"},
                                  {"config-name": "ams-env",
                                    "property": "metrics_collector_heapsize",
                                    "default": "512"}],
+           "ATLAS_SERVER": [{"config-name": "atlas-env",
+                             "property": "atlas_server_xmx",
+                             "default": "2048"}],
+           "LOGSEARCH_SERVER": [{"config-name": "logsearch-env",
+                            "property": "logsearch_app_max_memory",
+                            "default": "1024"}],
+           "LOGSEARCH_LOGFEEDER": [{"config-name": "logfeeder-env",
+                            "property": "logfeeder_max_mem",
+                            "default": "512"}],
+           "SPARK_JOBHISTORYSERVER": [{"config-name": "spark-env",
+                                 "property": "spark_daemon_memory",
+                                 "default": "1024"}],
+           "SPARK2_JOBHISTORYSERVER": [{"config-name": "spark2-env",
+                                       "property": "spark_daemon_memory",
+                                       "default": "1024"}]
            }
 
 def getMemorySizeRequired(components, configurations):
@@ -1493,7 +2317,12 @@ def getMemorySizeRequired(components, configurations):
           heapsize = str(heapsize) + "m"
 
         totalMemoryRequired += formatXmxSizeToBytes(heapsize)
-
+    else:
+      if component == "METRICS_MONITOR" or "CLIENT" in component:
+        heapsize = '512m'
+      else:
+        heapsize = '1024m'
+      totalMemoryRequired += formatXmxSizeToBytes(heapsize)
   return totalMemoryRequired
 
 def round_to_n(mem_size, n=128):

@@ -21,6 +21,13 @@
     <service>
       <name>HBASE</name>
       <extends>common-services/HBASE/0.96.0.2.0</extends>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

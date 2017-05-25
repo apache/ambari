@@ -16,8 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import *
+
 from ambari_commons.os_check import OSCheck
+from resource_management.libraries.resources.repository import Repository
+from resource_management.core.logger import Logger
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 # components_lits = repoName + postfix
@@ -32,6 +34,11 @@ def _alter_repo(action, repo_string, repo_template):
 
   if not isinstance(repo_dicts, list):
     repo_dicts = [repo_dicts]
+
+  if 0 == len(repo_dicts):
+    Logger.info("Repository list is empty. Ambari may not be managing the repositories.")
+  else:
+    Logger.info("Initializing {0} repositories".format(str(len(repo_dicts))))
 
   for repo in repo_dicts:
     if not 'baseUrl' in repo:

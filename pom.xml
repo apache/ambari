@@ -22,7 +22,7 @@
   <packaging>pom</packaging>
   <name>Ambari Main</name>
   <version>2.5.0.0.0</version>
-  <description>Ambari</description>
+  <description>Arenadata Ambari</description>
   <url>http://ambari.apache.org/</url>
   <scm>
     <url>https://github.com/apache/ambari</url>

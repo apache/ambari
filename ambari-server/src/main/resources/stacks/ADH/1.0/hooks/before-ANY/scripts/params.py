@@ -20,6 +20,7 @@ limitations under the License.
 import collections
 import re
 import os
+import ast
 
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
@@ -27,36 +28,40 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format_jvm_option
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.libraries.functions.version import format_hdp_stack_version
-from resource_management.libraries.functions.version import compare_versions
-from ambari_commons.os_check import OSCheck
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+dfs_type = default("/commandParams/dfs_type", "")
+
 artifact_dir = format("{tmp_dir}/AMBARI-artifacts/")
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
-java_version = int(config['hostLevelParams']['java_version'])
+java_version = expect("/hostLevelParams/java_version", int)
 jdk_location = config['hostLevelParams']['jdk_location']
 
 sudo = AMBARI_SUDO_BINARY
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+stack_version_unformatted = config['hostLevelParams']['stack_version']
+stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-restart_type = default("/commandParams/restart_type", "")
+upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 version = default("/commandParams/version", None)
 # Handle upgrade and downgrade
-if (restart_type.lower() == "rolling_upgrade" or restart_type.lower() == "nonrolling_upgrade") and version:
-  hdp_stack_version = format_hdp_stack_version(version)
+if (upgrade_type is not None) and version:
+  stack_version_formatted = format_stack_version(version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
@@ -95,19 +100,20 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
-hadoop_home = hdp_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
-hadoop_libexec_dir = hdp_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
+hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
+hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
+hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
 
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
-versioned_hdp_root = '/usr/hdp/current'
+versioned_stack_root = '/usr/hdp/current'
 hadoop_java_io_tmpdir = os.path.join(tmp_dir, "hadoop_java_io_tmpdir")
 datanode_max_locked_memory = config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory']
 is_datanode_max_locked_memory_set = not is_empty(config['configurations']['hdfs-site']['dfs.datanode.max.locked.memory'])
 
 # HDP 2.2+ params
-if Script.is_hdp_stack_greater_or_equal("2.2"):
+if Script.is_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
 
   # not supported in HDP 2.2+
@@ -165,6 +171,8 @@ tez_user = config['configurations']['tez-env']["tez_user"]
 oozie_user = config['configurations']['oozie-env']["oozie_user"]
 falcon_user = config['configurations']['falcon-env']["falcon_user"]
 ranger_user = config['configurations']['ranger-env']["ranger_user"]
+zeppelin_user = config['configurations']['zeppelin-env']["zeppelin_user"]
+zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
@@ -174,6 +182,11 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
+
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
+
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -182,9 +195,24 @@ has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
+has_zeppelin_master = not len(zeppelin_master_hosts) == 0
+stack_supports_zk_security = check_stack_feature(StackFeature.SECURE_ZOOKEEPER, version_for_stack_feature_checks)
 
-if has_namenode:
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+# HDFS High Availability properties
+dfs_ha_enabled = False
+dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.internal.nameservices', None)
+if dfs_ha_nameservices is None:
+  dfs_ha_nameservices = default('/configurations/hdfs-site/dfs.nameservices', None)
+dfs_ha_namenode_ids = default(format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None)
+if dfs_ha_namenode_ids:
+  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
+  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
+  if dfs_ha_namenode_ids_array_len > 1:
+    dfs_ha_enabled = True
+
+if has_namenode or dfs_type == 'HCFS':
+    hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
+    hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 
@@ -192,7 +220,9 @@ proxyuser_group = default("/configurations/hadoop-env/proxyuser_group","users")
 ranger_group = config['configurations']['ranger-env']['ranger_group']
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
+sysprep_skip_create_users_and_groups = default("/configurations/cluster-env/sysprep_skip_create_users_and_groups", False)
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
+fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:
@@ -214,7 +244,15 @@ if has_falcon_server_hosts:
   user_to_groups_dict[falcon_user] = [proxyuser_group]
 if has_ranger_admin:
   user_to_groups_dict[ranger_user] = [ranger_group]
-
+if has_zeppelin_master:
+  user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
+#Append new user-group mapping to the dict
+try:
+  user_group_map = ast.literal_eval(config['hostLevelParams']['user_group'])
+  for key in user_group_map.iterkeys():
+    user_to_groups_dict[key] = user_group_map[key]
+except ValueError:
+  print('User Group mapping (user_group) is missing in the hostLevelParams')
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
@@ -223,3 +261,7 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
+
+# if NN HA on secure clutser, access Zookeper securely
+if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
+    hadoop_zkfc_opts=format("-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client")

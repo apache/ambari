@@ -17,35 +17,52 @@ limitations under the License.
 
 """
 import os
-import shutil
 
 import ambari_simplejson as json
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Directory, Link
-from resource_management.core.resources.system import Execute
-from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.fcntl_based_process_lock import FcntlBasedProcessLock
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_hdp_install_directory():
-  # This is a name of marker file.
-  SELECT_ALL_PERFORMED_MARKER = "/var/lib/ambari-agent/data/hdp-select-set-all.performed"
+def setup_stack_symlinks():
+  """
+  Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
+  stack version, such as "2.3". This should always be called after a component has been
+  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
+  interact with this since it's done via a custom command and will not trigger this hook.
+  :return:
+  """
   import params
-  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    Execute(as_sudo(['touch', SELECT_ALL_PERFORMED_MARKER]) + ' ; ' +
-                   format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{stack_version_unformatted} | tail -1`'),
-            only_if=format('ls -d /usr/hdp/{stack_version_unformatted}*'),   # If any HDP version is installed
-            not_if=format("test -f {SELECT_ALL_PERFORMED_MARKER}")           # Do that only once (otherwise we break stack upgrade logic)
-    )
+  if params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.2') >= 0:
+    # try using the exact version first, falling back in just the stack if it's not defined
+    # which would only be during an intial cluster installation
+    version = params.current_version if params.current_version is not None else params.stack_version_unformatted
+
+    if not params.upgrade_suspended:
+      if params.host_sys_prepped:
+        Logger.warning("Skipping running stack-selector-tool for stack {0} as its a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.".format(version))
+        return
+      # On parallel command execution this should be executed by a single process at a time.
+      with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+        stack_select.select_all(version)
 
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
-  if params.has_namenode or stackversion.find('Gluster') >= 0:
+  Logger.info("FS Type: {0}".format(params.dfs_type))
+
+  is_hadoop_conf_dir_present = False
+  if hasattr(params, "hadoop_conf_dir") and params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
+    is_hadoop_conf_dir_present = True
+  else:
+    Logger.warning("Parameter hadoop_conf_dir is missing or directory does not exist. This is expected if this host does not have any Hadoop components.")
+
+  if is_hadoop_conf_dir_present and (params.has_namenode or stackversion.find('Gluster') >= 0 or params.dfs_type == 'HCFS'):
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
@@ -76,8 +93,9 @@ def link_configs(struct_out_file):
   """
   Links configs, only on a fresh install of HDP-2.3 and higher
   """
+  import params
 
-  if not Script.is_hdp_stack_greater_or_equal("2.3"):
+  if not Script.is_stack_greater_or_equal("2.3"):
     Logger.info("Can only link configs for HDP-2.3 and higher.")
     return
 
@@ -87,82 +105,7 @@ def link_configs(struct_out_file):
     Logger.info("Could not load 'version' from {0}".format(struct_out_file))
     return
 
-  for k, v in conf_select.PACKAGE_DIRS.iteritems():
-    _link_configs(k, json_version, v)
-
-def _link_configs(package, version, dirs):
-  """
-  Link a specific package's configuration directory
-  """
-  bad_dirs = []
-  for dir_def in dirs:
-    if not os.path.exists(dir_def['conf_dir']):
-      bad_dirs.append(dir_def['conf_dir'])
-
-  if len(bad_dirs) > 0:
-    Logger.debug("Skipping {0} as it does not exist.".format(",".join(bad_dirs)))
-    return
-
-  bad_dirs = []
-  for dir_def in dirs:
-    # check if conf is a link already
-    old_conf = dir_def['conf_dir']
-    if os.path.islink(old_conf):
-      Logger.debug("{0} is a link to {1}".format(old_conf, os.path.realpath(old_conf)))
-      bad_dirs.append(old_conf)
-
-  if len(bad_dirs) > 0:
-    return
-
-  # make backup dir and copy everything in case configure() was called after install()
-  for dir_def in dirs:
-    old_conf = dir_def['conf_dir']
-    old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
-    old_conf_copy = os.path.join(old_parent, "conf.install")
-    Execute(("cp", "-R", "-p", old_conf, old_conf_copy),
-      not_if = format("test -e {old_conf_copy}"), sudo = True)
-
-  # we're already in the HDP stack
-  versioned_confs = conf_select.create("HDP", package, version, dry_run = True)
-
-  Logger.info("New conf directories: {0}".format(", ".join(versioned_confs)))
-
-  need_dirs = []
-  for d in versioned_confs:
-    if not os.path.exists(d):
-      need_dirs.append(d)
-
-  if len(need_dirs) > 0:
-    conf_select.create("HDP", package, version)
-
-    # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
-    if len(dirs) > 1:
-      for need_dir in need_dirs:
-        for dir_def in dirs:
-          if 'prefix' in dir_def and need_dir.startswith(dir_def['prefix']):
-            old_conf = dir_def['conf_dir']
-            versioned_conf = need_dir
-            Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-              only_if = format("ls {old_conf}/*"))
-    elif 1 == len(dirs) and 1 == len(need_dirs):
-      old_conf = dirs[0]['conf_dir']
-      versioned_conf = need_dirs[0]
-      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-        only_if = format("ls {old_conf}/*"))
-
-
-  # make /usr/hdp/[version]/[component]/conf point to the versioned config.
-  # /usr/hdp/current is already set
-  try:
-    conf_select.select("HDP", package, version)
-
-    # no more references to /etc/[component]/conf
-    for dir_def in dirs:
-      Directory(dir_def['conf_dir'], action="delete")
-
-      # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
-      Link(dir_def['conf_dir'], to = dir_def['current_dir'])
-  except Exception, e:
-    Logger.warning("Could not select the directory: {0}".format(e.message))
-
-  # should conf.install be removed?
+  # On parallel command execution this should be executed by a single process at a time.
+  with FcntlBasedProcessLock(params.link_configs_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
+    for k, v in conf_select.get_package_dirs().iteritems():
+      conf_select.convert_conf_directories_to_symlinks(k, json_version, v)

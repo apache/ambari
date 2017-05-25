@@ -1,0 +1,124 @@
+{
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "kms_hsm",
+            "display-name": "KMS HSM",
+            "layout": {
+              "tab-columns": "1",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-kms-hms",
+                  "display-name": "",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "subsection-kms-hsm-row1-col1",
+                      "display-name": "Ranger KMS HSM Enabled",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-kms-hsm-row2-col1",
+                      "display-name": "Configuration Settings",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "depends-on": [
+                        {
+                          "configs": [
+                            "dbks-site/ranger.ks.hsm.enabled"
+                          ],
+                          "if": "${dbks-site/ranger.ks.hsm.enabled}",
+                          "then": {
+                            "property_value_attributes": {
+                              "visible": true
+                            }
+                          },
+                          "else": {
+                            "property_value_attributes": {
+                              "visible": false
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "dbks-site/ranger.ks.hsm.enabled",
+          "subsection-name": "subsection-kms-hsm-row1-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.type",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.partition.name",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "dbks-site/ranger.ks.hsm.partition.password.alias",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        },
+        {
+          "config": "kms-env/hsm_partition_password",
+          "subsection-name": "subsection-kms-hsm-row2-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "dbks-site/ranger.ks.hsm.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.type",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.partition.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "dbks-site/ranger.ks.hsm.partition.password.alias",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "kms-env/hsm_partition_password",
+        "widget": {
+          "type": "password"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>*.journal.impl</name>
+    <value>org.apache.falcon.transaction.SharedFileSystemJournal</value>
+    <description>Journal implementation class</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.application.services</name>
+    <value>org.apache.falcon.security.AuthenticationInitializationService,\
+      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \
+      org.apache.falcon.service.ProcessSubscriberService,\
+      org.apache.falcon.entity.store.ConfigurationStore,\
+      org.apache.falcon.rerun.service.RetryService,\
+      org.apache.falcon.rerun.service.LateRunService,\
+      org.apache.falcon.service.LogCleanupService,\
+      org.apache.falcon.metadata.MetadataMappingService{{atlas_application_class_addition}}
+    </value>
+    <description>Falcon Services</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>prism.application.services</name>
+    <value>org.apache.falcon.entity.store.ConfigurationStore</value>
+    <description>Prism Services</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>prism.configstore.listeners</name>
+    <value>org.apache.falcon.entity.v0.EntityGraph,\
+      org.apache.falcon.entity.ColoClusterRelation,\
+      org.apache.falcon.group.FeedGroupMap
+    </value>
+    <description>Prism Configuration Store Change listeners</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!--<property>-->
+  <!--<name>*.workflow.execution.listeners</name>-->
+  <!--<value> </value>-->
+  <!--<description>Workflow Job Execution Completion listeners</description>-->
+  <!--</property>-->
+  <property>
+    <name>*.falcon.security.authorization.enabled</name>
+    <value>false</value>
+    <description>Authorization Enabled flag</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.enableTLS</name>
+    <value>false</value>
+    <description>Falcon TLS Enabled flag</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.security.authorization.superusergroup</name>
+    <value>falcon</value>
+    <description>The name of the group of super-users</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.security.authorization.admin.users</name>
+    <value>falcon,ambari-qa</value>
+    <description>Admin Users, comma separated users</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.security.authorization.admin.groups</name>
+    <value>falcon</value>
+    <description>Admin Group Membership, comma separated users</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.security.authorization.provider</name>
+    <value>org.apache.falcon.security.DefaultAuthorizationProvider</value>
+    <description>Authorization Provider Implementation Fully Qualified Class Name</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- Falcon Graph and Storage -->
+  <property>
+    <name>*.falcon.graph.blueprints.graph</name>
+    <value>com.thinkaurelius.titan.core.TitanFactory</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.graph.storage.directory</name>
+    <value>/hadoop/falcon/data/lineage/graphdb</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.graph.storage.backend</name>
+    <value>berkeleyje</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.graph.serialize.path</name>
+    <value>/hadoop/falcon/data/lineage</value>
+    <description/>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>*.falcon.graph.preserve.history</name>
+    <value>false</value>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

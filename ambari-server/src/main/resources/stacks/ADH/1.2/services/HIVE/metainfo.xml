@@ -20,70 +20,50 @@
   <services>
     <service>
       <name>HIVE</name>
-      <version>0.14.0.2.2</version>
+      <version>0.13.0.2.1</version>
+
       <components>
         <component>
-            <name>HIVE_METASTORE</name>
-            <displayName>Hive Metastore</displayName>
-            <category>MASTER</category>
-            <cardinality>1+</cardinality>
-            <clientsToUpdateConfigs></clientsToUpdateConfigs>
-            <auto-deploy>
-                <enabled>true</enabled>
-                <co-locate>HIVE/HIVE_SERVER</co-locate>
-            </auto-deploy>
-            <commandScript>
-                <script>scripts/hive_metastore.py</script>
-                <scriptType>PYTHON</scriptType>
-              <timeout>1200</timeout>
-            </commandScript>
-            <configuration-dependencies>
-                <config-type>hive-site</config-type>
-            </configuration-dependencies>
-        </component>
-        <component>
           <name>HIVE_SERVER</name>
-          <cardinality>1+</cardinality>
-          <configuration-dependencies>
-              <config-type>hiveserver2-site</config-type>
-              <config-type>hive-site</config-type>
-          </configuration-dependencies>
+          <dependencies>
+            <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
         </component>
-        <component>
-          <name>WEBHCAT_SERVER</name>
-          <cardinality>1+</cardinality>
-        </component>
-
       </components>
-
-
-      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
           <packages>
             <package>
+              <name>hive</name>
+            </package>
+            <package>
+              <name>hive-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-webhcat</name>
+            </package>
+            <package>
+              <name>webhcat-tar-hive</name>
+            </package>
+            <package>
+              <name>webhcat-tar-pig</name>
+            </package>
+            <package>
               <name>mysql-connector-java</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql_connector</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,redhat7,suse11</osFamily>
-          <packages>
-            <package>
-              <name>hive_2_2_*</name>
-            </package>
-            <package>
-              <name>hive_2_2_*-hcatalog</name>
-            </package>
-            <package>
-              <name>hive_2_2_*-webhcat</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -97,38 +77,27 @@
             <package>
               <name>mysql-community-release</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
             <package>
               <name>mysql-community-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
-          <packages>
-            <package>
-              <name>hive-2-2-.*</name>
-            </package>
-            <package>
-              <name>hive-2-2-.*-hcatalog</name>
-            </package>
-            <package>
-              <name>hive-2-2-.*-webhcat</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat6,ubuntu12</osFamily>
+          <osFamily>amazon2015,redhat6,ubuntu12</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>suse11</osFamily>
+          <osFamily>suse11,suse12</osFamily>
           <packages>
             <package>
               <name>mysql-client</name>
@@ -138,17 +107,12 @@
         </osSpecific>
       </osSpecifics>
 
-      <themes>
-        <theme>
-          <fileName>theme.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-
-      <requiredServices>
-        <service>PIG</service>
-      </requiredServices>
-
+      <configuration-dependencies>
+        <config-type>hive-log4j</config-type>
+        <config-type>hive-exec-log4j</config-type>
+        <config-type>tez-site</config-type>
+        <config-type>hive-env</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

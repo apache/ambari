@@ -20,8 +20,7 @@
   <services>
     <service>
       <name>HBASE</name>
-      <displayName>HBase</displayName>
-      <version>0.98.4.2.2</version>
+      <version>0.98.0.2.1</version>
     </service>
   </services>
 </metainfo>

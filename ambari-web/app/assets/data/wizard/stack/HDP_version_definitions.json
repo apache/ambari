@@ -1,15 +1,15 @@
 
 {
-  "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions?fields=VersionDefinition/stack_default,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name=HDP",
+  "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions?fields=VersionDefinition/stack_default,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name=ADH",
   "items" : [
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2",
       "VersionDefinition" : {
-        "id" : "HDP-2.2",
+        "id" : "ADH-2.2",
         "repository_version" : "2.2",
         "show_available" : true,
         "stack_default" : true,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "TEZ",
@@ -46,7 +46,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -200,127 +200,127 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
-            "version_definition_id" : "HDP-2.2"
+            "version_definition_id" : "ADH-2.2"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/redhat6/repositories/HDP-2.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/redhat6/repositories/ADH-2.2",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.2.6.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.2.6.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.2",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.2",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
-            "version_definition_id" : "HDP-2.2"
+            "version_definition_id" : "ADH-2.2"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/suse11/repositories/HDP-2.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/suse11/repositories/ADH-2.2",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.2.6.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.2.6.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.2.6.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.2.6.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.2",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.2",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.2",
-            "version_definition_id" : "HDP-2.2"
+            "version_definition_id" : "ADH-2.2"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/ubuntu12/repositories/HDP-2.2",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/ubuntu12/repositories/ADH-2.2",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.6.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.2.6.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.2.6.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.2.6.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.2",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.2",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.2/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.2/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.2",
-                "version_definition_id" : "HDP-2.2"
+                "version_definition_id" : "ADH-2.2"
               }
             }
           ]
@@ -328,13 +328,13 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3",
       "VersionDefinition" : {
-        "id" : "HDP-2.3",
+        "id" : "ADH-2.3",
         "repository_version" : "2.3",
         "show_available" : true,
         "stack_default" : true,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "FLUME",
@@ -451,7 +451,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -557,253 +557,253 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/debian7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/debian7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "debian7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/debian7/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/debian7/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/debian7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat6/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat6/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat7/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat7/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/redhat7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/suse11/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/suse11/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu12/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu12/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu14",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu14",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu14",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3",
-            "version_definition_id" : "HDP-2.3"
+            "version_definition_id" : "ADH-2.3"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu14/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu14/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3/operating_systems/ubuntu14/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3/operating_systems/ubuntu14/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3",
-                "version_definition_id" : "HDP-2.3"
+                "version_definition_id" : "ADH-2.3"
               }
             }
           ]
@@ -811,13 +811,13 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS",
       "VersionDefinition" : {
-        "id" : "HDP-2.3.ECS",
+        "id" : "ADH-2.3.ECS",
         "repository_version" : "2.3.ECS",
         "show_available" : true,
         "stack_default" : true,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "ECS",
@@ -838,7 +838,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -928,17 +928,17 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/debian7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/debian7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "debian7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/debian7/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/debian7/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -947,55 +947,55 @@
                 "os_type" : "debian7",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/debian7/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/debian7/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/debian7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat6/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat6/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -1004,55 +1004,55 @@
                 "os_type" : "redhat6",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat6/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat6/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat7/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat7/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -1061,55 +1061,55 @@
                 "os_type" : "redhat7",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat7/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat7/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/redhat7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/suse11/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/suse11/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -1118,55 +1118,55 @@
                 "os_type" : "suse11",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/suse11/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/suse11/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu12/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu12/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -1175,55 +1175,55 @@
                 "os_type" : "ubuntu12",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu12/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu12/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu14",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu14",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu14",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.3.ECS",
-            "version_definition_id" : "HDP-2.3.ECS"
+            "version_definition_id" : "ADH-2.3.ECS"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu14/repositories/ECS-2.2.0.0",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu14/repositories/ECS-2.2.0.0",
               "Repositories" : {
                 "base_url" : "http://ECS_CLIENT_REPO/",
                 "default_base_url" : "http://ECS_CLIENT_REPO/",
@@ -1232,39 +1232,39 @@
                 "os_type" : "ubuntu14",
                 "repo_id" : "ECS-2.2.0.0",
                 "repo_name" : "ECS",
-                "stack_name" : "HDP",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu14/repositories/HDP-2.3",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu14/repositories/ADH-2.3",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.3.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.3.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-2.3",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.3",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.3.ECS/operating_systems/ubuntu14/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.3.ECS/operating_systems/ubuntu14/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.3.ECS",
-                "version_definition_id" : "HDP-2.3.ECS"
+                "version_definition_id" : "ADH-2.3.ECS"
               }
             }
           ]
@@ -1272,13 +1272,13 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4",
       "VersionDefinition" : {
-        "id" : "HDP-2.4",
+        "id" : "ADH-2.4",
         "repository_version" : "2.4",
         "show_available" : true,
         "stack_default" : true,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "ZOOKEEPER",
@@ -1419,7 +1419,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -1501,253 +1501,253 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/debian7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/debian7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "debian7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/debian7/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/debian7/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/debian7/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/debian7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat6/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat6/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos6/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat7/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat7/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/centos7/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/redhat7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/suse11/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/suse11/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/suse11sp3/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu12/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu12/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu12/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu14",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu14",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu14",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.4",
-            "version_definition_id" : "HDP-2.4"
+            "version_definition_id" : "ADH-2.4"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu14/repositories/HDP-2.4",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu14/repositories/ADH-2.4",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.4.0.0",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.4.0.0",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.4.0.0",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH/ubuntu14/2.x/updates/2.4.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-2.4",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.4",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.4/operating_systems/ubuntu14/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.4/operating_systems/ubuntu14/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.4",
-                "version_definition_id" : "HDP-2.4"
+                "version_definition_id" : "ADH-2.4"
               }
             }
           ]
@@ -1755,13 +1755,13 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5",
       "VersionDefinition" : {
-        "id" : "HDP-2.5",
+        "id" : "ADH-2.5",
         "repository_version" : "2.5",
         "show_available" : true,
         "stack_default" : true,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "SPARK",
@@ -1926,7 +1926,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -1992,295 +1992,295 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/debian7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/debian7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "debian7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/debian7/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/debian7/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/debian7/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/debian7/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/debian7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat6/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat6/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos6/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos6/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat7/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat7/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos7/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos7/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/redhat7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse11/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse11/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse12/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse12/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse12",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/suse12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/suse12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu12/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu12/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu12/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu12/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu14",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu14",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu14",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5"
+            "version_definition_id" : "ADH-2.5"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu14/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu14/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.5.0.0",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.5.0.0",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu14/2.x/updates/2.5.0.0",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu14/2.x/updates/2.5.0.0",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5/operating_systems/ubuntu14/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5/operating_systems/ubuntu14/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://public-repo-1.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu14",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5"
+                "version_definition_id" : "ADH-2.5"
               }
             }
           ]
@@ -2288,13 +2288,13 @@
       ]
     },
     {
-      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0",
       "VersionDefinition" : {
-        "id" : "HDP-2.5-2.5.0.0",
+        "id" : "ADH-2.5-2.5.0.0",
         "repository_version" : "2.5.0.0",
         "show_available" : true,
         "stack_default" : false,
-        "stack_name" : "HDP",
+        "stack_name" : "ADH",
         "stack_services" : [
           {
             "name" : "SPARK",
@@ -2459,7 +2459,7 @@
           {
             "name" : "SMARTSENSE",
             "display_name" : "SmartSense",
-            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common HDP services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
+            "comment" : "SmartSense - Hortonworks SmartSense Tool (HST) helps quickly\n        gather configuration, metrics, logs from common ADH services that\n        aids to quickly troubleshoot support cases and receive\n        cluster-specific recommendations.\n      ",
             "versions" : [
               "1.2.2.0-567"
             ]
@@ -2525,211 +2525,211 @@
       },
       "operating_systems" : [
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/debian7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/debian7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "debian7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5-2.5.0.0"
+            "version_definition_id" : "ADH-2.5-2.5.0.0"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/debian7/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/debian7/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/BUILDS/2.5.0.0-435",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/BUILDS/2.5.0.0-435",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/debian7/2.x/BUILDS/2.5.0.0-435",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/debian7/2.x/BUILDS/2.5.0.0-435",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/debian7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/debian7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian7",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian7",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian7",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/debian7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "debian7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat6",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat6",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat6",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5-2.5.0.0"
+            "version_definition_id" : "ADH-2.5-2.5.0.0"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat6/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat6/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.5.0.0-453",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.5.0.0-453",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos6/2.x/BUILDS/2.5.0.0-453",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos6/2.x/BUILDS/2.5.0.0-453",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat6/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat6/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos6",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat6",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat7",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat7",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "redhat7",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5-2.5.0.0"
+            "version_definition_id" : "ADH-2.5-2.5.0.0"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat7/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat7/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/BUILDS/2.5.0.0-453",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/BUILDS/2.5.0.0-453",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos7/2.x/BUILDS/2.5.0.0-453",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/centos7/2.x/BUILDS/2.5.0.0-453",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/redhat7/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/redhat7/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/centos7",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "redhat7",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/suse11",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/suse11",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "suse11",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5-2.5.0.0"
+            "version_definition_id" : "ADH-2.5-2.5.0.0"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/suse11/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/suse11/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/BUILDS/2.5.0.0-453",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/BUILDS/2.5.0.0-453",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/BUILDS/2.5.0.0-453",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/suse11sp3/2.x/BUILDS/2.5.0.0-453",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/suse11/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/suse11/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/suse11sp3",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "suse11",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             }
           ]
         },
         {
-          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/ubuntu12",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/ubuntu12",
           "OperatingSystems" : {
             "ambari_managed_repositories" : true,
             "os_type" : "ubuntu12",
-            "stack_name" : "HDP",
+            "stack_name" : "ADH",
             "stack_version" : "2.5",
-            "version_definition_id" : "HDP-2.5-2.5.0.0"
+            "version_definition_id" : "ADH-2.5-2.5.0.0"
           },
           "repositories" : [
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/ubuntu12/repositories/HDP-2.5",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/ubuntu12/repositories/ADH-2.5",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/BUILDS/2.5.0.0-453",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/BUILDS/2.5.0.0-453",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu12/2.x/BUILDS/2.5.0.0-453",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH/ubuntu12/2.x/BUILDS/2.5.0.0-453",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-2.5",
-                "repo_name" : "HDP",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-2.5",
+                "repo_name" : "ADH",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             },
             {
-              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/HDP-2.5-2.5.0.0/operating_systems/ubuntu12/repositories/HDP-UTILS-1.1.0.20",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/version_definitions/ADH-2.5-2.5.0.0/operating_systems/ubuntu12/repositories/ADH-UTILS-1.1.0.20",
               "Repositories" : {
-                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
-                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12",
+                "base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
+                "default_base_url" : "http://s3.amazonaws.com/dev.hortonworks.com/ADH-UTILS-1.1.0.20/repos/ubuntu12",
                 "latest_base_url" : null,
                 "mirrors_list" : null,
                 "os_type" : "ubuntu12",
-                "repo_id" : "HDP-UTILS-1.1.0.20",
-                "repo_name" : "HDP-UTILS",
-                "stack_name" : "HDP",
+                "repo_id" : "ADH-UTILS-1.1.0.20",
+                "repo_name" : "ADH-UTILS",
+                "stack_name" : "ADH",
                 "stack_version" : "2.5",
-                "version_definition_id" : "HDP-2.5-2.5.0.0"
+                "version_definition_id" : "ADH-2.5-2.5.0.0"
               }
             }
           ]

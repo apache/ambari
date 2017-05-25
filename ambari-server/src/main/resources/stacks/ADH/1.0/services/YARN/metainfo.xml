@@ -22,10 +22,23 @@
     <service>
       <name>YARN</name>
       <extends>common-services/YARN/2.1.0.2.0</extends>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
     <service>
       <name>MAPREDUCE2</name>
       <extends>common-services/MAPREDUCE2/2.1.0.2.0.6.0</extends>
+      <quickLinksConfigurations-dir>quicklinks-mapred</quickLinksConfigurations-dir>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- /** * Licensed to the Apache Software Foundation (ASF) under one * or 
+	more contributor license agreements. See the NOTICE file * distributed with 
+	this work for additional information * regarding copyright ownership. The 
+	ASF licenses this file * to you under the Apache License, Version 2.0 (the 
+	* "License"); you may not use this file except in compliance * with the License. 
+	You may obtain a copy of the License at * * http://www.apache.org/licenses/LICENSE-2.0 
+	* * Unless required by applicable law or agreed to in writing, software * 
+	distributed under the License is distributed on an "AS IS" BASIS, * WITHOUT 
+	WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. * See the 
+	License for the specific language governing permissions and * limitations 
+	under the License. */ -->
+<configuration supports_final="true">
+  <property>
+    <name>policy_user</name>
+    <value>ambari-qa</value>
+    <display-name>Policy user for HDFS</display-name>
+    <description>This user must be system user and also present at Ranger
+			admin portal</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>hadoop.rpc.protection</name>
+    <value/>
+    <description>Used for repository creation on ranger admin
+		</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>common.name.for.certificate</name>
+    <value/>
+    <description>Common name for certificate, this value should match what is specified in repo within ranger admin</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>ranger-hdfs-plugin-enabled</name>
+    <value>No</value>
+    <display-name>Enable Ranger for HDFS</display-name>
+    <description>Enable ranger hdfs plugin</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-hdfs-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>boolean</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>REPOSITORY_CONFIG_USERNAME</name>
+    <value>hadoop</value>
+    <display-name>Ranger repository config user</display-name>
+    <description>Used for repository creation on ranger admin
+		</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>REPOSITORY_CONFIG_PASSWORD</name>
+    <value>hadoop</value>
+    <display-name>Ranger repository config password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Used for repository creation on ranger admin
+		</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.IS_ENABLED</name>
+    <value>true</value>
+    <display-name>Audit to DB</display-name>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.db</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.IS_ENABLED</name>
+    <value>false</value>
+    <display-name>Audit to HDFS</display-name>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
+    <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <description/>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs.dir</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>
+    <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY</name>
+    <value>__REPLACE__LOG_DIR/hadoop/%app-type%/audit/archive</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_FILE</name>
+    <value>%hostname%-audit.log</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS</name>
+    <value>900</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS</name>
+    <value>86400</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS</name>
+    <value>60</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FILE</name>
+    <value>%time:yyyyMMdd-HHmm.ss%.log</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS</name>
+    <value>60</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS</name>
+    <value>600</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
+    <value>10</value>
+    <description/>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SSL_KEYSTORE_FILE_PATH</name>
+    <value>/etc/hadoop/conf/ranger-plugin-keystore.jks</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SSL_KEYSTORE_PASSWORD</name>
+    <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
+    <description/>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SSL_TRUSTSTORE_FILE_PATH</name>
+    <value>/etc/hadoop/conf/ranger-plugin-truststore.jks</value>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SSL_TRUSTSTORE_PASSWORD</name>
+    <value>changeit</value>
+    <property-type>PASSWORD</property-type>
+    <description/>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>POLICY_MGR_URL</name>
+    <value>{{policymgr_mgr_url}}</value>
+    <description>Policy Manager url</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>SQL_CONNECTOR_JAR</name>
+    <value>{{sql_connector_jar}}</value>
+    <description>Location of DB client library (please check the location
+			of the jar file)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.FLAVOUR</name>
+    <value>{{xa_audit_db_flavor}}</value>
+    <description>The database type to be used (mysql/oracle)</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.DATABASE_NAME</name>
+    <value>{{xa_audit_db_name}}</value>
+    <description>Audit database name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.USER_NAME</name>
+    <value>{{xa_audit_db_user}}</value>
+    <description>Audit database user</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.PASSWORD</name>
+    <value>{{xa_audit_db_password}}</value>
+    <property-type>PASSWORD</property-type>
+    <description>Audit database password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>XAAUDIT.DB.HOSTNAME</name>
+    <value>{{xa_db_host}}</value>
+    <description>Audit database hostname</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>REPOSITORY_NAME</name>
+    <value>{{repo_name}}</value>
+    <description>Ranger repository name</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+</configuration>

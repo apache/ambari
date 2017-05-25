@@ -1,4 +1,4 @@
-<xml version="1.0"?>
+<?xml version="1.0"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -20,11 +20,13 @@
   <services>
     <service>
       <name>FLUME</name>
-      <version>1.6.0.2.3</version>
+      <displayName>Flume</displayName>
+      <version>1.5.2.2.2</version>
+
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
               <name>flume</name>
@@ -32,10 +34,10 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
-              <name>flume</name>
+              <name>flume-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

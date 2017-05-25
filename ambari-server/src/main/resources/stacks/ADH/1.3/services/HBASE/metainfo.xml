@@ -21,7 +21,42 @@
     <service>
       <name>HBASE</name>
       <displayName>HBase</displayName>
-      <version>0.98.12.1.4</version>
+      <version>0.98.4.2.2</version>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>hbase</name>
+            </package>
+            <package>
+              <name>phoenix</name>
+              <condition>should_install_phoenix</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>hbase-${stack_version}</name>
+            </package>
+            <package>
+              <name>phoenix-${stack_version}</name>
+              <condition>should_install_phoenix</condition>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
   </services>
 </metainfo>

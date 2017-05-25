@@ -19,12 +19,26 @@
  * limitations under the License.
  */
 -->
-
-<configuration>
-
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>hive.heapsize</name>
+    <value>512</value>
+    <description>Hive Java heap size</description>
+    <display-name>HiveServer2 Heap Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>512</increment-step>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
+    <display-name>hive-env template</display-name>
     <description>This is the jinja template for hive-env.sh file</description>
     <value>
  if [ "$SERVICE" = "cli" ]; then
@@ -58,22 +72,121 @@ export HIVE_CONF_DIR={{hive_config_dir}}
 
 # Folder containing extra libraries required for hive compilation/execution can be controlled by:
 if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
-  if [ -f "${HIVE_AUX_JARS_PATH}" ]; then
+  if [ -f "${HIVE_AUX_JARS_PATH}" ]; then    
     export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
   elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then
     export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar
   fi
 elif [ -d "/usr/hdp/current/hive-webhcat/share/hcatalog" ]; then
   export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-webhcat/share/hcatalog/hive-hcatalog-core.jar
-fi
+fi      
 
 export METASTORE_PORT={{hive_metastore_port}}
 
-{% if sqla_db_used or lib_dir_available %}
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
-export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
-{% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
   </property>
-
+  <property>
+    <name>hive_exec_orc_storage_strategy</name>
+    <display-name>ORC Storage Strategy</display-name>
+    <description>
+      Define the encoding strategy to use while writing data. Changing this will only affect the light weight encoding for integers.
+      This flag will not change the compression level of higher level compression codec (like ZLIB). Possible options are SPEED and COMPRESSION.
+    </description>
+    <value>SPEED</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_txn_acid</name>
+    <display-name>ACID Transactions</display-name>
+    <description>Enable/Disable ACID transactions for HIVE</description>
+    <value>off</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>on</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>off</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_security_authorization</name>
+    <display-name>Choose Authorization</display-name>
+    <description>
+      Authorization mode, default NONE. Options are NONE, Ranger, SQLStdAuth.
+      SQL standard authorization provides grant/revoke functionality at database, table level. 
+      Ranger provides a centralized authorization interface for Hive and provides more granular
+      access control at column level through the Hive plugin.
+    </description>
+    <value>None</value>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-hive-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>None</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>SQLStdAuth</value>
+          <label>SQLStdAuth</label>
+        </entry>
+        <entry>
+          <value>Ranger</value>
+          <label>Ranger</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive_timeline_logging_enabled</name>
+    <display-name>Use ATS Logging</display-name>
+    <value>true</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
