@@ -15,30 +15,18 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<<<<<<< HEAD
 <configuration>
-=======
-<configuration supports_final="true">
->>>>>>> origin/branch-2.5
   <property>
     <name>ranger.usersync.keystore.file</name>
     <value>/usr/hdp/current/ranger-usersync/conf/unixauthservice.jks</value>
     <description>Keystore file used for usersync</description>
-<<<<<<< HEAD
     <on-ambari-upgrade add="false"/>
-=======
-    <on-ambari-upgrade add="true"/>
->>>>>>> origin/branch-2.5
   </property>
   <property>
     <name>ranger.usersync.truststore.file</name>
     <value>/usr/hdp/current/ranger-usersync/conf/mytruststore.jks</value>
     <description>Truststore used for usersync, required if usersync -&gt; ranger admin communication is SSL enabled</description>
-<<<<<<< HEAD
     <on-ambari-upgrade add="false"/>
-=======
-    <on-ambari-upgrade add="true"/>
->>>>>>> origin/branch-2.5
   </property>
   <property>
     <name>ranger.usersync.ldap.bindkeystore</name>
@@ -47,17 +35,12 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-<<<<<<< HEAD
     <on-ambari-upgrade add="false"/>
-=======
-    <on-ambari-upgrade add="true"/>
->>>>>>> origin/branch-2.5
   </property>
   <property>
     <name>ranger.usersync.credstore.filename</name>
     <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
     <description>Credential store file name for user sync, specify full path</description>
-<<<<<<< HEAD
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -65,8 +48,5 @@
     <value>/usr/hdp/current/ranger-usersync/conf/ugsync.jceks</value>
     <description/>
     <on-ambari-upgrade add="false"/>
-=======
-    <on-ambari-upgrade add="true"/>
->>>>>>> origin/branch-2.5
   </property>
 </configuration>

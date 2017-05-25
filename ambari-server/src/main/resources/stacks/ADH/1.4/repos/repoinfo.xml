@@ -16,179 +16,32 @@
    limitations under the License.
 -->
 <reposinfo>
-<<<<<<< HEAD
   <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
   <os family="redhat6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-  <latest>http://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</latest>
-  <os family="redhat6">
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
+      <baseurl>http://FQDN/ADH-1.4.0</baseurl>
+      <repoid>ADH-1.4</repoid>
+      <reponame>ADH</reponame>
       <unique>true</unique>
     </repo>
     <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
+      <baseurl>http://FQDN/ADH-UTILS-1.4.0</baseurl>
+      <repoid>ADH-UTILS-1.4.0</repoid>
+      <reponame>ADH-UTILS</reponame>
       <unique>false</unique>
     </repo>
   </os>
   <os family="redhat7">
     <repo>
-<<<<<<< HEAD
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos7/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
+      <baseurl>http://FQDN/ADH-1.4.0</baseurl>
+      <repoid>ADH-1.4</repoid>
+      <reponame>ADH</reponame>
       <unique>true</unique>
     </repo>
     <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos7</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="suse11">
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/suse11sp3/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="suse12">
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/sles12/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/suse11sp3</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="ubuntu12">
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu12/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="debian7">
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian7/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/debian7/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/debian6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="ubuntu14">
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-      <reponame>HDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="ubuntu16">
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/ubuntu14/2.x/updates/2.6.0.0</baseurl>
-      <repoid>HDP-2.6</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu14/2.x/updates/2.3.0.0</baseurl>
-      <repoid>HDP-2.3</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-<<<<<<< HEAD
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.21</repoid>
-=======
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
-      <repoid>HDP-UTILS-1.1.0.20</repoid>
->>>>>>> origin/branch-2.5
-      <reponame>HDP-UTILS</reponame>
+      <baseurl>http://FQDN/ADH-UTILS-1.4.0</baseurl>
+      <repoid>ADH-UTILS-1.4.0</repoid>
+      <reponame>ADH-UTILS</reponame>
       <unique>false</unique>
     </repo>
   </os>

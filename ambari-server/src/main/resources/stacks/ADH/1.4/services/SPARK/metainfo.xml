@@ -19,7 +19,6 @@
  */
 -->
 <metainfo>
-<<<<<<< HEAD
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
@@ -27,14 +26,4 @@
       <version>1.6.x</version>
     </service>
   </services>
-=======
-    <schemaVersion>2.0</schemaVersion>
-    <services>
-        <service>
-          <name>SPARK</name>
-          <version>2.1.0</version>
-          <extends>common-services/SPARK/1.5.2</extends>
-        </service>
-    </services>
->>>>>>> origin/branch-2.5
 </metainfo>

@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-<<<<<<< HEAD
 import math
 from math import floor
 from urlparse import urlparse
@@ -29,10 +28,6 @@ import xml.etree.ElementTree as ET
 
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
-=======
-
-class ADH13StackAdvisor(ADH12StackAdvisor):
->>>>>>> origin/branch-2.5
 
   def getServiceConfigurationRecommenderDict(self):
     parentRecommendConfDict = super(HDP22StackAdvisor, self).getServiceConfigurationRecommenderDict()

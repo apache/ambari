@@ -23,37 +23,7 @@
   <services>
     <service>
       <name>RANGER_KMS</name>
-<<<<<<< HEAD
       <version>0.7.0.2.6</version>
-=======
-      <extends>common-services/RANGER_KMS/0.5.0.2.3</extends>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>ranger_${stack_version}-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>ranger-${stack_version}-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
-      <themes>
-        <theme>
-          <fileName>theme_version_1.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-
->>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

@@ -23,15 +23,8 @@
   <services>
     <service>
       <name>RANGER</name>
-<<<<<<< HEAD
       <extends>common-services/RANGER/0.7.0</extends>
       <version>0.7.0.2.6</version>
-=======
-      <displayName>Ranger</displayName>
-      <comment>Comprehensive security for Hadoop</comment>
-      <extends>common-services/RANGER/0.5.0</extends>
-      <version>0.5.0.2.3</version>
->>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

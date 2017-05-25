@@ -20,11 +20,7 @@
   <services>
     <service>
       <name>KNOX</name>
-<<<<<<< HEAD
       <version>0.11.0.2.6</version>
-=======
-      <version>0.6.0.2.3</version>
->>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

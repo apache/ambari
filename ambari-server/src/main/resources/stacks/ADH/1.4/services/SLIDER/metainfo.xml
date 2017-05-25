@@ -20,11 +20,7 @@
   <services>
     <service>
       <name>SLIDER</name>
-<<<<<<< HEAD
       <version>0.91.0</version>
-=======
-      <version>0.80.0.2.3</version>
->>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

@@ -20,11 +20,7 @@
   <services>
     <service>
       <name>TEZ</name>
-<<<<<<< HEAD
       <version>0.7.0</version>
-=======
-      <version>0.6.2</version>
->>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>
