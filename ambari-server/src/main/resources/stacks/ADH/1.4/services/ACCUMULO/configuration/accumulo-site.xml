@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+  <!-- Put your site-specific accumulo configurations here. The available configuration values along with their defaults are documented in docs/config.html Unless
+    you are simply testing at your workstation, you will most definitely need to change the three entries below. -->
+  <property>
+    <name>general.classpaths</name>
+    <value>
+$ACCUMULO_HOME/lib/accumulo-server.jar,
+$ACCUMULO_HOME/lib/accumulo-core.jar,
+$ACCUMULO_HOME/lib/accumulo-start.jar,
+$ACCUMULO_HOME/lib/accumulo-fate.jar,
+$ACCUMULO_HOME/lib/accumulo-proxy.jar,
+$ACCUMULO_HOME/lib/[^.].*.jar,
+$ZOOKEEPER_HOME/zookeeper[^.].*.jar,
+$HADOOP_CONF_DIR,
+/usr/hdp/current/hadoop-client/[^.].*.jar,
+/usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
+/usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,
+/usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,
+/usr/hdp/current/hadoop-yarn-client/[^.].*.jar,
+/usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,
+/usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar
+    </value>
+    <description>List of jars and directories that will be added to
+      Accumulo's classpath.  Ordering matters, as the entries will be
+      searched in order when attempting to load a class.</description>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

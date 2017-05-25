@@ -20,7 +20,12 @@
   <services>
     <service>
       <name>KAFKA</name>
+<<<<<<< HEAD
       <version>0.10.0.2.6</version>
+=======
+      <version>0.10.1.1</version>
+      <extends>common-services/KAFKA/0.9.0</extends>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

@@ -16,8 +16,17 @@
    limitations under the License.
 -->
 <metainfo>
+<<<<<<< HEAD
   <versions>
     <active>true</active>
   </versions>
   <extends>1.3.3</extends>
+=======
+    <versions>
+	  <active>true</active>
+    </versions>
+    <extends>1.3</extends>
+    <minJdk>1.7</minJdk>
+    <maxJdk>1.8</maxJdk>
+>>>>>>> origin/branch-2.5
 </metainfo>

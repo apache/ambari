@@ -21,6 +21,10 @@
     <service>
       <name>ZOOKEEPER</name>
       <version>3.4.6</version>
+<<<<<<< HEAD
+=======
+      <extends>common-services/ZOOKEEPER/3.4.6</extends>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

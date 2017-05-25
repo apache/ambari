@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>ATLAS</name>
+<<<<<<< HEAD
       <version>0.8.0.2.6</version>
 
       <themes>
@@ -31,6 +32,34 @@
       <configuration-dependencies>
         <config-type>hdfs-site</config-type>
       </configuration-dependencies>
+=======
+      <extends>common-services/ATLAS/0.1.0.2.3</extends>
+      <version>0.5.0.2.3</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>atlas-metadata_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>atlas-metadata-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

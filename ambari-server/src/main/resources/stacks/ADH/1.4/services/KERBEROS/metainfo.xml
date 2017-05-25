@@ -20,6 +20,10 @@
   <services>
     <service>
       <name>KERBEROS</name>
+<<<<<<< HEAD
+=======
+      <extends>common-services/KERBEROS/1.10.3-10</extends>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

@@ -21,7 +21,12 @@
   <services>
     <service>
       <name>STORM</name>
+<<<<<<< HEAD
       <version>1.0.1</version>
+=======
+      <extends>common-services/STORM/0.10.0</extends>
+      <version>0.10.0.2.3</version>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

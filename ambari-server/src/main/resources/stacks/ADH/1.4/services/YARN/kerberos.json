@@ -31,12 +31,16 @@
             "yarn.resourcemanager.proxyuser.*.groups": "",
             "yarn.resourcemanager.proxyuser.*.hosts": "",
             "yarn.resourcemanager.proxyuser.*.users": "",
+<<<<<<< HEAD
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
             "yarn.resourcemanager.zk-acl" : "sasl:rm:rwcda",
             "hadoop.registry.secure" : "true",
             "hadoop.registry.system.accounts" : "sasl:yarn,sasl:mapred,sasl:hadoop,sasl:hdfs,sasl:rm,sasl:hive",
             "hadoop.registry.client.auth" : "kerberos",
             "hadoop.registry.jaas.context" : "Client"
+=======
+            "yarn.resourcemanager.proxy-user-privileges.enabled": "true"
+>>>>>>> origin/branch-2.5
           }
         },
         {
@@ -53,6 +57,7 @@
             "yarn.scheduler.capacity.root.default.acl_administer_jobs": "${yarn-env/yarn_user}",
             "yarn.scheduler.capacity.root.default.acl_submit_applications": "${yarn-env/yarn_user}"
           }
+<<<<<<< HEAD
         },
         {
           "ranger-yarn-audit": {
@@ -63,6 +68,8 @@
             "xasecure.audit.jaas.Client.option.serviceName": "solr",
             "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
           }
+=======
+>>>>>>> origin/branch-2.5
         }
       ],
       "components": [
@@ -91,6 +98,7 @@
               }
             },
             {
+<<<<<<< HEAD
               "name": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
@@ -126,6 +134,8 @@
               }
             },
             {
+=======
+>>>>>>> origin/branch-2.5
               "name": "/spnego",
               "principal": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-principal"
@@ -175,6 +185,7 @@
               "keytab": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file"
               }
+<<<<<<< HEAD
             },
             {
               "name": "/YARN/RESOURCEMANAGER/resource_manager_rm",
@@ -184,6 +195,8 @@
               "keytab": {
                 "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
+=======
+>>>>>>> origin/branch-2.5
             }
           ]
         },
@@ -279,4 +292,8 @@
       ]
     }
   ]
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/branch-2.5

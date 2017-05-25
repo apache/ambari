@@ -20,7 +20,35 @@
   <services>
     <service>
       <name>PIG</name>
+<<<<<<< HEAD
       <version>0.16.0.2.6</version>
+=======
+      <version>0.15.0</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>pig_${stack_version}</name>
+            </package>
+            <package>
+              <name>datafu_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>pig-${stack_version}</name>
+            </package>
+            <package>
+              <name>datafu-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+>>>>>>> origin/branch-2.5
     </service>
   </services>
 </metainfo>

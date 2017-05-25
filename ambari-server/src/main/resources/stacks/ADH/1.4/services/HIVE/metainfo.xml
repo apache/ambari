@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>HIVE</name>
+<<<<<<< HEAD
       <version>1.2.1.2.6</version>
     </service>
     <themes>
@@ -28,5 +29,102 @@
         <default>true</default>
       </theme>
     </themes>
+=======
+      <version>1.2.1</version>
+      
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>mysql-connector-java</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql_connector</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>hive_${stack_version}</name>
+            </package>
+            <package>
+              <name>hive_${stack_version}-hcatalog</name>
+            </package>
+            <package>
+              <name>hive_${stack_version}-webhcat</name>
+            </package>
+            <package>
+              <name>atlas-metadata_${stack_version}-hive-plugin</name>
+              <condition>should_install_hive_atlas</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>amazon2015,redhat6,suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>mysql</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7</osFamily>
+          <packages>
+            <package>
+              <name>mysql-community-release</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+            <package>
+              <name>mysql-community-server</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>hive-${stack_version}</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-webhcat</name>
+            </package>
+            <package>
+              <name>atlas-metadata-${stack_version}-hive-plugin</name>
+              <condition>should_install_hive_atlas</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>amazon2015,redhat6,debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>mysql-server</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>suse11,suse12</osFamily>
+          <packages>
+            <package>
+              <name>mysql-client</name>
+              <skipUpgrade>true</skipUpgrade>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+    </service>
+>>>>>>> origin/branch-2.5
   </services>
 </metainfo>
