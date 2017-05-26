@@ -307,6 +307,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       isRecommendedLoaded: false,
       initialRecommendations: []
     });
+    App.ServiceConfigGroup.find().filterProperty('isDefault', false).forEach(function (record) {
+      App.configGroupsMapper.deleteRecord(record);
+    });
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
