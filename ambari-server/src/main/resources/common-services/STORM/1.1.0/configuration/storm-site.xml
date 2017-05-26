@@ -21,24 +21,28 @@
 -->
 <configuration supports_final="true">
   <property>
-    <name>nimbus.autocredential.plugins.classes</name>
+    <name>nimbus.impersonation.acl</name>
     <description>
-      Allows users to add token based authentication for services such as HDFS, HBase, Hive
+      The ImpersonationAuthorizer uses nimbus.impersonation.acl as the acl to authorize users. Following is a sample nimbus config for supporting impersonation:
+      nimbus.impersonation.acl:
+      impersonating_user1:
+      hosts:
+      [comma separated list of hosts from which impersonating_user1 is allowed to impersonate other users]
+      groups:
+      [comma separated list of groups whose users impersonating_user1 is allowed to impersonate]
+      impersonating_user2:
+      hosts:
+      [comma separated list of hosts from which impersonating_user2 is allowed to impersonate other users]
+      groups:
+      [comma separated list of groups whose users impersonating_user2 is allowed to impersonate]
     </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>nimbus.credential.renewers.freq.secs</name>
-    <description>
-      Frequency at which tokens will be renewed.
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>nimbus.credential.renewers.classes</name>
-    <description>
-      List of classes for token renewal
-    </description>
+    <!-- The depends-on section is new in this version, required so Stack Advisor can include streamline-env and streamline-common configs. -->
+    <depends-on>
+      <property>
+        <type>streamline-env</type>
+        <name>streamline_principal_name</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
