@@ -55,7 +55,7 @@
         </component>
 
       </components>
-      
+
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -94,7 +94,7 @@
           <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>mysql-community-release</name>
+              <name>mysql57-community-release</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
             </package>

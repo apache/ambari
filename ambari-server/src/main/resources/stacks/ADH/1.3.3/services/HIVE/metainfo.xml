@@ -163,16 +163,19 @@
             <package>
               <name>hive-webhcat</name>
             </package>
+            <!--
             <package>
               <name>atlas-metadata-hive-plugin</name>
               <condition>should_install_hive_atlas</condition>
             </package>
+
             <package>
               <name>hive2</name>
             </package>
             <package>
               <name>tez_hive2</name>
             </package>
+          -->
           </packages>
         </osSpecific>
         <osSpecific>
@@ -189,7 +192,7 @@
           <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>mysql-community-release</name>
+              <name>mysql57-community-release</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
             </package>

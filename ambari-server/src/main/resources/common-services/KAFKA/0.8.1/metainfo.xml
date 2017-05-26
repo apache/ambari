@@ -90,7 +90,7 @@
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>kafka_${stack_version}</name>
+              <name>kafka</name>
             </package>
           </packages>
         </osSpecific>
@@ -98,7 +98,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
             <package>
-              <name>kafka-${stack_version}</name>
+              <name>kafka</name>
             </package>
           </packages>
         </osSpecific>

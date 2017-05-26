@@ -29,7 +29,7 @@
               <name>pig</name>
             </package>
             <package>
-              <name>datafu</name>
+              <name>pig-udf-datafu</name>
             </package>
           </packages>
         </osSpecific>

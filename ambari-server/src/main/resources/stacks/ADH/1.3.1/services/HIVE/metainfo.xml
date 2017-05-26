@@ -21,7 +21,7 @@
     <service>
       <name>HIVE</name>
       <version>1.2.1.2.3</version>
-      
+
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -45,10 +45,12 @@
             <package>
               <name>hive-webhcat</name>
             </package>
+            <!--
             <package>
               <name>atlas-metadata-hive-plugin</name>
               <condition>should_install_hive_atlas</condition>
             </package>
+          -->
           </packages>
         </osSpecific>
         <osSpecific>
@@ -65,7 +67,7 @@
           <osFamily>redhat7</osFamily>
           <packages>
             <package>
-              <name>mysql-community-release</name>
+              <name>mysql57-community-release</name>
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_mysql</condition>
             </package>

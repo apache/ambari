@@ -27,10 +27,10 @@
           <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
           <packages>
             <package>
-              <name>zookeeper_${stack_version}</name>
+              <name>zookeeper</name>
             </package>
             <package>
-              <name>zookeeper_${stack_version}-server</name>
+              <name>zookeeper-server</name>
             </package>
           </packages>
         </osSpecific>
