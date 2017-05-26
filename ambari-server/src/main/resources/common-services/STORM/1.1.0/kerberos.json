@@ -53,11 +53,7 @@
             "nimbus.impersonation.acl": "{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}",
             "nimbus.admins": "['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']",
             "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
-            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}",
-            "nimbus.autocredential.plugins.classes": "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']",
-            "nimbus.credential.renewers.classes": "['org.apache.storm.hdfs.security.AutoHDFS', 'org.apache.storm.hbase.security.AutoHBase', 'org.apache.storm.hive.security.AutoHive']",
-            "nimbus.credential.renewers.freq.secs": 82800
-            
+            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
           }
         },
         {
