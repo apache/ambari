@@ -31,7 +31,7 @@ limitations under the License.
   <packaging>jar</packaging>
 
   <properties>
-    <storm.version>1.1.0-SNAPSHOT</storm.version>
+    <storm.version>1.1.0</storm.version>
   </properties>
 
   <build>
