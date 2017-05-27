@@ -70,7 +70,7 @@
               <condition>should_install_mysql_connector</condition>
             </package>
             <package>
-              <name>extjs-2.2-1<</name>
+              <name>extjs-2.2-1</name>
             </package>
           </packages>
         </osSpecific>
