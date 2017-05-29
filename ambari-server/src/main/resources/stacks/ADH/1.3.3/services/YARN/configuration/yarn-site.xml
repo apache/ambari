@@ -17,13 +17,14 @@
   limitations under the License.
 -->
 <configuration supports_final="true">
-<!--
+
   <property>
     <name>yarn.nodemanager.aux-services</name>
-    <value>mapreduce_shuffle,spark_shuffle,spark2_shuffle</value>
+    <value>mapreduce_shuffle</value>
     <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and cannot start with numbers</description>
     <on-ambari-upgrade add="false"/>
   </property>
+<!--
   <property>
     <name>yarn.nodemanager.aux-services.spark2_shuffle.class</name>
     <value>org.apache.spark.network.yarn.YarnShuffleService</value>
