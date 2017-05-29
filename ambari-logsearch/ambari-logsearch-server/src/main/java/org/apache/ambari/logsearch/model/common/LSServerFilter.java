@@ -48,6 +48,7 @@ public abstract class LSServerFilter {
   @JsonProperty("sort_order")
   private Integer sortOrder;
   
+  @JsonProperty("source_field")
   private String sourceField;
   
   @JsonProperty("remove_source_field")
