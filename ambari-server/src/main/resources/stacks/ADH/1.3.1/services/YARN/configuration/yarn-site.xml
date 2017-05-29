@@ -67,13 +67,13 @@
   <!--ats v1.5 properties-->
   <property>
     <name>yarn.timeline-service.version</name>
-    <value>1.5</value>
+    <value>1.0</value>
     <description>Timeline service version we&#x2019;re currently using.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.store-class</name>
-    <value>org.apache.hadoop.yarn.server.timeline.EntityGroupFSTimelineStore</value>
+    <value>org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore</value>
     <description>Main storage class for YARN timeline server.</description>
     <on-ambari-upgrade add="true"/>
   </property>
