@@ -18,11 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import json
 import logging
 import ambari_stomp
 import threading
-from collections import defaultdict
 
 from ambari_agent import Constants
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
@@ -41,7 +39,6 @@ class HeartbeatThread(threading.Thread):
   """
   def __init__(self, initializer_module):
     threading.Thread.__init__(self)
-    self.is_registered = False
     self.heartbeat_interval = HEARTBEAT_INTERVAL
     self.stop_event = initializer_module.stop_event
 
@@ -55,6 +52,12 @@ class HeartbeatThread(threading.Thread):
     self.topology_events_listener = TopologyEventListener(initializer_module.topology_cache)
     self.configuration_events_listener = ConfigurationEventListener(initializer_module.configurations_cache)
     self.listeners = [self.server_responses_listener, self.commands_events_listener, self.metadata_events_listener, self.topology_events_listener, self.configuration_events_listener]
+    self.post_registration_requests = [
+    (Constants.TOPOLOGY_REQUEST_ENDPOINT, initializer_module.topology_cache, self.topology_events_listener),
+    (Constants.METADATA_REQUEST_ENDPOINT, initializer_module.metadata_cache, self.metadata_events_listener),
+    (Constants.CONFIGURATIONS_REQUEST_ENDPOINT, initializer_module.configurations_cache, self.configuration_events_listener)
+    ]
+
 
   def run(self):
     """
@@ -63,7 +66,7 @@ class HeartbeatThread(threading.Thread):
     # TODO STOMP: stop the thread on SIGTERM
     while not self.stop_event.is_set():
       try:
-        if not self.is_registered:
+        if not self.initializer_module.is_registered:
           self.register()
 
         heartbeat_body = self.get_heartbeat_body()
@@ -75,16 +78,19 @@ class HeartbeatThread(threading.Thread):
         # TODO STOMP: handle heartbeat reponse
       except:
         logger.exception("Exception in HeartbeatThread. Re-running the registration")
-        # TODO STOMP: re-connect here
-        self.is_registered = False
+        self.initializer_module.is_registered = False
+        self.initializer_module.connection.disconnect()
         pass
+
+    self.initializer_module.connection.disconnect()
     logger.info("HeartbeatThread has successfully finished")
 
   def register(self):
     """
     Subscribe to topics, register with server, wait for server's response.
     """
-    self.subscribe_and_listen()
+    self.add_listeners()
+    self.subscribe_to_topics(Constants.PRE_REGISTRATION_TOPICS_TO_SUBSCRIBE)
 
     registration_request = self.get_registration_request()
     logger.info("Sending registration request")
@@ -96,20 +102,19 @@ class HeartbeatThread(threading.Thread):
     logger.debug("Registration response is {0}".format(response))
 
     self.registration_response = response
-    self.registered = True
+
+    for endpoint, cache, listener in self.post_registration_requests:
+      response = self.blocking_request({'hash': cache.get_md5_hashsum()}, endpoint)
+      listener.on_event({}, response)
+
+    self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)
+    self.initializer_module.is_registered = True
 
   def get_registration_request(self):
     """
     Get registration request body to send it to server
     """
-    request = {'clusters':defaultdict(lambda:{})}
-
-    for cache in self.caches:
-      cache_key_name = cache.get_cache_name() + '_hash'
-      for cluster_id in cache.get_cluster_ids():
-        request['clusters'][cluster_id][cache_key_name] = cache.get_md5_hashsum(cluster_id)
-
-    return request
+    return {'registration-response':'true'}
 
   def get_heartbeat_body(self):
     """
@@ -117,19 +122,20 @@ class HeartbeatThread(threading.Thread):
     """
     return {'hostname':'true'}
 
-  def subscribe_and_listen(self):
+  def add_listeners(self):
     """
     Subscribe to topics and set listener classes.
     """
     for listener in self.listeners:
       self.initializer_module.connection.add_listener(listener)
 
-    for topic_name in Constants.TOPICS_TO_SUBSCRIBE:
+  def subscribe_to_topics(self, topics_list):
+    for topic_name in topics_list:
       self.initializer_module.connection.subscribe(destination=topic_name, id='sub', ack='client-individual')
 
-  def blocking_request(self, body, destination):
+  def blocking_request(self, message, destination):
     """
     Send a request to server and waits for the response from it. The response it detected by the correspondence of correlation_id.
     """
-    self.initializer_module.connection.send(body=json.dumps(body), destination=destination)
-    return self.server_responses_listener.responses.blocking_pop(str(self.initializer_module.connection.correlation_id))
+    correlation_id = self.initializer_module.connection.send(message=message, destination=destination)
+    return self.server_responses_listener.responses.blocking_pop(str(correlation_id))

@@ -43,6 +43,9 @@ class BlockingDictionary():
     """
     Block until a key in dictionary is available and than pop it.
     """
+    if key in self.dict:
+      return self.dict.pop(key)
+
     while True:
       self.put_event.wait()
       self.put_event.clear()

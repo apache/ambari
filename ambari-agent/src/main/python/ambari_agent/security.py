@@ -106,9 +106,15 @@ class AmbariStompConnection(WsConnection):
     self.correlation_id = -1
     WsConnection.__init__(self, url)
 
-  def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+  def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
     self.correlation_id += 1
+
+    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
+
+    body = json.dumps(message)
     WsConnection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
+
+    return self.correlation_id
 
   def add_listener(self, listener):
     self.set_listener(listener.__class__.__name__, listener)

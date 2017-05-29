@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import json
 import logging
 import threading
 
@@ -43,10 +42,10 @@ class CommandStatusReporter(threading.Thread):
 
     while not self.stop_event.is_set():
       try:
-        # TODO STOMP: what if not registered?
+        # TODO STOMP: if not registered, reports should not be on agent until next registration
         report = self.commandStatuses.generate_report()
-        if report:
-          self.initializer_module.connection.send(body=json.dumps(report), destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+        if report and self.initializer_module.is_registered:
+          self.initializer_module.connection.send(message=report, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
         self.stop_event.wait(self.command_reports_interval)
       except:
         logger.exception("Exception in CommandStatusReporter. Re-running it")

@@ -33,6 +33,7 @@ class ServerResponsesListener(EventListener):
   """
   def __init__(self):
     self.responses = Utils.BlockingDictionary()
+    self.listener_functions = {}
 
   def on_event(self, headers, message):
     """
@@ -44,9 +45,25 @@ class ServerResponsesListener(EventListener):
     @param message: message payload dictionary
     """
     if Constants.CORRELATION_ID_STRING in headers:
-      self.responses.put(headers[Constants.CORRELATION_ID_STRING], message)
+      correlation_id = headers[Constants.CORRELATION_ID_STRING]
+      self.responses.put(correlation_id, message)
+
+      if correlation_id in self.listener_functions:
+        self.listener_functions[correlation_id](headers, message)
+        del self.listener_functions[correlation_id]
     else:
-      logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))\
+      logger.warn("Received a message from server without a '{0}' header. Ignoring the message".format(Constants.CORRELATION_ID_STRING))
 
   def get_handled_path(self):
     return Constants.SERVER_RESPONSES_TOPIC
+
+  def get_log_message(self, headers, message_json):
+    """
+    This string will be used to log received messsage of this type
+    """
+    if Constants.CORRELATION_ID_STRING in headers:
+      correlation_id = headers[Constants.CORRELATION_ID_STRING]
+      return " (correlation_id={0}): {1}".format(correlation_id, message_json)
+    return str(message_json)
+
+

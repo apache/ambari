@@ -46,12 +46,11 @@ class EventListener(ambari_stomp.ConnectionListener):
         logger.exception("Received event from server does not  a valid json as a message. Message is:\n{0}".format(message))
         return
 
-      logger.info("Received event from {0}".format(destination))
-      logger.debug("Received event from {0}: headers={1} ; message={2}".format(destination, headers, message))
+      logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, message_json)))
       try:
         self.on_event(headers, message_json)
       except:
-        logger.exception("Exception while handing event from {0}: headers={1} ; message={2}".format(destination, headers, message))
+        logger.exception("Exception while handing event from {0} {1}".format(destination, headers, message))
 
   def on_event(self, headers, message):
     """
@@ -61,3 +60,9 @@ class EventListener(ambari_stomp.ConnectionListener):
     @param message: message payload dictionary
     """
     raise NotImplementedError()
+
+  def get_log_message(self, headers, message_json):
+    """
+    This string will be used to log received messsage of this type
+    """
+    return ": " + str(message_json)

@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import json
 import random
 import logging
 import threading
@@ -98,8 +97,10 @@ class ComponentStatusExecutor(threading.Thread):
 
   def send_updates_to_server(self, cluster_reports):
     # TODO STOMP: override send to send dicts and lists? and not use json.dump
-    # TODO STOMP: skip this if server is down?
-    self.initializer_module.connection.send(body=json.dumps(cluster_reports), destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
+    if not cluster_reports or not self.initializer_module.is_registered:
+      return
+
+    self.initializer_module.connection.send(message=cluster_reports, destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT)
 
     for cluster_id, reports in cluster_reports.iteritems():
       for report in reports:

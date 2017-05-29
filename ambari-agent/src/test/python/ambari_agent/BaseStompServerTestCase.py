@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import json
 import ambari_stomp
 import os
 import sys
@@ -42,6 +43,8 @@ from coilmq.store.memory import MemoryQueue
 from coilmq.scheduler import FavorReliableSubscriberScheduler, RandomQueueScheduler
 from coilmq.protocol import STOMP10
 
+logger = logging.getLogger(__name__)
+
 class BaseStompServerTestCase(unittest.TestCase):
   """
   Base class for test cases provides the fixtures for setting up the multi-threaded
@@ -58,6 +61,7 @@ class BaseStompServerTestCase(unittest.TestCase):
     self.ready_event = threading.Event()
 
     addr_bound = threading.Event()
+    self.init_stdout_logger()
 
     def start_server():
       self.server = TestStompServer(('127.0.0.1', 21613),
@@ -122,6 +126,30 @@ class BaseStompServerTestCase(unittest.TestCase):
 
     with open(filepath) as f:
       return f.read()
+
+  def init_stdout_logger(self):
+    format='%(levelname)s %(asctime)s - %(message)s'
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(format)
+    chout = logging.StreamHandler(sys.stdout)
+    chout.setLevel(logging.INFO)
+    chout.setFormatter(formatter)
+    cherr = logging.StreamHandler(sys.stderr)
+    cherr.setLevel(logging.ERROR)
+    cherr.setFormatter(formatter)
+    logger.handlers = []
+    logger.addHandler(cherr)
+    logger.addHandler(chout)
+
+    logging.getLogger('stomp.py').setLevel(logging.WARN)
+    logging.getLogger('coilmq').setLevel(logging.INFO)
+
+  def remove_files(self, filepathes):
+    for filepath in filepathes:
+      if os.path.isfile(filepath):
+        os.remove(filepath)
 
 
 class TestStompServer(ThreadedStompServer):
@@ -235,9 +263,14 @@ class TestCaseTcpConnection(ambari_stomp.Connection):
     self.correlation_id = -1
     ambari_stomp.Connection.__init__(self, host_and_ports=[('127.0.0.1', 21613)])
 
-  def send(self, destination, body, content_type=None, headers=None, **keyword_headers):
+  def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
     self.correlation_id += 1
+
+    logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
+
+    body = json.dumps(message)
     ambari_stomp.Connection.send(self, destination, body, content_type=content_type, headers=headers, correlationId=self.correlation_id, **keyword_headers)
+    return self.correlation_id
 
   def add_listener(self, listener):
     self.set_listener(listener.__class__.__name__, listener)

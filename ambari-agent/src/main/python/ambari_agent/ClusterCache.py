@@ -97,11 +97,10 @@ class ClusterCache(dict):
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self, f, indent=2)
 
-  def get_md5_hashsum(self, cluster_id):
+  def get_md5_hashsum(self):
     """
     Thread-safe method for writing out the specified cluster cache
     and updating the in-memory representation.
-    :param cluster_id:
     :param cache:
     :return:
     """

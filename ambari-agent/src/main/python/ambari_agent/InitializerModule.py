@@ -63,6 +63,8 @@ class InitializerModule:
     """
     self.stop_event = threading.Event()
 
+    self.is_registered = False
+
     self.metadata_cache = ClusterMetadataCache(self.cluster_cache_dir)
     self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)

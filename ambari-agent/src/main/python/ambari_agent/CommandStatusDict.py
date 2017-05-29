@@ -21,7 +21,6 @@ limitations under the License.
 import logging
 import threading
 import copy
-import json
 from Grep import Grep
 
 from ambari_agent import Constants
@@ -57,7 +56,7 @@ class CommandStatusDict():
     self.force_update_to_server([new_report])
 
   def force_update_to_server(self, reports):
-    self.initializer_module.connection.send(body=json.dumps(reports), destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+    self.initializer_module.connection.send(message=reports, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
 
   def get_command_status(self, taskId):
     with self.lock:
