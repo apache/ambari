@@ -19,30 +19,41 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.ambari.logsearch.config.api.model.inputconfig.Conditions;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.PostMapValues;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import io.swagger.annotations.ApiModel;
 
 @ApiModel
-public class LSServerConditions {
+@JsonSerialize(using = LSServerPostMapValuesListSerializer.class)
+@JsonDeserialize(using = LSServerPostMapValuesListDeserializer.class)
+public class LSServerPostMapValuesList {
   @Valid
   @NotNull
-  private LSServerFields fields;
+  private List<LSServerPostMapValues> mapperLists;
   
-  public LSServerConditions() {}
+  public LSServerPostMapValuesList() {}
   
-  public LSServerConditions(Conditions conditions) {
-    this.fields = new LSServerFields(conditions.getFields());
+  public LSServerPostMapValuesList(List<? extends PostMapValues> list) {
+    mapperLists = new ArrayList<>();
+    for (PostMapValues postMapValues : list) {
+      mapperLists.add(new LSServerPostMapValues(postMapValues));
+    }
+  }
+  
+  public List<LSServerPostMapValues> getMappersList() {
+    return mapperLists;
   }
 
-  public LSServerFields getFields() {
-    return fields;
-  }
-
-  public void setFields(LSServerFields fields) {
-    this.fields = fields;
+  public void setMappersList(List<LSServerPostMapValues> mapperLists) {
+    this.mapperLists = mapperLists;
   }
 }

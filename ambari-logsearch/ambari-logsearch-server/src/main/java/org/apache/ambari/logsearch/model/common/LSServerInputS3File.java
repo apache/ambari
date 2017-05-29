@@ -19,6 +19,8 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
 
@@ -28,11 +30,15 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public class LSServerInputS3File extends LSServerInputFileBase {
+  @NotNull
   @JsonProperty("s3_access_key")
   private String s3AccessKey;
   
+  @NotNull
   @JsonProperty("s3_secret_key")
   private String s3SecretKey;
+  
+  public LSServerInputS3File() {}
   
   public LSServerInputS3File(InputDescriptor inputDescriptor) {
     super(inputDescriptor);

@@ -21,6 +21,8 @@ package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.Valid;
+import javax.validation.executable.ValidateOnExecution;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -75,18 +77,20 @@ public class ShipperConfigResource {
   @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
   @ApiOperation(SET_SHIPPER_CONFIG_OD)
-  public Response createShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")
-    String serviceName) {
-    return shipperConfigManager.createInputConfig(clusterName, serviceName, body);
+  @ValidateOnExecution
+  public Response createShipperConfig(@Valid LSServerInputConfig request, @PathParam("clusterName") String clusterName,
+      @PathParam("serviceName") String serviceName) {
+    return shipperConfigManager.createInputConfig(clusterName, serviceName, request);
   }
 
   @PUT
   @Path("/input/{clusterName}/services/{serviceName}")
   @Produces({"application/json"})
   @ApiOperation(SET_SHIPPER_CONFIG_OD)
-  public Response setShipperConfig(String body, @PathParam("clusterName") String clusterName, @PathParam("serviceName")
-    String serviceName) {
-    return shipperConfigManager.setInputConfig(clusterName, serviceName, body);
+  @ValidateOnExecution
+  public Response setShipperConfig(@Valid LSServerInputConfig request, @PathParam("clusterName") String clusterName,
+      @PathParam("serviceName") String serviceName) {
+    return shipperConfigManager.setInputConfig(clusterName, serviceName, request);
   }
 
   @GET
@@ -101,7 +105,8 @@ public class ShipperConfigResource {
   @Path("/filters/{clusterName}/level")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_LOG_LEVEL_FILTER_OD)
-  public Response setLogLevelFilter(LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
+  @ValidateOnExecution
+  public Response setLogLevelFilter(@Valid LSServerLogLevelFilterMap request, @PathParam("clusterName") String clusterName) {
     return shipperConfigManager.setLogLevelFilters(clusterName, request);
   }
 

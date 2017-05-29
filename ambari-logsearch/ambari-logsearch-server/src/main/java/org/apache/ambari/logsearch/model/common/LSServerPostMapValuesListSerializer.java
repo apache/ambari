@@ -26,14 +26,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class LSServerPostMapValuesSerializer extends JsonSerializer<LSServerPostMapValues> {
+public class LSServerPostMapValuesListSerializer extends JsonSerializer<LSServerPostMapValuesList> {
   @Override
-  public void serialize(LSServerPostMapValues value, JsonGenerator jgen, SerializerProvider provider)
+  public void serialize(LSServerPostMapValuesList value, JsonGenerator jgen, SerializerProvider provider)
       throws IOException, JsonProcessingException {
-    jgen.writeStartObject();
-    for (LSServerMapField mapField : value.getMappers()) {
-      jgen.writeObjectField(mapField.getName(), mapField);
+    jgen.writeStartArray();
+    for (LSServerPostMapValues postMapValues : value.getMappersList()) {
+      jgen.writeStartObject();
+      for (LSServerMapField mapField : postMapValues.getMappers()) {
+        jgen.writeObjectField(mapField.getName(), mapField);
+      }
+      jgen.writeEndObject();
     }
-    jgen.writeEndObject();
+    
+    jgen.writeEndArray();
   }
 }
