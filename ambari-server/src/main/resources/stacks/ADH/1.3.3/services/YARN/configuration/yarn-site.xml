@@ -17,6 +17,7 @@
   limitations under the License.
 -->
 <configuration supports_final="true">
+<!--
   <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle,spark_shuffle,spark2_shuffle</value>
@@ -41,6 +42,7 @@
     <description>The auxiliary service classpath to use for Spark 2</description>
     <on-ambari-upgrade add="false"/>
   </property>
+-->
   <property>
     <name>yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds</name>
     <value>3600</value>
