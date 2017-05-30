@@ -31,8 +31,7 @@ public class RFunctionInvoker {
 
     public static ResultSet tukeys(DataSet trainData, DataSet testData, Map<String, String> configs) {
         try {
-            r.eval("library(ambarimetricsAD)");
-            r.eval("source('~/dev/AMS/AD/ambarimetricsAD/org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R/tukeys.org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R', echo=TRUE)");
+            r.eval("source('tukeys.r', echo=TRUE)");
 
             int n = Integer.parseInt(configs.get("tukeys.n"));
             r.eval("n <- " + n);
@@ -57,8 +56,7 @@ public class RFunctionInvoker {
 
     public static ResultSet ema_global(DataSet trainData, DataSet testData, Map<String, String> configs) {
         try {
-            r.eval("library(ambarimetricsAD)");
-            r.eval("source('~/dev/AMS/AD/ambarimetricsAD/org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R/ema.org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R', echo=TRUE)");
+            r.eval("source('ema.R', echo=TRUE)");
 
             int n = Integer.parseInt(configs.get("ema.n"));
             r.eval("n <- " + n);
@@ -87,8 +85,7 @@ public class RFunctionInvoker {
 
     public static ResultSet ema_daily(DataSet trainData, DataSet testData, Map<String, String> configs) {
         try {
-            r.eval("library(ambarimetricsAD)");
-            r.eval("source('~/dev/AMS/AD/ambarimetricsAD/org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R/ema.org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R', echo=TRUE)");
+            r.eval("source('ema.R', echo=TRUE)");
 
             int n = Integer.parseInt(configs.get("ema.n"));
             r.eval("n <- " + n);
@@ -117,8 +114,7 @@ public class RFunctionInvoker {
 
     public static ResultSet ksTest(DataSet trainData, DataSet testData, Map<String, String> configs) {
         try {
-            r.eval("library(ambarimetricsAD)");
-            r.eval("source('~/dev/AMS/AD/ambarimetricsAD/org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R/kstest.org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R', echo=TRUE)");
+            r.eval("source('kstest.r', echo=TRUE)");
 
             double p_value = Double.parseDouble(configs.get("ks.p_value"));
             r.eval("p_value <- " + p_value);
@@ -144,8 +140,7 @@ public class RFunctionInvoker {
 
     public static ResultSet hsdev(DataSet trainData, DataSet testData, Map<String, String> configs) {
         try {
-            r.eval("library(ambarimetricsAD)");
-            r.eval("source('~/dev/AMS/AD/ambarimetricsAD/org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R/hsdev.org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.alerting.R', echo=TRUE)");
+            r.eval("source('hsdev.r', echo=TRUE)");
 
             int n = Integer.parseInt(configs.get("hsdev.n"));
             r.eval("n <- " + n);
