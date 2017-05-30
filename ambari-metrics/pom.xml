@@ -34,6 +34,8 @@
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
     <module>ambari-metrics-host-aggregator</module>
+    <module>ambari-metrics-alertservice</module>
+    <module>ambari-metrics-spark</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
