@@ -564,7 +564,7 @@ public class UpgradeActionTest {
   }
 
   /**
-   * Creates an upgrade an associates it with the cluster.
+   * Creates an upgrade and associates it with the cluster.
    *
    * @param cluster
    * @param sourceRepo

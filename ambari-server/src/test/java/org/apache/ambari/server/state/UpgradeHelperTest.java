@@ -333,7 +333,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("Save Cluster State", postGroup.items.get(1).getText());
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
 
-    assertEquals(3, groups.get(0).items.size());
+    assertEquals(2, groups.get(0).items.size());
     assertEquals(7, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
 
@@ -389,7 +389,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertEquals("Save Cluster State", postGroup.items.get(1).getText());
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(1).getType());
 
-    assertEquals(3, groups.get(0).items.size());
+    assertEquals(2, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
     assertEquals(1, groups.get(2).items.size());
 
@@ -2361,7 +2361,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
     configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
-        EasyMock.anyObject(AmbariManagementController.class), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
         EasyMock.anyObject(String.class));
 

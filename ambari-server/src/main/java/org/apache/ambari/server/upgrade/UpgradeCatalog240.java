@@ -698,8 +698,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       if (installedServices.contains(SLIDER_SERVICE_NAME)) {
         Config sliderClientConfig = cluster.getDesiredConfigByType(SLIDER_CLIENT_CONFIG);
         if (sliderClientConfig == null) {
-          configHelper.createConfigType(cluster, ambariManagementController, SLIDER_CLIENT_CONFIG,
-                  new HashMap<String, String>(), AUTHENTICATED_USER_NAME, "");
+          configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(),
+              ambariManagementController, SLIDER_CLIENT_CONFIG, new HashMap<String, String>(),
+              AUTHENTICATED_USER_NAME, "");
         }
       }
     }

@@ -2488,6 +2488,7 @@ public class UpgradeCatalog240Test {
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
     final ConfigHelper configHelper = easyMockSupport.createNiceMock(ConfigHelper.class);
     final Service serviceSlider = easyMockSupport.createNiceMock(Service.class);
+    StackId mockStackId = easyMockSupport.createNiceMock(StackId.class);
 
     Map<String, Service> servicesMap = new HashMap<>();
     servicesMap.put("SLIDER", serviceSlider);
@@ -2513,10 +2514,13 @@ public class UpgradeCatalog240Test {
     expect(mockAmbariManagementController.getConfigHelper()).andReturn(configHelper).once();
     expect(mockClusterExpected.getServices()).andReturn(servicesMap).once();
     expect(mockClusterExpected.getDesiredConfigByType("slider-client")).andReturn(null).once();
+    expect(mockClusterExpected.getDesiredStackVersion()).andReturn(mockStackId).atLeastOnce();
 
 
-    configHelper.createConfigType(mockClusterExpected, mockAmbariManagementController, "slider-client",
+    configHelper.createConfigType(mockClusterExpected, mockStackId,
+        mockAmbariManagementController, "slider-client",
             new HashMap<String, String>(), "ambari-upgrade", "");
+
     expectLastCall().once();
 
     easyMockSupport.replayAll();

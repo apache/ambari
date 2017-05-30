@@ -815,7 +815,8 @@ public class ConfigHelperTest {
       updates.put("new-property", "new-value");
       updates.put("fs.trash.interval", "updated-value");
       Collection<String> removals = Collections.singletonList("ipc.client.connect.max.retries");
-      configHelper.updateConfigType(cluster, managementController, "core-site", updates, removals, "admin", "Test note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "core-site", updates, removals, "admin", "Test note");
 
 
       Config updatedConfig = cluster.getDesiredConfigByType("core-site");
@@ -853,8 +854,8 @@ public class ConfigHelperTest {
       updates.put("oozie.authentication.type", "kerberos");
       updates.put("oozie.service.HadoopAccessorService.kerberos.enabled", "true");
 
-      configHelper.updateConfigType(cluster, managementController, "oozie-site", updates, null, "admin", "Test " +
-          "note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "oozie-site", updates, null, "admin", "Test " + "note");
 
       Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
       // Config tag updated
@@ -881,7 +882,8 @@ public class ConfigHelperTest {
       List<String> removals = new ArrayList<>();
       removals.add("timeline.service.operating.mode");
 
-      configHelper.updateConfigType(cluster, managementController, "ams-site", null, removals, "admin", "Test note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "ams-site", null, removals, "admin", "Test note");
 
       Config updatedConfig = cluster.getDesiredConfigByType("ams-site");
       // Config tag updated

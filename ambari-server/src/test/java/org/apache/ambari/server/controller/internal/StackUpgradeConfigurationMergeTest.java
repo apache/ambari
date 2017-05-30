@@ -241,7 +241,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     Capture<Map<String, Map<String, String>>> expectedConfigurationsCapture = EasyMock.newCapture();
 
     configHelper.createConfigTypes(EasyMock.anyObject(Cluster.class),
-        EasyMock.anyObject(AmbariManagementController.class), EasyMock.anyObject(StackId.class),
+        EasyMock.anyObject(StackId.class), EasyMock.anyObject(AmbariManagementController.class),
         EasyMock.capture(expectedConfigurationsCapture), EasyMock.anyObject(String.class),
         EasyMock.anyObject(String.class));
 

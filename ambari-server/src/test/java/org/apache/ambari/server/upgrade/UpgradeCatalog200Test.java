@@ -516,6 +516,7 @@ public class UpgradeCatalog200Test {
     final Cluster mockClusterExpected = easyMockSupport.createStrictMock(Cluster.class);
     final Cluster mockClusterMissingSmokeUser = easyMockSupport.createStrictMock(Cluster.class);
     final Cluster mockClusterMissingConfig = easyMockSupport.createStrictMock(Cluster.class);
+    final StackId mockStackId = easyMockSupport.createNiceMock(StackId.class);   
 
     final Config mockClusterEnvExpected = easyMockSupport.createStrictMock(Config.class);
     final Config mockClusterEnvMissingSmokeUser = easyMockSupport.createStrictMock(Config.class);
@@ -562,14 +563,16 @@ public class UpgradeCatalog200Test {
 
       // Expected operation
     expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnvExpected).once();
+    expect(mockClusterExpected.getDesiredStackVersion()).andReturn(mockStackId).atLeastOnce();
     expect(mockClusterEnvExpected.getProperties()).andReturn(propertiesExpectedT0).once();
 
-    mockConfigHelper.createConfigType(mockClusterExpected, mockAmbariManagementController,
+    mockConfigHelper.createConfigType(mockClusterExpected, mockStackId, mockAmbariManagementController,
         "cluster-env", propertiesExpectedT1, UpgradeCatalog200.AUTHENTICATED_USER_NAME, "Upgrading to Ambari 2.0");
     expectLastCall().once();
 
     // Missing smokeuser
     expect(mockClusterMissingSmokeUser.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnvMissingSmokeUser).once();
+    expect(mockClusterMissingSmokeUser.getDesiredStackVersion()).andReturn(mockStackId).atLeastOnce();
     expect(mockClusterEnvMissingSmokeUser.getProperties()).andReturn(propertiesMissingSmokeUserT0).once();
 
     expect(mockConfigHelper.getStackProperties(mockClusterMissingSmokeUser)).andReturn(Collections.singleton(mockSmokeUserPropertyInfo)).once();
@@ -577,7 +580,7 @@ public class UpgradeCatalog200Test {
     expect(mockSmokeUserPropertyInfo.getFilename()).andReturn("cluster-env.xml").once();
     expect(mockSmokeUserPropertyInfo.getValue()).andReturn("ambari-qa").once();
 
-    mockConfigHelper.createConfigType(mockClusterMissingSmokeUser, mockAmbariManagementController,
+    mockConfigHelper.createConfigType(mockClusterMissingSmokeUser, mockStackId, mockAmbariManagementController,
         "cluster-env", propertiesMissingSmokeUserT1, UpgradeCatalog200.AUTHENTICATED_USER_NAME, "Upgrading to Ambari 2.0");
     expectLastCall().once();
 

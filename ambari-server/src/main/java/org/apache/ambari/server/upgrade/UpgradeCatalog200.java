@@ -597,7 +597,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
               // -----------------------------------------
               // Set the updated configuration
 
-              configHelper.createConfigType(cluster, ambariManagementController, "cluster-env", properties,
+              configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(),
+                  ambariManagementController, "cluster-env", properties,
                   AUTHENTICATED_USER_NAME, "Upgrading to Ambari 2.0");
 
               // Set configuration (end)

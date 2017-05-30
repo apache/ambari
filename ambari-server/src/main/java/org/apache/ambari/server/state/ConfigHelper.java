@@ -969,11 +969,10 @@ public class ConfigHelper {
    * @param serviceVersionNote
    * @throws AmbariException
    */
-  public void updateConfigType(Cluster cluster,
-                               AmbariManagementController controller, String configType,
-                               Map<String, String> updates, Collection<String> removals,
-                               String authenticatedUserName,
-                               String serviceVersionNote) throws AmbariException {
+  public void updateConfigType(Cluster cluster, StackId stackId,
+      AmbariManagementController controller, String configType, Map<String, String> updates,
+      Collection<String> removals, String authenticatedUserName, String serviceVersionNote)
+      throws AmbariException {
 
     // Nothing to update or remove
     if (configType == null ||
@@ -1016,55 +1015,32 @@ public class ConfigHelper {
 
     if ((oldConfigProperties == null)
       || !Maps.difference(oldConfigProperties, properties).areEqual()) {
-      createConfigType(cluster, controller, configType, properties,
+      createConfigType(cluster, stackId, controller, configType, properties,
         propertiesAttributes, authenticatedUserName, serviceVersionNote);
     }
   }
 
-  private void createConfigType(Cluster cluster,
-                               AmbariManagementController controller,
-                               String configType, Map<String, String> properties,
-                               Map<String, Map<String, String>> propertyAttributes,
-                               String authenticatedUserName,
-                               String serviceVersionNote) throws AmbariException {
+  public void createConfigType(Cluster cluster, StackId stackId,
+      AmbariManagementController controller, String configType, Map<String, String> properties,
+      String authenticatedUserName, String serviceVersionNote) throws AmbariException {
+
+    createConfigType(cluster, stackId, controller, configType, properties,
+        new HashMap<String, Map<String, String>>(), authenticatedUserName, serviceVersionNote);
+  }
+
+  public void createConfigType(Cluster cluster, StackId stackId,
+      AmbariManagementController controller, String configType, Map<String, String> properties,
+      Map<String, Map<String, String>> propertyAttributes, String authenticatedUserName,
+      String serviceVersionNote) throws AmbariException {
 
     // create the configuration history entry
-    Config baseConfig = createConfig(cluster, controller, cluster.getDesiredStackVersion(),
-        configType, FIRST_VERSION_TAG, properties,
-        propertyAttributes);
+    Config baseConfig = createConfig(cluster, stackId, controller, configType, FIRST_VERSION_TAG,
+        properties, propertyAttributes);
 
     if (baseConfig != null) {
       cluster.addDesiredConfig(authenticatedUserName,
           Collections.singleton(baseConfig), serviceVersionNote);
     }
-  }
-
-  /**
-   * A helper method to create a new {@link Config} for a given configuration
-   * type. This method will perform the following tasks:
-   * <ul>
-   * <li>Create a {@link Config} in the cluster for the specified type. This
-   * will have the proper versions and tags set automatically.</li>
-   * <li>Set the cluster's {@link DesiredConfig} to the new configuration</li>
-   * <li>Create an entry in the configuration history with a note and username.</li>
-   * <ul>
-   *
-   * @param cluster
-   * @param controller
-   * @param configType
-   * @param properties
-   * @param authenticatedUserName
-   * @param serviceVersionNote
-   * @throws AmbariException
-   */
-  public void createConfigType(Cluster cluster,
-                               AmbariManagementController controller,
-                               String configType, Map<String, String> properties,
-                               String authenticatedUserName,
-                               String serviceVersionNote) throws AmbariException {
-    createConfigType(cluster, controller, configType, properties,
-      new HashMap<String, Map<String, String>>(), authenticatedUserName,
-      serviceVersionNote);
   }
 
   /**
@@ -1077,10 +1053,9 @@ public class ConfigHelper {
    * @param serviceVersionNote    the service version note
    * @throws AmbariException
    */
-  public void createConfigTypes(Cluster cluster,
-      AmbariManagementController controller, StackId stackId,
-      Map<String, Map<String, String>> batchProperties, String authenticatedUserName,
-      String serviceVersionNote) throws AmbariException {
+  public void createConfigTypes(Cluster cluster, StackId stackId,
+      AmbariManagementController controller, Map<String, Map<String, String>> batchProperties,
+      String authenticatedUserName, String serviceVersionNote) throws AmbariException {
 
     Map<String, Set<Config>> serviceMapped = new HashMap<>();
 
@@ -1088,7 +1063,7 @@ public class ConfigHelper {
       String type = entry.getKey();
       Map<String, String> properties = entry.getValue();
 
-      Config baseConfig = createConfig(cluster, controller, stackId, type, FIRST_VERSION_TAG,
+      Config baseConfig = createConfig(cluster, stackId, controller, type, FIRST_VERSION_TAG,
           properties, Collections.<String, Map<String, String>> emptyMap());
 
       if (null != baseConfig) {
@@ -1121,6 +1096,8 @@ public class ConfigHelper {
    *
    * @param cluster
    *          the cluster (not {@code null}).
+   * @param stackId
+   *          the stack to create the new properties for
    * @param controller
    *          the controller which actually creates the configuration (not
    *          {@code null}).
@@ -1138,7 +1115,7 @@ public class ConfigHelper {
    * @return
    * @throws AmbariException
    */
-  Config createConfig(Cluster cluster, AmbariManagementController controller, StackId stackId,
+  Config createConfig(Cluster cluster, StackId stackId, AmbariManagementController controller,
       String type, String tag, Map<String, String> properties,
       Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
 

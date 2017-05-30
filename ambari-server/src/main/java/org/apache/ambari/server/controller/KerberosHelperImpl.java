@@ -336,7 +336,8 @@ public class KerberosHelperImpl implements KerberosHelper {
         existingConfigurations, installedServices, serviceFilter, previouslyExistingServices, true, true);
 
     for (Map.Entry<String, Map<String, String>> entry : updates.entrySet()) {
-      configHelper.updateConfigType(cluster, ambariManagementController, entry.getKey(), entry.getValue(), null,
+      configHelper.updateConfigType(cluster, cluster.getDesiredStackVersion(),
+          ambariManagementController, entry.getKey(), entry.getValue(), null,
           ambariManagementController.getAuthName(), "Enabling Kerberos for added components");
     }
   }

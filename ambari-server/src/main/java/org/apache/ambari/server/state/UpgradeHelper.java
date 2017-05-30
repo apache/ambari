@@ -1018,8 +1018,11 @@ public class UpgradeHelper {
         LOG.info("The upgrade will create the following configurations for stack {}: {}",
             targetStackId, StringUtils.join(configTypes, ','));
 
-        configHelper.createConfigTypes(cluster, controller, targetStackId,
-            newServiceDefaultConfigsByType, userName, "Configuration created for Upgrade");
+        String serviceVersionNote = String.format("%s %s %s", direction.getText(true),
+            direction.getPreposition(), upgradeContext.getRepositoryVersion().getVersion());
+
+        configHelper.createConfigTypes(cluster, targetStackId, controller,
+            newServiceDefaultConfigsByType, userName, serviceVersionNote);
       }
     }
   }

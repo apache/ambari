@@ -171,6 +171,13 @@ public class ClusterGrouping extends Grouping {
             continue;
           }
 
+          // only schedule this stage if its service is part of the upgrade
+          if (StringUtils.isNotBlank(execution.service)) {
+            if (!upgradeContext.isServiceSupported(execution.service)) {
+              continue;
+            }
+          }
+
           Task task = execution.task;
 
           StageWrapper wrapper = null;
