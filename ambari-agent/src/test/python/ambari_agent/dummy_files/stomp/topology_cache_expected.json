@@ -1,0 +1,58 @@
+{
+  "0": {
+    "hosts": [
+      {
+        "rackName": "/default-rack",
+        "hostName": "c6402.ambari.apache.org",
+        "ipv4": "192.168.64.102",
+        "hostId": 1
+      },
+      {
+        "rackName": "/default-rack",
+        "hostName": "c6403.ambari.apache.org",
+        "ipv4": "192.168.64.103",
+        "hostId": 2
+      }
+    ],
+    "components": [
+      {
+        "statusCommandParams": {
+          "script": "scripts/datanode.py",
+          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+        },
+        "componentName": "DATANODE",
+        "serviceName": "HDFS",
+        "version": "2.6.0.3-8",
+        "hostIds": [
+          1
+        ]
+      },
+      {
+        "statusCommandParams": {
+          "script": "scripts/hdfs_client.py",
+          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+        },
+        "componentName": "HDFS_CLIENT",
+        "version": "2.6.0.3-8",
+        "serviceName": "HDFS",
+        "hostIds": [
+          0,
+          1
+        ]
+      },
+      {
+        "statusCommandParams": {
+          "script": "scripts/snamenode.py",
+          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+        },
+        "componentName": "SECONDARY_NAMENODE",
+        "serviceName": "HDFS",
+        "version": "2.6.0.3-8",
+        "hostIds": [
+          0,
+          1
+        ]
+      }
+    ]
+  }
+}

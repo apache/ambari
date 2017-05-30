@@ -30,6 +30,7 @@ import traceback
 import hostname
 import platform
 import ambari_stomp
+import threading
 from ambari_stomp.adapter.websocket import WsConnection
 
 logger = logging.getLogger(__name__)
@@ -103,11 +104,13 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
 
 class AmbariStompConnection(WsConnection):
   def __init__(self, url):
+    self.lock = threading.RLock()
     self.correlation_id = -1
     WsConnection.__init__(self, url)
 
   def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
-    self.correlation_id += 1
+    with self.lock:
+      self.correlation_id += 1
 
     logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
 

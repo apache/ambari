@@ -26,6 +26,8 @@ from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)
 
+METADATA_DICTIONARY_KEY = 'metadataClusters'
+
 class MetadataEventListener(EventListener):
   """
   Listener of Constants.METADATA_TOPIC events from server.
@@ -40,7 +42,12 @@ class MetadataEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
-    self.topology_cache.update_cache(message)
+    # this kind of response is received if hash was identical. And server does not need to change anything
+    if message == {}:
+      return
+
+    self.topology_cache.rewrite_cache(message['clusters'])
+    self.topology_cache.hash = message['hash']
 
   def get_handled_path(self):
     return Constants.METADATA_TOPIC

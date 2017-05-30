@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import hashlib
 import logging
 import ambari_simplejson as json
 import os
@@ -45,6 +44,7 @@ class ClusterCache(dict):
     """
 
     self.cluster_cache_dir = cluster_cache_dir
+    self.hash = None
 
     self.__current_cache_json_file = os.path.join(self.cluster_cache_dir, self.get_cache_name()+'.json')
 
@@ -67,19 +67,29 @@ class ClusterCache(dict):
   def get_cluster_ids(self):
     return self.keys()
 
-  def update_cache(self, cache):
-    for cluster_id, cluster_cache in cache.iteritems():
-      self.update_cluster_cache(cluster_id, cluster_cache)
+  def rewrite_cache(self, cache):
+    cache_ids_to_delete = []
+    for existing_cluster_id in self:
+      if not existing_cluster_id in cache:
+        cache_ids_to_delete.append(existing_cluster_id)
 
-  def update_cluster_cache(self, cluster_id, cache):
+    for cluster_id, cluster_cache in cache.iteritems():
+      self.rewrite_cluster_cache(cluster_id, cluster_cache)
+
+    with self._cache_lock:
+      for cache_id_to_delete in cache_ids_to_delete:
+        del self[cache_id_to_delete]
+
+
+  def rewrite_cluster_cache(self, cluster_id, cache):
     """
     Thread-safe method for writing out the specified cluster cache
-    and updating the in-memory representation.
+    and rewriting the in-memory representation.
     :param cluster_id:
     :param cache:
     :return:
     """
-    logger.info("Updating cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
+    logger.info("Rewriting cache {0} for cluster {1}".format(self.__class__.__name__, cluster_id))
 
     # The cache should contain exactly the data received from server.
     # Modifications on agent-side will lead to unnecessary cache sync every agent registration. Which is a big concern on perf clusters!
@@ -88,7 +98,9 @@ class ClusterCache(dict):
     with self._cache_lock:
       self[cluster_id] = immutable_cache
 
+    self.persist_cache()
 
+  def persist_cache(self):
     # ensure that our cache directory exists
     if not os.path.exists(self.cluster_cache_dir):
       os.makedirs(self.cluster_cache_dir)
@@ -97,24 +109,10 @@ class ClusterCache(dict):
       with os.fdopen(os.open(self.__current_cache_json_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
         json.dump(self, f, indent=2)
 
-  def get_md5_hashsum(self):
-    """
-    Thread-safe method for writing out the specified cluster cache
-    and updating the in-memory representation.
-    :param cache:
-    :return:
-    """
+  def _get_mutable_copy(self):
     with self._cache_lock:
-      # have to make sure server generates json in exactly the same way. So hashes are equal
-      json_repr = json.dumps(self, sort_keys=True)
+      return Utils.get_mutable_copy(self)
 
-    md5_calculator = hashlib.md5()
-    md5_calculator.update(json_repr)
-    result = md5_calculator.hexdigest()
-
-    logger.info("Cache value for {0} is {1}".format(self.__class__.__name__, result))
-
-    return result
 
   def get_cache_name(self):
     raise NotImplemented()

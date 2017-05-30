@@ -40,7 +40,12 @@ class ConfigurationEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
-    self.configuration_cache.update_cache(message)
+    # this kind of response is received if hash was identical. And server does not need to change anything
+    if message == {}:
+      return
+
+    self.configuration_cache.rewrite_cache(message['clusters'])
+    self.configuration_cache.hash = message['hash']
 
   def get_handled_path(self):
     return Constants.CONFIGURATIONS_TOPIC

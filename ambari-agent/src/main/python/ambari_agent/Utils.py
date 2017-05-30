@@ -43,8 +43,9 @@ class BlockingDictionary():
     """
     Block until a key in dictionary is available and than pop it.
     """
-    if key in self.dict:
-      return self.dict.pop(key)
+    with self.dict_lock:
+      if key in self.dict:
+        return self.dict.pop(key)
 
     while True:
       self.put_event.wait()
@@ -68,6 +69,20 @@ class Utils(object):
       return tuple([Utils.make_immutable(x) for x in value])
 
     return value
+
+  @staticmethod
+  def get_mutable_copy(param):
+    if isinstance(param, dict):
+      mutable_dict = {}
+
+      for k, v in param.iteritems():
+        mutable_dict[k] = Utils.get_mutable_copy(v)
+
+      return mutable_dict
+    elif isinstance(param, (list, tuple)):
+      return [Utils.get_mutable_copy(x) for x in param]
+
+    return param
 
 class ImmutableDictionary(dict):
   def __init__(self, dictionary):

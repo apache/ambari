@@ -124,8 +124,14 @@ class BaseStompServerTestCase(unittest.TestCase):
   def get_json(self, filename):
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dummy_files", "stomp", filename)
 
-    with open(filepath) as f:
-      return f.read()
+    with open(filepath) as fp:
+      return fp.read()
+
+  def get_dict_from_file(self, filename):
+    filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dummy_files", "stomp", filename)
+
+    with open(filepath) as fp:
+      return json.load(fp)
 
   def init_stdout_logger(self):
     format='%(levelname)s %(asctime)s - %(message)s'
@@ -260,11 +266,13 @@ class TestStompClient(object):
 
 class TestCaseTcpConnection(ambari_stomp.Connection):
   def __init__(self, url):
+    self.lock = threading.RLock()
     self.correlation_id = -1
     ambari_stomp.Connection.__init__(self, host_and_ports=[('127.0.0.1', 21613)])
 
   def send(self, destination, message, content_type=None, headers=None, **keyword_headers):
-    self.correlation_id += 1
+    with self.lock:
+      self.correlation_id += 1
 
     logger.info("Event to server at {0} (correlation_id={1}): {2}".format(destination, self.correlation_id, message))
 

@@ -72,7 +72,7 @@ class ComponentStatusExecutor(threading.Thread):
               component_name = component_dict.componentName
 
               # TODO STOMP: run real command
-              logger.info("Running {0}/{1}".format(component_dict.statusCommandsParams.service_package_folder, component_dict.statusCommandsParams.script))
+              logger.info("Running {0}/{1}".format(component_dict.statusCommandParams.servicePackageFolder, component_dict.statusCommandParams.script))
               #self.customServiceOrchestrator.requestComponentStatus(command)
               status = random.choice(["INSTALLED","STARTED"])
               result = {

@@ -78,6 +78,7 @@ class HeartbeatThread(threading.Thread):
         # TODO STOMP: handle heartbeat reponse
       except:
         logger.exception("Exception in HeartbeatThread. Re-running the registration")
+        self.stop_event.wait(self.heartbeat_interval)
         self.initializer_module.is_registered = False
         self.initializer_module.connection.disconnect()
         pass
@@ -104,7 +105,7 @@ class HeartbeatThread(threading.Thread):
     self.registration_response = response
 
     for endpoint, cache, listener in self.post_registration_requests:
-      response = self.blocking_request({'hash': cache.get_md5_hashsum()}, endpoint)
+      response = self.blocking_request({'hash': cache.hash}, endpoint)
       listener.on_event({}, response)
 
     self.subscribe_to_topics(Constants.POST_REGISTRATION_TOPICS_TO_SUBSCRIBE)

@@ -40,7 +40,23 @@ class TopologyEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
-    self.topology_cache.update_cache(message)
+    # this kind of response is received if hash was identical. And server does not need to change anything
+    if message == {}:
+      return
+
+    event_type = message['eventType']
+
+    if event_type == 'CREATE':
+      self.topology_cache.rewrite_cache(message['clusters'])
+      self.topology_cache.hash = message['hash']
+    elif event_type == 'UPDATE':
+      self.topology_cache.cache_update(message['clusters'])
+      self.topology_cache.hash = message['hash']
+    elif event_type == 'DELETE':
+      self.topology_cache.cache_delete(message['clusters'])
+      self.topology_cache.hash = message['hash']
+    else:
+      logger.error("Unknown event type '{0}' for topology event")
 
   def get_handled_path(self):
     return Constants.TOPOLOGIES_TOPIC

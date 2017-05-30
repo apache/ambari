@@ -43,7 +43,7 @@ class EventListener(ambari_stomp.ConnectionListener):
       try:
         message_json = json.loads(message)
       except ValueError:
-        logger.exception("Received event from server does not  a valid json as a message. Message is:\n{0}".format(message))
+        logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(message))
         return
 
       logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, message_json)))

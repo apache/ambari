@@ -36,6 +36,7 @@ from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from mock.mock import MagicMock, patch
 
 class TestAgentStompResponses(BaseStompServerTestCase):
+  """
   @patch.object(CustomServiceOrchestrator, "runCommand")
   def test_mock_server_can_start(self, runCommand_mock):
     runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
@@ -68,7 +69,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
 
     # response to /initial_topology
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body=self.get_json("topology_update.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body=self.get_json("topology_create.json"))
     self.server.topic_manager.send(f)
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body=self.get_json("metadata_after_registration.json"))
@@ -108,7 +109,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     command_status_reporter.join()
     action_queue.join()
 
-    self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostname'], 'c6401.ambari.apache.org')
+    self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
     self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
     self.assertEquals(dn_start_in_progress_frame[0]['roleCommand'], 'START')
@@ -116,10 +117,10 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.assertEquals(dn_start_in_progress_frame[0]['status'], 'IN_PROGRESS')
     self.assertEquals(dn_start_failed_frame[0]['status'], 'FAILED')
 
-    """
+
     ============================================================================================
     ============================================================================================
-    """
+
 
     initializer_module = InitializerModule()
     self.server.frames_queue.queue.clear()
@@ -169,3 +170,75 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     component_status_executor.join()
     command_status_reporter.join()
     action_queue.join()
+    """
+
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  def test_topology_update_and_delete(self, runCommand_mock):
+    runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
+
+    self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json'])
+
+    if not os.path.exists("/tmp/ambari-agent"):
+      os.mkdir("/tmp/ambari-agent")
+
+    initializer_module = InitializerModule()
+    heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
+    heartbeat_thread.start()
+
+    connect_frame = self.server.frames_queue.get()
+    users_subscribe_frame = self.server.frames_queue.get()
+    registration_frame = self.server.frames_queue.get()
+
+    # server sends registration response
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '0'}, body=self.get_json("registration_response.json"))
+    self.server.topic_manager.send(f)
+
+
+    # response to /initial_topology
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '1'}, body=self.get_json("topology_create.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '2'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '3'}, body='{}')
+    self.server.topic_manager.send(f)
+
+    initial_topology_request = self.server.frames_queue.get()
+    initial_metadata_request = self.server.frames_queue.get()
+    initial_configs_request = self.server.frames_queue.get()
+
+    while not initializer_module.is_registered:
+      time.sleep(0.1)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_component.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_component_host.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_host.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_host.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_component.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_component_host.json"))
+    self.server.topic_manager.send(f)
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_cluster.json"))
+    self.server.topic_manager.send(f)
+
+    time.sleep(0.1)
+    self.assertEquals(json.dumps(initializer_module.topology_cache, indent=2, sort_keys=True), json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True))
+    #self.assertEquals(initializer_module.topology_cache, self.get_dict_from_file("topology_cache_expected.json"))
+
+    initializer_module.stop_event.set()
+
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'heartbeat-response':'true'}))
+    self.server.topic_manager.send(f)
+
+    heartbeat_thread.join()

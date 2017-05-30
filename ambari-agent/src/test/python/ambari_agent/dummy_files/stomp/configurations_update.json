@@ -1,26 +1,29 @@
 {
-  "0":{
-    "configurations":{
-      "zookeeper-env":{
-        "zk_user":"zookeeper",
-        "zk_log_dir":"/var/log/zookeeper",
-        "content":"\nexport JAVA_HOME={{java64_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}",
-        "zk_pid_dir":"/var/run/zookeeper",
-        "zookeeper_principal_name":"zookeeper/_HOST@EXAMPLE.COM",
-        "zookeeper_keytab_path":"/etc/security/keytabs/zk.service.keytab"
+  "hash": "a1a71f4b46feaf72bf33627d78bbdc3e",
+  "clusters": {
+    "0":{
+      "configurations":{
+        "zookeeper-env":{
+          "zk_user":"zookeeper",
+          "zk_log_dir":"/var/log/zookeeper",
+          "content":"\nexport JAVA_HOME={{java64_home}}\nexport ZOO_LOG_DIR={{zk_log_dir}}\nexport ZOOPIDFILE={{zk_pid_file}}\nexport SERVER_JVMFLAGS={{zk_server_heapsize}}\nexport JAVA=$JAVA_HOME/bin/java\nexport CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*\n\n{% if security_enabled %}\nexport SERVER_JVMFLAGS=\"$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}\"\nexport CLIENT_JVMFLAGS=\"$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}\"\n{% endif %}",
+          "zk_pid_dir":"/var/run/zookeeper",
+          "zookeeper_principal_name":"zookeeper/_HOST@EXAMPLE.COM",
+          "zookeeper_keytab_path":"/etc/security/keytabs/zk.service.keytab"
+        },
+        "zoo.cfg":{
+          "clientPort":"2181",
+          "syncLimit":"5",
+          "initLimit":"10",
+          "dataDir":"/hadoop/zookeeper",
+          "tickTime":"2000"
+        }
       },
-      "zoo.cfg":{
-        "clientPort":"2181",
-        "syncLimit":"5",
-        "initLimit":"10",
-        "dataDir":"/hadoop/zookeeper",
-        "tickTime":"2000"
-      }
-    },
-    "configurationAttributes":{
-      "core-site":{
-        "final":{
-          "fs.defaultFS":"true"
+      "configurationAttributes":{
+        "core-site":{
+          "final":{
+            "fs.defaultFS":"true"
+          }
         }
       }
     }
