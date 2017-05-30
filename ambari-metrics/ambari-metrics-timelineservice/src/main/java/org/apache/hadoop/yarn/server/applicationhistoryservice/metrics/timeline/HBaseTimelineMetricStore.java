@@ -19,6 +19,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.ambari.metrics.alertservice.spark.AmsKafkaProducer;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -63,10 +64,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_HOST_INMEMORY_AGGREGATION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
@@ -84,6 +82,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
+  private AmsKafkaProducer kafkaProducer = new AmsKafkaProducer("104.196.85.21:6667");
 
   /**
    * Construct the service.
@@ -367,9 +366,41 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     // Error indicated by the Sql exception
     TimelinePutResponse response = new TimelinePutResponse();
 
+    try {
+      if (!metrics.getMetrics().isEmpty() && metrics.getMetrics().get(0).getAppId().equals("HOST")) {
+        kafkaProducer.sendMetrics(fromTimelineMetrics(metrics));
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      LOG.error(e);
+    }
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, false);
 
     return response;
+  }
+
+
+  private org.apache.ambari.metrics.alertservice.common.TimelineMetrics fromTimelineMetrics(TimelineMetrics timelineMetrics) {
+    org.apache.ambari.metrics.alertservice.common.TimelineMetrics otherMetrics = new org.apache.ambari.metrics.alertservice.common.TimelineMetrics();
+
+    List<org.apache.ambari.metrics.alertservice.common.TimelineMetric> timelineMetricList = new ArrayList<>();
+    for (TimelineMetric timelineMetric : timelineMetrics.getMetrics()) {
+      timelineMetricList.add(fromTimelineMetric(timelineMetric));
+    }
+    otherMetrics.setMetrics(timelineMetricList);
+    return otherMetrics;
+  }
+
+  private org.apache.ambari.metrics.alertservice.common.TimelineMetric fromTimelineMetric(TimelineMetric timelineMetric) {
+
+    org.apache.ambari.metrics.alertservice.common.TimelineMetric otherMetric = new org.apache.ambari.metrics.alertservice.common.TimelineMetric();
+    otherMetric.setMetricValues(timelineMetric.getMetricValues());
+    otherMetric.setStartTime(timelineMetric.getStartTime());
+    otherMetric.setHostName(timelineMetric.getHostName());
+    otherMetric.setInstanceId(timelineMetric.getInstanceId());
+    otherMetric.setAppId(timelineMetric.getAppId());
+    otherMetric.setMetricName(timelineMetric.getMetricName());
+
+    return otherMetric;
   }
 
   @Override
