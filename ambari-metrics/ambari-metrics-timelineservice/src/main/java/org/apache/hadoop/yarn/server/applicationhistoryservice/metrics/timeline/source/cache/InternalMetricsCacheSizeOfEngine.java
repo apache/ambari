@@ -23,44 +23,45 @@ import org.slf4j.LoggerFactory;
 import net.sf.ehcache.pool.Size;
 import net.sf.ehcache.pool.SizeOfEngine;
 
-public class InternalMetricsCacheSizeOfEngine extends TimelineMetricsEhCacheSizeOfEngine {
-  private final static Logger LOG = LoggerFactory.getLogger(InternalMetricsCacheSizeOfEngine.class);
-
-  private InternalMetricsCacheSizeOfEngine(SizeOfEngine underlying) {
-    super(underlying);
-  }
-
-  public InternalMetricsCacheSizeOfEngine() {
-    // Invoke default constructor in base class
-  }
-
-  @Override
-  public Size sizeOf(Object key, Object value, Object container) {
-    try {
-      LOG.debug("BEGIN - Sizeof, key: {}, value: {}", key, value);
-      long size = 0;
-      if (key instanceof InternalMetricCacheKey) {
-        InternalMetricCacheKey metricCacheKey = (InternalMetricCacheKey) key;
-        size += reflectionSizeOf.sizeOf(metricCacheKey.getMetricName());
-        size += reflectionSizeOf.sizeOf(metricCacheKey.getAppId());
-        size += reflectionSizeOf.sizeOf(metricCacheKey.getInstanceId()); // null safe
-        size += reflectionSizeOf.sizeOf(metricCacheKey.getHostname());
-      }
-      if (value instanceof InternalMetricCacheValue) {
-        size += getValueMapSize(((InternalMetricCacheValue) value).getMetricValues());
-      }
-      // Mark size as not being exact
-      return new Size(size, false);
-    } finally {
-      LOG.debug("END - Sizeof, key: {}", key);
-    }
-  }
-
-  @Override
-  public SizeOfEngine copyWith(int maxDepth, boolean abortWhenMaxDepthExceeded) {
-    LOG.debug("Copying tracing sizeof engine, maxdepth: {}, abort: {}",
-      maxDepth, abortWhenMaxDepthExceeded);
-
-    return new InternalMetricsCacheSizeOfEngine(underlying.copyWith(maxDepth, abortWhenMaxDepthExceeded));
-  }
+public class InternalMetricsCacheSizeOfEngine {
+// extends TimelineMetricsEhCacheSizeOfEngine {
+//  private final static Logger LOG = LoggerFactory.getLogger(InternalMetricsCacheSizeOfEngine.class);
+//
+//  private InternalMetricsCacheSizeOfEngine(SizeOfEngine underlying) {
+//    super(underlying);
+//  }
+//
+//  public InternalMetricsCacheSizeOfEngine() {
+//    // Invoke default constructor in base class
+//  }
+//
+//  @Override
+//  public Size sizeOf(Object key, Object value, Object container) {
+//    try {
+//      LOG.debug("BEGIN - Sizeof, key: {}, value: {}", key, value);
+//      long size = 0;
+//      if (key instanceof InternalMetricCacheKey) {
+//        InternalMetricCacheKey metricCacheKey = (InternalMetricCacheKey) key;
+//        size += reflectionSizeOf.sizeOf(metricCacheKey.getMetricName());
+//        size += reflectionSizeOf.sizeOf(metricCacheKey.getAppId());
+//        size += reflectionSizeOf.sizeOf(metricCacheKey.getInstanceId()); // null safe
+//        size += reflectionSizeOf.sizeOf(metricCacheKey.getHostname());
+//      }
+//      if (value instanceof InternalMetricCacheValue) {
+//        size += getValueMapSize(((InternalMetricCacheValue) value).getMetricValues());
+//      }
+//      // Mark size as not being exact
+//      return new Size(size, false);
+//    } finally {
+//      LOG.debug("END - Sizeof, key: {}", key);
+//    }
+//  }
+//
+//  @Override
+//  public SizeOfEngine copyWith(int maxDepth, boolean abortWhenMaxDepthExceeded) {
+//    LOG.debug("Copying tracing sizeof engine, maxdepth: {}, abort: {}",
+//      maxDepth, abortWhenMaxDepthExceeded);
+//
+//    return new InternalMetricsCacheSizeOfEngine(underlying.copyWith(maxDepth, abortWhenMaxDepthExceeded));
+//  }
 }

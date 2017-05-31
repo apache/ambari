@@ -82,7 +82,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
-  private AmsKafkaProducer kafkaProducer = new AmsKafkaProducer("104.196.85.21:6667");
+  private AmsKafkaProducer kafkaProducer;
 
   /**
    * Construct the service.
@@ -142,6 +142,8 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       if (Boolean.parseBoolean(metricsConf.get(USE_GROUPBY_AGGREGATOR_QUERIES, "true"))) {
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
       }
+
+      kafkaProducer = new AmsKafkaProducer(metricsConf.get("kafka.bootstrap.servers")); //104.196.85.21:6667
 
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
