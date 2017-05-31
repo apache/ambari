@@ -20,7 +20,9 @@ package org.apache.ambari.infra.conf.batch;
 
 import org.apache.ambari.infra.job.dummy.DummyItemProcessor;
 import org.apache.ambari.infra.job.dummy.DummyItemWriter;
+import org.apache.ambari.infra.job.dummy.DummyJobListener;
 import org.apache.ambari.infra.job.dummy.DummyObject;
+import org.apache.ambari.infra.job.dummy.DummyStepListener;
 import org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao;
 import org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao;
 import org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao;
@@ -68,6 +70,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -78,6 +81,7 @@ import java.net.MalformedURLException;
 @Configuration
 @EnableBatchProcessing
 @EnableScheduling
+@EnableAsync
 public class InfraManagerBatchConfig {
 
   @Value("classpath:org/springframework/batch/core/schema-drop-sqlite.sql")
@@ -225,13 +229,13 @@ public class InfraManagerBatchConfig {
   protected Step dummyStep(ItemReader<DummyObject> reader,
                        ItemProcessor<DummyObject, String> processor,
                        ItemWriter<String> writer) {
-    return steps.get("dummyStep").<DummyObject, String> chunk(2)
+    return steps.get("dummyStep").listener(new DummyStepListener()).<DummyObject, String> chunk(2)
       .reader(reader).processor(processor).writer(writer).build();
   }
 
   @Bean(name = "dummyJob")
   public Job job(@Qualifier("dummyStep") Step dummyStep) {
-    return jobs.get("dummyJob").start(dummyStep).build();
+    return jobs.get("dummyJob").listener(new DummyJobListener()).start(dummyStep).build();
   }
 
   @Bean
