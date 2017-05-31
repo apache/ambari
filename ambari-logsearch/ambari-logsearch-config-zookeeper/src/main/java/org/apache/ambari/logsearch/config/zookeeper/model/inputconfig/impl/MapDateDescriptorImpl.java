@@ -31,7 +31,7 @@ public class MapDateDescriptorImpl implements MapDateDescriptor {
   }
 
   @Expose
-  @SerializedName("source_date_pattern")
+  @SerializedName("src_date_pattern")
   private String sourceDatePattern;
 
   @Expose

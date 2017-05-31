@@ -34,7 +34,7 @@ public class LSServerMapDate extends LSServerMapField {
     return "map_date";
   }
 
-  @JsonProperty("source_date_pattern")
+  @JsonProperty("src_date_pattern")
   private String sourceDatePattern;
 
   @NotNull

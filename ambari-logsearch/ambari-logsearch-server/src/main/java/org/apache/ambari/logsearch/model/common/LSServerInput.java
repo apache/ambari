@@ -53,9 +53,6 @@ public abstract class LSServerInput {
   @JsonProperty("use_event_md5_as_id")
   private Boolean useEventMd5AsId;
   
-  @JsonProperty("start_position")
-  private String startPosition;
-  
   @JsonProperty("cache_enabled")
   private Boolean cacheEnabled;
   
@@ -85,7 +82,6 @@ public abstract class LSServerInput {
     this.tail = inputDescriptor.isTail();
     this.genEventMd5 = inputDescriptor.isGenEventMd5();
     this.useEventMd5AsId = inputDescriptor.isUseEventMd5AsId();
-    this.startPosition = inputDescriptor.getStartPosition();
     this.cacheEnabled = inputDescriptor.isCacheEnabled();
     this.cacheKeyField = inputDescriptor.getCacheKeyField();
     this.cacheLastDedupEnabled = inputDescriptor.getCacheLastDedupEnabled();
@@ -124,10 +120,6 @@ public abstract class LSServerInput {
 
   public Boolean getUseEventMd5AsId() {
     return useEventMd5AsId;
-  }
-
-  public String getStartPosition() {
-    return startPosition;
   }
 
   public Boolean getCacheEnabled() {

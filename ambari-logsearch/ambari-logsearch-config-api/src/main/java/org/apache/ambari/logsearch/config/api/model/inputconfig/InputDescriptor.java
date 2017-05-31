@@ -38,8 +38,6 @@ public interface InputDescriptor {
 
   Boolean isUseEventMd5AsId();
 
-  String getStartPosition();
-
   Boolean isCacheEnabled();
 
   String getCacheKeyField();

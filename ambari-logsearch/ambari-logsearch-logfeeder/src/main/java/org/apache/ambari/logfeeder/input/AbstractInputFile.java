@@ -45,7 +45,6 @@ public abstract class AbstractInputFile extends Input {
   protected String base64FileKey;
 
   protected boolean isReady;
-  private boolean isStartFromBegining = true;
 
   private String checkPointExtension;
   private File checkPointFile;
@@ -82,12 +81,6 @@ public abstract class AbstractInputFile extends Input {
       return;
     }
 
-    String startPosition = inputDescriptor.getStartPosition();
-    if (StringUtils.isEmpty(startPosition) || startPosition.equalsIgnoreCase("beginning") ||
-        startPosition.equalsIgnoreCase("begining") || !tail) {
-      isStartFromBegining = true;
-    }
-
     setFilePath(logPath);
     boolean isFileReady = isReady();
 
@@ -109,7 +102,7 @@ public abstract class AbstractInputFile extends Input {
       
       br = openLogFile(logPathFile);
 
-      boolean resume = isStartFromBegining;
+      boolean resume = true;
       int resumeFromLineNumber = getResumeFromLineNumber();
       if (resumeFromLineNumber > 0) {
         resume = false;
