@@ -1,3 +1,20 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.ambari.metrics.alertservice.methods.ema;
 
 import com.google.gson.Gson;
@@ -59,8 +76,6 @@ public class EmaModel implements MetricAnomalyModel, Saveable, Serializable {
         EmaDS emaDS = new EmaDS(metric.getMetricName(), metric.getAppId(), metric.getHostName(), weight, timessdev);
         LOG.info("In EMA Train step");
         for (Long timestamp : metric.getMetricValues().keySet()) {
-            System.out.println(timestamp + " : " + metric.getMetricValues().get(timestamp));
-            LOG.info(timestamp + " : " + metric.getMetricValues().get(timestamp));
             emaDS.update(metric.getMetricValues().get(timestamp));
         }
         trackedEmas.put(key, emaDS);
@@ -83,7 +98,7 @@ public class EmaModel implements MetricAnomalyModel, Saveable, Serializable {
 
         for (Long timestamp : metric.getMetricValues().keySet()) {
             double metricValue = metric.getMetricValues().get(timestamp);
-            MethodResult result = emaDS.test(metricValue);
+            MethodResult result = emaDS.testAndUpdate(metricValue);
             if (result != null) {
                 MetricAnomaly metricAnomaly = new MetricAnomaly(key,timestamp, metricValue, result);
                 anomalies.add(metricAnomaly);
