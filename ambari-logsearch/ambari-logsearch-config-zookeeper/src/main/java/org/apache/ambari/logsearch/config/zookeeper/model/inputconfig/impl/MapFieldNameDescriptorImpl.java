@@ -27,7 +27,7 @@ import com.google.gson.annotations.SerializedName;
 public class MapFieldNameDescriptorImpl implements MapFieldNameDescriptor {
   @Override
   public String getJsonName() {
-    return "map_field_name";
+    return "map_fieldname";
   }
 
   @Expose
