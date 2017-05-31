@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -1702,7 +1704,9 @@ public class KerberosHelperImpl implements KerberosHelper {
     // Gather data needed to create stages and tasks...
     Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-    Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, null);
+
+    @Experimental(feature=ExperimentalFeature.MULTI_SERVICE, comment="The cluster stack id is deprecated")
+    Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion());
     String hostParamsJson = StageUtils.getGson().toJson(hostParams);
     String ambariServerHostname = StageUtils.getHostName();
     ServiceComponentHostServerActionEvent event = new ServiceComponentHostServerActionEvent(
@@ -1902,7 +1906,9 @@ public class KerberosHelperImpl implements KerberosHelper {
       // Gather data needed to create stages and tasks...
       Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-      Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, null);
+
+      @Experimental(feature=ExperimentalFeature.MULTI_SERVICE, comment="The cluster stack id is deprecated")
+      Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster, cluster.getDesiredStackVersion());
       String hostParamsJson = StageUtils.getGson().toJson(hostParams);
       String ambariServerHostname = StageUtils.getHostName();
       ServiceComponentHostServerActionEvent event = new ServiceComponentHostServerActionEvent(
