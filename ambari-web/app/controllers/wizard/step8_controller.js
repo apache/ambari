@@ -1862,6 +1862,17 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       });
   },
 
+  /**
+   * Confirmation popup before generate blueprint
+   */
+  generateBlueprintConfirmation: function () {
+    var self = this;
+    return App.showConfirmationPopup(function () {
+      self.generateBlueprint();
+      }, Em.I18n.t('installer.step8.generateBlueprint.popup.msg').format(App.clusterStatus.clusterName)
+    );
+  },
+
   generateBlueprint: function () {
     console.log("Prepare blueprint for download...");
     var blueprint = {};

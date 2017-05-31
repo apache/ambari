@@ -21,6 +21,8 @@ package org.apache.ambari.logsearch.model.common;
 
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputDescriptor;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,42 +34,44 @@ import io.swagger.annotations.ApiModel;
 @ApiModel
 @JsonInclude(Include.NON_NULL)
 public abstract class LSServerInput {
-  private final String type;
-  private final String rowtype;
-  private final String path;
+  @NotNull
+  private String type;
+  private String rowtype;
+  
+  @NotNull
+  private String path;
   
   @JsonProperty("add_fields")
-  private final Map<String, String> addFields;
+  private Map<String, String> addFields;
   
-  private final String source;
-  private final Boolean tail;
+  private String source;
+  private Boolean tail;
   
   @JsonProperty("gen_event_md5")
-  private final Boolean genEventMd5;
+  private Boolean genEventMd5;
   
   @JsonProperty("use_event_md5_as_id")
-  private final Boolean useEventMd5AsId;
-  
-  @JsonProperty("start_position")
-  private final String startPosition;
+  private Boolean useEventMd5AsId;
   
   @JsonProperty("cache_enabled")
-  private final Boolean cacheEnabled;
+  private Boolean cacheEnabled;
   
   @JsonProperty("cache_key_field")
-  private final String cacheKeyField;
+  private String cacheKeyField;
   
   @JsonProperty("cache_last_dedup_enabled")
-  private final Boolean cacheLastDedupEnabled;
+  private Boolean cacheLastDedupEnabled;
   
   @JsonProperty("cache_size")
-  private final Integer cacheSize;
+  private Integer cacheSize;
   
   @JsonProperty("cache_dedup_interval")
-  private final Long cacheDedupInterval;
+  private Long cacheDedupInterval;
   
   @JsonProperty("is_enabled")
-  private final Boolean isEnabled;
+  private Boolean isEnabled;
+  
+  public LSServerInput() {}
   
   public LSServerInput(InputDescriptor inputDescriptor) {
     this.type = inputDescriptor.getType();
@@ -78,7 +82,6 @@ public abstract class LSServerInput {
     this.tail = inputDescriptor.isTail();
     this.genEventMd5 = inputDescriptor.isGenEventMd5();
     this.useEventMd5AsId = inputDescriptor.isUseEventMd5AsId();
-    this.startPosition = inputDescriptor.getStartPosition();
     this.cacheEnabled = inputDescriptor.isCacheEnabled();
     this.cacheKeyField = inputDescriptor.getCacheKeyField();
     this.cacheLastDedupEnabled = inputDescriptor.getCacheLastDedupEnabled();
@@ -117,10 +120,6 @@ public abstract class LSServerInput {
 
   public Boolean getUseEventMd5AsId() {
     return useEventMd5AsId;
-  }
-
-  public String getStartPosition() {
-    return startPosition;
   }
 
   public Boolean getCacheEnabled() {

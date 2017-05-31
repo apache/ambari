@@ -19,6 +19,8 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.MapFieldCopyDescriptor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,8 +34,11 @@ public class LSServerMapFieldCopy extends LSServerMapField {
     return "map_fieldcopy";
   }
 
+  @NotNull
   @JsonProperty("copy_name")
   private String copyName;
+
+  public LSServerMapFieldCopy() {}
 
   public LSServerMapFieldCopy(MapFieldCopyDescriptor mapFieldCopyDescriptor) {
     this.copyName = mapFieldCopyDescriptor.getCopyName();

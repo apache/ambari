@@ -37,6 +37,8 @@ public class LSServerFilterKeyValue extends LSServerFilter {
   @JsonProperty("value_borders")
   private String valueBorders;
 
+  public LSServerFilterKeyValue() {}
+
   public LSServerFilterKeyValue(FilterDescriptor filterDescriptor) {
     super(filterDescriptor);
     FilterKeyValueDescriptor filterKeyValueDescriptor = (FilterKeyValueDescriptor)filterDescriptor;

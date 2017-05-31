@@ -30,7 +30,7 @@ public class JWTAuthenticationToken extends AbstractAuthenticationToken {
   private String principal;
 
   public JWTAuthenticationToken(String principal, String credential) {
-    super((Collection)null);
+    super((Collection<? extends GrantedAuthority>)null);
     this.principal = principal;
     this.credential = credential;
   }

@@ -971,6 +971,7 @@ Em.I18n.translations = {
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',
   'installer.step8.kerberors.warning': '<strong>Because Kerberos has been manually installed on the cluster, you will have to create/distribute principals and keytabs when this operation is finished.</strong>',
+  'installer.step8.generateBlueprint.popup.msg': 'You will be <b>downloading</b> blueprint.json and clustertemplate.json to your local machine. <br/><br/> You can use them to deploy a cluster via AMBARI REST API. <br/> Update clustertemplate.json with a custom cluster name if you do not want to use name <b>{0}</b>. <br/><br/>If you want to use custom repo URLs, make sure to update them via Ambari REST API before deploying the cluster.',
   'installer.step8.deployPopup.message':'Preparing to Deploy: {0} of {1} tasks completed.',
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',

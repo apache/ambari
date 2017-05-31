@@ -19,10 +19,12 @@
 
 package org.apache.ambari.logsearch.model.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.PostMapValues;
@@ -36,22 +38,30 @@ import io.swagger.annotations.ApiModel;
 @ApiModel
 @JsonInclude(Include.NON_NULL)
 public abstract class LSServerFilter {
+  @NotNull
   private String filter;
   
+  @Valid
+  @NotNull
   private LSServerConditions conditions;
   
   @JsonProperty("sort_order")
   private Integer sortOrder;
   
+  @JsonProperty("source_field")
   private String sourceField;
   
   @JsonProperty("remove_source_field")
   private Boolean removeSourceField;
   
-  private Map<String, List<LSServerPostMapValues>> postMapValues;
+  @Valid
+  @JsonProperty("post_map_values")
+  private Map<String, LSServerPostMapValuesList> postMapValues;
   
   @JsonProperty("is_enabled")
   private Boolean isEnabled;
+  
+  public LSServerFilter() {}
 
   public LSServerFilter(FilterDescriptor filterDescriptor) {
     this.filter = filterDescriptor.getFilter();
@@ -60,13 +70,10 @@ public abstract class LSServerFilter {
     this.sourceField = filterDescriptor.getSourceField();
     this.removeSourceField = filterDescriptor.isRemoveSourceField();
     
-    postMapValues = new HashMap<String, List<LSServerPostMapValues>>();
+    this.postMapValues = new HashMap<String, LSServerPostMapValuesList>();
     for (Map.Entry<String, ? extends List<? extends PostMapValues>> e : filterDescriptor.getPostMapValues().entrySet()) {
-      List<LSServerPostMapValues> lsServerPostMapValues = new ArrayList<>();
-      for (PostMapValues pmv : e.getValue()) {
-        lsServerPostMapValues.add(new LSServerPostMapValues(pmv));
-      }
-      postMapValues.put(e.getKey(), lsServerPostMapValues);
+      LSServerPostMapValuesList lsServerPostMapValuesList = new LSServerPostMapValuesList(e.getValue());
+      postMapValues.put(e.getKey(), lsServerPostMapValuesList);
     }
     
     this.isEnabled = filterDescriptor.isEnabled();
@@ -112,11 +119,11 @@ public abstract class LSServerFilter {
     this.removeSourceField = removeSourceField;
   }
 
-  public Map<String, List<LSServerPostMapValues>> getPostMapValues() {
+  public Map<String, LSServerPostMapValuesList> getPostMapValues() {
     return postMapValues;
   }
 
-  public void setPostMapValues(Map<String, List<LSServerPostMapValues>> postMapValues) {
+  public void setPostMapValues(Map<String, LSServerPostMapValuesList> postMapValues) {
     this.postMapValues = postMapValues;
   }
 

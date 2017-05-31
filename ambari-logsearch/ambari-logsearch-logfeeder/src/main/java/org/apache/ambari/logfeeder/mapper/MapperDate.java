@@ -38,7 +38,7 @@ public class MapperDate extends Mapper {
 
   private SimpleDateFormat targetDateFormatter = null;
   private boolean isEpoch = false;
-  private SimpleDateFormat srcDateFormatter=null;
+  private SimpleDateFormat srcDateFormatter = null;
 
   @Override
   public boolean init(String inputDesc, String fieldName, String mapClassCode, MapFieldDescriptor mapFieldDescriptor) {

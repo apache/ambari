@@ -22,6 +22,8 @@ package org.apache.ambari.logsearch.model.common;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 
 import io.swagger.annotations.ApiModel;
@@ -30,11 +32,23 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel
 public class LSServerLogLevelFilter {
 
-  @ApiModelProperty private String label;
-  @ApiModelProperty private List<String> hosts;
-  @ApiModelProperty private List<String> defaultLevels;
-  @ApiModelProperty private List<String> overrideLevels;
-  @ApiModelProperty private Date expiryTime;
+  @NotNull
+  @ApiModelProperty
+  private String label;
+  
+  @NotNull
+  @ApiModelProperty
+  private List<String> hosts;
+  
+  @NotNull
+  @ApiModelProperty
+  private List<String> defaultLevels;
+  
+  @ApiModelProperty
+  private List<String> overrideLevels;
+  
+  @ApiModelProperty
+  private Date expiryTime;
 
   public LSServerLogLevelFilter() {}
 

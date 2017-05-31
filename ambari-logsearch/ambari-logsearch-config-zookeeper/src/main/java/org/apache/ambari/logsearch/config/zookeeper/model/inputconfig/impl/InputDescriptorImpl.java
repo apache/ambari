@@ -53,10 +53,6 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
   @Expose
   @SerializedName("use_event_md5_as_id")
   private Boolean useEventMd5AsId;
-  
-  @Expose
-  @SerializedName("start_position")
-  private String startPosition;
 
   @Expose
   @SerializedName("cache_enabled")
@@ -144,14 +140,6 @@ public abstract class InputDescriptorImpl implements InputDescriptor {
 
   public void setUseEventMd5AsId(Boolean useEventMd5AsId) {
     this.useEventMd5AsId = useEventMd5AsId;
-  }
-
-  public String getStartPosition() {
-    return startPosition;
-  }
-
-  public void setStartPosition(String startPosition) {
-    this.startPosition = startPosition;
   }
 
   public Boolean isCacheEnabled() {

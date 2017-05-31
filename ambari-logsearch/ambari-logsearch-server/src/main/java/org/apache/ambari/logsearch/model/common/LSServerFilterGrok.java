@@ -19,6 +19,8 @@
 
 package org.apache.ambari.logsearch.model.common;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterGrokDescriptor;
 
@@ -31,11 +33,15 @@ public class LSServerFilterGrok extends LSServerFilter {
   @JsonProperty("log4j_format")
   private String log4jFormat;
 
+  @NotNull
   @JsonProperty("multiline_pattern")
   private String multilinePattern;
 
+  @NotNull
   @JsonProperty("message_pattern")
   private String messagePattern;
+
+  public LSServerFilterGrok() {}
 
   public LSServerFilterGrok(FilterDescriptor filterDescriptor) {
     super(filterDescriptor);

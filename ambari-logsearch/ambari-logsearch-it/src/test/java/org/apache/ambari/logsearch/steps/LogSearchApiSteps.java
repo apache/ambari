@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,12 +80,13 @@ public class LogSearchApiSteps {
     JsonNode expected = mapper.readTree(jsonExpected);
     JsonNode result = mapper.readTree(response);
     JsonNode patch = JsonDiff.asJson(expected, result);
-    List<Object> diffObjects = mapper.convertValue(patch, List.class);
+    List<?> diffObjects = mapper.convertValue(patch, List.class);
     assertDiffs(diffObjects, expected);
 
   }
 
-  private void assertDiffs(List<Object> diffObjects, JsonNode expected) {
+  @SuppressWarnings("unchecked")
+  private void assertDiffs(List<?> diffObjects, JsonNode expected) {
     for (Object diffObj : diffObjects) {
       String path = ((Map<String, String>) diffObj).get("path");
       Assert.assertTrue(expected.at(path).isMissingNode());

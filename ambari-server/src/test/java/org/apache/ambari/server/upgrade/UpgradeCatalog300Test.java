@@ -325,10 +325,37 @@ public class UpgradeCatalog300Test {
     expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), eq("logsearch-properties"), capture(logSearchPropertiesCapture),
         anyString(), EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
+    Map<String, String> oldLogFeederLog4j = ImmutableMap.of(
+        "content", "<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">");
+
+    Map<String, String> expectedLogFeederLog4j = ImmutableMap.of(
+        "content", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+
+    Config mockLogFeederLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
+    expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
+    Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
+    Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
+        "content", "<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">");
+
+    Map<String, String> expectedLogSearchLog4j = ImmutableMap.of(
+        "content", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+
+    Config mockLogSearchLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
+    expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
+    Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchLog4jCapture), anyString(),
+        EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
+
     replay(clusters, cluster);
     replay(controller, injector2);
     replay(confSomethingElse1, confSomethingElse2, confLogSearchConf1, confLogSearchConf2);
     replay(logSearchPropertiesConf, logFeederPropertiesConf);
+    replay(mockLogFeederLog4j, mockLogSearchLog4j);
     new UpgradeCatalog300(injector2).updateLogSearchConfigs();
     easyMockSupport.verifyAll();
 
@@ -343,5 +370,11 @@ public class UpgradeCatalog300Test {
 
     Map<String,String> newLogSearchProperties = logSearchPropertiesCapture.getValue();
     assertTrue(Maps.difference(Collections.<String, String> emptyMap(), newLogSearchProperties).areEqual());
+
+    Map<String, String> updatedLogFeederLog4j = logFeederLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogFeederLog4j, updatedLogFeederLog4j).areEqual());
+
+    Map<String, String> updatedLogSearchLog4j = logSearchLog4jCapture.getValue();
+    assertTrue(Maps.difference(expectedLogSearchLog4j, updatedLogSearchLog4j).areEqual());
   }
 }

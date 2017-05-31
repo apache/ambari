@@ -72,7 +72,6 @@ import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
 import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
 import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
-import org.apache.ambari.logsearch.solr.SolrConstants;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
@@ -110,7 +109,7 @@ import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 
 @Named
-public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceLogResponse> {
+public class ServiceLogsManager extends ManagerBase<ServiceLogData, ServiceLogResponse> {
   private static final Logger logger = Logger.getLogger(ServiceLogsManager.class);
 
   private static final String SERVICE_LOG_TEMPLATE = "service_log_txt.ftl";
@@ -239,7 +238,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return responseDataGenerator.generateBarGraphDataResponseWithRanges(response, LEVEL, true);
   }
 
-  public LogListResponse getPageByKeyword(ServiceLogRequest request, String event)
+  public LogListResponse<ServiceLogData> getPageByKeyword(ServiceLogRequest request, String event)
     throws SolrServerException {
     String defaultChoice = "0";
     String keyword = request.getKeyWord();
@@ -251,7 +250,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return getPageForKeywordByType(request, keyword, isNext, event);
   }
 
-  private LogListResponse getPageForKeywordByType(ServiceLogRequest request, String keyword, boolean isNext, String event) {
+  private LogListResponse<ServiceLogData> getPageForKeywordByType(ServiceLogRequest request, String keyword, boolean isNext, String event) {
     String fromDate = request.getFrom(); // store start & end dates
     String toDate = request.getTo();
     boolean timeAscending = LogSearchConstants.ASCENDING_ORDER.equals(request.getSortType());
@@ -421,6 +420,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       File file = File.createTempFile(fileName, format);
       FileOutputStream fis = new FileOutputStream(file);
       fis.write(textToSave.getBytes());
+      fis.close();
       return Response
         .ok(file, MediaType.APPLICATION_OCTET_STREAM)
         .header("Content-Disposition", "attachment;filename=" + fileName + format)
@@ -451,7 +451,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
 
   public ServiceLogResponse getAfterBeforeLogs(ServiceLogTruncatedRequest request) {
     ServiceLogResponse logResponse = new ServiceLogResponse();
-    List<SolrServiceLogData> docList = null;
+    List<ServiceLogData> docList = null;
     String scrollType = request.getScrollType() != null ? request.getScrollType() : "";
 
     String logTime = null;
@@ -515,8 +515,11 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   }
 
   @Override
-  protected List<SolrServiceLogData> convertToSolrBeans(QueryResponse response) {
-    return response.getBeans(SolrServiceLogData.class);
+  protected List<ServiceLogData> convertToSolrBeans(QueryResponse response) {
+    List<SolrServiceLogData> solrServiceLogData = response.getBeans(SolrServiceLogData.class);
+    List<ServiceLogData> serviceLogData = new ArrayList<>();
+    serviceLogData.addAll(solrServiceLogData);
+    return serviceLogData;
   }
 
   @Override
@@ -524,19 +527,19 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return new ServiceLogResponse();
   }
 
-  private List<LogData> getLogDataListByFieldType(Class clazz, QueryResponse response, List<Count> fieldList) {
-    List<LogData> groupList = getComponentBeans(clazz, response);
+  private <T extends LogData> List<T> getLogDataListByFieldType(Class<T> clazz, QueryResponse response, List<Count> fieldList) {
+    List<T> groupList = getComponentBeans(clazz, response);
     String temp = "";
     for (Count cnt : fieldList) {
-      LogData logData = createNewFieldByType(clazz, cnt, temp);
+      T logData = createNewFieldByType(clazz, cnt, temp);
       groupList.add(logData);
     }
     return groupList;
   }
 
-  private <T extends LogData> List<LogData> getComponentBeans(Class<T> clazz, QueryResponse response) {
+  private <T extends LogData> List<T> getComponentBeans(Class<T> clazz, QueryResponse response) {
     if (clazz.isAssignableFrom(SolrHostLogData.class) || clazz.isAssignableFrom(SolrComponentTypeLogData.class)) {
-      return (List<LogData>) response.getBeans(clazz);
+      return response.getBeans(clazz);
     } else {
       throw new UnsupportedOperationException();
     }
@@ -547,15 +550,13 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     solrQuery.setQuery("*:*");
     SolrUtil.addListFilterToSolrQuery(solrQuery, CLUSTER, clusters);
     GroupListResponse collection = new GroupListResponse();
-    SolrUtil.setFacetField(solrQuery,
-      field);
+    SolrUtil.setFacetField(solrQuery, field);
     SolrUtil.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     QueryResponse response = serviceLogsSolrDao.process(solrQuery);
     if (response == null) {
       return collection;
     }
-    FacetField facetField = response
-      .getFacetField(field);
+    FacetField facetField = response.getFacetField(field);
     if (facetField == null) {
       return collection;
     }
@@ -567,7 +568,9 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     if (docList == null) {
       return collection;
     }
-    List<LogData> groupList = getLogDataListByFieldType(clazz, response, fieldList);
+    List<T> logDataListByFieldType = getLogDataListByFieldType(clazz, response, fieldList);
+    List<LogData> groupList = new ArrayList<>();
+    groupList.addAll(logDataListByFieldType);
 
     collection.setGroupList(groupList);
     if (!docList.isEmpty()) {
@@ -577,22 +580,21 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return collection;
   }
 
-  private <T extends LogData> LogData createNewFieldByType(Class<T> clazz, Count count, String temp) {
+  @SuppressWarnings("unchecked")
+  private <T extends LogData> T createNewFieldByType(Class<T> clazz, Count count, String temp) {
     temp = count.getName();
     LogData result = null;
-    if (clazz.isAssignableFrom(SolrHostLogData.class)) {
-      SolrHostLogData fieldData = new SolrHostLogData();
-      fieldData.setHost(temp);
-      result = fieldData;
-    } else if (clazz.isAssignableFrom(SolrComponentTypeLogData.class)) {
-      SolrComponentTypeLogData fieldData = new SolrComponentTypeLogData();
-      fieldData.setType(temp);
-      result = fieldData;
+    if (clazz.equals(SolrHostLogData.class)) {
+      result = new SolrHostLogData();
+      ((SolrHostLogData)result).setHost(temp);
+    } else if (clazz.equals(SolrComponentTypeLogData.class)) {
+      result = new SolrComponentTypeLogData();
+      ((SolrComponentTypeLogData)result).setType(temp);
+    } else {
+      throw new UnsupportedOperationException();
     }
-    if (result != null) {
-      return result;
-    }
-    throw new UnsupportedOperationException();
+    
+    return (T)result;
   }
   
 
