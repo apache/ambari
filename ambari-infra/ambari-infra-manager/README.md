@@ -21,7 +21,7 @@ limitations under the License.
 
 ## Overview
 
-Ambari Infra Manager is a REST based management application for Ambari Infra services (like Infra Solr). The API is built on top of [Spring Batch] (http://docs.spring.io/spring-batch/reference/html/)
+Ambari Infra Manager is a REST based management application for Ambari Infra services (like Infra Solr). The API is built on top of [Spring Batch](http://docs.spring.io/spring-batch/reference/html/)
 
 ### Architecture
 ![batch-1](docs/images/batch-1.png)
@@ -35,11 +35,11 @@ Ambari Infra Manager is a REST based management application for Ambari Infra ser
 ### Step workflow
 ![batch-4](docs/images/batch-4.png)
 
-(images originally from [here] (http://docs.spring.io/spring-batch/reference/html/))
+(images originally from [here](http://docs.spring.io/spring-batch/reference/html/))
 
 ## API documentation
 
-Infra Manager uses [Swagger] (http://swagger.io/), generated yaml file can be downloaded from [here] (docs/api/swagger.yaml)
+Infra Manager uses [Swagger](http://swagger.io/), generated yaml file can be downloaded from [here](docs/api/swagger.yaml)
 
 
 ## Development guide
@@ -76,11 +76,11 @@ public class MyJobConfig {
 
 }
 ```
-As you can see it will require to implement [ItemWriter] (https://docs.spring.io/spring-batch/apidocs/org/springframework/batch/item/ItemWriter.html), [ItemReader] (http://docs.spring.io/spring-batch/trunk/apidocs/org/springframework/batch/item/ItemReader.html) and [ItemProcessor] (https://docs.spring.io/spring-batch/apidocs/org/springframework/batch/item/ItemProcessor.html)
+As you can see it will require to implement [ItemWriter](https://docs.spring.io/spring-batch/apidocs/org/springframework/batch/item/ItemWriter.html), [ItemReader](http://docs.spring.io/spring-batch/trunk/apidocs/org/springframework/batch/item/ItemReader.html) and [ItemProcessor](https://docs.spring.io/spring-batch/apidocs/org/springframework/batch/item/ItemProcessor.html)
 
 ### Schedule custom jobs
 
-It can be needed based on business requirements to schedule jobs (e.g. daily) instead of run manually through the REST API. It can be done with adding a custom bean to "org.apache.ambari.infra" package with using [@Scheduled] (http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html):
+It can be needed based on business requirements to schedule jobs (e.g. daily) instead of run manually through the REST API. It can be done with adding a custom bean to "org.apache.ambari.infra" package with using [@Scheduled](http://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Scheduled.html):
 ```java
 @Named
 public class MySchedulerObject {
