@@ -17,7 +17,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Input
+# Input
 
 The input element in the [input configuration](inputConfig.md) contains a list of input descriptions, each describing one source
 of input.
@@ -42,7 +42,7 @@ The general elements in the json are the following:
 | is\_enabled                 | A flag to show if the input should be used                                                            | true         |
 
 
-##File Input
+## File Input
 
 File inputs have the following parameters too:
 
@@ -53,7 +53,7 @@ File inputs have the following parameters too:
 | copy\_file               | Should the file be copied \(only if not processed\)                | false   |
 
 
-##S3 File Input
+## S3 File Input
 
 S3 file inputs have the following parameters in addition to the general file parameters:
 

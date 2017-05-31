@@ -17,7 +17,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Filter
+# Filter
 
 The filter element in the [input configuration](inputConfig.md) contains a list of filter descriptions, each describing one filter
 applied on an input.
@@ -35,7 +35,7 @@ The general elements in the json are the following:
 | is\_enabled           | A flag to show if the filter should be used                                                     | true        |
 
 
-##Grok Filter
+## Grok Filter
 
 Grok filters have the following additional parameters:
 
@@ -46,7 +46,7 @@ Grok filters have the following additional parameters:
 | message\_pattern   | The grok pattern to use to parse the log entry                                                             | -       |
 
 
-##Key-value Filter
+## Key-value Filter
 
 Key-value filters have the following additional parameters:
 

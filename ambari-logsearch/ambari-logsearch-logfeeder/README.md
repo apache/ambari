@@ -17,26 +17,27 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Log Search - Log Feeder:
+# Log Search - Log Feeder:
 
 Log Feeder is a component of the Log Search service that reads logs, parses them and stores them in Apache Solr for the purpose
 of later analysis.
 
-#Compilation
+# Compilation
+```bash
 mvn clean compile package
-
-#Deploy
-##Copy to remote
+```
+# Deploy
+## Copy to remote
 copy target/logsearch-logfeeder.tgz to host machine
 
-##Setup environment
+## Setup environment
 ```bash
 mkdir /opt/logfeeder
 cd /opt/logfeeder
 tar xfz ~/logsearch-logfeeder.tar.gz 
 ```
 
-#Input Configuration
+# Input Configuration
 
 The configuration for the log feeder contains
 * description of the log files

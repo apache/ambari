@@ -17,7 +17,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Input Configuration
+# Input Configuration
 
 The input configurations are stored in json files. Each of them are describing the processing of the log files of a service.
 

@@ -17,14 +17,14 @@ limitations under the License.
 {% endcomment %}
 -->
 
-#Post Map Values
+# Post Map Values
 
 The Post Map Values element in the [filter](filter.md) field names as keys, the values are lists of sets of post map values, each
 describing one mapping done on a field named before obtained after filtering.
 
 Currently there are four kind of mappings are supported:
 
-##Map Date
+## Map Date
 
 The name of the mapping element should be map\_date. The value json element may contain the following parameters:
 
@@ -34,7 +34,7 @@ The name of the mapping element should be map\_date. The value json element may 
 | target\_date\_pattern | If 'epoch' then the field is parsed as seconds from 1970, otherwise the content used as pattern        |
 
 
-##Map Copy
+## Map Copy
 
 The name of the mapping element should be map\_copy. The value json element should contain the following parameter:
 
@@ -43,7 +43,7 @@ The name of the mapping element should be map\_copy. The value json element shou
 | copy\_name | The name of the copied field  |
 
 
-##Map Field Name
+## Map Field Name
 
 The name of the mapping element should be map\_fieldname. The value json element should contain the following parameter:
 
@@ -51,7 +51,7 @@ The name of the mapping element should be map\_fieldname. The value json element
 |------------------|-------------------------------|
 | new\_field\_name | The name of the renamed field |
 
-##Map Field Value
+## Map Field Value
 
 The name of the mapping element should be map\_fieldvalue. The value json element should contain the following parameter:
 
