@@ -18,7 +18,7 @@
 
 import {Component, OnInit} from '@angular/core';
 import 'rxjs/add/operator/finally';
-import {HttpClientService} from '../services/http-client.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
   selector: 'login-form',

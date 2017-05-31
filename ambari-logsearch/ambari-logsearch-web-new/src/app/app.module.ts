@@ -25,13 +25,21 @@ import {mockApiDataService} from './services/mock-api-data.service'
 import {AlertModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClientService} from './services/http-client.service';
-import {ActionsService} from './services/actions.service';
+import {StoreModule} from '@ngrx/store';
+import {HttpClientService} from '@app/services/http-client.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
+import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
+import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
+import {BarGraphsService, barGraphs} from '@app/services/storage/bar-graphs.service';
+import {GraphsService, graphs} from '@app/services/storage/graphs.service';
+import {NodesService, nodes} from '@app/services/storage/nodes.service';
+import {UserConfigsService, userConfigs} from '@app/services/storage/user-configs.service';
+import {FiltersService, filters} from '@app/services/storage/filters.service';
 
-import {AppComponent} from './app.component';
-import {LoginFormComponent} from './login-form/login-form.component';
-import {TopMenuComponent} from './top-menu/top-menu.component';
-import {MenuButtonComponent} from './menu-button/menu-button.component';
+import {AppComponent} from '@app/app.component';
+import {LoginFormComponent} from '@app/login-form/login-form.component';
+import {TopMenuComponent} from '@app/top-menu/top-menu.component';
+import {MenuButtonComponent} from '@app/menu-button/menu-button.component';
 
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -58,11 +66,27 @@ export function HttpLoaderFactory(http: Http) {
         useFactory: HttpLoaderFactory,
         deps: [Http]
       }
+    }),
+    StoreModule.provideStore({
+      auditLogs,
+      serviceLogs,
+      barGraphs,
+      graphs,
+      nodes,
+      userConfigs,
+      filters
     })
   ],
   providers: [
     HttpClientService,
-    ActionsService
+    ComponentActionsService,
+    AuditLogsService,
+    ServiceLogsService,
+    BarGraphsService,
+    GraphsService,
+    NodesService,
+    UserConfigsService,
+    FiltersService
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

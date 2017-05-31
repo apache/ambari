@@ -20,7 +20,7 @@ import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {ActionsService} from '../services/actions.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 import {MenuButtonComponent} from './menu-button.component';
 
@@ -41,7 +41,7 @@ describe('MenuButtonComponent', () => {
         useFactory: HttpLoaderFactory,
         deps: [Http]
       })],
-      providers: [ActionsService]
+      providers: [ComponentActionsService]
     })
     .compileComponents();
   }));

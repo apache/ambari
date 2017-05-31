@@ -17,7 +17,7 @@
  */
 
 import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
-import {ActionsService} from '../services/actions.service';
+import {ComponentActionsService} from '@app/services/component-actions.service';
 
 @Component({
   selector: 'menu-button',
@@ -26,7 +26,7 @@ import {ActionsService} from '../services/actions.service';
 })
 export class MenuButtonComponent implements AfterViewInit {
 
-  constructor(private actions: ActionsService) {
+  constructor(private actions: ComponentActionsService) {
   }
 
   ngAfterViewInit() {
