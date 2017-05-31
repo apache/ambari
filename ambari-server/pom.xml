@@ -170,6 +170,30 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>clean-sample-upgrade-check-jar</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete dir="target/test-classes/checks" includeemptydirs="true"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-oozie2-checks-dir</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/checks/tmp"/>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -699,25 +723,6 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>clean-sample-upgrade-check-jar</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <delete dir="target/test-classes/checks" includeemptydirs="true"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.0.2</version>
         <executions>
@@ -729,23 +734,6 @@
             </goals>
             <configuration>
               <outputDirectory>target/test-classes/checks</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate-test-oozie2-checks-dir</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <mkdir dir="target/test-classes/extensions/EXT/0.1/services/OOZIE2/checks/tmp"/>
-              </target>
             </configuration>
           </execution>
         </executions>
@@ -788,6 +776,20 @@
               <goal>exec</goal>
             </goals>
           </execution>
+          <execution>
+            <id>configuration-markdown</id>
+            <phase>site</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
+              <arguments>
+                <argument>-output</argument>
+                <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
+              </arguments>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -825,27 +827,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>configuration-markdown</id>
-            <phase>site</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.apache.ambari.server.configuration.Configuration</mainClass>
-          <arguments>
-            <argument>-output</argument>
-            <argument>${basedir}/../ambari-server/docs/configuration/index.md</argument>
-          </arguments>
-        </configuration>
       </plugin>
     </plugins>
     <resources>
