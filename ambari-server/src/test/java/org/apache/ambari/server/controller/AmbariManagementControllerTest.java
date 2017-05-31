@@ -1926,9 +1926,9 @@ public class AmbariManagementControllerTest {
     } catch (Exception e) {
       // Expected
     }
-    
+
     clusters.addCluster(cluster1, new StackId("HDP-0.1"));
-    
+
     try {
       set1.clear();
       HostRequest rInvalid1 =
@@ -6988,7 +6988,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(13, resp.getUpgradePacks().size());
+    assertEquals(14, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
