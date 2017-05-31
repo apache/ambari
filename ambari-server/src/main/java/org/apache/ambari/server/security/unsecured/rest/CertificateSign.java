@@ -30,13 +30,13 @@ import javax.ws.rs.core.MediaType;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SignCertResponse;
 import org.apache.ambari.server.security.SignMessage;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 @Path("/certs")
 public class CertificateSign {
-  private static Log LOG = LogFactory.getLog(CertificateSign.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CertificateSign.class);
   private static CertificateManager certMan;
 
   @Inject

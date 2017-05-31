@@ -243,7 +243,7 @@ public class ExecutionScheduleManager {
    * @param trigger
    */
   public void scheduleJob(Trigger trigger) {
-    LOG.debug("Scheduling job: " + trigger.getJobKey());
+    LOG.debug("Scheduling job: {}", trigger.getJobKey());
     if (isSchedulerAvailable()) {
       try {
         executionScheduler.scheduleJob(trigger);
@@ -334,7 +334,7 @@ public class ExecutionScheduleManager {
 
       try {
         executionScheduler.scheduleJob(trigger);
-        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
+        LOG.debug("Scheduled trigger next fire time: {}", trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -352,7 +352,7 @@ public class ExecutionScheduleManager {
 
       try {
         executionScheduler.scheduleJob(trigger);
-        LOG.debug("Scheduled trigger next fire time: " + trigger.getNextFireTime());
+        LOG.debug("Scheduled trigger next fire time: {}", trigger.getNextFireTime());
       } catch (SchedulerException e) {
         LOG.error("Unable to schedule request execution.", e);
         throw new AmbariException(e.getMessage());
@@ -412,8 +412,8 @@ public class ExecutionScheduleManager {
   }
 
   protected String getJobName(Long executionId, Long orderId) {
-    return BATCH_REQUEST_JOB_PREFIX + "-" + executionId.toString() + "-" +
-      orderId.toString();
+    return BATCH_REQUEST_JOB_PREFIX + "-" + executionId + "-" +
+      orderId;
   }
 
   /**
@@ -492,7 +492,7 @@ public class ExecutionScheduleManager {
           String jobName = getJobName(requestExecution.getId(),
             batchRequest.getOrderId());
 
-          LOG.debug("Deleting Job, jobName = " + jobName);
+          LOG.debug("Deleting Job, jobName = {}", jobName);
 
           try {
             executionScheduler.deleteJob(JobKey.jobKey(jobName,

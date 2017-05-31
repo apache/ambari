@@ -170,7 +170,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             long id = Integer.parseInt(widget.get("id").toString());
             WidgetEntity widgetEntity = widgetDAO.findById(id);
             if (widgetEntity == null) {
-              throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+              throw new AmbariException("Widget with id " + widget.get("id") + " does not exists");
             }
             WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
 
@@ -308,7 +308,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
               long id = Integer.parseInt(widget.get("id").toString());
               WidgetEntity widgetEntity = widgetDAO.findById(id);
               if (widgetEntity == null) {
-                throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+                throw new AmbariException("Widget with id " + widget.get("id") + " does not exists");
               }
               WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
 

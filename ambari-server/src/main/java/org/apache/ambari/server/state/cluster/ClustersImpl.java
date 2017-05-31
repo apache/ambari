@@ -305,9 +305,7 @@ public class ClustersImpl implements Clusters {
       throw new HostNotFoundException(hostname);
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking up clusters for hostname"
-          + ", hostname=" + hostname
-          + ", mappedClusters=" + clusters.size());
+      LOG.debug("Looking up clusters for hostname, hostname={}, mappedClusters={}", hostname, clusters.size());
     }
     return Collections.unmodifiableSet(clusters);
 
@@ -397,7 +395,7 @@ public class ClustersImpl implements Clusters {
         Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>()));
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a host to Clusters" + ", hostname=" + hostname);
+      LOG.debug("Adding a host to Clusters, hostname={}", hostname);
     }
 
     // publish the event

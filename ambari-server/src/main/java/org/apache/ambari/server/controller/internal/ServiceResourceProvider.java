@@ -596,7 +596,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       LOG.info("Received a updateService request"
           + ", clusterName=" + request.getClusterName()
           + ", serviceName=" + request.getServiceName()
-          + ", request=" + request.toString());
+          + ", request=" + request);
 
       clusterNames.add(request.getClusterName());
 
@@ -677,10 +677,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Nothing to do for new updateService request"
-              + ", clusterName=" + request.getClusterName()
-              + ", serviceName=" + request.getServiceName()
-              + ", newDesiredState=null");
+          LOG.debug("Nothing to do for new updateService request, clusterName={}, serviceName={}, newDesiredState=null",
+            request.getClusterName(), request.getServiceName());
         }
         continue;
       }
@@ -799,12 +797,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         changedComps.get(newState).add(sc);
       }
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Handling update to ServiceComponent"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", serviceName=" + service.getName()
-            + ", componentName=" + sc.getName()
-            + ", currentDesiredState=" + oldScState
-            + ", newDesiredState=" + newState);
+        LOG.debug("Handling update to ServiceComponent, clusterName={}, serviceName={}, componentName={}, currentDesiredState={}, newDesiredState={}",
+          cluster.getClusterName(), service.getName(), sc.getName(), oldScState, newState);
       }
 
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
@@ -812,13 +806,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         if (oldSchState == State.DISABLED || oldSchState == State.UNKNOWN) {
           //Ignore host components updates in this state
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + service.getName()
-                + ", componentName=" + sc.getName()
-                + ", hostname=" + sch.getHostName()
-                + ", currentState=" + oldSchState
-                + ", newDesiredState=" + newState);
+            LOG.debug("Ignoring ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",
+              cluster.getClusterName(), service.getName(), sc.getName(), sch.getHostName(), oldSchState, newState);
           }
           continue;
         }
@@ -826,13 +815,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         if (newState == oldSchState) {
           ignoredScHosts.add(sch);
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + service.getName()
-                + ", componentName=" + sc.getName()
-                + ", hostname=" + sch.getHostName()
-                + ", currentState=" + oldSchState
-                + ", newDesiredState=" + newState);
+            LOG.debug("Ignoring ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",
+              cluster.getClusterName(), service.getName(), sc.getName(), sch.getHostName(), oldSchState, newState);
           }
           continue;
         }
@@ -840,11 +824,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
           ignoredScHosts.add(sch);
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Ignoring ServiceComponentHost"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + service.getName()
-                + ", componentName=" + sc.getName()
-                + ", hostname=" + sch.getHostName());
+            LOG.debug("Ignoring ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}",
+              cluster.getClusterName(), service.getName(), sc.getName(), sch.getHostName());
           }
           continue;
         }
@@ -887,13 +868,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               new ArrayList<ServiceComponentHost>());
         }
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Handling update to ServiceComponentHost"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + service.getName()
-              + ", componentName=" + sc.getName()
-              + ", hostname=" + sch.getHostName()
-              + ", currentState=" + oldSchState
-              + ", newDesiredState=" + newState);
+          LOG.debug("Handling update to ServiceComponentHost, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",
+            cluster.getClusterName(), service.getName(), sc.getName(), sch.getHostName(), oldSchState, newState);
         }
         changedScHosts.get(sc.getName()).get(newState).add(sch);
       }
@@ -1048,8 +1024,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createService request"
-                + ", clusterName=" + clusterName + ", serviceName=" + serviceName + ", request=" + request);
+        LOG.debug("Received a createService request, clusterName={}, serviceName={}, request={}", clusterName, serviceName, request);
       }
 
       if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {

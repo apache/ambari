@@ -40,9 +40,8 @@ public abstract class MetricsDownsamplingMethod {
         && timestamp <= temporalInfo.getEndTimeMillis();
 
     if (!retVal && LOG.isTraceEnabled()) {
-      LOG.trace("Ignoring out of band metric with ts: " + timestamp + ", "
-        + "temporalInfo: startTime = " + temporalInfo.getStartTimeMillis() + ","
-        + " endTime = " + temporalInfo.getEndTimeMillis());
+      LOG.trace("Ignoring out of band metric with ts: {}, temporalInfo: startTime = {}, endTime = {}",
+        timestamp, temporalInfo.getStartTimeMillis(), temporalInfo.getEndTimeMillis());
     }
 
     return retVal;

@@ -170,7 +170,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   public static final String VIEWS_URL_PATTERN = "/api/v1/views/*";
-  private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
 
   /**
    * The thread name prefix for threads handling agent requests.

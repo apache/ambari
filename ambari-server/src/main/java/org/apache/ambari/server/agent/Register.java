@@ -115,7 +115,7 @@ public class Register {
              "prefix=" + prefix + "\n";
 
     if (hardwareProfile != null)
-      ret = ret + "hardwareprofile=" + this.hardwareProfile.toString();
+      ret = ret + "hardwareprofile=" + this.hardwareProfile;
     return ret;
   }
 }

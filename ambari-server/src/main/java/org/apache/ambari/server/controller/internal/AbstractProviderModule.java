@@ -409,7 +409,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     if (!vipHostConfigPresent) {
       currentCollectorHost = metricsCollectorHAManager.getCollectorHost(clusterName);
       }
-    LOG.debug("Cluster Metrics Vip Host : " + clusterMetricserverVipHost);
+    LOG.debug("Cluster Metrics Vip Host : {}", clusterMetricserverVipHost);
 
     return (clusterMetricserverVipHost != null) ? clusterMetricserverVipHost : currentCollectorHost;
   }
@@ -560,7 +560,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
       }
     }
 
-    LOG.debug("jmxPortMap -> " + jmxPortMap);
+    LOG.debug("jmxPortMap -> {}", jmxPortMap);
 
     ConcurrentMap<String, String> hostJmxPorts = clusterJmxPorts.get(hostName);
     if (hostJmxPorts == null) {
@@ -1018,7 +1018,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           }
         }
         value = postProcessPropertyValue(propName, value, evaluatedProperties, null);
-        LOG.debug("PROPERTY -> key: " + propName + ", " + "value: " + value);
+        LOG.debug("PROPERTY -> key: {}, value: {}", propName, value);
 
         mConfigs.put(entry.getKey(), value);
 
@@ -1152,15 +1152,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
       jmxProtocolString = "http";
     }
     if (jmxProtocolString == null) {
-      LOG.debug("Detected JMX protocol is null for clusterName = " + clusterName +
-          ", componentName = " + componentName);
-      LOG.debug("Defaulting JMX to HTTP protocol for  for clusterName = " + clusterName +
-          ", componentName = " + componentName);
+      LOG.debug("Detected JMX protocol is null for clusterName = {}, componentName = {}", clusterName, componentName);
+      LOG.debug("Defaulting JMX to HTTP protocol for  for clusterName = {}, componentName = {}", clusterName, componentName);
       jmxProtocolString = "http";
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug("JMXProtocol = " + jmxProtocolString + ", for clusterName=" + clusterName +
-          ", componentName = " + componentName);
+      LOG.debug("JMXProtocol = {}, for clusterName={}, componentName = {}", jmxProtocolString, clusterName, componentName);
     }
     clusterJmxProtocolMap.put(mapKey, jmxProtocolString);
     return jmxProtocolString;

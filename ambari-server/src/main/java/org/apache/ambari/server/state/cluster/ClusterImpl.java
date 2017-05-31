@@ -465,16 +465,13 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    LOG.debug("Adding a new Config group" + ", clusterName = "
-      + getClusterName() + ", groupName = " + configGroup.getName()
-      + ", tag = " + configGroup.getTag() + " with hosts " + hostList);
+    LOG.debug("Adding a new Config group, clusterName = {}, groupName = {}, tag = {} with hosts {}",
+      getClusterName(), configGroup.getName(), configGroup.getTag(), hostList);
 
     if (clusterConfigGroups.containsKey(configGroup.getId())) {
       // The loadConfigGroups will load all groups to memory
-      LOG.debug("Config group already exists" + ", clusterName = "
-          + getClusterName() + ", groupName = " + configGroup.getName()
-          + ", groupId = " + configGroup.getId() + ", tag = "
-          + configGroup.getTag());
+      LOG.debug("Config group already exists, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
+        getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
     } else {
       clusterConfigGroups.put(configGroup.getId(), configGroup);
     }
@@ -509,9 +506,8 @@ public class ClusterImpl implements Cluster {
         + requestExecution.getId() + ", description = " + requestExecution.getDescription());
 
     if (requestExecutions.containsKey(requestExecution.getId())) {
-      LOG.debug(
-          "Request schedule already exists" + ", clusterName = " + getClusterName() + ", id = "
-              + requestExecution.getId() + ", description = " + requestExecution.getDescription());
+      LOG.debug("Request schedule already exists, clusterName = {}, id = {}, description = {}",
+        getClusterName(), requestExecution.getId(), requestExecution.getDescription());
     } else {
       requestExecutions.put(requestExecution.getId(), requestExecution);
     }
@@ -542,9 +538,8 @@ public class ClusterImpl implements Cluster {
       throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
     }
 
-    LOG.debug("Deleting Config group" + ", clusterName = " + getClusterName()
-        + ", groupName = " + configGroup.getName() + ", groupId = "
-        + configGroup.getId() + ", tag = " + configGroup.getTag());
+    LOG.debug("Deleting Config group, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
+      getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
 
     configGroup.delete();
     clusterConfigGroups.remove(id);
@@ -666,10 +661,8 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new ServiceComponentHost" + ", clusterName="
-          + getClusterName() + ", clusterId=" + getClusterId()
-          + ", serviceName=" + serviceName + ", serviceComponentName"
-          + componentName + ", hostname= " + hostname);
+      LOG.debug("Adding a new ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname);
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).put(hostname,
@@ -742,10 +735,8 @@ public class ClusterImpl implements Cluster {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Removing a ServiceComponentHost" + ", clusterName="
-          + getClusterName() + ", clusterId=" + getClusterId()
-          + ", serviceName=" + serviceName + ", serviceComponentName"
-          + componentName + ", hostname= " + hostname);
+      LOG.debug("Removing a ServiceComponentHost, clusterName={}, clusterId={}, serviceName={}, serviceComponentName{}, hostname= {}",
+        getClusterName(), getClusterId(), serviceName, componentName, hostname);
     }
 
     serviceComponentHosts.get(serviceName).get(componentName).remove(hostname);
@@ -830,8 +821,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addService(Service service) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a new Service" + ", clusterName=" + getClusterName() + ", clusterId="
-          + getClusterId() + ", serviceName=" + service.getName());
+      LOG.debug("Adding a new Service, clusterName={}, clusterId={}, serviceName={}", getClusterName(), getClusterId(), service.getName());
     }
     services.put(service.getName(), service);
   }
@@ -894,10 +884,8 @@ public class ClusterImpl implements Cluster {
     clusterGlobalLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Changing DesiredStackVersion of Cluster" + ", clusterName="
-            + getClusterName() + ", clusterId=" + getClusterId()
-            + ", currentDesiredStackVersion=" + desiredStackVersion
-            + ", newDesiredStackVersion=" + stackId);
+        LOG.debug("Changing DesiredStackVersion of Cluster, clusterName={}, clusterId={}, currentDesiredStackVersion={}, newDesiredStackVersion={}",
+          getClusterName(), getClusterId(), desiredStackVersion, stackId);
       }
 
       desiredStackVersion = stackId;
@@ -2376,7 +2364,8 @@ public class ClusterImpl implements Cluster {
 
         LOG.info("Setting {} with version tag {} created on {} to selected for stack {}",
             entity.getType(), entity.getTag(), new Date(entity.getTimestamp()),
-            stackId.toString());
+          stackId
+        );
       }
 
       // since the entities which were modified came from the cluster entity's

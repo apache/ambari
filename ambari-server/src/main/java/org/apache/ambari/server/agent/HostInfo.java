@@ -378,7 +378,7 @@ public class HostInfo {
     }
     StringBuilder ret = new StringBuilder();
     for (DiskInfo diskInfo : mounts) {
-      ret.append("(").append(diskInfo.toString()).append(")");
+      ret.append("(").append(diskInfo).append(")");
     }
     return ret.toString();
   }

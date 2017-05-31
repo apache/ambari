@@ -647,7 +647,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
                   }
                 }
                 if (widgetDescriptor != null) {
-                  LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+                  LOG.debug("Loaded widget descriptor: {}", widgetDescriptor);
                   for (Object artifact : widgetDescriptor.values()) {
                     List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
                     for (WidgetLayout widgetLayout : widgetLayouts) {

@@ -379,9 +379,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
 
     id = String.format("%s:%s", extensionInfo.getName(), extensionInfo.getVersion());
 
-    LOG.debug("Adding new extension to known extensions"
-        + ", extensionName = " + extensionInfo.getName()
-        + ", extensionVersion = " + extensionInfo.getVersion());
+    LOG.debug("Adding new extension to known extensions, extensionName = {}, extensionVersion = {}", extensionInfo.getName(), extensionInfo.getVersion());
 
 
     //todo: give additional thought on handling missing metainfo.xml

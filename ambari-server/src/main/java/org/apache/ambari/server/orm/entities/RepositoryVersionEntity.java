@@ -82,7 +82,7 @@ import com.google.inject.Provider;
 })
 @StaticallyInject
 public class RepositoryVersionEntity {
-  private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
 
   @Inject
   private static Provider<RepositoryVersionHelper> repositoryVersionHelperProvider;

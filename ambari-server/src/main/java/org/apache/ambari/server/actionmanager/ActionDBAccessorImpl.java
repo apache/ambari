@@ -579,9 +579,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
                                   long stageId, String role, CommandReport report) {
     boolean checkRequest = false;
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Update HostRoleState: "
-        + "HostName " + hostname + " requestId " + requestId + " stageId "
-        + stageId + " role " + role + " report " + report);
+      LOG.debug("Update HostRoleState: HostName {} requestId {} stageId {} role {} report {}", hostname, requestId, stageId, role, report);
     }
 
     long now = System.currentTimeMillis();
@@ -958,7 +956,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         .withTaskId(String.valueOf(commandEntity.getTaskId()))
         .withHostName(commandEntity.getHostName())
         .withUserName(details.getUserName())
-        .withOperation(commandEntity.getRoleCommand().toString() + " " + commandEntity.getRole().toString())
+        .withOperation(commandEntity.getRoleCommand() + " " + commandEntity.getRole())
         .withDetails(commandEntity.getCommandDetail())
         .withStatus(commandEntity.getStatus().toString())
         .withRequestId(String.valueOf(requestId))

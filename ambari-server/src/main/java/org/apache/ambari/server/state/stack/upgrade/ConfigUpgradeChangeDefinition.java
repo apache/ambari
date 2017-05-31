@@ -82,7 +82,7 @@ import com.google.common.base.Objects;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ConfigUpgradeChangeDefinition {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigUpgradeChangeDefinition.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradeChangeDefinition.class);
 
   /**
    * The key that represents the configuration type to change (ie hdfs-site).

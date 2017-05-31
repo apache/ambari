@@ -286,8 +286,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       hooksDir = getStackDirName() + File.separator + getName() +
           File.separator + HOOKS_FOLDER_NAME;
     } else {
-      LOG.debug("Hooks folder " + getAbsolutePath() + File.separator +
-          HOOKS_FOLDER_NAME + " does not exist");
+      LOG.debug("Hooks folder {}{}" + HOOKS_FOLDER_NAME + " does not exist", getAbsolutePath(), File.separator);
     }
 
     if (subDirs.contains(AmbariMetaInfo.RCO_FILE_NAME)) {
@@ -342,7 +341,7 @@ public class StackDirectory extends StackDefinitionDirectory {
     //todo: is it ok for this file not to exist?
     if (stackMetaInfoFile.exists()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Reading stack version metainfo from file " + stackMetaInfoFile.getAbsolutePath());
+        LOG.debug("Reading stack version metainfo from file {}", stackMetaInfoFile.getAbsolutePath());
       }
 
       try {
@@ -492,7 +491,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       }
       roleCommandOrder = new StackRoleCommandOrder(result);
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Role Command Order for " + rcoFilePath);
+        LOG.debug("Role Command Order for {}", rcoFilePath);
         roleCommandOrder.printRoleCommandOrder(LOG);
       }
     } catch (IOException e) {

@@ -716,7 +716,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private String preprocessPropertyId(String propertyId, String componentName) {
     if (propertyId.startsWith("jvm") && JVM_PROCESS_NAMES.keySet().contains(componentName)) {
       String newPropertyId = propertyId.replace("jvm.", "jvm." + JVM_PROCESS_NAMES.get(componentName));
-      LOG.debug("Pre-process: " + propertyId + ", to: " + newPropertyId);
+      LOG.debug("Pre-process: {}, to: {}", propertyId, newPropertyId);
       return newPropertyId;
     }
 

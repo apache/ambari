@@ -58,7 +58,7 @@ public class ConfigUpgradePack {
    */
   private Map<String, ConfigUpgradeChangeDefinition> changesById;
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigUpgradePack.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradePack.class);
 
   /**
    * no-arg default constructor for JAXB

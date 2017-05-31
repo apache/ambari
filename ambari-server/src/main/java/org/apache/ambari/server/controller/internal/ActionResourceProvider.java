@@ -100,8 +100,7 @@ public class ActionResourceProvider extends AbstractControllerResourceProvider {
     if (predicate != null) {
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         ActionRequest actionReq = getRequest(propertyMap);
-        LOG.debug("Received a get request for Action with"
-            + ", actionName = " + actionReq.getActionName());
+        LOG.debug("Received a get request for Action with, actionName = {}", actionReq.getActionName());
         requests.add(actionReq);
       }
     } else {

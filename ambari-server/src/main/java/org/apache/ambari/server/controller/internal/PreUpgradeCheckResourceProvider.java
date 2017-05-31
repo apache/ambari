@@ -64,7 +64,7 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
-  private static Logger LOG = LoggerFactory.getLogger(PreUpgradeCheckResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PreUpgradeCheckResourceProvider.class);
 
   //----- Property ID constants ---------------------------------------------
 

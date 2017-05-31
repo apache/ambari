@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class MetricsConfiguration {
   public static final String CONFIG_FILE = "metrics.properties";
 
-  private static Logger LOG = LoggerFactory.getLogger(MetricsConfiguration.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsConfiguration.class);
   private Properties properties;
 
   public static MetricsConfiguration getMetricsConfiguration() {

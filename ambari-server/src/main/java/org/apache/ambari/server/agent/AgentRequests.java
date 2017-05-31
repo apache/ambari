@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Singleton;
 
@@ -34,7 +34,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class AgentRequests {
-  private static Log LOG = LogFactory.getLog(HeartbeatMonitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HeartbeatMonitor.class);
   private final Map<String, Map<String, Boolean>> requiresExecCmdDetails = new HashMap<>();
   private final Object _lock = new Object();
 
@@ -60,7 +60,7 @@ public class AgentRequests {
 
     Map<String, Boolean> perHostRequiresExecCmdDetails = getPerHostRequiresExecCmdDetails(host);
     if (perHostRequiresExecCmdDetails != null && perHostRequiresExecCmdDetails.containsKey(component)) {
-      LOG.debug("Sending exec command details for " + component);
+      LOG.debug("Sending exec command details for {}", component);
       return perHostRequiresExecCmdDetails.get(component);
     }
 
@@ -81,6 +81,6 @@ public class AgentRequests {
 
   @Override
   public String toString() {
-    return new StringBuilder().append("requiresExecCmdDetails: ").append(requiresExecCmdDetails.toString()).toString();
+    return new StringBuilder().append("requiresExecCmdDetails: ").append(requiresExecCmdDetails).toString();
   }
 }

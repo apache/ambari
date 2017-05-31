@@ -56,12 +56,12 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
@@ -74,7 +74,7 @@ public class StageUtils {
   public static final String DEFAULT_RACK = "/default-rack";
   public static final String DEFAULT_IPV4_ADDRESS = "127.0.0.1";
 
-  private static final Log LOG = LogFactory.getLog(StageUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StageUtils.class);
   protected static final String AMBARI_SERVER_HOST = "ambari_server_host";
   protected static final String AMBARI_SERVER_PORT = "ambari_server_port";
   protected static final String AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl";

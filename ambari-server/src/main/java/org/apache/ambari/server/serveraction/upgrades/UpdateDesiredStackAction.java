@@ -181,7 +181,7 @@ public class UpdateDesiredStackAction extends AbstractUpgradeServerAction {
     } catch (Exception e) {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
-      err.append(sw.toString());
+      err.append(sw);
 
       return createCommandReport(-1, HostRoleStatus.FAILED, "{}", out.toString(), err.toString());
     }

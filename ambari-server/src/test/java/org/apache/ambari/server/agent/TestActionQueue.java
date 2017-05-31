@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class TestActionQueue {
 
-  private static Logger LOG = LoggerFactory.getLogger(TestActionQueue.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestActionQueue.class);
 
   private static int threadCount = 100;
   static class ActionQueueOperation implements Runnable {

@@ -43,7 +43,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class ActionManager {
-  private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
   private final AtomicLong requestCounter;
@@ -84,10 +84,10 @@ public class ActionManager {
 
   public void sendActions(Request request, ExecuteActionRequest executeActionRequest) throws AmbariException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("Persisting Request into DB: %s", request));
+      LOG.debug("Persisting Request into DB: {}", request);
 
       if (executeActionRequest != null) {
-        LOG.debug("In response to request: " + request.toString());
+        LOG.debug("In response to request: {}", request);
       }
     }
     db.persistActions(request);
@@ -147,7 +147,7 @@ public class ActionManager {
     for (CommandReport report : reports) {
       HostRoleCommand command = commands.get(report.getTaskId());
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Processing command report : " + report.toString());
+        LOG.debug("Processing command report : {}", report);
       }
       if (command == null) {
         LOG.warn("The task " + report.getTaskId()

@@ -165,7 +165,7 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
           if (compatibleRepositoryVersionsMap.containsKey(repositoryVersionEntity.getId())) {
             compatibleRepositoryVersionsMap.get(repositoryVersionEntity.getId()).addUpgradePackType(up.getType());
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Stack id: {} exists in map.  Appended new upgrade type {}" + repositoryVersionEntity.getId(), up.getType());
+              LOG.debug("Stack id: {} exists in map.  Appended new upgrade type {}{}", up.getType(), repositoryVersionEntity.getId());
             }
           } else {
             CompatibleRepositoryVersion compatibleRepositoryVersionEntity = new CompatibleRepositoryVersion(repositoryVersionEntity);

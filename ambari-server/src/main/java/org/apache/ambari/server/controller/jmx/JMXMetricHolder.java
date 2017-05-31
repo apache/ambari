@@ -42,7 +42,7 @@ public final class JMXMetricHolder {
 
     for (Map<String, Object> map : beans) {
       for (Map.Entry<String, Object> entry : map.entrySet()) {
-        stringBuilder.append("    ").append(entry.toString()).append("\n");
+        stringBuilder.append("    ").append(entry).append("\n");
       }
     }
     return stringBuilder.toString();

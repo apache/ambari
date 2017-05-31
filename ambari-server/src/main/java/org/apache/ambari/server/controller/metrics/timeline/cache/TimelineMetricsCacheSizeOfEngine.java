@@ -124,7 +124,7 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getType());
           timelineMetricPrimitivesApproximation += 8; // Object overhead
 
-          LOG.debug("timelineMetricPrimitivesApproximation bytes = " + timelineMetricPrimitivesApproximation);
+          LOG.debug("timelineMetricPrimitivesApproximation bytes = {}", timelineMetricPrimitivesApproximation);
         }
         size += timelineMetricPrimitivesApproximation;
 
@@ -132,11 +132,11 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
         if (metricValues != null && !metricValues.isEmpty()) {
           // Numeric wrapper: 12 bytes + 8 bytes Data type + 4 bytes alignment = 48 (Long, Double)
           // Tree Map: 12 bytes for header + 20 bytes for 5 object fields : pointers + 1 byte for flag = 40
-         LOG.debug("Size of metric value: " + (sizeOfMapEntry + sizeOfMapEntryOverhead) * metricValues.size());
+          LOG.debug("Size of metric value: {}", (sizeOfMapEntry + sizeOfMapEntryOverhead) * metricValues.size());
           size += (sizeOfMapEntry + sizeOfMapEntryOverhead) * metricValues.size(); // Treemap size is O(1)
         }
       }
-      LOG.debug("Total Size of metric values in cache: " + size);
+      LOG.debug("Total Size of metric values in cache: {}", size);
     }
 
     return size;

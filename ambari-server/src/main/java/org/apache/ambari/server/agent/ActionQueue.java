@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class ActionQueue {
 
-  private static Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
 
   private static HashSet<String> EMPTY_HOST_LIST = new HashSet<>();
 

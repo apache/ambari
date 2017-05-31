@@ -52,7 +52,7 @@ import com.google.common.reflect.TypeToken;
 
 public class MasterHostResolver {
 
-  private static Logger LOG = LoggerFactory.getLogger(MasterHostResolver.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MasterHostResolver.class);
 
   private final UpgradeContext m_upgradeContext;
   private final Cluster m_cluster;

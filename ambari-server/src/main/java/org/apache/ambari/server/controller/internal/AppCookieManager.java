@@ -24,8 +24,6 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -40,6 +38,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles SPNego authentication as a client of hadoop service, caches
@@ -57,7 +57,7 @@ public class AppCookieManager {
   private static final EmptyJaasCredentials EMPTY_JAAS_CREDENTIALS = new EmptyJaasCredentials();
 
   private Map<String, String> endpointCookieMap = new ConcurrentHashMap<>();
-  private static Log LOG = LogFactory.getLog(AppCookieManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AppCookieManager.class);
 
   /**
    * Utility method to exercise AppCookieManager directly
@@ -136,7 +136,7 @@ public class AppCookieManager {
     hadoopAuthCookie = HADOOP_AUTH_EQ + quote(hadoopAuthCookie);
     setAppCookie(endpoint, hadoopAuthCookie);
     if (LOG.isInfoEnabled()) {
-      LOG.info("Successful SPNego authentication to URL:" + uri.toString());
+      LOG.info("Successful SPNego authentication to URL:" + uri);
     }
     return hadoopAuthCookie;
   }

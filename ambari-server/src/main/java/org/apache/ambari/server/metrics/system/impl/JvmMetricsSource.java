@@ -46,7 +46,7 @@ import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
  */
 public class JvmMetricsSource extends AbstractMetricsSource {
   static final MetricRegistry registry = new MetricRegistry();
-  private static Logger LOG = LoggerFactory.getLogger(JvmMetricsSource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JvmMetricsSource.class);
   private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
   private static String JVM_PREFIX = "jvm";
   private int interval = 10;

@@ -45,7 +45,7 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
   private ViewContext context;
   private final URLStreamProvider urlStreamProvider;
 
-  private static Logger LOG = LoggerFactory.getLogger(HttpImpersonatorImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HttpImpersonatorImpl.class);
 
   public HttpImpersonatorImpl(ViewContext c) {
     this.context = c;

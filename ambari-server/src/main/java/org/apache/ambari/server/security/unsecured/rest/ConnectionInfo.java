@@ -26,15 +26,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
 
 @Path("/connection_info")
 public class ConnectionInfo {
-    private static Log LOG = LogFactory.getLog(ConnectionInfo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConnectionInfo.class);
     private static HashMap<String,String> response= new HashMap<>();
     private static Configuration conf;
 

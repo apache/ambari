@@ -54,7 +54,7 @@ public class AlertMaintenanceModeListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertMaintenanceModeListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertMaintenanceModeListener.class);
 
   /**
    * Publishes {@link AlertEvent} instances.

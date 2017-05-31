@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @XmlType(name="start")
 public class StartGrouping extends Grouping implements UpgradeFunction {
 
-  private static Logger LOG = LoggerFactory.getLogger(StartGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StartGrouping.class);
 
   @Override
   public Task.Type  getFunction() {

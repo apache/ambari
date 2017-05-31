@@ -106,7 +106,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class OrmTestHelper {
 
-  private static Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
 
   private AtomicInteger uniqueCounter = new AtomicInteger();
 

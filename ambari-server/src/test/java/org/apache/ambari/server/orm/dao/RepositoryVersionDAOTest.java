@@ -91,7 +91,7 @@ public class RepositoryVersionDAOTest {
 
     // Assert the version must be unique
     RepositoryVersionEntity dupVersion = new RepositoryVersionEntity();
-    dupVersion.setDisplayName("display name " + uuid.toString());
+    dupVersion.setDisplayName("display name " + uuid);
     dupVersion.setOperatingSystems("repositories");
     dupVersion.setStack(stackEntity);
     dupVersion.setVersion(first.getVersion());

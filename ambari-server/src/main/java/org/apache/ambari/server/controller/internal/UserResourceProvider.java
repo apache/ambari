@@ -119,9 +119,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
     });
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Found user responses matching get user request"
-          + ", userRequestSize=" + requests.size()
-          + ", userResponseSize=" + responses.size());
+      LOG.debug("Found user responses matching get user request, userRequestSize={}, userResponseSize={}", requests.size(), responses.size());
     }
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);

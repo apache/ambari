@@ -38,7 +38,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class AmbariPerformanceMonitor extends PerformanceMonitor {
-  private static Logger LOG = LoggerFactory.getLogger(AmbariPerformanceMonitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariPerformanceMonitor.class);
   private boolean isInitialized = false;
   private DatabaseMetricsSource metricsSource;
   private static String entityPackagePrefix = "org.apache"; //Can be made into a set later if needed.
@@ -111,7 +111,7 @@ public class AmbariPerformanceMonitor extends PerformanceMonitor {
         init();
       }
       if (isInitialized) {
-        LOG.debug("Publishing " + metrics.size() + " metrics to sink.");
+        LOG.debug("Publishing {} metrics to sink.", metrics.size());
         metricsSource.publish(metrics);
       }
     }

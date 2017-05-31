@@ -98,7 +98,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       } catch (IOException e) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Caught exception parsing msg body.");
-          LOG.debug("Message Body: " + body, e);
+          LOG.debug("Message Body: {}", body, e);
         }
         throw new BodyParseException(e);
       }

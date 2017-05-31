@@ -110,7 +110,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
       }
       if (containsSecretReferences) {
         throw new InvalidTopologyException("Secret references are not allowed in blueprints, " +
-          "replace following properties with real passwords:\n" + errorMessage.toString());
+          "replace following properties with real passwords:\n" + errorMessage);
       }
     }
 

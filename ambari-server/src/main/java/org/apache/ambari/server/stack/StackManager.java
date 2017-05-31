@@ -465,8 +465,7 @@ public class StackManager {
 
       String commonServicesRootAbsolutePath = commonServicesRoot.getAbsolutePath();
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Loading common services information"
-            + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
+        LOG.debug("Loading common services information, commonServicesRoot = {}", commonServicesRootAbsolutePath);
       }
 
       if (!commonServicesRoot.isDirectory() && !commonServicesRoot.exists()) {
@@ -488,8 +487,7 @@ public class StackManager {
 
     String stackRootAbsPath = stackRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Loading stack information"
-          + ", stackRoot = " + stackRootAbsPath);
+      LOG.debug("Loading stack information, stackRoot = {}", stackRootAbsPath);
     }
 
     if (!stackRoot.isDirectory() && !stackRoot.exists()) {
@@ -544,8 +542,7 @@ public class StackManager {
 
     String extensionRootAbsPath = extensionRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Loading extension information"
-          + ", extensionRoot = " + extensionRootAbsPath);
+      LOG.debug("Loading extension information, extensionRoot = {}", extensionRootAbsPath);
     }
 
     //For backwards compatibility extension directory may not exist

@@ -51,14 +51,14 @@ import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.TextNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parent for all commands.
@@ -71,7 +71,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
    */
   private Class<T> type;
 
-  protected static Log LOG = LogFactory.getLog(StackAdvisorCommand.class);
+  protected static Logger LOG = LoggerFactory.getLogger(StackAdvisorCommand.class);
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts/*&Hosts/host_name.in(%s)";
@@ -374,7 +374,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     String hostsJSON = (String) response.getEntity();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Hosts information: " + hostsJSON);
+      LOG.debug("Hosts information: {}", hostsJSON);
     }
 
     Collection<String> unregistered = getUnregisteredHosts(hostsJSON, request.getHosts());
@@ -428,7 +428,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     String servicesJSON = (String) response.getEntity();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Services information: " + servicesJSON);
+      LOG.debug("Services information: {}", servicesJSON);
     }
     return servicesJSON;
   }

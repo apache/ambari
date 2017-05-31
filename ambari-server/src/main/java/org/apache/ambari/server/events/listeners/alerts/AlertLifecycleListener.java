@@ -53,7 +53,7 @@ public class AlertLifecycleListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertLifecycleListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertLifecycleListener.class);
 
   /**
    * Used for quick lookups of aggregate alerts.

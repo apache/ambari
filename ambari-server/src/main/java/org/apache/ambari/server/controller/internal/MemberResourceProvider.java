@@ -119,9 +119,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
       }
     });
 
-    LOG.debug("Found member responses matching get members request"
-        + ", membersRequestSize=" + requests.size() + ", membersResponseSize="
-        + responses.size());
+    LOG.debug("Found member responses matching get members request, membersRequestSize={}, membersResponseSize={}", requests.size(), responses.size());
 
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
     Set<Resource> resources    = new HashSet<>();

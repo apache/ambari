@@ -35,7 +35,7 @@ import com.google.inject.assistedinject.AssistedInject;
 
 public class ConfigureClusterTask implements Callable<Boolean> {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigureClusterTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigureClusterTask.class);
 
   private ClusterConfigurationRequest configRequest;
   private ClusterTopology topology;

@@ -369,7 +369,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           stackId.getStackVersion(), s.getName(), request.getComponentName())) {
         throw new IllegalArgumentException("Unsupported or invalid component"
             + " in stack stackInfo=" + stackId.getStackId()
-            + " request=" + request.toString());
+            + " request=" + request);
       }
     }
 
@@ -412,7 +412,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                 stackId.getStackVersion(), s.getName(), request.getComponentName());
         if (componentInfo == null) {
             throw new AmbariException("Could not get component information from stack definition: Stack=" +
-                stackId.toString() + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
+              stackId + ", Service=" + s.getName() + ", Component=" + request.getComponentName());
         }
         sc.setRecoveryEnabled(componentInfo.isRecoveryEnabled());
         LOG.info("Component: {}, recovery_enabled from stack definition:{}", componentInfo.getName(),
@@ -778,7 +778,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         throw new AmbariException("Found non removable host component when trying to delete service component." +
             " To remove host component, it must be in DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN" +
             "/UNINSTALLED/INSTALLING state."
-            + ", request=" + request.toString()
+            + ", request=" + request
             + ", current state=" + sc.getDesiredState() + ".");
 
       }

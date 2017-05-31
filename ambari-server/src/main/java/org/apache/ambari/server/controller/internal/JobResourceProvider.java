@@ -42,15 +42,15 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resource provider for job resources.
  */
 public class JobResourceProvider extends
     AbstractJDBCResourceProvider<JobResourceProvider.JobFields> {
-  private static Log LOG = LogFactory.getLog(JobResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JobResourceProvider.class);
 
   protected static final String JOB_CLUSTER_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Job", "cluster_name");
@@ -224,14 +224,14 @@ public class JobResourceProvider extends
       String fields = getDBFieldString(requestedIds);
       if (requestedIds.contains(JOB_ELAPSED_TIME_PROPERTY_ID)
           && !requestedIds.contains(JOB_SUBMIT_TIME_PROPERTY_ID))
-        fields += "," + getDBField(JOB_SUBMIT_TIME_PROPERTY_ID).toString();
+        fields += "," + getDBField(JOB_SUBMIT_TIME_PROPERTY_ID);
       if (jobId == null) {
         ps = db.prepareStatement("SELECT " + fields + " FROM " + JOB_TABLE_NAME
-            + " WHERE " + JobFields.WORKFLOWID.toString() + " = ?");
+            + " WHERE " + JobFields.WORKFLOWID + " = ?");
         ps.setString(1, workflowId);
       } else {
         ps = db.prepareStatement("SELECT " + fields + " FROM " + JOB_TABLE_NAME
-            + " WHERE " + JobFields.JOBID.toString() + " = ?");
+            + " WHERE " + JobFields.JOBID + " = ?");
         ps.setString(1, jobId);
       }
       return ps.executeQuery();
