@@ -22,7 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
+
+import static org.apache.ambari.infra.common.InfraManagerConstants.DATA_FOLDER_LOCATION_PARAM;
 
 public class DummyItemWriter implements ItemWriter<String> {
 
@@ -32,5 +39,11 @@ public class DummyItemWriter implements ItemWriter<String> {
   public void write(List<? extends String> values) throws Exception {
     LOG.info("DummyItem writer called (values: {})... wait 1 seconds", values.toString());
     Thread.sleep(1000);
+    String outputDirectoryLocation = String.format("%s%s%s%s", System.getProperty(DATA_FOLDER_LOCATION_PARAM), File.separator, "dummyOutput-", new Date().getTime());
+    Path pathToDirectory = Paths.get(outputDirectoryLocation);
+    Path pathToFile = Paths.get(String.format("%s%s%s", outputDirectoryLocation, File.separator, "dummyOutput.txt"));
+    Files.createDirectories(pathToDirectory);
+    LOG.info("Write to file: ", pathToFile.getFileName().toAbsolutePath());
+    Files.write(pathToFile, values.toString().getBytes());
   }
 }

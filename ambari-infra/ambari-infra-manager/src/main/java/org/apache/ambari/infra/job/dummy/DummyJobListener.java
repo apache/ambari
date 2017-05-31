@@ -16,16 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.infra.common;
+package org.apache.ambari.infra.job.dummy;
 
-public final class InfraManagerConstants {
-  public static final int DEFAULT_PORT = 61890;
-  public static final String DEFAULT_PROTOCOL = "http";
-  public static final String INFRA_MANAGER_SESSION_ID = "INFRA_MANAGER_SESSIONID";
-  public static final String PROTOCOL_SSL = "https";
-  public static final String ROOT_CONTEXT = "/";
-  public static final String WEB_RESOURCE_FOLDER = "webapp";
-  public static final String DEFAULT_DATA_FOLDER_LOCATION = "/opt/ambari-infra-manager/data";
-  public static final String DATA_FOLDER_LOCATION_PARAM = "dataFolderLocation";
-  public static final Integer SESSION_TIMEOUT = 60 * 30;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
+
+public class DummyJobListener implements JobExecutionListener {
+
+  private static final Logger LOG = LoggerFactory.getLogger(DummyJobListener.class);
+
+  @Override
+  public void beforeJob(JobExecution jobExecution) {
+    LOG.info("Dummy - before job execution");
+  }
+
+  @Override
+  public void afterJob(JobExecution jobExecution) {
+    LOG.info("Dummy - after job execution");
+  }
 }
