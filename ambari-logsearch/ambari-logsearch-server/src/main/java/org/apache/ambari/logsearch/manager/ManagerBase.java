@@ -25,7 +25,6 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.model.response.LogSearchResponse;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
@@ -40,9 +39,7 @@ import org.springframework.data.solr.core.DefaultQueryParser;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.data.solr.core.query.SolrDataQuery;
 
-import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
-
-public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE extends LogSearchResponse> extends JsonManagerBase {
+public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE extends LogSearchResponse<LOG_DATA_TYPE>> extends JsonManagerBase {
   private static final Logger logger = Logger.getLogger(ManagerBase.class);
 
   public ManagerBase() {

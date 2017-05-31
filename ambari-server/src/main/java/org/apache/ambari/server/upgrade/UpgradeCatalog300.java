@@ -24,6 +24,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -347,6 +348,24 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
             Map<String, String> newProperties = new HashMap<>();
             newProperties.put("logfeeder.include.default.level", defaultLogLevels);
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
+          }
+
+          Config logfeederLog4jProperties = cluster.getDesiredConfigByType("logfeeder-log4j");
+          if (logfeederLog4jProperties != null) {
+            String content = logfeederLog4jProperties.getProperties().get("content");
+            if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
+              content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+              updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", Collections.singletonMap("content", content), true, true);
+            }
+          }
+          
+          Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
+          if (logsearchLog4jProperties != null) {
+            String content = logsearchLog4jProperties.getProperties().get("content");
+            if (content.contains("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">")) {
+              content = content.replace("<!DOCTYPE log4j:configuration SYSTEM \"log4j.dtd\">", "<!DOCTYPE log4j:configuration SYSTEM \"http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd\">");
+              updateConfigurationPropertiesForCluster(cluster, "logsearch-log4j", Collections.singletonMap("content", content), true, true);
+            }
           }
         }
       }
