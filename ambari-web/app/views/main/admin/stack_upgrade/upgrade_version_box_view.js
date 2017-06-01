@@ -61,7 +61,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
-    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS') && this.get('content.status') === 'CURRENT');
+    return ['INSTALLING', 'UPGRADING'].contains(this.get('content.status')) || this.get('isUpgrading') || (!App.isAuthorized('AMBARI.MANAGE_STACK_VERSIONS'));
   }.property('content.status', 'isUpgrading'),
 
   /**
@@ -231,7 +231,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isDisabled', this.get('controller.requestInProgress'));
     }
     //For restricted upgrade wizard should be disabled in any state
-    if (this.get('controller.isWizardRestricted')) {
+    if (this.get('controller.isWizardRestricted') || (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK'))) {
       element.set('isDisabled', true);
     }
     return element;

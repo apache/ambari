@@ -465,7 +465,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INIT',
           isButton: true,
           buttons: [],
-          isDisabled: false
+          isDisabled: true
         },
         title: 'INIT state, no admin access, no requests in progress'
       },
@@ -962,7 +962,7 @@ describe('App.UpgradeVersionBoxView', function () {
           isButton: true,
           action: 'resumeUpgrade',
           text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
-          isDisabled: false
+          isDisabled: true
         },
         title: 'upgrade suspended'
       },
