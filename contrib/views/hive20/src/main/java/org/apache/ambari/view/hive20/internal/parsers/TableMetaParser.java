@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive20.internal.parsers;
 
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
 import org.apache.ambari.view.hive20.client.Row;
 
 import java.util.List;
@@ -26,5 +27,5 @@ import java.util.List;
  *
  */
 public interface TableMetaParser<T> {
-  T parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows);
+  T parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows, DatabaseMetadataWrapper databaseMetadata);
 }

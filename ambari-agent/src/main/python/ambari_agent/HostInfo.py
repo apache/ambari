@@ -33,7 +33,8 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
 
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
-
+from AmbariConfig import AmbariConfig
+from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
 
 logger = logging.getLogger()
 
@@ -285,6 +286,16 @@ class HostInfoLinux(HostInfo):
         result['target'] = realConf
         etcResults.append(result)
 
+  def checkUnlimitedJce(self):
+    if not self.config or not self.config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, 'java.home'):
+      return None
+    try:
+      jcePolicyInfo = JcePolicyInfo(self.config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, 'java.home'))
+      return jcePolicyInfo.is_unlimited_key_jce_policy()
+    except:
+      logger.exception('Unable to get information about JCE')
+      return None
+
   def register(self, dict, componentsMapped=True, commandsInProgress=True):
     """ Return various details about the host
     componentsMapped: indicates if any components are mapped to this host
@@ -307,6 +318,7 @@ class HostInfoLinux(HostInfo):
     dict['firewallRunning'] = self.checkFirewall()
     dict['firewallName'] = self.getFirewallName()
     dict['reverseLookup'] = self.checkReverseLookup()
+    dict['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
     if componentsMapped or commandsInProgress:

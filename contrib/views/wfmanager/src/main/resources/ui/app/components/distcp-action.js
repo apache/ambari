@@ -32,6 +32,19 @@ export default Ember.Component.extend({
       this.set("actionModel.configuration.property", Ember.A([]));
     }
   }.on('init'),
+  distcpCommand : Ember.computed('actionModel.args', {
+    get(key){
+      return this.get('actionModel.args').mapBy('value').join(" ");
+    },
+    set(key, value){
+      this.get('actionModel.args').clear();
+      value.split(" ").forEach(arg => {
+        this.get('actionModel.args').pushObject({value:arg});
+      });
+      return this.get(key);
+    }
+  }),
+
   initialize : function(){
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
@@ -53,7 +66,7 @@ export default Ember.Component.extend({
     },
     register (name, context){
       this.sendAction('register',name , context);
-    },
+    }
 
   }
 });

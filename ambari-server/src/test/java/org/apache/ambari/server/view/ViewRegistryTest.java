@@ -212,6 +212,7 @@ public class ViewRegistryTest {
   // registry mocks
   private static final ViewDAO viewDAO = createMock(ViewDAO.class);
   private static final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+  private static final ViewInstanceOperationHandler viewInstanceOperationHandler = createNiceMock(ViewInstanceOperationHandler.class);
   private static final UserDAO userDAO = createNiceMock(UserDAO.class);
   private static final MemberDAO memberDAO = createNiceMock(MemberDAO.class);
   private static final PrivilegeDAO privilegeDAO = createNiceMock(PrivilegeDAO.class);
@@ -227,10 +228,10 @@ public class ViewRegistryTest {
 
   @Before
   public void resetGlobalMocks() {
-    ViewRegistry.initInstance(getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
+    ViewRegistry.initInstance(getRegistry(viewInstanceOperationHandler, viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
         permissionDAO, resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo, clusters));
 
-    reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
+    reset(viewInstanceOperationHandler, viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
         privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo,
         clusters);
   }
@@ -448,7 +449,7 @@ public class ViewRegistryTest {
     TestViewArchiveUtility archiveUtility =
         new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, badArchive);
 
-    ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
+    ViewRegistry registry = getRegistry(viewInstanceOperationHandler, viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo, clusters);
 
     registry.readViewArchives();
@@ -1122,29 +1123,10 @@ public class ViewRegistryTest {
     ViewConfig config = ViewConfigTest.getConfig(XML_VALID_INSTANCE);
     ViewEntity viewEntity = getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = getViewInstanceEntity(viewEntity, config.getInstances().get(0));
-    ResourceEntity resource = new ResourceEntity();
-    resource.setId(3L);
-    viewInstanceEntity.setResource(resource);
-    PrivilegeEntity privilege1 = createNiceMock(PrivilegeEntity.class);
-    PrivilegeEntity privilege2 = createNiceMock(PrivilegeEntity.class);
-    List<PrivilegeEntity> privileges = Arrays.asList(privilege1, privilege2);
 
-    PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
-
-    expect(privilege1.getPrincipal()).andReturn(principalEntity);
-    expect(privilege2.getPrincipal()).andReturn(principalEntity);
-
-    principalEntity.removePrivilege(privilege1);
-    principalEntity.removePrivilege(privilege2);
-
-    expect(privilegeDAO.findByResourceId(3L)).andReturn(privileges);
-    privilegeDAO.remove(privilege1);
-    privilegeDAO.remove(privilege2);
-    viewInstanceDAO.remove(viewInstanceEntity);
-
+    viewInstanceOperationHandler.uninstallViewInstance(viewInstanceEntity);
     handlerList.removeViewInstance(viewInstanceEntity);
-
-    replay(viewInstanceDAO, privilegeDAO, handlerList, privilege1, privilege2, principalEntity);
+    replay(viewInstanceOperationHandler,/* viewInstanceDAO, privilegeDAO,*/ handlerList/*, privilege1, privilege2, principalEntity*/);
 
     registry.addDefinition(viewEntity);
     registry.addInstanceDefinition(viewEntity, viewInstanceEntity);
@@ -1154,7 +1136,7 @@ public class ViewRegistryTest {
 
     Assert.assertEquals(0, viewInstanceDefinitions.size());
 
-    verify(viewInstanceDAO, privilegeDAO, handlerList, privilege1, privilege2, principalEntity);
+    verify(viewInstanceOperationHandler, /*viewInstanceDAO, privilegeDAO,*/ handlerList/*, privilege1, privilege2, principalEntity*/);
   }
 
   @Test
@@ -1809,12 +1791,12 @@ public class ViewRegistryTest {
                                          ViewExtractor viewExtractor,
                                          ViewArchiveUtility archiveUtility,
                                          AmbariMetaInfo ambariMetaInfo) {
-    return getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
+    return getRegistry(null, viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, permissionDAO,
         resourceDAO, resourceTypeDAO, securityHelper, handlerList, viewExtractor, archiveUtility,
         ambariMetaInfo, null);
   }
 
-  public static ViewRegistry getRegistry(ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
+  public static ViewRegistry getRegistry(ViewInstanceOperationHandler viewInstanceOperationHandler, ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
                                          UserDAO userDAO, MemberDAO memberDAO,
                                          PrivilegeDAO privilegeDAO, PermissionDAO permissionDAO,
                                          ResourceDAO resourceDAO, ResourceTypeDAO resourceTypeDAO,
@@ -1833,6 +1815,7 @@ public class ViewRegistryTest {
 
     ViewRegistry instance = new ViewRegistry(publisher);
 
+    instance.viewInstanceOperationHandler = viewInstanceOperationHandler;
     instance.viewDAO = viewDAO;
     instance.resourceDAO = resourceDAO;
     instance.instanceDAO = viewInstanceDAO;

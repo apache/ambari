@@ -36,4 +36,6 @@ public class LogFeederConstants {
   // S3 Constants
   public static final String S3_PATH_START_WITH = "s3://";
   public static final String S3_PATH_SEPARATOR = "/";
+
+  public static final String IN_MEMORY_TIMESTAMP = "in_memory_timestamp";
 }

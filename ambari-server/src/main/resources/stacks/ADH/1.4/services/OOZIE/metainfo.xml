@@ -20,10 +20,13 @@
   <services>
     <service>
       <name>OOZIE</name>
-      <version>4.2.0.2.6</version>
-      <configuration-dependencies>
-        <config-type>application-properties</config-type>
-      </configuration-dependencies>
+      <extends>common-services/OOZIE/4.2.0.2.3</extends>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

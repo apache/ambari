@@ -75,6 +75,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -227,7 +228,7 @@ public class OrmTestHelper {
     PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
 
     UserEntity admin = new UserEntity();
-    admin.setUserName("administrator");
+    admin.setUserName(UserName.fromString("administrator"));
     admin.setUserPassword(encoder.encode("admin"));
     admin.setPrincipal(principalEntity);
 
@@ -242,7 +243,7 @@ public class OrmTestHelper {
     getEntityManager().persist(principalEntity);
 
     UserEntity userWithoutRoles = new UserEntity();
-    userWithoutRoles.setUserName("userWithoutRoles");
+    userWithoutRoles.setUserName(UserName.fromString("userWithoutRoles"));
     userWithoutRoles.setUserPassword(encoder.encode("test"));
     userWithoutRoles.setPrincipal(principalEntity);
     userDAO.create(userWithoutRoles);

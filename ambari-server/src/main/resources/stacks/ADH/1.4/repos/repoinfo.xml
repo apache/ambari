@@ -16,33 +16,29 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://s3.amazonaws.com/dev.hortonworks.com/HDP/hdp_urlinfo.json</latest>
+  <latest></latest>
   <os family="redhat6">
     <repo>
-      <baseurl>http://FQDN/ADH-1.4.0</baseurl>
-      <repoid>ADH-1.4</repoid>
-      <reponame>ADH</reponame>
-      <unique>true</unique>
+      <baseurl>https://ci.arenadata.io/artifactory/adh14-centos7/</baseurl>
+      <repoid>ADH-1.4.0.1</repoid>
+      <reponame>ADH-1.4.0.1</reponame>
     </repo>
     <repo>
-      <baseurl>http://FQDN/ADH-UTILS-1.4.0</baseurl>
-      <repoid>ADH-UTILS-1.4.0</repoid>
-      <reponame>ADH-UTILS</reponame>
-      <unique>false</unique>
+      <baseurl>https://ci.arenadata.io/artifactory/adh14-centos7/</baseurl>
+      <repoid>ADH-UTILS-1.4.0.1</repoid>
+      <reponame>ADH-UTILS-1.4.0.1</reponame>
     </repo>
   </os>
   <os family="redhat7">
     <repo>
-      <baseurl>http://FQDN/ADH-1.4.0</baseurl>
-      <repoid>ADH-1.4</repoid>
-      <reponame>ADH</reponame>
-      <unique>true</unique>
+      <baseurl>https://ci.arenadata.io/artifactory/adh14-centos7/</baseurl>
+      <repoid>ADH-1.4.0.1</repoid>
+      <reponame>ADH-1.4.0.1</reponame>
     </repo>
     <repo>
-      <baseurl>http://FQDN/ADH-UTILS-1.4.0</baseurl>
-      <repoid>ADH-UTILS-1.4.0</repoid>
-      <reponame>ADH-UTILS</reponame>
-      <unique>false</unique>
+      <baseurl>https://ci.arenadata.io/artifactory/adh14-centos7/</baseurl>
+      <repoid>ADH-UTILS-1.4.0.1</repoid>
+      <reponame>ADH-UTILS-1.4.0.1</reponame>
     </repo>
   </os>
 </reposinfo>

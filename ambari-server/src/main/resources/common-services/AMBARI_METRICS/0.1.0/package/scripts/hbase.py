@@ -113,6 +113,15 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
              create_parents = True
   )
 
+  if params.hbase_wal_dir:
+    Directory(params.hbase_wal_dir,
+              owner=params.hbase_user,
+              group = params.user_group,
+              cd_access="a",
+              create_parents = True,
+              recursive_ownership = True,
+              )
+
   merged_ams_hbase_site = {}
   merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-site'])
   if params.security_enabled:
@@ -203,7 +212,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
     if not params.is_local_fs_rootdir:
       # If executing Stop All, HDFS is probably down
-      if action != 'stop':
+      if action != 'stop' and not params.skip_create_hbase_root_dir:
 
         params.HdfsResource(params.hbase_root_dir,
                              type="directory",

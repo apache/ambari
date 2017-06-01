@@ -23,14 +23,13 @@ export default Ember.Controller.extend({
   issues : Ember.A([]),
   serviceChecks : Ember.A([
     {'name':'oozie', 'checkCompleted':false, isAvailable : true, 'displayName' : 'Oozie Test', 'errorMessage' : 'Oozie service check failed'},
-    {'name':'hdfs', 'checkCompleted':false, isAvailable : true, 'displayName' : 'HDFS Test', 'errorMessage' : 'HDFS service check failed'},
-    {'name':'homeDir', 'checkCompleted':false, isAvailable : true, 'displayName' : 'User Home Directory Test', 'errorMessage' : 'User home directory not found'}
+    {'name':'hdfs', 'checkCompleted':false, isAvailable : true, 'displayName' : 'HDFS Test', 'errorMessage' : 'HDFS service check failed'}
   ]),
   width : Ember.computed('serviceChecks.@each.checkCompleted','serviceChecks.@each.isAvailable', function(){
     let width = 10;
     this.get('serviceChecks').forEach((check)=>{
       if(check.checkCompleted && check.isAvailable){
-        width += 30;
+        width += (90/this.get('serviceChecks').length);
       }
     });
     return Ember.String.htmlSafe(`${width}%`);

@@ -29,6 +29,7 @@
           <displayName>Druid Coordinator</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -52,6 +53,7 @@
           <displayName>Druid Overlord</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -75,6 +77,7 @@
           <displayName>Druid Historical</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -98,6 +101,7 @@
           <displayName>Druid Broker</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -121,6 +125,7 @@
           <displayName>Druid MiddleManager</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -144,6 +149,7 @@
           <displayName>Druid Router</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -167,6 +173,7 @@
           <displayName>Druid Superset</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
           <commandScript>
             <script>scripts/superset.py</script>
             <scriptType>PYTHON</scriptType>

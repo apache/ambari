@@ -26,6 +26,7 @@ import org.springframework.data.solr.core.query.FacetOptions.FacetSort;
 import org.springframework.data.solr.core.query.SimpleFacetQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.PATH;
@@ -42,14 +43,13 @@ public class HostLogFilesRequestQueryConverter extends AbstractOperationHolderCo
     if (StringUtils.isNotEmpty(request.getComponentName())) {
       facetQuery.addCriteria(new SimpleStringCriteria(String.format("%s:(%s)", COMPONENT, request.getComponentName())));
     }
-    
     FacetOptions facetOptions = new FacetOptions();
     facetOptions.setFacetMinCount(1);
     facetOptions.setFacetLimit(-1);
     facetOptions.setFacetSort(FacetSort.COUNT);
     facetOptions.addFacetOnPivot(COMPONENT, PATH);
     facetQuery.setFacetOptions(facetOptions);
-    
+    addInFilterQuery(facetQuery, CLUSTER, splitValueAsList(request.getClusters(), ","));
     facetQuery.setRows(0);
     return facetQuery;
   }

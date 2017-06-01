@@ -145,8 +145,17 @@ public class ClusterEntity {
   })
   private ResourceEntity resource;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "upgrade_id", referencedColumnName = "upgrade_id")
+  @Basic
+  @Column(name = "upgrade_id", nullable = true, insertable = false, updatable = false)
+  private Long upgradeId;
+
+  @OneToOne(cascade = CascadeType.REMOVE)
+  @JoinColumn(
+      name = "upgrade_id",
+      referencedColumnName = "upgrade_id",
+      nullable = true,
+      insertable = false,
+      updatable = true)
   /**
    * {@code null} when there is no upgrade/downgrade in progress.
    */

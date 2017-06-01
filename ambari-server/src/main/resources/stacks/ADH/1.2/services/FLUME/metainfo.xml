@@ -20,7 +20,8 @@
   <services>
     <service>
       <name>FLUME</name>
-      <version>1.4.0.2.1</version>
+      <displayName>Flume</displayName>
+      <version>1.5.2.2.2</version>
     </service>
   </services>
 </metainfo>

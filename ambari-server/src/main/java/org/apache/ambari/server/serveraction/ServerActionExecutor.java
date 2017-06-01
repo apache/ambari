@@ -19,11 +19,15 @@
 package org.apache.ambari.server.serveraction;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -32,19 +36,17 @@ import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
-import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Server Action Executor used to execute server-side actions (or tasks)
@@ -74,6 +76,7 @@ public class ServerActionExecutor {
   @Inject
   private static Configuration configuration;
 
+
   /**
    * Maps request IDs to "blackboards" of shared data.
    * <p/>
@@ -81,14 +84,7 @@ public class ServerActionExecutor {
    * requestSharedDataMap object
    */
   private final Map<Long, ConcurrentMap<String, Object>> requestSharedDataMap =
-      new HashMap<Long, ConcurrentMap<String, Object>>();
-
-  /**
-   * The hostname of the (Ambari) server.
-   * <p/>
-   * This hostname is cached so that cycles are spent querying for it more than once.
-   */
-  private final String serverHostName;
+      new HashMap<>();
 
   /**
    * Database accessor to query and update the database of action commands.
@@ -117,6 +113,13 @@ public class ServerActionExecutor {
   private Thread executorThread = null;
 
   /**
+   * A timer used to clear out {@link #requestSharedDataMap}. Since this "cache"
+   * isn't timer- or access-based, then we must periodically check it in order
+   * to clear out any stale data.
+   */
+  private final Timer cacheTimer = new Timer("server-action-executor-cache-timer", true);
+
+  /**
    * Statically initialize the Injector
    * <p/>
    * This should only be used for unit tests.
@@ -134,9 +137,12 @@ public class ServerActionExecutor {
    * @param sleepTimeMS the time (in milliseconds) to wait between polling the database for more tasks
    */
   public ServerActionExecutor(ActionDBAccessor db, long sleepTimeMS) {
-    serverHostName = StageUtils.getHostName();
     this.db = db;
     this.sleepTimeMS = (sleepTimeMS < 1) ? POLLING_TIMEOUT_MS : sleepTimeMS;
+
+    // start in 1 hour, run every hour
+    cacheTimer.schedule(new ServerActionSharedRequestEvictor(), TimeUnit.HOURS.toMillis(1),
+        TimeUnit.HOURS.toMillis(1));
   }
 
   /**
@@ -233,53 +239,11 @@ public class ServerActionExecutor {
       ConcurrentMap<String, Object> map = requestSharedDataMap.get(requestId);
 
       if (map == null) {
-        map = new ConcurrentHashMap<String, Object>();
+        map = new ConcurrentHashMap<>();
         requestSharedDataMap.put(requestId, map);
       }
 
       return map;
-    }
-  }
-
-  /**
-   * Cleans up orphaned shared data Maps due to completed or failed request
-   * contexts. We are unable to use {@link Request#getStatus()} since this field
-   * is not populated in the database but, instead, calculated in realtime.
-   */
-  private void cleanRequestShareDataContexts() {
-    // if the cache is empty, do nothing
-    if (requestSharedDataMap.isEmpty()) {
-      return;
-    }
-
-    try {
-      // for every item in the map, get the request and check its status
-      synchronized (requestSharedDataMap) {
-        Set<Long> requestIds = requestSharedDataMap.keySet();
-        List<Request> requests = db.getRequests(requestIds);
-        for (Request request : requests) {
-          // calcuate the status from the stages and then remove from the map if
-          // necessary
-          CalculatedStatus calculatedStatus = CalculatedStatus.statusFromStages(
-              request.getStages());
-
-          // calcuate the status of the request
-          HostRoleStatus status = calculatedStatus.getStatus();
-
-          // remove the request from the map if the request is COMPLETED or
-          // FAILED
-          switch (status) {
-            case FAILED:
-            case COMPLETED:
-              requestSharedDataMap.remove(request.getRequestId());
-              break;
-            default:
-              break;
-          }
-        }
-      }
-    } catch (Exception exception) {
-      LOG.warn("Unable to clear the server-side action request cache", exception);
     }
   }
 
@@ -450,8 +414,6 @@ public class ServerActionExecutor {
         }
       }
     }
-
-    cleanRequestShareDataContexts();
   }
 
   /**
@@ -597,6 +559,48 @@ public class ServerActionExecutor {
       taskId = hostRoleCommand.getTaskId();
       this.hostRoleCommand = hostRoleCommand;
       this.executionCommand = executionCommand;
+    }
+  }
+
+  /**
+   * The {@link ServerActionSharedRequestEvictor} is used to clear the shared
+   * request cache periodically. This service will only run periodically and,
+   * when it does, it will try to make the least expensive call to determine if
+   * entries need to be evicted.
+   */
+  private class ServerActionSharedRequestEvictor extends TimerTask {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      // if the cache is empty, do nothing
+      if (requestSharedDataMap.isEmpty()) {
+        return;
+      }
+
+      // if the cache has requests, see if any are still in progress
+      try {
+        // find the requests in progress; there's no need to get the request
+        // itself since that could be a massive object; we just need the ID
+        Set<Long> requestsInProgress = new HashSet<>();
+        List<Stage> currentStageInProgressPerRequest = db.getFirstStageInProgressPerRequest();
+        for (Stage stage : currentStageInProgressPerRequest) {
+          requestsInProgress.add(stage.getRequestId());
+        }
+
+        // for every item in the map, get the request and check its status
+        synchronized (requestSharedDataMap) {
+          Set<Long> cachedRequestIds = requestSharedDataMap.keySet();
+          for (long cachedRequestId : cachedRequestIds) {
+            if (!requestsInProgress.contains(cachedRequestId)) {
+              requestSharedDataMap.remove(cachedRequestId);
+            }
+          }
+        }
+      } catch (Exception exception) {
+        LOG.warn("Unable to clear the server-side action request cache", exception);
+      }
     }
   }
 }

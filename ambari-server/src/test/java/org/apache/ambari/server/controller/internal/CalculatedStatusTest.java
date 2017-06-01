@@ -743,7 +743,7 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory, ecwFactory);
+      super(1L, "", "", 1L, "", "", "", hostRoleCommandFactory, ecwFactory);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {

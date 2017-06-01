@@ -334,6 +334,11 @@
     </file>
     <file>
       <fileMode>755</fileMode>
+      <source>target/classes/Ambari-DDL-AzureDB-CREATE.sql</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
       <source>target/classes/Ambari-DDL-SQLServer-CREATE.sql</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>

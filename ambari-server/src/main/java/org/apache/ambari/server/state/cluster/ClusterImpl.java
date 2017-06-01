@@ -335,6 +335,13 @@ public class ClusterImpl implements Cluster {
    */
   private Map<String, String> m_clusterPropertyCache = new ConcurrentHashMap<>();
 
+  /**
+   * A simple cache of the effective cluster version during an upgrade. Since
+   * calculation of this during an upgrade is not very quick or clean, it's good
+   * to cache it.
+   */
+  private final Map<Long, String> upgradeEffectiveVersionCache = new ConcurrentHashMap<>();
+
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity, Injector injector,
       AmbariEventPublisher eventPublisher)
@@ -1021,61 +1028,37 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public UpgradeEntity getUpgradeInProgress() {
-    // first check for an upgrade that's actively running
-    UpgradeEntity upgradeInProgress = getUpgradeEntity();
-    if (null != upgradeInProgress) {
-      return upgradeInProgress;
-    }
-
-    // perform a search for any upgrade which should also return upgrades which
-    // are suspended
-    UpgradeEntity mostRecentUpgrade = upgradeDAO.findLastUpgradeOrDowngradeForCluster(getClusterId());
-    if (mostRecentUpgrade != null) {
-      if (mostRecentUpgrade.isSuspended()) {
-        return mostRecentUpgrade;
-      }
-
-      // look for any item from the prior upgrade which is still in progress
-      // (not failed, completed, or aborted)
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(
-          mostRecentUpgrade.getRequestId(), HostRoleStatus.IN_PROGRESS_STATUSES);
-
-      if (!commands.isEmpty()) {
-        return mostRecentUpgrade;
-      }
-    }
-
-    return null;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ClusterVersionEntity getEffectiveClusterVersion() throws AmbariException {
     UpgradeEntity upgradeEntity = getUpgradeInProgress();
     if (upgradeEntity == null) {
       return getCurrentClusterVersion();
     }
 
-    String effectiveVersion = null;
-    switch (upgradeEntity.getUpgradeType()) {
-      case NON_ROLLING:
-        if (upgradeEntity.getDirection() == Direction.UPGRADE) {
-          boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
-          effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion() : upgradeEntity.getFromVersion();
-        } else {
-          // Should be the lower value during a Downgrade.
+    // see if this is in the cache first, and only walk the upgrade if it's not
+    Long upgradeId = upgradeEntity.getId();
+    String effectiveVersion = upgradeEffectiveVersionCache.get(upgradeId);
+    if (null == effectiveVersion) {
+      switch (upgradeEntity.getUpgradeType()) {
+        case NON_ROLLING:
+          if (upgradeEntity.getDirection() == Direction.UPGRADE) {
+            boolean pastChangingStack = isNonRollingUpgradePastUpgradingStack(upgradeEntity);
+            effectiveVersion = pastChangingStack ? upgradeEntity.getToVersion()
+                : upgradeEntity.getFromVersion();
+          } else {
+            // Should be the lower value during a Downgrade.
+            effectiveVersion = upgradeEntity.getToVersion();
+          }
+          break;
+        case ROLLING:
+        default:
+          // Version will be higher on upgrade and lower on downgrade
+          // directions.
           effectiveVersion = upgradeEntity.getToVersion();
-        }
-        break;
-      case ROLLING:
-      default:
-        // Version will be higher on upgrade and lower on downgrade directions.
-        effectiveVersion = upgradeEntity.getToVersion();
-        break;
+          break;
+      }
+
+      // cache for later use
+      upgradeEffectiveVersionCache.put(upgradeId, effectiveVersion);
     }
 
     if (effectiveVersion == null) {
@@ -1116,6 +1099,14 @@ public class ClusterImpl implements Cluster {
       }
     }
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void invalidateUpgradeEffectiveVersion() {
+    upgradeEffectiveVersionCache.clear();
   }
 
   /**
@@ -3437,7 +3428,7 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public UpgradeEntity getUpgradeEntity() {
+  public UpgradeEntity getUpgradeInProgress() {
     ClusterEntity clusterEntity = getClusterEntity();
     return clusterEntity.getUpgradeEntity();
   }
@@ -3453,10 +3444,7 @@ public class ClusterImpl implements Cluster {
       clusterEntity.setUpgradeEntity(upgradeEntity);
       clusterDAO.merge(clusterEntity);
     } catch (RollbackException e) {
-      String msg = "Unable to set upgrade entiry " + upgradeEntity + " for cluster "
-        + getClusterName();
-      LOG.warn(msg);
-      throw new AmbariException(msg, e);
+      throw new AmbariException("Unable to update the associated upgrade with the cluster", e);
     }
   }
 
@@ -3465,11 +3453,9 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public boolean isUpgradeSuspended() {
-    UpgradeEntity lastUpgradeItemForCluster = upgradeDAO.findLastUpgradeForCluster(clusterId,
-        Direction.UPGRADE);
-
-    if (null != lastUpgradeItemForCluster) {
-      return lastUpgradeItemForCluster.isSuspended();
+    UpgradeEntity upgrade = getUpgradeInProgress();
+    if (null != upgrade) {
+      return upgrade.isSuspended();
     }
 
     return false;

@@ -21,9 +21,10 @@ import Ember from 'ember';
 
 export default function doRender(data, selector, onRequestDetail, draggable) {
 
-  const width = '1570', height = '800';
-
+  const width = '100%', height = '800';
+  var zoomInit = null;
   d3.select(selector).select('*').remove();
+  var isSingleReducer = isSingleReducerAvailable(data);
 
   const svg =
     d3.select(selector)
@@ -32,27 +33,71 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
         .attr('height', height);
 
   const container = svg.append('g');
-  const zoom =
-    d3.behavior.zoom()
-      .scale(1/10)
-      .scaleExtent([1 / 10, 1])
-      .on('zoom', () => {
-        container.attr('transform', `translate(${d3.event.translate}) scale(${d3.event.scale})`);
-        draggable.set('zoom' , true);
-      });
+
+  d3.selectAll('button').on('click', function() {
+    if (this.id === 'zoom_in') {
+      transition(1.2); // increase on 0.2 each time
+    }
+    if (this.id === 'zoom_out') {
+      transition(0.8); // deacrease on 0.2 each time
+    }
+  });
+
+  function transition(zoomLevel) {
+
+    zoomInit = zoomInit || 1;
+    let newScale = parseFloat(zoomInit*zoomLevel).toFixed(5) ;
+
+    if(newScale < 0.2){
+      newScale = 0.2;
+    }else {
+      newScale = newScale;
+    }
+
+    zoomInit = newScale;
+
+    container.transition()
+      .duration(100)
+      .attr("transform", "translate(" + zoom.translate()[0] + "," + zoom.translate()[1] +")scale(" + newScale + ")");
+  }
+
+  const zoom = d3.behavior.zoom()
+      .scale(zoomInit)
+      .on('zoom', zoomed );
+
+  function zoomed() {
+    var presentScale = d3.transform(container[0][0].getAttribute('transform')).scale[0] || d3.event.scale ;
+    container.attr('transform', 'translate(' + d3.event.translate + ') scale(' + presentScale + ')');
+    draggable.set('zoom' , true);
+  };
+
+  var currentTransform = null;
 
   const drag = d3.behavior.drag()
-    .on("dragstart", () => {
+    .on("dragstart", (event) => {
       draggable.set('dragstart', true);
       draggable.set('zoom',false);
+
+      let evt = window.event || event;
+      currentTransform = d3.transform(evt.currentTarget.firstElementChild.getAttribute('transform'));
     })
     .on("dragend", () => {
       draggable.set('dragend', true);
+
+      var latestTransformation = d3.transform(container[0][0].getAttribute('transform'));
+      container.transition()
+        .duration(100)
+        .attr("transform", "translate(" + latestTransformation.translate[0] + "," + latestTransformation.translate[1] +")scale(" + currentTransform.scale[0] + ")");
     });
 
     svg
       .call(zoom)
       .call(drag);
+
+    svg
+      .on("mousewheel.zoom", null)
+      .on("DOMMouseScroll.zoom", null) // disables older versions of Firefox
+      .on("wheel.zoom", null) // disables newer versions of Firefox
 
   const root =
     container
@@ -64,23 +109,40 @@ export default function doRender(data, selector, onRequestDetail, draggable) {
       .attr('data-vertex', d => d._vertex);
 
   root
-    .call(recurseC, onRequestDetail);
+    .call(recurseC, onRequestDetail, isSingleReducer);
 
   root
-    .call(recurseV, onRequestDetail);
+    .call(recurseV, onRequestDetail, isSingleReducer);
 
   container.selectAll('path.edge')
     .data(data.connections)
     .enter()
       .insert('path', ':first-child')
     .attr('class', 'edge')
-    .attr('d', d => (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) ? getConnectionPathFF(d, svg, container) : getConnectionPath(d, svg, container));
+    .attr('d', d => (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) ? getConnectionPathFF(d, svg, container, data) : getConnectionPath(d, svg, container, data));
+  if(navigator.userAgent.toLowerCase().indexOf('firefox') === -1) {
+    root.selectAll('path.arrow')
+      .data(data.connections)
+      .enter()
+      .insert('path')
+      .attr('class', 'arrow')
+      .style("stroke-width", function(d) { return Math.sqrt(d.value); })
+      .attr('d', d => getConnectionPathArrow(d, svg, container, data));
+  }
 
   reset(zoom, svg, container);
 
 }
-
-function recurseV(vertices, onRequestDetail) {
+function isSingleReducerAvailable(data){
+  let reducerCount = data.verticesData.filter(function(item){
+    return item['_vertex'].indexOf("Reducer") === 0;
+  });
+  if(reducerCount && reducerCount.length === 1) {
+    return true;
+  }
+  return false;
+}
+function recurseV(vertices, onRequestDetail, isSingleReducer) {
   vertices.each(function(cVertx) {
     const vertex = d3.select(this);
 
@@ -95,14 +157,14 @@ function recurseV(vertices, onRequestDetail) {
         .style('transform', d => `translate(${d._widthOfSelf * 200}px, ${d._offsetY * 100}px)`);
 
       vertices
-        .call(recurseC, onRequestDetail);
+        .call(recurseC, onRequestDetail, isSingleReducer);
 
       vertices
-        .call(recurseV, onRequestDetail);
+        .call(recurseV, onRequestDetail, isSingleReducer);
   });
 }
 
-function recurseC(children, onRequestDetail) {
+function recurseC(children, onRequestDetail, isSingleReducer) {
   children.each(function(d) {
     const child = d3.select(this);
 
@@ -130,19 +192,20 @@ function recurseC(children, onRequestDetail) {
         .attr('height', d => d._operator === 'Fetch Operator' ? 150 : 55)
         .attr('width', 140)
           .append('xhtml:body')
-        .style('margin', 0)
-          .html(d => getRenderer(d._operator)(d))
+        .style('height', d => d._operator === 'Fetch Operator' ? '150px' : 'auto')
+        .style('margin', 0 )
+          .html(d => getRenderer(d._operator, isSingleReducer)(d))
         .on('click', d => {
           const vertex = d3.select(Ember.$(d3.select(this).node()).closest('.vertex').get(0)).data()[0];
           onRequestDetail(doClean(d), vertex);
         });
 
       children
-        .call(recurseC, onRequestDetail);
+        .call(recurseC, onRequestDetail, isSingleReducer);
     });
 }
 
-function getRenderer(type) {
+function getRenderer(type, isSingleReducer) {
   if(type === 'Fetch Operator') {
     return (d => {
       return (`
@@ -151,7 +214,7 @@ function getRenderer(type) {
             <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
           </div>
           <div class='operator-body' style='margin-left: 10px;'>
-            <div>${getOperatorLabel(d)}</div>
+            <div class="ellipsis-node" title=${getOperatorLabel(d, isSingleReducer)}>${getOperatorLabel(d, isSingleReducer)}</div>
             ${(d['limit:'] && d['limit:'] > -1) ? '<div><span style="font-weight: lighter;">Limit:</span> ' + d['limit:'] + ' </div>' : ''}
           </div>
         </div>
@@ -167,7 +230,7 @@ function getRenderer(type) {
           <i class='fa ${getOperatorIcon(d._operator)}' aria-hidden='true'></i>
         </div>
         <div class='operator-body' style='margin-left: 10px;'>
-          <div>${getOperatorLabel(d)}</div>
+          <div class="ellipsis-node" title=${getOperatorLabel(d, isSingleReducer)}>${getOperatorLabel(d, isSingleReducer)}</div>
           ${stats}
         </div>
       </div>
@@ -180,9 +243,11 @@ function getNumberOfRows(statistics) {
   const match = statistics.match(/([^\?]*)\Num rows: (\d*)/);
   return (match.length === 3 && Number.isNaN(Number(match[2])) === false) ? match[2] : 0;
 }
-function getOperatorLabel(d) {
+function getOperatorLabel(d, isSingleReducer) {
   const operator = d._operator;
-
+  if(operator === 'Partition/Sort Pseudo-Edge' && isSingleReducer) {
+    return "Sort";
+  }
   if(operator === 'TableScan') {
     return d['alias:'];
   }
@@ -293,7 +358,7 @@ function reset(zoom, svg, container) {
     .call( zoom.event );
 }
 
-function getConnectionPathFF(connector, svg, container) {
+function getConnectionPathFF(connector, svg, container, data) {
   const source = container.select(`#${connector._source._uuid}`).node();
   const target = container.select(`#${connector._target._uuid}`).node();
   const rSource = d3.select(source).data()[0];
@@ -302,14 +367,19 @@ function getConnectionPathFF(connector, svg, container) {
   const rTargetVertex = d3.select(Ember.$(target).closest('.vertex').get(0)).data()[0];
 
   const offsetBox = Ember.$(container.node()).children('.vertex').get(0).getBoundingClientRect();
+  let connectionComplexity, connection = data.nodes.find((item)=>item["filterExpr:"]);
 
-
+  if(connection){
+    connectionComplexity = 0;
+  } else {
+    connectionComplexity = data.connections.length;
+  }
   const pSource = {
-    x: offsetBox.left - 200 + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
     y: offsetBox.top + (rSourceVertex._Y + rSource._indexY) * 100 + 55 / 2,
   };
   const pTarget = {
-    x: offsetBox.left - 200 + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
     y: offsetBox.top + (rTargetVertex._Y + rTarget._indexY) * 100 + 55 / 2,
   };
   const path = [
@@ -336,8 +406,119 @@ function getConnectionPathFF(connector, svg, container) {
   }, '');
 }
 
+function getConnectionPathFFArrow(connector, svg, container, data) {
+  const source = container.select(`#${connector._source._uuid}`).node();
+  const target = container.select(`#${connector._target._uuid}`).node();
+  const rSource = d3.select(source).data()[0];
+  const rTarget = d3.select(target).data()[0];
+  const rSourceVertex = d3.select(Ember.$(source).closest('.vertex').get(0)).data()[0];
+  const rTargetVertex = d3.select(Ember.$(target).closest('.vertex').get(0)).data()[0];
 
-function getConnectionPath(connector, svg, container){
+  const offsetBox = Ember.$(container.node()).children('.vertex').get(0).getBoundingClientRect();
+
+  let connectionComplexity, connection = data.nodes.find((item)=>item["filterExpr:"]);
+  if(connection){
+    connectionComplexity = 0;
+  } else {
+    connectionComplexity = data.connections.length;
+  }
+  const pSource = {
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rSourceVertex._X + (rSourceVertex._widthOfSelf - (rSource._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rSourceVertex._Y + rSource._indexY) * 100 + 55 / 2,
+  };
+  const pTarget = {
+    x: offsetBox.left - 200 - 200*connectionComplexity + (rTargetVertex._X + (rTargetVertex._widthOfSelf - (rTarget._indexX + 1))) * 200 + 140 / 2,
+    y: offsetBox.top + (rTargetVertex._Y + rTarget._indexY) * 100 + 55 / 2,
+  };
+  const path = [
+    pTarget
+  ];
+  const junctionXMultiplier = (pTarget.x - pSource.x < 0) ? +1 : -1;
+  if(pSource.y !== pTarget.y) {
+    path.push({
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pTarget.y
+    }, {
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pSource.y
+    });
+  }
+  path.push(pSource);
+  const offsetY = svg.node().getBoundingClientRect().top;
+  return path.reduce((accumulator, cPoint, index) => {
+    if(path.length === 2){
+      if(index === 0) {
+        if(cPoint.x > 0){
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+10} V 10, ${(cPoint.x+200)%(cPoint.x) === 0 ? 40:100}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-10} V 10, ${Math.ceil((cPoint.x))%Math.ceil((cPoint.x+200)) === -0 ? 40:100}  L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    } else {
+      if(index === 0) {
+        if(cPoint.x > 0) {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY-10} V 10, ${40} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 60}, ${cPoint.y - offsetY+10} V 10, ${40} L ${cPoint.x + 50}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
+    }
+
+  }, '');
+}
+
+function getConnectionPath(connector, svg, container, data){
+  const operators = container.selectAll('.operator');
+  const source = container.select(`#${connector._source._uuid}`);
+  const target = container.select(`#${connector._target._uuid}`);
+  const rSource = source.node().getBoundingClientRect();
+  const rTarget = target.node().getBoundingClientRect();
+  const pSource = {
+    x: (rSource.left + rSource.right) / 2,
+    y: (rSource.top + rSource.bottom) / 2,
+  };
+  const pTarget = {
+    x: (rTarget.left + rTarget.right) / 2,
+    y: (rTarget.top + rTarget.bottom) / 2,
+  };
+  const path = [
+    pTarget
+  ];
+  const junctionXMultiplier = (pTarget.x - pSource.x < 0) ? +1 : -1;
+  if(pSource.y !== pTarget.y) {
+    path.push({
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pTarget.y
+    }, {
+      x: pTarget.x + junctionXMultiplier * 90,
+      y: pSource.y
+    });
+  }
+  path.push(pSource);
+  const offsetY = svg.node().getBoundingClientRect().top;
+  let isEdgeReversed = false, edgeReversalVal;
+  return path.reduce((accumulator, cPoint, index) => {
+    if(index === 0) {
+      if(cPoint.x > (cPoint.y - offsetY)) {
+        edgeReversalVal = cPoint.x;
+        isEdgeReversed = true;
+      }
+      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`;
+    } else {
+      if(isEdgeReversed && path.length === 4 && index !== path.length-1 && edgeReversalVal > cPoint.x){
+        return accumulator + `L ${cPoint.x+150}, ${cPoint.y - offsetY}\n`;
+      }
+      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
+    }
+  }, '');
+}
+
+function getConnectionPathArrow(connector, svg, container){
+
   const operators = container.selectAll('.operator');
   const source = container.select(`#${connector._source._uuid}`);
   const target = container.select(`#${connector._target._uuid}`);
@@ -367,12 +548,29 @@ function getConnectionPath(connector, svg, container){
   path.push(pSource);
   const offsetY = svg.node().getBoundingClientRect().top;
   return path.reduce((accumulator, cPoint, index) => {
-    if(index === 0) {
-      return accumulator + `M ${cPoint.x}, ${cPoint.y - offsetY}\n`;
+    if(path.length === 2){
+      if(index === 0) {
+        if(cPoint.x > 0){
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23}  L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23}  L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
     } else {
-      return accumulator + `L ${cPoint.x}, ${cPoint.y - offsetY}\n`;
+      if(index === 0) {
+        if(cPoint.x > 0) {
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY-7} V 0, ${(((cPoint.y - offsetY-15)/100)*100)+23} L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
+        } else {
+          return accumulator + `M ${cPoint.x + 45}, ${cPoint.y - offsetY+9} V 0, 67 L ${cPoint.x + 40}, ${cPoint.y - offsetY} Z\n`;
+        }
+      } else {
+        return accumulator;
+      }
     }
   }, '');
+
 }
 
 function doClean(node) {

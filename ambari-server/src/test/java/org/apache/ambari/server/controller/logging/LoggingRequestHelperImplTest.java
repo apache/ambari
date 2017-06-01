@@ -154,6 +154,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getClusterName()).andReturn("clusterone").atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
 
@@ -181,6 +182,8 @@ public class LoggingRequestHelperImplTest {
       "http", httpURLConnection.getURL().getProtocol());
     assertEquals("URLConnection did not have the expected method set",
       "GET", httpURLConnection.getRequestMethod());
+    assertTrue("URLConnection's URL did not have the expected query parameter string",
+      httpURLConnection.getURL().getQuery().contains("clusters=clusterone"));
 
     assertSame("HttpUrlConnection instances passed into NetworkConnection mock should have been the same instance",
       httpURLConnection, captureURLConnectionForAuthentication.getValue());
@@ -426,6 +429,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getClusterName()).andReturn("clusterone").atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_TWO_LIST_ENTRIES)).atLeastOnce();
 
@@ -453,6 +457,8 @@ public class LoggingRequestHelperImplTest {
       "http", httpURLConnection.getURL().getProtocol());
     assertEquals("URLConnection did not have the expected method set",
       "GET", httpURLConnection.getRequestMethod());
+    assertTrue("URLConnection's URL did not have the expected query parameter string",
+      httpURLConnection.getURL().getQuery().contains("clusters=clusterone"));
 
     assertSame("HttpUrlConnection instances passed into NetworkConnection mock should have been the same instance",
       httpURLConnection, captureURLConnectionForAuthentication.getValue());
@@ -508,6 +514,7 @@ public class LoggingRequestHelperImplTest {
     Capture<HttpURLConnection> captureURLConnectionForAuthentication = new Capture<HttpURLConnection>();
 
     expect(clusterMock.getDesiredConfigByType("logsearch-admin-json")).andReturn(adminPropertiesConfigMock).atLeastOnce();
+    expect(clusterMock.getClusterName()).andReturn("clusterone").atLeastOnce();
     expect(adminPropertiesConfigMock.getProperties()).andReturn(testConfigProperties).atLeastOnce();
     expect(networkConnectionMock.readQueryResponseFromServer(capture(captureURLConnection))).andReturn(new StringBuffer(TEST_JSON_INPUT_NULL_LOG_LIST)).atLeastOnce();
 
@@ -535,6 +542,8 @@ public class LoggingRequestHelperImplTest {
       "http", httpURLConnection.getURL().getProtocol());
     assertEquals("URLConnection did not have the expected method set",
       "GET", httpURLConnection.getRequestMethod());
+    assertTrue("URLConnection's URL did not have the expected query parameter string",
+	       httpURLConnection.getURL().getQuery().contains("clusters=clusterone"));
 
     assertSame("HttpUrlConnection instances passed into NetworkConnection mock should have been the same instance",
       httpURLConnection, captureURLConnectionForAuthentication.getValue());

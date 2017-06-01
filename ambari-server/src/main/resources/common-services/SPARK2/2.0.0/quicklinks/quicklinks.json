@@ -11,6 +11,7 @@
       {
         "name": "spark2_history_server_ui",
         "label": "Spark2 History Server UI",
+        "component_name": "SPARK2_JOBHISTORYSERVER",
         "requires_user_name": "false",
         "url": "%@://%@:%@",
         "port":{

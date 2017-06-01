@@ -18,9 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,9 +34,7 @@ import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
-import org.apache.ambari.server.topology.RequiredPasswordValidator;
 import org.apache.ambari.server.topology.SecurityConfiguration;
-import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +114,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String QUICKLINKS_PROFILE_SERVICES_PROPERTY = "quicklinks_profile/services";
 
 
-
   /**
    * configuration factory
    */
@@ -177,7 +172,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.securityConfiguration = securityConfiguration;
 
     Configuration configuration = configurationFactory.getConfiguration(
-        (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
+      (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
@@ -191,8 +186,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     try {
       this.quickLinksProfileJson = processQuickLinksProfile(properties);
-    }
-    catch (QuickLinksProfileEvaluationException ex) {
+    } catch (QuickLinksProfileEvaluationException ex) {
       throw new InvalidTopologyTemplateException("Invalid quick links profile", ex);
     }
   }
@@ -268,11 +262,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   }
 
   @Override
-  public List<TopologyValidator> getTopologyValidators() {
-    return Collections.<TopologyValidator>singletonList(new RequiredPasswordValidator(defaultPassword));
-  }
-
-  @Override
   public String getDescription() {
     return String.format("Provision Cluster '%s'", clusterName);
   }
@@ -304,7 +293,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   private void parseHostGroupInfo(Map<String, Object> properties) throws InvalidTopologyTemplateException {
     Collection<Map<String, Object>> hostGroups =
-        (Collection<Map<String, Object>>) properties.get(HOSTGROUPS_PROPERTY);
+      (Collection<Map<String, Object>>) properties.get(HOSTGROUPS_PROPERTY);
 
     if (hostGroups == null || hostGroups.isEmpty()) {
       throw new InvalidTopologyTemplateException("'host_groups' element must be included in cluster create body");
@@ -334,11 +323,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     processHostCountAndPredicate(hostGroupProperties, hostGroupInfo);
     processGroupHosts(name, (Collection<Map<String, String>>)
-        hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY), hostGroupInfo);
+      hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY), hostGroupInfo);
 
     // don't set the parent configuration
     hostGroupInfo.setConfiguration(configurationFactory.getConfiguration(
-        (Collection<Map<String, String>>) hostGroupProperties.get(CONFIGURATIONS_PROPERTY)));
+      (Collection<Map<String, String>>) hostGroupProperties.get(CONFIGURATIONS_PROPERTY)));
   }
 
   /**
@@ -350,20 +339,20 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * @throws InvalidTopologyTemplateException  specified host group properties fail validation
    */
   private void processHostCountAndPredicate(Map<String, Object> hostGroupProperties, HostGroupInfo hostGroupInfo)
-      throws InvalidTopologyTemplateException {
+    throws InvalidTopologyTemplateException {
 
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_COUNT_PROPERTY)) {
       hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
-          hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
+        hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
       LOG.info("Stored expected hosts count {} for group {}",
-               hostGroupInfo.getRequestedHostCount(), hostGroupInfo.getHostGroupName());
+        hostGroupInfo.getRequestedHostCount(), hostGroupInfo.getHostGroupName());
     }
 
     if (hostGroupProperties.containsKey(HOSTGROUP_HOST_PREDICATE_PROPERTY)) {
       if (hostGroupInfo.getRequestedHostCount() == 0) {
         throw new InvalidTopologyTemplateException(String.format(
-            "Host group '%s' must not specify 'host_predicate' without 'host_count'",
-            hostGroupInfo.getHostGroupName()));
+          "Host group '%s' must not specify 'host_predicate' without 'host_count'",
+          hostGroupInfo.getHostGroupName()));
       }
 
       String hostPredicate = String.valueOf(hostGroupProperties.get(HOSTGROUP_HOST_PREDICATE_PROPERTY));
@@ -373,7 +362,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         LOG.info("Compiled host predicate {} for group {}", hostPredicate, hostGroupInfo.getHostGroupName());
       } catch (InvalidQueryException e) {
         throw new InvalidTopologyTemplateException(
-            String.format("Unable to compile host predicate '%s': %s", hostPredicate, e), e);
+          String.format("Unable to compile host predicate '%s': %s", hostPredicate, e), e);
       }
     }
   }
@@ -388,17 +377,17 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * @throws InvalidTopologyTemplateException specified host group properties fail validation
    */
   private void processGroupHosts(String name, Collection<Map<String, String>> hosts, HostGroupInfo hostGroupInfo)
-      throws InvalidTopologyTemplateException {
+    throws InvalidTopologyTemplateException {
 
     if (hosts != null) {
       if (hostGroupInfo.getRequestedHostCount() != 0) {
         throw new InvalidTopologyTemplateException(String.format(
-            "Host group '%s' must not contain both a 'hosts' element and a 'host_count' value", name));
+          "Host group '%s' must not contain both a 'hosts' element and a 'host_count' value", name));
       }
 
       if (hostGroupInfo.getPredicate() != null) {
         throw new InvalidTopologyTemplateException(String.format(
-            "Host group '%s' must not contain both a 'hosts' element and a 'host_predicate' value", name));
+          "Host group '%s' must not contain both a 'hosts' element and a 'host_predicate' value", name));
       }
 
       for (Map<String, String> hostProperties : hosts) {
@@ -408,15 +397,15 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
         if (hostProperties.containsKey(HOSTGROUP_HOST_RACK_INFO_PROPERTY)) {
           hostGroupInfo.addHostRackInfo(
-              hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY),
-              hostProperties.get(HOSTGROUP_HOST_RACK_INFO_PROPERTY));
+            hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY),
+            hostProperties.get(HOSTGROUP_HOST_RACK_INFO_PROPERTY));
         }
       }
     }
 
     if (hostGroupInfo.getRequestedHostCount() == 0) {
       throw new InvalidTopologyTemplateException(String.format(
-          "Host group '%s' must contain at least one 'hosts/fqdn' or a 'host_count' value", name));
+        "Host group '%s' must contain at least one 'hosts/fqdn' or a 'host_count' value", name));
     }
   }
 
@@ -475,4 +464,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public String getQuickLinksProfileJson() {
     return quickLinksProfileJson;
   }
+
+  public String getDefaultPassword() {
+    return defaultPassword;
+  }
+
 }

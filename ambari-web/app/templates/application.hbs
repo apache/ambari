@@ -124,38 +124,11 @@
                   {{else}}
                     <a class="brand cluster-name">
                   {{/isAuthorized}}
-                  {{#if App.upgradeInProgress}}
-                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                      <span
-                              class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                             <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.downgrade.running}}</span>
-                    {{else}}
-                      <span
-                              class="label upgrade-in-progress" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                             <i class="icon-cog"></i>&nbsp;{{t admin.stackVersions.version.upgrade.running}}</span>
-                    {{/if}}
-                  {{/if}}
-                  {{#if App.upgradeHolding}}
-                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                      <span
-                              class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.pause}}</span>
-                    {{else}}
-                      <span
-                              class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                          <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.pause}}</span>
-                    {{/if}}
-                  {{/if}}
-                  {{#if App.upgradeSuspended}}
-                    {{#if App.router.mainAdminStackAndUpgradeController.isDowngrade}}
-                      <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                        <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.downgrade.suspended}}
+                  {{#if showUpgradeLabel}}
+                      <span {{bindAttr class="upgradeMap.cls :label"}} {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
+                        <i {{bindAttr class="upgradeMap.icon"}}></i>&nbsp;
+                          {{upgradeMap.msg}}
                       </span>
-                    {{else}}
-                      <span class="label upgrade-holding" {{action "openUpgradeDialog" target="App.router.mainAdminStackAndUpgradeController"}}>
-                        <i class="icon-pause"></i>&nbsp;{{t admin.stackVersions.version.upgrade.suspended}}
-                      </span>
-                    {{/if}}
                   {{/if}}
                 </a>
                 </p>

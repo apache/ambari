@@ -43,7 +43,7 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 from resource_management.libraries.functions.get_architecture import get_architecture
 
 from resource_management.core.utils import PasswordString
@@ -535,12 +535,21 @@ hive_site_config = dict(config['configurations']['hive-site'])
 ########################################################
 ############# AMS related params #####################
 ########################################################
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+
+set_instanceId = "false"
+
+if 'cluster-env' in config['configurations'] and \
+        'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -675,8 +684,8 @@ if has_hive_interactive:
   llap_extra_slider_opts = default('/configurations/hive-interactive-env/llap_extra_slider_opts', "")
   hive_llap_principal = None
   if security_enabled:
-    hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
-    hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
+    hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.daemon.keytab.file']
+    hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.daemon.service.principal']).replace('_HOST',hostname.lower())
   pass
 
 if len(hive_server_hosts) == 0 and len(hive_server_interactive_hosts) > 0:
@@ -785,6 +794,10 @@ if enable_ranger_hive:
     'assetType': '3'
   }
 
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    hive_ranger_plugin_config.update(custom_ranger_service_config)
+
   if stack_supports_ranger_kerberos and security_enabled:
     hive_ranger_plugin_config['policy.download.auth.users'] = hive_user
     hive_ranger_plugin_config['tag.download.auth.users'] = hive_user
@@ -819,3 +832,10 @@ if enable_ranger_hive:
     xa_audit_db_is_enabled = False
 
 # ranger hive plugin section end
+
+# below property is used for cluster deployed in cloud env to create ranger hive service in ranger admin
+# need to add it as custom property
+ranger_hive_metastore_lookup = default('/configurations/ranger-hive-plugin-properties/ranger.service.config.param.enable.hive.metastore.lookup', False)
+
+if security_enabled:
+  hive_metastore_principal_with_host = hive_metastore_principal.replace('_HOST', hostname.lower())

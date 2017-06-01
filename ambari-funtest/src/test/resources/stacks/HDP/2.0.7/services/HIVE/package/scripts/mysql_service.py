@@ -31,6 +31,11 @@ def mysql_service(daemon_name=None, action='start'):
   elif action == 'status':
     cmd = format('service {daemon_name} status')
     logoutput = False
+    try:
+      Execute(cmd)
+      return
+    except:
+      raise ComponentIsNotRunning()
   else:
     cmd = None
 

@@ -275,6 +275,11 @@ class TestHDP21StackAdvisor(TestCase):
       "services": [
         {
           "StackServices": {
+            "service_name": "YARN"
+          }, "components": []
+        },
+        {
+          "StackServices": {
             "service_name": "HIVE",
           },
           "components": [
@@ -341,7 +346,7 @@ class TestHDP21StackAdvisor(TestCase):
     self.assertEqual(configurations["core-site"]["properties"]["hadoop.proxyuser.HTTP.hosts"] == "example.com", True)
 
     newhost_list = ["example.com", "example.org"]
-    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = newhost_list
+    services["services"][1]["components"][0]["StackServiceComponents"]["hostnames"] = newhost_list
     configurations["core-site"]["properties"]["hadoop.proxyuser.HTTP.hosts"] = ""
 
     self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, services, hosts)

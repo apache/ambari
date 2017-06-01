@@ -66,6 +66,11 @@ public class ClusterConfigurationRequest {
   private Stack stack;
   private boolean configureSecurity = false;
 
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
+    this(ambariContext, topology, setInitial, stackAdvisorBlueprintProcessor);
+    this.configureSecurity = configureSecurity;
+  }
+
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial,
                                      StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor) {
     this.ambariContext = ambariContext;
@@ -78,6 +83,21 @@ public class ClusterConfigurationRequest {
     removeOrphanConfigTypes();
     if (setInitial) {
       setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
+    }
+  }
+
+  /**
+   * Remove config-types from the given configuration if there is no any services related to them (except cluster-env and global).
+   */
+  private void removeOrphanConfigTypes(Configuration configuration) {
+    Blueprint blueprint = clusterTopology.getBlueprint();
+
+    Collection<String> configTypes = configuration.getAllConfigTypes();
+    for (String configType : configTypes) {
+      if (!blueprint.isValidConfigType(configType)) {
+        configuration.removeConfigType(configType);
+        LOG.info("Removing config type '{}' as related service is not present in either Blueprint or cluster creation template.", configType);
+      }
     }
   }
 
@@ -100,29 +120,6 @@ public class ClusterConfigurationRequest {
     }
   }
 
-  /**
-   * Remove config-types from the given configuration if there is no any services related to them (except cluster-env and global).
-   */
-  private void removeOrphanConfigTypes(Configuration configuration) {
-    Blueprint blueprint = clusterTopology.getBlueprint();
-
-    Collection<String> configTypes = configuration.getAllConfigTypes();
-    for (String configType : configTypes) {
-      if (!"cluster-env".equals(configType) && !"global".equals(configType)) {
-        String service = blueprint.getStack().getServiceForConfigType(configType);
-        if (!blueprint.getServices().contains(service)) {
-          configuration.removeConfigType(configType);
-          LOG.info("Removing config type '{}' as service '{}' is not present in either Blueprint or cluster creation template.", configType, service);
-        }
-      }
-    }
-  }
-
-  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
-    this(ambariContext, topology, setInitial, stackAdvisorBlueprintProcessor);
-    this.configureSecurity = configureSecurity;
-  }
-
   // get names of required host groups
   public Collection<String> getRequiredHostGroups() {
     Collection<String> requiredHostGroups = new HashSet<String>();
@@ -137,17 +134,19 @@ public class ClusterConfigurationRequest {
     // this will update the topo cluster config and all host group configs in the cluster topology
     Set<String> updatedConfigTypes = new HashSet<>();
 
-    Configuration clusterConfiguration = clusterTopology.getConfiguration();
-    Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
+    Map<String, Map<String, String>> userProvidedConfigurations = clusterTopology.getConfiguration().getFullProperties(1);
 
     try {
       if (configureSecurity) {
+        Configuration clusterConfiguration = clusterTopology.getConfiguration();
+        Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
         updatedConfigTypes.addAll(configureKerberos(clusterConfiguration, existingConfigurations));
       }
 
       // obtain recommended configurations before config updates
       if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
-        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, existingConfigurations);
+        // get merged properties form Blueprint & cluster template (this doesn't contains stack default values)
+        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology, userProvidedConfigurations);
       }
 
       updatedConfigTypes.addAll(configurationProcessor.doUpdateForClusterCreate());
@@ -157,20 +156,6 @@ public class ClusterConfigurationRequest {
     }
 
     setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
-  }
-
-  /**
-   * A config type is orphaned if there are services related to except cluster-env and global.
-   */
-  private boolean isOrphanedConfigType(String configType, Blueprint blueprint) {
-    boolean isOrphanedConfigType = false;
-    if (!"cluster-env".equals(configType) && !"global".equals(configType)) {
-      String service = blueprint.getStack().getServiceForConfigType(configType);
-      if (!blueprint.getServices().contains(service)) {
-        isOrphanedConfigType = true;
-      }
-    }
-    return isOrphanedConfigType;
   }
 
   private Set<String> configureKerberos(Configuration clusterConfiguration, Map<String, Map<String, String>> existingConfigurations) throws AmbariException {
@@ -213,7 +198,7 @@ public class ClusterConfigurationRequest {
 
       for (String configType : updatedConfigs.keySet()) {
         // apply only if config type has related services in Blueprint
-        if (!isOrphanedConfigType(configType, blueprint)) {
+        if (blueprint.isValidConfigType(configType)) {
           Map<String, String> propertyMap = updatedConfigs.get(configType);
           Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
           Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);

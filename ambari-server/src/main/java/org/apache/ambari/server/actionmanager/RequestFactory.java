@@ -29,9 +29,9 @@ public interface RequestFactory {
 
   Request createNew(long requestId, @Assisted("clusterId") Long clusterName) throws AmbariException;
 
-  Request createNewFromStages(Collection<Stage> stages);
+  Request createNewFromStages(Collection<Stage> stages, String clusterHostInfo);
 
-  Request createNewFromStages(Collection<Stage> stages, ExecuteActionRequest actionRequest);
+  Request createNewFromStages(Collection<Stage> stages, String clusterHostInfo, ExecuteActionRequest actionRequest);
 
   Request createExisting(RequestEntity entity);
 

@@ -546,7 +546,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
-          cluster.getClusterId(), stageName, clusterHostInfoJson, "{}", hostParamsJson);
+          cluster.getClusterId(), stageName, "{}", hostParamsJson);
 
       // if you have 1000 hosts (10 stages with 100 installs), we want to ensure
       // that a single failure doesn't cause all other stages to abort; set the
@@ -591,6 +591,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               repoVersionEnt.getDisplayName()));
     }
 
+    req.setClusterHostInfo(clusterHostInfoJson);
     req.addStages(stages);
     req.persist();
 

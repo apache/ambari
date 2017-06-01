@@ -506,6 +506,26 @@ def enable_kms_plugin():
       mode = 0640
       )
 
+    # create ranger kms audit directory
+    if params.xa_audit_hdfs_is_enabled and params.has_namenode and params.has_hdfs_client_on_node:
+      params.HdfsResource("/ranger/audit",
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.hdfs_user,
+                        group=params.hdfs_user,
+                        mode=0755,
+                        recursive_chmod=True
+      )
+      params.HdfsResource("/ranger/audit/kms",
+                        type="directory",
+                        action="create_on_execute",
+                        owner=params.kms_user,
+                        group=params.kms_group,
+                        mode=0750,
+                        recursive_chmod=True
+      )
+      params.HdfsResource(None, action="execute")
+
     if params.xa_audit_hdfs_is_enabled and len(params.namenode_host) > 1:
       Logger.info('Audit to Hdfs enabled in NameNode HA environment, creating hdfs-site.xml')
       XmlConfig("hdfs-site.xml",

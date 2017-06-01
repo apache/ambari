@@ -18,7 +18,12 @@
 <div class="panel panel-default">
   <div class="panel-heading">General</div>
   <div class="panel-body">
-    {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
+    <div class="form-group">
+      <label for="distcp-command" class="control-label col-xs-2">Distcp Arguments</label>
+      <div class="col-xs-7">
+        {{textarea class="form-control query-text-area" value=distcpCommand name="distcp-command" placeholder="Example: -update hdfs://nn1:9820/source/first hdfs://nn1:9820/source/second hdfs://nn2:9820/target"}}
+      </div>
+    </div>
     <div class="form-group">
       <label for="inputPassword" class="control-label col-xs-2">Java opts</label>
       <div class="col-xs-7">

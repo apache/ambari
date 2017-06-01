@@ -74,7 +74,7 @@ kdc_conf_template = \
 kadm5_acl_template = '*/admin@{{realm}}	*'
 
 
-def get_manged_kdc_use_case():
+def get_managed_kdc_use_case():
   config_file = "stacks/2.2/configs/default.json"
   with open(config_file, "r") as f:
     json_data = json.load(f)
@@ -88,7 +88,8 @@ def get_manged_kdc_use_case():
   json_data['configurations']['krb5-conf'] = {
     'realm': 'MANAGED_REALM.COM',
     'admin_principal': "admin/admin",
-    'admin_password': "hadoop"
+    'admin_password': "hadoop",
+    'content': krb5_conf_template
   }
 
   return json_data

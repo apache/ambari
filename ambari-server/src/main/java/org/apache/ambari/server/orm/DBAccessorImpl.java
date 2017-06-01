@@ -1298,4 +1298,48 @@ public class DBAccessorImpl implements DBAccessor {
 
     return valueString;
   }
+
+  /**
+   * Move column data from {@code sourceTableName} to {@code targetTableName} using {@code sourceIDFieldName} and
+   * {@code targetIDFieldName} keys to match right rows
+   *
+   * @param sourceTableName
+   *          the source table name
+   * @param sourceColumn
+   *          the source column name
+   * @param sourceIDFieldName
+   *          the source id key filed name matched with {@code targetIDFieldName}
+   * @param targetTableName
+   *          the target table name
+   * @param targetColumn
+   *          the target column name
+   * @param targetIDFieldName
+   *          the target id key name matched with {@code sourceIDFieldName}
+   * @param isColumnNullable
+   *          should be target column nullable or not
+   *
+   * @throws SQLException
+   */
+  @Override
+  public void moveColumnToAnotherTable(String sourceTableName, DBColumnInfo sourceColumn, String sourceIDFieldName,
+              String targetTableName, DBColumnInfo targetColumn, String targetIDFieldName,  boolean isColumnNullable) throws SQLException {
+
+    if (this.tableHasColumn(sourceTableName, sourceIDFieldName)) {
+
+      final String moveSQL = dbmsHelper.getCopyColumnToAnotherTableStatement(sourceTableName, sourceColumn.getName(),
+        sourceIDFieldName, targetTableName, targetColumn.getName(),targetIDFieldName);
+
+      targetColumn.setNullable(true);  // setting column nullable by default
+
+      this.addColumn(targetTableName, targetColumn);
+      this.executeUpdate(moveSQL, false);
+
+      if (!isColumnNullable) {
+        // this can will trigger exception if some record is null
+        // ToDo: add default option
+        this.setColumnNullable(targetTableName, targetColumn.getName(), false);
+      }
+      this.dropColumn(sourceTableName, sourceColumn.getName());
+    }
+  }
 }

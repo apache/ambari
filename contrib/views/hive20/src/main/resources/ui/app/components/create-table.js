@@ -66,7 +66,8 @@ export default Ember.Component.extend({
     }
     if (!(this.checkColumnsExists() &&
       this.checkColumnUniqueness() &&
-      this.validateColumns())) {
+      this.validateColumns() &&
+      this.checkClusteringIfTransactional())) {
       this.selectTab("create.table.columns");
       return false;
     }
@@ -96,11 +97,11 @@ export default Ember.Component.extend({
   },
 
   checkColumnsExists() {
-    this.set('hasEmptyColumnsError');
-    this.set('emptyColumnsErrorText');
+    this.set('hasTableConfigurationError');
+    this.set('tableConfigurationErrorText');
     if (this.get('columns.length') === 0) {
-      this.set('hasEmptyColumnsError', true);
-      this.set('emptyColumnsErrorText', 'No columns configured. Add some column definitions.');
+      this.set('hasTableConfigurationError', true);
+      this.set('tableConfigurationErrorText', 'No columns configured. Add some column definitions.');
       return false;
     }
     return true;
@@ -132,6 +133,16 @@ export default Ember.Component.extend({
     return true;
   },
 
+  checkClusteringIfTransactional() {
+    let clusteredColumns = this.get('columns').filterBy('isClustered', true);
+    if (this.get('settings.transactional') && clusteredColumns.get('length') === 0) {
+      this.set('hasTableConfigurationError', true);
+      this.set('tableConfigurationErrorText', 'Table is marked as transactional but no clustered column defined. Add some clustered column definitions.');
+      return false;
+    }
+    return true;
+  },
+
   validateTableProperties() {
     for (let i = 0; i < this.get('properties.length'); i++) {
       let property = this.get('properties').objectAt(i);
@@ -144,9 +155,14 @@ export default Ember.Component.extend({
 
   validateNumBuckets() {
     let clusteredColumns = this.get('columns').filterBy('isClustered', true);
-    if(clusteredColumns.get('length') > 0 &&
-      (Ember.isEmpty(this.get('settings.numBuckets')) ||
-      !Helper.isInteger(this.get('settings.numBuckets')))) {
+
+
+    function isNumBucketsPresentAndIsAnInteger(context) {
+      return (Ember.isEmpty(context.get('settings.numBuckets')) ||
+      !Helper.isInteger(context.get('settings.numBuckets')));
+    }
+
+    if(clusteredColumns.get('length') > 0 && isNumBucketsPresentAndIsAnInteger(this)) {
       this.get('settingErrors').pushObject({type: 'numBuckets', error: "Some columns are clustered, Number of buckets are required."});
       return false;
     }

@@ -41,6 +41,8 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -53,7 +55,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.UpgradeHelper;
 
 import com.google.inject.Inject;
 import org.apache.ambari.server.utils.SecretReference;
@@ -84,12 +85,8 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
   @Inject
   private static StageDAO s_stageDao;
 
-  /**
-   * Used to generated the correct tasks and stages during an upgrade.
-   */
   @Inject
-  private static UpgradeHelper s_upgradeHelper;
-
+  private static HostRoleCommandDAO s_hostRoleCommandDAO;
 
   static {
     // properties
@@ -232,38 +229,36 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
         }
       }
 
+      Map<Long, HostRoleCommandStatusSummaryDTO> requestAggregateCounts = s_hostRoleCommandDAO.findAggregateCounts(requestId);
+      Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache = new HashMap<>();
+      cache.put(requestId, requestAggregateCounts);
+
       // !!! need to do some lookup for stages, so use a stageid -> resource for
       // when that happens
-      Map<Long, Resource> resultMap = new HashMap<Long, Resource>();
-
       for (UpgradeItemEntity entity : entities) {
-        Resource r = toResource(entity, requestPropertyIds);
-        resultMap.put(entity.getStageId(), r);
-      }
+        Resource upgradeItemResource = toResource(entity, requestPropertyIds);
 
-      if (!resultMap.isEmpty()) {
-        if (null != clusterName) {
-          Set<Resource> stages = s_upgradeHelper.getStageResources(clusterName,
-              requestId, new ArrayList<Long>(resultMap.keySet()));
+        StageEntityPK stagePrimaryKey = new StageEntityPK();
+        stagePrimaryKey.setRequestId(requestId);
+        stagePrimaryKey.setStageId(entity.getStageId());
 
-          for (Resource stage : stages) {
-            Long l = (Long) stage.getPropertyValue(StageResourceProvider.STAGE_STAGE_ID);
+        StageEntity stageEntity = s_stageDao.findByPK(stagePrimaryKey);
+        Resource stageResource = StageResourceProvider.toResource(cache, stageEntity,
+            StageResourceProvider.PROPERTY_IDS);
 
-            Resource r = resultMap.get(l);
-            if (null != r) {
-              for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
-                // Attempt to mask any passwords in fields that are property maps.
-                Object value = stage.getPropertyValue(propertyId);
-                if (StageResourceProvider.PROPERTIES_TO_MASK_PASSWORD_IN.contains(propertyId) &&
-                    value.getClass().equals(String.class) && !StringUtils.isBlank((String) value)) {
-                  value = SecretReference.maskPasswordInPropertyMap((String) value);
-                }
-                setResourceProperty(r, STAGE_MAPPED_IDS.get(propertyId), value, requestPropertyIds);
-              }
-            }
+        for (String propertyId : StageResourceProvider.PROPERTY_IDS) {
+          // Attempt to mask any passwords in fields that are property maps.
+          Object value = stageResource.getPropertyValue(propertyId);
+          if (StageResourceProvider.PROPERTIES_TO_MASK_PASSWORD_IN.contains(propertyId)
+              && value.getClass().equals(String.class) && !StringUtils.isBlank((String) value)) {
+            value = SecretReference.maskPasswordInPropertyMap((String) value);
           }
+
+          setResourceProperty(upgradeItemResource, STAGE_MAPPED_IDS.get(propertyId), value,
+              requestPropertyIds);
         }
-        results.addAll(resultMap.values());
+
+        results.add(upgradeItemResource);
       }
     }
     return results;

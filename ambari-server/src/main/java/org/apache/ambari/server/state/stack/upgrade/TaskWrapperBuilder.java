@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,13 +40,16 @@ public class TaskWrapperBuilder {
   private static Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
 
   /**
-   * Creates a collection of tasks based on the set of hosts they are allowed to run on
+   * Creates a collection of task wrappers based on the set of hosts they are allowed to run on
    * by analyzing the "hosts" attribute of any ExecuteTask objects.
+   *
    * @param service the service name for the tasks
    * @param component the component name for the tasks
    * @param hostsType the collection of sets along with their status
    * @param tasks collection of tasks
    * @param params additional parameters
+   *
+   * @return the task wrappers, one for each task that is passed with {@code tasks}
    */
   public static List<TaskWrapper> getTaskList(String service, String component, HostsType hostsType, List<Task> tasks, Map<String, String> params) {
     // Ok if Ambari Server is not part of the cluster hosts since this is only used in the calculation of how many batches
@@ -54,11 +58,10 @@ public class TaskWrapperBuilder {
 
     List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
     for (Task t : tasks) {
-      if (t.getType().equals(Task.Type.CONFIGURE) || t.getType().equals(Task.Type.MANUAL)) {
-        // only add the CONFIGURE/MANUAL task if there are actual hosts for the service/component
-        if (null != hostsType.hosts && !hostsType.hosts.isEmpty()) {
-          collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
-        }
+
+      // only add the server-side task if there are actual hosts for the service/component
+      if (t.getType().isServerAction() && CollectionUtils.isNotEmpty(hostsType.hosts)) {
+        collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
         continue;
       }
 

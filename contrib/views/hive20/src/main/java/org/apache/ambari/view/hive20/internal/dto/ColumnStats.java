@@ -44,6 +44,7 @@ public class ColumnStats {
   private String numTrues;
   private String numFalse;
   private String comment;
+  private String columnStatsAccurate;
 
   public String getDatabaseName() {
     return databaseName;
@@ -166,5 +167,9 @@ public class ColumnStats {
     sb.append(", comment='").append(comment).append('\'');
     sb.append('}');
     return sb.toString();
+  }
+
+  public void setColumnStatsAccurate(String columnStatsAccurate) {
+    this.columnStatsAccurate = columnStatsAccurate;
   }
 }

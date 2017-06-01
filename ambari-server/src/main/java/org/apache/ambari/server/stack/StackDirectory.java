@@ -20,6 +20,7 @@ package org.apache.ambari.server.stack;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -438,6 +439,9 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (configUpgradePack != null) {
       this.configUpgradePack = configUpgradePack;
     } else {
+      ConfigUpgradePack emptyConfigUpgradePack = new ConfigUpgradePack();
+      emptyConfigUpgradePack.services = new ArrayList<>();
+      this.configUpgradePack = emptyConfigUpgradePack;
       LOG.info("Stack '{}' doesn't contain config upgrade pack file", getPath());
     }
   }

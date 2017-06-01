@@ -880,6 +880,21 @@
       },
       {
         "allFormat": "glob",
+        "current": null,
+        "datasource": null,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "cluster",
+        "options": [],
+        "query": "cluster",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
         "datasource": null,
         "includeAll": false,
         "multi": false,
@@ -887,8 +902,8 @@
         "name": "hosts",
         "options": [
         ],
-        "query": "hosts",
-        "refresh": true,
+        "label": "Hosts",
+        "query": "hosts.$cluster",
         "type": "query"
       }
     ]

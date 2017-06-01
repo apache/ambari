@@ -16,19 +16,18 @@
 * limitations under the License.
 }}
 
+{{#if showStats}}
 <div class="row">
   <div class="alert">
-    <p class="lead">
-      {{fa-icon "line-chart" size=2}}&nbsp;&nbsp;&nbsp;&nbsp; STATISTICS
-      <div class="pull-right">
+    <p >
+      <div class="pull-left">
         <button class="btn btn-success"
           {{action "analyseTable"}}>{{fa-icon "location-arrow"}} {{#if (not tableStatisticsEnabled)}}
           Compute {{else}} Recompute {{/if}}</button>
 
         <label>
           {{input type="checkbox" checked=analyseWithStatistics}}
-          <small>include columns</small>
-        </label>
+        </label>&nbsp;<span>INCLUDE COLUMNS</span>
       </div>
     </p>
 
@@ -36,8 +35,14 @@
 </div>
 <div class="row">
   {{#if tableStatisticsEnabled}}
+    {{#if (not basicStatsAccurate) }}
+      <div class="alert alert-warning">
+        <p> Table statistics might be stale. Please consider recomputing statistics.
+        </p>
+      </div>
+    {{/if}}
     <div class="stats-section">
-      <p><strong>TABLE STATISTICS</strong></p>
+      <p class="table-title"><strong>TABLE STATISTICS</strong></p>
       <table class="table table-bordered table-hover">
         <thead>
         <tr>
@@ -74,7 +79,7 @@
 </div>
 
 <div class="row stats-section">
-  <p><strong>COLUMNS STATISTICS</strong></p>
+  <p class="table-title"><strong>COLUMNS STATISTICS</strong></p>
   <table class="table table-bordered table-hover">
     <thead>
     <tr>
@@ -108,6 +113,12 @@
             {{/if}}
 
             {{#if (and column.stats column.showStats)}}
+              {{#if column.statsWarn}}
+                <div class="alert alert-warning">
+                  <p> {{column.statsWarnMsg}}
+                  </p>
+                </div>
+              {{/if}}
               <div class="col-stats-details">
                 <table class="table table-bordered table-hover ">
                   <thead>
@@ -126,10 +137,8 @@
                   </tbody>
                 </table>
               </div>
+              {{/if}}
             {{/if}}
-          {{else}}
-            No statistics computed
-          {{/if}}
         </td>
       </tr>
     {{/each}}
@@ -155,3 +164,11 @@
     </div>
   {{/modal-dialog}}
 {{/if}}
+{{else}}
+  <div class="alert alert-danger">
+    <p>  Statistics not supported for partitioned table in Hive Server version lesser than {{partitionStatSupportedVersion}}.
+         Your current Hive Server version is {{table.tableStats.databaseMetadata.databaseMajorVersion}}.{{table.tableStats.databaseMetadata.databaseMinorVersion}}
+    </p>
+  </div>
+{{/if}}
+

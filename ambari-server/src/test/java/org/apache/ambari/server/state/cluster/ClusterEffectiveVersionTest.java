@@ -143,6 +143,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
     Cluster clusterSpy = Mockito.spy(m_cluster);
 
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
+    EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(upgradeEntity.getUpgradeType()).andReturn(UpgradeType.ROLLING).atLeastOnce();
     EasyMock.expect(upgradeEntity.getFromVersion()).andReturn("2.3.0.0-1234").anyTimes();
     EasyMock.expect(upgradeEntity.getToVersion()).andReturn("2.4.0.0-1234").atLeastOnce();
@@ -184,6 +185,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     // from/to are switched on downgrade
     UpgradeEntity upgradeEntity = createNiceMock(UpgradeEntity.class);
+    EasyMock.expect(upgradeEntity.getId()).andReturn(1L).atLeastOnce();
     EasyMock.expect(upgradeEntity.getUpgradeType()).andReturn(UpgradeType.NON_ROLLING).atLeastOnce();
     EasyMock.expect(upgradeEntity.getToVersion()).andReturn("2.3.0.0-1234").atLeastOnce();
     EasyMock.expect(upgradeEntity.getFromVersion()).andReturn("2.4.0.0-1234").anyTimes();

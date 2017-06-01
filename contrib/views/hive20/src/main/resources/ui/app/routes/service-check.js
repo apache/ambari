@@ -38,6 +38,7 @@ export default Ember.Route.extend({
 
   afterModel(){
     let controller = this.controllerFor("service-check");
+    controller.reset();
     controller.set("serviceCheckPolicy", this.get("serviceCheckPolicy"));
     this.get('serviceCheck').check(this.get("serviceCheckPolicy")).then((data) => {
       if(data.userHomePromise.state === 'rejected') {

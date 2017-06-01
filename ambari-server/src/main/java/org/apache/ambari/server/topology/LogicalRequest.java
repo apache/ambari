@@ -164,8 +164,8 @@ public class LogicalRequest extends Request {
     return requestsWithReservedHosts.keySet();
   }
 
-  public boolean hasCompleted() {
-    return requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty();
+  public boolean hasPendingHostRequests() {
+    return !requestsWithReservedHosts.isEmpty() || !outstandingHostRequests.isEmpty();
   }
 
   public Collection<HostRequest> getCompletedHostRequests() {
@@ -176,9 +176,43 @@ public class LogicalRequest extends Request {
     return completedHostRequests;
   }
 
+  public int getPendingHostRequestCount() {
+    return outstandingHostRequests.size() + requestsWithReservedHosts.size();
+  }
+
   //todo: this is only here for toEntity() functionality
   public Collection<HostRequest> getHostRequests() {
     return new ArrayList<HostRequest>(allHostRequests);
+  }
+
+  /**
+   * Removes pending host requests (outstanding requests not picked up by any host, where hostName is null) for a host group.
+   * @param hostGroupName
+   * @return
+   */
+  public Collection<HostRequest> removePendingHostRequests(String hostGroupName) {
+    Collection<HostRequest> pendingHostRequests = new ArrayList<>();
+    for(HostRequest hostRequest : outstandingHostRequests) {
+      if(hostGroupName == null || hostRequest.getHostgroupName().equals(hostGroupName)) {
+        pendingHostRequests.add(hostRequest);
+      }
+    }
+    outstandingHostRequests.clear();
+
+    Collection<String> pendingReservedHostNames = new ArrayList<>();
+    for(String reservedHostName : requestsWithReservedHosts.keySet()) {
+      HostRequest hostRequest = requestsWithReservedHosts.get(reservedHostName);
+      if(hostGroupName == null || hostRequest.getHostgroupName().equals(hostGroupName)) {
+        pendingHostRequests.add(hostRequest);
+        pendingReservedHostNames.add(reservedHostName);
+      }
+    }
+    for (String hostName : pendingReservedHostNames) {
+      requestsWithReservedHosts.remove(hostName);
+    }
+
+    allHostRequests.removeAll(pendingHostRequests);
+    return pendingHostRequests;
   }
 
   public Map<String, Collection<String>> getProjectedTopology() {

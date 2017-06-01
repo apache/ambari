@@ -35,6 +35,7 @@ from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from resource_management.core.exceptions import ExecutionFailed
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -660,70 +661,72 @@ def setup_ranger_audit_solr():
         content=Template("ranger_solr_jaas_conf.j2"),
         owner=params.unix_user
       )
+  try:
+    check_znode()
 
-  check_znode()
+    if params.stack_supports_ranger_solr_configs:
+      Logger.info('Solr configrations supported,creating solr-configurations.')
+      File(format("{ranger_solr_conf}/solrconfig.xml"),
+           content=InlineTemplate(params.ranger_solr_config_content),
+           owner=params.unix_user,
+           group=params.unix_group,
+           mode=0644
+      )
 
-  if params.stack_supports_ranger_solr_configs:
-    Logger.info('Solr configrations supported,creating solr-configurations.')
-    File(format("{ranger_solr_conf}/solrconfig.xml"),
-         content=InlineTemplate(params.ranger_solr_config_content),
-         owner=params.unix_user,
-         group=params.unix_group,
-         mode=0644
-    )
+      solr_cloud_util.upload_configuration_to_zk(
+        zookeeper_quorum = params.zookeeper_quorum,
+        solr_znode = params.solr_znode,
+        config_set = params.ranger_solr_config_set,
+        config_set_dir = params.ranger_solr_conf,
+        tmp_dir = params.tmp_dir,
+        java64_home = params.java_home,
+        solrconfig_content = InlineTemplate(params.ranger_solr_config_content),
+        jaas_file=params.solr_jaas_file,
+        retry=30, interval=5
+      )
 
-    solr_cloud_util.upload_configuration_to_zk(
+    else:
+      Logger.info('Solr configrations not supported, skipping solr-configurations.')
+      solr_cloud_util.upload_configuration_to_zk(
+        zookeeper_quorum = params.zookeeper_quorum,
+        solr_znode = params.solr_znode,
+        config_set = params.ranger_solr_config_set,
+        config_set_dir = params.ranger_solr_conf,
+        tmp_dir = params.tmp_dir,
+        java64_home = params.java_home,
+        jaas_file=params.solr_jaas_file,
+        retry=30, interval=5)
+
+    if params.security_enabled and params.has_infra_solr \
+      and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
+
+      solr_cloud_util.add_solr_roles(params.config,
+                                     roles = [params.infra_solr_role_ranger_admin, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
+                                     new_service_principals = [params.ranger_admin_jaas_principal])
+      service_default_principals_map = [('hdfs', 'nn'), ('hbase', 'hbase'), ('hive', 'hive'), ('kafka', 'kafka'), ('kms', 'rangerkms'),
+                                                    ('knox', 'knox'), ('nifi', 'nifi'), ('storm', 'storm'), ('yanr', 'yarn')]
+      service_principals = get_ranger_plugin_principals(service_default_principals_map)
+      solr_cloud_util.add_solr_roles(params.config,
+                                     roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
+                                     new_service_principals = service_principals)
+
+
+    solr_cloud_util.create_collection(
       zookeeper_quorum = params.zookeeper_quorum,
       solr_znode = params.solr_znode,
+      collection = params.ranger_solr_collection_name,
       config_set = params.ranger_solr_config_set,
-      config_set_dir = params.ranger_solr_conf,
-      tmp_dir = params.tmp_dir,
       java64_home = params.java_home,
-      solrconfig_content = InlineTemplate(params.ranger_solr_config_content),
-      jaas_file=params.solr_jaas_file,
-      retry=30, interval=5
-    )
+      shards = params.ranger_solr_shards,
+      replication_factor = int(params.replication_factor),
+      jaas_file = params.solr_jaas_file)
 
-  else:
-    Logger.info('Solr configrations not supported, skipping solr-configurations.')
-    solr_cloud_util.upload_configuration_to_zk(
-      zookeeper_quorum = params.zookeeper_quorum,
-      solr_znode = params.solr_znode,
-      config_set = params.ranger_solr_config_set,
-      config_set_dir = params.ranger_solr_conf,
-      tmp_dir = params.tmp_dir,
-      java64_home = params.java_home,
-      jaas_file=params.solr_jaas_file,
-      retry=30, interval=5)
-
-  if params.security_enabled and params.has_infra_solr \
-    and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
-
-    solr_cloud_util.add_solr_roles(params.config,
-                                   roles = [params.infra_solr_role_ranger_admin, params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
-                                   new_service_principals = [params.ranger_admin_jaas_principal])
-    service_default_principals_map = [('hdfs', 'nn'), ('hbase', 'hbase'), ('hive', 'hive'), ('kafka', 'kafka'), ('kms', 'rangerkms'),
-                                                  ('knox', 'knox'), ('nifi', 'nifi'), ('storm', 'storm'), ('yanr', 'yarn')]
-    service_principals = get_ranger_plugin_principals(service_default_principals_map)
-    solr_cloud_util.add_solr_roles(params.config,
-                                   roles = [params.infra_solr_role_ranger_audit, params.infra_solr_role_dev],
-                                   new_service_principals = service_principals)
-
-
-  solr_cloud_util.create_collection(
-    zookeeper_quorum = params.zookeeper_quorum,
-    solr_znode = params.solr_znode,
-    collection = params.ranger_solr_collection_name,
-    config_set = params.ranger_solr_config_set,
-    java64_home = params.java_home,
-    shards = params.ranger_solr_shards,
-    replication_factor = int(params.replication_factor),
-    jaas_file = params.solr_jaas_file)
-
-  if params.security_enabled and params.has_infra_solr \
-    and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
-    secure_znode(format('{solr_znode}/configs/{ranger_solr_config_set}'), params.solr_jaas_file)
-    secure_znode(format('{solr_znode}/collections/{ranger_solr_collection_name}'), params.solr_jaas_file)
+    if params.security_enabled and params.has_infra_solr \
+      and not params.is_external_solrCloud_enabled and params.stack_supports_ranger_kerberos:
+      secure_znode(format('{solr_znode}/configs/{ranger_solr_config_set}'), params.solr_jaas_file)
+      secure_znode(format('{solr_znode}/collections/{ranger_solr_collection_name}'), params.solr_jaas_file)
+  except ExecutionFailed as execution_exception:
+    Logger.error('Error when configuring Solr for Ranger, Kindly check Solr/Zookeeper services to be up and running:\n {0}'.format(execution_exception))
 
 def setup_ranger_admin_passwd_change():
   import params

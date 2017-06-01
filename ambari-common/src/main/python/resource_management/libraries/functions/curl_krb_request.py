@@ -62,6 +62,7 @@ KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
 def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
     krb_exec_search_paths, return_only_http_code, caller_label, user,
     connection_timeout = CONNECTION_TIMEOUT_DEFAULT,
+    ca_certs = None,
     kinit_timer_ms=DEFAULT_KERBEROS_KINIT_TIMER_MS, method = '',body='',header=''):
   """
   Makes a curl request using the kerberos credentials stored in a calculated cache file. The
@@ -84,13 +85,20 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   :param caller_label: an identifier to give context into the caller of this module (used for logging)
   :param user: the user to invoke the curl command as
   :param connection_timeout: if specified, a connection timeout for curl (default 10 seconds)
+  :param ca_certs: path to certificates
   :param kinit_timer_ms: if specified, the time (in ms), before forcing a kinit even if the
                          klist cache is still valid.
   :return:
   """
 
   import uuid
-
+  # backward compatibility with old code and management packs, etc. All new code need pass ca_certs explicitly
+  if ca_certs is None:
+    try:
+      from ambari_agent.AmbariConfig import AmbariConfig
+      ca_certs = AmbariConfig.get_resolved_config().get_ca_cert_file_path()
+    except:
+      pass
   # start off false
   is_kinit_required = False
 
@@ -174,13 +182,16 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
   connection_timeout = int(connection_timeout)
   maximum_timeout = connection_timeout + 2
 
+  ssl_options = ['-k']
+  if ca_certs:
+    ssl_options = ['--cacert', ca_certs]
   try:
     if return_only_http_code:
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '--location-trusted', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '--location-trusted'] + ssl_options + ['--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
                              user=user, env=kerberos_env)
     else:
-      curl_command = ['curl', '--location-trusted', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      curl_command = ['curl', '--location-trusted'] + ssl_options + ['--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                       url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)]
       # returns response body
       if len(method) > 0 and len(body) == 0 and len(header) == 0:

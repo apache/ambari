@@ -287,6 +287,9 @@ public class AmbariServer {
   static void setSystemProperties(Configuration configs) {
     // modify location of temporary dir to avoid using default /tmp dir
     System.setProperty("java.io.tmpdir", configs.getServerTempDir());
+    if (configs.getJavaVersion() >= 8) {
+      System.setProperty("jdk.tls.ephemeralDHKeySize", String.valueOf(configs.getTlsEphemeralDhKeySize()));
+    }
   }
 
   public static AmbariManagementController getController() {
@@ -302,6 +305,7 @@ public class AmbariServer {
     initDB();
     server = new Server();
     server.setSessionIdManager(sessionIdManager);
+    server.setSendServerVersion(false);
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
@@ -446,7 +450,6 @@ public class AmbariServer {
       SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 
       viewRegistry.readViewArchives();
-      viewDirectoryWatcher.start();
 
       enableLog4jMonitor(configsMap);
 
@@ -550,6 +553,11 @@ public class AmbariServer {
 
       serverForAgent.start();
       LOG.info("********* Started Server **********");
+
+      if( !configs.isViewDirectoryWatcherServiceDisabled()) {
+        LOG.info("Starting View Directory Watcher");
+        viewDirectoryWatcher.start();
+      }
 
       manager.start();
       LOG.info("********* Started ActionManager **********");

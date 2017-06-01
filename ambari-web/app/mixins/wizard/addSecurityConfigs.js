@@ -216,7 +216,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     for (var propertyName in kerberosProperties) {
       var predefinedProperty = this.get('kerberosDescriptorProperties').findProperty('name', propertyName);
       var value = kerberosProperties[propertyName];
-      var isRequired = propertyName == 'additional_realms' ? false : value !== "";
+      var isRequired = ['additional_realms', 'principal_suffix'].contains(propertyName) ? false : value !== "";
       var propertyObject = {
         name: propertyName,
         value: value,

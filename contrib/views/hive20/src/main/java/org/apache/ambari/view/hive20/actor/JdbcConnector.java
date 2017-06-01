@@ -30,12 +30,14 @@ import org.apache.ambari.view.hive20.actor.message.Connect;
 import org.apache.ambari.view.hive20.actor.message.FetchError;
 import org.apache.ambari.view.hive20.actor.message.FetchResult;
 import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
+import org.apache.ambari.view.hive20.actor.message.GetDatabaseMetadataJob;
 import org.apache.ambari.view.hive20.actor.message.HiveJob;
 import org.apache.ambari.view.hive20.actor.message.HiveMessage;
 import org.apache.ambari.view.hive20.actor.message.ResultInformation;
 import org.apache.ambari.view.hive20.actor.message.ResultNotReady;
 import org.apache.ambari.view.hive20.actor.message.RunStatement;
 import org.apache.ambari.view.hive20.actor.message.SQLStatementJob;
+import org.apache.ambari.view.hive20.actor.message.job.AuthenticationFailed;
 import org.apache.ambari.view.hive20.actor.message.job.CancelJob;
 import org.apache.ambari.view.hive20.actor.message.job.ExecuteNextStatement;
 import org.apache.ambari.view.hive20.actor.message.job.ExecutionFailed;
@@ -50,8 +52,11 @@ import org.apache.ambari.view.hive20.actor.message.lifecycle.FreeConnector;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.InactivityCheck;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.KeepAlive;
 import org.apache.ambari.view.hive20.actor.message.lifecycle.TerminateInactivityCheck;
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
+import org.apache.ambari.view.hive20.exceptions.ServiceException;
 import org.apache.ambari.view.hive20.internal.Connectable;
 import org.apache.ambari.view.hive20.internal.ConnectionException;
+import org.apache.ambari.view.hive20.internal.parsers.DatabaseMetadataExtractor;
 import org.apache.ambari.view.hive20.persistence.Storage;
 import org.apache.ambari.view.hive20.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive20.resources.jobs.viewJobs.Job;
@@ -63,6 +68,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
@@ -77,7 +83,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class JdbcConnector extends HiveActor {
 
-  private final Logger LOG = LoggerFactory.getLogger(getClass());
+  private static final Logger LOG = LoggerFactory.getLogger(JdbcConnector.class);
 
   public static final String SUFFIX = "validating the login";
 
@@ -189,6 +195,8 @@ public class JdbcConnector extends HiveActor {
       runStatementJob((SQLStatementJob) message);
     } else if (message instanceof GetColumnMetadataJob) {
       runGetMetaData((GetColumnMetadataJob) message);
+    } else if (message instanceof GetDatabaseMetadataJob) {
+      runGetDatabaseMetaData((GetDatabaseMetadataJob) message);
     } else if (message instanceof ExecuteNextStatement) {
       executeNextStatement();
     } else if (message instanceof ResultInformation) {
@@ -251,6 +259,12 @@ public class JdbcConnector extends HiveActor {
       processFailure(failure);
       return;
     }
+    Optional<DatabaseMetaData> databaseMetaDataOptional = message.getDatabaseMetaData();
+    if (databaseMetaDataOptional.isPresent()) {
+      DatabaseMetaData databaseMetaData = databaseMetaDataOptional.get();
+      processDatabaseMetadata(databaseMetaData);
+      return;
+    }
     if (statementQueue.size() == 0) {
       // This is the last resultSet
       processResult(message.getResultSet());
@@ -283,6 +297,19 @@ public class JdbcConnector extends HiveActor {
       commandSender.tell(new ExecutionFailed(failure.getMessage(), failure.getError()), self());
       cleanUpWithTermination();
     }
+  }
+
+  private void processDatabaseMetadata(DatabaseMetaData databaseMetaData) {
+    executing = false;
+    isFailure = false;
+    // Send for sync execution
+    try {
+      DatabaseMetadataWrapper databaseMetadataWrapper = new DatabaseMetadataExtractor(databaseMetaData).extract();
+      commandSender.tell(databaseMetadataWrapper, self());
+    } catch (ServiceException e) {
+      commandSender.tell(new ExecutionFailed(e.getMessage(), e), self());
+    }
+    cleanUpWithTermination();
   }
 
   private void stopStatementExecutor() {
@@ -386,6 +413,16 @@ public class JdbcConnector extends HiveActor {
     statementExecutor.tell(message, self());
   }
 
+  private void runGetDatabaseMetaData(GetDatabaseMetadataJob message) {
+    if (!checkConnection()) return;
+    resetToInitialState();
+    executing = true;
+    executionType = message.getType();
+    commandSender = getSender();
+    statementExecutor = getStatementExecutor();
+    statementExecutor.tell(message, self());
+  }
+
   private ActorRef getStatementExecutor() {
     return getContext().actorOf(Props.create(StatementExecutor.class, hdfsApi, storage, connectable.getConnection().get(), connectionDelegate)
       .withDispatcher("akka.actor.result-dispatcher"),
@@ -397,24 +434,34 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void notifyConnectFailure(Exception ex) {
+    boolean loginError = false;
     executing = false;
     isFailure = true;
     this.failure = new Failure("Cannot connect to hive", ex);
+    if(ex instanceof ConnectionException){
+      ConnectionException connectionException = (ConnectionException) ex;
+      Throwable cause = connectionException.getCause();
+      if(cause instanceof SQLException){
+        SQLException sqlException = (SQLException) cause;
+        if(isLoginError(sqlException))
+          loginError = true;
+      }
+    }
+
     if (isAsync()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
 
-      if(ex instanceof ConnectionException){
-        ConnectionException connectionException = (ConnectionException) ex;
-        Throwable cause = connectionException.getCause();
-        if(cause instanceof SQLException){
-          SQLException sqlException = (SQLException) cause;
-          if(isLoginError(sqlException))
-            return;
-        }
+      if (loginError) {
+        return;
       }
 
     } else {
-      sender().tell(new ExecutionFailed("Cannot connect to hive"), ActorRef.noSender());
+      if (loginError) {
+        sender().tell(new AuthenticationFailed("Hive authentication error", ex), ActorRef.noSender());
+      } else {
+        sender().tell(new ExecutionFailed("Cannot connect to hive", ex), ActorRef.noSender());
+      }
+
     }
     // Do not clean up in case of failed authorizations
     // The failure is bubbled to the user for requesting credentials
@@ -531,12 +578,6 @@ public class JdbcConnector extends HiveActor {
   }
 
   private void checkTerminationInactivity() {
-    if (!isAsync()) {
-      // Should not terminate if job is sync. Will terminate after the job is finished.
-      stopTerminateInactivityScheduler();
-      return;
-    }
-
     LOG.debug("Termination check, executing status: {}", executing);
     if (executing) {
       keepAlive();

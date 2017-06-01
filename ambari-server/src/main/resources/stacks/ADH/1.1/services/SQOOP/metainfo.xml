@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>SQOOP</name>
-      <version>1.4.4.2.0</version>
+      <version>1.4.4.2.1</version>
     </service>
   </services>
 </metainfo>

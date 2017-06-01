@@ -202,11 +202,7 @@ public class UpgradeSummaryResourceProviderTest {
     ServiceComponentHostEvent event = new ServiceComponentHostOpInProgressEvent("ZOOKEEPER_SERVER", "h1", 1L);
     ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(event);
 
-    RequestEntity requestEntity = new RequestEntity();
-    requestEntity.setRequestId(upgradeRequestId);
-    requestEntity.setClusterId(cluster.getClusterId());
-    requestEntity.setStatus(HostRoleStatus.PENDING);
-    requestDAO.create(requestEntity);
+    RequestEntity requestEntity = requestDAO.findByPK(upgradeRequestId);
 
     // Create the stage and add it to the request
     StageEntity stageEntity = new StageEntity();
@@ -270,8 +266,15 @@ public class UpgradeSummaryResourceProviderTest {
     Set<Resource> resources = upgradeSummaryResourceProvider.getResources(requestResource, p1And2);
     assertEquals(0, resources.size());
 
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setRequestId(1L);
+    requestEntity.setClusterId(cluster.getClusterId());
+    requestEntity.setStatus(HostRoleStatus.PENDING);
+    requestEntity.setStages(new ArrayList<StageEntity>());
+    requestDAO.create(requestEntity);
+
     UpgradeEntity upgrade = new UpgradeEntity();
-    upgrade.setRequestId(upgradeRequestId);
+    upgrade.setRequestEntity(requestEntity);
     upgrade.setClusterId(cluster.getClusterId());
     upgrade.setId(1L);
     upgrade.setUpgradePackage("some-name");
@@ -299,7 +302,7 @@ public class UpgradeSummaryResourceProviderTest {
     Assert.assertNull(r.getPropertyValue(UpgradeSummaryResourceProvider.UPGRADE_SUMMARY_FAIL_REASON));
 
     // Case 4: Append a failed task to the Upgrade. Resource should have a failed reason.
-    RequestEntity requestEntity = requestDAO.findByPK(upgradeRequestId);
+    requestEntity = requestDAO.findByPK(upgradeRequestId);
     HostEntity h1 = hostDAO.findByName("h1");
 
     StageEntity nextStage = new StageEntity();

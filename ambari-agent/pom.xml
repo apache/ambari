@@ -19,13 +19,13 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.5.0.0.0</version>
+    <version>2.5.1.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari</groupId>
   <artifactId>ambari-agent</artifactId>
-  <version>2.5.0.0.0</version>
+  <version>2.5.1.0.0</version>
   <name>Ambari Agent</name>
   <description>Ambari Agent</description>
   <properties>
@@ -325,7 +325,7 @@
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/lib/ambari-agent</location>
                   <includes>
                     <include>/cred/lib/*.jar</include>
-                    <include>/tools/zkmigrator.jar</include>
+                    <include>/tools/*.jar</include>
                     <include>/cache/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
                     <include>/cache/stacks/HDP/2.0.6/hooks/before-START/files/fast-hdfs-resource.jar</include>
                     <include>/cache/common-services/STORM/0.9.1/package/files/wordCount.jar</include>
@@ -404,6 +404,15 @@
                 </transformer>
               </transformers>
               <outputFile>${project.build.directory}${dirsep}zkmigrator.jar</outputFile>
+              <minimizeJar>true</minimizeJar>
+              <artifactSet>
+                <includes>
+                  <include>org.apache.zookeeper:zookeeper</include>
+                  <include>commons-cli:commons-cli</include>
+                  <include>org.slf4j:*</include>
+                  <include>log4j:*</include>
+                </includes>
+              </artifactSet>
             </configuration>
           </execution>
           <execution>
@@ -413,6 +422,14 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <minimizeJar>true</minimizeJar>
+              <artifactSet>
+                <includes>
+                  <include>commons-cli:commons-cli</include>
+                  <include>org.slf4j:*</include>
+                  <include>log4j:*</include>
+                </includes>
+              </artifactSet>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>org.apache.ambari.tools.jce.JcePolicyInfo</mainClass>

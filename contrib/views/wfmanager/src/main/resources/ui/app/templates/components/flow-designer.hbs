@@ -273,13 +273,13 @@
   {{save-wf type='wf' close="closeSaveWorkflow" jobFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=configForSave}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
-  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath tabInfo=tabInfo openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun}}
+  {{job-config type='wf' closeJobConfigs="closeWorkflowSubmitConfigs" jobFilePath=workflowFilePath tabInfo=tabInfo openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" jobConfigs=workflowSubmitConfigs isDryrun=dryrun jobConfigProperties=jobConfigProperties}}
 {{/if}}
 {{#if showGlobalConfig}}
   {{#global-config closeGlobalConfig="closeWorkflowGlobalProps" saveGlobalConfig="saveGlobalConfig" actionModel=globalConfig}}{{/global-config}}
 {{/if}}
 {{#if showingFileBrowser}}
-  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath}}
+  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath hideUpload=true}}
 {{/if}}
 {{#if showingActionSettingsFileBrowser}}
   {{hdfs-browser closeFileBrowser="closeActionSettingsFileBrowser" selectFileCallback=selectFileCallback filePath=actionSettingsFilePath}}

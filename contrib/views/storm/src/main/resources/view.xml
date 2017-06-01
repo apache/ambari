@@ -22,15 +22,15 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <description>Ambari view for Apache Storm</description>
   <parameter>
 	<name>storm.host</name>
-	<description>Enter the Storm host name for accessing Storm. Host must be accessible from Ambari Server.</description>
-	<label>Storm Hostname</label>
+        <description>Enter the Storm UI Server hostname for accessing Storm. Host must be accessible from Ambari Server.</description>
+        <label>Storm UI Server Hostname</label>
 	<placeholder>storm-host.example.com</placeholder>
 	<required>true</required>
   </parameter>
   <parameter>
 	<name>storm.port</name>
-	<description>Enter the Storm port for accessing Storm.</description>
-	<label>Storm Port</label>
+        <description>Enter the Storm UI Server port for accessing Storm.</description>
+        <label>Storm UI Server Port</label>
 	<placeholder>8744</placeholder>
 	<required>true</required>
   </parameter>

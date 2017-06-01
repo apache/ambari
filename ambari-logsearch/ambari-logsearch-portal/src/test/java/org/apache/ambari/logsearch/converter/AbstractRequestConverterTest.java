@@ -37,6 +37,7 @@ public class AbstractRequestConverterTest {
     request.setStartIndex("0");
     request.setPage("0");
     request.setPageSize("25");
+    request.setClusters("cl1");
   }
 
 }

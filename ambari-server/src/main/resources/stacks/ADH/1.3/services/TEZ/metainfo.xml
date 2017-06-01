@@ -20,12 +20,11 @@
   <services>
     <service>
       <name>TEZ</name>
-      <displayName>Tez</displayName>
-      <version>0.5.2.2.2</version>
+      <version>0.6.2.2.3</version>
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>tez</name>
@@ -33,10 +32,10 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>tez-${stack_version}</name>
+              <name>tez</name>
             </package>
           </packages>
         </osSpecific>

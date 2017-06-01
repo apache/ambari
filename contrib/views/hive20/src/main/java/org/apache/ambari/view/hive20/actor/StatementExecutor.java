@@ -23,6 +23,7 @@ import akka.actor.Props;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.hive20.ConnectionDelegate;
 import org.apache.ambari.view.hive20.actor.message.GetColumnMetadataJob;
+import org.apache.ambari.view.hive20.actor.message.GetDatabaseMetadataJob;
 import org.apache.ambari.view.hive20.actor.message.HiveMessage;
 import org.apache.ambari.view.hive20.actor.message.ResultInformation;
 import org.apache.ambari.view.hive20.actor.message.RunStatement;
@@ -36,6 +37,7 @@ import org.apache.hive.jdbc.HiveStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -70,6 +72,8 @@ public class StatementExecutor extends HiveActor {
       runStatement((RunStatement) message);
     } else if (message instanceof GetColumnMetadataJob) {
       getColumnMetaData((GetColumnMetadataJob) message);
+    }else if (message instanceof GetDatabaseMetadataJob) {
+      getDatabaseMetaData((GetDatabaseMetadataJob) message);
     }
   }
 
@@ -149,6 +153,17 @@ public class StatementExecutor extends HiveActor {
       sender().tell(new ResultInformation(-1,
         new Failure("Failed to get column metadata for databasePattern: " + message.getSchemaPattern() +
           ", tablePattern: " + message.getTablePattern() + ", ColumnPattern: " + message.getColumnPattern(), e)), self());
+    }
+  }
+
+  private void getDatabaseMetaData(GetDatabaseMetadataJob message) {
+    try {
+      DatabaseMetaData metaData = connectionDelegate.getDatabaseMetadata(connection);
+      sender().tell(new ResultInformation(-1, metaData), self());
+    } catch (SQLException e) {
+      LOG.error("Failed to get database metadata.", e);
+      sender().tell(new ResultInformation(-1,
+        new Failure("Failed to get database metadata.", e)), self());
     }
   }
 }

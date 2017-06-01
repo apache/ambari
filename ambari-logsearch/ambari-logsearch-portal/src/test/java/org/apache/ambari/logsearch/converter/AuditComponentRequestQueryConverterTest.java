@@ -46,7 +46,7 @@ public class AuditComponentRequestQueryConverterTest extends AbstractRequestConv
     SimpleFacetQuery facetQuery = underTest.convert(request);
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(facetQuery);
     // THEN
-    assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B*+TO+*%5D&facet=true&facet.mincount=1&facet.limit=-1&facet.sort=index&facet.field=repo",
+    assertEquals("?q=*%3A*&rows=0&fq=evtTime%3A%5B*+TO+*%5D&fq=cluster%3Acl1&facet=true&facet.mincount=1&facet.limit=-1&facet.sort=index&facet.field=repo",
       query.toQueryString());
   }
 

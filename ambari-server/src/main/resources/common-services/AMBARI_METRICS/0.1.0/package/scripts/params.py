@@ -60,17 +60,22 @@ embedded_mode_multiple_instances = False
 if not is_ams_distributed and len(ams_collector_list) > 1:
   embedded_mode_multiple_instances = True
 
+set_instanceId = "false"
+cluster_name = config["clusterName"]
 if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_vip_host']
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 
 metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
 random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
 if 'cluster-env' in config['configurations'] and \
-    'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+    'metrics_collector_external_port' in config['configurations']['cluster-env']:
+  metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
 else:
   metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
   if metric_collector_web_address.find(':') != -1:
@@ -166,6 +171,7 @@ ams_grafana_port = default("/configurations/ams-grafana-ini/port", 3000)
 ams_grafana_protocol = default("/configurations/ams-grafana-ini/protocol", 'http')
 ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/etc/ambari-metrics/conf/ams-grafana.crt')
 ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc/ambari-metrics/conf/ams-grafana.key')
+ams_grafana_ca_cert = default("/configurations/ams-grafana-ini/ca_cert", None)
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
@@ -328,6 +334,10 @@ ams_grafana_env_sh_template = config['configurations']['ams-grafana-env']['conte
 ams_grafana_ini_template = config['configurations']['ams-grafana-ini']['content']
 
 hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.staging.dir", "/amshbase/staging")
+skip_create_hbase_root_dir = default("/configurations/ams-site/timeline.metrics.skip.create.hbase.root.dir", False)
+hbase_wal_dir = default("/configurations/ams-hbase-site/hbase.wal.dir", None)
+if hbase_wal_dir and re.search("^file://|/", hbase_wal_dir): #If wal dir is on local file system, create it.
+  hbase_wal_dir = re.sub("^file://|/", "", hbase_wal_dir, count=1)
 
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']

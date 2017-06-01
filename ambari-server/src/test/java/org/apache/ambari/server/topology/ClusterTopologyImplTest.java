@@ -18,27 +18,22 @@
 
 package org.apache.ambari.server.topology;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.easymock.EasyMock.expect;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.replay;
+import static org.powermock.api.easymock.PowerMock.reset;
+import static org.powermock.api.easymock.PowerMock.verify;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.notNull;
-import static org.powermock.api.easymock.PowerMock.createNiceMock;
-import static org.powermock.api.easymock.PowerMock.createStrictMock;
-import static org.powermock.api.easymock.PowerMock.replay;
-import static org.powermock.api.easymock.PowerMock.reset;
-import static org.powermock.api.easymock.PowerMock.verify;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for ClusterTopologyImpl.
@@ -54,16 +49,19 @@ public class ClusterTopologyImplTest {
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
   private static final HostGroup group4 = createNiceMock(HostGroup.class);
-  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
-  private final Map<String, HostGroup> hostGroupMap = new HashMap<String, HostGroup>();
-  private final List<TopologyValidator> topologyValidators = new ArrayList<TopologyValidator>();
-  private static Configuration configuration;
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<>();
+  private final Map<String, HostGroup> hostGroupMap = new HashMap<>();
+
+  private Configuration configuration;
+  private Configuration bpconfiguration;
 
   @Before
   public void setUp() throws Exception {
 
     configuration = new Configuration(new HashMap<String, Map<String, String>>(),
-        new HashMap<String, Map<String, Map<String, String>>>());
+      new HashMap<String, Map<String, Map<String, String>>>());
+    bpconfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
+      new HashMap<String, Map<String, Map<String, String>>>());
 
     HostGroupInfo group1Info = new HostGroupInfo("group1");
     HostGroupInfo group2Info = new HostGroupInfo("group2");
@@ -75,15 +73,19 @@ public class ClusterTopologyImplTest {
     hostGroupInfoMap.put("group4", group4Info);
 
     group1Info.setConfiguration(configuration);
-    Collection<String> group1Hosts = new HashSet<String>();
+    Collection<String> group1Hosts = new HashSet<>();
     group1Hosts.add("host1");
     group1Hosts.add("host2");
     group1Info.addHosts(group1Hosts);
 
     group2Info.setConfiguration(configuration);
-    Collection<String> group2Hosts = new HashSet<String>();
+    Collection<String> group2Hosts = new HashSet<>();
     group2Hosts.add("host3");
     group2Info.addHosts(group2Hosts);
+    Collection<String> group4Hosts = new HashSet<>();
+    group4Hosts.add("host4");
+    group4Hosts.add("host5");
+    group4Info.addHosts(group4Hosts);
 
     group3Info.setConfiguration(configuration);
     group3Info.setRequestedCount(5);
@@ -92,26 +94,26 @@ public class ClusterTopologyImplTest {
     group4Info.setRequestedCount(5);
     group4Info.setPredicate(predicate);
 
-    expect(blueprint.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(blueprint.getConfiguration()).andReturn(bpconfiguration).anyTimes();
 
     hostGroupMap.put("group1", group1);
     hostGroupMap.put("group2", group2);
     hostGroupMap.put("group3", group3);
     hostGroupMap.put("group4", group4);
 
-    Set<Component> group1Components = new HashSet<Component>();
+    Set<Component> group1Components = new HashSet<>();
     group1Components.add(new Component("component1"));
     group1Components.add(new Component("component2"));
 
-    Set<String> group1ComponentNames = new HashSet<String>();
+    Set<String> group1ComponentNames = new HashSet<>();
     group1ComponentNames.add("component1");
     group1ComponentNames.add("component2");
 
-    Set<Component> group2Components = new HashSet<Component>();
+    Set<Component> group2Components = new HashSet<>();
     group2Components.add(new Component("component3"));
-    Set<Component> group3Components = new HashSet<Component>();
+    Set<Component> group3Components = new HashSet<>();
     group3Components.add(new Component("component4"));
-    Set<Component> group4Components = new HashSet<Component>();
+    Set<Component> group4Components = new HashSet<>();
     group4Components.add(new Component("component5"));
 
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
@@ -133,7 +135,7 @@ public class ClusterTopologyImplTest {
     expect(group1.getComponentNames()).andReturn(group1ComponentNames).anyTimes();
     expect(group2.getComponentNames()).andReturn(Collections.singletonList("component3")).anyTimes();
     expect(group3.getComponentNames()).andReturn(Collections.singletonList("component4")).anyTimes();
-    expect(group4.getComponentNames()).andReturn(Collections.singletonList("component5")).anyTimes();
+    expect(group4.getComponentNames()).andReturn(Collections.singletonList("NAMENODE")).anyTimes();
   }
 
   @After
@@ -141,7 +143,7 @@ public class ClusterTopologyImplTest {
     verify(blueprint, group1, group2, group3, group4);
     reset(blueprint, group1, group2, group3, group4);
 
-    topologyValidators.clear();
+
     hostGroupInfoMap.clear();
     hostGroupMap.clear();
   }
@@ -150,36 +152,7 @@ public class ClusterTopologyImplTest {
     replay(blueprint, group1, group2, group3, group4);
   }
 
-  @Test(expected = InvalidTopologyException.class)
-  public void testCreate_validatorFails() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-    expectLastCall().andThrow(new InvalidTopologyException("test"));
-
-    replayAll();
-    replay(validator);
-    // should throw exception due to validation failure
-    new ClusterTopologyImpl(null, request);
-  }
-
-  @Test
-     public void testCreate_validatorSuccess() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
-
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-
-    replayAll();
-    replay(validator);
-
-    new ClusterTopologyImpl(null, request);
-  }
 
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_duplicateHosts() throws Exception {
@@ -197,13 +170,7 @@ public class ClusterTopologyImplTest {
   public void test_GetHostAssigmentForComponents() throws Exception {
     TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
-    TopologyValidator validator = createStrictMock(TopologyValidator.class);
-    topologyValidators.add(validator);
-
-    validator.validate((ClusterTopology) notNull());
-
     replayAll();
-    replay(validator);
 
     new ClusterTopologyImpl(null, request).getHostAssignmentsForComponent("component1");
   }
@@ -236,17 +203,12 @@ public class ClusterTopologyImplTest {
 
     @Override
     public Configuration getConfiguration() {
-      return configuration;
+      return bpconfiguration;
     }
 
     @Override
     public Map<String, HostGroupInfo> getHostGroupInfo() {
       return hostGroupInfoMap;
-    }
-
-    @Override
-    public List<TopologyValidator> getTopologyValidators() {
-      return topologyValidators;
     }
 
     @Override

@@ -24,15 +24,15 @@ angular.module('ambariAdminConsole')
     os: $t('versions.os')
   };
   $scope.editController = true;
-  $scope.osList = [];
+  $scope.osList = []; // view modal for display repo urls of various OSes
   $scope.skipValidation = false;
   $scope.useRedhatSatellite = false;
-  $scope.selectedOS = 0;
   $scope.upgradeStack = {
     stack_name: '',
     stack_version: '',
     display_name: ''
   };
+  $scope.defaulfOSRepos = {}; // a copy of initial loaded repo info for "changed" check later
 
   $scope.loadStackVersionInfo = function () {
     return Stack.getRepo($routeParams.versionId, $routeParams.stackName).then(function (response) {
@@ -54,8 +54,6 @@ angular.module('ambariAdminConsole')
             var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
             return skipServices.indexOf(service.name) === -1;
           }) || [];
-      //save default values of repos to check if they were changed
-      $scope.defaulfOSRepos = {};
       response.updateObj.operating_systems.forEach(function(os) {
         $scope.defaulfOSRepos[os.OperatingSystems.os_type] = {};
         os.repositories.forEach(function(repo) {
@@ -84,8 +82,6 @@ angular.module('ambariAdminConsole')
       } else {
         $scope.deleteEnabled = $scope.isDeletable();
       }
-      // fetch all repos to display the left menu
-      $scope.fetchRepos();
     });
   };
 
@@ -133,33 +129,34 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  $scope.defaulfOSRepos = {};
-
   $scope.save = function () {
     $scope.editVersionDisabled = true;
     delete $scope.updateObj.href;
     $scope.updateObj.operating_systems = [];
-    var updateRepoUrl = false;
+    // check if there is any change in repo list
+    var changed = false;
     angular.forEach($scope.osList, function (os) {
       var savedUrls = $scope.defaulfOSRepos[os.OperatingSystems.os_type];
-      os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
-      if (os.selected) {
-        var currentRepos = os.repositories;
-        var urlChanged = false;
-        angular.forEach(currentRepos, function (repo) {
-          if (repo.Repositories.base_url != savedUrls[repo.Repositories.repo_id]) {
-            urlChanged = true;
-          }
-        });
-        if (!savedUrls || urlChanged) {
-          updateRepoUrl = true;
+      if (os.selected) { // currently shown?
+        if (savedUrls) { // initially loaded?
+          angular.forEach(os.repositories, function (repo) {
+            if (repo.Repositories.base_url != savedUrls[repo.Repositories.repo_id]) {
+              changed = true; // modified
+            }
+          });
+        } else {
+          changed = true; // added
         }
+        os.OperatingSystems.ambari_managed_repositories = !$scope.useRedhatSatellite;
         $scope.updateObj.operating_systems.push(os);
-      } else if (savedUrls) {
-        updateRepoUrl = true;
+      } else {
+        if (savedUrls) {
+          changed = true; // removed
+        }
       }
     });
-    if (updateRepoUrl && !$scope.deleteEnabled) {
+    // show confirmation when making changes to current/installed repo
+    if (changed && !$scope.deleteEnabled) {
       ConfirmationModal.show(
           $t('versions.changeBaseURLConfirmation.title'),
           $t('versions.changeBaseURLConfirmation.message'),
@@ -340,65 +337,6 @@ angular.module('ambariAdminConsole')
       });
     }
     return hasErrors;
-  };
-
-
-  // add all repos list
-  $scope.filter = {
-    version: '',
-    cluster: {
-      options: [],
-      current: null
-    }
-  };
-
-  $scope.pagination = {
-    totalRepos: 100,
-    maxVisiblePages: 1,
-    itemsPerPage: 100,
-    currentPage: 1
-  };
-  $scope.allRepos = [];
-  $scope.stackVersions = [];
-
-
-
-  /**
-   *  Formatted object to display all repos:
-   *
-   *  [{ 'name': 'HDP-2.3',
-   *     'repos': ['2.3.6.0-2343', '2.3.4.1', '2.3.4.0-56']
-   *   },
-   *   { 'name': 'HDP-2.2',
-   *     'repos': ['2.2.6.0', '2.2.4.5', '2.2.4.0']
-   *   }
-   *  ]
-   *
-   */
-  $scope.fetchRepos = function () {
-    return Stack.allRepos($scope.filter, $scope.pagination).then(function (repos) {
-      $scope.allRepos = repos.items.sort(function(a, b){return a.repository_version < b.repository_version});
-      var existingStackHash = {};
-      var stackVersions = [];
-      angular.forEach($scope.allRepos, function (repo) {
-        var stackVersionName = repo.stack_name + '-' + repo.stack_version;
-        var currentStackVersion = $scope.upgradeStack.stack_name + '-' + $scope.upgradeStack.stack_version;
-        repo.isActive = $scope.actualVersion == repo.repository_version;
-        if (!existingStackHash[stackVersionName]) {
-          existingStackHash[stackVersionName] = true;
-          stackVersions.push({
-            'name': stackVersionName,
-            'isOpened': stackVersionName == currentStackVersion,
-            'repos': [repo]
-          });
-        } else {
-          if (stackVersions[stackVersions.length -1].repos) {
-            stackVersions[stackVersions.length -1].repos.push(repo);
-          }
-        }
-      });
-      $scope.stackVersions = stackVersions;
-    });
   };
 
   $scope.loadStackVersionInfo();

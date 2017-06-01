@@ -36,6 +36,12 @@ define(['require',
 
             template: GraphLayoutViewTmpl,
 
+            templateHelpers: function () {
+                return {
+                    showSelectClustersDropdown: this.showSelectClustersDropdown
+                }
+            },
+
             /** ui selector cache */
             ui: {
                 histoGraph: "div[data-id='rHistogramGraph']",
@@ -45,6 +51,11 @@ define(['require',
                 graphHeader: "div[data-id='graphHeader']",
                 showUnit : "span[data-id='showUnit']"
 
+            },
+
+            /** Layout sub regions */
+            regions: {
+                RSelectClusterDropdown: "#r_SelectClusterDropdown"
             },
 
             /** ui events hash */
@@ -60,7 +71,7 @@ define(['require',
              * @constructs
              */
             initialize: function(options) {
-                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker', 'showUnit','futureDate'));
+                _.extend(this, _.pick(options, 'vent', 'globalVent', 'params', 'viewType', 'showDatePicker', 'showUnit','futureDate', 'showSelectClustersDropdown', 'loadClustersUrl'));
                 /* if (this.showDatePicker) {
                      this.graphVent = new Backbone.Wreqr.EventAggregator();
                  }*/
@@ -68,8 +79,7 @@ define(['require',
                 this.collection = new VLogList([], {
                     state: {
                         firstPage: 0,
-                        pageSize: 999999999,
-
+                        pageSize: 999999999
                     }
                 });
                 this.dateUtil = Utils.dateUtil;
@@ -173,6 +183,9 @@ define(['require',
                     that.addRegions(region);
                     this.renderDatePicker(regionName);
                 }
+                if (this.showSelectClustersDropdown) {
+                    this.renderSelectClusterDropdown();
+                }
                 if (this.histogramView) {
                     this.ui.graphHeader.html('<i class="fa fa-signal"></i><span >Histogram</span>');
                 } else {
@@ -205,8 +218,17 @@ define(['require',
                         parentEl: that.$el,
                         fetch: true,
                         rangeLabel: true,
-                        datePickerPosition : "left",
-                        width: '65%'
+                        datePickerPosition : "left"
+                    }));
+                });
+            },
+            renderSelectClusterDropdown: function() {
+                var that = this;
+                require(['views/common/SelectClusterDropdown'], function (SelectClusterDropdownView) {
+                    that.RSelectClusterDropdown.show(new SelectClusterDropdownView({
+                        vent: that.vent,
+                        globalVent: that.globalVent,
+                        clustersUrl: that.loadClustersUrl
                     }));
                 });
             },

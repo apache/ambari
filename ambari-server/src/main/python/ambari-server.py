@@ -175,10 +175,10 @@ def stop(args):
     logger.info("Waiting for server stop...")
 
     if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
-      err = "Ambari-server failed to stop"
+      err = "Ambari-server failed to stop gracefully. Sending SIGKILL to it"
       print err
       logger.error(err)
-      raise FatalException(1, err)
+      os.kill(pid, signal.SIGKILL)
 
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)

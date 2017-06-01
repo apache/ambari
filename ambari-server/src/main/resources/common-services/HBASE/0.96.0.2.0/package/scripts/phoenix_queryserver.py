@@ -71,10 +71,6 @@ class PhoenixQueryServer(Script):
     import status_params
     env.set_params(status_params)
     phoenix_service('status')
-
-
-  def security_status(self, env):
-    self.put_structured_out({"securityState": "UNSECURED"})
     
   def get_log_folder(self):
     import params

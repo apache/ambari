@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+"use strict";
 
 var App = require('app');
 
@@ -57,9 +58,38 @@ App.SplashController = Ember.ObjectController.extend({
       }
       model.set(name + 'TestDone', true);
       var percent = model.get('percent');
-      model.set('percent', percent + 25);
+      model.set('percent', percent + (100/model.get("numberOfChecks")));
     };
-    var promises = ['storage', 'webhcat', 'hdfs', 'userhome'].map(function(name) {
+
+    var checks = [];
+    if(model.get("serviceCheckPolicy").checkHdfs){
+      checks.push("hdfs");
+    }else{
+      model.set("hdfs" + 'TestDone', true);
+      model.set("hdfs" + 'Test', true);
+    }
+    if(model.get("serviceCheckPolicy").checkStorage){
+      checks.push("storage");
+    }else{
+      model.set("storage" + 'TestDone', true);
+      model.set("storage" + 'Test', true);
+    }
+
+    if(model.get("serviceCheckPolicy").checkWebhcat){
+      checks.push("webhcat");
+    }else{
+      model.set("webhcat" + 'TestDone', true);
+      model.set("webhcat" + 'Test', true);
+    }
+
+    if(model.get("serviceCheckPolicy").checkHomeDirectory){
+      checks.push("userhome");
+    }else{
+      model.set("userhome" + 'TestDone', true);
+      model.set("userhome" + 'Test', true);
+    }
+
+    var promises = checks.map(function(name) {
       return Ember.$.getJSON('/' + url + name + 'Status')
                .then(
                  function(data) {
@@ -73,6 +103,12 @@ App.SplashController = Ember.ObjectController.extend({
 
     return Ember.RSVP.all(promises);
   },
+  fetchServiceCheckPolicy: function(){
+    var url = App.getNamespaceUrl() + '/resources/pig/help/';
+
+    return Ember.$.getJSON('/' + url + "service-check-policy");
+  },
+
   progressBarStyle: function() {
     return 'width: ' + this.get("model").get("percent") + '%;';
   }.property("model.percent"),

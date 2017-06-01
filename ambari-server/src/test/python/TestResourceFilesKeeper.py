@@ -179,6 +179,7 @@ class TestResourceFilesKeeper(TestCase):
     except Exception, e:
       self.fail('Unexpected exception thrown:' + str(e))
 
+  @patch("os.path.isfile")
   @patch("os.path.exists")
   @patch("os.listdir")
   @patch.object(ResourceFilesKeeper, "count_hash_sum")
@@ -188,8 +189,10 @@ class TestResourceFilesKeeper(TestCase):
   def test_update_directory_archive(self, write_hash_sum_mock,
                                     zip_directory_mock, read_hash_sum_mock,
                                     count_hash_sum_mock,
-                                    os_listdir_mock, os_path_exists_mock):
+                                    os_listdir_mock, os_path_exists_mock,
+                                    os_path_isfile_mock):
     os_listdir_mock.return_value = ['file1', 'dir1']
+
     # Test situation when there is no saved directory hash
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
@@ -206,10 +209,27 @@ class TestResourceFilesKeeper(TestCase):
     zip_directory_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
 
-    # Test situation when saved directory hash == current hash
+    # Test situation where there is a .hash file, equal to the current hash,
+    # but no archive.zip file
+    count_hash_sum_mock.return_value = self.YA_HASH
+    read_hash_sum_mock.return_value = self.YA_HASH
+    os_path_isfile_mock.return_value = False
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
+    resource_files_keeper.update_directory_archive(self.SOME_PATH)
+    self.assertTrue(read_hash_sum_mock.called)
+    self.assertTrue(count_hash_sum_mock.called)
+    self.assertTrue(zip_directory_mock.called)
+    self.assertFalse(write_hash_sum_mock.called)
+
+    read_hash_sum_mock.reset_mock()
+    count_hash_sum_mock.reset_mock()
+    zip_directory_mock.reset_mock()
+    write_hash_sum_mock.reset_mock()
+
+    # Test situation when saved directory hash == current hash and old archive does not exist
     read_hash_sum_mock.return_value = self.DUMMY_HASH
     count_hash_sum_mock.return_value = self.YA_HASH
-    os_path_exists_mock.return_value = True
+    os_path_isfile_mock.return_value = False
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -221,10 +241,11 @@ class TestResourceFilesKeeper(TestCase):
     zip_directory_mock.reset_mock()
     write_hash_sum_mock.reset_mock()
 
-    # Test situation when saved directory hash == current hash
+    # Test situation when saved directory hash == current hash and old archive exists
     read_hash_sum_mock.return_value = self.DUMMY_HASH
     count_hash_sum_mock.return_value = self.DUMMY_HASH
     os_path_exists_mock.return_value = True
+    os_path_isfile_mock.return_value = True
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)

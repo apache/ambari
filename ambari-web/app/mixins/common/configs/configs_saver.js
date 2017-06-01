@@ -365,10 +365,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   /*********************************** 3. GENERATING JSON TO SAVE *****************************/
 
   /**
-   * Map that contains last used timestamp per filename.
+   * Map that contains last used timestamp.
    * There is a case when two config groups can update same filename almost simultaneously
-   * so they have equal timestamp only and this causes collision. So to prevent this we need to check
-   * if specific filename with specific timestamp is not saved yet
+   * so they have equal timestamp and this causes collision. So to prevent this we need to check
+   * if specific filename with specific timestamp is not saved yet.
    *
    * @type {Object}
    */
@@ -386,14 +386,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     var desired_config = [];
     if (Em.isArray(configsToSave) && Em.isArray(fileNamesToSave) && fileNamesToSave.length && configsToSave.length) {
       serviceConfigNote = serviceConfigNote || "";
-      var tagVersion = "version" + (new Date).getTime();
-      fileNamesToSave.forEach(function(fName) {
 
-        /** @see <code>_timeStamps<code> **/
-        if (this.get('_timeStamps')[fName] === tagVersion) {
-          tagVersion = "version" + ((new Date).getTime() + 1);
-        }
-        this.get('_timeStamps')[fName] = tagVersion;
+      fileNamesToSave.forEach(function(fName) {
+        var tagVersion = this.getUniqueTag();
 
         if (this.allowSaveSite(fName)) {
           var properties = configsToSave.filterProperty('filename', fName);
@@ -403,6 +398,23 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       }, this);
     }
     return desired_config;
+  },
+
+  /**
+   * generate unique tag
+   * @returns {string}
+   */
+  getUniqueTag: function() {
+    var timestamp = (new Date).getTime();
+    var tagVersion = "version" + timestamp;
+
+    while(this.get('_timeStamps')[tagVersion]) {
+      timestamp++;
+      tagVersion = "version" + timestamp;
+    }
+    /** @see <code>_timeStamps<code> **/
+    this.get('_timeStamps')[tagVersion] = true;
+    return tagVersion;
   },
 
   /**

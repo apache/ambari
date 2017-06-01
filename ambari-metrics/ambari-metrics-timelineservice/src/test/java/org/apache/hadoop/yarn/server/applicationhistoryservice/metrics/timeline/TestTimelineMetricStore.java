@@ -97,6 +97,11 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   }
 
   @Override
+  public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId) throws SQLException, IOException {
+    return Collections.emptyMap();
+  }
+
+  @Override
   public List<String> getLiveInstances() {
     return Collections.emptyList();
   }

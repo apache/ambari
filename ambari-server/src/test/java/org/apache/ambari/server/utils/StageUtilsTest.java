@@ -194,7 +194,7 @@ public class StageUtilsTest extends EasyMockSupport {
       JsonMappingException, JAXBException, IOException {
     StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo", "hostParamsStage");
-    ExecutionCommand cmd = s.getExecutionCommands(getHostName()).get(0).getExecutionCommand();
+    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
     HashMap<String, Map<String, String>> configTags = new HashMap<String, Map<String, String>>();
     Map<String, String> globalTag = new HashMap<String, String>();
     globalTag.put("tag", "version1");

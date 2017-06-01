@@ -129,9 +129,9 @@ define(['require',
 	    },
 	    getPage : function(index, options){
 		if(index === "last"){
-			this.queryParams.isLastPage = true;
+			this.queryParams.lastPage = true;
 		}else{
-			delete this.queryParams.isLastPage;
+			delete this.queryParams.lastPage;
 		}
 		var fn = Backbone.PageableCollection.prototype.getPage;
 		fn.apply(this,arguments);

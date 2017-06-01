@@ -325,7 +325,7 @@ public class ClusterStackVersionResourceProviderTest {
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
             anyObject(String.class), anyLong(),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class))).andReturn(stage).
             times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
 
@@ -544,7 +544,7 @@ public class ClusterStackVersionResourceProviderTest {
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
             anyObject(String.class), anyLong(),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class))).andReturn(stage).
             times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
 
@@ -763,7 +763,7 @@ public class ClusterStackVersionResourceProviderTest {
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
             anyObject(String.class), anyLong(),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class))).andReturn(stage).
             times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
 
@@ -994,7 +994,7 @@ public class ClusterStackVersionResourceProviderTest {
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
             anyObject(String.class), anyLong(),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class), anyObject(String.class),
             anyObject(String.class))).andReturn(stage).
             times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
 
@@ -1527,7 +1527,7 @@ public class ClusterStackVersionResourceProviderTest {
     // Check that we create proper stage count
     expect(stageFactory.createNew(anyLong(), anyObject(String.class),
         anyObject(String.class), anyLong(),
-        anyObject(String.class), anyObject(String.class), anyObject(String.class),
+        anyObject(String.class), anyObject(String.class),
         anyObject(String.class))).andReturn(stage).
         times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
 

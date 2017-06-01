@@ -18,16 +18,16 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
 import java.io.Serializable;
+import java.util.Objects;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 @SuppressWarnings("serial")
 public class StageEntityPK implements Serializable {
   private Long requestId;
+  private Long stageId;
 
-  @Id
-  @Column(name = "request_id")
   public Long getRequestId() {
     return requestId;
   }
@@ -36,10 +36,6 @@ public class StageEntityPK implements Serializable {
     this.requestId = requestId;
   }
 
-  private Long stageId;
-
-  @Id
-  @Column(name = "stage_id")
   public Long getStageId() {
     return stageId;
   }
@@ -49,22 +45,24 @@ public class StageEntityPK implements Serializable {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
 
-    StageEntityPK that = (StageEntityPK) o;
+    if (object == null || getClass() != object.getClass()) {
+      return false;
+    }
 
-    if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
-    if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
-
-    return true;
+    StageEntityPK that = (StageEntityPK) object;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(requestId, that.requestId);
+    equalsBuilder.append(stageId, that.stageId);
+    return equalsBuilder.isEquals();
   }
 
   @Override
   public int hashCode() {
-    int result = requestId != null ? requestId.hashCode() : 0;
-    result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
-    return result;
+    return Objects.hash(requestId, stageId);
   }
 }

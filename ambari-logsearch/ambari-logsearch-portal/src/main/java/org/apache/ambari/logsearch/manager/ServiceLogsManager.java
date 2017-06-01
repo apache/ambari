@@ -34,6 +34,7 @@ import javax.inject.Named;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -43,6 +44,7 @@ import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.StatusMessage;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.model.request.impl.HostLogFilesRequest;
@@ -70,6 +72,7 @@ import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.converter.BaseServiceLogRequestQueryConverter;
 import org.apache.ambari.logsearch.converter.ServiceLogTruncatedRequestQueryConverter;
 import org.apache.ambari.logsearch.solr.ResponseDataGenerator;
+import org.apache.ambari.logsearch.solr.SolrConstants;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
@@ -85,6 +88,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
@@ -96,6 +100,7 @@ import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ID;
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.SEQUENCE_ID;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
@@ -135,21 +140,30 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       }
     } else if (isLastPage) {
       ServiceLogResponse logResponse = getLastPage(serviceLogsSolrDao, solrQuery, event);
-      if(logResponse == null){
+      if (logResponse == null){
         logResponse = new ServiceLogResponse();
       }
       return logResponse;
     } else {
-      return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao, event);
+      ServiceLogResponse response = getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao, event);
+      if (response.getTotalCount() > 0 && CollectionUtils.isEmpty(response.getLogList())) {
+        request.setLastPage(true);
+        solrQuery = conversionService.convert(request, SimpleQuery.class);
+        ServiceLogResponse lastResponse = getLastPage(serviceLogsSolrDao, solrQuery, event);
+        if (lastResponse != null){
+          response = lastResponse;
+        }
+      }
+      return response;
     }
   }
 
-  public GroupListResponse getHosts() {
-    return getFields(HOST, SolrHostLogData.class);
+  public GroupListResponse getHosts(String clusters) {
+    return getFields(HOST, clusters, SolrHostLogData.class);
   }
 
-  public GroupListResponse getComponents() {
-    return getFields(COMPONENT, SolrComponentTypeLogData.class);
+  public GroupListResponse getComponents(String clusters) {
+    return getFields(COMPONENT, clusters, SolrComponentTypeLogData.class);
   }
 
   public GraphDataListResponse getAggregatedInfo(ServiceLogAggregatedInfoRequest request) {
@@ -162,16 +176,21 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return responseDataGenerator.generateSimpleGraphResponse(response, hierarchy);
   }
 
-  public CountDataListResponse getFieldCount(String field) {
-    return responseDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(conversionService.convert(field, SimpleFacetQuery.class)), field);
+  public CountDataListResponse getFieldCount(String field, String clusters) {
+    SimpleFacetQuery facetQuery = conversionService.convert(field, SimpleFacetQuery.class);
+    if (StringUtils.isEmpty(clusters)) {
+      List<String> clusterFilterList = Splitter.on(",").splitToList(clusters);
+      facetQuery.addFilterQuery(new SimpleFilterQuery(new Criteria(CLUSTER).in(clusterFilterList)));
+    }
+    return responseDataGenerator.generateCountResponseByField(serviceLogsSolrDao.process(facetQuery), field);
   }
 
-  public CountDataListResponse getComponentsCount() {
-    return getFieldCount(COMPONENT);
+  public CountDataListResponse getComponentsCount(String clusters) {
+    return getFieldCount(COMPONENT, clusters);
   }
 
-  public CountDataListResponse getHostsCount() {
-    return getFieldCount(HOST);
+  public CountDataListResponse getHostsCount(String clusters) {
+    return getFieldCount(HOST, clusters);
   }
 
   public NodeListResponse getTreeExtension(ServiceLogHostComponentRequest request) {
@@ -523,9 +542,10 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  private <T extends LogData> GroupListResponse getFields(String field, Class<T> clazz) {
+  private <T extends LogData> GroupListResponse getFields(String field, String clusters, Class<T> clazz) {
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
+    SolrUtil.addListFilterToSolrQuery(solrQuery, CLUSTER, clusters);
     GroupListResponse collection = new GroupListResponse();
     SolrUtil.setFacetField(solrQuery,
       field);
@@ -588,5 +608,15 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse queryResponse = serviceLogsSolrDao.process(facetQuery, "/service/logs/hostlogfiles");
     return responseDataGenerator.generateHostLogFilesResponse(queryResponse);
+  }
+
+  public StatusMessage deleteLogs(ServiceLogRequest request) {
+    SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
+    UpdateResponse updateResponse = serviceLogsSolrDao.deleteByQuery(solrQuery, "/service/logs");
+    return new StatusMessage(updateResponse.getStatus());
+  }
+
+  public List<String> getClusters() {
+    return getClusters(serviceLogsSolrDao, CLUSTER, "/service/logs/clusters");
   }
 }

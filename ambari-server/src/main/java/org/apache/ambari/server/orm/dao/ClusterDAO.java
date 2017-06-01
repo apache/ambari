@@ -364,6 +364,21 @@ public class ClusterDAO {
       daoUtils.executeUpdate(query, clusterId, types);
     }
 
+  /**
+   * Delete ClusterConfigMappingEntity corresponds to clusterConfigEntity
+   *
+   * @param clusterConfigEntity
+   *          clusterConfigEntity to match.
+   */
+  @Transactional
+  public void removeClusterConfigMappingEntityByConfig(ClusterConfigEntity clusterConfigEntity) {
+
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery
+        ("DELETE FROM ClusterConfigMappingEntity configs WHERE configs" +
+            ".clusterId=?1 AND configs.typeName= ?2 AND configs.tag=?3 ", Long.class);
+
+    daoUtils.executeUpdate(query, clusterConfigEntity.getClusterId(), clusterConfigEntity.getType(), clusterConfigEntity.getTag());
+  }
 
   /**
    * Retrieve entity data from DB

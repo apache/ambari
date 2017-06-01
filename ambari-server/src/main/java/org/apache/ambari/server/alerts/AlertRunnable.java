@@ -27,6 +27,7 @@ import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.commons.lang.math.NumberUtils;
@@ -161,5 +162,31 @@ public abstract class AlertRunnable implements Runnable {
 
     Number number = NumberUtils.createNumber((String) value);
     return number.intValue();
+  }
+
+  /**
+   * Builds an {@link Alert} instance.
+   *
+   * @param cluster
+   *          the cluster the alert is for (not {@code null}).
+   * @param myDefinition
+   *          the alert's definition (not {@code null}).
+   * @param alertState
+   *          the state of the alert (not {@code null}).
+   * @param message
+   *          the alert text.
+   * @return and alert.
+   */
+  protected Alert buildAlert(Cluster cluster, AlertDefinitionEntity myDefinition,
+      AlertState alertState, String message) {
+    Alert alert = new Alert(myDefinition.getDefinitionName(), null, myDefinition.getServiceName(),
+        myDefinition.getComponentName(), null, alertState);
+
+    alert.setLabel(myDefinition.getLabel());
+    alert.setText(message);
+    alert.setTimestamp(System.currentTimeMillis());
+    alert.setCluster(cluster.getClusterName());
+
+    return alert;
   }
 }

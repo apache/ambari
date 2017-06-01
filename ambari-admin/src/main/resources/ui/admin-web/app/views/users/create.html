@@ -24,7 +24,20 @@
   <div class="form-group" ng-class="{'has-error' : form.user_name.$error.required && form.submitted}">
     <label for="username" class="col-sm-2 control-label">{{'users.username' | translate}}</label>
     <div class="col-sm-10">
-      <input type="text" id="username" class="form-control username-input" name="user_name" placeholder="{{'users.userName' | translate}}" ng-model="user.user_name" required autocomplete="off">
+      <input
+          autofocus
+          type="text"
+          id="username"
+          class="form-control username-input"
+          name="user_name"
+          placeholder="{{'users.userName' | translate}}"
+          ng-model="user.user_name"
+          ng-required="true"
+          ng-pattern="/^[^<>&`|\\]+$/"
+          ng-maxlength="80"
+          tooltip="{{'users.userNameTip' | translate}}"
+          autocomplete="off"
+          tooltip-trigger="focus">
       <div class="alert alert-danger top-margin" ng-show="form.user_name.$error.required && form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
     </div>
   </div>

@@ -35,6 +35,7 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
+from setup_ranger_hive import setup_ranger_hive_metastore_service
 
 from hive import create_metastore_schema, hive, jdbc_connector
 from hive_service import hive_service
@@ -61,6 +62,8 @@ class HiveMetastore(Script):
 
     hive_service('metastore', action='start', upgrade_type=upgrade_type)
 
+    # below function call is used for cluster depolyed in cloud env to create ranger hive service in ranger admin.
+    setup_ranger_hive_metastore_service()
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -113,58 +116,6 @@ class HiveMetastoreDefault(HiveMetastore):
     if is_upgrade and params.stack_version_formatted_major and \
             check_stack_feature(StackFeature.HIVE_METASTORE_UPGRADE_SCHEMA, params.stack_version_formatted_major):
       self.upgrade_schema(env)
-
-
-  def security_status(self, env):
-    import status_params
-    env.set_params(status_params)
-    if status_params.security_enabled:
-      props_value_check = {"hive.server2.authentication": "KERBEROS",
-                           "hive.metastore.sasl.enabled": "true",
-                           "hive.security.authorization.enabled": "true"}
-      props_empty_check = ["hive.metastore.kerberos.keytab.file",
-                           "hive.metastore.kerberos.principal"]
-
-      props_read_check = ["hive.metastore.kerberos.keytab.file"]
-      hive_site_props = build_expectations('hive-site', props_value_check, props_empty_check,
-                                            props_read_check)
-
-      hive_expectations ={}
-      hive_expectations.update(hive_site_props)
-
-      security_params = get_params_from_filesystem(status_params.hive_conf_dir,
-                                                   {'hive-site.xml': FILE_TYPE_XML})
-      result_issues = validate_security_config_properties(security_params, hive_expectations)
-      if not result_issues: # If all validations passed successfully
-        try:
-          # Double check the dict before calling execute
-          if 'hive-site' not in security_params \
-            or 'hive.metastore.kerberos.keytab.file' not in security_params['hive-site'] \
-            or 'hive.metastore.kerberos.principal' not in security_params['hive-site']:
-            self.put_structured_out({"securityState": "UNSECURED"})
-            self.put_structured_out({"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.hive_user,
-                                security_params['hive-site']['hive.metastore.kerberos.keytab.file'],
-                                security_params['hive-site']['hive.metastore.kerberos.principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        except Exception as e:
-          self.put_structured_out({"securityState": "ERROR"})
-          self.put_structured_out({"securityStateErrorInfo": str(e)})
-      else:
-        issues = []
-        for cf in result_issues:
-          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-        self.put_structured_out({"securityState": "UNSECURED"})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
-
 
   def upgrade_schema(self, env):
     """

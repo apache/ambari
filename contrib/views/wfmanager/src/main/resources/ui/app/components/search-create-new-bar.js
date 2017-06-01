@@ -161,7 +161,7 @@ export default Ember.Component.extend(Ember.Evented,{
         queryParam = "endCreatedTime";
       }
       if (date._isAMomentObject) {
-        var dateFilter = queryParam +"="+ date.format("YYYY-MM-DDThh:mm")+'Z';
+        var dateFilter = queryParam +"="+ date.format("YYYY-MM-DDTHH:mm")+'Z';
         this.filter[queryParam] = dateFilter;
       } else {
         delete this.filter[queryParam];
@@ -189,7 +189,10 @@ export default Ember.Component.extend(Ember.Evented,{
             this.sendAction('onSearch', { type: type, filter: filter });
         },
         onSearchClicked(){
-          this.$('#search-field').tagsinput('add', 'Name:'+this.$('.tt-input').val());
+          var searchValue=this.$('.tt-input').val();
+          if(!Ember.isBlank(searchValue)) {
+            this.$('#search-field').tagsinput('add', 'Name:'+searchValue);
+          }
         },
         refresh(){
           this.sendAction('onSearch', this.get('history').getSearchParams());
@@ -204,7 +207,7 @@ export default Ember.Component.extend(Ember.Evented,{
         onClear(type) {
           if (type ==='start' && this.get('startDate') === "") {
             this.filterByDate("", type);
-          } else if (type ==='start' && this.get('endDate') === "") {
+          } else if (type ==='end' && this.get('endDate') === "") {
             this.filterByDate("", type);
           }
 

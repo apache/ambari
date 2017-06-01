@@ -40,6 +40,7 @@ public class UserExportRequestQueryConverterTest extends AbstractRequestConverte
     UserExportRequest request = new UserExportRequest();
     fillBaseLogRequestWithTestData(request);
     request.setFormat("myFormat");
+    request.setClusters(null);
     // WHEN
     SolrQuery query = new DefaultQueryParser().doConstructSolrQuery(underTest.convert(request));
     // THEN

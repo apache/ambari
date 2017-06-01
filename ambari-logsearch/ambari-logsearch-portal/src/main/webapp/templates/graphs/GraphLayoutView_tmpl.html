@@ -40,7 +40,12 @@
         <div class="loader" style="display: none;">
         </div>
         <div>
-            <div class="col-md-12 addDatePicker"></div>
+            {{#if showSelectClustersDropdown}}
+                <div class="col-lg-10 col-md-9 col-sm-9 addDatePicker"></div>
+                <div class="col-lg-2 col-md-3 col-sm-3" id="r_SelectClusterDropdown"></div>
+            {{else}}
+                <div class="col-md-12 addDatePicker"></div>
+            {{/if}}
             <div class="myHistogram" data-id="rHistogramGraph">
                 <span class="unitposition" data-id ="showUnit"></span>
                 <svg></svg>

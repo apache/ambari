@@ -17,10 +17,10 @@
 }}
 
 <tr>
-  <td> {{udf.name}}</td>
+  <td><a class="hand" {{action "showEditUdf" udf.id udf.fileResource }}>{{udf.name}}</a></td>
   <td>{{udf.classname}} </td>
   <td>{{udf.owner}}</td>
-  <td class="center">
+  <td>
     <a class="hand" {{action "toggleExpandUdf" udf.fileResource }}>{{fa-icon "expand"}}</a>&nbsp;&nbsp;
     <a class="hand" {{action "showEditUdf" udf.id udf.fileResource }}>{{fa-icon "edit"}}</a>&nbsp;&nbsp;
     <a class="hand" {{action "showRemoveUdfModal" udf.id }}>{{fa-icon "remove"}}</a>
@@ -59,9 +59,9 @@
 {{#if showDeleteUdfModal}}
   {{confirm-dialog
   title="Confirm"
-  label="Do You want to delete the UDF?"
+  label="Do you want to delete the UDF?"
   titleIcon="minus"
-  labelIcon="save"
+  labelIcon="remove"
   rejectIcon="times"
   confirmIcon="check"
   closable=false
@@ -70,7 +70,5 @@
   reject="cancelUdf"
   }}
 {{/if}}
-
-
 
 {{yield}}

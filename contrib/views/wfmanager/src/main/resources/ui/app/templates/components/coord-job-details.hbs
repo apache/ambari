@@ -82,36 +82,42 @@
     </div>
   </div>
   <div role="tabpanel" class="tab-pane" id="jobAction">
-    <table id="action-list" class="table listing job-listing table-striped table-hover table-bordered">
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th>Status</th>
-          <th>External Id</th>
-          <th>Error Code</th>
-          <th>Created Time</th>
-          <th>Nominal Time</th>
-          <th>Last Modified Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each model.actions as |actionInfo|}}
-        <tr class="{{if (eq actionInfo model.actionDetails) "active"}}">
-          {{#if actionInfo.externalId}}
-            <td class="pointer action-link" {{action 'showWorkflow' actionInfo.externalId}}>{{actionInfo.id}}</td>
-          {{else}}
-            <td>{{actionInfo.id}}</td>
-          {{/if}}
-          <td>{{actionInfo.status}}</td>
-          <td>{{actionInfo.externalId}}</td>
-          <td>{{actionInfo.errorCode}}</td>
-          <td>{{actionInfo.createdTime}}</td>
-          <td>{{actionInfo.nominalTime}}</td>
-          <td>{{actionInfo.lastModifiedTime}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
+    <div id="actions-list-header-conatiner">
+      <table id="actions-list-header" class="table listing job-listing table-striped table-hover table-bordered">
+        <thead>
+          <tr>
+            <th class="col-xs-2">Id</th>
+            <th class="col-xs-1">Status</th>
+            <th class="col-xs-2">External Id</th>
+            <th class="col-xs-1">Error Code</th>
+            <th class="col-xs-2">Created Time</th>
+            <th class="col-xs-2">Nominal Time</th>
+            <th class="col-xs-2">Last Modified Time</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div id="coord-actions-list-body-conatiner">
+      <table id="actions-list-body" class="table listing job-listing table-striped table-hover table-bordered">
+        <tbody>
+          {{#each model.actions as |actionInfo|}}
+          <tr class="{{if (eq actionInfo model.actionDetails) "active"}}">
+            {{#if actionInfo.externalId}}
+              <td class="pointer action-link col-xs-2" {{action 'showWorkflow' actionInfo.externalId}}>{{actionInfo.id}}</td>
+            {{else}}
+              <td class="col-xs-2">{{actionInfo.id}}</td>
+            {{/if}}
+            <td class="col-xs-1">{{actionInfo.status}}</td>
+            <td class="col-xs-2">{{actionInfo.externalId}}</td>
+            <td class="col-xs-1">{{actionInfo.errorCode}}</td>
+            <td class="col-xs-2">{{actionInfo.createdTime}}</td>
+            <td class="col-xs-2">{{actionInfo.nominalTime}}</td>
+            <td class="col-xs-2">{{actionInfo.lastModifiedTime}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
   </div>
   <div role="tabpanel" class="tab-pane" id="jobDefinition">
     <div class="panel panel-default">

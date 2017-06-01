@@ -69,6 +69,7 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     metric2.setStartTime(now - 1000);
     metric2.setAppId("dummy_app2");
     metric2.setType("Integer");
+    metric2.setInstanceId("instance2");
     metric2.setMetricValues(new TreeMap<Long, Double>() {{
       put(now - 100, 1.0);
       put(now - 200, 2.0);
@@ -144,5 +145,12 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").iterator().next());
     Assert.assertEquals("dummy_app3", cachedHostData.get("dummy_host3").iterator().next());
+
+
+    Map<String, Set<String>> cachedHostInstanceData = metadataManager.getHostedInstanceCache();
+    Map<String, Set<String>> savedHostInstanceData = metadataManager.getHostedInstancesFromStore();
+    Assert.assertEquals(cachedHostInstanceData.size(), savedHostInstanceData.size());
+    Assert.assertEquals("dummy_host2", cachedHostInstanceData.get("instance2").iterator().next());
+
   }
 }

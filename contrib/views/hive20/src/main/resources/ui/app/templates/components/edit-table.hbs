@@ -26,11 +26,6 @@
       {{#each tabs as |tab|}}
         {{#if tab.active}}
           {{#if (eq tab.link "edit.table.columns")}}
-            {{#if hasEmptyColumnsError}}
-              <div class="alert alert-danger create-table-error">
-                {{emptyColumnsErrorText}}
-              </div>
-            {{/if}}
             {{table-columns columns=columns shouldAddBuckets=shouldAddBuckets editMode=true}}
           {{/if}}
           {{#if (eq tab.link "edit.table.properties")}}

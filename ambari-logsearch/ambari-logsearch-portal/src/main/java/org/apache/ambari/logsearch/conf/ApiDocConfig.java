@@ -25,8 +25,6 @@ import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.UnknownHostException;
-
 @Configuration
 public class ApiDocConfig {
 
@@ -41,7 +39,7 @@ public class ApiDocConfig {
   }
 
   @Bean
-  public BeanConfig swaggerConfig() throws UnknownHostException {
+  public BeanConfig swaggerConfig() {
     BeanConfig beanConfig = new BeanConfig();
     beanConfig.setSchemes(new String[]{"http", "https"});
     beanConfig.setBasePath("/api/v1");

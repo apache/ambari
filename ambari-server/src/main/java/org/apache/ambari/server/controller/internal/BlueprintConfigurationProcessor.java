@@ -164,6 +164,7 @@ public class BlueprintConfigurationProcessor {
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_hosts", "kerberos-env"),
+      new SimplePropertyNameExportFilter("master_kdc", "kerberos-env"),
       new SimplePropertyNameExportFilter("realm", "kerberos-env"),
       new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
       new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
@@ -411,7 +412,10 @@ public class BlueprintConfigurationProcessor {
       }
     }
 
-    setMissingConfigurations(clusterConfig, configTypesUpdated);
+    // Explicitly set any properties that are required but not currently provided in the stack definition.
+    setRetryConfiguration(clusterConfig, configTypesUpdated);
+    setupHDFSProxyUsers(clusterConfig, configTypesUpdated);
+    addExcludedConfigProperties(clusterConfig, configTypesUpdated, clusterTopology.getBlueprint().getStack());
 
     trimProperties(clusterConfig, clusterTopology);
 
@@ -520,6 +524,15 @@ public class BlueprintConfigurationProcessor {
     Map<String, Map<String, String>> properties = configuration.getFullProperties();
     for (Map.Entry<String, Map<String, String>> configEntry : properties.entrySet()) {
       String type = configEntry.getKey();
+      try {
+          clusterTopology.getBlueprint().getStack().getServiceForConfigType(type);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            LOG.error(new StringBuilder(String.format("Error encountered while trying to obtain the service name for config type [%s]. ", type))
+            .append("Further processing on this config type will be skipped. ")
+            .append("This usually means that a service's definitions have been manually removed from the Ambari stack definitions. ")
+            .append("If the stack definitions have not been changed manually, this may indicate a stack definition error in Ambari. ").toString(), illegalArgumentException);
+            continue;
+        }
       Map<String, String> typeProperties = configEntry.getValue();
 
       for (Map.Entry<String, String> propertyEntry : typeProperties.entrySet()) {
@@ -2771,59 +2784,53 @@ public class BlueprintConfigurationProcessor {
     });
   }
 
-  /**
-   * Explicitly set any properties that are required but not currently provided in the stack definition.
-   *
-   * @param configuration  configuration where properties are to be added
-   */
-  void setMissingConfigurations(Configuration configuration, Set<String> configTypesUpdated) {
+  private Collection<String> setupHDFSProxyUsers(Configuration configuration, Set<String> configTypesUpdated) {
     // AMBARI-5206
     final Map<String , String> userProps = new HashMap<String , String>();
 
-    setRetryConfiguration(configuration, configTypesUpdated);
-
     Collection<String> services = clusterTopology.getBlueprint().getServices();
-    // only add user properties to the map for
-    // services actually included in the blueprint definition
-    if (services.contains("OOZIE")) {
-      userProps.put("oozie_user", "oozie-env");
-    }
-
-    if (services.contains("HIVE")) {
-      userProps.put("hive_user", "hive-env");
-      userProps.put("hcat_user", "hive-env");
-    }
-
-    if (services.contains("HBASE")) {
-      userProps.put("hbase_user", "hbase-env");
-    }
-
-    if (services.contains("FALCON")) {
-      userProps.put("falcon_user", "falcon-env");
-    }
-
-    String proxyUserHosts  = "hadoop.proxyuser.%s.hosts";
-    String proxyUserGroups = "hadoop.proxyuser.%s.groups";
-
-    Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
-    for (String property : userProps.keySet()) {
-      String configType = userProps.get(property);
-      Map<String, String> configs = existingProperties.get(configType);
-      if (configs != null) {
-        String user = configs.get(property);
-        if (user != null && !user.isEmpty()) {
-          ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*", configTypesUpdated);
-          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
-        }
-      } else {
-        LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
-                  ".  This may be caused by an error in the blueprint configuration.");
+    if (services.contains("HDFS")) {
+      // only add user properties to the map for
+      // services actually included in the blueprint definition
+      if (services.contains("OOZIE")) {
+        userProps.put("oozie_user", "oozie-env");
       }
 
+      if (services.contains("HIVE")) {
+        userProps.put("hive_user", "hive-env");
+        userProps.put("hcat_user", "hive-env");
+        userProps.put("webhcat_user", "hive-env");
+      }
+
+      if (services.contains("HBASE")) {
+        userProps.put("hbase_user", "hbase-env");
+      }
+
+      if (services.contains("FALCON")) {
+        userProps.put("falcon_user", "falcon-env");
+      }
+
+      String proxyUserHosts = "hadoop.proxyuser.%s.hosts";
+      String proxyUserGroups = "hadoop.proxyuser.%s.groups";
+
+      Map<String, Map<String, String>> existingProperties = configuration.getFullProperties();
+      for (String property : userProps.keySet()) {
+        String configType = userProps.get(property);
+        Map<String, String> configs = existingProperties.get(configType);
+        if (configs != null) {
+          String user = configs.get(property);
+          if (user != null && !user.isEmpty()) {
+            ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*", configTypesUpdated);
+            ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
+          }
+        } else {
+          LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
+                  ".  This may be caused by an error in the blueprint configuration.");
+        }
+
+      }
     }
-
-    addExcludedConfigProperties(configuration, configTypesUpdated, services, clusterTopology.getBlueprint().getStack());
-
+    return services;
   }
 
   /**
@@ -2833,10 +2840,11 @@ public class BlueprintConfigurationProcessor {
    * In case the excluded config-type related service is not present in the blueprint, excluded configs are ignored
    * @param configuration
    * @param configTypesUpdated
-   * @param blueprintServices
    * @param stack
    */
-  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Collection<String> blueprintServices, Stack stack) {
+  private void addExcludedConfigProperties(Configuration configuration, Set<String> configTypesUpdated, Stack stack) {
+    Collection<String> blueprintServices = clusterTopology.getBlueprint().getServices();
+
     LOG.debug("Handling excluded properties for blueprint services: {}", blueprintServices);
 
     for (String blueprintService : blueprintServices) {

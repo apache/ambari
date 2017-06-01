@@ -68,6 +68,7 @@ public class HostRoleCommand {
   private String commandDetail;
   private String customCommandName;
   private ExecutionCommandWrapper executionCommandWrapper;
+  private boolean isBackgroundCommand = false;
 
   @Inject
   private ExecutionCommandDAO executionCommandDAO;
@@ -168,10 +169,10 @@ public class HostRoleCommand {
     errorLog = hostRoleCommandEntity.getErrorLog();
     structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
-    startTime = hostRoleCommandEntity.getStartTime();
-    originalStartTime = hostRoleCommandEntity.getOriginalStartTime();
+    startTime = hostRoleCommandEntity.getStartTime() != null ? hostRoleCommandEntity.getStartTime() : -1L;
+    originalStartTime = hostRoleCommandEntity.getOriginalStartTime() != null ? hostRoleCommandEntity.getOriginalStartTime() : -1L;
     endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
-    lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
+    lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime() != null ? hostRoleCommandEntity.getLastAttemptTime() : -1L;
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     retryAllowed = hostRoleCommandEntity.isRetryAllowed();
     autoSkipFailure = hostRoleCommandEntity.isFailureAutoSkipped();
@@ -179,6 +180,7 @@ public class HostRoleCommand {
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
     customCommandName = hostRoleCommandEntity.getCustomCommandName();
+    isBackgroundCommand = hostRoleCommandEntity.isBackgroundCommand();
   }
 
   //todo: why is this not symmetrical with the constructor which takes an entity
@@ -201,6 +203,7 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setRoleCommand(roleCommand);
     hostRoleCommandEntity.setCommandDetail(commandDetail);
     hostRoleCommandEntity.setCustomCommandName(customCommandName);
+    hostRoleCommandEntity.setBackgroundCommand(isBackgroundCommand);
 
     HostEntity hostEntity = hostDAO.findById(hostId);
     if (null != hostEntity) {
@@ -430,6 +433,29 @@ public class HostRoleCommand {
 
   public long getRequestId() {
     return requestId;
+  }
+
+  /**
+   * Gets whether this command runs in the background and does not block other
+   * commands.
+   *
+   * @return {@code true} if this command runs in the background, {@code false}
+   *         otherise.
+   */
+  public boolean isBackgroundCommand() {
+    return isBackgroundCommand;
+  }
+
+  /**
+   * Sets whether this command runs in the background and does not block other
+   * commands.
+   *
+   * @param isBackgroundCommand
+   *          {@code true} if this command runs in the background, {@code false}
+   *          otherise.
+   */
+  public void setBackgroundCommand(boolean isBackgroundCommand) {
+    this.isBackgroundCommand = isBackgroundCommand;
   }
 
   /**

@@ -412,6 +412,24 @@ public class TimelineWebServices {
     }
   }
 
+  @GET
+  @Path("/metrics/instances")
+  @Produces({ MediaType.APPLICATION_JSON })
+  public Map<String, Map<String, Set<String>>> getClusterHostsMetadata(
+    @Context HttpServletRequest req,
+    @Context HttpServletResponse res,
+    @QueryParam("appId") String appId,
+    @QueryParam("instanceId") String instanceId
+  ) {
+    init(res);
+
+    try {
+      return timelineMetricStore.getInstanceHostsMetadata(instanceId, appId);
+    } catch (Exception e) {
+      throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   /**
    * This is a discovery endpoint that advertises known live collector
    * instances. Note: It will always answer with current instance as live.

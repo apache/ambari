@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.UserType;
 
 import javax.persistence.*;
@@ -98,8 +99,8 @@ public class UserEntity {
     return userName;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
+  public void setUserName(UserName userName) {
+    this.userName = userName.toString();
   }
 
   public Boolean getLdapUser() {

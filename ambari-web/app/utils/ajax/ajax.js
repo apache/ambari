@@ -304,7 +304,7 @@ var urls = {
         data: JSON.stringify({
           RequestInfo: {
             query: data.query
-          },
+          }
         })
       }
     }
@@ -1706,6 +1706,7 @@ var urls = {
     'type': 'POST',
     'format': function (data) {
       return {
+        timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
             "repository_version": data.value,
@@ -2324,6 +2325,10 @@ var urls = {
   },
   'request_schedule.get': {
     'real': '/clusters/{clusterName}/request_schedules/{request_schedule_id}',
+    'mock': ''
+  },
+  'request_schedule.get.pending': {
+    'real': '/clusters/{clusterName}/request_schedules?fields=*&(RequestSchedule/status.in(SCHEDULED,IN_PROGRESS))',
     'mock': ''
   },
   'restart.hostComponents': {

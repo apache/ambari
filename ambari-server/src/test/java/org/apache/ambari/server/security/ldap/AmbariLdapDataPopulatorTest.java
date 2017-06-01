@@ -41,6 +41,7 @@ import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -1958,7 +1959,7 @@ public class AmbariLdapDataPopulatorTest {
   private User createUser(String name, boolean ldapUser, GroupEntity group) {
     final UserEntity userEntity = new UserEntity();
     userEntity.setUserId(userIdCounter++);
-    userEntity.setUserName(name);
+    userEntity.setUserName(UserName.fromString(name));
     userEntity.setCreateTime(new Date());
     userEntity.setLdapUser(ldapUser);
     userEntity.setActive(true);

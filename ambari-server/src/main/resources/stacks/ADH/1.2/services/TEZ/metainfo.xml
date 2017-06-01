@@ -20,7 +20,8 @@
   <services>
     <service>
       <name>TEZ</name>
-      <extends>common-services/TEZ/0.4.0.2.1</extends>
+      <displayName>Tez</displayName>
+      <version>0.5.2.2.2</version>
     </service>
   </services>
 </metainfo>

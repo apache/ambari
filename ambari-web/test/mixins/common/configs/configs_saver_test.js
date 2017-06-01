@@ -232,6 +232,19 @@ describe('App.ConfigsSaverMixin', function() {
     })
   });
 
+  describe('#getUniqueTag', function() {
+
+    it('should generate unique tags', function() {
+      var tags = [];
+      for (var i = 0; i < 3; i++) {
+        tags.push(instanceObject.getUniqueTag());
+      }
+      expect(tags[1]).to.not.be.equal(tags[0]);
+      expect(tags[2]).to.not.be.equal(tags[1]);
+      expect(tags[0]).to.not.be.equal(tags[2]);
+    });
+  });
+
   describe('#getModifiedConfigs', function () {
     var configs = [
       Em.Object.create({

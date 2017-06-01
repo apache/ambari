@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -91,7 +92,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   public static final String STAGE_REQUEST_ID = "Stage/request_id";
   public static final String STAGE_LOG_INFO = "Stage/log_info";
   public static final String STAGE_CONTEXT = "Stage/context";
-  public static final String STAGE_CLUSTER_HOST_INFO = "Stage/cluster_host_info";
   public static final String STAGE_COMMAND_PARAMS = "Stage/command_params";
   public static final String STAGE_HOST_PARAMS = "Stage/host_params";
   public static final String STAGE_SKIPPABLE = "Stage/skippable";
@@ -119,7 +119,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     PROPERTY_IDS.add(STAGE_REQUEST_ID);
     PROPERTY_IDS.add(STAGE_LOG_INFO);
     PROPERTY_IDS.add(STAGE_CONTEXT);
-    PROPERTY_IDS.add(STAGE_CLUSTER_HOST_INFO);
     PROPERTY_IDS.add(STAGE_COMMAND_PARAMS);
     PROPERTY_IDS.add(STAGE_HOST_PARAMS);
     PROPERTY_IDS.add(STAGE_SKIPPABLE);
@@ -211,12 +210,11 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
     // !!! poor mans cache.  toResource() shouldn't be calling the db
     // every time, when the request id is likely the same for each stageEntity
-    Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache =
-        new HashMap<Long, Map<Long, HostRoleCommandStatusSummaryDTO>>();
+    Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache = new HashMap<>();
 
     List<StageEntity> entities = dao.findAll(request, predicate);
     for (StageEntity entity : entities) {
-      results.add(toResource(cache, entity, propertyIds));
+      results.add(StageResourceProvider.toResource(cache, entity, propertyIds));
     }
 
     cache.clear();
@@ -232,8 +230,11 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
       if (null != lr) {
         Collection<StageEntity> topologyManagerStages = lr.getStageEntities();
+        // preload summaries as it contains summaries for all stages within this request
+        Map<Long, HostRoleCommandStatusSummaryDTO> summary = topologyManager.getStageSummaries(requestId);
+        cache.put(requestId, summary);
         for (StageEntity entity : topologyManagerStages) {
-          Resource stageResource = toResource(entity, propertyIds);
+          Resource stageResource = toResource(cache, entity, propertyIds);
           if (predicate.evaluate(stageResource)) {
             results.add(stageResource);
           }
@@ -242,7 +243,11 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     } else {
       Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
       for (StageEntity entity : topologyManagerStages) {
-        Resource stageResource = toResource(entity, propertyIds);
+        if (!cache.containsKey(entity.getRequestId())) {
+          Map<Long, HostRoleCommandStatusSummaryDTO> summary = topologyManager.getStageSummaries(entity.getRequestId());
+          cache.put(entity.getRequestId(), summary);
+        }
+        Resource stageResource = toResource(cache, entity, propertyIds);
         if (predicate.evaluate(stageResource)) {
           results.add(stageResource);
         }
@@ -273,7 +278,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
    *
    * @return the new resource
    */
-  private Resource toResource(
+  static Resource toResource(
       Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache,
       StageEntity entity,
       Set<String> requestedIds) {
@@ -300,11 +305,6 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
-
-    // this property is lazy loaded in JPA; don't use it unless requested
-    if (isPropertyRequested(STAGE_CLUSTER_HOST_INFO, requestedIds)) {
-      resource.setProperty(STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo());
-    }
 
     // this property is lazy loaded in JPA; don't use it unless requested
     if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
@@ -351,71 +351,4 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     return resource;
   }
 
-  /**
-   * Converts the {@link StageEntity} to a {@link Resource}.
-   *
-   * @param entity        the entity to convert (not {@code null})
-   * @param requestedIds  the properties requested (not {@code null})
-   *
-   * @return the new resource
-   */
-  //todo: almost exactly the same as other toResource except how summaries are obtained
-  //todo: refactor to combine the two with the summary logic extracted
-  private Resource toResource(StageEntity entity, Set<String> requestedIds) {
-
-    Resource resource = new ResourceImpl(Resource.Type.Stage);
-
-    Long clusterId = entity.getClusterId();
-    if (clusterId != null && !clusterId.equals(Long.valueOf(-1L))) {
-      try {
-        Cluster cluster = clustersProvider.get().getClusterById(clusterId);
-
-        setResourceProperty(resource, STAGE_CLUSTER_NAME, cluster.getClusterName(), requestedIds);
-      } catch (Exception e) {
-        LOG.error("Can not get information for cluster " + clusterId + ".", e );
-      }
-    }
-
-    Map<Long, HostRoleCommandStatusSummaryDTO> summary =
-        topologyManager.getStageSummaries(entity.getRequestId());
-
-    setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
-    setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
-    setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
-
-    // this property is lazy loaded in JPA; don't use it unless requested
-    if (isPropertyRequested(STAGE_CLUSTER_HOST_INFO, requestedIds)) {
-      resource.setProperty(STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo());
-    }
-
-    // this property is lazy loaded in JPA; don't use it unless requested
-    if (isPropertyRequested(STAGE_COMMAND_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_COMMAND_PARAMS, entity.getCommandParamsStage());
-    }
-
-    // this property is lazy loaded in JPA; don't use it unless requested
-    if (isPropertyRequested(STAGE_HOST_PARAMS, requestedIds)) {
-      resource.setProperty(STAGE_HOST_PARAMS, entity.getHostParamsStage());
-    }
-
-    setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
-
-    Long startTime = Long.MAX_VALUE;
-    Long endTime = 0L;
-    if (summary.containsKey(entity.getStageId())) {
-      startTime = summary.get(entity.getStageId()).getStartTime();
-      endTime = summary.get(entity.getStageId()).getEndTime();
-    }
-
-    setResourceProperty(resource, STAGE_START_TIME, startTime, requestedIds);
-    setResourceProperty(resource, STAGE_END_TIME, endTime, requestedIds);
-
-    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
-
-    setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, status.getStatus(), requestedIds);
-    setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
-
-    return resource;
-  }
 }

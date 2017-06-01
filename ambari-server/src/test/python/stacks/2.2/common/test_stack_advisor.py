@@ -3045,6 +3045,7 @@ class TestHDP22StackAdvisor(TestCase):
             "StackServices": {
               "service_name" : "STORM",
               "service_version" : "2.6.0.2.2"
+
             }
           },
           {
@@ -3066,6 +3067,11 @@ class TestHDP22StackAdvisor(TestCase):
         "stack_version": "2.2"
       },
       "configurations": {
+        "cluster-env": {
+          "properties": {
+            "security_enabled": "false"
+          }
+        },
         "storm-site": {
           "properties": {
             "nimbus.authorizer" : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer"
@@ -3097,6 +3103,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = ''
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
     services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
 
@@ -3106,6 +3113,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'No'
     services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
+    services['configurations']['cluster-env']['properties']['security_enabled'] = 'true'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
 

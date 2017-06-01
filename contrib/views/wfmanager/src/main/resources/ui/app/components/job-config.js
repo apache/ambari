@@ -35,6 +35,7 @@ const Validations = buildValidations({
 
 
 export default Ember.Component.extend(Validations, {
+  workflowManagerConfigs : Ember.inject.service('workflow-manager-configs'),
   systemConfigs : Ember.A([]),
   showingFileBrowser : false,
   overwritePath : false,
@@ -68,6 +69,12 @@ export default Ember.Component.extend(Validations, {
     var configProperties = [];
     configProperties.pushObjects(this.extractJobParams());
     configProperties.pushObjects(this.extractJobProperties());
+    configProperties.forEach((configProperty)=>{
+      var oldConfigProp = this.jobConfigProperties.filterBy('name', configProperty.name);
+      if (oldConfigProp.length > 0) {
+          configProperty.value = oldConfigProp[0].value;
+      }
+    }, this);
     return configProperties;
   }),
   initialize :function(){
@@ -112,31 +119,35 @@ export default Ember.Component.extend(Validations, {
     var jobProperties = [];
     var jobParams = this.get("jobConfigs").params, self = this;
     this.get("jobProps").forEach(function(value) {
-      if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue){
-        var propName = value.trim().substring(2, value.length-1);
-        var isRequired = true;
+      var propName = value.trim().substring(2, value.length-1);
+      var isRequired = true;
+      var val = null;
+      if (value!== Constants.defaultNameNodeValue && value!==Constants.rmDefaultValue) {
         if(jobParams && jobParams.configuration && jobParams.configuration.property){
           var param = jobParams.configuration.property.findBy('name', propName);
           if(param && param.value){
             isRequired = false;
+            val = param.value;
           }else {
             isRequired = true;
           }
         }
-        let val = null, tabData = self.get("tabInfo");
+        let tabData = self.get("tabInfo");
         if(tabData && tabData.isImportedFromDesigner && tabData.configuration && tabData.configuration.settings && tabData.configuration.settings.configuration && tabData.configuration.settings.configuration.property) {
           let propVal = tabData.configuration.settings.configuration.property.findBy('name', propName);
           if(propVal) {
             val = propVal.value
           }
         }
-        var prop= Ember.Object.create({
-          name: propName,
-          value: val,
-          isRequired : isRequired
-        });
-        jobProperties.push(prop);
+      } else {
+        val = self.get("workflowManagerConfigs").getWfmConfigs()[propName];
       }
+      var prop= Ember.Object.create({
+        name: propName,
+        value: val,
+        isRequired : isRequired
+      });
+      jobProperties.push(prop);
     });
     return jobProperties;
   },
@@ -174,6 +185,7 @@ export default Ember.Component.extend(Validations, {
       return;
     };
     this.set('jobFilePath', Ember.copy(this.get('filePath')));
+    this.set("jobConfigProperties", Ember.copy(this.get("configMap")));
     var url = Ember.ENV.API_URL + "/submitJob?app.path=" + this.get("filePath") + "&overwrite=" + this.get("overwritePath");
     url = url + "&jobType=" + this.get('displayName').toUpperCase();
     var submitConfigs = this.get("configMap");

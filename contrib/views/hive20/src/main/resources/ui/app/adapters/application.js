@@ -21,6 +21,8 @@ import DS from 'ember-data';
 import ENV from 'ui/config/environment';
 
 export default DS.RESTAdapter.extend({
+  ldapAuth: Ember.inject.service(),
+
   init: function () {
     Ember.$.ajaxSetup({
       cache: false
@@ -61,6 +63,14 @@ export default DS.RESTAdapter.extend({
     }
     return headers;
   }),
+
+
+  handleResponse(status, headers, payload, requestData) {
+    if (status == 401) {
+      this.get('ldapAuth').askPassword();
+    }
+    return this._super(...arguments);
+  },
 
   parseErrorResponse(responseText) {
     let json = this._super(responseText);

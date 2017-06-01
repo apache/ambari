@@ -20,6 +20,7 @@
   <services>
     <service>
       <name>KERBEROS</name>
+      <extends>common-services/KERBEROS/1.10.3-10</extends>
     </service>
   </services>
 </metainfo>

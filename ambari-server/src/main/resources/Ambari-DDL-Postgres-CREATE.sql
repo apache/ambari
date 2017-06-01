@@ -346,6 +346,7 @@ CREATE TABLE request (
   request_schedule_id BIGINT,
   start_time BIGINT NOT NULL,
   status VARCHAR(255),
+  cluster_host_info BYTEA NOT NULL,
   CONSTRAINT PK_request PRIMARY KEY (request_id),
   CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id));
 
@@ -357,7 +358,6 @@ CREATE TABLE stage (
   supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
-  cluster_host_info BYTEA NOT NULL,
   command_params BYTEA,
   host_params BYTEA,
   command_execution_type VARCHAR(32) DEFAULT 'STAGE' NOT NULL,
@@ -388,6 +388,7 @@ CREATE TABLE host_role_command (
   role_command VARCHAR(255),
   command_detail VARCHAR(255),
   custom_command_name VARCHAR(255),
+  is_background SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_host_role_command PRIMARY KEY (task_id),
   CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id),
   CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id));

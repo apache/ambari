@@ -154,7 +154,7 @@ public class AmbariLocalUserProviderTest {
     PrincipalEntity principalEntity = new PrincipalEntity();
     UserEntity userEntity = new UserEntity();
     userEntity.setUserId(1);
-    userEntity.setUserName(TEST_USER_NAME);
+    userEntity.setUserName(UserName.fromString(TEST_USER_NAME));
     userEntity.setUserPassword(passwordEncoder.encode(TEST_USER_PASS));
     userEntity.setUserType(UserType.LOCAL);
     userEntity.setPrincipal(principalEntity);

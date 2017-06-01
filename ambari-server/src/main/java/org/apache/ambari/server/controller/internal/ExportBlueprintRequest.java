@@ -36,7 +36,6 @@ import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,11 +110,6 @@ public class ExportBlueprintRequest implements TopologyRequest {
   @Override
   public Map<String, HostGroupInfo> getHostGroupInfo() {
     return hostGroupInfo;
-  }
-
-  @Override
-  public List<TopologyValidator> getTopologyValidators() {
-    return Collections.emptyList();
   }
 
   @Override

@@ -38,7 +38,13 @@
 .main-wrapper {
   padding: 5px 0;
   background-color: #fff;
-  min-height: 100vh;
+}
+
+.top-application-header{
+  background-color: #e1e1e0;
+  ul{
+    padding: 0 15px;
+  }
 }
 
 .fa-1-5{
@@ -49,7 +55,7 @@
   font-size: 2em;
 }
 
-$database-search-background: lighten($body-bg, 10%);
+$database-search-background: lighten($base-bg, 10%);
 $database-search-text-color: $gray;
 .database-search, .multiple-database-search {
   color:  $database-search-text-color;
@@ -128,7 +134,7 @@ $database-search-text-color: $gray;
   }
 }
 
-$list-filter-header-background: lighten($body-bg, 10%);
+$list-filter-header-background: lighten($base-bg, 10%);
 $list-filter-text-color: $gray;
 
 .list-filter {
@@ -152,7 +158,7 @@ $list-filter-text-color: $gray;
 
 .table-list {
   .list-group-item {
-    background-color: lighten($body-bg, 10%);
+    background-color: lighten($base-bg, 10%);
   }
 }
 
@@ -174,10 +180,10 @@ $list-filter-text-color: $gray;
   }
 }
 
-$table-info-background: lighten($body-bg, 10%);
+$table-info-background: lighten($base-bg, 10%);
 .table-info {
 
-  background-color: $body-bg;
+  background-color: $base-bg;
   .table-header {
     border: 1px solid darken($table-info-background, 15%);
     p {
@@ -218,7 +224,7 @@ pre {
 }
 
 .scroll-fix {
-  background-color: lighten($body-bg, 5%);
+  background-color: lighten($base-bg, 5%);
   height: calc(100vh - 180px);
   overflow-y: scroll;
 }
@@ -681,7 +687,7 @@ pre {
 }
 
 .flash-messages-wrap {
-  position: absolute;
+  position: fixed;
   width: 40%;
   min-width: 575px;
   left: 50%;
@@ -693,12 +699,16 @@ pre {
   border-radius: $border-radius-large;
   .alert-icon {
     float: left;
+    position: relative;
+    bottom: 1px;
+    left: 10px;
     margin-right: 15px;
+    max-height: 15px;
   }
 
   .alert-message-wrap {
     display: table;
-    min-height: 56px;
+    min-height: 25px;
     .alert-message {
       display: table-cell;
       vertical-align: middle;
@@ -707,9 +717,15 @@ pre {
 
 }
 
+.wrap-message {
+  span {
+    line-height: 1.9em;
+  }
+}
+
 .jobs-status {
-  border-top: 1px solid darken($body-bg, 10%);
-  border-bottom: 1px solid darken($body-bg, 10%);
+  border-top: 1px solid darken($base-bg, 10%);
+  border-bottom: 1px solid darken($base-bg, 10%);
   .strip {
     margin-top: 20px;
   }
@@ -724,6 +740,7 @@ pre {
 }
 
 .worksheet-nav {
+  padding: 0 9px;
   li{
     margin-left:5px;
     a {
@@ -935,7 +952,7 @@ rect.operator__box {
   overflow: auto;
 }
 
-.explain--error {
+.explain--error, .no-results {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -959,4 +976,40 @@ rect.operator__box {
   position:relative;
   bottom:10px;
   right:-15px;
+}
+
+.CodeMirror-scroll {
+  padding-bottom: 20px;
+}
+
+.ellipsis-node {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100px;
+}
+
+.progress {
+  margin-top: 15px;
+}
+
+.btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+  border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.middle-align {
+  vertical-align: middle;
+}
+
+.table-title {
+  padding: 0 15px;
+}
+
+.button-container {
+  margin-top: 10px;
+}
+
+.sort-icon {
+  padding-left: 5px;
 }

@@ -20,12 +20,51 @@ import Ember from 'ember';
 import UILoggerMixin from '../mixins/ui-logger';
 
 export default Ember.Component.extend(UILoggerMixin, {
+  columnStatsKeys : [
+    {dataKey: 'min', label: 'MIN'},
+    {dataKey: 'max', label: 'MAX'},
+    {dataKey: 'numNulls', label: 'NUMBER OF NULLS'},
+    {dataKey: 'distinctCount', label: 'DISTINCT COUNT'},
+    {dataKey: 'avgColLen', label: 'AVERAGE COLUMN LENGTH'},
+    {dataKey: 'maxColLen', label: 'MAX COLUMN LENGTH'},
+    {dataKey: 'numTrues', label: 'NUMBER OF TRUE'},
+    {dataKey: 'numFalse', label: 'NUMBER OF FALSE'},
+  ],
+
   statsService: Ember.inject.service(),
 
   analyseWithStatistics: false,
+  partitionStatSupportedVersion: "2.1",
+  isTablePartitioned: Ember.computed("table.partitionInfo.columns", function(){
+    return this.get("table.partitionInfo.columns") && this.get("table.partitionInfo.columns.length") > 0;
+  }),
+  partitionStatSupported: Ember.computed("table.tableStats.databaseMetadata.databaseMajorVersion",
+    "table.tableStats.databaseMetadata.databaseMinorVersion", function(){
+    if(this.get('table.tableStats.databaseMetadata.databaseMajorVersion') > 2){
+      return true;
+    }else if(this.get('table.tableStats.databaseMetadata.databaseMajorVersion') === 2
+      && this.get('table.tableStats.databaseMetadata.databaseMinorVersion') >= 1){
+      return true;
+    }
 
+    return false;
+  }),
+  showStats:Ember.computed("partitionStatSupported", "isTablePartitioned", function(){
+    if(!this.get("isTablePartitioned")) {
+      return true;
+    }else{
+      if(this.get("partitionStatSupported")){
+        return true;
+      }else{
+        return false;
+      }
+    }
+  }),
   tableStats: Ember.computed.oneWay('table.tableStats'),
+
   tableStatisticsEnabled: Ember.computed.oneWay('table.tableStats.isTableStatsEnabled'),
+
+  basicStatsAccurate: Ember.computed.oneWay('columnStatsAccurate.BASIC_STATS'),
 
   columnStatsAccurate: Ember.computed('table.tableStats.columnStatsAccurate', function () {
     let columnStatsJson = this.get('table.tableStats.columnStatsAccurate');
@@ -37,25 +76,19 @@ export default Ember.Component.extend(UILoggerMixin, {
     return !stats ? [] : Object.keys(stats);
   }),
 
-  columns: Ember.computed('table.columns', 'columnsWithStatistics', function () {
+  columns: Ember.computed('table.columns', function () {
     let cols = this.get('table.columns');
-    let colsWithStatistics = this.get('columnsWithStatistics');
+    if(this.get("table.partitionInfo.columns")){ // show stats for all columns
+      cols = cols.concat(this.get("table.partitionInfo.columns"));
+    }
     return cols.map((col) => {
       let copy = Ember.Object.create(col);
-      copy.set('hasStatistics', colsWithStatistics.contains(copy.name));
+      copy.set('hasStatistics', true);
       copy.set('isFetchingStats', false);
       copy.set('statsError', false);
       copy.set('showStats', true);
       return copy;
     });
-  }),
-
-  allColumnsHasStatistics: Ember.computed('table.columns', 'columnsWithStatistics', function () {
-    let colsNames = this.get('table.columns').getEach('name');
-    let colsWithStatistics = this.get('columnsWithStatistics');
-
-    let colsNotIn = colsNames.filter((item) => !colsWithStatistics.contains(item));
-    return colsNotIn.length === 0;
   }),
 
   performTableAnalysis(withColumns = false) {
@@ -94,7 +127,23 @@ export default Ember.Component.extend(UILoggerMixin, {
       return this.get('statsService').fetchColumnStatsResult(databaseName, tableName, column.name, job);
     }).then((data) => {
       column.set('isFetchingStats', false);
-      column.set('stats', data);
+      let colStatAccurate = data["columnStatsAccurate"];
+      let colStatAccurateJson = Ember.isEmpty(colStatAccurate) ? {} : JSON.parse(colStatAccurate.replace(/\\\"/g, '"'));
+      if(this.get("partitionStatSupported")){
+        if(!colStatAccurateJson["COLUMN_STATS"] || colStatAccurateJson["COLUMN_STATS"][column.name] === "false"){
+          column.set('statsWarn', true);
+          column.set('statsWarnMsg', "Column statistics might be stale. Please  consider recomputing with 'include columns' option checked.");
+        }
+      }else if( !this.get("partitionStatSupported") && !(this.get("columnsWithStatistics").contains(column.get("name")))){
+        column.set('statsWarn', true);
+        column.set('statsWarnMsg', "Column statistics might be stale. Please  consider recomputing with 'include columns' option checked.");
+      }
+
+      let statsData = this.get("columnStatsKeys").map((item) => {
+        return {label: item.label, value: data[item.dataKey]};
+      });
+
+      column.set('stats', statsData);
     }).catch((err) => {
       column.set('isFetchingStats', false);
       column.set('statsError', true);

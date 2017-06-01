@@ -43,13 +43,22 @@ class TestRangerKMS(RMFTestCase):
     self.assertTrue(isfile_mock.called)
     self.assertNoMoreResources()
 
+  current_date = datetime.now()
+
+  class DTMOCK(object):
+    """
+    Mock datetime to avoid test failures when test run a little bit slower than usuall.
+    """
+    def now(self):
+      return TestRangerKMS.current_date
+
   @patch("resource_management.libraries.functions.ranger_functions.Rangeradmin.check_ranger_login_urllib2", new=MagicMock(return_value=200))
   @patch("resource_management.libraries.functions.ranger_functions.Rangeradmin.create_ambari_admin_user", new=MagicMock(return_value=200))
   @patch("kms.get_repo")
   @patch("kms.create_repo")
   @patch("os.path.isfile")
+  @patch("kms.datetime", new=DTMOCK())
   def test_start_default(self, get_repo_mock, create_repo_mock, isfile_mock):
-
     get_repo_mock.return_value = True
     create_repo_mock.return_value = True
 
@@ -64,7 +73,7 @@ class TestRangerKMS(RMFTestCase):
 
     # TODO confirm repo call
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_datetime = self.current_date.strftime("%Y-%m-%d %H:%M:%S")
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-security.xml',
       owner = 'kms',
@@ -149,6 +158,55 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       mode = 0640
+    )
+
+    self.assertResourceCalled('HdfsResource', '/ranger/audit',
+                        type = 'directory',
+                        action = ['create_on_execute'],
+                        owner = 'hdfs',
+                        group = 'hdfs',
+                        mode = 0755,
+                        recursive_chmod = True,
+                        user = 'hdfs',
+                        security_enabled = False,
+                        keytab = None,
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = None,
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+    )
+
+    self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
+                        type = 'directory',
+                        action = ['create_on_execute'],
+                        owner = 'kms',
+                        group = 'kms',
+                        mode = 0750,
+                        recursive_chmod = True,
+                        user = 'hdfs',
+                        security_enabled = False,
+                        keytab = None,
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = None,
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+    )
+
+    self.assertResourceCalled('HdfsResource', None,
+                        action = ['execute'],
+                        user = 'hdfs',
+                        security_enabled = False,
+                        keytab = None,
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = None,
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',
@@ -535,6 +593,55 @@ class TestRangerKMS(RMFTestCase):
       owner = 'kms',
       group = 'kms',
       mode = 0640
+    )
+
+    self.assertResourceCalled('HdfsResource', '/ranger/audit',
+                        type = 'directory',
+                        action = ['create_on_execute'],
+                        owner = 'hdfs',
+                        group = 'hdfs',
+                        mode = 0755,
+                        recursive_chmod = True,
+                        user = 'hdfs',
+                        security_enabled = True,
+                        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = 'hdfs-cl1@EXAMPLE.COM',
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+    )
+
+    self.assertResourceCalled('HdfsResource', '/ranger/audit/kms',
+                        type = 'directory',
+                        action = ['create_on_execute'],
+                        owner = 'kms',
+                        group = 'kms',
+                        mode = 0750,
+                        recursive_chmod = True,
+                        user = 'hdfs',
+                        security_enabled = True,
+                        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = 'hdfs-cl1@EXAMPLE.COM',
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
+    )
+
+    self.assertResourceCalled('HdfsResource', None,
+                        action = ['execute'],
+                        user = 'hdfs',
+                        security_enabled = True,
+                        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                        kinit_path_local = '/usr/bin/kinit',
+                        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                        principal_name = 'hdfs-cl1@EXAMPLE.COM',
+                        hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                        default_fs = 'hdfs://c6401.ambari.apache.org:8020'
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/hdfs-site.xml',

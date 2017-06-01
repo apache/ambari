@@ -106,7 +106,7 @@ checkConnection: function() {
     };
 
 
-    let checks = [];
+    var checks = [];
     if(model.get("serviceCheckPolicy").checkHdfs){
       checks.push("hdfs");
     }else{

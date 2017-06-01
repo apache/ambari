@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.internal.StageResourceProvider;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -664,53 +663,6 @@ public class UpgradeHelper {
       buffer.append("}");
       return buffer.toString();
     }
-  }
-
-  /**
-   * Gets a set of Stages resources to aggregate an UpgradeItem with Stage.
-   *
-   * @param clusterName the cluster name
-   * @param requestId the request id containing the stages
-   * @param stageIds the list of stages to fetch
-   * @return the list of Stage resources
-   * @throws UnsupportedPropertyException
-   * @throws NoSuchResourceException
-   * @throws NoSuchParentResourceException
-   * @throws SystemException
-   */
-  // !!! FIXME this feels very wrong
-  public Set<Resource> getStageResources(String clusterName, Long requestId, List<Long> stageIds)
-      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
-    ClusterController clusterController = ClusterControllerHelper.getClusterController();
-
-    Request request = PropertyHelper.getReadRequest();
-
-
-    Predicate p1 = new PredicateBuilder().property(StageResourceProvider.STAGE_CLUSTER_NAME).equals(clusterName).toPredicate();
-    Predicate p2 = new PredicateBuilder().property(StageResourceProvider.STAGE_REQUEST_ID).equals(requestId).toPredicate();
-    Predicate p3 = null;
-
-    if (1 == stageIds.size()) {
-      p3 = new PredicateBuilder().property(StageResourceProvider.STAGE_STAGE_ID).equals(stageIds.get(0)).toPredicate();
-    } else if (stageIds.size() > 0) {
-      PredicateBuilder pb = new PredicateBuilder();
-
-      int i = 0;
-      for (Long stageId : stageIds) {
-        if (i++ < stageIds.size()-1) {
-          pb = pb.property(StageResourceProvider.STAGE_STAGE_ID).equals(stageId).or();
-        } else {
-          pb.property(StageResourceProvider.STAGE_STAGE_ID).equals(stageId);
-        }
-      }
-
-      p3 = pb.toPredicate();
-    }
-
-    QueryResponse response = clusterController.getResources(Resource.Type.Stage,
-        request, new AndPredicate(p1, p2, p3));
-
-    return response.getResources();
   }
 
   /**

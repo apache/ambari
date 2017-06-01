@@ -60,7 +60,7 @@ public class AgentAlertDefinitionsTest {
   public void testLoadingAgentHostAlerts() {
     AmbariServiceAlertDefinitions ambariServiceAlertDefinitions = m_injector.getInstance(AmbariServiceAlertDefinitions.class);
     List<AlertDefinition> definitions = ambariServiceAlertDefinitions.getAgentDefinitions();
-    Assert.assertEquals(1, definitions.size());
+    Assert.assertEquals(2, definitions.size());
 
     for( AlertDefinition definition : definitions){
       Assert.assertEquals(Components.AMBARI_AGENT.name(),
@@ -77,7 +77,7 @@ public class AgentAlertDefinitionsTest {
   public void testLoadingServertAlerts() {
     AmbariServiceAlertDefinitions ambariServiceAlertDefinitions = m_injector.getInstance(AmbariServiceAlertDefinitions.class);
     List<AlertDefinition> definitions = ambariServiceAlertDefinitions.getServerDefinitions();
-    Assert.assertEquals(3, definitions.size());
+    Assert.assertEquals(4, definitions.size());
 
     for (AlertDefinition definition : definitions) {
       Assert.assertEquals(Components.AMBARI_SERVER.name(),

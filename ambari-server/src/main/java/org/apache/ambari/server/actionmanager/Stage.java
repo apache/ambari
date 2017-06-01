@@ -76,7 +76,6 @@ public class Stage {
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
-  private String clusterHostInfo;
   private String commandParamsStage;
   private String hostParamsStage;
 
@@ -110,7 +109,6 @@ public class Stage {
       @Assisted("clusterName") @Nullable String clusterName,
       @Assisted("clusterId") long clusterId,
       @Assisted("requestContext") @Nullable String requestContext,
-      @Assisted("clusterHostInfo") String clusterHostInfo,
       @Assisted("commandParamsStage") String commandParamsStage,
       @Assisted("hostParamsStage") String hostParamsStage,
       HostRoleCommandFactory hostRoleCommandFactory, ExecutionCommandWrapperFactory ecwFactory) {
@@ -120,7 +118,6 @@ public class Stage {
     this.clusterName = clusterName;
     this.clusterId = clusterId;
     this.requestContext = requestContext == null ? "" : requestContext;
-    this.clusterHostInfo = clusterHostInfo;
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
 
@@ -155,7 +152,6 @@ public class Stage {
     }
 
     requestContext = stageEntity.getRequestContext();
-    clusterHostInfo = stageEntity.getClusterHostInfo();
     commandParamsStage = stageEntity.getCommandParamsStage();
     hostParamsStage = stageEntity.getHostParamsStage();
     commandExecutionType = stageEntity.getCommandExecutionType();
@@ -195,7 +191,6 @@ public class Stage {
     stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
-    stageEntity.setClusterHostInfo(clusterHostInfo);
     stageEntity.setCommandParamsStage(commandParamsStage);
     stageEntity.setHostParamsStage(hostParamsStage);
     stageEntity.setCommandExecutionType(commandExecutionType);
@@ -258,14 +253,6 @@ public class Stage {
       }
     }
     return commandsToScheduleSet;
-  }
-
-  public String getClusterHostInfo() {
-    return clusterHostInfo;
-  }
-
-  public void setClusterHostInfo(String clusterHostInfo) {
-    this.clusterHostInfo = clusterHostInfo;
   }
 
   public String getCommandParamsStage() {
@@ -914,7 +901,6 @@ public class Stage {
     builder.append("clusterName="+clusterName+"\n");
     builder.append("logDir=" + logDir+"\n");
     builder.append("requestContext="+requestContext+"\n");
-    builder.append("clusterHostInfo="+clusterHostInfo+"\n");
     builder.append("commandParamsStage="+commandParamsStage+"\n");
     builder.append("hostParamsStage="+hostParamsStage+"\n");
     builder.append("Success Factors:\n");

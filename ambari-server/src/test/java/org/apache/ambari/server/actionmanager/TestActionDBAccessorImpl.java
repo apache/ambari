@@ -194,7 +194,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(createStubStage(hostName, requestId, stageId));
     stages.add(createStubStage(hostName, requestId, stageId + 1));
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
     assertEquals(2, stages.size());
   }
@@ -203,11 +203,11 @@ public class TestActionDBAccessorImpl {
   public void testGetStagesInProgressWithFailures() throws AmbariException {
     populateActionDB(db, hostName, requestId, stageId);
     populateActionDB(db, hostName, requestId + 1, stageId);
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(2, stages.size());
 
     db.abortOperation(requestId);
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(1, stages.size());
     assertEquals(requestId+1, stages.get(0).getRequestId());
   }
@@ -221,9 +221,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     int commandsInProgressCount = db.getCommandsInProgressCount();
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(18, commandsInProgressCount);
-    assertEquals(9, stages.size());
+    assertEquals(3, stages.size());
 
     long lastRequestId = Integer.MIN_VALUE;
     for (Stage stage : stages) {
@@ -236,9 +236,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(12, commandsInProgressCount);
-    assertEquals(6, stages.size());
+    assertEquals(2, stages.size());
 
     // find the first stage, and change one command to COMPLETED
     stages.get(0).setHostRoleStatus(hostName, Role.HBASE_MASTER.toString(),
@@ -248,9 +248,9 @@ public class TestActionDBAccessorImpl {
 
     // the first stage still has at least 1 command IN_PROGRESS
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(11, commandsInProgressCount);
-    assertEquals(6, stages.size());
+    assertEquals(2, stages.size());
 
     // find the first stage, and change the other command to COMPLETED
     stages.get(0).setHostRoleStatus(hostName,
@@ -261,9 +261,9 @@ public class TestActionDBAccessorImpl {
 
     // verify stages and proper ordering
     commandsInProgressCount = db.getCommandsInProgressCount();
-    stages = db.getStagesInProgress();
+    stages = db.getFirstStageInProgressPerRequest();
     assertEquals(10, commandsInProgressCount);
-    assertEquals(5, stages.size());
+    assertEquals(2, stages.size());
   }
 
   @Test
@@ -275,15 +275,16 @@ public class TestActionDBAccessorImpl {
     }
 
     // create 1 request, 3 stages per host, each with 2 commands
-    for (int i = 0; i < 1000; i++) {
+    int requestCount = 1000;
+    for (int i = 0; i < requestCount; i++) {
       String hostName = "c64-" + i;
       populateActionDBMultipleStages(3, db, hostName, requestId + i, stageId);
     }
 
     int commandsInProgressCount = db.getCommandsInProgressCount();
-    List<Stage> stages = db.getStagesInProgress();
+    List<Stage> stages = db.getFirstStageInProgressPerRequest();
     assertEquals(6000, commandsInProgressCount);
-    assertEquals(3000, stages.size());
+    assertEquals(requestCount, stages.size());
   }
 
 
@@ -539,7 +540,7 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testAbortRequest() throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
 
     clusters.addHost("host2");
@@ -576,7 +577,8 @@ public class TestActionDBAccessorImpl {
     String hostName = cmd.getHostName();
     cmd.setStatus(HostRoleStatus.COMPLETED);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("clusterHostInfo");
     db.persistActions(request);
     db.abortOperation(requestId);
 
@@ -620,7 +622,7 @@ public class TestActionDBAccessorImpl {
 
     stages.add(stage);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     // persist entities
     db.persistActions(request);
@@ -668,7 +670,7 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testGet1000TasksFromOracleDB() throws Exception {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     for (int i = 1000; i < 2002; i++) {
       String host = "host" + i;
@@ -681,7 +683,8 @@ public class TestActionDBAccessorImpl {
 
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("clusterHostInfo");
     db.persistActions(request);
 
     List<HostRoleCommandEntity> entities =
@@ -709,7 +712,7 @@ public class TestActionDBAccessorImpl {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
   }
 
@@ -723,7 +726,7 @@ public class TestActionDBAccessorImpl {
       stages.add(stage);
     }
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
     db.persistActions(request);
   }
 
@@ -733,7 +736,7 @@ public class TestActionDBAccessorImpl {
     Stage s = createStubStage(hostname, requestId, stageId);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.COMPLETED);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -747,7 +750,7 @@ public class TestActionDBAccessorImpl {
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
 
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
 
     s.setHostRoleStatus(hostname, Role.HBASE_REGIONSERVER.name(), HostRoleStatus.PENDING);
     s.setHostRoleStatus(hostname, Role.HBASE_MASTER.name(), HostRoleStatus.COMPLETED);
@@ -756,7 +759,7 @@ public class TestActionDBAccessorImpl {
 
   private Stage createStubStage(String hostname, long requestId, long stageId) {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
@@ -774,7 +777,7 @@ public class TestActionDBAccessorImpl {
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
                                 long requestId, long stageId) throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-      "", "commandParamsStage", "hostParamsStage");
+      "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
         RoleCommand.ACTIONEXECUTE,
@@ -785,20 +788,22 @@ public class TestActionDBAccessorImpl {
     final RequestResourceFilter resourceFilter = new RequestResourceFilter("HBASE", "HBASE_MASTER", null);
     List<RequestResourceFilter> resourceFilters = new
       ArrayList<RequestResourceFilter>() {{ add(resourceFilter); }};
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("");
     db.persistActions(request);
   }
 
   private void populateActionDBWithServerAction(ActionDBAccessor db, String hostname,
                                                 long requestId, long stageId) throws AmbariException {
     Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
-        "", "commandParamsStage", "hostParamsStage");
+        "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addServerActionCommand(serverActionName, null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "", clusters);
+    request.setClusterHostInfo("");
     db.persistActions(request);
   }
 }

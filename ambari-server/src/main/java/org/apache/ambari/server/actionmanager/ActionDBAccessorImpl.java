@@ -282,11 +282,16 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    * {@inheritDoc}
    */
   @Override
-  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
-  public List<Stage> getStagesInProgress() {
-    List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(
+  public List<Stage> getFirstStageInProgressPerRequest() {
+    List<StageEntity> stageEntities = stageDAO.findFirstStageByStatus(
       HostRoleStatus.IN_PROGRESS_STATUSES);
-    return getStagesForEntities(stageEntities);
+
+    List<Stage> stages = new ArrayList<>(stageEntities.size());
+    for (StageEntity stageEntity : stageEntities) {
+      stages.add(stageFactory.createExisting(stageEntity));
+    }
+
+    return stages;
   }
 
   @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
@@ -353,7 +358,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     requestDAO.create(requestEntity);
 
     //TODO wire request to cluster
-    List<StageEntity> stageEntities = new ArrayList<StageEntity>(request.getStages().size());
+    List<StageEntity> stageEntities = new ArrayList<>(request.getStages().size());
 
     addRequestToAuditlogCache(request);
 
@@ -365,13 +370,14 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageDAO.create(stageEntity);
 
       List<HostRoleCommand> orderedHostRoleCommands = stage.getOrderedHostRoleCommands();
+      List<HostRoleCommandEntity> hostRoleCommandEntities = new ArrayList<>();
 
       for (HostRoleCommand hostRoleCommand : orderedHostRoleCommands) {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
         hostRoleCommandEntity.setStage(stageEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);
+        hostRoleCommandEntities.add(hostRoleCommandEntity);
 
-        assert hostRoleCommandEntity.getTaskId() != null;
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
 
         String prefix = "";
@@ -427,6 +433,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
 
+      stageEntity.setHostRoleCommands(hostRoleCommandEntities);
       stageEntity = stageDAO.merge(stageEntity);
     }
 
@@ -490,15 +497,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void updateHostRoleStates(Collection<CommandReport> reports) {
-    Map<Long, CommandReport> taskReports = new HashMap<Long, CommandReport>();
+    Map<Long, CommandReport> taskReports = new HashMap<>();
     for (CommandReport report : reports) {
       taskReports.put(report.getTaskId(), report);
     }
 
     long now = System.currentTimeMillis();
 
-    List<Long> requestsToCheck = new ArrayList<Long>();
-    List<Long> abortedCommandUpdates = new ArrayList<Long>();
+    List<Long> requestsToCheck = new ArrayList<>();
+    List<Long> abortedCommandUpdates = new ArrayList<>();
 
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByPKs(taskReports.keySet());
     for (HostRoleCommandEntity commandEntity : commandEntities) {
@@ -702,12 +709,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       return Collections.emptyList();
     }
 
-    List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
+    List<HostRoleCommand> commands = new ArrayList<>();
 
     Map<Long, HostRoleCommand> cached = hostRoleCommandCache.getAllPresent(taskIds);
     commands.addAll(cached.values());
 
-    List<Long> absent = new ArrayList<Long>();
+    List<Long> absent = new ArrayList<>();
     absent.addAll(taskIds);
     absent.removeAll(cached.keySet());
 
@@ -796,7 +803,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   public List<Request> getRequests(Collection<Long> requestIds) {
     List<RequestEntity> requestEntities = requestDAO.findByPks(requestIds);
-    List<Request> requests = new ArrayList<Request>(requestEntities.size());
+    List<Request> requests = new ArrayList<>(requestEntities.size());
     for (RequestEntity requestEntity : requestEntities) {
       requests.add(requestFactory.createExisting(requestEntity));
     }

@@ -332,14 +332,14 @@
 </div>
 </div>
 {{#if showingFileBrowser}}
-{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath}}
+{{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=filePath hideUpload=true}}
 {{/if}}
 {{#if showingJobConfig}}
   {{job-config type='coord' closeJobConfigs="closeCoordSubmitConfig"
     parameterizedWorkflowPath=parameterizedWorkflowPath
     extractProperties="extractProperties" containsParameteriedPaths=containsParameteriedPaths
     jobFilePath=coordinatorFilePath openFileBrowser="openFileBrowser"
-    closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs isDryrun=dryrun}}
+    closeFileBrowser="closeFileBrowser" jobConfigs=coordinatorConfigs isDryrun=dryrun jobConfigProperties=jobConfigProperties}}
 {{/if}}
 {{#if showingResetConfirmation}}
 {{#confirmation-dialog title="Confirm Coordinator Reset"

@@ -46,6 +46,8 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
   propertyExtractor : Ember.inject.service('property-extractor'),
   fileBrowser : Ember.inject.service('file-browser'),
   workspaceManager : Ember.inject.service('workspace-manager'),
+  jobConfigProperties: Ember.A([]),
+  isDefaultNameForBundleEnabled : false,
   initialize : function(){
     var self = this;
     this.set('errors', Ember.A([]));
@@ -94,7 +96,7 @@ export default Ember.Component.extend(Ember.Evented, Validations, {
     }else{
       this.set('bundle', this.createBundle());
     }
-    if(Ember.isBlank(this.get('bundle.name'))){
+    if(Ember.isBlank(this.get('bundle.name')) && this.get('isDefaultNameForBundleEnabled')){
       this.set('bundle.name', Ember.copy(this.get('tabInfo.name')));
     }
     this.schedulePersistWorkInProgress();

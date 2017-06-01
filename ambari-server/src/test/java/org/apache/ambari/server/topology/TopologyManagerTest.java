@@ -67,6 +67,7 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
+import org.apache.ambari.server.topology.validators.TopologyValidatorService;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -159,6 +160,9 @@ public class TopologyManagerTest {
 
   @Mock(type = MockType.STRICT)
   private Future mockFuture;
+
+  @Mock
+  private TopologyValidatorService topologyValidatorService;
 
   private final Configuration stackConfig = new Configuration(new HashMap<String, Map<String, String>>(),
       new HashMap<String, Map<String, Map<String, String>>>());
@@ -280,7 +284,6 @@ public class TopologyManagerTest {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-    expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
 
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
 
@@ -393,7 +396,7 @@ public class TopologyManagerTest {
     Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<>();
     List<LogicalRequest> requestList = new ArrayList<>();
     requestList.add(logicalRequest);
-    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(false).anyTimes();
     allRequests.put(clusterTopologyMock, requestList);
     expect(requestStatusResponse.getTasks()).andReturn(Collections.<ShortTaskStatus>emptyList()).anyTimes();
     expect(clusterTopologyMock.isClusterKerberosEnabled()).andReturn(true);
@@ -402,8 +405,8 @@ public class TopologyManagerTest {
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
     expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true).anyTimes();
-    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true);
-    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true);
+    expect(group1.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
+    expect(group2.addComponent("KERBEROS_CLIENT")).andReturn(true).anyTimes();
 
     replayAll();
 
@@ -512,7 +515,8 @@ public class TopologyManagerTest {
     allRequests.put(clusterTopologyMock, logicalRequests);
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(logicalRequest).anyTimes();
-    expect(logicalRequest.hasCompleted()).andReturn(true).anyTimes();
+    expect(logicalRequest.hasPendingHostRequests()).andReturn(true).anyTimes();
+    expect(logicalRequest.getCompletedHostRequests()).andReturn(Collections.EMPTY_LIST).anyTimes();
     expect(requestStatusResponse.getTasks()).andReturn(tasks).anyTimes();
     replayAll();
     EasyMock.replay(clusterTopologyMock);

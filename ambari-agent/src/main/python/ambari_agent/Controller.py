@@ -49,6 +49,7 @@ from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 from ambari_agent.ExitHelper import ExitHelper
 from ambari_agent.StatusCommandsExecutor import MultiProcessStatusCommandsExecutor, SingleProcessStatusCommandsExecutor
+from ambari_commons.network import reconfigure_urllib2_opener
 from resource_management.libraries.functions.version import compare_versions
 from ambari_commons.os_utils import get_used_ram
 
@@ -125,6 +126,9 @@ class Controller(threading.Thread):
     self.cluster_configuration = ClusterConfiguration(cluster_config_cache_dir)
 
     self.move_data_dir_mount_file()
+
+    if not config.use_system_proxy_setting():
+      reconfigure_urllib2_opener(ignore_system_proxy=True)
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir,
       stacks_cache_dir, common_services_cache_dir, extensions_cache_dir,

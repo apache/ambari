@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive20.internal.parsers;
 
+import org.apache.ambari.view.hive20.client.DatabaseMetadataWrapper;
 import org.apache.ambari.view.hive20.client.Row;
 import org.apache.ambari.view.hive20.internal.dto.ColumnInfo;
 import org.apache.ambari.view.hive20.internal.dto.DetailedTableInfo;
@@ -55,10 +56,11 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
   private ViewInfoParser viewInfoParser;
 
   @Override
-  public TableMeta parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows) {
+  public TableMeta parse(String database, String table, List<Row> createTableStatementRows, List<Row> describeFormattedRows, DatabaseMetadataWrapper databaseMetadata) {
     String createTableStatement = createTableStatementParser.parse(createTableStatementRows);
     DetailedTableInfo tableInfo = detailedTableInfoParser.parse(describeFormattedRows);
     TableStats tableStats = getTableStats(tableInfo);
+    tableStats.setDatabaseMetadata(databaseMetadata);
     StorageInfo storageInfo = storageInfoParser.parse(describeFormattedRows);
     List<ColumnInfo> columns = columnInfoParser.parse(describeFormattedRows);
     PartitionInfo partitionInfo = partitionInfoParser.parse(describeFormattedRows);
@@ -100,25 +102,28 @@ public class TableMetaParserImpl implements TableMetaParser<TableMeta> {
 
     if(!Strings.isNullOrEmpty(numFiles) && !Strings.isNullOrEmpty(numFiles.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setNumFiles(Integer.valueOf(numFiles.trim()));
+      tableStats.setNumFiles(Long.valueOf(numFiles.trim()));
     }
 
     if(!Strings.isNullOrEmpty(numRows) && !Strings.isNullOrEmpty(numRows.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setNumRows(Integer.valueOf(numRows.trim()));
+      tableStats.setNumRows(Long.valueOf(numRows.trim()));
     }
 
     if(!Strings.isNullOrEmpty(rawDataSize) && !Strings.isNullOrEmpty(rawDataSize.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setRawDataSize(Integer.valueOf(rawDataSize.trim()));
+      tableStats.setRawDataSize(Long.valueOf(rawDataSize.trim()));
     }
 
     if(!Strings.isNullOrEmpty(totalSize) && !Strings.isNullOrEmpty(totalSize.trim())){
       tableStats.setTableStatsEnabled(true);
-      tableStats.setTotalSize(Integer.valueOf(totalSize.trim()));
+      tableStats.setTotalSize(Long.valueOf(totalSize.trim()));
     }
 
-    tableStats.setColumnStatsAccurate(columnStatsAccurate);
+    if(!Strings.isNullOrEmpty(columnStatsAccurate) && !Strings.isNullOrEmpty(columnStatsAccurate.trim())) {
+      tableStats.setTableStatsEnabled(true);
+      tableStats.setColumnStatsAccurate(columnStatsAccurate);
+    }
     return tableStats;
   }
 }

@@ -39,7 +39,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions import is_empty
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 # server configurations
 config = Script.get_config()
@@ -212,17 +212,12 @@ if type(webhcat_server_hosts) is list:
 else:
   webhcat_server_host = webhcat_server_hosts
 
+hbase_master_port = default('/configurations/hbase-site/hbase.rest.port', "8080")
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", None)
 if type(hbase_master_hosts) is list:
   hbase_master_host = hbase_master_hosts[0]
 else:
   hbase_master_host = hbase_master_hosts
-
-hbase_rest_port = default('/configurations/hbase-site/hbase.rest.port', "60080")
-hbase_rest_server = default('/configurations/hbase-site/hbase.rest.server.host', None)
-
-if hbase_rest_server is None:
-  hbase_rest_server = hbase_master_host
 
 oozie_server_hosts = default("/clusterHostInfo/oozie_server", None)
 if type(oozie_server_hosts) is list:
@@ -362,7 +357,11 @@ if enable_ranger_knox:
     'name': repo_name,
     'repositoryType': 'knox',
     'assetType': '5',
-    }
+  }
+
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    knox_ranger_plugin_config.update(custom_ranger_service_config)
 
   if stack_supports_ranger_kerberos and security_enabled:
     knox_ranger_plugin_config['policy.download.auth.users'] = knox_user
@@ -391,6 +390,9 @@ if enable_ranger_knox:
   # for SQLA explicitly disable audit to DB for Ranger
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+# need this to capture cluster name from where ranger knox plugin is enabled
+cluster_name = config['clusterName']
 
 # ranger knox plugin end section
 

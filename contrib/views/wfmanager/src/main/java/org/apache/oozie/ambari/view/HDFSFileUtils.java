@@ -21,8 +21,11 @@ import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.commons.hdfs.UserService;
 import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
+import org.apache.ambari.view.utils.hdfs.ConfigurationBuilder;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -31,12 +34,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
+import java.util.LinkedList;
 
 public class HDFSFileUtils {
 	public static final String VIEW_CONF_KEYVALUES = "view.conf.keyvalues";
-
+	private static final String DEFAULT_FS = "fs.defaultFS";
+	private static final String AMBARI_SKIP_HOME_DIRECTORY_CHECK_PROTOCOL_LIST = "views.skip.home-directory-check.file-system.list";
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(HDFSFileUtils.class);
 	private ViewContext viewContext;
@@ -106,6 +115,36 @@ public class HDFSFileUtils {
 					"HdfsApi connection failed. Check \"webhdfs.url\" property",
 					ex);
 		}
+	}
+
+	public Boolean shouldCheckForHomeDir(){
+		Optional<Map<String, String>> viewConfigs = ViewPropertyHelper.getViewConfigs(viewContext, VIEW_CONF_KEYVALUES);
+		ConfigurationBuilder configBuilder;
+		if(viewConfigs.isPresent()) {
+			configBuilder = new ConfigurationBuilder(this.viewContext, viewConfigs.get());
+		}else{
+			configBuilder = new ConfigurationBuilder(this.viewContext);
+		}
+		Configuration configurations = null;
+		try {
+			configurations = configBuilder.buildConfig();
+		} catch (HdfsApiException e) {
+			throw	 new RuntimeException(e);
+		}
+		String defaultFS = configurations.get(DEFAULT_FS);
+		try {
+			URI fsUri = new URI(defaultFS);
+			String protocol = fsUri.getScheme();
+			String ambariSkipCheckValues = viewContext.getAmbariProperty(AMBARI_SKIP_HOME_DIRECTORY_CHECK_PROTOCOL_LIST);
+			List<String> protocolSkipList = (ambariSkipCheckValues == null? new LinkedList<String>() : Arrays.asList(ambariSkipCheckValues.split(",")));
+			if(null != protocol && protocolSkipList.contains(protocol)){
+				return Boolean.FALSE;
+			}
+		} catch (URISyntaxException e) {
+			LOGGER.error("Error occurred while parsing the defaultFS URI.", e);
+			return Boolean.TRUE;
+		}
+		return Boolean.TRUE;
 	}
 
 	public FileStatus getFileStatus(String filePath) {

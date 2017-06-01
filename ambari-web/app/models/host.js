@@ -39,6 +39,7 @@ App.Host = DS.Model.extend({
   healthStatus: DS.attr('string'),
   lastHeartBeatTime: DS.attr('number'),
   rawLastHeartBeatTime: DS.attr('number'),
+  hasJcePolicy: DS.attr('string'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),

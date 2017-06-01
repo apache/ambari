@@ -185,8 +185,7 @@ class BSRunner extends Thread {
     // Startup a scheduled executor service to look through the logs
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     BSStatusCollector statusCollector = new BSStatusCollector();
-    ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
-        0, 10, TimeUnit.SECONDS);
+    ScheduledFuture<?> handle = null;
     LOG.info("Kicking off the scheduler for polling on logs in " +
     this.requestIdDir);
     String user = sshHostInfo.getUser();
@@ -205,6 +204,8 @@ class BSRunner extends Thread {
     String scriptlog = "";
     try {
       createRunDir();
+      handle = scheduler.scheduleWithFixedDelay(statusCollector,
+        0, 10, TimeUnit.SECONDS);
       if (LOG.isDebugEnabled()) {
         // FIXME needs to be removed later
         // security hole
@@ -354,7 +355,9 @@ class BSRunner extends Thread {
       } catch (InterruptedException e) {
         throw new IOException(e);
       } finally {
-        handle.cancel(true);
+        if (handle != null) {
+          handle.cancel(true);
+        }
         /* schedule a last update */
         scheduler.schedule(new BSStatusCollector(), 0, TimeUnit.SECONDS);
         scheduler.shutdownNow();

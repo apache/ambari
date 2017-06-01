@@ -16,11 +16,12 @@
    limitations under the License.
 -->
 <metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>MAHOUT</name>
-      <version>0.9.0.2.6</version>
-    </service>
-  </services>
+    <schemaVersion>2.0</schemaVersion>
+    <services>
+      <service>
+        <name>MAHOUT</name>
+        <version>0.12.2</version>
+        <extends>common-services/MAHOUT/1.0.0.2.3</extends>
+      </service>
+    </services>
 </metainfo>

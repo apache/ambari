@@ -28,12 +28,15 @@ import logging
 import platform
 import inspect
 import tarfile
+import time
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
+from ambari_commons.network import reconfigure_urllib2_opener
+from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -148,6 +151,7 @@ class Script(object):
   # Class variable
   tmp_dir = ""
   force_https_protocol = "PROTOCOL_TLSv1"
+  ca_cert_file_path = None
 
   def load_structured_out(self):
     Script.structuredOut = {}
@@ -177,7 +181,7 @@ class Script(object):
         json.dump(Script.structuredOut, fp)
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
-      
+
   def get_component_name(self):
     """
     To be overridden by subclasses.
@@ -215,7 +219,7 @@ class Script(object):
     """
     stack_name = Script.get_stack_name()
     component_name = self.get_component_name()
-    
+
     if component_name and stack_name:
       component_version = get_component_version(stack_name, component_name)
 
@@ -258,15 +262,15 @@ class Script(object):
     parser.add_option("-o", "--out-files-logging", dest="log_out_files", action="store_true",
                       help="use this option to enable outputting *.out files of the service pre-start")
     (self.options, args) = parser.parse_args()
-    
+
     self.log_out_files = self.options.log_out_files
-    
+
     # parse arguments
     if len(args) < 6:
      print "Script expects at least 6 arguments"
      print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
      sys.exit(1)
-     
+
     self.command_name = str.lower(sys.argv[1])
     self.command_data_file = sys.argv[2]
     self.basedir = sys.argv[3]
@@ -274,9 +278,11 @@ class Script(object):
     self.load_structured_out()
     self.logging_level = sys.argv[5]
     Script.tmp_dir = sys.argv[6]
-    # optional script argument for forcing https protocol
+    # optional script arguments for forcing https protocol and ca_certs file
     if len(sys.argv) >= 8:
       Script.force_https_protocol = sys.argv[7]
+    if len(sys.argv) >= 9:
+      Script.ca_cert_file_path = sys.argv[8]
 
     logging_level_str = logging._levelNames[self.logging_level]
     Logger.initialize_logger(__name__, logging_level=logging_level_str)
@@ -286,6 +292,16 @@ class Script(object):
     # in agent, so other Script executions will not be able to access to new env variables
     if OSCheck.is_windows_family():
       reload_windows_env()
+
+    # !!! status commands re-use structured output files; if the status command doesn't update the
+    # the file (because it doesn't have to) then we must ensure that the file is reset to prevent
+    # old, stale structured output from a prior status command from being used
+    if self.command_name == "status":
+      Script.structuredOut = {}
+      self.put_structured_out({})
+
+    # make sure that script has forced https protocol and ca_certs file passed from agent
+    ensure_ssl_using_protocol(Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path())
 
     try:
       with open(self.command_data_file) as f:
@@ -306,39 +322,88 @@ class Script(object):
       method = self.choose_method_to_execute(self.command_name)
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
-        
-        if self.command_name == "start" and not self.is_hook():
-          self.pre_start()
-        
+
+        if not self.is_hook():
+          self.execute_prefix_function(self.command_name, 'pre', env)
+
         method(env)
+
+        if not self.is_hook():
+          self.execute_prefix_function(self.command_name, 'after', env)
+
     finally:
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out()
-        
+
+  def execute_prefix_function(self, command_name, afix, env):
+    """
+    Execute action afix (prefix or suffix) based on command_name and afix type
+    example: command_name=start, afix=pre will result in execution of self.pre_start(env) if exists
+    """
+    self_methods = dir(self)
+    method_name = "{0}_{1}".format(afix, command_name)
+    if not method_name in self_methods:
+      Logger.logger.debug("Action afix '{0}' not present".format(method_name))
+      return
+    Logger.logger.debug("Execute action afix: {0}".format(method_name))
+    method = getattr(self, method_name)
+    method(env)
+
   def is_hook(self):
     from resource_management.libraries.script.hook import Hook
     return (Hook in self.__class__.__bases__)
-        
+
   def get_log_folder(self):
     return ""
-  
+
   def get_user(self):
     return ""
-        
-  def pre_start(self):
+
+
+  def pre_start(self, env=None):
+    """
+    Executed before any start method. Posts contents of relevant *.out files to command execution log.
+    """
     if self.log_out_files:
       log_folder = self.get_log_folder()
       user = self.get_user()
-      
+
       if log_folder == "":
         Logger.logger.warn("Log folder for current script is not defined")
         return
-      
+
       if user == "":
         Logger.logger.warn("User for current script is not defined")
         return
-      
+
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
+
+
+  def after_stop(self, env):
+    """
+    Executed after completion of every stop method. Waits until component is actually stopped (check is performed using
+     components status() method.
+    """
+    self_methods = dir(self)
+
+    if not 'status' in self_methods:
+      pass
+    status_method = getattr(self, 'status')
+    component_is_stopped = False
+    counter = 0
+    while not component_is_stopped :
+      try:
+        if counter % 100 == 0:
+          Logger.logger.info("Waiting for actual component stop")
+        status_method(env)
+        time.sleep(0.1)
+        counter += 1
+      except ComponentIsNotRunning, e:
+        Logger.logger.debug("'status' reports ComponentIsNotRunning")
+        component_is_stopped = True
+      except ClientComponentHasNoStatus, e:
+        Logger.logger.debug("Client component has no status")
+        component_is_stopped = True
 
   def choose_method_to_execute(self, command_name):
     """
@@ -349,7 +414,7 @@ class Script(object):
       raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
     method = getattr(self, command_name)
     return method
-  
+
   def get_stack_version_before_packages_installed(self):
     """
     This works in a lazy way (calculates the version first time and stores it). 
@@ -366,7 +431,7 @@ class Script(object):
     if not Script.stack_version_from_distro_select and component_name:
       from resource_management.libraries.functions import stack_select
       Script.stack_version_from_distro_select = stack_select.get_stack_version_before_install(component_name)
-      
+
     # If <stack-selector-tool> has not yet been done (situations like first install),
     # we can use <stack-selector-tool> version itself.
     # Wildcards cause a lot of troubles with installing packages, if the version contains wildcards we should try to specify it.
@@ -377,7 +442,7 @@ class Script(object):
               stack_tools.get_stack_tool_package(stack_tools.STACK_SELECTOR_NAME))
 
     return Script.stack_version_from_distro_select
-  
+
   def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
     """
@@ -414,7 +479,7 @@ class Script(object):
       stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
 
     package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
-    
+
     return package_name
 
   @staticmethod
@@ -439,8 +504,32 @@ class Script(object):
     return Script.tmp_dir
 
   @staticmethod
-  def get_force_https_protocol():
+  def get_force_https_protocol_name():
+    """
+    Get forced https protocol name.
+
+    :return: protocol name, PROTOCOL_TLSv1 by default
+    """
     return Script.force_https_protocol
+
+  @staticmethod
+  def get_force_https_protocol_value():
+    """
+    Get forced https protocol value that correspondents to ssl module variable.
+
+    :return: protocol value
+    """
+    import ssl
+    return getattr(ssl, Script.get_force_https_protocol_name())
+
+  @staticmethod
+  def get_ca_cert_file_path():
+    """
+    Get path to file with trusted certificates.
+
+    :return: trusted certificates file path
+    """
+    return Script.ca_cert_file_path
 
   @staticmethod
   def get_component_from_role(role_directory_map, default_role):
@@ -613,13 +702,13 @@ class Script(object):
                           hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
-      
+
   def check_package_condition(self, package):
     condition = package['condition']
-    
+
     if not condition:
       return True
-    
+
     return self.should_install_package(package)
 
   def should_install_package(self, package):
@@ -792,22 +881,6 @@ class Script(object):
     """
     self.fail_with_error('configure method isn\'t implemented')
 
-  def security_status(self, env):
-    """
-    To be overridden by subclasses to provide the current security state of the component.
-    Implementations are required to set the "securityState" property of the structured out data set
-    to one of the following values:
-
-      UNSECURED        - If the component is not configured for any security protocol such as
-                         Kerberos
-      SECURED_KERBEROS - If the component is configured for Kerberos
-      UNKNOWN          - If the security state cannot be determined
-      ERROR            - If the component is supposed to be secured, but there are issues with the
-                         configuration.  For example, if the component is configured for Kerberos
-                         but the configured principal and keytab file fail to kinit
-    """
-    self.put_structured_out({"securityState": "UNKNOWN"})
-
   def generate_configs_get_template_file_content(self, filename, dicts):
     config = self.get_config()
     content = ''
@@ -825,7 +898,7 @@ class Script(object):
     config = self.get_config()
     return {'configurations':config['configurations'][dict],
             'configuration_attributes':config['configuration_attributes'][dict]}
-    
+
   def generate_configs_get_xml_file_dict(self, filename, dict):
     config = self.get_config()
     return config['configurations'][dict]
@@ -837,7 +910,7 @@ class Script(object):
     """
     import params
     env.set_params(params)
-    
+
     config = self.get_config()
 
     xml_configs_list = config['commandParams']['xml_configs_list']
@@ -847,6 +920,7 @@ class Script(object):
     Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
+    os.chmod(conf_tmp_dir, 0700)
     output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])
 
     try:
@@ -870,6 +944,7 @@ class Script(object):
                          properties=self.generate_configs_get_xml_file_dict(filename, dict)
           )
       with closing(tarfile.open(output_filename, "w:gz")) as tar:
+        os.chmod(output_filename, 0600)
         try:
           tar.add(conf_tmp_dir, arcname=os.path.basename("."))
         finally:
@@ -881,6 +956,12 @@ class Script(object):
   @staticmethod
   def get_instance():
     if Script.instance is None:
+
+      from resource_management.libraries.functions.default import default
+      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
+      if not use_proxy:
+        reconfigure_urllib2_opener(ignore_system_proxy=True)
+
       Script.instance = Script()
     return Script.instance
 

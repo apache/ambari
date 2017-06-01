@@ -18,7 +18,8 @@
 
 $font-family-sans-serif: 'Roboto', "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-$body-bg: #e1e1e0;
+$body-bg: #FFF;
+$base-bg: #e1e1e0;
 $border-radius-base:        3px;
 $border-radius-large:       4px;
 $border-radius-small:       2px;
@@ -26,10 +27,10 @@ $border-radius-small:       2px;
 
 // nav-tabs
 $nav-link-padding:                          10px 20px !default;
-$nav-tabs-border-color:                     darken($body-bg, 15%);
-$nav-tabs-link-hover-border-color:          darken($body-bg, 15%);
+$nav-tabs-border-color:                     darken($base-bg, 15%);
+$nav-tabs-link-hover-border-color:          darken($base-bg, 15%);
 $nav-tabs-active-link-hover-bg:             #fff;
-$nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
+$nav-tabs-active-link-hover-border-color:   darken($base-bg, 15%);
 
 @import 'bootstrap';
 
@@ -40,18 +41,18 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
          &.active {
            background-color: $gray-dark;
            color: #fff;
-           border: 1px solid darken($body-bg, 15%);
+           border: 1px solid darken($base-bg, 15%);
            border-bottom: none;
            &.ember-transitioning-out {
-             background-color: $body-bg;
-             color: darken($body-bg, 50%);
+             background-color: $base-bg;
+             color: darken($base-bg, 50%);
              border: none;
            }
          }
          &.ember-transitioning-in {
            background-color: $gray-dark;
            color: #fff;
-           border: 1px solid darken($body-bg, 15%);
+           border: 1px solid darken($base-bg, 15%);
            border-bottom: none;
          }
        }
@@ -60,19 +61,19 @@ $nav-tabs-active-link-hover-border-color:   darken($body-bg, 15%);
   li {
     a {
       font-weight: bold;
-      color: darken($body-bg, 50%);
+      color: darken($base-bg, 50%);
       &.active {
         background-color: #fff;
-        border: 1px solid darken($body-bg, 15%);
+        border: 1px solid darken($base-bg, 15%);
         border-bottom: none;
         &.ember-transitioning-out {
-          background-color: $body-bg;
+          background-color: $base-bg;
           border: none;
         }
       }
       &.ember-transitioning-in {
         background-color: #fff;
-        border: 1px solid darken($body-bg, 15%);
+        border: 1px solid darken($base-bg, 15%);
         border-bottom: none;
       }
     }

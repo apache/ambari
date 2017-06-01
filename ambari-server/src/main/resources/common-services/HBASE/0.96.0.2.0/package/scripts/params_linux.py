@@ -41,7 +41,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.expect import expect
 from ambari_commons.ambari_metrics_helper import select_metric_collector_hosts_from_hostnames
-from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs
+from resource_management.libraries.functions.setup_ranger_plugin_xml import get_audit_configs, generate_ranger_service_config
 
 # server configurations
 config = Script.get_config()
@@ -152,12 +152,20 @@ has_ganglia_server = not len(ganglia_server_hosts) == 0
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
+set_instanceId = "false"
+cluster_name = config["clusterName"]
+
+if 'cluster-env' in config['configurations'] and \
+    'metrics_collector_external_hosts' in config['configurations']['cluster-env']:
+  ams_collector_hosts = config['configurations']['cluster-env']['metrics_collector_external_hosts']
+  set_instanceId = "true"
+else:
+  ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_port' in config['configurations']['cluster-env']:
-    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
+      'metrics_collector_external_port' in config['configurations']['cluster-env']:
+    metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
   else:
     metric_collector_web_address = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
     if metric_collector_web_address.find(':') != -1:
@@ -366,6 +374,10 @@ if enable_ranger_hbase:
     'assetType': '2'
   }
 
+  custom_ranger_service_config = generate_ranger_service_config(ranger_plugin_properties)
+  if len(custom_ranger_service_config) > 0:
+    hbase_ranger_plugin_config.update(custom_ranger_service_config)
+
   if stack_supports_ranger_kerberos and security_enabled:
     hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
@@ -403,6 +415,9 @@ if enable_ranger_hbase:
   # for SQLA explicitly disable audit to DB for Ranger
   if has_ranger_admin and stack_supports_ranger_audit_db and xa_audit_db_flavor.lower() == 'sqla':
     xa_audit_db_is_enabled = False
+
+# need this to capture cluster name from where ranger hbase plugin is enabled
+cluster_name = config['clusterName']
 
 # ranger hbase plugin section end
 

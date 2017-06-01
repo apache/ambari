@@ -178,4 +178,6 @@ public interface ClusterTopology {
    */
   void removeHost(String hostname);
 
+  String getDefaultPassword();
+
 }

@@ -999,16 +999,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           })
         });
         //configGroup copied into plain JS object to avoid Converting circular structure to JSON
-        var hostNames = configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;});
+        var hostIds = configGroup.get('hosts').map(function(host_name) {return hosts[host_name].id;});
         serviceConfigGroups.push({
           id: configGroup.get('id'),
           name: configGroup.get('name'),
           description: configGroup.get('description'),
-          hosts: hostNames.slice(),
+          hosts: hostIds.slice(),
           properties: properties.slice(),
           is_default: configGroup.get('isDefault'),
           is_for_installed_service: isForInstalledService,
-          is_for_update: configGroup.isForUpdate || configGroup.get('hash') != this.getConfigGroupHash(configGroup, hostNames),
+          is_for_update: configGroup.get('isForUpdate') || configGroup.get('hash') !== this.getConfigGroupHash(configGroup, configGroup.get('hosts')),
           service_name: configGroup.get('serviceName'),
           service_id: configGroup.get('serviceName'),
           desired_configs: configGroup.get('desiredConfigs'),

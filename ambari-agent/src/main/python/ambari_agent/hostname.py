@@ -23,6 +23,7 @@ import subprocess
 import urllib2
 import logging
 import traceback
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -52,12 +53,19 @@ def hostname(config):
       out, err = osStat.communicate()
       if (0 == osStat.returncode and 0 != len(out.strip())):
         cached_hostname = out.strip()
+        logger.info("Read hostname '{0}' using agent:hostname_script '{1}'".format(cached_hostname, scriptname))
       else:
+        logger.warn("Execution of '{0}' failed with exit code {1}. err='{2}'\nout='{3}'".format(scriptname, osStat.returncode, err.strip(), out.strip()))
         cached_hostname = socket.getfqdn()
+        logger.info("Read hostname '{0}' using socket.getfqdn() as '{1}' failed".format(cached_hostname, scriptname))
     except:
       cached_hostname = socket.getfqdn()
+      logger.warn("Unexpected error while retrieving hostname: '{0}', defaulting to socket.getfqdn()".format(sys.exc_info()))
+      logger.info("Read hostname '{0}' using socket.getfqdn().".format(cached_hostname))
   except:
     cached_hostname = socket.getfqdn()
+    logger.info("agent:hostname_script configuration not defined thus read hostname '{0}' using socket.getfqdn().".format(cached_hostname))
+
   cached_hostname = cached_hostname.lower()
   return cached_hostname
 

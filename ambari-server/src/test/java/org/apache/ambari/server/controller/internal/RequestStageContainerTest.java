@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
@@ -143,7 +144,7 @@ public class RequestStageContainerTest {
     stages.add(stage2);
 
     //expectations
-    expect(requestFactory.createNewFromStages(stages)).andReturn(request);
+    expect(requestFactory.createNewFromStages(stages, "{}")).andReturn(request);
     expect(request.getStages()).andReturn(stages).anyTimes();
     actionManager.sendActions(request, null);
 

@@ -988,12 +988,11 @@ class TestActionQueue(TestCase):
 
     dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
 
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    result = (self.status_command, {'exitcode': 0 })
 
     actionQueue.process_status_command_result(result)
     report = actionQueue.result()
-    expected = {'dummy report': '',
-                'securityState' : 'UNKNOWN'}
+    expected = {'dummy report': ''}
 
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
@@ -1019,12 +1018,11 @@ class TestActionQueue(TestCase):
 
     dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp(), True, False)
 
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    result = (self.status_command, {'exitcode': 0 })
 
     actionQueue.process_status_command_result(result)
     report = actionQueue.result()
     expected = {'dummy report': '',
-                'securityState' : 'UNKNOWN',
                 'sendExecCmdDet': 'True'}
 
     self.assertEqual(len(report['componentStatus']), 1)
@@ -1033,12 +1031,11 @@ class TestActionQueue(TestCase):
     requires_recovery_mock.return_value = True
     command_exists_mock.return_value = True
     
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    result = (self.status_command, {'exitcode': 0 })
 
     actionQueue.process_status_command_result(result)
     report = actionQueue.result()
     expected = {'dummy report': '',
-                'securityState' : 'UNKNOWN',
                 'sendExecCmdDet': 'False'}
 
     self.assertEqual(len(report['componentStatus']), 1)
@@ -1062,7 +1059,7 @@ class TestActionQueue(TestCase):
       'structuredOut': {'alerts': [ {'name': 'flume_alert'} ] }
     }
     
-    result = (self.status_command_for_alerts, command_return_value, command_return_value)
+    result = (self.status_command_for_alerts, command_return_value)
     
     build_mock.return_value = {'somestatusresult': 'aresult'}
 

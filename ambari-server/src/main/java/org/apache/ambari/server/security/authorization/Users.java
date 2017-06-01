@@ -321,7 +321,7 @@ public class Users {
     principalDAO.create(principalEntity);
 
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName(userName);
+    userEntity.setUserName(UserName.fromString(userName));
     if (userType == UserType.LOCAL) {
       //passwords should be stored for local users only
       userEntity.setUserPassword(passwordEncoder.encode(password));
@@ -709,7 +709,7 @@ public class Users {
       principalsToCreate.add(principalEntity);
 
       final UserEntity userEntity = new UserEntity();
-      userEntity.setUserName(userName);
+      userEntity.setUserName(UserName.fromString(userName));
       userEntity.setUserPassword("");
       userEntity.setPrincipal(principalEntity);
       userEntity.setLdapUser(true);

@@ -45,7 +45,7 @@ class SparkServiceCheck(Script):
       live_livyserver_host = "";
       for livyserver_host in params.livy_livyserver_hosts:
         try:
-          Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livyserver_host}:{livy_livyserver_port}/sessions | grep 200"),
+          Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {livy_http_scheme}://{livyserver_host}:{livy_livyserver_port}/sessions | grep 200"),
               tries=3,
               try_sleep=1,
               logoutput=True,

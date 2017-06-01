@@ -161,7 +161,7 @@ public class UsersTest extends EasyMockSupport {
   @Test(expected = AmbariException.class)
   public void testCreateUser_Duplicate() throws Exception {
     UserEntity existing = new UserEntity();
-    existing.setUserName(SERVICEOP_USER_NAME);
+    existing.setUserName(UserName.fromString(SERVICEOP_USER_NAME));
     existing.setUserType(UserType.LDAP);
     existing.setUserId(1);
     existing.setMemberEntities(Collections.<MemberEntity>emptySet());

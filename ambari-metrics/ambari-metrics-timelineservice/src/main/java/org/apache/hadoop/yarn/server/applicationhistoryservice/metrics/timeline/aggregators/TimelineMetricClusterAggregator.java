@@ -91,6 +91,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     MetricHostAggregate hostAggregate = null;
     Map<TimelineClusterMetric, MetricHostAggregate> hostAggregateMap =
       new HashMap<TimelineClusterMetric, MetricHostAggregate>();
+    int perMetricCount = 0;
 
     while (rs.next()) {
       TimelineClusterMetric currentMetric = readHelper.fromResultSet(rs);
@@ -106,14 +107,20 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
         currentMetric.setTimestamp(endTime);
         hostAggregate = new MetricHostAggregate();
         hostAggregateMap.put(currentMetric, hostAggregate);
+        perMetricCount++;
       }
 
       if (existingMetric.equalsExceptTime(currentMetric)) {
         // Recalculate totals with current metric
         updateAggregatesFromHost(hostAggregate, currentHostAggregate);
-
+        perMetricCount++;
       } else {
-        // Switched over to a new metric - save existing
+        // Switched over to a new metric - save new metric
+
+        hostAggregate.setSum(hostAggregate.getSum() / perMetricCount);
+        hostAggregate.setNumberOfSamples(Math.round((float)hostAggregate.getNumberOfSamples() / (float)perMetricCount));
+        perMetricCount = 1;
+
         hostAggregate = new MetricHostAggregate();
         currentMetric.setTimestamp(endTime);
         updateAggregatesFromHost(hostAggregate, currentHostAggregate);

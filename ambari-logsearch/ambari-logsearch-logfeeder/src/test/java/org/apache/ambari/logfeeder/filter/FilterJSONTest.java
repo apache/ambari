@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
@@ -76,6 +77,7 @@ public class FilterJSONTest {
     Map<String, Object> jsonParams = capture.getValue();
 
     assertEquals("Incorrect decoding: log time", dateString, jsonParams.remove("logtime"));
+    assertEquals("Incorrect decoding: in memory timestamp", d.getTime(), jsonParams.remove(LogFeederConstants.IN_MEMORY_TIMESTAMP));
     assertEquals("Incorrect decoding: line number", 100l, jsonParams.remove("line_number"));
     assertTrue("jsonParams are not empty!", jsonParams.isEmpty());
   }
@@ -100,6 +102,7 @@ public class FilterJSONTest {
     Map<String, Object> jsonParams = capture.getValue();
 
     assertEquals("Incorrect decoding: log time", dateString, jsonParams.remove("logtime"));
+    assertEquals("Incorrect decoding: in memory timestamp", d.getTime(), jsonParams.remove(LogFeederConstants.IN_MEMORY_TIMESTAMP));
     assertEquals("Incorrect decoding: some field", "abc", jsonParams.remove("some_field"));
     assertTrue("jsonParams are not empty!", jsonParams.isEmpty());
   }

@@ -81,7 +81,7 @@ class Master(Script):
                         )
 
     spark_deps_full_path = self.get_zeppelin_spark_dependencies()[0]
-    spark_dep_file_name = os.path.basename(spark_deps_full_path);
+    spark_dep_file_name = os.path.basename(spark_deps_full_path)
 
     params.HdfsResource(params.spark_jar_dir + "/" + spark_dep_file_name,
                         type="file",
@@ -162,14 +162,6 @@ class Master(Script):
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     self.create_zeppelin_hdfs_conf_dir(env)
-    # copy hive-site.xml only if Spark 1.x is installed
-    if 'spark-defaults' in params.config['configurations'] and params.is_hive_installed:
-      XmlConfig("hive-site.xml",
-              conf_dir=params.external_dependency_conf,
-              configurations=params.spark_hive_properties,
-              owner=params.zeppelin_user,
-              group=params.zeppelin_group,
-              mode=0644)
 
     if len(params.hbase_master_hosts) > 0 and params.is_hbase_installed:
       # copy hbase-site.xml
@@ -179,8 +171,23 @@ class Master(Script):
               configuration_attributes=params.config['configuration_attributes']['hbase-site'],
               owner=params.zeppelin_user,
               group=params.zeppelin_group,
-              mode=0644
-              )
+              mode=0644)
+
+      XmlConfig("hdfs-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['hdfs-site'],
+                configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.external_dependency_conf,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.zeppelin_user,
+                group=params.zeppelin_group,
+                mode=0644)
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -288,6 +295,12 @@ class Master(Script):
           interpreter['properties']['zeppelin.jdbc.auth.type'] = "KERBEROS"
           interpreter['properties']['zeppelin.jdbc.principal'] = params.zeppelin_kerberos_principal
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
+          if params.zookeeper_znode_parent \
+              and params.hbase_zookeeper_quorum \
+              and params.zookeeper_znode_parent not in interpreter['properties']['phoenix.url']:
+            interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
+                                                       params.hbase_zookeeper_quorum + ':' + \
+                                                       params.zookeeper_znode_parent
         else:
           interpreter['properties']['zeppelin.jdbc.auth.type'] = ""
           interpreter['properties']['zeppelin.jdbc.principal'] = ""
@@ -314,10 +327,19 @@ class Master(Script):
       config_id = spark2_config["id"]
       interpreter_settings[config_id] = spark2_config
 
-    if 'livy2-defaults' in params.config['configurations']:
+    if params.livy2_livyserver_host:
       livy2_config = self.get_livy2_interpreter_config()
       config_id = livy2_config["id"]
       interpreter_settings[config_id] = livy2_config
+
+    if params.zeppelin_interpreter:
+      settings_to_delete = []
+      for settings_key, interpreter in interpreter_settings.items():
+        if interpreter['group'] not in params.zeppelin_interpreter:
+          settings_to_delete.append(settings_key)
+
+      for key in settings_to_delete:
+        del interpreter_settings[key]
 
     hive_interactive_properties_key = 'hive_interactive'
     for setting_key in interpreter_settings.keys():
@@ -355,13 +377,6 @@ class Master(Script):
                                                     params.hive_server_interactive_hosts + \
                                                     ':' + params.hive_server_port
 
-        if params.hive_server_host or params.hive_server_interactive_hosts:
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
-          interpreter['dependencies'].append(
-            {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
 
         if params.zookeeper_znode_parent \
                 and params.hbase_zookeeper_quorum:
@@ -372,8 +387,7 @@ class Master(Script):
             interpreter['properties']['phoenix.url'] = "jdbc:phoenix:" + \
                                                     params.hbase_zookeeper_quorum + ':' + \
                                                     params.zookeeper_znode_parent
-            interpreter['dependencies'].append(
-                {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
+
       elif interpreter['group'] == 'livy' and interpreter['name'] == 'livy':
         if params.livy_livyserver_host:
           interpreter['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host + \

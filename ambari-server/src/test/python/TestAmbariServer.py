@@ -6451,9 +6451,7 @@ class TestAmbariServer(TestCase):
   @patch("os.path.isdir")
   @patch("os.path.lexists")
   @patch("os.remove")
-  @patch("os.symlink")
-  @patch("shutil.copy")
-  def test_ensure_jdbc_drivers_installed(self, shutil_copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, isdir_mock, glob_mock,
+  def test_ensure_jdbc_drivers_installed(self, os_remove_mock, lexists_mock, isdir_mock, glob_mock,
                               raw_input_mock, print_warning_msg, print_error_msg_mock, print_error_msg_2_mock,
                               get_ambari_properties_mock, get_ambari_properties_2_mock):
     out = StringIO.StringIO()
@@ -6462,7 +6460,6 @@ class TestAmbariServer(TestCase):
     def reset_mocks():
       get_ambari_properties_mock.reset_mock()
       get_ambari_properties_2_mock.reset_mock()
-      shutil_copy_mock.reset_mock()
       print_error_msg_mock.reset_mock()
       print_warning_msg.reset_mock()
       raw_input_mock.reset_mock()
@@ -6498,13 +6495,7 @@ class TestAmbariServer(TestCase):
     dbms = factory.create(args, props)
     rcode = dbms.ensure_jdbc_driver_installed(props)
 
-    self.assertEquals(os_symlink_mock.call_count, 1)
-    self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join(os.sep,'tmp','ojdbc6.jar'))
-    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join(os.sep,'tmp','oracle-jdbc-driver.jar'))
     self.assertTrue(rcode)
-    self.assertEquals(shutil_copy_mock.call_count, 1)
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][0], drivers_list[0])
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][1], resources_dir)
 
     # Check negative scenarios
     # Silent option, no drivers
@@ -6550,9 +6541,7 @@ class TestAmbariServer(TestCase):
     rcode = dbms.ensure_jdbc_driver_installed(props)
 
     self.assertTrue(rcode)
-    self.assertEquals(shutil_copy_mock.call_count, 1)
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][0], drivers_list[0])
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][1], resources_dir)
+
 
     # Non-Silent option, no drivers at first ask, no drivers after that
     args = reset_mocks()

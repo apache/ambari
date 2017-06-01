@@ -228,7 +228,12 @@ public class DatabaseConsistencyCheckHelperTest {
     expect(mockJoinResultSet.getInt(1)).andReturn(resultCount);
     expect(mockStatement.executeQuery("select count(tpr.id) from topology_request tpr")).andReturn(mockCountResultSet);
     expect(mockStatement.executeQuery("select count(DISTINCT tpr.id) from topology_request tpr join " +
-      "topology_logical_request tlr on tpr.id = tlr.request_id join topology_host_request thr on tlr.id = thr.logical_request_id join topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task tlt on tht.id = tlt.host_task_id")).andReturn(mockJoinResultSet);
+            "topology_logical_request tlr on tpr.id = tlr.request_id")).andReturn(mockJoinResultSet);
+
+    expect(mockStatement.executeQuery("select count(thr.id) from topology_host_request thr")).andReturn(mockCountResultSet);
+    expect(mockStatement.executeQuery("select count(DISTINCT thr.id) from topology_host_request thr join " +
+            "topology_host_task tht on thr.id = tht.host_request_id join topology_logical_task " +
+            "tlt on tht.id = tlt.host_task_id")).andReturn(mockJoinResultSet);
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);
     DatabaseConsistencyCheckHelper.setConnection(mockConnection);

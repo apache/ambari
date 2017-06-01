@@ -105,55 +105,6 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
     check_process_status(pid_file)
 
-  def security_status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    if status_params.security_enabled:
-      props_value_check = {"hbase.security.authentication" : "kerberos",
-                           "hbase.security.authorization": "true"}
-      props_empty_check = ['hbase.regionserver.keytab.file',
-                           'hbase.regionserver.kerberos.principal']
-      props_read_check = ['hbase.regionserver.keytab.file']
-      hbase_site_expectations = build_expectations('hbase-site', props_value_check, props_empty_check,
-                                                   props_read_check)
-
-      hbase_expectations = {}
-      hbase_expectations.update(hbase_site_expectations)
-
-      security_params = get_params_from_filesystem(status_params.hbase_conf_dir,
-                                                   {'hbase-site.xml': FILE_TYPE_XML})
-      result_issues = validate_security_config_properties(security_params, hbase_expectations)
-      if not result_issues:  # If all validations passed successfully
-        try:
-          # Double check the dict before calling execute
-          if ( 'hbase-site' not in security_params
-               or 'hbase.regionserver.keytab.file' not in security_params['hbase-site']
-               or 'hbase.regionserver.kerberos.principal' not in security_params['hbase-site']):
-            self.put_structured_out({"securityState": "UNSECURED"})
-            self.put_structured_out(
-              {"securityIssuesFound": "Keytab file or principal are not set property."})
-            return
-
-          cached_kinit_executor(status_params.kinit_path_local,
-                                status_params.hbase_user,
-                                security_params['hbase-site']['hbase.regionserver.keytab.file'],
-                                security_params['hbase-site']['hbase.regionserver.kerberos.principal'],
-                                status_params.hostname,
-                                status_params.tmp_dir)
-          self.put_structured_out({"securityState": "SECURED_KERBEROS"})
-        except Exception as e:
-          self.put_structured_out({"securityState": "ERROR"})
-          self.put_structured_out({"securityStateErrorInfo": str(e)})
-      else:
-        issues = []
-        for cf in result_issues:
-          issues.append("Configuration file %s did not pass the validation. Reason: %s" % (cf, result_issues[cf]))
-        self.put_structured_out({"securityIssuesFound": ". ".join(issues)})
-        self.put_structured_out({"securityState": "UNSECURED"})
-    else:
-      self.put_structured_out({"securityState": "UNSECURED"})
-
   def get_log_folder(self):
     import params
     return params.log_dir

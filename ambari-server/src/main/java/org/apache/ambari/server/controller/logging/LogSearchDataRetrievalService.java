@@ -17,10 +17,12 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ambari.server.AmbariService;
 import org.apache.ambari.server.configuration.Configuration;
@@ -30,9 +32,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
@@ -66,6 +68,13 @@ import com.google.inject.Injector;
 public class LogSearchDataRetrievalService extends AbstractService {
 
   private static Logger LOG = LoggerFactory.getLogger(LogSearchDataRetrievalService.class);
+
+  /**
+   * Maximum number of failed attempts that the LogSearch integration code will attempt for
+   *   a given component before treating the component as failed and skipping the request.
+   *
+   */
+  private static int MAX_RETRIES_FOR_FAILED_METADATA_REQUEST = 10;
 
   /**
    * Factory instance used to handle URL string generation requests on the
@@ -107,6 +116,19 @@ public class LogSearchDataRetrievalService extends AbstractService {
    *
    */
   private final Set<String> currentRequests = Sets.newConcurrentHashSet();
+
+  /**
+   * A map that maintains the set of failure counts for logging
+   * metadata requests on a per-component basis.  This map should
+   * be consulted prior to making a metadata request to the LogSearch
+   * service.  If LogSearch has already returned an empty list for the given
+   * component, or any other error has occurred for a certain number of attempts,
+   * the request should not be attempted further.
+   *
+   */
+  private final Map<String, AtomicInteger> componentRequestFailureCounts =
+    Maps.newConcurrentMap();
+
 
 
   /**
@@ -171,18 +193,20 @@ public class LogSearchDataRetrievalService extends AbstractService {
       LOG.debug("LogFileNames result for key = {} found in cache", key);
       return cacheResult;
     } else {
-      // queue up a thread to create the LogSearch REST request to obtain this information
-      if (currentRequests.contains(key)) {
-        LOG.debug("LogFileNames request has been made for key = {}, but not completed yet", key);
+      if (!componentRequestFailureCounts.containsKey(component) || componentRequestFailureCounts.get(component).get() < MAX_RETRIES_FOR_FAILED_METADATA_REQUEST) {
+        // queue up a thread to create the LogSearch REST request to obtain this information
+        if (currentRequests.contains(key)) {
+          LOG.debug("LogFileNames request has been made for key = {}, but not completed yet", key);
+        } else {
+          LOG.debug("LogFileNames result for key = {} not in cache, queueing up remote request", key);
+          // add request key to queue, to keep multiple copies of the same request from
+          // being submitted
+          currentRequests.add(key);
+          startLogSearchFileNameRequest(host, component, cluster);
+        }
       } else {
-        LOG.debug("LogFileNames result for key = {} not in cache, queueing up remote request", key);
-        // add request key to queue, to keep multiple copies of the same request from
-        // being submitted
-        currentRequests.add(key);
-        startLogSearchFileNameRequest(host, component, cluster);
+        LOG.debug("Too many failures occurred while attempting to obtain log file metadata for component = {}, Ambari will ignore this component for LogSearch Integration", component);
       }
-
-
     }
 
     return null;
@@ -259,6 +283,15 @@ public class LogSearchDataRetrievalService extends AbstractService {
     return currentRequests;
   }
 
+  /**
+   * This protected method allows for simpler unit tests.
+   *
+   * @return the Map of failure counts on a per-component basis
+   */
+  protected Map<String, AtomicInteger> getComponentRequestFailureCounts() {
+    return componentRequestFailureCounts;
+  }
+
   private void startLogSearchFileNameRequest(String host, String component, String cluster) {
     // Create a separate instance of LoggingRequestHelperFactory for
     // each task launched, since these tasks will occur on a separate thread
@@ -267,7 +300,7 @@ public class LogSearchDataRetrievalService extends AbstractService {
     // TODO: the LoggingRequestHelperFactory implementation thread-safe, so that
     // TODO: a single factory instance can be shared across multiple threads safely
     executor.execute(new LogSearchFileNameRequestRunnable(host, component, cluster, logFileNameCache, currentRequests,
-                                                          injector.getInstance(LoggingRequestHelperFactory.class)));
+                                                          injector.getInstance(LoggingRequestHelperFactory.class), componentRequestFailureCounts));
   }
 
   private AmbariManagementController getController() {
@@ -303,20 +336,24 @@ public class LogSearchDataRetrievalService extends AbstractService {
 
     private LoggingRequestHelperFactory loggingRequestHelperFactory;
 
+    private final Map<String, AtomicInteger> componentRequestFailureCounts;
+
     private AmbariManagementController controller;
 
-    LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests, LoggingRequestHelperFactory loggingRequestHelperFactory) {
-      this(host, component, cluster, logFileNameCache, currentRequests, loggingRequestHelperFactory, AmbariServer.getController());
+    LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests, LoggingRequestHelperFactory loggingRequestHelperFactory,
+                                     Map<String, AtomicInteger> componentRequestFailureCounts) {
+      this(host, component, cluster, logFileNameCache, currentRequests, loggingRequestHelperFactory, componentRequestFailureCounts, AmbariServer.getController());
     }
 
     LogSearchFileNameRequestRunnable(String host, String component, String cluster, Cache<String, Set<String>> logFileNameCache, Set<String> currentRequests,
-                                               LoggingRequestHelperFactory loggingRequestHelperFactory, AmbariManagementController controller) {
+                                               LoggingRequestHelperFactory loggingRequestHelperFactory, Map<String, AtomicInteger> componentRequestFailureCounts, AmbariManagementController controller) {
       this.host  = host;
       this.component = component;
       this.cluster = cluster;
       this.logFileNameCache = logFileNameCache;
       this.currentRequests = currentRequests;
       this.loggingRequestHelperFactory = loggingRequestHelperFactory;
+      this.componentRequestFailureCounts = componentRequestFailureCounts;
       this.controller = controller;
     }
 
@@ -339,7 +376,13 @@ public class LogSearchDataRetrievalService extends AbstractService {
             // update cache with returned result
             logFileNameCache.put(key, logFileNamesResult);
           } else {
-            LOG.debug("LogSearchFileNameRequestRunnable: remote request was not successful");
+            LOG.debug("LogSearchFileNameRequestRunnable: remote request was not successful for component = {} on host ={}", component, host);
+            if (!componentRequestFailureCounts.containsKey(component)) {
+              componentRequestFailureCounts.put(component, new AtomicInteger());
+            }
+
+            // increment the failure count for this component
+            componentRequestFailureCounts.get(component).incrementAndGet();
           }
         } else {
           LOG.debug("LogSearchFileNameRequestRunnable: request helper was null.  This may mean that LogSearch is not available, or could be a potential connection problem.");

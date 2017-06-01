@@ -149,7 +149,7 @@ public class ExecutionCommandWrapperTest {
 
   private static void createTask(ActionDBAccessor db, long requestId, long stageId, String hostName, String clusterName) throws AmbariException {
 
-    Stage s = stageFactory.createNew(requestId, "/var/log", clusterName, 1L, "execution command wrapper test", "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+    Stage s = stageFactory.createNew(requestId, "/var/log", clusterName, 1L, "execution command wrapper test", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostName, Role.NAMENODE,
         RoleCommand.START,
@@ -157,7 +157,7 @@ public class ExecutionCommandWrapperTest {
             hostName, System.currentTimeMillis()), clusterName, "HDFS", false, false);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
-    Request request = new Request(stages, clusters);
+    Request request = new Request(stages, "clusterHostInfo", clusters);
     db.persistActions(request);
   }
 

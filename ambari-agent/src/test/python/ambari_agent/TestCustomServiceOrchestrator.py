@@ -551,57 +551,6 @@ class TestCustomServiceOrchestrator(TestCase):
     status = orchestrator.requestComponentStatus(status_command)
     self.assertEqual(runCommand_mock.return_value, status)
 
-  @patch.object(CustomServiceOrchestrator, "runCommand")
-  @patch.object(FileCache, "__init__")
-  def test_requestComponentSecurityState(self, FileCache_mock, runCommand_mock):
-    FileCache_mock.return_value = None
-    status_command = {
-      "serviceName" : 'HDFS',
-      "commandType" : "STATUS_COMMAND",
-      "clusterName" : "",
-      "componentName" : "DATANODE",
-      'configurations':{}
-    }
-    dummy_controller = MagicMock()
-    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
-    # Test securityState
-    runCommand_mock.return_value = {
-      'exitcode' : 0,
-      'structuredOut' : {'securityState': 'UNSECURED'}
-    }
-
-    status = orchestrator.requestComponentSecurityState(status_command)
-    self.assertEqual('UNSECURED', status)
-
-    # Test case where exit code indicates failure
-    runCommand_mock.return_value = {
-      "exitcode" : 1
-    }
-    status = orchestrator.requestComponentSecurityState(status_command)
-    self.assertEqual('UNKNOWN', status)
-
-  @patch.object(FileCache, "__init__")
-  def test_requestComponentSecurityState_realFailure(self, FileCache_mock):
-    '''
-    Tests the case where the CustomServiceOrchestrator attempts to call a service's security_status
-    method, but fails to do so because the script or method was not found.
-    :param FileCache_mock:
-    :return:
-    '''
-    FileCache_mock.return_value = None
-    status_command = {
-      "serviceName" : 'BOGUS_SERVICE',
-      "commandType" : "STATUS_COMMAND",
-      "clusterName" : "",
-      "componentName" : "DATANODE",
-      'configurations':{}
-    }
-    dummy_controller = MagicMock()
-    orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
-
-    status = orchestrator.requestComponentSecurityState(status_command)
-    self.assertEqual('UNKNOWN', status)
-
 
   @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")

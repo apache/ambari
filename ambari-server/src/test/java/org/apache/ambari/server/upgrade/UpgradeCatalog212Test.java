@@ -18,50 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.Capture;
-import org.easymock.EasyMockRule;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.easymock.MockType;
-import org.easymock.TestSubject;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.H2DatabaseCleaner;
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -75,6 +31,52 @@ import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.easymock.TestSubject;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog212} unit tests.
@@ -111,15 +113,11 @@ public class UpgradeCatalog212Test {
   private ResultSet resultSet;
 
   @TestSubject
-  private UpgradeCatalog212 testSubject = new UpgradeCatalog212();
+  private UpgradeCatalog212 testSubject = new UpgradeCatalog212(
+      EasyMock.createNiceMock(Injector.class));
 
-
-  private UpgradeCatalogHelper upgradeCatalogHelper;
-  private StackEntity desiredStackEntity;
-
-
-  // This method to be called only when an IOC is needed - typically by functional tests
-  public void setupIoCContext() {
+  @Before
+  public void setUp() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
@@ -127,12 +125,8 @@ public class UpgradeCatalog212Test {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
     // inject AmbariMetaInfo to ensure that stacks get populated in the DB
     injector.getInstance(AmbariMetaInfo.class);
-    // load the stack entity
-    StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
   @After
@@ -145,7 +139,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testFinilizeTopologyDDL() throws Exception {
-    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     dbAccessor.dropColumn(eq("topology_request"), eq("cluster_name"));
     dbAccessor.setColumnNullable(eq("topology_request"), eq("cluster_id"), eq(false));
@@ -170,7 +163,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
-    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Connection connection = createNiceMock(Connection.class);
@@ -208,7 +200,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
-    setupIoCContext();
     Method addMissingConfigs = UpgradeCatalog212.class.getDeclaredMethod("addMissingConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
@@ -232,7 +223,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -259,7 +249,7 @@ public class UpgradeCatalog212Test {
     expect(mockHbaseSite.getProperties()).andReturn(propertiesHbaseSite).once();
     final Config mockClusterEnv = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<String, String>();
+    final Map<String, String> propertiesExpectedHbaseEnv = new HashMap<>();
     final Map<String, String> propertiesExpectedClusterEnv = new HashMap<String, String>() {{
       put("override_uid", "false");
     }};
@@ -300,17 +290,14 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
     final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
 
-    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>();
     final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
       put("hive.heapsize", "512");
       put("hive.server2.custom.authentication.class", "");
@@ -347,7 +334,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateOozieConfigs() throws Exception {
-    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -388,7 +374,6 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveEnvContent() throws Exception {
-    setupIoCContext();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -463,9 +448,9 @@ public class UpgradeCatalog212Test {
     HashMap<String, Capture<DBColumnInfo>> captures;
 
     public HostRoleCommandDDL() {
-      captures = new HashMap<String, Capture<DBColumnInfo>>();
+      captures = new HashMap<>();
 
-      Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostRoleCommandAutoSkipColumnCapture = new Capture<>();
 
       captures.put("host_role_command", hostRoleCommandAutoSkipColumnCapture);
     }

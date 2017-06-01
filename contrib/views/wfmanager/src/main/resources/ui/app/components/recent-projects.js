@@ -18,10 +18,15 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+  rendered : function(){
+    this.$("#projectsList").on("hidden.bs.modal", function () {
+      this.sendAction("close");
+    }.bind(this));
+  }.on('didInsertElement'),
   actions: {
-  	close(){
-  		this.sendAction('close');
-  	},
+    close() {
+      this.sendAction('close');
+    },
     editWorkflow ( path, type ) {
       this.sendAction('editWorkflow', path, type);
     }

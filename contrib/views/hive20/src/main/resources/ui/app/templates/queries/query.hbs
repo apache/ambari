@@ -51,7 +51,7 @@
         <button class="btn btn-default" {{action "visualExplainQuery" }} disabled={{ worksheet.isQueryRunning}}>{{fa-icon "link"}} Visual Explain</button>
 
         {{#if worksheet.isQueryRunning}}
-          {{fa-icon "spinner fa-1-5" spin=true}}
+          {{fa-icon "spinner fa-1-5 middle-align" spin=true}}
         {{/if}}
 
       </div>
@@ -78,7 +78,7 @@
                  aria-controls={{concat 'db_body_' tableModel.dbname}}>
                 {{ tableModel.dbname }} {{#if (eq tableModel.dbname worksheet.selectedDb)}} {{fa-icon "check"}}  {{/if}}
               </a>
-              <small class="pull-right">Tables({{tableModel.tables.length}})</small>
+              <span class="pull-right">Tables({{tableModel.tables.length}})</span>
             </h4>
           </div>
           <div id={{concat 'db_body_' tableModel.dbname}} class="db-tables collapse
@@ -106,12 +106,15 @@
 </div>
 
 {{#if showWorksheetModal}}
-  {{#modal-dialog translucentOverlay=true clickOutsideToClose=true container-class="modal-dialog  modal-sm"}}
+  {{#modal-dialog translucentOverlay=true clickOutsideToClose=true container-class="modal-dialog"}}
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Saving worksheet</h4>
+        {{fa-icon "minus fa-lg"}} Confirm
       </div>
       <div class="modal-body">
+
+        <p class="lead">{{fa-icon "save fa-lg"}} Do you want to save the worksheet?</p>
+
         <div class="form-horizontal">
           <div class="form-group">
             <label for="title" class="col-sm-2 control-label">Title</label>
@@ -129,9 +132,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" disabled={{not worksheetTitle}} {{action "saveWorksheetModal"}}>{{fa-icon "check"}} Save</button>
-        <button type="button" class="btn btn-default" {{action "closeWorksheetModal"}}>{{fa-icon "close"}}Cancel
-        </button>
+        <button type="button" class="btn btn-default" {{action "closeWorksheetModal"}}>{{fa-icon "close"}} Reject</button>
+        <button type="button" class="btn btn-success" disabled={{not worksheetTitle}} {{action "saveWorksheetModal"}}>{{fa-icon "check"}} Save</button>
       </div>
     </div>
   {{/modal-dialog}}

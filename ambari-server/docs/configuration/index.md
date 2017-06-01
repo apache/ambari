@@ -190,6 +190,7 @@ The following are the properties which can be used to configure Ambari.
 | security.server.one_way_ssl.port | The port that the Ambari Agents will use to communicate with the Ambari Server over SSL. |`8440` | 
 | security.server.passphrase | The password to the Ambari Server to supply to new Ambari Agent hosts being bootstrapped. |`AMBARI_PASSPHRASE` | 
 | security.server.passphrase_env_var | An environment variable which can be used to supply the Ambari Server password when bootstrapping new Ambari Agents. |`AMBARI_PASSPHRASE` | 
+| security.server.tls.ephemeral_dh_key_size | The Ephemeral TLS Diffie-Hellman (DH) key size. Supported from Java 8. |`2048` | 
 | security.server.truststore_name | The name of the truststore file ambari uses to store trusted certificates. Located in `security.server.keys_dir` |`keystore.p12` | 
 | security.server.truststore_type | The type of the truststore file specified in `security.server.truststore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS` |`PKCS12` | 
 | security.server.two_way_ssl | Determines whether two-way SSL should be used between Ambari Server and Ambari Agents so that the agents must also use SSL. |`false` | 

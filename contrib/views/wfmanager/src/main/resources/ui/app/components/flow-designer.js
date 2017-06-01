@@ -22,7 +22,6 @@ import {WorkflowGenerator} from '../domain/workflow-xml-generator';
 import {WorkflowImporter} from '../domain/workflow-importer';
 import {WorkflowJsonImporter} from '../domain/workflow-json-importer';
 import {WorkflowContext} from '../domain/workflow-context';
-import {JSPlumbRenderer} from '../domain/jsplumb-flow-renderer';
 import {CytoscapeRenderer} from '../domain/cytoscape-flow-renderer';
 import {FindNodeMixin} from '../domain/findnode-mixin';
 import { validator, buildValidations } from 'ember-cp-validations';
@@ -114,7 +113,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   showingStreamImport:false,
   fileInfo:Ember.Object.create(),
   isDraft: false,
+  jobConfigProperties: Ember.A([]),
   saveJobService : Ember.inject.service('save-job'),
+  isDefaultNameForWFEnabled : false,
   initialize : function(){
     var id = 'cy-' + Math.ceil(Math.random() * 1000);
     this.set('cyId', id);
@@ -139,7 +140,10 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
         this.restoreWorkflow();
       }
     }
-    if(Ember.isBlank(this.get('workflow.name'))){
+    /*
+       This block will enable/disable giving default name for workflow
+    */
+    if(Ember.isBlank(this.get('workflow.name')) && this.get('isDefaultNameForWFEnabled')) {
       this.set('workflow.name', Ember.copy(this.get('tabInfo.name')));
     }
   }.on('didInsertElement'),
@@ -246,6 +250,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   resize(){
     this.flowRenderer.resize();
+  },
+  centerGraph(){
+    this.flowRenderer.setGraphCenter();
   },
   cleanupFlowRenderer:function(){
     this.set('renderNodeTransitions',false);
@@ -715,10 +722,9 @@ export default Ember.Component.extend(FindNodeMixin, Validations, {
   },
   openJobConfig () {
     this.get('workflowContext').clearErrors();
-    var workflowGenerator=WorkflowGenerator.create({workflow:this.get("workflow"),
-    workflowContext:this.get('workflowContext')});
-    var workflowXml=workflowGenerator.process();
-    if(this.get('workflowContext').hasErrors()){
+    var workflowGenerator = WorkflowGenerator.create({workflow:this.get("workflow"), workflowContext:this.get('workflowContext')});
+    var workflowXml = workflowGenerator.process();
+    if(this.get('workflowContext').hasErrors() || (this.get("validationErrors") && this.get("validationErrors").length)){
       this.set('errors',this.get('workflowContext').getErrors());
     }else{
       var dynamicProperties = this.get('propertyExtractor').getDynamicProperties(workflowXml);
