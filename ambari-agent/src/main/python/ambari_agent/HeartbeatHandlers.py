@@ -26,7 +26,6 @@ import signal
 import threading
 import traceback
 from ambari_commons.os_family_impl import OsFamilyImpl
-import sys
 
 from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
 
@@ -80,15 +79,14 @@ class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
 # linux impl
 
 def signal_handler(signum, frame):
-  global _handler
   logger.info("Ambari-agent received {0} signal, stopping...".format(signum))
-  _handler.set_stop()
+  _handler.set()
 
 
 def debug(sig, frame):
   """Interrupt running process, and provide a stacktrace of threads """
   d = {'_frame': frame}  # Allow access to frame object.
-  d.update(frame.f_globals)  # Unless shadowed by global
+  d.update(frame.f_globals)  # Uamnless shadowed by global
   d.update(frame.f_locals)
 
   message = "Signal received.\nTraceback:\n"
@@ -123,7 +121,7 @@ class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
 
 
 
-def bind_signal_handlers(agentPid):
+def bind_signal_handlers(agentPid, stop_event):
   global _handler
   if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
     if os.getpid() == agentPid:
@@ -132,7 +130,7 @@ def bind_signal_handlers(agentPid):
 
       bind_debug_signal_handlers()
 
-    _handler = HeartbeatStopHandlersLinux()
+    _handler = stop_event
   else:
-    _handler = HeartbeatStopHandlersWindows()
+    _handler = stop_event
   return _handler

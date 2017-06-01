@@ -72,7 +72,7 @@ class ComponentStatusExecutor(threading.Thread):
               component_name = component_dict.componentName
 
               # TODO STOMP: run real command
-              logger.info("Running {0}/{1}".format(component_dict.statusCommandParams.servicePackageFolder, component_dict.statusCommandParams.script))
+              logger.info("Running {0}/{1}".format(component_dict.statusCommandParams.service_package_folder, component_dict.statusCommandParams.script))
               #self.customServiceOrchestrator.requestComponentStatus(command)
               status = random.choice(["INSTALLED","STARTED"])
               result = {
@@ -87,16 +87,14 @@ class ComponentStatusExecutor(threading.Thread):
                 logging.info("Status for {0} has changed to {1}".format(component_name, status))
                 cluster_reports[cluster_id].append(result)
 
-        # TODO STOMP: what if not registered?
         self.send_updates_to_server(cluster_reports)
-        self.stop_event.wait(Constants.STATUS_COMMANDS_PACK_INTERVAL_SECONDS)
       except:
         logger.exception("Exception in ComponentStatusExecutor. Re-running it")
-        pass
+
+      self.stop_event.wait(Constants.STATUS_COMMANDS_PACK_INTERVAL_SECONDS)
     logger.info("ComponentStatusExecutor has successfully finished")
 
   def send_updates_to_server(self, cluster_reports):
-    # TODO STOMP: override send to send dicts and lists? and not use json.dump
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 

@@ -42,20 +42,35 @@ class ClusterTopologyCache(ClusterCache):
     return 'topology'
 
   @staticmethod
-  def find_host_by_id(host_dicts, cluster_id, host_id):
+  def find_host_by_id(host_dicts, host_id):
+    """
+    Find host by id in list of host dictionaries.
+    """
     for host_dict in host_dicts:
       if host_dict['hostId'] == host_id:
         return host_dict
     return None
 
   @staticmethod
-  def find_component(component_dicts, cluster_id, service_name, component_name):
+  def find_component(component_dicts, service_name, component_name):
+    """
+    Find component by service_name and component_name in list of component dictionaries.
+    """
     for component_dict in component_dicts:
       if component_dict['serviceName'] == service_name and component_dict['componentName'] == component_name:
         return component_dict
     return None
 
   def cache_update(self, cache_update):
+    """
+    Handle event of update of topology.
+
+    Possible scenarios are:
+    - add new host
+    - update existing host information by hostId (e.g. rack name)
+    - add new component
+    - update component information by service_name and component_name
+    """
     mutable_dict = self._get_mutable_copy()
 
     for cluster_id, cluster_updates_dict in cache_update.iteritems():
@@ -66,7 +81,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'hosts' in cluster_updates_dict:
         hosts_mutable_list = mutable_dict[cluster_id]['hosts']
         for host_updates_dict in cluster_updates_dict['hosts']:
-          host_mutable_dict = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, cluster_id, host_updates_dict['hostId'])
+          host_mutable_dict = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, host_updates_dict['hostId'])
           if host_mutable_dict is not None:
             host_mutable_dict.update(host_updates_dict)
           else:
@@ -75,7 +90,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'components' in cluster_updates_dict:
         components_mutable_list = mutable_dict[cluster_id]['components']
         for component_updates_dict in cluster_updates_dict['components']:
-          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, cluster_id, component_updates_dict['serviceName'], component_updates_dict['componentName'])
+          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
           if component_mutable_dict is not None:
             component_updates_dict['hostIds'] += component_mutable_dict['hostIds']
             component_updates_dict['hostIds'] = list(set(component_updates_dict['hostIds']))
@@ -86,6 +101,15 @@ class ClusterTopologyCache(ClusterCache):
     self.rewrite_cache(mutable_dict)
 
   def cache_delete(self, cache_update):
+    """
+    Handle event of delete on topology.
+
+    Possible scenarios are:
+    - delete host
+    - delete component
+    - delete component host
+    - delete cluster
+    """
     mutable_dict = self._get_mutable_copy()
     clusters_ids_to_delete = []
 
@@ -97,7 +121,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'hosts' in cluster_updates_dict:
         hosts_mutable_list = mutable_dict[cluster_id]['hosts']
         for host_updates_dict in cluster_updates_dict['hosts']:
-          host_to_delete = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, cluster_id, host_updates_dict['hostId'])
+          host_to_delete = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, host_updates_dict['hostId'])
           if host_to_delete is not None:
             mutable_dict[cluster_id]['hosts'] = [host_dict for host_dict in hosts_mutable_list if host_dict != host_to_delete]
           else:
@@ -106,7 +130,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'components' in cluster_updates_dict:
         components_mutable_list = mutable_dict[cluster_id]['components']
         for component_updates_dict in cluster_updates_dict['components']:
-          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, cluster_id, component_updates_dict['serviceName'], component_updates_dict['componentName'])
+          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
           if 'hostIds' in component_mutable_dict:
             exclude_host_ids = component_updates_dict['hostIds']
             component_mutable_dict['hostIds'] = [host_id for host_id in component_mutable_dict['hostIds'] if host_id not in exclude_host_ids]

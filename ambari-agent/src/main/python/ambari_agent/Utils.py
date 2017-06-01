@@ -17,8 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import threading
 from functools import wraps
+from ambari_agent.ExitHelper import ExitHelper
+
+AGENT_AUTO_RESTART_EXIT_CODE = 77
 
 class BlockingDictionary():
   """
@@ -39,16 +43,20 @@ class BlockingDictionary():
       self.dict[key] = value
     self.put_event.set()
 
-  def blocking_pop(self, key):
+  def blocking_pop(self, key, timeout=None):
     """
     Block until a key in dictionary is available and than pop it.
+    If timeout exceeded None is returned.
     """
     with self.dict_lock:
       if key in self.dict:
         return self.dict.pop(key)
 
     while True:
-      self.put_event.wait()
+      self.put_event.wait(timeout)
+      if not self.put_event.is_set():
+        raise BlockingDictionary.DictionaryPopTimeout()
+
       self.put_event.clear()
       with self.dict_lock:
         if key in self.dict:
@@ -59,6 +67,9 @@ class BlockingDictionary():
 
   def __str__(self):
     return self.dict.__str__()
+
+  class DictionaryPopTimeout(Exception):
+    pass
 
 class Utils(object):
   @staticmethod
@@ -83,6 +94,19 @@ class Utils(object):
       return [Utils.get_mutable_copy(x) for x in param]
 
     return param
+
+  @staticmethod
+  def read_agent_version(config):
+    data_dir = config.get('agent', 'prefix')
+    ver_file = os.path.join(data_dir, 'version')
+    with open(ver_file, "r") as f:
+      version = f.read().strip()
+    return version
+
+  @staticmethod
+  def restartAgent():
+    # TODO STOMP: set stop event?
+    ExitHelper().exit(AGENT_AUTO_RESTART_EXIT_CODE)
 
 class ImmutableDictionary(dict):
   def __init__(self, dictionary):

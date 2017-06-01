@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
+import ambari_simplejson as json
 import ambari_stomp
 import logging
 
@@ -38,14 +38,12 @@ class EventListener(ambari_stomp.ConnectionListener):
       return
 
     destination = headers['destination']
-
     if destination.rstrip('/') == self.get_handled_path().rstrip('/'):
       try:
         message_json = json.loads(message)
       except ValueError:
         logger.exception("Received from server event is not a valid message json. Message is:\n{0}".format(message))
         return
-
       logger.info("Event from server at {0}{1}".format(destination, self.get_log_message(headers, message_json)))
       try:
         self.on_event(headers, message_json)

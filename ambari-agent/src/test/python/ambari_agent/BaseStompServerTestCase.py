@@ -54,7 +54,6 @@ class BaseStompServerTestCase(unittest.TestCase):
   """
 
   def setUp(self):
-
     self.clients = []
     self.server = None  # This gets set in the server thread.
     self.server_address = None  # This gets set in the server thread.
@@ -100,7 +99,7 @@ class BaseStompServerTestCase(unittest.TestCase):
   def tearDown(self):
     for c in self.clients:
       c.close()
-    self.server.shutdown() # server_close takes too much time
+    self.server.server_close()
     self.server_thread.join()
     self.ready_event.clear()
     del self.server_thread
@@ -156,6 +155,17 @@ class BaseStompServerTestCase(unittest.TestCase):
     for filepath in filepathes:
       if os.path.isfile(filepath):
         os.remove(filepath)
+
+  def assert_with_retries(self, func, tries, try_sleep):
+    # wait for 2 seconds
+    for i in range(tries):
+      try:
+        func()
+        break
+      except AssertionError:
+        time.sleep(try_sleep)
+    else:
+      func()
 
 
 class TestStompServer(ThreadedStompServer):

@@ -42,12 +42,14 @@ class CommandStatusReporter(threading.Thread):
 
     while not self.stop_event.is_set():
       try:
-        # TODO STOMP: if not registered, reports should not be on agent until next registration
-        report = self.commandStatuses.generate_report()
-        if report and self.initializer_module.is_registered:
-          self.initializer_module.connection.send(message=report, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
-        self.stop_event.wait(self.command_reports_interval)
+        if self.initializer_module.is_registered:
+          report = self.commandStatuses.generate_report()
+          if report:
+            self.initializer_module.connection.send(message=report, destination=Constants.COMMANDS_STATUS_REPORTS_ENDPOINT)
+          self.commandStatuses.clear_reported_reports()
       except:
         logger.exception("Exception in CommandStatusReporter. Re-running it")
-        pass
+
+      self.stop_event.wait(self.command_reports_interval)
+
     logger.info("CommandStatusReporter has successfully finished")

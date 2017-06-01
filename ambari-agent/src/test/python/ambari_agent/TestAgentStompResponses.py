@@ -36,15 +36,20 @@ from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from mock.mock import MagicMock, patch
 
 class TestAgentStompResponses(BaseStompServerTestCase):
-  """
-  @patch.object(CustomServiceOrchestrator, "runCommand")
-  def test_mock_server_can_start(self, runCommand_mock):
-    runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
-
+  def setUp(self):
     self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json'])
 
     if not os.path.exists("/tmp/ambari-agent"):
       os.mkdir("/tmp/ambari-agent")
+
+    with open("/tmp/ambari-agent/version", "w") as fp:
+      fp.write("2.5.0.0")
+
+    return super(TestAgentStompResponses, self).setUp()
+
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  def test_mock_server_can_start(self, runCommand_mock):
+    runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
 
     initializer_module = InitializerModule()
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
@@ -101,7 +106,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     action_status_failed_frame = json.loads(self.server.frames_queue.get().body)
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'heartbeat-response':'true'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
@@ -118,8 +123,8 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.assertEquals(dn_start_failed_frame[0]['status'], 'FAILED')
 
 
-    ============================================================================================
-    ============================================================================================
+    #============================================================================================
+    #============================================================================================
 
 
     initializer_module = InitializerModule()
@@ -163,24 +168,15 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'heartbeat-response':'true'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
     component_status_executor.join()
     command_status_reporter.join()
     action_queue.join()
-    """
 
-  @patch.object(CustomServiceOrchestrator, "runCommand")
-  def test_topology_update_and_delete(self, runCommand_mock):
-    runCommand_mock.return_value = {'stdout':'...', 'stderr':'...', 'structuredOut' : '{}', 'exitcode':1}
-
-    self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json'])
-
-    if not os.path.exists("/tmp/ambari-agent"):
-      os.mkdir("/tmp/ambari-agent")
-
+  def test_topology_update_and_delete(self):
     initializer_module = InitializerModule()
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
     heartbeat_thread.start()
@@ -211,34 +207,40 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     while not initializer_module.is_registered:
       time.sleep(0.1)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_component.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_add_component.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_component_host.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_add_component_host.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_add_host.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_add_host.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_host.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_delete_host.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_component.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_delete_component.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_component_host.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_delete_component_host.json"))
     self.server.topic_manager.send(f)
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/events/topology'}, body=self.get_json("topology_delete_cluster.json"))
+    f = Frame(frames.MESSAGE, headers={'destination': '/events/topologies'}, body=self.get_json("topology_delete_cluster.json"))
     self.server.topic_manager.send(f)
 
-    time.sleep(0.1)
-    self.assertEquals(json.dumps(initializer_module.topology_cache, indent=2, sort_keys=True), json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True))
-    #self.assertEquals(initializer_module.topology_cache, self.get_dict_from_file("topology_cache_expected.json"))
+    def is_json_equal():
+      json_topology = json.dumps(initializer_module.topology_cache, indent=2, sort_keys=True)
+      json_excepted_lopology = json.dumps(self.get_dict_from_file("topology_cache_expected.json"), indent=2, sort_keys=True)
+      #print json_topology
+      #print json_excepted_lopology
+      self.assertEquals(json_topology, json_excepted_lopology)
+      #self.assertEquals(initializer_module.topology_cache, self.get_dict_from_file("topology_cache_expected.json"))
+
+    self.assert_with_retries(is_json_equal, tries=40, try_sleep=0.1)
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'heartbeat-response':'true'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()

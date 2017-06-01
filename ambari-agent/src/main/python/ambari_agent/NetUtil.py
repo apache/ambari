@@ -19,7 +19,6 @@ import logging
 import httplib
 import sys
 from ssl import SSLError
-from HeartbeatHandlers import HeartbeatStopHandlers
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_commons.inet_utils import ensure_ssl_using_protocol
 
@@ -44,16 +43,8 @@ class NetUtil:
   # For testing purposes
   DEBUG_STOP_RETRIES_FLAG = False
 
-  # Stop implementation
-  # Typically, it waits for a certain time for the daemon/service to receive the stop signal.
-  # Received the number of seconds to wait as an argument
-  # Returns true if the application is stopping, false if continuing execution
-  stopCallback = None
-
-  def __init__(self, config, stop_callback=None):
-    if stop_callback is None:
-      stop_callback = HeartbeatStopHandlers()
-    self.stopCallback = stop_callback
+  def __init__(self, config, stop_event=None):
+    self.stop_event = stop_event
     self.config = config
     self.connect_retry_delay = int(config.get('server','connect_retry_delay',
                                               default=self.DEFAULT_CONNECT_RETRY_DELAY_SEC))
@@ -71,13 +62,13 @@ class NetUtil:
 
     try:
       parsedurl = urlparse(url)
-      
+
       if sys.version_info >= (2,7,9) and not ssl_verify_cert:
           import ssl
           ca_connection = httplib.HTTPSConnection(parsedurl[1], context=ssl._create_unverified_context())
       else:
           ca_connection = httplib.HTTPSConnection(parsedurl[1])
-          
+
       ca_connection.request("GET", parsedurl[2])
       response = ca_connection.getresponse()
       status = response.status
@@ -121,11 +112,13 @@ class NetUtil:
             self.connect_retry_delay))
         retries += 1
 
-      if 0 == self.stopCallback.wait(self.connect_retry_delay):
+      self.stop_event.wait(self.connect_retry_delay)
+
+      if self.stop_event.is_set():
         #stop waiting
         if logger is not None:
           logger.info("Stop event received")
-        self.DEBUG_STOP_RETRIES_FLAG = True
+        break
 
     return retries, connected, self.DEBUG_STOP_RETRIES_FLAG
 

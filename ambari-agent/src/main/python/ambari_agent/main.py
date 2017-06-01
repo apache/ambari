@@ -79,11 +79,8 @@ fix_encoding_reimport_bug()
 
 import logging.handlers
 import logging.config
-import signal
 from optparse import OptionParser
 import sys
-import traceback
-import getpass
 import os
 import time
 import locale
@@ -92,7 +89,6 @@ import ConfigParser
 import ProcessHelper
 import resource
 from logging.handlers import SysLogHandler
-from Controller import Controller
 import AmbariConfig
 from NetUtil import NetUtil
 from PingPortListener import PingPortListener
@@ -102,9 +98,7 @@ from ambari_agent.ExitHelper import ExitHelper
 import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
-from ambari_commons.network import reconfigure_urllib2_opener
-from ambari_commons import shell
-import HeartbeatHandlers
+#from ambari_commons.network import reconfigure_urllib2_opener
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
@@ -349,13 +343,7 @@ def reset_agent(options):
 
 MAX_RETRIES = 10
 
-# TODO STOMP: remove from globals
-initializer_module = None
-
-def run_threads():
-  global initializer_module
-  initializer_module = InitializerModule()
-
+def run_threads(initializer_module):
   heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
   heartbeat_thread.start()
 
@@ -370,13 +358,12 @@ def run_threads():
   while not initializer_module.stop_event.is_set():
     time.sleep(0.1)
 
-  # TODO STOMP: if thread cannot stop by itself kill it hard after some timeout.
   heartbeat_thread.join()
   component_status_executor.join()
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
-def main(heartbeat_stop_callback=None):
+def main(initializer_module, heartbeat_stop_callback=None):
   global config
   global home_dir
 
@@ -449,7 +436,7 @@ def main(heartbeat_stop_callback=None):
 
   if not config.use_system_proxy_setting():
     logger.info('Agent is configured to ignore system proxy settings')
-    reconfigure_urllib2_opener(ignore_system_proxy=True)
+    #reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()
@@ -475,7 +462,7 @@ def main(heartbeat_stop_callback=None):
         logger.warn("Unable to determine the IP address of the Ambari server '%s'", server_hostname)
 
       # Wait until MAX_RETRIES to see if server is reachable
-      netutil = NetUtil(config, heartbeat_stop_callback)
+      netutil = NetUtil(config, initializer_module.stop_event)
       (retries, connected, stopped) = netutil.try_to_connect(server_url, MAX_RETRIES, logger)
 
       # if connected, launch controller
@@ -484,7 +471,7 @@ def main(heartbeat_stop_callback=None):
         # Set the active server
         active_server = server_hostname
         # Launch Controller communication
-        run_threads()
+        run_threads(initializer_module)
 
       #
       # If Ambari Agent connected to the server or
@@ -503,9 +490,10 @@ def main(heartbeat_stop_callback=None):
 if __name__ == "__main__":
   is_logger_setup = False
   try:
-    heartbeat_stop_callback = bind_signal_handlers(agentPid)
+    initializer_module = InitializerModule()
+    heartbeat_stop_callback = bind_signal_handlers(agentPid, initializer_module.stop_event)
 
-    main(heartbeat_stop_callback)
+    main(initializer_module, heartbeat_stop_callback)
   except SystemExit:
     raise
   except BaseException:

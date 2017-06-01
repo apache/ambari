@@ -40,12 +40,11 @@ class CommandsEventListener(EventListener):
     @param headers: headers dictionary
     @param message: message payload dictionary
     """
+    ""
     commands = []
-    for cluster_id in message.keys():
-      cluster_dict = message[cluster_id]
-      host_level_params = cluster_dict['hostLevelParams']
+    for cluster_id in message['clusters'].keys():
+      cluster_dict = message['clusters'][cluster_id]
       for command in cluster_dict['commands']:
-        command['hostLevelParams'] = host_level_params
         commands.append(command)
 
     self.action_queue.put(commands)

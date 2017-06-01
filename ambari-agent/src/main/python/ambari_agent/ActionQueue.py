@@ -364,9 +364,10 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know name of custom command
+    """
     if command['hostLevelParams'].has_key('custom_command'):
       roleResult['customCommand'] = command['hostLevelParams']['custom_command']
-
+    """
     if 'structuredOut' in commandresult:
       roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
     else:
@@ -565,12 +566,6 @@ class ActionQueue(threading.Thread):
       traceback.print_exc()
       logger.warn(err)
     pass
-
-
-  # Store action result to agent response queue
-  def result(self):
-    return self.commandStatuses.generate_report()
-
 
   def status_update_callback(self):
     """

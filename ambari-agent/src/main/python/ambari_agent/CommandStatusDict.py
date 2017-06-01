@@ -43,6 +43,7 @@ class CommandStatusDict():
     self.current_state = {} # Contains all statuses
     self.lock = threading.RLock()
     self.initializer_module = initializer_module
+    self.reported_reports = set()
 
 
   def put_command_status(self, command, new_report):
@@ -52,6 +53,7 @@ class CommandStatusDict():
     key = command['taskId']
     with self.lock: # Synchronized
       self.current_state[key] = (command, new_report)
+      self.reported_reports.discard(key)
 
     self.force_update_to_server([new_report])
 
@@ -69,6 +71,7 @@ class CommandStatusDict():
     FAILED. Statuses for COMPLETE or FAILED commands are forgotten after
     generation
     """
+    self.generated_reports = []
     from ActionQueue import ActionQueue
     with self.lock: # Synchronized
       resultReports = []
@@ -78,17 +81,20 @@ class CommandStatusDict():
         if command ['commandType'] in [ActionQueue.EXECUTION_COMMAND, ActionQueue.BACKGROUND_EXECUTION_COMMAND]:
           if (report['status']) != ActionQueue.IN_PROGRESS_STATUS:
             resultReports.append(report)
-            # Removing complete/failed command status from dict
-            del self.current_state[key]
+            self.reported_reports.append(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
             resultReports.append(in_progress_report)
         elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
           logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
-          del self.current_state[key]
+          self.reported_reports.append(key)
           pass
       return resultReports
 
+  def clear_reported_reports(self):
+    with self.lock:
+      for key in self.reported_reports:
+        del self.current_state[key]
 
   def generate_in_progress_report(self, command, report):
     """
