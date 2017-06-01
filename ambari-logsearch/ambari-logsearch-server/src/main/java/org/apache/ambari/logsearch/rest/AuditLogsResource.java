@@ -123,7 +123,7 @@ public class AuditLogsResource {
   @Path("/clusters")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_CLUSTERS_OD)
-  public List<String> getClustersForServiceLog() {
+  public List<String> getClustersForAuditLog() {
     return auditLogsManager.getClusters();
   }
 
