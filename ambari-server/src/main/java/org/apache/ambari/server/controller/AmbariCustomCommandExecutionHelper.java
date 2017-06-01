@@ -1464,14 +1464,10 @@ public class AmbariCustomCommandExecutionHelper {
   }
 
   Map<String, String> createDefaultHostParams(Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
-    StackId stackId = null;
-    if (null != repositoryVersion) {
-      stackId = repositoryVersion.getStackId();
-    }
+    return createDefaultHostParams(cluster, repositoryVersion.getStackId());
+  }
 
-    if (null == stackId) {
-      throw new AmbariException(String.format("Could not find desired stack id for cluster %s", cluster.getClusterName()));
-    }
+  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) throws AmbariException {
 
     TreeMap<String, String> hostLevelParams = new TreeMap<>();
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());

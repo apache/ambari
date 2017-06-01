@@ -174,6 +174,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   public static final String UPGRADE_HOST_ORDERED_HOSTS = "Upgrade/host_order";
 
+  /**
+   * The role that will be used when creating HRC's for the type
+   * {@link StageWrapper.Type#RU_TASKS}.
+   */
+  protected static final String EXECUTE_TASK_ROLE = "ru_execute_tasks";
+
   /*
    * Lifted from RequestResourceProvider
    */
@@ -862,10 +868,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = context.getCluster();
 
-    // add each host to this stage
-    RequestResourceFilter filter = new RequestResourceFilter("", "",
-        new ArrayList<>(wrapper.getHosts()));
-
     LOG.debug("Analyzing upgrade item {} with tasks: {}.", entity.getText(), entity.getTasks());
     Map<String, String> params = getNewParameterMap(request, context);
     params.put(UpgradeContext.COMMAND_PARAM_TASKS, entity.getTasks());
@@ -882,9 +884,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(),
         stackId.getStackVersion());
 
+    // if the service/component are specified, then make sure to grab them off
+    // of the wrapper so they can be stored on the command for use later
+    String serviceName = null;
+    String componentName = null;
+
     if (wrapper.getTasks() != null && wrapper.getTasks().size() > 0
         && wrapper.getTasks().get(0).getService() != null) {
-      String serviceName = wrapper.getTasks().get(0).getService();
+      TaskWrapper taskWrapper = wrapper.getTasks().get(0);
+      serviceName = taskWrapper.getService();
+      componentName = taskWrapper.getComponent();
+
       ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
           stackId.getStackVersion(), serviceName);
 
@@ -892,8 +902,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       params.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
     }
 
+    // add each host to this stage
+    RequestResourceFilter filter = new RequestResourceFilter(serviceName, componentName,
+        new ArrayList<>(wrapper.getHosts()));
+
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
-        "ru_execute_tasks", Collections.singletonList(filter), params);
+        EXECUTE_TASK_ROLE, Collections.singletonList(filter), params);
 
     // hosts in maintenance mode are excluded from the upgrade
     actionContext.setMaintenanceModeHostExcluded(true);

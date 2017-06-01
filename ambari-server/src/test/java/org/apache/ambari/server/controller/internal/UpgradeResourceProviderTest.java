@@ -45,6 +45,7 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
@@ -95,10 +96,12 @@ import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -1653,6 +1656,57 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
     assertTrue("ZooKeeper timeout override was found", found);
 
+  }
+
+  /**
+   * Tests that commands created for {@link StageWrapper.Type#RU_TASKS} set the
+   * service and component on the {@link ExecutionCommand}.
+   * <p/>
+   * Without this, commands of this type would not be able to determine which
+   * service/component repository they should use when the command is scheduled
+   * to run.
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void testExecutionCommandServiceAndComponent() throws Exception {
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REPO_VERSION_ID, String.valueOf(repoVersionEntity2200.getId()));
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_execute_task_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_DIRECTION, Direction.UPGRADE.name());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+
+    Set<Resource> createdResources = status.getAssociatedResources();
+    assertEquals(1, createdResources.size());
+    Resource res = createdResources.iterator().next();
+    Long id = (Long) res.getPropertyValue("Upgrade/request_id");
+    assertNotNull(id);
+    assertEquals(Long.valueOf(1), id);
+
+
+    ActionManager am = injector.getInstance(ActionManager.class);
+    List<HostRoleCommand> commands = am.getRequestTasks(id);
+
+    boolean foundActionExecuteCommand = false;
+    for (HostRoleCommand command : commands) {
+      ExecutionCommand executionCommand = command.getExecutionCommandWrapper().getExecutionCommand();
+      if (StringUtils.equals(UpgradeResourceProvider.EXECUTE_TASK_ROLE,
+          executionCommand.getRole())) {
+        foundActionExecuteCommand = true;
+        assertNotNull(executionCommand.getServiceName());
+        assertNotNull(executionCommand.getComponentName());
+      }
+    }
+
+    assertTrue(
+        "There was no task found with the role of " + UpgradeResourceProvider.EXECUTE_TASK_ROLE,
+        foundActionExecuteCommand);
   }
 
   /**
