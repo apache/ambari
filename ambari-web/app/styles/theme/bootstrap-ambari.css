@@ -28,6 +28,7 @@
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
 }
 .btn,
 .btn:focus {
@@ -276,6 +277,7 @@
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   border-radius: 2px;
   font-size: 14px;
   min-width: 200px;
@@ -376,6 +378,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   margin-top: 10px;
   font-size: 20px;
 }
@@ -525,6 +528,7 @@ h2.table-title {
   font-weight: normal;
   font-style: normal;
   line-height: 1;
+  -webkit-font-smoothing: antialiased;
   font-size: 20px;
   color: #333;
   margin: 15px 20px;
@@ -546,6 +550,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-weight: bold;
   font-size: 18px;
   color: #666;
@@ -556,6 +561,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   line-height: 1.4;
   color: #999;
@@ -605,6 +611,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #999;
   margin-left: 30px;
@@ -618,6 +625,7 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 12px;
   color: #999;
   margin-left: 30px;
@@ -768,13 +776,15 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container {
   height: auto;
-  width: 190px;
+  width: 230px;
   background-color: #323544;
   padding: 0;
   -ms-overflow-style: none;
+  transition: width 0.5s ease-out;
 }
 .navigation-bar-container ul.nav.side-nav-header {
-  width: 190px;
+  width: 230px;
+  transition: width 0.5s ease-out;
 }
 .navigation-bar-container ul.nav.side-nav-header li.navigation-header {
   background: #313d54;
@@ -803,6 +813,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 20px;
   width: 55px;
   display: inline;
@@ -829,6 +840,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #666;
   line-height: 1.42;
@@ -842,7 +854,8 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-menu,
 .navigation-bar-container ul.nav.side-nav-footer {
   background-color: #323544;
-  width: 190px;
+  width: 230px;
+  transition: width 0.5s ease-out;
 }
 .navigation-bar-container ul.nav.side-nav-menu li,
 .navigation-bar-container ul.nav.side-nav-footer li {
@@ -857,7 +870,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a {
   display: table-cell;
   vertical-align: middle;
-  width: 190px;
+  width: 230px;
   border-radius: 0;
   -moz-border-radius: 0;
   -webkit-border-radius: 0;
@@ -874,7 +887,8 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
   color: #b8bec4;
   padding-left: 8px;
 }
@@ -903,7 +917,7 @@ input.radio:checked + label:after {
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer > a,
 .navigation-bar-container ul.nav.side-nav-menu li.mainmenu-li > a,
 .navigation-bar-container ul.nav.side-nav-footer li.mainmenu-li > a {
-  padding: 15px 5px 15px 25px;
+  padding: 10px 5px 10px 20px;
 }
 .navigation-bar-container ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container ul.nav.side-nav-footer li.submenu-li > a {
@@ -916,7 +930,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container ul.nav.side-nav-menu li.navigation-footer a .navigation-icon,
 .navigation-bar-container ul.nav.side-nav-footer li.navigation-footer a .navigation-icon {
-  color: #3fae2a;
+  color: #31823a;
   font-size: 20px;
   position: relative;
   padding: 0 15px;
@@ -937,6 +951,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #999;
 }
@@ -1009,14 +1024,14 @@ input.radio:checked + label:after {
   left: 0;
   top: 50%;
   border: solid transparent;
-  border-width: 12px 6px;
+  border-width: 10px 7px;
   content: " ";
   height: 0;
   width: 0;
   position: absolute;
   pointer-events: none;
   border-color: transparent;
-  border-left-color: #3fae2a;
+  border-left-color: #31823a;
   margin-top: -12px;
 }
 .navigation-bar-container ul.nav.side-nav-menu .more-actions,
@@ -1070,7 +1085,7 @@ input.radio:checked + label:after {
   width: 50px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header {
-  padding: 15px 0 15px 17px;
+  padding: 15px 0 15px 15px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.ambari-header,
 .navigation-bar-container.collapsed ul.nav.side-nav-header li.navigation-header span.toggle-icon,
@@ -1083,7 +1098,7 @@ input.radio:checked + label:after {
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li a {
-  padding: 15px 0 15px 17px;
+  padding: 15px 0 15px 15px;
   width: 50px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li a .navigation-menu-item,
@@ -1100,7 +1115,7 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li ul.sub-menu,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li ul.sub-menu {
   display: none;
-  width: 190px;
+  width: 230px;
   position: absolute;
   z-index: 100;
   top: 0;
@@ -1109,7 +1124,7 @@ input.radio:checked + label:after {
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.submenu-li > a,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.submenu-li > a {
   padding: 10px 5px 10px 25px;
-  width: 190px;
+  width: 230px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu li.active,
 .navigation-bar-container.collapsed ul.nav.side-nav-footer li.active {
@@ -1142,7 +1157,7 @@ input.radio:checked + label:after {
   position: absolute;
   pointer-events: none;
   border-color: transparent;
-  border-left-color: #3fae2a;
+  border-left-color: #31823a;
   margin-top: -12px;
 }
 .navigation-bar-container.collapsed ul.nav.side-nav-menu .more-actions,
@@ -1227,6 +1242,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 16px;
 }
 #notifications-dropdown.dropdown-menu .notifications-body {
@@ -1249,6 +1265,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 12px;
   color: #666;
   position: relative;
@@ -1291,6 +1308,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   line-height: 1.3;
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.content .name {
@@ -1392,6 +1410,7 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
 }
 .accordion .panel-group .panel .panel-heading .panel-title > a,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > a {
@@ -1441,6 +1460,7 @@ body,
   font-style: normal;
   line-height: 1;
   color: #333;
+  -webkit-font-smoothing: antialiased;
   font-size: 14px;
 }
 .description {

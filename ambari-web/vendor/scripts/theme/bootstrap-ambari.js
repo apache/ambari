@@ -232,14 +232,16 @@ $(document).ready(function () {
             }
           }
 
-          //set main content left margin based on the width of side-nav
-          var containerWidth = $navigationContainer.width();
-          if (settings.moveLeftContent) {
-            $(settings.content).css('margin-left', containerWidth);
-          }
-          if (settings.moveLeftFooter) {
-            $(settings.footer).css('margin-left', containerWidth);
-          }
+          $navigationContainer.on('transitionend', function () {
+            //set main content left margin based on the width of side-nav
+            var containerWidth = $navigationContainer.width();
+            if (settings.moveLeftContent) {
+              $(settings.content).css('margin-left', containerWidth);
+            }
+            if (settings.moveLeftFooter) {
+              $(settings.footer).css('margin-left', containerWidth);
+            }
+          });
           $sideNavToggler.find('span').toggleClass(settings.collapseNavBarClass + ' ' + settings.expandNavBarClass);
         });
         return false;
