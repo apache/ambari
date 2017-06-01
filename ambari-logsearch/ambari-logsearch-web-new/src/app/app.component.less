@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
+
+@import '../styles.less';
+
 .navbar {
   border-radius: 0;
-  background-color: #323544;
+  background-color: @navbar-background-color;
   color: #fff;
 
   .container-fluid {
@@ -28,7 +31,7 @@
 
   h1 {
     flex-basis: 70%;
-    margin-bottom: 20px;
+    margin-bottom: @h1-vertical-margin;
     text-transform: uppercase;
 
     &.full-flex-width {
