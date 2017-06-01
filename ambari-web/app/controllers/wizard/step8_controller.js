@@ -2028,7 +2028,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       "config_recommendation_strategy" : "NEVER_APPLY",
       "provision_action" : "INSTALL_AND_START",
       "configurations": [],
-      "host_groups": cluster_template_host_groups.filter(function (item) { return item.hosts.length > 0; })
+      "host_groups": cluster_template_host_groups.filter(function (item) { return item.hosts.length > 0; }),
+      "Clusters": {'cluster_name': App.clusterStatus.clusterName}
     };
     fileUtils.downloadTextFile(JSON.stringify(cluster_template), 'json', 'clustertemplate.json')
   },
