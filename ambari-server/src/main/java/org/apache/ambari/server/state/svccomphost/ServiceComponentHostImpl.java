@@ -871,6 +871,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setState(State state) {
     stateMachine.setCurrentState(state);
     HostComponentStateEntity stateEntity = getStateEntity();
@@ -899,6 +900,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setVersion(String version) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -926,6 +928,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setSecurityState(SecurityState securityState) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -975,6 +978,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param upgradeState  the upgrade state
    */
   @Override
+  @Transactional
   public void setUpgradeState(UpgradeState upgradeState) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -1003,6 +1007,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
+  @Transactional
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
