@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -452,11 +453,6 @@ public class ConfigGroupResourceProvider extends
         "Attempted to delete a config group from a cluster which doesn't " +
           "exist", e);
     }
-
-    configLogger.info("User {} is deleting configuration group {} for tag {} in cluster {}",
-      getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-      cluster.getClusterName());
-
     ConfigGroup configGroup = cluster.getConfigGroups().get(request.getId());
 
     if (configGroup == null) {
@@ -474,6 +470,9 @@ public class ConfigGroupResourceProvider extends
         throw new AuthorizationException("The authenticated user is not authorized to delete config groups");
       }
     }
+
+    configLogger.info("(configchange) Deleting configuration group. cluster: '{}', changed by: '{}', config group: '{}', config group id: '{}'",
+        cluster.getClusterName(), getManagementController().getAuthName(), configGroup.getName(), request.getId());
 
     cluster.deleteConfigGroup(request.getId());
   }
@@ -573,9 +572,8 @@ public class ConfigGroupResourceProvider extends
         }
       }
 
-      configLogger.info("User {} is creating new configuration group {} for tag {} in cluster {}",
-          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-          cluster.getClusterName());
+      configLogger.info("(configchange) Creating new configuration group. cluster: '{}', changed by: '{}', config group: '{}', tag: '{}'",
+          cluster.getClusterName(), getManagementController().getAuthName(), request.getGroupName(), request.getTag());
 
       verifyConfigs(request.getConfigs(), cluster.getClusterName());
 
@@ -637,12 +635,9 @@ public class ConfigGroupResourceProvider extends
                                  + ", groupId = " + request.getId());
       }
 
-      configLogger.info("User {} is updating configuration group {} for tag {} in cluster {}",
-          getManagementController().getAuthName(), request.getGroupName(), request.getTag(),
-          cluster.getClusterName());
-
       String serviceName = configGroup.getServiceName();
       String requestServiceName = cluster.getServiceForConfigTypes(request.getConfigs().keySet());
+
       if (StringUtils.isEmpty(serviceName) && StringUtils.isEmpty(requestServiceName)) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
             RoleAuthorization.CLUSTER_MANAGE_CONFIG_GROUPS)) {
@@ -654,13 +649,33 @@ public class ConfigGroupResourceProvider extends
           throw new AuthorizationException("The authenticated user is not authorized to update config groups");
         }
       }
-      if (serviceName != null && requestServiceName !=null && !StringUtils.equals(serviceName, requestServiceName)) {
+
+      if (serviceName != null && requestServiceName != null && !StringUtils.equals(serviceName, requestServiceName)) {
         throw new IllegalArgumentException("Config group " + configGroup.getId() +
             " is mapped to service " + serviceName + ", " +
             "but request contain configs from service " + requestServiceName);
       } else if (serviceName == null && requestServiceName != null) {
         configGroup.setServiceName(requestServiceName);
         serviceName = requestServiceName;
+      }
+
+      configLogger.info("(configchange) Updating configuration group host membership or config value. cluster: '{}', changed by: '{}', " +
+              "service_name: '{}', config group: '{}', tag: '{}', num hosts in config group: '{}', note: '{}'",
+          cluster.getClusterName(), getManagementController().getAuthName(),
+          serviceName, request.getGroupName(), request.getTag(), configGroup.getHosts().size(), request.getServiceConfigVersionNote());
+
+      if (!request.getConfigs().isEmpty()) {
+        List<String> affectedConfigTypeList = new ArrayList(request.getConfigs().keySet());
+        Collections.sort(affectedConfigTypeList);
+        String affectedConfigTypesString = "(" + StringUtils.join(affectedConfigTypeList, ", ") + ")";
+        configLogger.info("(configchange)    Affected configs: {}", affectedConfigTypesString);
+
+        for (Config config : request.getConfigs().values()) {
+          List<String> sortedConfigKeys = new ArrayList(config.getProperties().keySet());
+          Collections.sort(sortedConfigKeys);
+          String sortedConfigKeysString = StringUtils.join(sortedConfigKeys, ", ");
+          configLogger.info("(configchange)    Config type '{}' was  modified with the following keys, {}", config.getType(), sortedConfigKeysString);
+        }
       }
 
       // Update hosts
