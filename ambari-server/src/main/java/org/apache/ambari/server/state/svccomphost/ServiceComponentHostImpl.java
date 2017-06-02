@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -77,7 +78,6 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1282,7 +1282,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     ServiceComponentHostResponse r = new ServiceComponentHostResponse(clusterName, serviceName,
-        serviceComponentName, displayName, hostName, publicHostName, state, stackId, 
+        serviceComponentName, displayName, hostName, publicHostName, state, stackId,
         desiredState, desiredStackId, componentAdminState);
 
     r.setActualConfigs(actualConfigs);
@@ -1428,7 +1428,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
       String type = entry.getKey();
-      Map<String, String> values = new HashMap<String, String>(entry.getValue());
+      Map<String, String> values = new HashMap<>(entry.getValue());
 
       String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
       values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);
