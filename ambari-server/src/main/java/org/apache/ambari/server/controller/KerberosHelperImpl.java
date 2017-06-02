@@ -74,6 +74,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWr
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
+import org.apache.ambari.server.serveraction.kerberos.KerberosKDCSSLConnectionException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
@@ -1613,6 +1614,11 @@ public class KerberosHelperImpl implements KerberosHelper {
             throw new KerberosInvalidConfigurationException(
                 "Failed to connect to KDC - " + e.getMessage() + "\n" +
                     "Update the KDC settings in krb5-conf and kerberos-env configurations to correct this issue.",
+                e);
+          } catch (KerberosKDCSSLConnectionException e) {
+            throw new KerberosInvalidConfigurationException(
+                "Failed to connect to KDC - " + e.getMessage() + "\n" +
+                    "Make sure the server's SSL certificate or CA certificates have been imported into Ambari's truststore.",
                 e);
           } catch (KerberosRealmException e) {
             throw new KerberosInvalidConfigurationException(

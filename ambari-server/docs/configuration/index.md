@@ -144,8 +144,9 @@ The following are the properties which can be used to configure Ambari.
 | kdcserver.connection.check.timeout | The timeout, in milliseconds, to wait when communicating with a Kerberos Key Distribution Center. |`10000` | 
 | kerberos.check.jaas.configuration | Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials. |`false` | 
 | kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/var/lib/ambari-server/data/cache` | 
-| kerberos.operation.retries | The number of times failed kerberos operations should be retried to execute. |`3` | 
-| kerberos.operation.retry.timeout | The time to wait (in seconds) between failed kerberos operations retries. |`10` | 
+| kerberos.operation.retries | The number of times failed Kerberos operations should be retried to execute. |`3` | 
+| kerberos.operation.retry.timeout | The time to wait (in seconds) between failed Kerberos operations retries. |`10` | 
+| kerberos.operation.verify.kdc.trust | Validate the trust of the SSL certificate provided by the KDC when performing Kerberos operations over SSL. |`true` | 
 | ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
 | log4j.monitor.delay | Indicates the delay, in milliseconds, for the log4j monitor to check for changes |`300000` | 
 | logsearch.metadata.cache.expire.timeout | The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making a request to the LogSearch Portal to get the latest metadata. |`24` | 

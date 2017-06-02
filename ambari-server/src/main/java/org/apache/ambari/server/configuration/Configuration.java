@@ -1441,13 +1441,25 @@ public class Configuration {
    * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
 
-  @Markdown(description = "The number of times failed kerberos operations should be retried to execute.")
+  @Markdown(description = "The number of times failed Kerberos operations should be retried to execute.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
-  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  @Markdown(description = "The time to wait (in seconds) between failed Kerberos operations retries.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
       "kerberos.operation.retry.timeout", 10);
+
+  /**
+   * A flag indicating whether to validate the trust of an SSL certificate provided by a KDC when
+   * performing Kerberos operations.
+   *
+   * For example, when communicating with an Active Directory using
+   * LDAPS. The default behavior is to validate the trust.
+   */
+  @Markdown(description = "Validate the trust of the SSL certificate provided by the KDC when performing Kerberos operations over SSL.")
+  public static final ConfigurationProperty<Boolean> KERBEROS_OPERATION_VERIFY_KDC_TRUST = new ConfigurationProperty<>(
+      "kerberos.operation.verify.kdc.trust", Boolean.TRUE);
+
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -5999,6 +6011,10 @@ public class Configuration {
 
   public int getKerberosOperationRetryTimeout() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+  }
+
+  public boolean validateKerberosOperationSSLCertTrust() {
+    return Boolean.parseBoolean(getProperty(KERBEROS_OPERATION_VERIFY_KDC_TRUST));
   }
 
   /**

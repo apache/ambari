@@ -90,6 +90,10 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
         Em.Object.create({
           displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.5'),
           checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.ad.condition.6'),
+          checked: false
         })
       ]
     }),
