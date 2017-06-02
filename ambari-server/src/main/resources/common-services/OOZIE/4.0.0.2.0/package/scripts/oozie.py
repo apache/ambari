@@ -38,7 +38,7 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.security_commons import update_credential_provider_path
 from resource_management.core.resources.packaging import Package
-from resource_management.core.shell import as_user, as_sudo, call
+from resource_management.core.shell import as_user, as_sudo, call, checked_call
 from resource_management.core.exceptions import Fail
 
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
@@ -409,12 +409,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
   # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
   command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
-  Execute(command,
-          user=params.oozie_user,
-          tries=10,
-          try_sleep=5,
-          logoutput=True,
-  )
+  code, out = checked_call(command, user=params.oozie_user, tries=10, try_sleep=5, logoutput=True)
 
   hive_sharelib_dir = __parse_sharelib_from_output(out)
 
