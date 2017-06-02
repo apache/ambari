@@ -117,6 +117,8 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
       configuration.getDatabasePassword());
     properties.setProperty("org.quartz.dataSource.myDS.maxConnections",
       configuration.getExecutionSchedulerConnections());
+    properties.setProperty("org.quartz.dataSource.myDS.maxCachedStatementsPerConnection",
+      configuration.getExecutionSchedulerMaxStatementsPerConnection());
     properties.setProperty("org.quartz.dataSource.myDS.validationQuery",
       subProps[1]);
 
