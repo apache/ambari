@@ -2503,13 +2503,12 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
 
-    configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
-        "version='{}'", getClusterName(), user, serviceName,
-      configGroup == null ? ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME : configGroup.getName(),
-      configGroup == null ? "-1" : configGroup.getId(),
-      serviceConfigEntity.getVersion());
-
-    String configGroupName = configGroup != null ? configGroup.getName() : ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME;
+    String configGroupName = configGroup == null ? ServiceConfigVersionResponse.DEFAULT_CONFIG_GROUP_NAME : configGroup.getName();
+    configChangeLog.info("(configchange) Creating config version. cluster: '{}', changed by: '{}', " +
+            "service_name: '{}', config_group: '{}', config_group_id: '{}', version: '{}', create_timestamp: '{}', note: '{}'",
+        getClusterName(), user, serviceName, configGroupName,
+        configGroup == null ? "null" : configGroup.getId(), serviceConfigEntity.getVersion(), serviceConfigEntity.getCreateTimestamp(),
+        serviceConfigEntity.getNote());
 
     ServiceConfigVersionResponse response = new ServiceConfigVersionResponse(
         serviceConfigEntity, configGroupName);

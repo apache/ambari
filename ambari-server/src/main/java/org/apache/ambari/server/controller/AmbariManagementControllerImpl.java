@@ -214,6 +214,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariManagementControllerImpl.class);
+  private final static Logger configChangeLog = LoggerFactory.getLogger("configchange");
 
   /**
    * Property name of request context.
@@ -1477,6 +1478,100 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return response;
   }
 
+  /**
+   * Get a dictionary of all config differences between existingConfig and newConfigValues where the key is the config name and the action is one of "changed", "added", or "deleted".
+   * @param existingConfig
+   * @param newConfigValues
+   * @return Delta of configs
+   */
+  private Map<String, String> getConfigKeyDeltaToAction(Config existingConfig, Map<String, String> newConfigValues) {
+    Map<String, String> configsChanged = new HashMap<>();
+
+    if (null != existingConfig) {
+      Map<String, String> existingConfigValues = existingConfig.getProperties();
+
+      Iterator it = existingConfigValues.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        // Check the value if both keys exist
+        if (newConfigValues.containsKey(pair.getKey())) {
+          if (!newConfigValues.get((String) pair.getKey()).equals(pair.getValue())) {
+            configsChanged.put(pair.getKey(), "changed");
+          }
+        } else {
+          // Deleted
+          configsChanged.put(pair.getKey(), "deleted");
+        }
+      }
+
+      it = newConfigValues.entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        if (!existingConfigValues.keySet().contains(pair.getKey())) {
+          configsChanged.put(pair.getKey(), "added");
+        }
+      }
+    } else {
+      // All of the configs in this config type are new.
+      for (String key : newConfigValues.keySet()) {
+        configsChanged.put(key, "added");
+      }
+    }
+    return configsChanged;
+  }
+
+  /**
+   * Inverse a HashMap of the form key_i: value_j to value_j: [key_a, ..., key_z]
+   * for all keys that contain that value.
+   * This is useful for printing config deltas.
+   * @param configKeyToAction Original dictionary
+   * @return Inverse of the dictionary.
+   */
+  private Map<String, List<String>> inverseMapByValue(Map<String, String> configKeyToAction) {
+    Map<String, List<String>> mapByValue = new HashMap<>();
+
+    Iterator it = configKeyToAction.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry<String, String> pair = (Map.Entry) it.next();
+      // Key is the config name, Value is the action (added, deleted, changed)
+      if (mapByValue.containsKey(pair.getValue())) {
+        mapByValue.get(pair.getValue()).add(pair.getKey());
+      } else {
+        List<String> configListForAction = new ArrayList<>();
+        configListForAction.add(pair.getKey());
+        mapByValue.put(pair.getValue(), configListForAction);
+      }
+    }
+    return mapByValue;
+  }
+
+  /**
+   * Get a string that represents config keys that are changed, added, or deleted.
+   * @param actionToConfigKeyList Dictionary from the action to a list of configs in that category.
+   * @return String that represents config keys that are changed, added, or deleted.
+   */
+  private String getActionToConfigListAsString(Map<String, List<String>> actionToConfigKeyList) {
+    String output = "";
+
+    String[] actions = {"added", "deleted", "changed"};
+    int i = 0;
+    for (String action : actions) {
+      i++;
+      output += action + ": [";
+      if (actionToConfigKeyList.containsKey(action)) {
+        List<String> values = actionToConfigKeyList.get(action);
+        output += StringUtils.join(values, ", ");
+
+      }
+      if (i < actions.length) {
+        output += "], ";
+      } else {
+        output += "]";
+      }
+    }
+    return output;
+  }
+
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request, Map<String, String> requestProperties)
       throws AmbariException, AuthorizationException {
 
@@ -1659,15 +1754,33 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           configs.add(cluster.getConfig(configType, cr.getVersionTag()));
         }
         if (!configs.isEmpty()) {
+          Map<String, Config> existingConfigTypeToConfig = new HashMap();
+          for (Config config : configs) {
+            Config existingConfig = cluster.getDesiredConfigByType(config.getType());
+            existingConfigTypeToConfig.put(config.getType(), existingConfig);
+          }
+
           String authName = getAuthName();
           serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
           if (serviceConfigVersionResponse != null) {
-            Logger logger = LoggerFactory.getLogger("configchange");
+            List<String> hosts = serviceConfigVersionResponse.getHosts();
+            int numAffectedHosts = null != hosts ? hosts.size() : 0;
+            configChangeLog.info("(configchange) Changing default config. cluster: '{}', changed by: '{}', service_name: '{}', config_group: '{}', num affected hosts during creation: '{}', note: '{}'",
+                request.getClusterName(), authName, serviceConfigVersionResponse.getServiceName(),
+                serviceConfigVersionResponse.getGroupName(), numAffectedHosts, serviceConfigVersionResponse.getNote());
+
             for (Config config : configs) {
-              logger.info("cluster '" + request.getClusterName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + config.getType() + "' "
-                  + "tag='" + config.getTag() + "'");
+              config.getVersion();
+              serviceConfigVersionResponse.getNote();
+              configChangeLog.info("(configchange)    type: '{}', tag: '{}', version: '{}'", config.getType(), config.getTag(), config.getVersion());
+
+              Map<String, String> configKeyToAction = getConfigKeyDeltaToAction(existingConfigTypeToConfig.get(config.getType()), config.getProperties());
+              Map<String, List<String>> actionToListConfigKeys = inverseMapByValue(configKeyToAction);
+
+              if (!actionToListConfigKeys.isEmpty()) {
+                String configOutput = getActionToConfigListAsString(actionToListConfigKeys);
+                configChangeLog.info("(configchange)    Config type '{}' was modified with the following keys, {}", config.getType(), configOutput);
+              }
             }
           }
         }
@@ -1719,7 +1832,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         if (!isStateTransitionValid) {
           LOG.warn(
-              "Invalid cluster provisioning 2state {} cannot be set on the cluster {} because the current state is {}",
+              "Invalid cluster provisioning state {} cannot be set on the cluster {} because the current state is {}",
               provisioningState, request.getClusterName(), oldProvisioningState);
 
           throw new AmbariException("Invalid transition for"
