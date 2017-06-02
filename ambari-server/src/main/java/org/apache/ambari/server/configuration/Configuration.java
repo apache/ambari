@@ -1741,6 +1741,13 @@ public class Configuration {
       "server.execution.scheduler.maxDbConnections", "5");
 
   /**
+   * The maximum number of prepared statements cached per database connection.
+   */
+  @Markdown(description = "The maximum number of prepared statements cached per database connection.")
+  public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION = new ConfigurationProperty<>(
+      "server.execution.scheduler.maxStatementsPerConnection", "120");
+
+  /**
    * The tolerance, in {@link TimeUnit#MINUTES}, that Quartz will allow a misfired job to run.
    */
   @Markdown(description = "The time, in minutes, that a scheduled job can be run after its missed scheduled execution time.")
@@ -4552,6 +4559,10 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return getProperty(EXECUTION_SCHEDULER_CONNECTIONS);
+  }
+
+  public String getExecutionSchedulerMaxStatementsPerConnection() {
+    return getProperty(EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
