@@ -27,6 +27,7 @@ import org.apache.ambari.view.commons.hdfs.HdfsService;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.security.AccessControlException;
@@ -261,11 +262,9 @@ public class DownloadService extends HdfsService {
                 LOG.error("Error in opening file {}. Ignoring concat of this files.", path.substring(1), ex);
                 continue;
               }
-              byte[] chunk = new byte[1024];
-              while (in.read(chunk) != -1) {
-                output.write(chunk);
-              }
-              LOG.info("concated file : {}", path);
+
+              long bytesCopied = IOUtils.copyLarge(in, output);
+              LOG.info("concated file : {}, total bytes added = {}", path, bytesCopied);
             } catch (Exception ex) {
               LOG.error("Error occurred : ", ex);
               throw new ServiceFormattedException(ex.getMessage(), ex);
