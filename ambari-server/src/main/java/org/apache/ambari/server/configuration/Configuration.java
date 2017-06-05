@@ -716,6 +716,15 @@ public class Configuration {
       "mpacks.staging.path", null);
 
   /**
+   * The Ambari Management Pack v2 staging directory on the Ambari Server.
+   */
+  @Markdown(
+          description = "The Ambari Management Pack version-2 staging directory on the Ambari Server.",
+          examples = { "/var/lib/ambari-server/resources/mpacks-v2" })
+  public static final ConfigurationProperty<String> MPACKS_V2_STAGING_DIR_PATH = new ConfigurationProperty<>(
+          "mpacks-v2.staging.path", null);
+
+  /**
    * The full path to the file which contains the Ambari Server version.
    */
   @Markdown(
@@ -3515,6 +3524,14 @@ public class Configuration {
    */
   public String getMpacksStagingPath() {
     return getProperty(MPACKS_STAGING_DIR_PATH);
+  }
+
+  /**
+   * Gets ambari v2 management packs staging directory
+   * @return String
+   */
+  public String getMpacksV2StagingPath() {
+    return getProperty(MPACKS_V2_STAGING_DIR_PATH);
   }
 
 

@@ -134,6 +134,7 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
@@ -216,6 +217,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UnlimitedKeyJCERequirement;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
@@ -559,7 +561,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
-      throws AmbariException, AuthorizationException {
+     throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -715,6 +717,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // now doing actual work
     persistServiceComponentHosts(requests, isBlueprintProvisioned);
     m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
+  }
+
+  public MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException{
+    MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
+    return mpackResponse;
+  }
+
+  @Override
+  public ArrayList<Packlet> getPacklets(Long mpackId) {
+    return ambariMetaInfo.getPacklets(mpackId);
   }
 
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
