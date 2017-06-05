@@ -25,15 +25,20 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
+import org.apache.ambari.server.state.ServiceInfo;
 
 /**
  * {@link StackAdvisorCommand} implementation for component-layout validation.
  */
 public class ComponentLayoutValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
-  public ComponentLayoutValidationCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript,
-                                          int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-    super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
+  public ComponentLayoutValidationCommand(File recommendationsDir,
+                                          String recommendationsArtifactsLifetime,
+                                          ServiceInfo.ServiceAdvisorType serviceAdvisorType,
+                                          int requestId,
+                                          StackAdvisorRunner saRunner,
+                                          AmbariMetaInfo metaInfo) {
+    super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo);
   }
 
   @Override
