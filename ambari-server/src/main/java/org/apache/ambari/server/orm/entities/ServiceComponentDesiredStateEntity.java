@@ -89,7 +89,7 @@ public class ServiceComponentDesiredStateEntity {
 
   @Column(name = "repo_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(EnumType.STRING)
-  private RepositoryVersionState repoState = RepositoryVersionState.INIT;
+  private RepositoryVersionState repoState = RepositoryVersionState.NOT_REQUIRED;
 
   /**
    * Unidirectional one-to-one association to {@link RepositoryVersionEntity}

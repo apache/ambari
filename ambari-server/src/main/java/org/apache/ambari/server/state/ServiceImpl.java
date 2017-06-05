@@ -348,7 +348,7 @@ public class ServiceImpl implements Service {
   @Override
   public RepositoryVersionState getRepositoryState() {
     if (components.isEmpty()) {
-      return RepositoryVersionState.INIT;
+      return RepositoryVersionState.NOT_REQUIRED;
     }
 
     List<RepositoryVersionState> states = new ArrayList<>();

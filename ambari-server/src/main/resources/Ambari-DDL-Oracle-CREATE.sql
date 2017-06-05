@@ -173,7 +173,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   recovery_enabled SMALLINT DEFAULT 0 NOT NULL,
-  repo_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
+  repo_state VARCHAR2(255) DEFAULT 'NOT_REQUIRED' NOT NULL,
   CONSTRAINT pk_sc_desiredstate PRIMARY KEY (id),
   CONSTRAINT UQ_scdesiredstate_name UNIQUE(component_name, service_name, cluster_id),
   CONSTRAINT FK_scds_desired_repo_id FOREIGN KEY (desired_repo_version_id) REFERENCES repo_version (repo_version_id),
