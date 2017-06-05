@@ -26,8 +26,11 @@ import java.util.Set;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -110,9 +113,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("localComponents")
   private Set<String> localComponents = new HashSet<>();
 
-  @SerializedName("availableServices")
-  private Map<String, String> availableServices = new HashMap<>();
-
   /**
    * "true" or "false" indicating whether this
    * service is enabled for credential store use.
@@ -152,6 +152,9 @@ public class ExecutionCommand extends AgentCommand {
    */
   @SerializedName("repositoryFile")
   private CommandRepository commandRepository;
+
+  @SerializedName("componentVersionMap")
+  private Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
@@ -298,18 +301,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setLocalComponents(Set<String> localComponents) {
     this.localComponents = localComponents;
-  }
-
-  public Map<String, String> getAvailableServices() {
-    return availableServices;
-  }
-
-  public void setAvailableServicesFromServiceInfoMap(Map<String, ServiceInfo> serviceInfoMap) {
-    Map<String, String> serviceVersionMap = new HashMap<>();
-    for (Map.Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
-      serviceVersionMap.put(entry.getKey(), entry.getValue().getVersion());
-    }
-    availableServices = serviceVersionMap;
   }
 
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
@@ -522,5 +513,39 @@ public class ExecutionCommand extends AgentCommand {
         feature = ExperimentalFeature.PATCH_UPGRADES,
         comment = "This should be replaced by a map of all service component versions")
     String CURRENT_VERSION = "current_version";
+  }
+
+  /**
+   * @return
+   */
+  public Map<String, Map<String, String>> getComponentVersionMap() {
+    return componentVersionMap;
+  }
+
+  /**
+   * Used to set a map of {service -> { component -> version}}.  This is necessary when performing
+   * an upgrade to correct build paths of required binaries.
+   * @param cluster the cluster from which to build the map
+   */
+  public void setComponentVersions(Cluster cluster) throws AmbariException {
+    Map<String, Map<String, String>> componentVersionMap = new HashMap<>();
+
+    for (Service service : cluster.getServices().values()) {
+      Map<String, String> componentMap = new HashMap<>();
+
+      boolean shouldSet = false;
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        if (component.isVersionAdvertised()) {
+          shouldSet = true;
+          componentMap.put(component.getName(), component.getDesiredVersion());
+        }
+      }
+
+      if (shouldSet) {
+        componentVersionMap.put(service.getName(), componentMap);
+      }
+    }
+
+    this.componentVersionMap = componentVersionMap;
   }
 }

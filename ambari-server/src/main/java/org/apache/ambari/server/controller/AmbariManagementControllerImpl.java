@@ -2555,11 +2555,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cluster.addSuspendedUpgradeParameters(commandParams, roleParams);
     }
 
-
     execCmd.setRoleParams(roleParams);
     execCmd.setCommandParams(commandParams);
 
-    execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
     execCmd.setRepositoryFile(customCommandExecutionHelper.getCommandRepository(cluster, component, host));
     hostParams.put(KeyNames.CURRENT_VERSION, repoVersion.getVersion());
 

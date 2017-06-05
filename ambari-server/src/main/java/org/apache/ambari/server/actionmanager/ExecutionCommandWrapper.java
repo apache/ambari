@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +144,8 @@ public class ExecutionCommandWrapper {
       // now that the tags have been updated (if necessary), fetch the
       // configurations
       Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      if (null != configurationTags && !configurationTags.isEmpty()) {
+
+      if (MapUtils.isNotEmpty(configurationTags)) {
         Map<String, Map<String, String>> configProperties = configHelper
             .getEffectiveConfigProperties(cluster, configurationTags);
 
@@ -182,43 +184,46 @@ public class ExecutionCommandWrapper {
                 executionCommand.getConfigurationAttributes().get(type));
             }
         }
-
-        // set the repository version for the component this command is for -
-        // always use the current desired version
-        try {
-          RepositoryVersionEntity repositoryVersion = null;
-          String serviceName = executionCommand.getServiceName();
-          if (!StringUtils.isEmpty(serviceName)) {
-            Service service = cluster.getService(serviceName);
-            if (null != service) {
-              repositoryVersion = service.getDesiredRepositoryVersion();
-            }
-
-            String componentName = executionCommand.getComponentName();
-            if (!StringUtils.isEmpty(componentName)) {
-              ServiceComponent serviceComponent = service.getServiceComponent(
-                  executionCommand.getComponentName());
-
-              if (null != serviceComponent) {
-                repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
-              }
-            }
-          }
-
-          if (null != repositoryVersion) {
-            executionCommand.getCommandParams().put(KeyNames.VERSION,
-                repositoryVersion.getVersion());
-            executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION,
-                repositoryVersion.getVersion());
-          }
-        } catch (ServiceNotFoundException serviceNotFoundException) {
-          // it's possible that there are commands specified for a service where
-          // the service doesn't exist yet
-          LOG.warn(
-              "The service {} is not installed in the cluster. No repository version will be sent for this command.",
-              executionCommand.getServiceName());
-        }
       }
+
+      // set the repository version for the component this command is for -
+      // always use the current desired version
+      try {
+        RepositoryVersionEntity repositoryVersion = null;
+        String serviceName = executionCommand.getServiceName();
+        if (!StringUtils.isEmpty(serviceName)) {
+          Service service = cluster.getService(serviceName);
+          if (null != service) {
+            repositoryVersion = service.getDesiredRepositoryVersion();
+          }
+
+          String componentName = executionCommand.getComponentName();
+          if (!StringUtils.isEmpty(componentName)) {
+            ServiceComponent serviceComponent = service.getServiceComponent(
+                executionCommand.getComponentName());
+
+            if (null != serviceComponent) {
+              repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+            }
+          }
+        }
+
+        if (null != repositoryVersion) {
+          executionCommand.getCommandParams().put(KeyNames.VERSION, repositoryVersion.getVersion());
+          executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION, repositoryVersion.getVersion());
+        }
+      } catch (ServiceNotFoundException serviceNotFoundException) {
+        // it's possible that there are commands specified for a service where
+        // the service doesn't exist yet
+        LOG.warn(
+            "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+            executionCommand.getServiceName());
+      }
+
+      // set the desired versions of versionable components.  This is safe even during an upgrade because
+      // we are "loading-late": components that have not yet upgraded in an EU will have the correct versions.
+      executionCommand.setComponentVersions(cluster);
+
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs
