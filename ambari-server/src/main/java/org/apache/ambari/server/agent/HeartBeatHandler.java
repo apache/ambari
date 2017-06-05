@@ -161,10 +161,20 @@ public class HeartBeatHandler {
         + ", receivedResponseId=" + heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
-      LOG.warn("Old responseId received - response was lost - returning cached response");
-      return hostResponses.get(hostname);
+      HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
+
+      LOG.warn("Old responseId={} received form host {} - response was lost - returning cached response with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        heartBeatResponse.getResponseId());
+
+      return heartBeatResponse;
     } else if (heartbeat.getResponseId() != currentResponseId) {
-      LOG.error("Error in responseId sequence - sending agent restart command");
+      LOG.error("Error in responseId sequence - received responseId={} from host {} - sending agent restart command with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        currentResponseId);
+
       return createRestartCommand(currentResponseId);
     }
 
@@ -186,7 +196,7 @@ public class HeartBeatHandler {
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
-      LOG.warn("Host is in HEARTBEAT_LOST state - sending register command");
+      LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
       return createRegisterCommand();
     }
 

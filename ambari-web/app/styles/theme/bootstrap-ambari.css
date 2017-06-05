@@ -28,7 +28,6 @@
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
 }
 .btn,
 .btn:focus {
@@ -277,7 +276,6 @@
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   border-radius: 2px;
   font-size: 14px;
   min-width: 200px;
@@ -378,7 +376,6 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   margin-top: 10px;
   font-size: 20px;
 }
@@ -528,7 +525,6 @@ h2.table-title {
   font-weight: normal;
   font-style: normal;
   line-height: 1;
-  -webkit-font-smoothing: antialiased;
   font-size: 20px;
   color: #333;
   margin: 15px 20px;
@@ -550,7 +546,6 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-weight: bold;
   font-size: 18px;
   color: #666;
@@ -561,7 +556,6 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   line-height: 1.4;
   color: #999;
@@ -611,7 +605,6 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #999;
   margin-left: 30px;
@@ -625,7 +618,6 @@ h2.table-title {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 12px;
   color: #999;
   margin-left: 30px;
@@ -781,6 +773,7 @@ input.radio:checked + label:after {
   padding: 0;
   -ms-overflow-style: none;
   transition: width 0.5s ease-out;
+  -webkit-font-smoothing: antialiased;
 }
 .navigation-bar-container ul.nav.side-nav-header {
   width: 230px;
@@ -813,7 +806,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 20px;
   width: 55px;
   display: inline;
@@ -840,7 +832,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #666;
   line-height: 1.42;
@@ -887,7 +878,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #b8bec4;
   padding-left: 8px;
@@ -951,7 +941,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
   color: #999;
 }
@@ -1242,7 +1231,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 16px;
 }
 #notifications-dropdown.dropdown-menu .notifications-body {
@@ -1265,7 +1253,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 12px;
   color: #666;
   position: relative;
@@ -1308,7 +1295,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   line-height: 1.3;
 }
 #notifications-dropdown.dropdown-menu .notifications-body .table.alerts-table tbody td.content .name {
@@ -1410,7 +1396,6 @@ input.radio:checked + label:after {
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
 }
 .accordion .panel-group .panel .panel-heading .panel-title > a,
 .wizard .wizard-body .wizard-content .accordion .panel-group .panel .panel-heading .panel-title > a {
@@ -1460,7 +1445,6 @@ body,
   font-style: normal;
   line-height: 1;
   color: #333;
-  -webkit-font-smoothing: antialiased;
   font-size: 14px;
 }
 .description {

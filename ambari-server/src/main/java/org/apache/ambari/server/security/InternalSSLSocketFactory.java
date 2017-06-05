@@ -16,37 +16,44 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.serveraction.kerberos;
+package org.apache.ambari.server.security;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-public class TrustingSSLSocketFactory extends SSLSocketFactory {
+/**
+ * InternalSSLSocketFactory is an abstract class implementing a SSLSocketFactory.
+ * <p>
+ * Implementers of this class need to specific the SSLContext protocol and whether the server's SSL
+ * certificates should be trusted or validated.
+ */
+public class InternalSSLSocketFactory extends SSLSocketFactory {
   private SSLSocketFactory socketFactory;
 
-  public TrustingSSLSocketFactory() {
+  InternalSSLSocketFactory(String protocol, boolean trusting) {
     try {
-      SSLContext ctx = SSLContext.getInstance("TLS");
-      ctx.init(null, new TrustManager[]{new LenientTrustManager()}, new SecureRandom());
+      SSLContext ctx = SSLContext.getInstance(protocol);
+
+      // If trusting, install our own TrustManager to accept certificates without validating the
+      // trust chain; else, use the default TrustManager, which validates the certificate's trust chain.
+      TrustManager[] trustManagers = (trusting)
+          ? new TrustManager[]{new LenientTrustManager()}
+          : null;
+
+      ctx.init(null, trustManagers, new SecureRandom());
       socketFactory = ctx.getSocketFactory();
     } catch (Exception ex) {
       ex.printStackTrace(System.err);  /* handle exception */
     }
-  }
-
-  public static SocketFactory getDefault() {
-    return new TrustingSSLSocketFactory();
   }
 
   @Override
@@ -65,12 +72,12 @@ public class TrustingSSLSocketFactory extends SSLSocketFactory {
   }
 
   @Override
-  public Socket createSocket(String string, int i) throws IOException, UnknownHostException {
+  public Socket createSocket(String string, int i) throws IOException {
     return socketFactory.createSocket(string, i);
   }
 
   @Override
-  public Socket createSocket(String string, int i, InetAddress ia, int i1) throws IOException, UnknownHostException {
+  public Socket createSocket(String string, int i, InetAddress ia, int i1) throws IOException {
     return socketFactory.createSocket(string, i, ia, i1);
   }
 
@@ -85,6 +92,10 @@ public class TrustingSSLSocketFactory extends SSLSocketFactory {
   }
 
 
+  /**
+   * LenientTrustManager is a TrustManager that accepts all certificates without validating the
+   * chain of trust.
+   */
   public static class LenientTrustManager implements X509TrustManager {
     public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
       // do nothing
@@ -95,7 +106,7 @@ public class TrustingSSLSocketFactory extends SSLSocketFactory {
     }
 
     public X509Certificate[] getAcceptedIssuers() {
-      return new java.security.cert.X509Certificate[0];
+      return new X509Certificate[0];
     }
   }
 }

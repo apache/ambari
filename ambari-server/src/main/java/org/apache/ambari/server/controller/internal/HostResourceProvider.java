@@ -766,7 +766,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
               if (host.addDesiredConfig(clusterId, cr.isSelected(), authName,  baseConfig)) {
                 Logger logger = LoggerFactory.getLogger("configchange");
-                logger.info("cluster '" + cluster.getClusterName() + "', "
+                logger.info("(configchange) cluster '" + cluster.getClusterName() + "', "
                     + "host '" + host.getHostName() + "' "
                     + "changed by: '" + authName + "'; "
                     + "type='" + baseConfig.getType() + "' "

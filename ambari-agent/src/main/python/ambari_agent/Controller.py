@@ -321,6 +321,7 @@ class Controller(threading.Thread):
           logger.log(logging_level, "Sending Heartbeat (id = %s)", self.responseId)
 
         response = self.sendRequest(self.heartbeatUrl, data)
+
         exitStatus = 0
         if 'exitstatus' in response.keys():
           exitStatus = int(response['exitstatus'])
@@ -366,7 +367,9 @@ class Controller(threading.Thread):
           self.restartAgent()
 
         if serverId != self.responseId + 1:
-          logger.error("Error in responseId sequence - restarting")
+          logger.error("Error in responseId sequence - received responseId={0} from server while expecting {1} - restarting..."
+              .format(serverId, self.responseId + 1))
+
           self.restartAgent()
         else:
           self.responseId = serverId
@@ -465,6 +468,7 @@ class Controller(threading.Thread):
 
         #randomize the heartbeat
         delay = randint(0, self.max_reconnect_retry_delay)
+        logger.info("Waiting {0} seconds before reconnecting to {1}".format(delay, self.heartbeatUrl))
         time.sleep(delay)
 
       # Sleep for some time
