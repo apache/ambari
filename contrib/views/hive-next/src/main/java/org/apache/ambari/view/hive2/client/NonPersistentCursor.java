@@ -55,13 +55,14 @@ public class NonPersistentCursor implements Cursor<Row, ColumnDescription> {
   private final List<ColumnDescription> descriptions = Lists.newLinkedList();
   private int offSet = 0;
   private boolean endReached = false;
-
+  private Inbox inbox;
 
   public NonPersistentCursor(ViewContext context, ActorSystem system, ActorRef actorRef) {
     this.context = context;
     this.system = system;
     this.actorRef = actorRef;
     actorConfiguration = new HiveActorConfiguration(context);
+    inbox = Inbox.create(system);
   }
 
   @Override
@@ -120,7 +121,6 @@ public class NonPersistentCursor implements Cursor<Row, ColumnDescription> {
   }
 
   private void getNextRows() {
-    Inbox inbox = Inbox.create(system);
     inbox.send(actorRef, new Next());
     Object receive;
     try {
