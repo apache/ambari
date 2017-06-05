@@ -91,6 +91,7 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.AlertScriptDispatcher;
@@ -492,6 +493,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));
     install(new FactoryModuleBuilder().build(MetricPropertyProviderFactory.class));
     install(new FactoryModuleBuilder().build(UpgradeContextFactory.class));
+    install(new FactoryModuleBuilder().build(MpackManagerFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

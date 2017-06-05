@@ -44,7 +44,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.MpackRequest;
+import org.apache.ambari.server.controller.MpackResponse;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
@@ -52,6 +55,8 @@ import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
+import org.apache.ambari.server.mpack.MpackManager;
+import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -71,6 +76,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -169,6 +175,7 @@ public class AmbariMetaInfo {
   private File extensionsRoot;
   private File serverVersionFile;
   private File customActionRoot;
+  private File mpacksV2Staging;
   private Map<String, VersionDefinitionXml> versionDefinitions = null;
 
 
@@ -229,6 +236,18 @@ public class AmbariMetaInfo {
    */
   private StackManager stackManager;
 
+  /**
+   * Factory for injecting {@link MpackManager} instances.
+   */
+  @Inject
+  private MpackManagerFactory mpackManagerFactory;
+
+  /**
+  * Singleton instance of mpack manager
+  */
+  private MpackManager mpackManager;
+
+
   private Configuration conf;
 
   /**
@@ -257,6 +276,10 @@ public class AmbariMetaInfo {
     serverVersionFile = new File(serverVersionFilePath);
 
     customActionRoot = new File(conf.getCustomActionDefinitionPath());
+
+    String mpackV2StagingPath = conf.getMpacksV2StagingPath();
+    mpacksV2Staging = new File(mpackV2StagingPath);
+
   }
 
   /**
@@ -274,6 +297,8 @@ public class AmbariMetaInfo {
     stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
         osFamily, false);
 
+    mpackManager = mpackManagerFactory.create(mpacksV2Staging);
+
     getCustomActionDefinitions(customActionRoot);
   }
 
@@ -283,6 +308,14 @@ public class AmbariMetaInfo {
    */
   public StackManager getStackManager() {
     return stackManager;
+  }
+
+  /**
+   * Obtain the underlying mpack manager.
+   * @return mpack manager
+   */
+  public MpackManager getMpackManager() {
+    return mpackManager;
   }
 
   /**
@@ -621,6 +654,27 @@ public class AmbariMetaInfo {
   public Collection<StackInfo> getStacks() {
     return stackManager.getStacks();
   }
+
+  /**
+   * Calls the registerMpack method from mpackManager to support a POST /mpacks request
+   * @param mpackRequest
+   * @return MpackResponse
+   * @throws IOException
+   * @throws ResourceAlreadyExistsException
+   */
+  public MpackResponse registerMpack(MpackRequest mpackRequest) throws IOException, ResourceAlreadyExistsException {
+    return mpackManager.registerMpack(mpackRequest);
+  }
+
+  /**
+   * Gets the packlet information for given mpack.
+   * @param mpackId
+   * @return List of Packlets.
+   */
+  public ArrayList<Packlet> getPacklets(Long mpackId) {
+    return mpackManager.getPacklets(mpackId);
+  }
+
 
   public Collection<StackInfo> getStacks(String stackName) throws AmbariException {
     Collection<StackInfo> stacks = stackManager.getStacks(stackName);

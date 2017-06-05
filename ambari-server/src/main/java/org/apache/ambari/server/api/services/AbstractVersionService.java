@@ -348,5 +348,15 @@ public abstract class AbstractVersionService {
     return new KdcServerReachabilityCheck();
   }
 
+  /**
+   * Handles /mpacks request.
+   *
+   * @return mpacks service
+   */
+  @Path("/mpacks")
+  public MpacksService getMpacksService(@PathParam("apiVersion") String apiVersion) {
+    return new MpacksService(ApiVersion.valueOf(apiVersion));
+  }
+
 
 }

@@ -1087,6 +1087,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('widget_layout_id_seq', 0),
   ('upgrade_item_id_seq', 0),
   ('stack_id_seq', 0),
+  ('mpack_id_seq',0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
   ('topology_host_info_id_seq', 0),
@@ -1555,6 +1556,23 @@ CREATE TABLE qrtz_locks
   LOCK_NAME  VARCHAR(40) NOT NULL,
   PRIMARY KEY (SCHED_NAME,LOCK_NAME)
 );
+
+CREATE TABLE registries(
+ id BIGINT NOT NULL,
+ registy_name VARCHAR(255) NOT NULL,
+ registry_type VARCHAR(255) NOT NULL,
+ registry_uri VARCHAR(255) NOT NULL,
+ CONSTRAINT PK_registries PRIMARY KEY (id));
+
+CREATE TABLE mpacks(
+ id BIGINT NOT NULL,
+ mpack_name VARCHAR(255) NOT NULL,
+ mpack_version VARCHAR(255) NOT NULL,
+ mpack_uri VARCHAR(255),
+ registry_id BIGINT,
+ CONSTRAINT PK_mpacks PRIMARY KEY (id),
+ CONSTRAINT FK_registries FOREIGN KEY (registry_id) REFERENCES registries(id)
+ CONSTRAINT uni_mpack_name_version UNIQUE(mpack_name, mpack_version));
 
 create index idx_qrtz_j_req_recovery on qrtz_job_details(SCHED_NAME,REQUESTS_RECOVERY);
 create index idx_qrtz_j_grp on qrtz_job_details(SCHED_NAME,JOB_GROUP);

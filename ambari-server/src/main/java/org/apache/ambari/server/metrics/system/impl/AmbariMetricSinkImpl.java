@@ -300,12 +300,10 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
     return hostName;
   }
 
-  @Override
   protected boolean isHostInMemoryAggregationEnabled() {
     return false;
   }
 
-  @Override
   protected int getHostInMemoryAggregationPort() {
     return 0;
   }

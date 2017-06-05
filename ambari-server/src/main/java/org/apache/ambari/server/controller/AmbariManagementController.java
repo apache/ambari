@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
@@ -36,6 +38,7 @@ import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -59,6 +62,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.Packlet;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityController;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
@@ -144,6 +148,15 @@ public interface AmbariManagementController {
    * @throws AmbariException when the members cannot be created.
    */
   void createMembers(Set<MemberRequest> requests) throws AmbariException;
+
+  /**
+   * Register the mpack defined by the attributes in the given request object.
+   *
+   * @param request the request object which defines the mpack to be created
+   * @throws AmbariException        thrown if the mpack cannot be created
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
+   */
+  MpackResponse registerMpack(MpackRequest request) throws IOException, AuthorizationException, ResourceAlreadyExistsException;
 
 
   // ----- Read -------------------------------------------------------------
@@ -921,5 +934,12 @@ public interface AmbariManagementController {
    */
   QuickLinkVisibilityController getQuicklinkVisibilityController();
 
+  /**
+   * Fetch the packlet info for a given mpack.
+   *
+   * @param mpackId
+   * @return List of packlets
+   */
+  ArrayList<Packlet> getPacklets(Long mpackId);
 }
 
