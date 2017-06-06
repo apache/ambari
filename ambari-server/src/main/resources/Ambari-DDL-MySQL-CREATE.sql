@@ -95,6 +95,7 @@ CREATE TABLE clusterconfig (
   config_data LONGTEXT NOT NULL,
   config_attributes LONGTEXT,
   create_timestamp BIGINT NOT NULL,
+  service_deleted SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_clusterconfig PRIMARY KEY (config_id),
   CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterconfig_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),

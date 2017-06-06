@@ -301,6 +301,24 @@ public class ClusterDAO {
   }
 
   /**
+   * Merge a cluster configuration in the DB.
+   */
+  @Transactional
+  public void mergeConfig(ClusterConfigEntity configEntity) {
+    entityManagerProvider.get().merge(configEntity);
+  }
+
+  /**
+   * Bulk update configs in DB
+   */
+  @Transactional
+  public void mergeConfigs(Collection<ClusterConfigEntity> clusterConfigEntities) {
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
+      entityManagerProvider.get().merge(clusterConfigEntity);
+    }
+  }
+
+  /**
    * Remove a cluster configuration in the DB.
    */
   @Transactional

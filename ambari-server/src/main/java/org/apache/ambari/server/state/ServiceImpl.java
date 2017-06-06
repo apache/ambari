@@ -491,11 +491,14 @@ public class ServiceImpl implements Service {
   @Transactional
   void deleteAllServiceConfigs() throws AmbariException {
     ArrayList<String> serviceConfigTypes = new ArrayList<>();
+    ArrayList<ClusterConfigEntity> clusterConfigEntitiesForDeletedServices = new ArrayList<>();
     ServiceConfigEntity lastServiceConfigEntity = serviceConfigDAO.findMaxVersion(getClusterId(), getName());
     //ensure service config version exist
     if (lastServiceConfigEntity != null) {
       for (ClusterConfigEntity configEntity : lastServiceConfigEntity.getClusterConfigEntities()) {
         serviceConfigTypes.add(configEntity.getType());
+        configEntity.setServiceDeleted(true);
+        clusterConfigEntitiesForDeletedServices.add(configEntity);
       }
 
       LOG.info("Deselecting config mapping for cluster, clusterId={}, configTypes={} ",
@@ -509,6 +512,7 @@ public class ServiceImpl implements Service {
       }
 
       clusterDAO.mergeConfigMappings(configMappingEntities);
+      clusterDAO.mergeConfigs(clusterConfigEntitiesForDeletedServices);
     }
 
     LOG.info("Deleting all serviceconfigs for service"

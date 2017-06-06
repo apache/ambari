@@ -539,6 +539,9 @@ public class DatabaseConsistencyCheckHelper {
     List<ClusterConfigEntity> notMappedClusterConfigs = getNotMappedClusterConfigsToService();
 
     for (ClusterConfigEntity clusterConfigEntity : notMappedClusterConfigs){
+      if (!clusterConfigEntity.isServiceDeleted()){
+        continue; // skip clusterConfigs that did not leave after service deletion
+      }
       LOG.info("Removing cluster config mapping of clusterConfigEntity {} that is not mapped to any service", clusterConfigEntity);
       clusterDAO.removeClusterConfigMappingEntityByConfig(clusterConfigEntity);
       LOG.info("Removing config that is not mapped to any service {}", clusterConfigEntity);
@@ -569,9 +572,11 @@ public class DatabaseConsistencyCheckHelper {
 
     Set<String> nonMappedConfigs = new HashSet<>();
     for (ClusterConfigEntity clusterConfigEntity : notMappedClasterConfigs) {
-      nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
+      if (!clusterConfigEntity.isServiceDeleted()){
+        nonMappedConfigs.add(clusterConfigEntity.getType() + '-' + clusterConfigEntity.getTag());
+      }
     }
-    if (!notMappedClasterConfigs.isEmpty()){
+    if (!nonMappedConfigs.isEmpty()){
       warning("You have config(s): {} that is(are) not mapped (in serviceconfigmapping table) to any service!", StringUtils.join(nonMappedConfigs, ","));
     }
   }
