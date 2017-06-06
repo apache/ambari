@@ -772,16 +772,16 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          /***
-           * Append "ulimit -l" from hadoop-env.sh
-           */
           String content = null;
+          Boolean contentUpdated = false;
+
           if (cluster.getDesiredConfigByType(HADOOP_ENV) != null) {
             content = cluster.getDesiredConfigByType(HADOOP_ENV).getProperties().get("content");
           }
 
-          if (content != null && !content.contains("ulimit")) {
-            content += "\n" +
+          if (content != null) {
+            if (!content.contains("ulimit -l")) {  // Append "ulimit -l" to hadoop-env.sh
+              content += "\n" +
                 "{% if is_datanode_max_locked_memory_set %}\n" +
                 "# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. \n" +
                 "# Makes sense to fix only when runing DN as root \n" +
@@ -790,9 +790,22 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
                 "fi\n" +
                 "{% endif %}";
 
-            prop.put("content", content);
-            updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
+              contentUpdated = true;
+            }
+
+            if (!content.contains("ulimit -n")){  // Append "ulimit -n" to hadoop-env.sh
+              content += "\n" +
+                "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then \n" +
+                "  ulimit -n {{hdfs_user_nofile_limit}}\n" +
+                "fi";
+              contentUpdated = true;
+            }
+
+            if (contentUpdated){
+              prop.put("content", content);
+              updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
                 prop, true, false);
+            }
           }
         }
       }
@@ -835,6 +848,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
+
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
