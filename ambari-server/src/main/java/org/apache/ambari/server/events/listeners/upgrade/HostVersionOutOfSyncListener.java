@@ -64,8 +64,6 @@ import com.google.inject.persist.Transactional;
  * handles {@link org.apache.ambari.server.events.ServiceInstalledEvent} and
  * {@link org.apache.ambari.server.events.ServiceComponentInstalledEvent}
  * to update {@link org.apache.ambari.server.state.RepositoryVersionState}
- *
- * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(RepositoryVersionEntity)
  */
 @Singleton
 @EagerSingleton

@@ -95,8 +95,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
   /**
    * Execution path for upgrade.
-   * @param clusterName the name of the cluster the upgrade is for
-   * @param version     the target version of the upgrade
    * @return the command report
    */
   private CommandReport finalizeUpgrade(UpgradeContext upgradeContext)

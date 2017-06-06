@@ -69,7 +69,6 @@ import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.Capture;
@@ -91,7 +90,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * Tests that
- * {@link UpgradeResourceProvider#applyStackAndProcessConfigurations(String, Cluster, String, Direction, UpgradePack, String)}
+ * {@link UpgradeHelper#updateDesiredRepositoriesAndConfigs}
  * works correctly.
  */
 public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {

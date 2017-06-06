@@ -168,13 +168,6 @@ public class UpgradeCatalogHelper {
 
   /**
    * Adds a host component for a given service and host.
-   *
-   * @param injector
-   * @param clusterEntity
-   * @param clusterServiceEntity
-   * @param hostEntity
-   * @param componentName
-   * @param repositoryversion
    */
   @Transactional
   protected void addComponent(Injector injector, ClusterEntity clusterEntity,

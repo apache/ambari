@@ -1180,7 +1180,7 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @return the repo info
    *
-   * @deprecated use {@link #getCommandRepository(Cluster, Host)} instead.
+   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
    * @throws AmbariException if the repository information can not be obtained
    */
   @Deprecated
@@ -1305,7 +1305,7 @@ public class AmbariCustomCommandExecutionHelper {
 
   /**
    * Executed by two different representations of repos.  When we are comfortable with the new
-   * implemenation, this may be removed and called inline in {@link #getCommandRepository(Cluster, Host)}
+   * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}
    *
    * @param cluster   the cluster to isolate the stack
    * @param component the component
@@ -1390,9 +1390,8 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecContext  the context
    * @param cluster            the cluster for the command
-   * @param stackId            the effective stack id to use.
    *
-   * @return a wrapper of the imporant JSON structures to add to a stage
+   * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
       Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {

@@ -2205,7 +2205,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param cluster         the relevant Cluster
    * @param requestId       the relevant request Id
    * @param requestContext  a String describing the stage
-   * @param clusterHostInfo JSON-encoded clusterHostInfo structure
    * @param commandParams   JSON-encoded command parameters
    * @param hostParams      JSON-encoded host parameters
    * @return a newly created Stage
@@ -2233,7 +2232,6 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param cluster           the relevant Cluster
    * @param requestId         the relevant request Id
    * @param requestContext    a String describing the stage
-   * @param clusterHostInfo   JSON-encoded clusterHostInfo structure
    * @param commandParams     JSON-encoded command parameters
    * @param hostParams        JSON-encoded host parameters
    * @param actionClass       The ServeAction class that implements the action to invoke

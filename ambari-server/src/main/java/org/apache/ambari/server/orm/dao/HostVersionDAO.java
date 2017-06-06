@@ -40,7 +40,7 @@ import com.google.inject.persist.Transactional;
  * The {@link org.apache.ambari.server.orm.dao.HostVersionDAO} class manages the {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
  * instances associated with a host. Each host can have multiple stack versions in {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLED}
  * which are installed, exactly one stack version that is either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} or
- * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}.
+ * {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLING}.
  */
 @Singleton
 public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
@@ -150,9 +150,7 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   /**
    * Retrieve the single host version for the given cluster, stack name, stack
    * version, and host name. <br/>
-   * This query is slow and not suitable for frequent use. <br/>
-   * Please, use {@link HostVersionDAO#findByClusterStackVersionAndHost(long, org.apache.ambari.server.state.StackId, java.lang.String, long)} <br/>
-   * It is ~50 times faster
+   * This query is slow and not suitable for frequent use.
    *
    * @param clusterName
    *          Cluster name

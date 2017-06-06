@@ -618,8 +618,6 @@ public class OrmTestHelper {
    * Convenient method to create or to get repository version for given cluster.  The repository
    * version string is based on the cluster's stack version.
    *
-   * @param stackId stack object
-   * @param version stack version
    * @return repository version
    */
   public RepositoryVersionEntity getOrCreateRepositoryVersion(Cluster cluster) {

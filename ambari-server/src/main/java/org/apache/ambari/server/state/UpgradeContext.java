@@ -397,8 +397,6 @@ public class UpgradeContext {
    *          the cluster that the upgrade is for
    * @param upgradeEntity
    *          the upgrade entity
-   * @param repoVersionDAO
-   *          the repository version DAO.
    */
   @AssistedInject
   public UpgradeContext(@Assisted Cluster cluster, @Assisted UpgradeEntity upgradeEntity,

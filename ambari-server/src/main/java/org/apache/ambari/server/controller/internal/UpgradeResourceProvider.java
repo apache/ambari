@@ -1089,8 +1089,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param request upgrade request
    * @param entity a single of upgrade
    * @param task server-side task (if any)
-   * @param skippable if user can skip stage on failure
-   * @param allowRetry if user can retry running stage on failure
    * @param configUpgradePack a runtime-generated config upgrade pack that
    * contains all config change definitions from all stacks involved into
    * upgrade
@@ -1453,9 +1451,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     /**
      * Constructor.
-     *
-     * @param from
-     * @param target
      */
     public RepositoryVersions(RepositoryVersionEntity from, RepositoryVersionEntity to) {
       fromRepositoryId = from.getId();

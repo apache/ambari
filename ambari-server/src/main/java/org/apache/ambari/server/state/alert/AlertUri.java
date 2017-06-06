@@ -83,7 +83,7 @@ public class AlertUri {
   /**
    * If present, then the component supports HA mode and the properties
    * contained within need to be checked to see if an HA URI is required to be
-   * constructed instead of using {@link #m_httpProperty} and
+   * constructed instead of using {@link #m_httpUri}, {@link #m_httpsUri} and
    * {@link #m_httpsProperty}.
    */
   @SerializedName("high_availability")
