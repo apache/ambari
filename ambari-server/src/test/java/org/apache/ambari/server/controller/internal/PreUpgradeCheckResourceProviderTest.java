@@ -38,6 +38,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -84,6 +85,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     Clusters clusters = injector.getInstance(Clusters.class);
     UpgradeHelper upgradeHelper = injector.getInstance(UpgradeHelper.class);
+    Configuration configuration = injector.getInstance(Configuration.class);
 
     RepositoryVersionDAO repoDao = injector.getInstance(RepositoryVersionDAO.class);
     RepositoryVersionEntity repo = createNiceMock(RepositoryVersionEntity.class);
@@ -104,6 +106,7 @@ public class PreUpgradeCheckResourceProviderTest {
     Map<String, ServiceInfo> allServiceInfoMap = new HashMap<String, ServiceInfo>();
     allServiceInfoMap.put("Service100", serviceInfo);
 
+    expect(configuration.isUpgradePrecheckBypass()).andReturn(false).anyTimes();
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -135,7 +138,7 @@ public class PreUpgradeCheckResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, service, serviceInfo, repoDao, repo, upgradeHelper,
-        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory);
+        ambariMetaInfo, upgradePack, config, currentStackId, targetStackId, serviceFactory, configuration);
 
     ResourceProvider provider = getPreUpgradeCheckResourceProvider(managementController, injector);
     // create the request
@@ -198,6 +201,15 @@ public class PreUpgradeCheckResourceProviderTest {
     }
   }
 
+  static class TestConfigurationProvider implements Provider<Configuration> {
+    private static Configuration configuration = createNiceMock(Configuration.class);
+
+    @Override
+    public Configuration get(){
+      return configuration;
+    }
+  }
+
   static class TestUpgradeHelperProvider implements Provider<UpgradeHelper> {
     private static UpgradeHelper upgradeHelper = createNiceMock(UpgradeHelper.class);
 
@@ -216,6 +228,7 @@ public class PreUpgradeCheckResourceProviderTest {
         CheckHelper checkHelper = new CheckHelper();
         UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
 
+        bind(Configuration.class).toProvider(TestConfigurationProvider.class);
         bind(AmbariManagementController.class).toInstance(createNiceMock(AmbariManagementController.class));
         bind(CheckHelper.class).toInstance(checkHelper);
         bind(Clusters.class).toProvider(TestClustersProvider.class);

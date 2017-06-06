@@ -30,6 +30,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.checks.ServicesUpCheck;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -67,15 +68,18 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
+
+    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     descriptor.perform(EasyMock.<PrerequisiteCheck> anyObject(), EasyMock.<PrereqCheckRequest> anyObject());
     EasyMock.expectLastCall().times(1);
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(true);
-    EasyMock.replay(descriptor);
+    EasyMock.replay(descriptor, configuration);
     updateChecksRegistry.add(descriptor);
 
-    helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry);
+    helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry, configuration);
     EasyMock.verify(descriptor);
   }
 
@@ -85,12 +89,14 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckNotApplicable() throws Exception {
     final CheckHelper helper = new CheckHelper();
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
+    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(false);
-    EasyMock.replay(descriptor);
+    EasyMock.replay(descriptor, configuration);
     updateChecksRegistry.add(descriptor);
-    helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry);
+    helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry, configuration);
     EasyMock.verify(descriptor);
   }
 
@@ -101,15 +107,17 @@ public class CheckHelperTest {
   public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
 
+    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
     descriptor.perform(EasyMock.<PrerequisiteCheck> anyObject(), EasyMock.<PrereqCheckRequest> anyObject());
     EasyMock.expectLastCall().andThrow(new AmbariException("error"));
     EasyMock.expect(descriptor.isApplicable(EasyMock.<PrereqCheckRequest> anyObject())).andReturn(true);
     EasyMock.expect(descriptor.getDescription()).andReturn(CheckDescription.HOSTS_HEARTBEAT).anyTimes();
-    EasyMock.replay(descriptor);
+    EasyMock.replay(descriptor, configuration);
     updateChecksRegistry.add(descriptor);
-    final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry);
+    final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("cluster"), updateChecksRegistry, configuration);
     EasyMock.verify(descriptor);
     Assert.assertEquals(PrereqCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
   }
@@ -122,13 +130,15 @@ public class CheckHelperTest {
     // This mock class extends CheckHelper and overrides the getPrerequisiteChecks method in order to return
     // a PrerequisiteCheck object whose status is FAIL.
     final CheckHelperMock helper =  new CheckHelperMock();
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
 
     PrereqCheckRequest checkRequest = EasyMock.createNiceMock(PrereqCheckRequest.class);
+    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(true);
     EasyMock.expect(checkRequest.getClusterName()).andReturn("c1").anyTimes();
-    EasyMock.replay(checkRequest);
+    EasyMock.replay(checkRequest, configuration);
 
-    final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(checkRequest, updateChecksRegistry);
+    final List<PrerequisiteCheck> upgradeChecks = helper.performChecks(checkRequest, updateChecksRegistry, configuration);
     Assert.assertEquals(1, upgradeChecks.size());
     Assert.assertEquals(PrereqCheckStatus.BYPASS, upgradeChecks.get(0).getStatus());
   }
@@ -136,6 +146,7 @@ public class CheckHelperTest {
   @Test
   public void testPreUpgradeCheckClusterMissing() throws Exception {
     final Clusters clusters = Mockito.mock(Clusters.class);
+    Configuration configuration = EasyMock.createNiceMock(Configuration.class);
     Mockito.when(clusters.getCluster(Mockito.anyString())).thenAnswer(new Answer<Cluster>() {
       @Override
       public Cluster answer(InvocationOnMock invocation) throws Throwable {
@@ -169,11 +180,15 @@ public class CheckHelperTest {
     final CheckHelper helper = injector.getInstance(CheckHelper.class);
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
 
+    EasyMock.expect(configuration.isUpgradePrecheckBypass()).andReturn(false);
+
+    EasyMock.replay(configuration);
+
     // mocked Cluster has no services, so the check should always be PASS
     updateChecksRegistry.add(injector.getInstance(ServicesUpCheck.class));
-    List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("existing"), updateChecksRegistry);
+    List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("existing"), updateChecksRegistry, configuration);
     Assert.assertEquals(PrereqCheckStatus.PASS, upgradeChecks.get(0).getStatus());
-    upgradeChecks = helper.performChecks(new PrereqCheckRequest("non-existing"), updateChecksRegistry);
+    upgradeChecks = helper.performChecks(new PrereqCheckRequest("non-existing"), updateChecksRegistry, configuration);
     Assert.assertEquals(PrereqCheckStatus.FAIL, upgradeChecks.get(0).getStatus());
     //non existing cluster is an expected error
     Assert.assertTrue(!upgradeChecks.get(0).getFailReason().equals("Unexpected server error happened"));
@@ -196,7 +211,6 @@ public class CheckHelperTest {
         EasyMock.expect(descriptor.getDescription()).andReturn(description).anyTimes();
 
         // Allow bypassing failures
-        EasyMock.expect(descriptor.isStackUpgradeAllowedToBypassPreChecks()).andReturn(true);
         EasyMock.replay(descriptor);
 
         applicablePreChecks.add(new DescriptorPreCheck(descriptor, check));

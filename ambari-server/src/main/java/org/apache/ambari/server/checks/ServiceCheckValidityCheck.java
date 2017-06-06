@@ -77,8 +77,10 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
   private static SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
   private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(PageRequest.StartingPoint.End, 1000, 0, null, null);
   private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, sortRequest, PAGE_REQUEST);
-  private static final Predicate PREDICATE = new PredicateBuilder().property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID)
-      .equals(RoleCommand.SERVICE_CHECK.name()).toPredicate();
+  private static final Predicate PREDICATE = new PredicateBuilder()
+    .property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID).equals(RoleCommand.SERVICE_CHECK.name())
+    .and().property(TaskResourceProvider.TASK_START_TIME_PROPERTY_ID).greaterThan(-1)
+    .toPredicate();
 
 
 
@@ -87,6 +89,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
   @Inject
   Provider<HostRoleCommandDAO> hostRoleCommandDAOProvider;
+
 
   /**
    * Constructor.
@@ -140,7 +143,7 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
 
       boolean serviceCheckWasExecuted = false;
       for (HostRoleCommandEntity command : latestTimestamps.values()) {
-        if (command.getCommandDetail().contains(serviceName)) {
+        if (null !=  command.getCommandDetail() && command.getCommandDetail().contains(serviceName)) {
           serviceCheckWasExecuted = true;
           Long serviceCheckTimestamp = command.getStartTime();
 
