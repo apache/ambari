@@ -125,6 +125,7 @@ hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 dfs_type = default("/commandParams/dfs_type", "")
+hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
 
 # Kerberos
 druid_principal_name = default('/configurations/druid-common/druid.hadoop.security.kerberos.principal',
