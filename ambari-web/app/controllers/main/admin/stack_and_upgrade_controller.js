@@ -1705,7 +1705,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * reset upgradeState to INIT when upgrade is COMPLETED
+   * reset upgradeState to NOT_REQUIRED when upgrade is COMPLETED
    * and clean auxiliary data
    */
   finish: function () {
@@ -1713,7 +1713,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.setDBProperties({
       fromVersion: undefined,
       upgradeId: undefined,
-      upgradeState: 'INIT',
+      upgradeState: 'NOT_REQUIRED',
       upgradeVersion: undefined,
       currentVersion: undefined,
       upgradeTypeDisplayName: undefined,
@@ -1730,7 +1730,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     if (upgradeVersion && upgradeVersion[0]) {
       App.set('currentStackVersion', upgradeVersion[0]);
     }
-    App.set('upgradeState', 'INIT');
+    App.set('upgradeState', 'NOT_REQUIRED');
   },
 
   /**
