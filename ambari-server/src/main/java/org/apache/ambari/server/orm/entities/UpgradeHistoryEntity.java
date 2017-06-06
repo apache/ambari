@@ -31,7 +31,8 @@ import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.hadoop.metrics2.sink.relocated.google.common.base.Objects;
+
+import com.google.common.base.Objects;
 
 /**
  * The {@link UpgradeHistoryEntity} represents the version history of components
