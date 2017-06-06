@@ -197,18 +197,11 @@ class InstallPackages(Script):
       return
 
     for package_name, directories in conf_select.get_package_dirs().iteritems():
-      # if already on HDP 2.3, then we should skip making conf.backup folders
-      if self.current_stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, self.current_stack_version_formatted):
-        conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
-        Logger.info("The current cluster stack of {0} does not require backing up configurations; "
-                    "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
-        # only link configs for all known packages
-        conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
-      else:
-        # link configs and create conf.backup folders for all known packages
-        # this will also call conf-select select
-        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
-          skip_existing_links = False, link_to = "backup")
+      conf_selector_name = stack_tools.get_stack_tool_name(stack_tools.CONF_SELECTOR_NAME)
+      Logger.info("The current cluster stack of {0} does not require backing up configurations; "
+                  "only {1} versioned config directories will be created.".format(stack_version, conf_selector_name))
+      # only link configs for all known packages
+      conf_select.select(self.stack_name, package_name, stack_version, ignore_errors = True)
 
 
   def compute_actual_version(self):
