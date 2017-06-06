@@ -2721,6 +2721,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
     "security.server.tls.ephemeral_dh_key_size", 2048);
 
+  /**
+   * The directory for scripts which are used by the alert notification dispatcher.
+   */
+  @Markdown(description = "The directory for scripts which are used by the alert notification dispatcher.")
+  public static final ConfigurationProperty<String> DISPATCH_PROPERTY_SCRIPT_DIRECTORY = new ConfigurationProperty<>(
+          "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
+
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -5584,6 +5592,15 @@ public class Configuration {
       throw new IllegalArgumentException("Invalid " + TLS_EPHEMERAL_DH_KEY_SIZE + " " + getProperty(TLS_EPHEMERAL_DH_KEY_SIZE));
     }
     return keySize;
+  }
+
+  /**
+   * Gets the dispatch script directory.
+   *
+   * @return the dispatch script directory
+   */
+  public String getDispatchScriptDirectory() {
+    return getProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY);
   }
 
   /**

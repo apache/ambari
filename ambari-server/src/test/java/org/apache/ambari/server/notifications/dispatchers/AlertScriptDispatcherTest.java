@@ -60,6 +60,8 @@ public class AlertScriptDispatcherTest {
 
   private static final String SCRIPT_CONFIG_VALUE = "/foo/script.py";
 
+  private static final String DISPATCH_PROPERTY_SCRIPT_DIRECTORY_KEY = "notification.dispatch.alert.script.directory";
+
   private Injector m_injector;
 
   @Inject
@@ -188,6 +190,71 @@ public class AlertScriptDispatcherTest {
     EasyMock.verify(callback, dispatcher);
     PowerMock.verifyAll();
   }
+
+  /**
+   * Tests the invocation of method getScriptLocation().
+   */
+  @Test
+  public void testGetScriptLocation() throws Exception {
+    AlertScriptDispatcher dispatcher = (AlertScriptDispatcher) m_dispatchFactory.getDispatcher(TargetType.ALERT_SCRIPT.name());
+    m_injector.injectMembers(dispatcher);
+
+    DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
+    AlertNotification notification = new AlertNotification();
+    notification.Callback = callback;
+    notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
+    notification.DispatchProperties = new HashMap();
+
+    //1.ambari.dispatch-property.script.filename is not set in notification
+    Assert.assertEquals(dispatcher.getScriptLocation(notification),null);
+
+    //2.ambari.dispatch-property.script.filename is set in notification,but notification.dispatch.alert.script.directory not in ambari.properties
+    final String filename = "foo.py";
+    notification.DispatchProperties.put(AlertScriptDispatcher.DISPATCH_PROPERTY_SCRIPT_FILENAME_KEY,filename);
+    Assert.assertEquals(dispatcher.getScriptLocation(notification),"/var/lib/ambari-server/resources/scripts/foo.py");
+
+    //3.both properties are set
+    final String scriptDirectory = "/var/lib/ambari-server/resources/scripts/foo";
+    m_configuration.setProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY_KEY,scriptDirectory);
+    Assert.assertEquals(dispatcher.getScriptLocation(notification),"/var/lib/ambari-server/resources/scripts/foo/foo.py");
+  }
+
+
+  /**
+   * Tests that we will pickup the correct script when script filename is specified on the notification
+   */
+  @Test
+  public void testCustomScriptConfigurationByScriptFilename() throws Exception {
+    final String filename = "foo.py";
+    final String scriptDirectory = "/var/lib/ambari-server/resources/scripts/foo";
+    m_configuration.setProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY_KEY,scriptDirectory);
+
+    DispatchCallback callback = EasyMock.createNiceMock(DispatchCallback.class);
+    AlertNotification notification = new AlertNotification();
+    notification.Callback = callback;
+    notification.CallbackIds = Collections.singletonList(UUID.randomUUID().toString());
+
+    notification.DispatchProperties = new HashMap();
+    notification.DispatchProperties.put(AlertScriptDispatcher.DISPATCH_PROPERTY_SCRIPT_FILENAME_KEY,filename);
+
+    callback.onSuccess(notification.CallbackIds);
+    EasyMock.expectLastCall().once();
+
+    AlertScriptDispatcher dispatcher = (AlertScriptDispatcher) m_dispatchFactory.getDispatcher(TargetType.ALERT_SCRIPT.name());
+    m_injector.injectMembers(dispatcher);
+
+    ProcessBuilder powerMockProcessBuilder = m_injector.getInstance(ProcessBuilder.class);
+    EasyMock.expect(dispatcher.getProcessBuilder(dispatcher.getScriptLocation(notification), notification)).andReturn(
+            powerMockProcessBuilder).once();
+
+    EasyMock.replay(callback, dispatcher);
+
+    dispatcher.dispatch(notification);
+
+    EasyMock.verify(callback, dispatcher);
+    PowerMock.verifyAll();
+  }
+
 
   /**
    * Tests that a process with an error code of 255 causes the failure callback
