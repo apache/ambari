@@ -24,7 +24,7 @@ __all__ = ["Provider", "find_provider"]
 
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.providers import PROVIDERS as LIBRARY_PROVIDERS
-
+from ambari_commons.os_check import OSCheck
 
 class Provider(object):
   def __init__(self, resource):
@@ -53,9 +53,6 @@ PROVIDERS = dict(
   ubuntu=dict(
     Package="resource_management.core.providers.package.apt.AptProvider",
   ),
-  debian=dict(
-    Package="resource_management.core.providers.package.apt.AptProvider",
-  ),
   winsrv=dict(
     Service="resource_management.core.providers.windows.service.ServiceProvider",
     ServiceConfig="resource_management.core.providers.windows.service.ServiceConfigProvider",
@@ -82,9 +79,19 @@ PROVIDERS = dict(
 def find_provider(env, resource, class_path=None):
   if not class_path:
     providers = [PROVIDERS, LIBRARY_PROVIDERS]
+
     for provider in providers:
-      if resource in provider[env.system.os_family]:
-        class_path = provider[env.system.os_family][resource]
+
+      if env.system.os_family in provider:
+        os_family_provider = provider[env.system.os_family]
+      else:
+        # take care of os extensions
+        for family in provider:
+          if OSCheck.is_in_family(env.system.os_family, family):
+            os_family_provider = provider[family]
+
+      if resource in os_family_provider:
+        class_path = os_family_provider[resource]
         break
       if resource in provider["default"]:
         class_path = provider["default"][resource]

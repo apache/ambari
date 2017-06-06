@@ -187,6 +187,7 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityContr
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
@@ -313,6 +314,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ExtensionLinkDAO linkDAO;
   @Inject
   private StackDAO stackDAO;
+  @Inject
+  private OsFamily osFamily;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -2621,13 +2624,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<>();
+    List<ServiceOsSpecific> foundOSSpecifics = new ArrayList<>();
     for (Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
-      if (osSpecific.getKey().contains(osFamily)) {
-        foundedOSSpecifics.add(osSpecific.getValue());
+      String[] osFamilyNames = osSpecific.getKey().split("\\s*,\\s*");
+
+      for(String osFamilyName:osFamilyNames) {
+        if (this.osFamily.isVersionedOsFamilyExtendedByVersionedFamily(osFamily, osFamilyName)) {
+          foundOSSpecifics.add(osSpecific.getValue());
+          break;
+        }
       }
     }
-    return foundedOSSpecifics;
+    return foundOSSpecifics;
   }
 
   private ActionExecutionContext getActionExecutionContext
