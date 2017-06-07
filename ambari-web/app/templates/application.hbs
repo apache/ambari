@@ -127,8 +127,8 @@
             <a href="#" class="bg-label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>
               {{#with App.router.backgroundOperationsController}}
                 <span class="glyphicon glyphicon-cog"></span>
-                <span id="span-bg-operation-count" {{bindAttr class="allOperationsCount:operations-count :numberCircle"}}>
-                  {{allOperationsCount}}
+                <span id="span-bg-operation-count" {{bindAttr class="runningOperationsCount:operations-count :numberCircle"}}>
+                  {{runningOperationsCount}}
                 </span>
               {{/with}}
             </a>
