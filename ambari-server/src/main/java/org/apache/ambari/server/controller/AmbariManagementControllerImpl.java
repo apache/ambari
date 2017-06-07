@@ -1777,7 +1777,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           note = cr.getServiceConfigVersionNote();
-          configs.add(cluster.getConfig(configType, cr.getVersionTag()));
+          Config config = cluster.getConfig(configType, cr.getVersionTag());
+          if (null != config) {
+            configs.add(config);
+          }
         }
         if (!configs.isEmpty()) {
           Map<String, Config> existingConfigTypeToConfig = new HashMap();
