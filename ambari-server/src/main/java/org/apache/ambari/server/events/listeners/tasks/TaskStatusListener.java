@@ -35,15 +35,19 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,11 +96,23 @@ public class TaskStatusListener {
 
   private RequestDAO requestDAO;
 
+  private HostRoleCommandDAO hostRoleCommandDAO;
+
+  private TopologyManager topologyManager;
+
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
 
   @Inject
-  public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO) {
+  public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
+                            StateUpdateEventPublisher stateUpdateEventPublisher,
+                            HostRoleCommandDAO hostRoleCommandDAO,
+                            TopologyManager topologyManager) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
+    this.stateUpdateEventPublisher = stateUpdateEventPublisher;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.topologyManager = topologyManager;
     taskEventPublisher.register(this);
   }
 
@@ -263,7 +279,8 @@ public class TaskStatusListener {
         ActiveRequest request =  activeRequestMap.get(reportedRequestId);
         Boolean didStatusChange = updateRequestStatus(reportedRequestId, stagesWithChangedTaskStatus);
         if (didStatusChange) {
-          requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
+          RequestEntity updated = requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
+          stateUpdateEventPublisher.publish(new RequestUpdateEvent(updated, hostRoleCommandDAO, topologyManager));
         }
         if (request.isCompleted() && isAllTasksCompleted(reportedRequestId)) {
           // Request is considered ton have been finished if request status and all of it's tasks status are completed

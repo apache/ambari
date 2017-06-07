@@ -65,6 +65,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.persistence.RollbackException;
 
@@ -88,10 +89,13 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
+import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -105,7 +109,9 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -200,6 +206,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.topology.Setting;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -315,6 +322,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ExtensionDAO extensionDAO;
   @Inject
   private StackDAO stackDAO;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
+  TopologyDeleteFormer topologyDeleteFormer;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -676,6 +689,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     setMonitoringServicesRestartRequired(requests);
     // now doing actual work
     persistServiceComponentHosts(requests);
+    stateUpdateEventPublisher.publish(getAddedComponentsTopologyEvent(requests));
   }
 
   void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
@@ -705,6 +719,40 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (Cluster cluster : schMap.keySet()) {
       cluster.addServiceComponentHosts(schMap.get(cluster));
     }
+  }
+
+  private TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
+    throws AmbariException {
+    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+    for (ServiceComponentHostRequest request : requests) {
+      String serviceName = request.getServiceName();
+      String componentName = request.getComponentName();
+      Cluster cluster = clusters.getCluster(request.getClusterName());
+      Collection<Host> clusterHosts = cluster.getHosts();
+      Service s = cluster.getService(serviceName);
+      ServiceComponent sc = s.getServiceComponent(componentName);
+      Set<String> hostNames = cluster.getHosts(serviceName, componentName);
+      Set<Long> hostIds = clusterHosts.stream()
+          .filter(h -> hostNames.contains(h.getHostName()))
+          .map(h -> h.getHostId()).collect(Collectors.toSet());
+      ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
+
+      StackId stackId = cluster.getDesiredStackVersion();
+
+      TopologyComponent newComponent = TopologyComponent.newBuilder()
+          .setComponentName(sch.getServiceComponentName())
+          .setServiceName(sch.getServiceName())
+          .setVersion(sch.getVersion())
+          .setHostIds(hostIds)
+          .setStatusCommandParams(ambariMetaInfo.getStatusCommandParams(stackId, serviceName, componentName))
+          .build();
+      String clusterId = Long.toString(cluster.getClusterId());
+      if (!topologyUpdates.containsKey(clusterId)) {
+        topologyUpdates.put(clusterId, new TopologyCluster());
+      }
+      topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
+    }
+    return new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.ADD);
   }
 
   private void setMonitoringServicesRestartRequired(
@@ -3434,7 +3482,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<>();
-    DeleteStatusMetaData deleteStatusMetaData = new DeleteStatusMetaData();
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
 
     for (ServiceComponentHostRequest request : expanded) {
 
@@ -3465,29 +3513,28 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
         safeToRemoveSCHs.get(component).add(componentHost);
       } catch (Exception ex) {
-        deleteStatusMetaData.addException(request.getHostname() + "/" + request.getComponentName(), ex);
+        deleteMetaData.addException(request.getHostname() + "/" + request.getComponentName(), ex);
       }
     }
 
     for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
         try {
-          deleteHostComponent(entry.getKey(), componentHost);
-          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
-
+          deleteHostComponent(entry.getKey(), componentHost, deleteMetaData);
         } catch (Exception ex) {
-          deleteStatusMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
+          deleteMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
         }
       }
     }
 
     //Do not break behavior for existing clients where delete request contains only 1 host component.
     //Response for these requests will have empty body with appropriate error code.
-    if (deleteStatusMetaData.getDeletedKeys().size() + deleteStatusMetaData.getExceptionForKeys().size() == 1) {
-      if (deleteStatusMetaData.getDeletedKeys().size() == 1) {
+    if (deleteMetaData.getDeletedKeys().size() + deleteMetaData.getExceptionForKeys().size() == 1) {
+      if (deleteMetaData.getDeletedKeys().size() == 1) {
+        topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
         return null;
       }
-      Exception ex =  deleteStatusMetaData.getExceptionForKeys().values().iterator().next();
+      Exception ex = deleteMetaData.getExceptionForKeys().values().iterator().next();
       if (ex instanceof AmbariException) {
         throw (AmbariException)ex;
       } else {
@@ -3499,10 +3546,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (!safeToRemoveSCHs.isEmpty()) {
       setMonitoringServicesRestartRequired(requests);
     }
-    return deleteStatusMetaData;
+    topologyDeleteFormer.processDeleteMetaData(deleteMetaData);
+    return deleteMetaData;
   }
 
-  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost) throws AmbariException {
+  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost,
+                                   DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     String included_hostname = componentHost.getHostName();
     String serviceName = serviceComponent.getServiceName();
     String master_component_name = null;
@@ -3510,7 +3559,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
     State slaveState = componentHost.getState();
     //Delete hostcomponents
-    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName());
+    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName(), deleteMetaData);
     // If deleted hostcomponents support decomission and were decommited and stopped
     if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name)
             && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)

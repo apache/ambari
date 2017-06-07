@@ -528,7 +528,7 @@ public class ComponentResourceProviderTest {
     expect(serviceComponentHost.getDesiredState()).andReturn(hostComponentState);
 
 
-    service.deleteServiceComponent("Component100");
+    service.deleteServiceComponent("Component100", new DeleteHostComponentStatusMetaData());
     expectLastCall().once();
     // replay
 

@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.svccomphost;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,13 +33,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
+import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
+import org.apache.ambari.server.events.HostComponentUpdateEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -120,6 +127,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private RepositoryVersionHelper repositoryVersionHelper;
+
+  @Inject
+  StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -895,6 +905,17 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (stateEntity != null) {
       stateEntity.setVersion(version);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
+      Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+      topologyUpdates.put(Long.toString(getClusterId()), new TopologyCluster());
+      Long hostId = getHost().getHostId();
+      topologyUpdates.get(Long.toString(getClusterId())).addTopologyComponent(TopologyComponent.newBuilder()
+          .setComponentName(getServiceComponentName())
+          .setVersion(stateEntity.getVersion())
+          .setHostIds(new HashSet<>(Collections.singletonList(hostId)))
+          .build());
+      TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
+          TopologyUpdateEvent.EventType.UPDATE);
+      stateUpdateEventPublisher.publish(hostComponentVersionUpdate);
     } else {
       LOG.warn("Setting a member on an entity object that may have been "
           + "previously deleted, serviceName = " + getServiceName() + ", " + "componentName = "
@@ -1007,8 +1028,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         stateMachine.doTransition(event.getType(), event);
         HostComponentStateEntity stateEntity = getStateEntity();
+        boolean statusUpdated = !stateEntity.getCurrentState().equals(stateMachine.getCurrentState());
         stateEntity.setCurrentState(stateMachine.getCurrentState());
         stateEntity = hostComponentStateDAO.merge(stateEntity);
+        if (statusUpdated) {
+          stateUpdateEventPublisher.publish(new HostComponentUpdateEvent(stateEntity));
+        }
         // TODO Audit logs
       } catch (InvalidStateTransitionException e) {
         LOG.error("Can't handle ServiceComponentHostEvent event at"
@@ -1359,10 +1384,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void delete() {
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
     boolean fireRemovalEvent = false;
 
     writeLock.lock();
+    String version = getVersion();
     try {
       removeEntities();
       fireRemovalEvent = true;
@@ -1390,6 +1416,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           hostName, recoveryEnabled);
 
       eventPublisher.publish(event);
+      deleteMetaData.addDeletedHostComponent(componentName,
+          hostName,
+          getHost().getHostId(),
+          Long.toString(clusterId),
+          version);
     }
   }
 

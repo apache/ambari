@@ -480,6 +480,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         return;
       }
 
+      //TODO Event for hostcomponents removing
       for (ClusterEntity cluster : clusters) {
         ClusterServiceEntity nagios = clusterServiceDao.findByClusterAndServiceNames(
             cluster.getClusterName(), "NAGIOS");

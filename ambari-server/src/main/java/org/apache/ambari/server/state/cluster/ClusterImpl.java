@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
@@ -61,14 +62,17 @@ import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
+import org.apache.ambari.server.events.ConfigsUpdateEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
@@ -145,8 +149,10 @@ import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
+import org.apache.ambari.server.topology.TopologyDeleteFormer;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -292,6 +298,9 @@ public class ClusterImpl implements Cluster {
   @Inject
   private TopologyRequestDAO topologyRequestDAO;
 
+  @Inject
+  private TopologyDeleteFormer topologyDeleteFormer;
+
   /**
    * Data access object used for looking up stacks from the database.
    */
@@ -326,6 +335,9 @@ public class ClusterImpl implements Cluster {
    */
   @Inject
   private UpgradeContextFactory upgradeContextFactory;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -2007,9 +2019,12 @@ public class ClusterImpl implements Cluster {
         }
       }
 
+      DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
       for (Service service : services.values()) {
-        deleteService(service);
+        deleteService(service, deleteMetaData);
+        topologyDeleteFormer.processDeleteMetaDataException(deleteMetaData);
       }
+      topologyDeleteFormer.processDeleteCluster(Long.toString(getClusterId()));
       services.clear();
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -2017,7 +2032,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void deleteService(String serviceName)
+  public void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData)
     throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
@@ -2026,11 +2041,12 @@ public class ClusterImpl implements Cluster {
           + getClusterName() + ", serviceName=" + service.getName());
       // FIXME check dependencies from meta layer
       if (!service.canBeRemoved()) {
-        throw new AmbariException("Could not delete service from cluster"
-          + ", clusterName=" + getClusterName()
-          + ", serviceName=" + service.getName());
+        deleteMetaData.setAmbariException(new AmbariException("Could not delete service from cluster"
+            + ", clusterName=" + getClusterName()
+            + ", serviceName=" + service.getName()));
+        return;
       }
-      deleteService(service);
+      deleteService(service, deleteMetaData);
       services.remove(serviceName);
 
     } finally {
@@ -2048,10 +2064,13 @@ public class ClusterImpl implements Cluster {
    * @throws AmbariException
    * @see   ServiceComponentHost
    */
-  private void deleteService(Service service) throws AmbariException {
+  private void deleteService(Service service, DeleteHostComponentStatusMetaData deleteMetaData) {
     final String serviceName = service.getName();
 
-    service.delete();
+    service.delete(deleteMetaData);
+    if (deleteMetaData.getAmbariException() != null) {
+      return;
+    }
 
     serviceComponentHosts.remove(serviceName);
 
@@ -2296,10 +2315,17 @@ public class ClusterImpl implements Cluster {
       serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
 
       serviceConfigDAO.create(serviceConfigEntity);
+      List<String> groupHostNames = null;
       if (configGroup != null) {
+        if (MapUtils.isNotEmpty(configGroup.getHosts())) {
+          groupHostNames = configGroup.getHosts().entrySet().stream().map(h -> h.getValue().getHostName())
+              .collect(Collectors.toList());
+        }
         serviceConfigEntity.setHostIds(new ArrayList<>(configGroup.getHosts().keySet()));
         serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
       }
+      stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
+          configGroup == null ? null : configGroup.getName(), groupHostNames));
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2556,6 +2582,7 @@ public class ClusterImpl implements Cluster {
       throw new ObjectNotFoundException("Service config version with serviceName={} and version={} not found");
     }
 
+    String configGroupName = null;
     // disable all configs related to service
     if (serviceConfigEntity.getGroupId() == null) {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
@@ -2573,6 +2600,7 @@ public class ClusterImpl implements Cluster {
       Long configGroupId = serviceConfigEntity.getGroupId();
       ConfigGroup configGroup = clusterConfigGroups.get(configGroupId);
       if (configGroup != null) {
+        configGroupName = configGroup.getName();
         Map<String, Config> groupDesiredConfigs = new HashMap<>();
         for (ClusterConfigEntity entity : serviceConfigEntity.getClusterConfigEntities()) {
           Config config = allConfigs.get(entity.getType()).get(entity.getTag());
@@ -2614,7 +2642,15 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntityClone.setNote(serviceConfigVersionNote);
     serviceConfigEntityClone.setVersion(nextServiceConfigVersion);
 
+    List<String> groupHostNames = null;
+    if (CollectionUtils.isNotEmpty(serviceConfigEntity.getHostIds())) {
+      groupHostNames = getHosts().stream()
+          .filter(h -> serviceConfigEntity.getHostIds().contains(h.getHostId()))
+          .map(h -> h.getHostName()).collect(Collectors.toList());
+    }
+
     serviceConfigDAO.create(serviceConfigEntityClone);
+    stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone, configGroupName, groupHostNames));
 
     return convertToServiceConfigVersionResponse(serviceConfigEntityClone);
   }

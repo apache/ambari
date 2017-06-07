@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -501,7 +502,7 @@ public interface Cluster {
    * @param serviceName
    * @throws AmbariException
    */
-  void deleteService(String serviceName) throws AmbariException;
+  void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException;
 
   /**
    * Gets if the cluster can be deleted

@@ -31,6 +31,7 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
@@ -516,7 +517,7 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void deleteAllComponents() throws AmbariException {
+  public void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData) {
     lock.lock();
     try {
       LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
@@ -524,14 +525,18 @@ public class ServiceImpl implements Service {
       // FIXME check dependencies from meta layer
       for (ServiceComponent component : components.values()) {
         if (!component.canBeRemoved()) {
-          throw new AmbariException("Found non removable component when trying to"
+          deleteMetaData.setAmbariException(new AmbariException("Found non removable component when trying to"
               + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName() + ", componentName=" + component.getName());
+              + ", serviceName=" + getName() + ", componentName=" + component.getName()));
+          return;
         }
       }
 
       for (ServiceComponent serviceComponent : components.values()) {
-        serviceComponent.delete();
+        serviceComponent.delete(deleteMetaData);
+        if (deleteMetaData.getAmbariException() != null) {
+          return;
+        }
       }
 
       components.clear();
@@ -541,7 +546,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public void deleteServiceComponent(String componentName)
+  public void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException {
     lock.lock();
     try {
@@ -556,7 +561,7 @@ public class ServiceImpl implements Service {
             + ", componentName=" + componentName);
       }
 
-      component.delete();
+      component.delete(deleteMetaData);
       components.remove(componentName);
     } finally {
       lock.unlock();
@@ -570,11 +575,19 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  public void delete() throws AmbariException {
-    deleteAllComponents();
-    deleteAllServiceConfigs();
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
+    deleteAllComponents(deleteMetaData);
+    if (deleteMetaData.getAmbariException() != null) {
+      return;
+    }
+    try {
+      deleteAllServiceConfigs();
 
-    removeEntities();
+      removeEntities();
+    } catch (AmbariException e) {
+      deleteMetaData.setAmbariException(e);
+      return;
+    }
 
     // publish the service removed event
     StackId stackId = cluster.getDesiredStackVersion();

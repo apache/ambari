@@ -18,8 +18,10 @@
 package org.apache.ambari.server.configuration.spring;
 
 import org.apache.ambari.server.api.stomp.TestController;
+import org.apache.ambari.server.events.listeners.requests.StateUpdateListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,12 +29,19 @@ import org.springframework.web.socket.config.annotation.AbstractWebSocketMessage
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 
+import com.google.inject.Injector;
+
 @Configuration
 @EnableWebSocketMessageBroker
 @ComponentScan(basePackageClasses = {TestController.class})
 @Import(RootStompConfig.class)
 public class ApiStompConfig extends AbstractWebSocketMessageBrokerConfigurer {
   private static final Logger LOG = LoggerFactory.getLogger(ApiStompConfig.class);
+
+  @Bean
+  public StateUpdateListener requestStatusListener(Injector injector) {
+    return new StateUpdateListener(injector);
+  }
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {

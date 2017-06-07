@@ -192,11 +192,11 @@ public class RequestDAO implements Cleanable {
   }
 
   @Transactional
-  public void updateStatus(long requestId, HostRoleStatus status, HostRoleStatus displayStatus) {
+  public RequestEntity updateStatus(long requestId, HostRoleStatus status, HostRoleStatus displayStatus) {
     RequestEntity requestEntity = findByPK(requestId);
     requestEntity.setStatus(status);
     requestEntity.setDisplayStatus(displayStatus);
-    merge(requestEntity);
+    return merge(requestEntity);
   }
 
   @Transactional

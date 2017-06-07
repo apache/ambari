@@ -583,10 +583,17 @@ public class HeartbeatProcessor extends AbstractService{
    * @throws AmbariException
    */
   protected void processStatusReports(HeartBeat heartbeat) throws AmbariException {
-    String hostname = heartbeat.getHostname();
+    processStatusReports(heartbeat.getComponentStatus(), heartbeat.getHostname());
+  }
+
+  /**
+   * Process reports of status commands
+   * @throws AmbariException
+   */
+  public void processStatusReports(List<ComponentStatus> componentStatuses, String hostname) throws AmbariException {
     Set<Cluster> clusters = clusterFsm.getClustersForHost(hostname);
     for (Cluster cl : clusters) {
-      for (ComponentStatus status : heartbeat.componentStatus) {
+      for (ComponentStatus status : componentStatuses) {
         if (status.getClusterName().equals(cl.getClusterName())) {
           try {
             Service svc = cl.getService(status.getServiceName());
@@ -597,22 +604,24 @@ public class HeartbeatProcessor extends AbstractService{
                   componentName);
               ServiceComponentHost scHost = svcComp.getServiceComponentHost(
                   hostname);
-              org.apache.ambari.server.state.State prevState = scHost.getState();
-              org.apache.ambari.server.state.State liveState =
-                  org.apache.ambari.server.state.State.valueOf(org.apache.ambari.server.state.State.class,
-                      status.getStatus());
-              //ignore reports from status commands if component is in INIT or any "in progress" state
-              if (prevState.equals(org.apache.ambari.server.state.State.INSTALLED)
-                  || prevState.equals(org.apache.ambari.server.state.State.STARTED)
-                  || prevState.equals(org.apache.ambari.server.state.State.UNKNOWN)) {
-                scHost.setState(liveState);
-                if (!prevState.equals(liveState)) {
-                  LOG.info("State of service component " + componentName
-                      + " of service " + status.getServiceName()
-                      + " of cluster " + status.getClusterName()
-                      + " has changed from " + prevState + " to " + liveState
-                      + " at host " + hostname
-                      + " according to STATUS_COMMAND report");
+              if (status.getStatus() != null) {
+                org.apache.ambari.server.state.State prevState = scHost.getState();
+                org.apache.ambari.server.state.State liveState =
+                    org.apache.ambari.server.state.State.valueOf(org.apache.ambari.server.state.State.class,
+                        status.getStatus());
+                //ignore reports from status commands if component is in INIT or any "in progress" state
+                if (prevState.equals(org.apache.ambari.server.state.State.INSTALLED)
+                    || prevState.equals(org.apache.ambari.server.state.State.STARTED)
+                    || prevState.equals(org.apache.ambari.server.state.State.UNKNOWN)) {
+                  scHost.setState(liveState);
+                  if (!prevState.equals(liveState)) {
+                    LOG.info("State of service component " + componentName
+                        + " of service " + status.getServiceName()
+                        + " of cluster " + status.getClusterName()
+                        + " has changed from " + prevState + " to " + liveState
+                        + " at host " + hostname
+                        + " according to STATUS_COMMAND report");
+                  }
                 }
               }
 

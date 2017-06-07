@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.alerts;
 import java.util.UUID;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -133,7 +134,7 @@ public class AlertEventPublisherTest {
     Assert.assertEquals(0, dispatchDao.findAllGroups().size());
     installHdfsService();
     Assert.assertEquals(1, dispatchDao.findAllGroups().size());
-    cluster.getService("HDFS").delete();
+    cluster.getService("HDFS").delete(new DeleteHostComponentStatusMetaData());
     Assert.assertEquals(0, dispatchDao.findAllGroups().size());
   }
 

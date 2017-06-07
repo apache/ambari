@@ -58,6 +58,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -1109,7 +1110,7 @@ public class ClusterTest {
     assertEquals(2, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
 
-    c1.deleteService("HDFS");
+    c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
     assertEquals(1, c1.getServices().size());
     assertEquals(1, injector.getProvider(EntityManager.class).get().
@@ -1146,7 +1147,7 @@ public class ClusterTest {
       c1.getActiveServiceConfigVersions();
     Assert.assertEquals(1, activeServiceConfigVersions.size());
 
-    c1.deleteService("HDFS");
+    c1.deleteService("HDFS", new DeleteHostComponentStatusMetaData());
 
     Assert.assertEquals(0, c1.getServices().size());
     Assert.assertEquals(0, c1.getServiceConfigVersions().size());

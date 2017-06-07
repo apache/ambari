@@ -35,6 +35,8 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
+import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
@@ -52,6 +54,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -166,6 +170,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Inject
   private static TopologyManager topologyManager;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -508,6 +515,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Map<String, Map<String, String>> hostAttributes = new HashMap<>();
     Set<String> allClusterSet = new HashSet<>();
 
+    Map<String, TopologyCluster> addedTopologies = new HashMap<>();
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
           !hostRequest.getHostname().isEmpty() &&
@@ -521,6 +529,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (hostRequest.getHostAttributes() != null) {
           hostAttributes.put(hostRequest.getHostname(), hostRequest.getHostAttributes());
         }
+        String clusterId = Long.toString(clusters.getCluster(hostRequest.getClusterName()).getClusterId());
+        if (!addedTopologies.containsKey(clusterId)) {
+          addedTopologies.put(clusterId, new TopologyCluster());
+        }
+        Host addedHost = clusters.getHost(hostRequest.getHostname());
+        addedTopologies.get(clusterId).addTopologyHost(new TopologyHost(addedHost.getHostId(),
+            addedHost.getHostName(),
+            addedHost.getRackInfo(),
+            addedHost.getIPv4()));
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
@@ -528,6 +545,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     for (String clusterName : allClusterSet) {
       clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
     }
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.ADD);
+    stateUpdateEventPublisher.publish(topologyUpdateEvent);
   }
 
   private void createHostResource(Clusters clusters, Set<String> duplicates,
@@ -704,12 +723,14 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
 
+    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received an updateHost request"
             + ", hostname=" + request.getHostname()
             + ", request=" + request);
       }
+      TopologyHost topologyHost = new TopologyHost();
 
       Host host = clusters.getHost(request.getHostname());
 
@@ -717,6 +738,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       Cluster cluster = clusters.getCluster(clusterName);
       Long clusterId = cluster.getClusterId();
       Long resourceId = cluster.getResourceId();
+      topologyHost.setHostId(host.getHostId());
 
       try {
         // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping
@@ -742,6 +764,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           throw new AuthorizationException("The authenticated user is not authorized to update host rack information");
         }
         host.setRackInfo(requestRackInfo);
+        topologyHost.setRackName(requestRackInfo);
       }
 
       if (null != request.getPublicHostName()) {
@@ -749,6 +772,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
           throw new AuthorizationException("The authenticated user is not authorized to update host attributes");
         }
         host.setPublicHostName(request.getPublicHostName());
+        topologyHost.setHostName(request.getPublicHostName());
       }
 
       if (null != clusterName && null != request.getMaintenanceState()) {
@@ -811,6 +835,13 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
+      if (!topologyUpdates.containsKey(clusterId.toString())) {
+        topologyUpdates.put(clusterId.toString(), new TopologyCluster());
+      }
+      topologyUpdates.get(clusterId.toString()).addTopologyHost(topologyHost);
+      TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
+          TopologyUpdateEvent.EventType.UPDATE);
+      stateUpdateEventPublisher.publish(topologyUpdateEvent);
       //todo: if attempt was made to update a property other than those
       //todo: that are allowed above, should throw exception
     }
@@ -874,9 +905,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
     Set<Cluster> allClustersWithHosts = new HashSet<>();
+    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.
       String hostname = hostRequest.getHostname();
+      Long hostId = clusters.getHost(hostname).getHostId();
       hostNames.add(hostname);
 
       if (hostRequest.getClusterName() != null) {
@@ -911,6 +944,24 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         for (String key : componentDeleteStatus.getDeletedKeys()) {
           deleteStatusMetaData.addDeletedKey(key);
         }
+        /*for (DeleteHostComponentStatusMetaData.HostComponent hostComponent : componentDeleteStatus.getRemovedHostComponents()) {
+          String clusterId = hostComponent.getClusterId();
+          if (!topologyUpdates.containsKey(clusterId)) {
+            topologyUpdates.put(clusterId, new TopologyCluster());
+          }
+          TopologyComponent deletedComponent = new TopologyComponent(hostComponent.getComponentName(),
+              null,
+              hostComponent.getVersion(),
+              new HashSet<>(Arrays.asList(hostId)),
+              null);
+          if (!topologyUpdates.get(clusterId).getTopologyComponents().contains(deletedComponent)) {
+            topologyUpdates.get(clusterId).addTopologyComponent(deletedComponent);
+          } else {
+            topologyUpdates.get(clusterId).getTopologyComponents()
+                .stream().filter(t -> t.equals(deletedComponent))
+                .forEach(t -> t.addHostId(hostId));
+          }
+        }*/
         for (String key : componentDeleteStatus.getExceptionForKeys().keySet()) {
           deleteStatusMetaData.addException(key, componentDeleteStatus.getExceptionForKeys().get(key));
         }
@@ -920,7 +971,15 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         hostsClusters.add(hostRequest.getClusterName());
       }
       try {
+        Set<Cluster> hostClusters = new HashSet<>(clusters.getClustersForHost(hostname));
         clusters.deleteHost(hostname);
+        for (Cluster cluster : hostClusters) {
+          String clusterId = Long.toString(cluster.getClusterId());
+          if (!topologyUpdates.containsKey(clusterId)) {
+            topologyUpdates.put(clusterId, new TopologyCluster());
+          }
+          topologyUpdates.get(clusterId).getTopologyHosts().add(new TopologyHost(hostId));
+        }
         deleteStatusMetaData.addDeletedKey(hostname);
       } catch (Exception ex) {
         deleteStatusMetaData.addException(hostname, ex);
@@ -934,6 +993,9 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     for (String clustername : hostsClusters) {
       clusters.getCluster(clustername).recalculateAllClusterVersionStates();
     }
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyUpdates,
+        TopologyUpdateEvent.EventType.DELETE);
+    stateUpdateEventPublisher.publish(topologyUpdateEvent);
   }
 
   private void validateHostInDeleteFriendlyState(HostRequest hostRequest, Clusters clusters, boolean forceDelete) throws AmbariException {

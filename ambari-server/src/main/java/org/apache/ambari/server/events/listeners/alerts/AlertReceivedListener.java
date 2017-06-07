@@ -31,8 +31,10 @@ import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
+import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -87,6 +89,9 @@ public class AlertReceivedListener {
    */
   @Inject
   Provider<Clusters> m_clusters;
+
+  @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   /**
    * Used to calculate the maintenance state of new alerts being created.
@@ -143,6 +148,7 @@ public class AlertReceivedListener {
     List<AlertCurrentEntity> toCreateHistoryAndMerge = new ArrayList<>();
 
     List<AlertEvent> alertEvents = new ArrayList<>(20);
+    List<Alert> updatedAlerts = new ArrayList<>();
 
     for (Alert alert : alerts) {
       // jobs that were running when a service/component/host was changed
@@ -339,6 +345,7 @@ public class AlertReceivedListener {
 
         // create the event to fire later
         alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState, oldFirmness));
+        updatedAlerts.add(alert);
       }
     }
 
@@ -349,6 +356,9 @@ public class AlertReceivedListener {
     // broadcast events
     for (AlertEvent eventToFire : alertEvents) {
       m_alertEventPublisher.publish(eventToFire);
+    }
+    if (!updatedAlerts.isEmpty()) {
+      stateUpdateEventPublisher.publish(new AlertUpdateEvent(updatedAlerts));
     }
   }
 

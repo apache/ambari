@@ -33,6 +33,7 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -438,17 +439,14 @@ public class ServiceComponentTest {
     sch1.setState(State.STARTED);
     sch2.setState(State.STARTED);
 
-    try {
-      // delete the SC
-      sc.delete();
-      Assert.assertTrue("Delete must fail as some SCH are in STARTED state", false);
-    }catch(AmbariException e) {
-      // expected
-    }
+    // delete the SC
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+    sc.delete(deleteMetaData);
+    Assert.assertNull("Delete must fail as some SCH are in STARTED state", deleteMetaData.getAmbariException());
 
     sch1.setState(State.INSTALLED);
     sch2.setState(State.INSTALL_FAILED);
-    sc.delete();
+    sc.delete(new DeleteHostComponentStatusMetaData());
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
@@ -514,7 +512,7 @@ public class ServiceComponentTest {
     assertEquals(1, componentHistoryList.size());
 
     // delete the SC
-    sc.delete();
+    sc.delete(new DeleteHostComponentStatusMetaData());
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
@@ -628,7 +626,7 @@ public class ServiceComponentTest {
 
     assertEquals(RepositoryVersionState.CURRENT, persistedVersion.getState());
 
-    sc.delete();
+    sc.delete(new DeleteHostComponentStatusMetaData());
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         cluster.getClusterId(), serviceName, componentName);

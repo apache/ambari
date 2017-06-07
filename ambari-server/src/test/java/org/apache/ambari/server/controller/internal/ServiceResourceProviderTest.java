@@ -858,7 +858,7 @@ public class ServiceResourceProviderTest {
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName);
+    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
 
     // replay
     replay(managementController, clusters, cluster, service);
@@ -906,7 +906,7 @@ public class ServiceResourceProviderTest {
     expect(service.getName()).andReturn(serviceName).anyTimes();
     expect(service.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName);
+    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
 
     // replay
     replay(managementController, clusters, cluster, service);
@@ -1074,7 +1074,7 @@ public class ServiceResourceProviderTest {
     expect(sch3.canBeRemoved()).andReturn(sch3State.isRemovableState()).anyTimes();
 
     expect(service.getCluster()).andReturn(cluster);
-    cluster.deleteService(serviceName);
+    cluster.deleteService(serviceName, new DeleteHostComponentStatusMetaData());
 
     // replay
     replay(managementController, clusters, cluster, service,

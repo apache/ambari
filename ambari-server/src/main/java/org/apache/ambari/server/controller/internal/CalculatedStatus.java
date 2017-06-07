@@ -32,10 +32,13 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.topology.LogicalRequest;
+import org.apache.ambari.server.topology.TopologyManager;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -421,6 +424,36 @@ public class CalculatedStatus {
     }
 
     return calculateStatusCounts(status);
+  }
+
+  /**
+   * Calculates the status for specified request by id.
+   * @param s_hostRoleCommandDAO is used to retrieve the map of stage-to-summary value objects
+   * @param topologyManager topology manager
+   * @param requestId the request id
+   * @return the calculated status
+   */
+  public static CalculatedStatus statusFromRequest(HostRoleCommandDAO s_hostRoleCommandDAO,
+                                                   TopologyManager topologyManager, Long requestId) {
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(requestId);
+
+    // get summaries from TopologyManager for logical requests
+    summary.putAll(topologyManager.getStageSummaries(requestId));
+
+    // summary might be empty due to delete host have cleared all
+    // HostRoleCommands or due to hosts haven't registered yet with the cluster
+    // when the cluster is provisioned with a Blueprint
+    LogicalRequest logicalRequest = topologyManager.getRequest(requestId);
+    if (summary.isEmpty() && null != logicalRequest) {
+      // in this case, it appears that there are no tasks but this is a logical
+      // topology request, so it's a matter of hosts simply not registering yet
+      // for tasks to be created
+      return CalculatedStatus.PENDING;
+    } else {
+      // there are either tasks or this is not a logical request, so do normal
+      // status calculations
+      return CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    }
   }
 
   /**

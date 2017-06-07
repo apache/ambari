@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 
 public interface Service {
 
@@ -82,14 +83,14 @@ public interface Service {
    */
   boolean canBeRemoved();
 
-  void deleteAllComponents() throws AmbariException;
+  void deleteAllComponents(DeleteHostComponentStatusMetaData deleteMetaData);
 
-  void deleteServiceComponent(String componentName)
+  void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException;
 
   boolean isClientOnlyService();
 
-  void delete() throws AmbariException;
+  void delete(DeleteHostComponentStatusMetaData deleteMetaData);
 
   /**
    * Sets the maintenance state for the service

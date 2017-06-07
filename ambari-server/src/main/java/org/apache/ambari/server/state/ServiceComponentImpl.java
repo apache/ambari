@@ -31,6 +31,7 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
@@ -508,7 +509,7 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   @Transactional
-  public void deleteAllServiceComponentHosts() throws AmbariException {
+  public void deleteAllServiceComponentHosts(DeleteHostComponentStatusMetaData deleteMetaData) {
     readWriteLock.writeLock().lock();
     try {
       LOG.info("Deleting all servicecomponenthosts for component" + ", clusterName="
@@ -516,15 +517,16 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", recoveryEnabled=" + isRecoveryEnabled());
       for (ServiceComponentHost sch : hostComponents.values()) {
         if (!sch.canBeRemoved()) {
-          throw new AmbariException("Found non removable hostcomponent " + " when trying to delete"
+          deleteMetaData.setAmbariException(new AmbariException("Found non removable hostcomponent " + " when trying to delete"
               + " all hostcomponents from servicecomponent" + ", clusterName=" + getClusterName()
               + ", serviceName=" + getServiceName() + ", componentName=" + getName()
-              + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName());
+              + ", recoveryEnabled=" + isRecoveryEnabled() + ", hostname=" + sch.getHostName()));
+          return;
         }
       }
 
       for (ServiceComponentHost serviceComponentHost : hostComponents.values()) {
-        serviceComponentHost.delete();
+        serviceComponentHost.delete(deleteMetaData);
       }
 
       hostComponents.clear();
@@ -534,7 +536,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public void deleteServiceComponentHosts(String hostname) throws AmbariException {
+  public void deleteServiceComponentHosts(String hostname, DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     readWriteLock.writeLock().lock();
     try {
       ServiceComponentHost sch = getServiceComponentHost(hostname);
@@ -549,7 +551,7 @@ public class ServiceComponentImpl implements ServiceComponent {
             + ", recoveryEnabled=" + isRecoveryEnabled()
             + ", hostname=" + sch.getHostName());
       }
-      sch.delete();
+      sch.delete(deleteMetaData);
       hostComponents.remove(hostname);
 
     } finally {
@@ -559,10 +561,13 @@ public class ServiceComponentImpl implements ServiceComponent {
 
   @Override
   @Transactional
-  public void delete() throws AmbariException {
+  public void delete(DeleteHostComponentStatusMetaData deleteMetaData) {
     readWriteLock.writeLock().lock();
     try {
-      deleteAllServiceComponentHosts();
+      deleteAllServiceComponentHosts(deleteMetaData);
+      if (deleteMetaData.getAmbariException() != null) {
+        return;
+      }
 
       ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
           desiredStateEntityId);

@@ -17,17 +17,18 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.WebApplicationException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
-import org.apache.ambari.server.agent.HeartBeat;
+import org.apache.ambari.server.agent.ComponentStatus;
 import org.apache.ambari.server.agent.HeartBeatHandler;
-import org.apache.ambari.server.agent.HeartBeatResponse;
-import org.apache.ambari.server.agent.Register;
-import org.apache.ambari.server.agent.RegistrationResponse;
-import org.apache.ambari.server.agent.RegistrationStatus;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
+import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
+import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReports;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
@@ -42,59 +43,40 @@ import com.google.inject.Injector;
 
 @Controller
 @SendToUser("/")
-@MessageMapping("/")
-public class HeartbeatController {
-  private static Log LOG = LogFactory.getLog(HeartbeatController.class);
+@MessageMapping("/reports")
+public class AgentReportsController {
+  private static Log LOG = LogFactory.getLog(AgentReportsController.class);
   private final HeartBeatHandler hh;
   private final ClustersImpl clusters;
   private final AgentSessionManager agentSessionManager;
-  private final StateUpdateEventPublisher stateUpdateEventPublisher;
 
-  public HeartbeatController(Injector injector) {
+  public AgentReportsController(Injector injector) {
     hh = injector.getInstance(HeartBeatHandler.class);
     clusters = injector.getInstance(ClustersImpl.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
-    stateUpdateEventPublisher = injector.getInstance(StateUpdateEventPublisher.class);
   }
 
-  @SubscribeMapping("/register")
-  public RegistrationResponse register(@Header String simpSessionId, Register message)
+  @SubscribeMapping("/component_status")
+  public void handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
-
-    /* Call into the heartbeat handler */
-
-    RegistrationResponse response = null;
-    try {
-      response = hh.handleRegistration(message);
-      LOG.debug("Sending registration response " + response);
-    } catch (AmbariException ex) {
-      response = new RegistrationResponse();
-      response.setResponseId(-1);
-      response.setResponseStatus(RegistrationStatus.FAILED);
-      response.setExitstatus(1);
-      response.setLog(ex.getMessage());
-      return response;
-    }
-    stateUpdateEventPublisher.publish(hh.getInitialClusterTopology());
-    return response;
-  }
-
-  @SubscribeMapping("/heartbeat")
-  public HeartBeatResponse heartbeat(HeartBeat message) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Received Heartbeat message " + message);
-    }
-    HeartBeatResponse heartBeatResponse;
-    try {
-      heartBeatResponse = hh.handleHeartBeat(message);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Sending heartbeat response with response id " + heartBeatResponse.getResponseId());
-        LOG.debug("Response details " + heartBeatResponse);
+    List<ComponentStatus> statuses = new ArrayList<>();
+    for (Map.Entry<String, List<ComponentStatusReport>> clusterReport : message.getComponentStatusReports().entrySet()) {
+      for (ComponentStatusReport report : clusterReport.getValue()) {
+        ComponentStatus componentStatus = new ComponentStatus();
+        componentStatus.setClusterName(clusters.getCluster(report.getClusterId()).getClusterName());
+        componentStatus.setComponentName(report.getComponentName());
+        componentStatus.setServiceName(report.getServiceName());
+        if (report.getCommand().equals(ComponentStatusReport.CommandStatusCommand.STATUS)) {
+          componentStatus.setStatus(report.getStatus().toString());
+        } else {
+          componentStatus.setSecurityState(report.getStatus().toString());
+        }
+        statuses.add(componentStatus);
       }
-    } catch (Exception e) {
-      LOG.warn("Error in HeartBeat", e);
-      throw new WebApplicationException(500);
     }
-    return heartBeatResponse;
+
+    hh.handleComponentReportStatus(statuses,
+        agentSessionManager.getHost(simpSessionId).getHostName());
   }
+
 }

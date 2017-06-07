@@ -67,7 +67,6 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.lang.StringUtils;
 
@@ -738,32 +737,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-
-    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
-
-    // get summaries from TopologyManager for logical requests
-    summary.putAll(topologyManager.getStageSummaries(entity.getRequestId()));
-
-    // summary might be empty due to delete host have cleared all
-    // HostRoleCommands or due to hosts haven't registered yet with the cluster
-    // when the cluster is provisioned with a Blueprint
-    final CalculatedStatus status;
-    LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
-    if (summary.isEmpty() && null != logicalRequest) {
-      // in this case, it appears that there are no tasks but this is a logical
-      // topology request, so it's a matter of hosts simply not registering yet
-      // for tasks to be created
-      status = CalculatedStatus.PENDING;
-    } else {
-      // there are either tasks or this is not a logical request, so do normal
-      // status calculations
-      status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
-    }
+    final CalculatedStatus status = CalculatedStatus.statusFromRequest(s_hostRoleCommandDAO, topologyManager, entity.getRequestId());
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, status.getPercent(), requestedPropertyIds);
 
     int taskCount = 0;
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
     for (HostRoleCommandStatusSummaryDTO dto : summary.values()) {
       taskCount += dto.getTaskTotal();
     }

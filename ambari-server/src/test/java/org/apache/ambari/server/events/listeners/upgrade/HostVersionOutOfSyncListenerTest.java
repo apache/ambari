@@ -34,6 +34,7 @@ import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -502,7 +503,7 @@ public class HostVersionOutOfSyncListenerTest {
     List<ServiceComponentHost> hostComponents = c1.getServiceComponentHosts(host3);
     for (ServiceComponentHost sch : hostComponents) {
       if (sch.getServiceName().equals("HDFS")) {
-        sch.delete();
+        sch.delete(new DeleteHostComponentStatusMetaData());
 
         StackId clusterStackId = c1.getDesiredStackVersion();
 
