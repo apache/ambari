@@ -7417,7 +7417,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(10, resp.getUpgradePacks().size());
+    assertEquals(11, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
