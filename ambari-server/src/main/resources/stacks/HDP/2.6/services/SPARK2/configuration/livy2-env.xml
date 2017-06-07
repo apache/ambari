@@ -22,7 +22,7 @@
 <configuration supports_adding_forbidden="true">
     <property>
         <name>livy2_user</name>
-        <display-name>Livy User</display-name>
+        <display-name>Livy2 User</display-name>
         <value>livy</value>
         <property-type>USER</property-type>
         <value-attributes>
@@ -33,7 +33,7 @@
     </property>
     <property>
         <name>livy2_group</name>
-        <display-name>Livy Group</display-name>
+        <display-name>Livy2 Group</display-name>
         <value>livy</value>
         <property-type>GROUP</property-type>
         <description>livy group</description>
