@@ -659,10 +659,11 @@ public class ConfigGroupResourceProvider extends
         serviceName = requestServiceName;
       }
 
+      int numHosts = (null != configGroup.getHosts()) ? configGroup.getHosts().size() : 0;
       configLogger.info("(configchange) Updating configuration group host membership or config value. cluster: '{}', changed by: '{}', " +
               "service_name: '{}', config group: '{}', tag: '{}', num hosts in config group: '{}', note: '{}'",
           cluster.getClusterName(), getManagementController().getAuthName(),
-          serviceName, request.getGroupName(), request.getTag(), configGroup.getHosts().size(), request.getServiceConfigVersionNote());
+          serviceName, request.getGroupName(), request.getTag(), numHosts, request.getServiceConfigVersionNote());
 
       if (!request.getConfigs().isEmpty()) {
         List<String> affectedConfigTypeList = new ArrayList(request.getConfigs().keySet());
