@@ -101,6 +101,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -133,6 +134,7 @@ public class AmbariManagementControllerImplTest {
   private static final AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
   private static final Users users = createMock(Users.class);
   private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
+  private static final OsFamily osFamily = createNiceMock(OsFamily.class);
 
   @BeforeClass
   public static void setupAuthentication() {
@@ -144,7 +146,7 @@ public class AmbariManagementControllerImplTest {
 
   @Before
   public void before() throws Exception {
-    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager);
+    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager, osFamily);
   }
 
   @Test
@@ -1988,7 +1990,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testPopulateServicePackagesInfo() throws Exception {
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
-    Injector injector = createStrictMock(Injector.class);
+    Injector injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
@@ -2198,6 +2200,7 @@ public class AmbariManagementControllerImplTest {
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
+      binder.bind(OsFamily.class).toInstance(osFamily);
     }
   }
 
