@@ -24,6 +24,9 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.sf.ehcache.Element;
+import net.sf.ehcache.pool.Size;
 import net.sf.ehcache.pool.SizeOfEngine;
 import net.sf.ehcache.pool.impl.DefaultSizeOfEngine;
 import net.sf.ehcache.pool.sizeof.ReflectionSizeOf;
@@ -51,6 +54,7 @@ public abstract class TimelineMetricsEhCacheSizeOfEngine implements SizeOfEngine
   // Map entry sizing
   private long sizeOfMapEntry;
   private long sizeOfMapEntryOverhead;
+  private long sizeOfElement;
 
   protected TimelineMetricsEhCacheSizeOfEngine(SizeOfEngine underlying) {
     this.underlying = underlying;
@@ -61,6 +65,8 @@ public abstract class TimelineMetricsEhCacheSizeOfEngine implements SizeOfEngine
 
     this.sizeOfMapEntry = reflectionSizeOf.sizeOf(new Long(1)) +
       reflectionSizeOf.sizeOf(new Double(2.0));
+
+    this.sizeOfElement = reflectionSizeOf.sizeOf(new Element(new Object(), new Object()));
 
     //SizeOfMapEntryOverhead = SizeOfMapWithOneEntry - (SizeOfEmptyMap + SizeOfOneEntry)
     TreeMap<Long, Double> map = new TreeMap<>();
@@ -112,4 +118,20 @@ public abstract class TimelineMetricsEhCacheSizeOfEngine implements SizeOfEngine
     }
     return size;
   }
+
+  // Get size of the Cache entry for final size calculation
+  protected abstract long getSizeOfEntry(Object key, Object value);
+
+  @Override
+  public Size sizeOf(Object key, Object value, Object container) {
+    return new Size(sizeOfElement + getSizeOfEntry(key, value), false);
+  }
+
+  @Override
+  public SizeOfEngine copyWith(int maxDepth, boolean abortWhenMaxDepthExceeded) {
+    LOG.debug("Copying tracing sizeof engine, maxdepth: {}, abort: {}", maxDepth, abortWhenMaxDepthExceeded);
+
+    return underlying.copyWith(maxDepth, abortWhenMaxDepthExceeded);
+  }
+
 }
