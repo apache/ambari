@@ -21,9 +21,6 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsEhCacheSize
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.ehcache.pool.Size;
-import net.sf.ehcache.pool.SizeOfEngine;
-
 /**
  * Cache sizing engine that reduces reflective calls over the Object graph to
  * find total Heap usage.
@@ -32,16 +29,12 @@ public class TimelineMetricsCacheSizeOfEngine extends TimelineMetricsEhCacheSize
 
   private final static Logger LOG = LoggerFactory.getLogger(TimelineMetricsCacheSizeOfEngine.class);
 
-  private TimelineMetricsCacheSizeOfEngine(SizeOfEngine underlying) {
-    super(underlying);
-  }
-
   public TimelineMetricsCacheSizeOfEngine() {
     // Invoke default constructor in base class
   }
 
   @Override
-  public Size sizeOf(Object key, Object value, Object container) {
+  public long getSizeOfEntry(Object key, Object value) {
     try {
       LOG.debug("BEGIN - Sizeof, key: {}, value: {}", key, value);
 
@@ -55,7 +48,7 @@ public class TimelineMetricsCacheSizeOfEngine extends TimelineMetricsEhCacheSize
         size += getTimelineMetricCacheValueSize((TimelineMetricsCacheValue) value);
       }
       // Mark size as not being exact
-      return new Size(size, false);
+      return size;
     } finally {
       LOG.debug("END - Sizeof, key: {}", key);
     }
@@ -86,11 +79,5 @@ public class TimelineMetricsCacheSizeOfEngine extends TimelineMetricsEhCacheSize
     return size;
   }
 
-  @Override
-  public SizeOfEngine copyWith(int maxDepth, boolean abortWhenMaxDepthExceeded) {
-    LOG.debug("Copying tracing sizeof engine, maxdepth: {}, abort: {}",
-      maxDepth, abortWhenMaxDepthExceeded);
 
-    return new TimelineMetricsCacheSizeOfEngine(underlying.copyWith(maxDepth, abortWhenMaxDepthExceeded));
-  }
 }
