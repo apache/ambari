@@ -1259,8 +1259,8 @@ describe('App.WizardController', function () {
 
     it('should return all hosts', function () {
       var hosts = {
-        'h1': {hostComponents: ['c1', 'c2'], disk_info: [{size: 2, available: 1}]},
-        'h2': {hostComponents: ['c3', 'c4'], disk_info: [{size: 2, available: 1}]}
+        'h1': {hostComponents: ['c1', 'c2']},
+        'h2': {hostComponents: ['c3', 'c4']}
       };
 
       var content = Em.Object.create({
@@ -1273,19 +1273,6 @@ describe('App.WizardController', function () {
         {
           "id": "h1",
           "hostName": "h1",
-          "publicHostName": "h1",
-          "diskInfo": [
-            {
-              "size": 2,
-              "available": 1
-            }
-          ],
-          "diskTotal": 0.0000019073486328125,
-          "diskFree": 9.5367431640625e-7,
-          "disksMounted": 1,
-          "osType": 0,
-          "osArch": 0,
-          "ip": 0,
           "hostComponents": [
             {
               "componentName": "c1",
@@ -1300,19 +1287,6 @@ describe('App.WizardController', function () {
         {
           "id": "h2",
           "hostName": "h2",
-          "publicHostName": "h2",
-          "diskInfo": [
-            {
-              "size": 2,
-              "available": 1
-            }
-          ],
-          "diskTotal": 0.0000019073486328125,
-          "diskFree": 9.5367431640625e-7,
-          "disksMounted": 1,
-          "osType": 0,
-          "osArch": 0,
-          "ip": 0,
           "hostComponents": [
             {
               "componentName": "c3",

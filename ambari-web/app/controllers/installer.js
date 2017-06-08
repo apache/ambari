@@ -203,24 +203,9 @@ App.InstallerController = App.WizardController.extend(App.UserPref, {
 
     for (var hostName in rawHosts) {
       var host = rawHosts[hostName];
-      var disksOverallCapacity = 0;
-      var diskFree = 0;
-      host.disk_info.forEach(function (disk) {
-        disksOverallCapacity += parseFloat(disk.size);
-        diskFree += parseFloat(disk.available);
-      });
       hosts.pushObject(Em.Object.create({
           id: host.name,
-          ip: host.ip,
-          osType: host.os_type,
-          osArch: host.os_arch,
           hostName: host.name,
-          publicHostName: host.name,
-          cpu: host.cpu,
-          memory: host.memory,
-          diskInfo: host.disk_info,
-          diskTotal: disksOverallCapacity / (1024 * 1024),
-          diskFree: diskFree / (1024 * 1024),
           hostComponents: host.hostComponents || []
         }
       ))

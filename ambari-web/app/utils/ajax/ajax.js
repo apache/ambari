@@ -2689,6 +2689,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
     'mock': ''
   },
+  'hosts.info.install': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
+    'mock': ''
+  },
   'hosts.host_components.pre_load': {
     real: '',
     mock: '/data/hosts/HDP2/hosts.json',

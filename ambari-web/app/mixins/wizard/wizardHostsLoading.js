@@ -55,12 +55,8 @@ App.WizardHostsLoading = Em.Mixin.create({
     data.items.forEach(function (item) {
       hosts[item.Hosts.host_name] = {
         name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
         bootStatus: "REGISTERED",
-        isInstalled: true,
-        maintenance_state: item.Hosts.maintenance_state
+        isInstalled: true
       };
     });
     App.db.setHosts(hosts);

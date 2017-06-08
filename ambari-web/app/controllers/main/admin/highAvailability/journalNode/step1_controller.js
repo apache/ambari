@@ -102,7 +102,7 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
     self.get('addableComponents').forEach(function (componentName) {
       self.updateComponent(componentName);
     }, self);
-    self.set('isLoaded', true);
+    self.set('isRecommendationsLoaded', true);
   },
 
   /**

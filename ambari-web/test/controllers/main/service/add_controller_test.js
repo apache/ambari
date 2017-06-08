@@ -167,25 +167,7 @@ describe('App.AddServiceController', function() {
   describe('#loadHostsSuccessCallback', function () {
 
     it('should load hosts to local db and model', function () {
-      var diskInfo = [
-          {
-            available: '600000',
-            used: '400000',
-            percent: '40%',
-            size: '10000000',
-            type: 'ext4',
-            mountpoint: '/'
-          },
-          {
-            available: '500000',
-            used: '300000',
-            percent: '50%',
-            size: '6000000',
-            type: 'ext4',
-            mountpoint: '/'
-          }
-        ],
-        hostComponents = [
+      var hostComponents = [
           [
             {
               HostRoles: {
@@ -219,31 +201,13 @@ describe('App.AddServiceController', function() {
           items: [
             {
               Hosts: {
-                cpu_count: 1,
-                disk_info: [
-                  diskInfo[0]
-                ],
                 host_name: 'h0',
-                ip: '10.1.1.0',
-                os_arch: 'x86_64',
-                os_type: 'centos6',
-                total_mem: 4194304,
-                maintenance_state: 'ON'
               },
               host_components: hostComponents[0]
             },
             {
               Hosts: {
-                cpu_count: 2,
-                disk_info: [
-                  diskInfo[1]
-                ],
-                host_name: 'h1',
-                ip: '10.1.1.1',
-                os_arch: 'x86',
-                os_type: 'centos5',
-                total_mem: 3145728,
-                maintenance_state: 'OFF'
+                host_name: 'h1'
               },
               host_components: hostComponents[1]
             }
@@ -252,29 +216,15 @@ describe('App.AddServiceController', function() {
         expected = {
           h0: {
             name: 'h0',
-            cpu: 1,
-            memory: 4194304,
-            disk_info: [diskInfo[0]],
-            osType: 'centos6',
-            osArch: 'x86_64',
-            ip: '10.1.1.0',
             bootStatus: 'REGISTERED',
             isInstalled: true,
-            maintenance_state: 'ON',
             hostComponents: hostComponents[0],
             id: 0
           },
           h1: {
             name: 'h1',
-            cpu: 2,
-            memory: 3145728,
-            disk_info: [diskInfo[1]],
-            osType: 'centos5',
-            osArch: 'x86',
-            ip: '10.1.1.1',
             bootStatus: 'REGISTERED',
             isInstalled: true,
-            maintenance_state: 'OFF',
             hostComponents: hostComponents[1],
             id: 1
           }
