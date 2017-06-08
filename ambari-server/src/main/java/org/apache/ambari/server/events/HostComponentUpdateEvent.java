@@ -21,7 +21,7 @@ package org.apache.ambari.server.events;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.state.State;
 
-public class HostComponentUpdateEvent implements AmbariUpdateEvent {
+public class HostComponentUpdateEvent extends AmbariUpdateEvent {
 
   private Long id;
   private Long clusterId;
@@ -31,6 +31,7 @@ public class HostComponentUpdateEvent implements AmbariUpdateEvent {
   private State currentState;
 
   public HostComponentUpdateEvent(HostComponentStateEntity stateEntity) {
+    super(Type.HOSTCOMPONENT);
     this.id = stateEntity.getId();
     this.clusterId = stateEntity.getClusterId();
     this.serviceName = stateEntity.getServiceName();
@@ -85,10 +86,5 @@ public class HostComponentUpdateEvent implements AmbariUpdateEvent {
 
   public void setCurrentState(State currentState) {
     this.currentState = currentState;
-  }
-
-  @Override
-  public String getDestination() {
-    return "/events/hostcomponents";
   }
 }

@@ -17,9 +17,8 @@
  */
 package org.apache.ambari.server.events;
 
-public class CommandEvent implements AmbariUpdateEvent {
-  @Override
-  public String getDestination() {
-    return "/command";
+public class CommandEvent extends AmbariUpdateEvent {
+  public CommandEvent() {
+    super(Type.COMMAND);
   }
 }

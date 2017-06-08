@@ -19,8 +19,54 @@ package org.apache.ambari.server.events;
 
 import java.beans.Transient;
 
-public interface AmbariUpdateEvent {
+public abstract class AmbariUpdateEvent {
+  protected final Type type;
+
+  public AmbariUpdateEvent(Type type) {
+    this.type = type;
+  }
 
   @Transient
-  String getDestination();
+  public Type getType() {
+    return type;
+  }
+
+  @Transient
+  public String getDestination() {
+    return type.getDestination();
+  }
+
+  @Transient
+  public String getMetricName() {
+    return type.getMetricName();
+  }
+
+  public enum Type {
+    ALERT("/events/alerts", "events.alerts"),
+    METADATA("/events/metadata", "events.metadata"),
+    TOPOLOGY("/events/topology", "events.topology_update"),
+    AGENT_CONFIGS("/events/configs", "events.agent.configs"),
+    CONFIGS("/events/configs", "events.configs"),
+    HOSTCOMPONENT("/events/hostcomponents", "events.hostcomponents"),
+    NAMEDHOSTCOMPONENT("/events/tasks/", "events.hostrolecommands.named"),
+    REQUEST("/events/requests", "events.requests"),
+    NAMEDREQUEST("/events/requests", "events.requests.named"),
+    COMMAND("/user/commands", "events.commands");
+
+    private String destination;
+    private String metricName;
+
+    Type(String destination, String metricName) {
+      this.destination = destination;
+      this.metricName = metricName;
+    }
+
+    public String getDestination() {
+      return destination;
+    }
+
+    public String getMetricName() {
+      return metricName;
+    }
+  }
 }

@@ -24,7 +24,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.topology.TopologyManager;
 
-public class RequestUpdateEvent implements AmbariUpdateEvent {
+public class RequestUpdateEvent extends AmbariUpdateEvent {
 
   private Long clusterId;
   private Long endTime;
@@ -36,6 +36,7 @@ public class RequestUpdateEvent implements AmbariUpdateEvent {
 
 
   public RequestUpdateEvent(RequestEntity requestEntity, HostRoleCommandDAO hostRoleCommandDAO, TopologyManager topologyManager) {
+    super(Type.REQUEST);
     this.clusterId = requestEntity.getClusterId();
     this.endTime = requestEntity.getEndTime();
     this.requestId = requestEntity.getRequestId();
@@ -99,10 +100,5 @@ public class RequestUpdateEvent implements AmbariUpdateEvent {
 
   public void setStartTime(Long startTime) {
     this.startTime = startTime;
-  }
-
-  @Override
-  public String getDestination() {
-    return "/events/requests";
   }
 }

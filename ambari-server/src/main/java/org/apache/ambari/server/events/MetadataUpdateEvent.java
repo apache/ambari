@@ -17,9 +17,9 @@
  */
 package org.apache.ambari.server.events;
 
-public class MetadataUpdateEvent implements AmbariUpdateEvent {
-  @Override
-  public String getDestination() {
-    return "/events/metadata";
+public class MetadataUpdateEvent extends AmbariUpdateEvent {
+
+  public MetadataUpdateEvent() {
+    super(Type.METADATA);
   }
 }

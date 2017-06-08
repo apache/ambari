@@ -23,10 +23,11 @@ import java.util.List;
 
 import org.apache.ambari.server.state.Alert;
 
-public class AlertUpdateEvent implements AmbariUpdateEvent {
+public class AlertUpdateEvent extends AmbariUpdateEvent {
   private List<Alert> alerts = new ArrayList<>();
 
   public AlertUpdateEvent(List<Alert> alerts) {
+    super(Type.ALERT);
     this.alerts = alerts;
   }
 
@@ -36,10 +37,5 @@ public class AlertUpdateEvent implements AmbariUpdateEvent {
 
   public void setAlerts(List<Alert> alerts) {
     this.alerts = alerts;
-  }
-
-  @Override
-  public String getDestination() {
-    return "/events/alerts";
   }
 }

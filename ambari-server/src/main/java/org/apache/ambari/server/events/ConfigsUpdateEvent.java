@@ -24,7 +24,7 @@ import java.util.List;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 
-public class ConfigsUpdateEvent implements AmbariUpdateEvent {
+public class ConfigsUpdateEvent extends AmbariUpdateEvent {
 
   private Long serviceConfigId;
   private Long clusterId;
@@ -41,6 +41,7 @@ public class ConfigsUpdateEvent implements AmbariUpdateEvent {
   private List<ClusterConfig> configs = new ArrayList<>();
 
   public ConfigsUpdateEvent(ServiceConfigEntity configs, String configGroupName, List<String> hostNames) {
+    super(Type.CONFIGS);
     this.serviceConfigId = configs.getServiceConfigId();
     this.clusterId = configs.getClusterEntity().getClusterId();
     this.serviceName = configs.getServiceName();
@@ -145,11 +146,6 @@ public class ConfigsUpdateEvent implements AmbariUpdateEvent {
 
   public void setGroupName(String groupName) {
     this.groupName = groupName;
-  }
-
-  @Override
-  public String getDestination() {
-    return "/events/configs";
   }
 
   public class ClusterConfig {

@@ -23,13 +23,14 @@ import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TopologyUpdateEvent implements AmbariUpdateEvent {
+public class TopologyUpdateEvent extends AmbariUpdateEvent {
   @JsonProperty("clustersTopologies")
   private Map<String, TopologyCluster> clusters;
 
   private EventType eventType;
 
   public TopologyUpdateEvent(Map<String, TopologyCluster> clusters, EventType eventType) {
+    super(Type.TOPOLOGY);
     this.clusters = clusters;
     this.eventType = eventType;
   }
@@ -48,11 +49,6 @@ public class TopologyUpdateEvent implements AmbariUpdateEvent {
 
   public void setEventType(EventType eventType) {
     this.eventType = eventType;
-  }
-
-  @Override
-  public String getDestination() {
-    return "/events/topology";
   }
 
   public enum EventType {
