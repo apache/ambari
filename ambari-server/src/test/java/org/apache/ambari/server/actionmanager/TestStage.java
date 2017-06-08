@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,7 +60,7 @@ public class TestStage {
 
   @Test
   public void testTaskTimeout() {
-    Stage s = StageUtils.getATestStage(1, 1, "h1", CLUSTER_HOST_INFO, "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
+    Stage s = StageUtils.getATestStage(1, 1, "h1",  "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     s.addHostRoleExecutionCommand("h1", Role.DATANODE, RoleCommand.INSTALL,
         null, "c1", "HDFS", false, false);
     s.addHostRoleExecutionCommand("h1", Role.HBASE_MASTER, RoleCommand.INSTALL,
@@ -75,9 +75,8 @@ public class TestStage {
 
   @Test
   public void testGetRequestContext() {
-    Stage stage = stageFactory.createNew(1, "/logDir", "c1", 1L, "My Context", CLUSTER_HOST_INFO, "", "");
+    Stage stage = stageFactory.createNew(1, "/logDir", "c1", 1L, "My Context",  "", "");
     assertEquals("My Context", stage.getRequestContext());
-    assertEquals(CLUSTER_HOST_INFO, stage.getClusterHostInfo());
   }
 
   @After

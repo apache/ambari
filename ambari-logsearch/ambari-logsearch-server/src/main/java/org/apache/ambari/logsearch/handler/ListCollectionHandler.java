@@ -33,6 +33,7 @@ public class ListCollectionHandler implements SolrZkRequestHandler<List<String>>
 
   private static final Logger LOG = LoggerFactory.getLogger(ListCollectionHandler.class);
 
+  @SuppressWarnings("unchecked")
   @Override
   public List<String> handle(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) throws Exception {
     try {

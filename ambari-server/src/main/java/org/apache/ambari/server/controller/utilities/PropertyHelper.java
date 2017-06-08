@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,7 +49,7 @@ public class PropertyHelper {
   private static final String SQLSERVER_PROPERTIES_FILE = "sqlserver_properties.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
-  private static final char EXTERNAL_PATH_SEP = '/';
+  public static final char EXTERNAL_PATH_SEP = '/';
 
   /**
    * Aggregate functions implicitly supported by the Metrics Service
@@ -115,6 +115,10 @@ public class PropertyHelper {
     return propertyIds == null ? Collections.<String>emptySet() : propertyIds;
   }
 
+  public static void setPropertyIds(Resource.Type resourceType, Set<String> propertyIds) {
+    PROPERTY_IDS.put(resourceType.getInternalType(), propertyIds);
+  }
+
   /**
    * Extract the set of property ids from a component PropertyInfo map.
    *
@@ -145,6 +149,10 @@ public class PropertyHelper {
 
   public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
     return KEY_PROPERTY_IDS.get(resourceType.getInternalType());
+  }
+
+  public static void setKeyPropertyIds(Resource.Type resourceType, Map<Resource.Type, String> keyPropertyKeys) {
+    KEY_PROPERTY_IDS.put(resourceType.getInternalType(), keyPropertyKeys);
   }
 
   /**

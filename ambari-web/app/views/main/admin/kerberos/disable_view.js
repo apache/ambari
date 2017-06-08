@@ -37,6 +37,7 @@ App.KerberosDisableView = App.KerberosProgressPageView.extend({
 
   msgColor: 'alert-info',
 
-  isSimpleModal: true
+  isSimpleModal: true,
 
+  disableKerberos: true
 });

@@ -23,13 +23,19 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,6 +181,42 @@ public class ExecutionCommandWrapper {
             configHelper.cloneAttributesMap(attributes,
                 executionCommand.getConfigurationAttributes().get(type));
             }
+        }
+
+        // set the repository version for the component this command is for -
+        // always use the current desired version
+        try {
+          RepositoryVersionEntity repositoryVersion = null;
+          String serviceName = executionCommand.getServiceName();
+          if (!StringUtils.isEmpty(serviceName)) {
+            Service service = cluster.getService(serviceName);
+            if (null != service) {
+              repositoryVersion = service.getDesiredRepositoryVersion();
+            }
+
+            String componentName = executionCommand.getComponentName();
+            if (!StringUtils.isEmpty(componentName)) {
+              ServiceComponent serviceComponent = service.getServiceComponent(
+                  executionCommand.getComponentName());
+
+              if (null != serviceComponent) {
+                repositoryVersion = serviceComponent.getDesiredRepositoryVersion();
+              }
+            }
+          }
+
+          if (null != repositoryVersion) {
+            executionCommand.getCommandParams().put(KeyNames.VERSION,
+                repositoryVersion.getVersion());
+            executionCommand.getHostLevelParams().put(KeyNames.CURRENT_VERSION,
+                repositoryVersion.getVersion());
+          }
+        } catch (ServiceNotFoundException serviceNotFoundException) {
+          // it's possible that there are commands specified for a service where
+          // the service doesn't exist yet
+          LOG.warn(
+              "The service {} is not installed in the cluster. No repository version will be sent for this command.",
+              executionCommand.getServiceName());
         }
       }
     } catch (ClusterNotFoundException cnfe) {

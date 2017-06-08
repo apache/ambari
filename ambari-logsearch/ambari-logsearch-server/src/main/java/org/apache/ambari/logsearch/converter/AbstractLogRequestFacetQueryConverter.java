@@ -67,9 +67,11 @@ public abstract class AbstractLogRequestFacetQueryConverter<SOURCE extends BaseL
 
   public abstract LogType getLogType();
 
+  @SuppressWarnings("unused")
   public void appendFacetQuery(SimpleFacetQuery facetQuery, SOURCE request) {
   }
 
+  @SuppressWarnings("unused")
   public void appendFacetOptions(FacetOptions facetOptions, SOURCE request) {
     facetOptions.setFacetLimit(-1);
   }

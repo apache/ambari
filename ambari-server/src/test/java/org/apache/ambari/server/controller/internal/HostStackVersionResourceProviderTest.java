@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -154,9 +154,10 @@ public class HostStackVersionResourceProviderTest {
 
     StackEntity stack = new StackEntity();
     stack.setStackName("HDP");
-    stack.setStackVersion("2.2");
+    stack.setStackVersion("2.0.1");
     repoVersion.setStack(stack);
     repoVersion.setVersion("2.2");
+    repoVersion.setId(1L);
   }
 
   @After

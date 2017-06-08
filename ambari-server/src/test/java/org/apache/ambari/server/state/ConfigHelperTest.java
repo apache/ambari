@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,7 +49,9 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -104,8 +106,14 @@ public class ConfigHelperTest {
       metaInfo = injector.getInstance(AmbariMetaInfo.class);
       configFactory = injector.getInstance(ConfigFactory.class);
 
+      StackId stackId = new StackId("HDP-2.0.6");
+      OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+      helper.createStack(stackId);
+
+      RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(stackId, "2.0.6");
+
       clusterName = "c1";
-      clusters.addCluster(clusterName, new StackId("HDP-2.0.6"));
+      clusters.addCluster(clusterName, stackId);
       cluster = clusters.getCluster(clusterName);
       Assert.assertNotNull(cluster);
       clusters.addHost("h1");
@@ -147,6 +155,8 @@ public class ConfigHelperTest {
       cr2.setType("flume-conf");
       cr2.setVersionTag("version1");
 
+      cluster.addService("FLUME", repositoryVersion);
+      cluster.addService("OOZIE", repositoryVersion);
 
       final ClusterRequest clusterRequest2 =
           new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -247,7 +257,7 @@ public class ConfigHelperTest {
         configMap.put(config.getType(), config);
       }
 
-      ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
+      ConfigGroup configGroup = configGroupFactory.createNew(cluster, null, name,
           tag, "", configMap, hostMap);
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);
@@ -805,7 +815,8 @@ public class ConfigHelperTest {
       updates.put("new-property", "new-value");
       updates.put("fs.trash.interval", "updated-value");
       Collection<String> removals = Collections.singletonList("ipc.client.connect.max.retries");
-      configHelper.updateConfigType(cluster, managementController, "core-site", updates, removals, "admin", "Test note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "core-site", updates, removals, "admin", "Test note");
 
 
       Config updatedConfig = cluster.getDesiredConfigByType("core-site");
@@ -843,8 +854,8 @@ public class ConfigHelperTest {
       updates.put("oozie.authentication.type", "kerberos");
       updates.put("oozie.service.HadoopAccessorService.kerberos.enabled", "true");
 
-      configHelper.updateConfigType(cluster, managementController, "oozie-site", updates, null, "admin", "Test " +
-          "note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "oozie-site", updates, null, "admin", "Test " + "note");
 
       Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
       // Config tag updated
@@ -871,7 +882,8 @@ public class ConfigHelperTest {
       List<String> removals = new ArrayList<>();
       removals.add("timeline.service.operating.mode");
 
-      configHelper.updateConfigType(cluster, managementController, "ams-site", null, removals, "admin", "Test note");
+      configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
+          "ams-site", null, removals, "admin", "Test note");
 
       Config updatedConfig = cluster.getDesiredConfigByType("ams-site");
       // Config tag updated
@@ -893,15 +905,21 @@ public class ConfigHelperTest {
       hc.setDefaultVersionTag("version2");
       schReturn.put("flume-conf", hc);
 
+      ServiceComponent sc = createNiceMock(ServiceComponent.class);
+
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
+      expect(sc.getDesiredStackId()).andReturn(cluster.getDesiredStackVersion()).anyTimes();
+
       // set up expectations
       expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
       expect(sch.getHostName()).andReturn("h1").anyTimes();
       expect(sch.getClusterId()).andReturn(cluster.getClusterId()).anyTimes();
       expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
       expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
-      replay(sch);
+      expect(sch.getServiceComponent()).andReturn(sc).anyTimes();
+
+      replay(sc, sch);
       // Cluster level config changes
       Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
 
@@ -1002,6 +1020,7 @@ public class ConfigHelperTest {
       Cluster mockCluster = createStrictMock(Cluster.class);
       StackId mockStackVersion = createStrictMock(StackId.class);
       AmbariMetaInfo mockAmbariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+      Service mockService = createStrictMock(Service.class);
       ServiceInfo mockServiceInfo = createStrictMock(ServiceInfo.class);
 
       PropertyInfo mockPropertyInfo1 = createStrictMock(PropertyInfo.class);
@@ -1009,8 +1028,8 @@ public class ConfigHelperTest {
 
       List<PropertyInfo> serviceProperties = Arrays.asList(mockPropertyInfo1, mockPropertyInfo2);
 
-      expect(mockCluster.getCurrentStackVersion()).andReturn(mockStackVersion).once();
-
+      expect(mockCluster.getService("SERVICE")).andReturn(mockService).once();
+      expect(mockService.getDesiredStackId()).andReturn(mockStackVersion).once();
       expect(mockStackVersion.getStackName()).andReturn("HDP").once();
       expect(mockStackVersion.getStackVersion()).andReturn("2.2").once();
 
@@ -1018,7 +1037,7 @@ public class ConfigHelperTest {
 
       expect(mockServiceInfo.getProperties()).andReturn(serviceProperties).once();
 
-      replay(mockAmbariMetaInfo, mockCluster, mockStackVersion, mockServiceInfo, mockPropertyInfo1, mockPropertyInfo2);
+      replay(mockAmbariMetaInfo, mockCluster, mockService, mockStackVersion, mockServiceInfo, mockPropertyInfo1, mockPropertyInfo2);
 
       mockAmbariMetaInfo.init();
 

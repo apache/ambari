@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -240,7 +240,9 @@ public class HeartbeatMonitor implements Runnable {
       ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     String serviceName = sch.getServiceName();
     String componentName = sch.getServiceComponentName();
-    StackId stackId = cluster.getDesiredStackVersion();
+
+    StackId stackId = sch.getDesiredStackId();
+
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), serviceName);
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(

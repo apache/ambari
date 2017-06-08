@@ -50,5 +50,6 @@ app.import('vendor/codemirror/show-hint.js');
 app.import('vendor/codemirror/codemirror.css');
 app.import('vendor/codemirror/show-hint.css');
 app.import('vendor/dagre.min.js');
+app.import('vendor/browser-pollyfills.js');
 
 module.exports = app.toTree();

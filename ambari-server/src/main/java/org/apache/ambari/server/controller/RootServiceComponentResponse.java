@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,71 +15,69 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.apache.ambari.server.controller;
 
 import java.util.Map;
+import java.util.Objects;
+
+import org.apache.ambari.server.controller.internal.RootServiceComponentResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
 
 public class RootServiceComponentResponse {
 
-  private String serviceName;
-  private String componentName;
-  private Map<String, String> properties;
-  private String componentVersion;
+  private final String serviceName;
+  private final String componentName;
+  private final Map<String, String> properties;
+  private final String componentVersion;
+  private final long serverClock = System.currentTimeMillis() / 1000L;
 
-  public RootServiceComponentResponse(String componentName, String componentVersion, Map<String, String> properties) {
+  public RootServiceComponentResponse(String serviceName, String componentName, String componentVersion, Map<String, String> properties) {
+    this.serviceName = serviceName;
     this.componentName = componentName;
-    this.setComponentVersion(componentVersion); 
-    this.setProperties(properties);
-    
+    this.componentVersion = componentVersion;
+    this.properties = properties;
   }
 
+  @ApiModelProperty(name = RootServiceComponentResourceProvider.SERVICE_NAME)
   public String getServiceName() {
     return serviceName;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
+  @ApiModelProperty(name = RootServiceComponentResourceProvider.COMPONENT_NAME)
   public String getComponentName() {
     return componentName;
   }
 
+  @ApiModelProperty(name = RootServiceComponentResourceProvider.PROPERTIES)
   public Map<String, String> getProperties() {
     return properties;
   }
 
-  public void setProperties(Map<String, String> properties) {
-    this.properties = properties;
-  }
-  
+  @ApiModelProperty(name = RootServiceComponentResourceProvider.COMPONENT_VERSION)
   public String getComponentVersion() {
     return componentVersion;
   }
 
-  public void setComponentVersion(String componentVersion) {
-    this.componentVersion = componentVersion;
-  }
+  @ApiModelProperty(name = RootServiceComponentResourceProvider.SERVER_CLOCK)
+  public long getServerClock() { return serverClock; }
   
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RootServiceComponentResponse that = (RootServiceComponentResponse) o;
+    RootServiceComponentResponse other = (RootServiceComponentResponse) o;
 
-    return !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) &&
-        !(componentVersion != null ? !componentVersion.equals(that.componentVersion) : that.componentVersion != null) &&
-        !(properties != null ? !properties.equals(that.properties) : that.properties != null);
-
+    return Objects.equals(serviceName, other.serviceName) &&
+      Objects.equals(componentName, other.componentName) &&
+      Objects.equals(componentVersion, other.componentVersion) &&
+      Objects.equals(properties, other.properties);
   }
 
   @Override
   public int hashCode() {
-    int result = 31 + (componentName != null ? componentName.hashCode() : 0);
-    result += (componentVersion != null ? componentVersion.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceName, componentName, componentVersion);
   }
+
 }

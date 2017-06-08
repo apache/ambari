@@ -28,15 +28,19 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Layout{
+
 	@JsonProperty("name")
 	private String name;
+
 	@JsonProperty("tabs")
 	private List<Tab> tabs;
 
+  @ApiModelProperty(name = "name")
   public String getName() {
     return name;
   }
@@ -45,6 +49,7 @@ public class Layout{
     this.name = name;
   }
 
+  @ApiModelProperty(name = "tabs")
   public List<Tab> getTabs() {
     return tabs;
   }

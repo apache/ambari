@@ -22,14 +22,14 @@ package org.apache.ambari.logsearch.config.api;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig.Component;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for LogSearchConfig.
  */
 public class LogSearchConfigFactory {
-  private static final Logger LOG = Logger.getLogger(LogSearchConfigFactory.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigFactory.class);
 
   /**
    * Creates a Log Search Configuration instance that implements {@link org.apache.ambari.logsearch.config.api.LogSearchConfig}.
@@ -47,7 +47,7 @@ public class LogSearchConfigFactory {
     try {
       LogSearchConfig logSearchConfig = null;
       String configClassName = properties.get("logsearch.config.class");
-      if (!StringUtils.isBlank(configClassName)) {
+      if (configClassName != null && !"".equals(configClassName.trim())) {
         Class<?> clazz = Class.forName(configClassName);
         if (LogSearchConfig.class.isAssignableFrom(clazz)) {
           logSearchConfig = (LogSearchConfig) clazz.newInstance();
@@ -61,7 +61,7 @@ public class LogSearchConfigFactory {
       logSearchConfig.init(component, properties);
       return logSearchConfig;
     } catch (Exception e) {
-      LOG.fatal("Could not initialize logsearch config.", e);
+      LOG.error("Could not initialize logsearch config.", e);
       throw e;
     }
   }

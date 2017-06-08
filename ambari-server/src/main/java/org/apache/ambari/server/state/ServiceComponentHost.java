@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 
 
@@ -90,10 +90,6 @@ public interface ServiceComponentHost {
   State getDesiredState();
 
   void setDesiredState(State state);
-
-  StackId getDesiredStackVersion();
-
-  void setDesiredStackVersion(StackId stackVersion);
 
   State getState();
 
@@ -167,10 +163,6 @@ public interface ServiceComponentHost {
    */
   UpgradeState getUpgradeState();
 
-  StackId getStackVersion();
-
-  void setStackVersion(StackId stackVersion);
-
   HostComponentAdminState getComponentAdminState();
 
   void setComponentAdminState(HostComponentAdminState attribute);
@@ -242,13 +234,31 @@ public interface ServiceComponentHost {
    */
   void setRestartRequired(boolean restartRequired);
 
-  /**
-   * Changes host version state according to state of the components installed on the host.
-   * @return The Repository Version Entity with that component in the host
-   * @throws AmbariException if host is detached from the cluster
-   */
-  RepositoryVersionEntity recalculateHostVersionState() throws AmbariException;
 
   HostComponentDesiredStateEntity getDesiredStateEntity();
+
+  /**
+   * Gets the service component.
+   *
+   * @return the service component (never {@code null}).
+   */
+  ServiceComponent getServiceComponent();
+
+  /**
+   * Updates an existing {@link HostVersionEntity} for the desired repository of
+   * this component, or create one if it doesn't exist.
+   *
+   * @return Returns either the newly created or the updated Host Version
+   *         Entity.
+   * @throws AmbariException
+   */
+  HostVersionEntity recalculateHostVersionState() throws AmbariException;
+
+  /**
+   * Convenience method to get the desired stack id from the service component
+   *
+   * @return the desired stack id
+   */
+  StackId getDesiredStackId();
 
 }

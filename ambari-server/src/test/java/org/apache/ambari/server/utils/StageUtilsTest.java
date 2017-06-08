@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,7 +46,6 @@ import java.util.TreeMap;
 import javax.persistence.EntityManager;
 import javax.xml.bind.JAXBException;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -74,7 +73,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -140,29 +138,6 @@ public class StageUtilsTest extends EasyMockSupport {
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));
   }
 
-
-  public static void addService(Cluster cl, List<String> hostList,
-                                Map<String, List<Integer>> topology, String serviceName,
-                                Injector injector) throws AmbariException {
-    ServiceComponentHostFactory serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
-
-    cl.setDesiredStackVersion(new StackId(STACK_ID));
-    cl.addService(serviceName);
-
-    for (Entry<String, List<Integer>> component : topology.entrySet()) {
-      String componentName = component.getKey();
-      cl.getService(serviceName).addServiceComponent(componentName);
-
-      for (Integer hostIndex : component.getValue()) {
-        cl.getService(serviceName)
-            .getServiceComponent(componentName)
-            .addServiceComponentHost(
-                serviceComponentHostFactory.createNew(cl.getService(serviceName)
-                    .getServiceComponent(componentName), hostList.get(hostIndex)));
-      }
-    }
-  }
-
   @Test
   public void testGetATestStage() {
     StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
@@ -194,7 +169,7 @@ public class StageUtilsTest extends EasyMockSupport {
       JsonMappingException, JAXBException, IOException {
     StageUtils stageUtils = new StageUtils(injector.getInstance(StageFactory.class));
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo", "hostParamsStage");
-    ExecutionCommand cmd = s.getExecutionCommands(getHostName()).get(0).getExecutionCommand();
+    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
     HashMap<String, Map<String, String>> configTags = new HashMap<>();
     Map<String, String> globalTag = new HashMap<>();
     globalTag.put("tag", "version1");

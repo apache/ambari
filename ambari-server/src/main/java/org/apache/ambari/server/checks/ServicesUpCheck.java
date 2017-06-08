@@ -91,10 +91,9 @@ public class ServicesUpCheck extends AbstractCheckDescriptor {
     List<String> errorMessages = new ArrayList<>();
     Set<String> failedServiceNames = new HashSet<>();
 
-    StackId stackId = cluster.getCurrentStackVersion();
-
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();
+      StackId stackId = service.getDesiredStackId();
 
       // Ignore services like Tez that are clientOnly.
       if (service.isClientOnlyService()) {

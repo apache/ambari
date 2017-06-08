@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -99,7 +99,6 @@ public class TopologyManagerTest {
   private static final String SAMPLE_QUICKLINKS_PROFILE_1 = "{\"filters\":[{\"visible\":true}],\"services\":[]}";
   private static final String SAMPLE_QUICKLINKS_PROFILE_2 =
       "{\"filters\":[],\"services\":[{\"name\":\"HDFS\",\"components\":[],\"filters\":[{\"visible\":true}]}]}";
-
 
   @Rule
   public EasyMockRule mocks = new EasyMockRule(this);
@@ -254,6 +253,7 @@ public class TopologyManagerTest {
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<RepositorySetting>()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -283,9 +283,8 @@ public class TopologyManagerTest {
     expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
-
+    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
-
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
 
@@ -538,8 +537,8 @@ public class TopologyManagerTest {
   public void testScaleHosts__alreadyExistingHost() throws InvalidTopologyTemplateException, InvalidTopologyException, AmbariException, NoSuchStackException {
     HashSet<Map<String, Object>> propertySet = new HashSet<>();
     Map<String,Object> properties = new TreeMap<>();
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "host1");
-    properties.put(HostResourceProvider.HOSTGROUP_PROPERTY_ID, "group1");
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, "host1");
+    properties.put(HostResourceProvider.HOST_GROUP_PROPERTY_ID, "group1");
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME);
     properties.put(HostResourceProvider.BLUEPRINT_PROPERTY_ID, BLUEPRINT_NAME);
     propertySet.add(properties);

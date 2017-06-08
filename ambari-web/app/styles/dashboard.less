@@ -19,6 +19,20 @@
 @import 'common.less';
 
 #dashboard-widgets-container{
+  .tabs-left {
+    float: left;
+  }
+  .btn-toolbar {
+    float: right;
+    padding-top: 5px;
+    margin-bottom: 20px;
+  }
+  .dashboard-widgets-box {
+    clear: both;
+    display: inline-block;
+    padding: 10px;
+    background-color: #ececec;
+  }
   #widgets-options-menu {
     .add-widgets-text .dropdown-menu {
       overflow: auto;
@@ -46,23 +60,41 @@
     }
     .span2p4 {
       float: left;
-      width: 19.60%;
-      *width: 19.60%;
+      width: 22.70%;
+      *width: 22.70%;
     }
     .thumbnails > div {
-      margin: 0 3px 3px 0;
-      height: 163px;
+      margin: 10px;
+      height: 160px;
     }
     .thumbnails li {
-      height: 160px;
+      height: 157px;
       width: 100%;
       margin: 3px 3px 0 0;
+      border-radius: 2px;
+      -webkit-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+      -moz-box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
+      box-shadow: 0px 1px 1px 0px rgba(51, 51, 51, 0.15);
     }
 
     .img-thumbnail .corner-icon {
-      display: none;
       position: relative;
-      padding: 7px 0;
+      color: #999999;
+      font-size: 14px;
+      padding: 10px 15px 20px 15px;
+      float: right;
+      ul {
+        top: inherit;
+        margin-left: 20px;
+      }
+      li{
+        padding: 2.5px 0 2.5px 5px;
+        height: auto;
+        box-shadow: none;
+      }
+      li:hover {
+        background-color: #f5f5f5;
+      }
       .glyphicon-remove-sign{
         color: #000;
         text-shadow: #fff 0 0 15px;
@@ -82,10 +114,11 @@
       }
     }
     .img-thumbnail .hidden-info-general{
-      color: #555;
+      background-color: #ffffff;
+      opacity: 0.9;
+      color: #666666;
       font-size: 12px;
-      font-weight: bold;
-      text-align: center;
+      text-align: left;
       text-decoration: none;
       display: none;
       position: relative;
@@ -110,16 +143,16 @@
       }
     }
     .img-thumbnail .caption {
-      padding: 7px 5px;
-      color: #555;
-      font-weight:bold;
-      font-size: 12px;
+      padding: 10px 15px 20px 15px ;
+      color: #666666;
+      font-size: 14px;
       text-align: left;
       position: relative;
+      float: left;
     }
     .img-thumbnail .widget-content{
       text-align: center;
-      font-size: 35px;
+      font-size: 30px;
       padding-top: 40px; //svg
       position: relative;
       .disabled-hdfs-link {
@@ -139,10 +172,9 @@
     }
     .img-thumbnail .widget-content-isNA{ // for pie chart n\a
       text-align: center;
-      font-size: 35px;
-      color: #D6DDDF;
+      font-size: 30px;
+      color: #999999;
       padding-top: 70px;
-      font-weight: bold;
       position: relative;
     }
     .img-thumbnail{
@@ -165,8 +197,7 @@
         display: block;
       }
       .caption{
-        margin-left: -14.5px;
-        z-index: 7;
+        z-index: 9;
       }
       .slots-caption{
         margin-left: -13px;
@@ -178,7 +209,7 @@
         z-index: 5;
       }
       .widget-content, .widget-content-isNA {
-        .content-mx(-104px);
+        .content-mx(-114px);
       }
       .uptime-content{
         top: -116px;
@@ -228,19 +259,18 @@
           text-decoration: none;
           z-index: 9;
         }
-        .caption {
-          margin-left: -14.5px;
-        }
       }
     }
 
     .links .img-thumbnail{
       li{
         height:24px;
+        box-shadow: none;
       }
       .link-button{
-        float: right;
         margin-top: 5px;
+        padding-left: 15px;
+        font-size: 12px;
         .disabled-hdfs-quick-link {
           pointer-events: none;
           color: #808080;
@@ -256,12 +286,11 @@
         text-align: center;
         font-size: 11px;
         color: #555;
-        padding-top: 40px;
+        padding: 40px 0 0 15px;
         table{
           vertical-position: center;
-          text-align: center;
-          margin-left:auto;
-          margin-right:auto;
+          text-align: left;
+          font-size: 12px;
         }
         td{
           padding-top: 2px;
@@ -275,9 +304,6 @@
         text-decoration: none;
         z-index: 9;
       }
-      .caption{
-        margin-left: -14.5px;
-      }
     }
     .img-thumbnail .widget-content .svg {
       position: relative;
@@ -286,7 +312,6 @@
     .widget-cn(@color) {
       color: @color;
       padding-top: 70px;
-      font-weight: bold;
     }
     .is-red{
       .widget-content {
@@ -300,14 +325,22 @@
     }
     .is-green {
       .widget-content {
-        .widget-cn(@health-status-green);
+        .widget-cn(#666666);
       }
     }
     .is-na {
       position: relative;
       .widget-content {
-        .widget-cn(#D6DDDF);
+        .widget-cn(#999999);
         text-shadow: none;
+      }
+    }
+    .corner-icon:hover {
+      .ellipsis-menu::after {
+        color: #666666;
+      }
+      ul {
+        display:block;
       }
     }
   }
@@ -320,23 +353,19 @@
     #dashboard-widgets {
       .span2p4 {
         float: left;
-        width: 19.47%;
-        *width: 19.47%;
-      }
-      .thumbnails > div {
-        margin-right: 5px;
+        width: 22.3%;
+        *width: 22.3%;
       }
       .img-thumbnail {
-        .caption, .hidden-info-two-line, .hidden-info-three-line {
+        .caption {
           font-size: 14px;
         }
-        .hidden-info-five-line, .hidden-info-six-line {
+        .hidden-info-two-line, .hidden-info-three-line, .hidden-info-five-line, .hidden-info-six-line {
           font-size: 12px;
         }
       }
       .links .img-thumbnail {
         .widget-content {
-          font-weight: bold;
           font-size: 12px;
         }
       }

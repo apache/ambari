@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -206,9 +206,7 @@ public class QueryLexer {
     return Pattern.compile(sb.toString());
   }
 
-  /**
-   * Add property names that the lexer should ignore.
-   */
+  // Add property names that the lexer should ignore.
   static {
     // ignore values
     SET_IGNORE.add(QUERY_FIELDS);

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -44,10 +44,9 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -85,9 +84,6 @@ public class HeartBeatHandler {
   private final ActionManager actionManager;
   private HeartbeatMonitor heartbeatMonitor;
   private HeartbeatProcessor heartbeatProcessor;
-
-  @Inject
-  private Injector injector;
 
   @Inject
   private Configuration config;
@@ -165,10 +161,20 @@ public class HeartBeatHandler {
         + ", receivedResponseId=" + heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
-      LOG.warn("Old responseId received - response was lost - returning cached response");
-      return hostResponses.get(hostname);
+      HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
+
+      LOG.warn("Old responseId={} received form host {} - response was lost - returning cached response with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        heartBeatResponse.getResponseId());
+
+      return heartBeatResponse;
     } else if (heartbeat.getResponseId() != currentResponseId) {
-      LOG.error("Error in responseId sequence - sending agent restart command");
+      LOG.error("Error in responseId sequence - received responseId={} from host {} - sending agent restart command with responseId={}",
+        heartbeat.getResponseId(),
+        hostname,
+        currentResponseId);
+
       return createRestartCommand(currentResponseId);
     }
 
@@ -190,7 +196,7 @@ public class HeartBeatHandler {
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
-      LOG.warn("Host is in HEARTBEAT_LOST state - sending register command");
+      LOG.warn("Host {} is in HEARTBEAT_LOST state - sending register command", hostname);
       return createRegisterCommand();
     }
 
@@ -227,10 +233,9 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
-     *
      *
      * TODO: Handle the case when a host is a part of multiple clusters.
      */
@@ -444,7 +449,7 @@ public class HeartBeatHandler {
       LOG.debug("Agent configuration map set to " + response.getAgentConfig());
     }
 
-    /**
+    /*
      * A host can belong to only one cluster. Though getClustersForHost(hostname)
      * returns a set of clusters, it will have only one entry.
      *
@@ -506,36 +511,26 @@ public class HeartBeatHandler {
     ComponentsResponse response = new ComponentsResponse();
 
     Cluster cluster = clusterFsm.getCluster(clusterName);
-    StackId stackId = cluster.getCurrentStackVersion();
-    if (stackId == null) {
-      throw new AmbariException("Cannot provide stack components map. " +
-        "Stack hasn't been selected yet.");
+
+    Map<String, Map<String, String>> componentsMap = new HashMap<>();
+
+    for (org.apache.ambari.server.state.Service service : cluster.getServices().values()) {
+      componentsMap.put(service.getName(), new HashMap<String, String>());
+
+      for (ServiceComponent component : service.getServiceComponents().values()) {
+        StackId stackId = component.getDesiredStackId();
+
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+            stackId.getStackName(), stackId.getStackVersion(), service.getName(), component.getName());
+
+        componentsMap.get(service.getName()).put(component.getName(), componentInfo.getCategory());
+      }
     }
-    StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(),
-        stackId.getStackVersion());
 
     response.setClusterName(clusterName);
-    response.setStackName(stackId.getStackName());
-    response.setStackVersion(stackId.getStackVersion());
-    response.setComponents(getComponentsMap(stack));
+    response.setComponents(componentsMap);
 
     return response;
-  }
-
-  private Map<String, Map<String, String>> getComponentsMap(StackInfo stack) {
-    Map<String, Map<String, String>> result = new HashMap<>();
-
-    for (ServiceInfo service : stack.getServices()) {
-      Map<String, String> components = new HashMap<>();
-
-      for (ComponentInfo component : service.getComponents()) {
-        components.put(component.getName(), component.getCategory());
-      }
-
-      result.put(service.getName(), components);
-    }
-
-    return result;
   }
 
   /**

@@ -32,6 +32,7 @@ import java.util.Map;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
 import org.junit.Test;
 
 public class OutputManagerTest {
@@ -91,15 +92,17 @@ public class OutputManagerTest {
     
     Input mockInput = strictMock(Input.class);
     InputMarker inputMarker = new InputMarker(mockInput, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
+    inputDescriptor.setAddFields(Collections.<String, String> emptyMap());
     
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
     
-    expect(mockInput.getContextFields()).andReturn(Collections.<String, String> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.isUseEventMD5()).andReturn(false);
     expect(mockInput.isGenEventMD5()).andReturn(false);
-    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.getCache()).andReturn(null);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
 
@@ -125,12 +128,13 @@ public class OutputManagerTest {
     
     Input mockInput = strictMock(Input.class);
     InputMarker inputMarker = new InputMarker(mockInput, null, 0);
+    InputDescriptorImpl inputDescriptor = new InputDescriptorImpl() {};
     
     Output output1 = strictMock(Output.class);
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
     
-    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
+    expect(mockInput.getInputDescriptor()).andReturn(inputDescriptor);
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonString, inputMarker); expectLastCall();

@@ -21,11 +21,21 @@ package org.apache.ambari.infra.conf;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
+import io.swagger.models.Info;
+import io.swagger.models.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class InfraManagerApiDocConfig {
+
+  private static final String DESCRIPTION = "Manager component for Ambari Infra";
+  private static final String VERSION = "1.0.0";
+  private static final String TITLE = "Infra Manager REST API";
+  private static final String LICENSE = "Apache 2.0";
+  private static final String LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.html";
+  private static final String RESOURCE_PACKAGE = "org.apache.ambari.infra.rest";
+  private static final String BASE_PATH = "/api/v1";
 
   @Bean
   public ApiListingResource apiListingResource() {
@@ -41,14 +51,25 @@ public class InfraManagerApiDocConfig {
   public BeanConfig swaggerConfig() {
     BeanConfig beanConfig = new BeanConfig();
     beanConfig.setSchemes(new String[]{"http", "https"});
-    beanConfig.setBasePath("/api/v1");
-    beanConfig.setTitle("Infra Manager REST API");
-    beanConfig.setDescription("Manager component for Ambari Infra");
-    beanConfig.setLicense("Apache 2.0");
-    beanConfig.setLicenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html");
+    beanConfig.setBasePath(BASE_PATH);
+    beanConfig.setTitle(TITLE);
+    beanConfig.setDescription(DESCRIPTION);
+    beanConfig.setLicense(LICENSE);
+    beanConfig.setLicenseUrl(LICENSE_URL);
     beanConfig.setScan(true);
-    beanConfig.setVersion("1.0.0");
-    beanConfig.setResourcePackage("org.apache.ambari.infra.rest");
+    beanConfig.setVersion(VERSION);
+    beanConfig.setResourcePackage(RESOURCE_PACKAGE);
+
+    License license = new License();
+    license.setName(LICENSE);
+    license.setUrl(LICENSE_URL);
+
+    Info info = new Info();
+    info.setDescription(DESCRIPTION);
+    info.setTitle(TITLE);
+    info.setVersion(VERSION);
+    info.setLicense(license);
+    beanConfig.setInfo(info);
     return beanConfig;
   }
 }

@@ -69,10 +69,6 @@ describe('App.ReassignMasterView', function () {
         {
           Hosts: {
             host_name: 'host1',
-            cpu_count: 1,
-            total_mem: 1024,
-            disk_info: {},
-            maintenance_state: 'ON'
           }
         }
       ]
@@ -90,11 +86,7 @@ describe('App.ReassignMasterView', function () {
         {
           "host1": {
             "bootStatus": "REGISTERED",
-            "cpu": 1,
-            "disk_info": {},
             "isInstalled": true,
-            "maintenance_state": "ON",
-            "memory": 1024,
             "name": "host1"
           }
         }
@@ -104,11 +96,7 @@ describe('App.ReassignMasterView', function () {
       expect(view.get('controller.content.hosts')).to.be.eql({
         "host1": {
           "bootStatus": "REGISTERED",
-          "cpu": 1,
-          "disk_info": {},
           "isInstalled": true,
-          "maintenance_state": "ON",
-          "memory": 1024,
           "name": "host1"
         }
       });

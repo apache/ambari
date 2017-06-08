@@ -417,7 +417,11 @@
       "name": "tls_toolkit_san",
       "description": "Support subject alternative name flag",
       "min_version": "2.6.0.0"
+    },
+    {
+      "name": "nifi_jaas_conf_create",
+      "description": "Create NIFI jaas configuration when kerberos is enabled",
+      "min_version": "2.6.0.0"
     }
-
   ]
 }

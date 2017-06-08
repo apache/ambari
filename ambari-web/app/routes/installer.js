@@ -315,6 +315,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
+        wizardStep5Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep5', controller.get('content'));
         self.scrollTop();
         console.timeEnd('step5 connectOutlets');

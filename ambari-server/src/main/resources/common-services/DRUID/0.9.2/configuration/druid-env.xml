@@ -226,7 +226,7 @@
 
       # The java implementation to use.
       export JAVA_HOME={{java8_home}}
-      export PATH=$PATH:$JAVA_HOME/bin
+      export PATH=$JAVA_HOME/bin:$PATH
       export DRUID_PID_DIR={{druid_pid_dir}}
       export DRUID_LOG_DIR={{druid_log_dir}}
       export DRUID_CONF_DIR={{druid_conf_dir}}

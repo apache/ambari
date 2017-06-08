@@ -159,6 +159,13 @@ def ensure_hadoop_directories():
   # Create HadoopIndexTask hadoopWorkingPath
   hadoop_working_path = druid_middlemanager_config['druid.indexer.task.hadoopWorkingPath']
   if hadoop_working_path is not None:
+    if hadoop_working_path.startswith(params.hdfs_tmp_dir):
+      params.HdfsResource(params.hdfs_tmp_dir,
+                           type="directory",
+                           action="create_on_execute",
+                           owner=params.hdfs_user,
+                           mode=0777,
+      )
     create_hadoop_directory(hadoop_working_path)
 
   # If HDFS is used for storing logs, create Index Task log directory

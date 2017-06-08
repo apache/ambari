@@ -22,10 +22,10 @@ import static org.apache.ambari.checkstyle.AvoidTransactionalOnPrivateMethodsChe
 import java.io.File;
 import java.io.IOException;
 
+import org.junit.Test;
+
 import com.puppycrawl.tools.checkstyle.BaseCheckTestSupport;
 import com.puppycrawl.tools.checkstyle.DefaultConfiguration;
-
-import org.junit.Test;
 
 public class AvoidTransactionalOnPrivateMethodsCheckTest extends BaseCheckTestSupport {
 

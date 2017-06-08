@@ -38,6 +38,10 @@
     <input type='text' class="form-control" value={{endDate}} id='endDate' title="Nominal End Date" placeholder="Nominal End Date" {{action 'onClear' 'end' on="change"}}/>
   </div>
   <div class="form-group">
+    <span title="Clear Filters" {{action 'clearFilters'}} class="fa fa-close fa-1 pointer btn btn-default" aria-hidden="true"></span>
+  </div>
+  <div class="form-group">
     <span class="fa fa-refresh fa-1 pointer btn btn-default" title="Refresh" {{action 'refresh'}} aria-hidden="true"></span>
   </div>
 </div>
+

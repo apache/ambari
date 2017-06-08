@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -240,13 +241,22 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
 
     for (final Cluster cluster : clusterMap.values()) {
+
+      Service service = cluster.getServices().get("HBASE");
+
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
+
       Config hbaseSite = cluster.getDesiredConfigByType("hbase-site");
       boolean rangerHbasePluginEnabled = isConfigEnabled(cluster,
         AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES,
         AbstractUpgradeCatalog.PROPERTY_RANGER_HBASE_PLUGIN_ENABLED);
       if (hbaseSite != null && rangerHbasePluginEnabled) {
         Map<String, String> updates = new HashMap<>();
-        String stackVersion = cluster.getCurrentStackVersion().getStackVersion();
+        String stackVersion = stackId.getStackVersion();
         if (VersionUtils.compareVersions(stackVersion, "2.2") == 0) {
           if (hbaseSite.getProperties().containsKey(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES)) {
             updates.put(HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES,
@@ -572,6 +582,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     return Collections.emptyMap();
   }
 
+  @Override
   protected void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,
                                                  Map<String, String> sectionLayoutMap) throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
@@ -582,74 +593,86 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
 
     Clusters clusters = ambariManagementController.getClusters();
 
+
+
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
 
-      StackId stackId = cluster.getDesiredStackVersion();
-      Map<String, Object> widgetDescriptor = null;
-      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-      ServiceInfo serviceInfo = stackInfo.getService(serviceName);
-      if (serviceInfo == null) {
-        LOG.info("Skipping updating widget definition, because " + serviceName +  " service is not present in cluster " +
-          "cluster_name= " + cluster.getClusterName());
-        continue;
-      }
 
-      for (String section : widgetMap.keySet()) {
-        List<String> widgets = widgetMap.get(section);
-        for (String widgetName : widgets) {
-          List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
-            widgetName, "ambari", section);
+      Set<StackId> stackIds = new HashSet<>();
+      for (Service service : cluster.getServices().values()) {
+        StackId stackId = service.getDesiredStackId();
+        if (stackIds.contains(stackId)) {
+          continue;
+        } else {
+          stackIds.add(stackId);
+        }
 
-          if (widgetEntities != null && widgetEntities.size() > 0) {
-            WidgetEntity entityToUpdate = null;
-            if (widgetEntities.size() > 1) {
-              LOG.info("Found more that 1 entity with name = "+ widgetName +
-                " for cluster = " + cluster.getClusterName() + ", skipping update.");
-            } else {
-              entityToUpdate = widgetEntities.iterator().next();
-            }
-            if (entityToUpdate != null) {
-              LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
-              // Get the definition from widgets.json file
-              WidgetLayoutInfo targetWidgetLayoutInfo = null;
-              File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-              if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-                try {
-                  widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-                } catch (Exception ex) {
-                  String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-                  LOG.error(msg, ex);
-                  widgetDescriptor = null;
-                }
+        Map<String, Object> widgetDescriptor = null;
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+        ServiceInfo serviceInfo = stackInfo.getService(serviceName);
+        if (serviceInfo == null) {
+          LOG.info("Skipping updating widget definition, because " + serviceName +  " service is not present in cluster " +
+            "cluster_name= " + cluster.getClusterName());
+          continue;
+        }
+
+        for (String section : widgetMap.keySet()) {
+          List<String> widgets = widgetMap.get(section);
+          for (String widgetName : widgets) {
+            List<WidgetEntity> widgetEntities = widgetDAO.findByName(clusterID,
+              widgetName, "ambari", section);
+
+            if (widgetEntities != null && widgetEntities.size() > 0) {
+              WidgetEntity entityToUpdate = null;
+              if (widgetEntities.size() > 1) {
+                LOG.info("Found more that 1 entity with name = "+ widgetName +
+                  " for cluster = " + cluster.getClusterName() + ", skipping update.");
+              } else {
+                entityToUpdate = widgetEntities.iterator().next();
               }
-              if (widgetDescriptor != null) {
-                LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
-                for (Object artifact : widgetDescriptor.values()) {
-                  List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
-                  for (WidgetLayout widgetLayout : widgetLayouts) {
-                    if (widgetLayout.getLayoutName().equals(sectionLayoutMap.get(section))) {
-                      for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
-                        if (layoutInfo.getWidgetName().equals(widgetName)) {
-                          targetWidgetLayoutInfo = layoutInfo;
+              if (entityToUpdate != null) {
+                LOG.info("Updating widget: " + entityToUpdate.getWidgetName());
+                // Get the definition from widgets.json file
+                WidgetLayoutInfo targetWidgetLayoutInfo = null;
+                File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+                if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+                  try {
+                    widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+                  } catch (Exception ex) {
+                    String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+                    LOG.error(msg, ex);
+                    widgetDescriptor = null;
+                  }
+                }
+                if (widgetDescriptor != null) {
+                  LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
+                  for (Object artifact : widgetDescriptor.values()) {
+                    List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
+                    for (WidgetLayout widgetLayout : widgetLayouts) {
+                      if (widgetLayout.getLayoutName().equals(sectionLayoutMap.get(section))) {
+                        for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+                          if (layoutInfo.getWidgetName().equals(widgetName)) {
+                            targetWidgetLayoutInfo = layoutInfo;
+                          }
                         }
                       }
                     }
                   }
                 }
-              }
-              if (targetWidgetLayoutInfo != null) {
-                entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
-                entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
-                if ("HBASE".equals(serviceName) && "Reads and Writes".equals(widgetName)) {
-                  entityToUpdate.setDescription(targetWidgetLayoutInfo.getDescription());
-                  LOG.info("Update description for HBase Reads and Writes widget");
+                if (targetWidgetLayoutInfo != null) {
+                  entityToUpdate.setMetrics(gson.toJson(targetWidgetLayoutInfo.getMetricsInfo()));
+                  entityToUpdate.setWidgetValues(gson.toJson(targetWidgetLayoutInfo.getValues()));
+                  if ("HBASE".equals(serviceName) && "Reads and Writes".equals(widgetName)) {
+                    entityToUpdate.setDescription(targetWidgetLayoutInfo.getDescription());
+                    LOG.info("Update description for HBase Reads and Writes widget");
+                  }
+                  widgetDAO.merge(entityToUpdate);
+                } else {
+                  LOG.warn("Unable to find widget layout info for " + widgetName +
+                    " in the stack: " + stackId);
                 }
-                widgetDAO.merge(entityToUpdate);
-              } else {
-                LOG.warn("Unable to find widget layout info for " + widgetName +
-                  " in the stack: " + stackId);
               }
             }
           }
@@ -664,7 +687,14 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
       Config hiveSiteConfig = cluster.getDesiredConfigByType(HIVE_SITE_CONFIG);
       Config atlasConfig = cluster.getDesiredConfigByType(ATLAS_APPLICATION_PROPERTIES_CONFIG);
 
-      StackId stackId = cluster.getCurrentStackVersion();
+      Service service = cluster.getServices().get("ATLAS");
+
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
+
       boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
         VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
 

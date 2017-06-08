@@ -44,7 +44,7 @@ public enum FilterLogData {
   }
 
   public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
-    if ("audit".equals(inputMarker.input.getConfigs().get(LogFeederConstants.ROW_TYPE)))
+    if ("audit".equals(inputMarker.input.getInputDescriptor().getRowtype()))
       return true;
     
     boolean isAllowed = applyFilter(jsonObj);

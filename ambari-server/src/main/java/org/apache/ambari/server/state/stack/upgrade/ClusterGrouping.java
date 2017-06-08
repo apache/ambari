@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -169,6 +169,13 @@ public class ClusterGrouping extends Grouping {
                 execution.condition);
 
             continue;
+          }
+
+          // only schedule this stage if its service is part of the upgrade
+          if (StringUtils.isNotBlank(execution.service)) {
+            if (!upgradeContext.isServiceSupported(execution.service)) {
+              continue;
+            }
           }
 
           Task task = execution.task;

@@ -74,8 +74,8 @@ App.ViewInstance = Em.Object.extend({
     var version = this.get('version');
     var instanceName = this.get('instanceName');
     if(shortUrl) {
-      return 'main/view/' + viewName + '/' + shortUrl;
+      return '#/main/view/' + viewName + '/' + shortUrl;
     }
-    return 'main/views/' + viewName + '/' + version + '/' + instanceName;
+    return '#/main/views/' + viewName + '/' + version + '/' + instanceName;
   }.property('shortUrl', 'viewName', 'version', 'instanceName')
 });

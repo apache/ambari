@@ -32,7 +32,6 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -63,8 +62,6 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     Set<String> failedServiceNames = new HashSet<>();
-
-    StackId stackId = cluster.getCurrentStackVersion();
 
     // Preq-req check should fail if any service component is in INSTALL_FAILED state
     Set<String> installFailedHostComponents = new HashSet<>();

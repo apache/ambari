@@ -63,6 +63,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -70,6 +71,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -82,7 +84,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -107,6 +108,7 @@ public class UpgradeCatalog200Test {
   private final String HOST_NAME = "h1";
 
   private final StackId DESIRED_STACK = new StackId("HDP", "2.0.6");
+  private final String DESIRED_REPO_VERSION = "2.0.6-1234";
 
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
@@ -456,8 +458,6 @@ public class UpgradeCatalog200Test {
   public void testPersistHDPRepo() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createStrictMock(AmbariManagementController.class);
-    final AmbariMetaInfo mockAmbariMetaInfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
-    final StackInfo mockStackInfo = easyMockSupport.createNiceMock(StackInfo.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockCluster = easyMockSupport.createStrictMock(Cluster.class);
     final Map<String, Cluster> clusterMap = new HashMap<>();
@@ -465,8 +465,6 @@ public class UpgradeCatalog200Test {
     OperatingSystemInfo osi = new OperatingSystemInfo("redhat6");
     HashSet<OperatingSystemInfo> osiSet = new HashSet<>();
     osiSet.add(osi);
-    StackId stackId = new StackId("HDP","2.2");
-    final RepositoryInfo mockRepositoryInfo = easyMockSupport.createNiceMock(RepositoryInfo.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -479,20 +477,7 @@ public class UpgradeCatalog200Test {
       }
     });
 
-    expect(mockAmbariManagementController.getAmbariMetaInfo()).andReturn(mockAmbariMetaInfo);
-    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
-    expect(mockClusters.getClusters()).andReturn(clusterMap).once();
-    expect(mockCluster.getCurrentStackVersion()).andReturn(stackId).once();
     expect(mockCluster.getClusterName()).andReturn("cc").anyTimes();
-    expect(mockAmbariMetaInfo.getOperatingSystems("HDP", "2.2")).andReturn(osiSet).once();
-    expect(mockAmbariMetaInfo.getRepository("HDP", "2.2", "redhat6", "HDP-2.2")).andReturn(mockRepositoryInfo).once();
-    expect(mockAmbariMetaInfo.getStack("HDP", "2.2")).andReturn(mockStackInfo);
-    expect(mockStackInfo.getRepositories()).andReturn(new ArrayList<RepositoryInfo>() {{
-      add(mockRepositoryInfo);
-    }});
-    expect(mockRepositoryInfo.getDefaultBaseUrl()).andReturn("http://baseurl").once();
-    mockAmbariMetaInfo.updateRepo("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl", null);
-    expectLastCall().once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog200.class).persistHDPRepo();
@@ -531,6 +516,7 @@ public class UpgradeCatalog200Test {
     final Cluster mockClusterExpected = easyMockSupport.createStrictMock(Cluster.class);
     final Cluster mockClusterMissingSmokeUser = easyMockSupport.createStrictMock(Cluster.class);
     final Cluster mockClusterMissingConfig = easyMockSupport.createStrictMock(Cluster.class);
+    final StackId mockStackId = easyMockSupport.createNiceMock(StackId.class);   
 
     final Config mockClusterEnvExpected = easyMockSupport.createStrictMock(Config.class);
     final Config mockClusterEnvMissingSmokeUser = easyMockSupport.createStrictMock(Config.class);
@@ -577,14 +563,16 @@ public class UpgradeCatalog200Test {
 
       // Expected operation
     expect(mockClusterExpected.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnvExpected).once();
+    expect(mockClusterExpected.getDesiredStackVersion()).andReturn(mockStackId).atLeastOnce();
     expect(mockClusterEnvExpected.getProperties()).andReturn(propertiesExpectedT0).once();
 
-    mockConfigHelper.createConfigType(mockClusterExpected, mockAmbariManagementController,
+    mockConfigHelper.createConfigType(mockClusterExpected, mockStackId, mockAmbariManagementController,
         "cluster-env", propertiesExpectedT1, UpgradeCatalog200.AUTHENTICATED_USER_NAME, "Upgrading to Ambari 2.0");
     expectLastCall().once();
 
     // Missing smokeuser
     expect(mockClusterMissingSmokeUser.getDesiredConfigByType("cluster-env")).andReturn(mockClusterEnvMissingSmokeUser).once();
+    expect(mockClusterMissingSmokeUser.getDesiredStackVersion()).andReturn(mockStackId).atLeastOnce();
     expect(mockClusterEnvMissingSmokeUser.getProperties()).andReturn(propertiesMissingSmokeUserT0).once();
 
     expect(mockConfigHelper.getStackProperties(mockClusterMissingSmokeUser)).andReturn(Collections.singleton(mockSmokeUserPropertyInfo)).once();
@@ -592,7 +580,7 @@ public class UpgradeCatalog200Test {
     expect(mockSmokeUserPropertyInfo.getFilename()).andReturn("cluster-env.xml").once();
     expect(mockSmokeUserPropertyInfo.getValue()).andReturn("ambari-qa").once();
 
-    mockConfigHelper.createConfigType(mockClusterMissingSmokeUser, mockAmbariManagementController,
+    mockConfigHelper.createConfigType(mockClusterMissingSmokeUser, mockStackId, mockAmbariManagementController,
         "cluster-env", propertiesMissingSmokeUserT1, UpgradeCatalog200.AUTHENTICATED_USER_NAME, "Upgrading to Ambari 2.0");
     expectLastCall().once();
 
@@ -627,16 +615,20 @@ public class UpgradeCatalog200Test {
     assertNotNull(stackEntity);
 
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
-        injector, CLUSTER_NAME, stackEntity);
+        injector, CLUSTER_NAME, stackEntity, DESIRED_REPO_VERSION);
+
+    RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        stackEntity, DESIRED_REPO_VERSION);
 
     final ClusterServiceEntity clusterServiceEntityNagios = upgradeCatalogHelper.addService(
-        injector, clusterEntity, "NAGIOS", stackEntity);
+        injector, clusterEntity, "NAGIOS", repositoryVersion);
 
     final HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, HOST_NAME);
 
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
-        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity);
+        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity, repositoryVersion);
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
         clusterEntity.getClusterId(), "NAGIOS", "NAGIOS_SERVER");

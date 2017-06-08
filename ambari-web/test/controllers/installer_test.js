@@ -736,10 +736,6 @@ describe('App.InstallerController', function () {
     it ('Should return hosts', function() {
       var hosts = {
         'h1': {
-          disk_info: Em.A([{
-            available: 1,
-            size: 10
-          }]),
           hostComponents: Em.A([])
         }
       };
@@ -765,14 +761,6 @@ describe('App.InstallerController', function () {
       var res = JSON.parse(JSON.stringify(installerController.get('allHosts')));
       expect(res).to.eql([
         {
-          "diskInfo": [
-            {
-              "available": 1,
-              "size": 10
-            }
-          ],
-          "diskTotal": 0.0000095367431640625,
-          "diskFree": 9.5367431640625e-7,
           "hostComponents": [
             {
               "componentName": "component",

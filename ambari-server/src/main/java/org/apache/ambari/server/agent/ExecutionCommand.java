@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.StageUtils;
@@ -76,8 +78,7 @@ public class ExecutionCommand extends AgentCommand {
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
-  private Map<String, Set<String>> clusterHostInfo =
-    new HashMap<>();
+  private Map<String, Set<String>> clusterHostInfo = new HashMap<>();
 
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
@@ -144,12 +145,20 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configuration_credentials")
   private Map<String, Map<String, String>> configurationCredentials;
 
+
+  /**
+   * Provides information regarding the content of repositories.  This structure replaces
+   * the deprecated use of {@link KeyNames#REPO_INFO}
+   */
+  @SerializedName("repositoryFile")
+  private CommandRepository commandRepository;
+
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {
     this.configurationCredentials = configurationCredentials;
   }
 
   public Map<String, Map<String, String>> getConfigurationCredentials() {
-    return this.configurationCredentials;
+    return configurationCredentials;
   }
 
   public String getCommandId() {
@@ -395,6 +404,20 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
+   * @return the repository file that is to be written.
+   */
+  public CommandRepository getRepositoryFile() {
+    return commandRepository;
+  }
+
+  /**
+   * @param repository  the command repository instance.
+   */
+  public void setRepositoryFile(CommandRepository repository) {
+    commandRepository = repository;
+  }
+
+  /**
    * Contains key name strings. These strings are used inside maps
    * incapsulated inside command.
    */
@@ -408,6 +431,8 @@ public class ExecutionCommand extends AgentCommand {
     String STACK_NAME = "stack_name";
     String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
@@ -420,6 +445,11 @@ public class ExecutionCommand extends AgentCommand {
     String ORACLE_JDBC_URL = "oracle_jdbc_url";
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String CLIENTS_TO_UPDATE_CONFIGS = "clientsToUpdateConfigs";
+    /**
+     * Keep for backward compatibility.
+     */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
     String GLOBAL = "global";
@@ -432,7 +462,6 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String USER_GROUPS = "user_groups";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
-    String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
     String HOST_SYS_PREPPED = "host_sys_prepped";
     String MAX_DURATION_OF_RETRIES = "max_duration_for_retries";
@@ -453,6 +482,8 @@ public class ExecutionCommand extends AgentCommand {
     /**
      * The key indicating that the package_version string is available
      */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String PACKAGE_VERSION = "package_version";
 
     /**
@@ -467,6 +498,29 @@ public class ExecutionCommand extends AgentCommand {
      * The agent will return this value back in its response so the repository
      * can be looked up and possibly have its version updated.
      */
+    @Deprecated
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     String REPO_VERSION_ID = "repository_version_id";
+
+    /**
+     * The version of the component to send down with the command. Normally,
+     * this is simply the repository version of the component. However, during
+     * ugprades, this value may change depending on the progress of the upgrade
+     * and the type/direction.
+     */
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "Change this to reflect the component version")
+    String VERSION = "version";
+
+    /**
+     * Put on hostLevelParams to indicate the version that the component should
+     * be.
+     */
+    @Deprecated
+    @Experimental(
+        feature = ExperimentalFeature.PATCH_UPGRADES,
+        comment = "This should be replaced by a map of all service component versions")
+    String CURRENT_VERSION = "current_version";
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -249,7 +249,9 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostname,desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+        componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
+        null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
@@ -281,7 +283,6 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -316,6 +317,10 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
+
+    expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
+    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");
@@ -497,7 +502,9 @@ public class ClientConfigResourceProviderTest {
     HashMap<String, ServiceOsSpecific> serviceOsSpecificHashMap = new HashMap<>();
     serviceOsSpecificHashMap.put("key",serviceOsSpecific);
 
-    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName, componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null);
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
+        componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
+        null);
 
     Set<ServiceComponentHostResponse> responses = new LinkedHashSet<>();
     responses.add(shr1);
@@ -530,7 +537,6 @@ public class ClientConfigResourceProviderTest {
     expect(configHelper.getEffectiveDesiredTags(cluster, null)).andReturn(allConfigTags);
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(responses).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
 
     PowerMock.mockStaticPartial(StageUtils.class, "getClusterHostInfo");
     Map<String, Set<String>> clusterHostInfo = new HashMap<>();
@@ -565,6 +571,10 @@ public class ClientConfigResourceProviderTest {
     expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
+
+    expect(cluster.getService(serviceName)).andReturn(service).atLeastOnce();
+    expect(service.getServiceComponent(componentName)).andReturn(serviceComponent).atLeastOnce();
+    expect(serviceComponent.getDesiredStackId()).andReturn(stackId).atLeastOnce();
 
     HashMap<String, String> rcaParams = new HashMap<>();
     rcaParams.put("key","value");

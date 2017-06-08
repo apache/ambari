@@ -1,0 +1,127 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_storm_dashboard",
+      "display_name": "Standard Storm Dashboard",
+      "section_name": "STORM_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Number of Slots",
+          "description": "Number of Slots",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Used Slots",
+              "metric_path": "metrics/storm/nimbus/usedslots",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            },
+            {
+              "name": "Free Slots",
+              "metric_path": "metrics/storm/nimbus/freeslots",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            },
+            {
+              "name": "Total Slots",
+              "metric_path": "metrics/storm/nimbus/totalslots",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            }
+          ],
+          "values": [
+            {
+              "name": "Used slots",
+              "value": "${Used Slots}"
+            },
+            {
+              "name": "Free slots",
+              "value": "${Free Slots}"
+            },
+            {
+              "name": "Total slots",
+              "value": "${Total Slots}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Number of executors",
+          "description": "Number of executors",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Total Executors",
+              "metric_path": "metrics/storm/nimbus/totalexecutors",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total executors",
+              "value": "${Total Executors}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Number of topologies",
+          "description": "Number of topologies",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Topologies",
+              "metric_path": "metrics/storm/nimbus/topologies",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total topologies",
+              "value": "${Topologies}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Number of tasks",
+          "description": "Number of tasks",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Total Tasks",
+              "metric_path": "metrics/storm/nimbus/totaltasks",
+              "service_name": "STORM",
+              "component_name": "NIMBUS"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total tasks",
+              "value": "${Total Tasks}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -53,9 +53,7 @@ public class UpdateHandler extends BaseManagementHandler {
 
     } catch (AuthorizationException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
-    } catch (UnsupportedPropertyException e) {
-      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
-    } catch (IllegalArgumentException e) {
+    } catch (UnsupportedPropertyException | IllegalArgumentException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
     } catch (NoSuchParentResourceException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e));

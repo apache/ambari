@@ -70,7 +70,7 @@ public class OutputManager {
     Input input = inputMarker.input;
 
     // Update the block with the context fields
-    for (Map.Entry<String, String> entry : input.getContextFields().entrySet()) {
+    for (Map.Entry<String, String> entry : input.getInputDescriptor().getAddFields().entrySet()) {
       if (jsonObj.get(entry.getKey()) == null || entry.getKey().equals("cluster") && "null".equals(jsonObj.get(entry.getKey()))) {
         jsonObj.put(entry.getKey(), entry.getValue());
       }
@@ -79,13 +79,13 @@ public class OutputManager {
     // TODO: Ideally most of the overrides should be configurable
 
     if (jsonObj.get("type") == null) {
-      jsonObj.put("type", input.getStringValue("type"));
+      jsonObj.put("type", input.getInputDescriptor().getType());
     }
     if (jsonObj.get("path") == null && input.getFilePath() != null) {
       jsonObj.put("path", input.getFilePath());
     }
-    if (jsonObj.get("path") == null && input.getStringValue("path") != null) {
-      jsonObj.put("path", input.getStringValue("path"));
+    if (jsonObj.get("path") == null && input.getInputDescriptor().getPath() != null) {
+      jsonObj.put("path", input.getInputDescriptor().getPath());
     }
     if (jsonObj.get("host") == null && LogFeederUtil.hostName != null) {
       jsonObj.put("host", LogFeederUtil.hostName);

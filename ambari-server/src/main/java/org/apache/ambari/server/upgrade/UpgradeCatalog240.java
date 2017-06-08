@@ -84,6 +84,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -697,8 +698,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       if (installedServices.contains(SLIDER_SERVICE_NAME)) {
         Config sliderClientConfig = cluster.getDesiredConfigByType(SLIDER_CLIENT_CONFIG);
         if (sliderClientConfig == null) {
-          configHelper.createConfigType(cluster, ambariManagementController, SLIDER_CLIENT_CONFIG,
-                  new HashMap<String, String>(), AUTHENTICATED_USER_NAME, "");
+          configHelper.createConfigType(cluster, cluster.getDesiredStackVersion(),
+              ambariManagementController, SLIDER_CLIENT_CONFIG, new HashMap<String, String>(),
+              AUTHENTICATED_USER_NAME, "");
         }
       }
     }
@@ -1926,7 +1928,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       }
     }
   }
- 
+
   protected void updateKAFKAConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -2217,13 +2219,28 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     Clusters clusters = ambariManagementController.getClusters();
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
 
+
+    Set<StackId> stackIds = new HashSet<>();
+
     for (final Cluster cluster : clusterMap.values()) {
       Config config;
+
+      Service service = cluster.getServices().get("KERBEROS");
+      if (null == service) {
+        continue;
+      }
+
+      StackId stackId = service.getDesiredStackId();
+
+      if (stackIds.contains(stackId)) {
+        continue;
+      } else {
+        stackIds.add(stackId);
+      }
 
       // Find the new stack default value for krb5-conf/content
       String newDefault = null;
       AmbariMetaInfo metaInfo = ambariManagementController.getAmbariMetaInfo();
-      StackId stackId = cluster.getCurrentStackVersion();
       StackInfo stackInfo = ((metaInfo == null) || (stackId == null))
           ? null
           : metaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
@@ -2729,11 +2746,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
       if (null != clusterMap && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-          StackId stackId = cluster.getCurrentStackVersion();
+          Service service = cluster.getServices().get("HBASE");
+
+          if (null == service) {
+            continue;
+          }
+
+          StackId stackId = service.getDesiredStackId();
 
           // HBase is installed and Kerberos is enabled
-          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType() && isAtLeastHdp25(stackId)) {
+          if (SecurityType.KERBEROS == cluster.getSecurityType() && isAtLeastHdp25(stackId)) {
             Config hbaseSite = cluster.getDesiredConfigByType(HBASE_SITE_CONFIG);
             if (null != hbaseSite) {
               Map<String, String> hbaseSiteProperties = hbaseSite.getProperties();
@@ -2935,11 +2957,16 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
       if (null != clusterMap && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices = cluster.getServices().keySet();
-          StackId stackId = cluster.getCurrentStackVersion();
+
+          Service service = cluster.getServices().get("HBASE");
+          if (null == service) {
+            continue;
+          }
+
+          StackId stackId = service.getDesiredStackId();
 
           // HBase is installed and Kerberos is enabled
-          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType()) {
+          if (SecurityType.KERBEROS == cluster.getSecurityType()) {
             Config hbaseSite = cluster.getDesiredConfigByType(HBASE_SITE_CONFIG);
 
             if (null != hbaseSite) {

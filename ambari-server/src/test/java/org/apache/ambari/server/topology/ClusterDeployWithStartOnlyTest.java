@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -252,6 +252,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(blueprint.getServices()).andReturn(Arrays.asList("service1", "service2")).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(blueprint.isValidConfigType(anyString())).andReturn(true).anyTimes();
+    expect(blueprint.getRepositorySettings()).andReturn(new ArrayList<RepositorySetting>()).anyTimes();
     // don't expect toEntity()
 
     expect(stack.getAllConfigurationTypes("service1")).andReturn(Arrays.asList("service1-site", "service1-env")).anyTimes();
@@ -293,7 +294,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
     expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
-
+    expect(request.getRepositoryVersion()).andReturn("1").anyTimes();
 
     expect(group1.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
@@ -337,7 +338,7 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), eq("1"));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();

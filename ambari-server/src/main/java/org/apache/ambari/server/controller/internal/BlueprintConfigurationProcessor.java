@@ -139,6 +139,11 @@ public class BlueprintConfigurationProcessor {
   private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
+   * Compiled regex for placeholder
+   */
+  private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{.*\\}\\}");
+
+  /**
    * Special network address
    */
   private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
@@ -194,7 +199,7 @@ public class BlueprintConfigurationProcessor {
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
-      /** Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
+      /* Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
        * .class from hbase-site. */
       new ConditionalPropertyFilter("hbase-site", "hbase.rpc.controllerfactory.class",
         "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"),
@@ -1133,13 +1138,25 @@ public class BlueprintConfigurationProcessor {
           if (! matchedHost &&
               ! isNameServiceProperty(propertyName) &&
               ! isSpecialNetworkAddress(propValue)  &&
-              ! isUndefinedAddress(propValue)) {
+              ! isUndefinedAddress(propValue) &&
+              ! isPlaceholder(propValue)) {
 
             configuration.removeProperty(type, propertyName);
           }
         }
       }
     }
+  }
+
+  /**
+   * Determine if a property is a placeholder
+   *
+   * @param propertyValue  property value
+   *
+   * @return true if the property has format "{{%s}}"
+   */
+  private static boolean isPlaceholder(String propertyValue) {
+    return PLACEHOLDER.matcher(propertyValue).find();
   }
 
   /**
@@ -2345,9 +2362,7 @@ public class BlueprintConfigurationProcessor {
   }
 
 
-  /**
-   * Register updaters for configuration properties.
-   */
+  // Register updaters for configuration properties.
   static {
 
     allUpdaters.add(singleHostTopologyUpdaters);

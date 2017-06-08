@@ -1,4 +1,4 @@
-/**
+/*
 * Licensed to the Apache Software Foundation (ASF) under one
 * or more contributor license agreements.  See the NOTICE file
 * distributed with this work for additional information
@@ -34,10 +34,10 @@ import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncLis
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -75,7 +75,8 @@ public class ClustersDeadlockTest {
   private CountDownLatch writerStoppedSignal;
   private CountDownLatch readerStoppedSignal;
 
-  private final StackId stackId = new StackId("HDP-0.1");
+  private StackId stackId = new StackId("HDP-0.1");
+  private String REPO_VERSION = "0.1-1234";
 
   @Inject
   private Injector injector;
@@ -106,12 +107,12 @@ public class ClustersDeadlockTest {
     injector.injectMembers(this);
 
     StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+
     clusters.addCluster(CLUSTER_NAME, stackId);
 
     cluster = clusters.getCluster(CLUSTER_NAME);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
 
     // install HDFS
     installService("HDFS");
@@ -381,10 +382,13 @@ public class ClustersDeadlockTest {
   private Service installService(String serviceName) throws AmbariException {
     Service service = null;
 
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
+        stackId, REPO_VERSION);
+
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName);
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersion);
       cluster.addService(service);
     }
 
@@ -418,8 +422,6 @@ public class ClustersDeadlockTest {
     sc.addServiceComponentHost(sch);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLED);
-    sch.setDesiredStackVersion(stackId);
-    sch.setStackVersion(stackId);
 
     return sch;
   }

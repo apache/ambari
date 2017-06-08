@@ -12,21 +12,6 @@
         "Clusters/health_report",
         "_"
     ],
-    "Service":[
-        "ServiceInfo/service_name",
-        "ServiceInfo/cluster_name",
-        "ServiceInfo/state",
-        "ServiceInfo/maintenance_state",
-        "ServiceInfo/credential_store_supported",
-        "ServiceInfo/credential_store_enabled",
-        "Services/description",
-        "Services/display_name",
-        "Services/attributes",
-        "params/run_smoke_test",
-        "params/reconfigure_client",
-        "params/start_dependencies",
-        "_"
-    ],
     "Host":[
         "Hosts/cluster_name",
         "Hosts/host_name",
@@ -53,27 +38,6 @@
         "Hosts/recovery_summary",
         "_"
     ],
-    "Component":[
-        "ServiceComponentInfo/service_name",
-        "ServiceComponentInfo/component_name",
-        "ServiceComponentInfo/cluster_name",
-        "ServiceComponentInfo/display_name",
-        "ServiceComponentInfo/state",
-        "ServiceComponentInfo/display_name",
-        "ServiceComponentInfo/description",
-        "ServiceComponentInfo/category",
-        "ServiceComponentInfo/total_count",
-        "ServiceComponentInfo/started_count",
-        "ServiceComponentInfo/installed_count",
-        "ServiceComponentInfo/install_failed_count",
-        "ServiceComponentInfo/init_count",
-        "ServiceComponentInfo/unknown_count",
-        "ServiceComponentInfo/recovery_enabled",
-        "ServiceComponentInfo/desired_version",
-        "ServiceComponentInfo/repository_state",
-        "params/run_smoke_test",
-        "_"
-    ],
     "HostComponent":[
         "HostRoles/role_id",
         "HostRoles/cluster_name",
@@ -83,14 +47,14 @@
         "HostRoles/display_name",
         "HostRoles/state",
         "HostRoles/desired_state",
-        "HostRoles/stack_id",
+        "HostRoles/version",
         "HostRoles/desired_stack_id",
+        "HostRoles/desired_repository_version",
         "HostRoles/actual_configs",
         "params/run_smoke_test",
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",
-        "HostRoles/hdp_version",
         "HostRoles/service_name",
         "HostRoles/upgrade_state",
         "_"
@@ -139,6 +103,7 @@
         "Requests/abort_reason",
         "Requests/remove_pending_host_requests",
         "Requests/pending_host_request_count",
+        "Requests/cluster_host_info",
         "_"
     ],
     "RequestSchedule" : [

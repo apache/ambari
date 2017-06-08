@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -198,14 +198,31 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   }
 
   /**
-   * Retrieves repository version when they are loaded by a version definition file
+   * Retrieves repository version when they are loaded by a version definition
+   * file. This will not return all repositories - it will only return those
+   * which have a non-NULL VDF.
    *
-   * @return a list of entities, or an empty list when there are none
+   * @return a list of repositories created by VDF, or an empty list when there
+   *         are none.
    */
   @RequiresSession
-  public List<RepositoryVersionEntity> findAllDefinitions() {
+  public List<RepositoryVersionEntity> findRepositoriesWithVersionDefinitions() {
     final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
         "repositoryVersionsFromDefinition", RepositoryVersionEntity.class);
     return daoUtils.selectList(query);
+  }
+
+
+  /**
+   * @param repositoryVersion
+   * @return
+   */
+  @RequiresSession
+  public RepositoryVersionEntity findByVersion(String repositoryVersion) {
+    TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery("repositoryVersionByVersion", RepositoryVersionEntity.class);
+
+    query.setParameter("version", repositoryVersion);
+
+    return daoUtils.selectOne(query);
   }
 }

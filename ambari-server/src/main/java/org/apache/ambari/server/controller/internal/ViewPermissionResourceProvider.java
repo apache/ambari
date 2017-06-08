@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.ViewPermissionResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -128,7 +129,8 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
         // do not report permissions for views that are not loaded.
         if (viewEntity.isDeployed()) {
-          resources.add(toResource(viewUsePermission, viewEntity.getResourceType(), viewEntity, requestedIds));
+          ViewPermissionResponse viewPermissionResponse = getResponse(viewUsePermission, viewEntity.getResourceType(), viewEntity);
+          resources.add(toResource(viewPermissionResponse, requestedIds));
         }
       }
     }
@@ -139,7 +141,8 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
       ViewEntity viewEntity = viewRegistry.getDefinition(resourceType);
 
       if (viewEntity != null && viewEntity.isDeployed()) {
-        resources.add(toResource(permissionEntity, resourceType, viewEntity, requestedIds));
+        ViewPermissionResponse viewPermissionResponse = getResponse(permissionEntity, resourceType, viewEntity);
+        resources.add(toResource(viewPermissionResponse, requestedIds));
       }
     }
 
@@ -174,18 +177,37 @@ public class ViewPermissionResourceProvider extends AbstractResourceProvider {
 
   // ----- helper methods ----------------------------------------------------
 
-  // convert the given permission entity to a resource
-  private Resource toResource(PermissionEntity entity, ResourceTypeEntity resourceType,
-                              ViewEntity viewEntity, Set<String> requestedIds) {
+  /**
+   * Returns response schema instance for REST endpoint /views/{viewName}/versions/{version}/permissions
+   * @param entity         permission entity {@link PermissionEntity}
+   * @param resourceType   resource type {@link ResourceTypeEntity}
+   * @param viewEntity     view entity {@link ViewEntity}
+   * @return {@link ViewPermissionResponse}
+   */
+  private ViewPermissionResponse getResponse(PermissionEntity entity, ResourceTypeEntity resourceType, ViewEntity viewEntity) {
+
+    String viewName = viewEntity.getCommonName();
+    String version = viewEntity.getVersion();
+    Integer permissionId = entity.getId();
+    String permissionName = entity.getPermissionName();
+    String resourceName = resourceType.getName();
+    ViewPermissionResponse.ViewPermissionInfo viewPermissionInfo  = new ViewPermissionResponse.ViewPermissionInfo(viewName,version,
+                                                                    permissionId, permissionName, resourceName);
+
+    return new ViewPermissionResponse(viewPermissionInfo);
+  }
+
+  // convert the response to a resource
+  private Resource toResource(ViewPermissionResponse viewPermissionResponse, Set<String> requestedIds) {
 
     Resource resource = new ResourceImpl(Resource.Type.ViewPermission);
+    ViewPermissionResponse.ViewPermissionInfo viewPermissionInfo  = viewPermissionResponse.getViewPermissionInfo();
+    setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewPermissionInfo.getViewName(), requestedIds);
+    setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewPermissionInfo.getVersion(), requestedIds);
 
-    setResourceProperty(resource, VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
-    setResourceProperty(resource, VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
-
-    setResourceProperty(resource, PERMISSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
-    setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, entity.getPermissionName(), requestedIds);
-    setResourceProperty(resource, RESOURCE_NAME_PROPERTY_ID, resourceType.getName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_ID_PROPERTY_ID, viewPermissionInfo.getPermissionId(), requestedIds);
+    setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, viewPermissionInfo.getPermissionName(), requestedIds);
+    setResourceProperty(resource, RESOURCE_NAME_PROPERTY_ID, viewPermissionInfo.getResourceName(), requestedIds);
 
     return resource;
   }

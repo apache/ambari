@@ -29,14 +29,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileBaseDescriptor;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public abstract class AbstractInputFile extends Input {
-  protected static final Logger LOG = Logger.getLogger(AbstractInputFile.class);
-
   private static final int DEFAULT_CHECKPOINT_INTERVAL_MS = 5 * 1000;
 
   protected File[] logFiles;
@@ -45,7 +45,6 @@ public abstract class AbstractInputFile extends Input {
   protected String base64FileKey;
 
   protected boolean isReady;
-  private boolean isStartFromBegining = true;
 
   private String checkPointExtension;
   private File checkPointFile;
@@ -73,19 +72,13 @@ public abstract class AbstractInputFile extends Input {
 
     // Let's close the file and set it to true after we start monitoring it
     setClosed(true);
-    logPath = getStringValue("path");
-    tail = getBooleanValue("tail", tail);
-    checkPointIntervalMS = getIntValue("checkpoint.interval.ms", DEFAULT_CHECKPOINT_INTERVAL_MS);
+    logPath = inputDescriptor.getPath();
+    tail = BooleanUtils.toBooleanDefaultIfNull(inputDescriptor.isTail(), tail);
+    checkPointIntervalMS = (int) ObjectUtils.defaultIfNull(((InputFileBaseDescriptor)inputDescriptor).getCheckpointIntervalMs(), DEFAULT_CHECKPOINT_INTERVAL_MS);
 
     if (StringUtils.isEmpty(logPath)) {
       LOG.error("path is empty for file input. " + getShortDescription());
       return;
-    }
-
-    String startPosition = getStringValue("start_position");
-    if (StringUtils.isEmpty(startPosition) || startPosition.equalsIgnoreCase("beginning") ||
-        startPosition.equalsIgnoreCase("begining") || !tail) {
-      isStartFromBegining = true;
     }
 
     setFilePath(logPath);
@@ -109,7 +102,7 @@ public abstract class AbstractInputFile extends Input {
       
       br = openLogFile(logPathFile);
 
-      boolean resume = isStartFromBegining;
+      boolean resume = true;
       int resumeFromLineNumber = getResumeFromLineNumber();
       if (resumeFromLineNumber > 0) {
         resume = false;
@@ -313,7 +306,7 @@ public abstract class AbstractInputFile extends Input {
 
   @Override
   public String getShortDescription() {
-    return "input:source=" + getStringValue("source") + ", path=" +
+    return "input:source=" + inputDescriptor.getSource() + ", path=" +
         (!ArrayUtils.isEmpty(logFiles) ? logFiles[0].getAbsolutePath() : logPath);
   }
 }

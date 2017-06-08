@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -380,6 +380,13 @@ public class AmbariMetaInfo {
     return foundDependency;
   }
 
+  /**
+   * Gets repositories that are keyed by operating system type.
+   * @param stackName the stack name
+   * @param version   the stack version
+   * @return
+   * @throws AmbariException
+   */
   public Map<String, List<RepositoryInfo>> getRepository(String stackName,
                                                          String version) throws AmbariException {
     StackInfo stack = getStack(stackName, version);
@@ -538,6 +545,18 @@ public class AmbariMetaInfo {
     return servicesInfoResult;
   }
 
+  /**
+   * Convenience method to use stack id instead of separate name and version.
+   * @param service
+   *            the service business object
+   * @return  the service info instance defined from the stack for the business object
+   * @throws AmbariException
+   */
+  public ServiceInfo getService(Service service) throws AmbariException {
+    StackId stackId = service.getDesiredStackId();
+    return getService(stackId.getStackName(), stackId.getStackVersion(), service.getName());
+  }
+
   public ServiceInfo getService(String stackName, String version, String serviceName) throws AmbariException {
     ServiceInfo service = getStack(stackName, version).getService(serviceName);
 
@@ -630,6 +649,17 @@ public class AmbariMetaInfo {
     }
 
     return stacks;
+  }
+
+  /**
+   * Convenience method to get stack info from a stack id
+   * @param stackId
+   *            the stack id
+   * @return  the stack info
+   * @throws AmbariException
+   */
+  public StackInfo getStack(StackId stackId) throws AmbariException {
+    return getStack(stackId.getStackName(), stackId.getStackVersion());
   }
 
   public StackInfo getStack(String stackName, String version) throws AmbariException {
@@ -934,6 +964,27 @@ public class AmbariMetaInfo {
     }
   }
 
+  public void createRepo(String stackName, String stackVersion, String osType, String repoId, String baseUrl, String mirrorsList) throws AmbariException {
+    if (!stackRoot.exists()) {
+      throw new StackAccessException("Create repo - Stack root does not exist.");
+    }
+
+    if (null != baseUrl) {
+      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, baseUrl, REPOSITORY_XML_PROPERTY_BASEURL);
+    } else if (null != mirrorsList) {
+      createRepoInMetaInfo(stackName, stackVersion, osType, repoId, mirrorsList, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
+    }
+  }
+
+  private void createRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, String repositoryXmlProperty) {
+    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
+        repoId, repositoryXmlProperty);
+    MetainfoEntity entity = new MetainfoEntity();
+    entity.setMetainfoName(metaKey);
+    entity.setMetainfoValue(value);
+    metaInfoDAO.create(entity);
+  }
+
   public File getStackRoot() {
     return stackRoot;
   }
@@ -1139,22 +1190,12 @@ public class AmbariMetaInfo {
     // for every cluster
     for (Cluster cluster : clusterMap.values()) {
       long clusterId = cluster.getClusterId();
-      StackId stackId = cluster.getDesiredStackVersion();
-      StackInfo stackInfo = getStack(stackId.getStackName(),
-          stackId.getStackVersion());
 
       // creating a mapping between names and service/component for fast lookups
-      Collection<ServiceInfo> stackServices = stackInfo.getServices();
+//      Collection<ServiceInfo> stackServices = new ArrayList<>();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<>();
       Map<String, ComponentInfo> stackComponentMap = new HashMap<>();
-      for (ServiceInfo stackService : stackServices) {
-        stackServiceMap.put(stackService.getName(), stackService);
 
-        List<ComponentInfo> components = stackService.getComponents();
-        for (ComponentInfo component : components) {
-          stackComponentMap.put(component.getName(), component);
-        }
-      }
 
       Map<String, Service> clusterServiceMap = cluster.getServices();
       Set<String> clusterServiceNames = clusterServiceMap.keySet();
@@ -1162,12 +1203,20 @@ public class AmbariMetaInfo {
       // for every service installed in that cluster, get the service metainfo
       // and off of that the alert definitions
       List<AlertDefinition> stackDefinitions = new ArrayList<>(50);
-      for (String clusterServiceName : clusterServiceNames) {
-        ServiceInfo stackService = stackServiceMap.get(clusterServiceName);
+
+      for (Service service : cluster.getServices().values()) {
+        ServiceInfo stackService = getService(service.getDesiredStackId().getStackName(),
+            service.getDesiredStackId().getStackVersion(), service.getName());
+
         if (null == stackService) {
           continue;
         }
 
+        stackServiceMap.put(stackService.getName(), stackService);
+        List<ComponentInfo> components = stackService.getComponents();
+        for (ComponentInfo component : components) {
+          stackComponentMap.put(component.getName(), component);
+        }
 
         // get all alerts defined on the stack for each cluster service
         Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
@@ -1269,6 +1318,8 @@ public class AmbariMetaInfo {
         if (Services.AMBARI.name().equals(serviceName)) {
           continue;
         }
+
+        StackId stackId = cluster.getService(serviceName).getDesiredStackId();
 
         if (!stackServiceMap.containsKey(serviceName)) {
           LOG.info(

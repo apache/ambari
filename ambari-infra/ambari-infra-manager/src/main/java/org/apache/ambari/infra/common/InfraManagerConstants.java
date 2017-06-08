@@ -25,5 +25,7 @@ public final class InfraManagerConstants {
   public static final String PROTOCOL_SSL = "https";
   public static final String ROOT_CONTEXT = "/";
   public static final String WEB_RESOURCE_FOLDER = "webapp";
+  public static final String DEFAULT_DATA_FOLDER_LOCATION = "/opt/ambari-infra-manager/data";
+  public static final String DATA_FOLDER_LOCATION_PARAM = "dataFolderLocation";
   public static final Integer SESSION_TIMEOUT = 60 * 30;
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -190,7 +190,7 @@ public class RecoveryConfigHelper {
       }
     }
     else if (event.getService() != null) {
-      /**
+      /*
        * Simply invalidate all the hosts in the cluster.
        * The recovery config will be sent to all the hosts
        * even if some of the hosts do not have components

@@ -50,8 +50,8 @@ import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.api.services.ViewExternalSubResourceService;
-import org.apache.ambari.server.api.services.ViewSubResourceService;
+import org.apache.ambari.server.api.services.views.ViewExternalSubResourceService;
+import org.apache.ambari.server.api.services.views.ViewSubResourceService;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -966,9 +966,14 @@ public class ViewRegistry {
     try {
       org.apache.ambari.server.state.Cluster cluster = clusters.getClusterById(clusterId);
       String clusterName = cluster.getClusterName();
-
-      StackId stackId = cluster.getCurrentStackVersion();
+      
+      Set<StackId> stackIds = new HashSet<>();
       Set<String> serviceNames = cluster.getServices().keySet();
+      
+      for (String serviceName : serviceNames) {
+        Service service = cluster.getService(serviceName);
+        stackIds.add(service.getDesiredStackId());
+      }
 
       for (ViewEntity viewEntity : getDefinitions()) {
 
@@ -980,13 +985,15 @@ public class ViewRegistry {
           roles.addAll(autoConfig.getRoles());
         }
 
-        try {
-          if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
-            installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
+        for (StackId stackId : stackIds) {
+          try {
+            if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
+              installAutoInstance(clusterId, clusterName, cluster.getService(event.getServiceName()), viewEntity, viewName, viewConfig, autoConfig, roles);
+            }
+          } catch (Exception e) {
+            LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
+              ".  Caught exception :" + e.getMessage(), e);
           }
-        } catch (Exception e) {
-          LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
-            ".  Caught exception :" + e.getMessage(), e);
         }
       }
     } catch (AmbariException e) {
@@ -1937,12 +1944,12 @@ public class ViewRegistry {
 
       String clusterName = cluster.getClusterName();
       Long clusterId = cluster.getClusterId();
-      StackId stackId = cluster.getCurrentStackVersion();
       Set<String> serviceNames = cluster.getServices().keySet();
 
       for (String service : services) {
         try {
-
+          Service svc = cluster.getService(service);
+          StackId stackId = svc.getDesiredStackId();
           if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
             installAutoInstance(clusterId, clusterName, cluster.getService(service), viewEntity, viewName, viewConfig, autoInstanceConfig, roles);
           }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,10 +19,12 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.TargetHostType;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 
@@ -41,6 +43,8 @@ public class ActionExecutionContext {
   private String expectedComponentName;
   private boolean hostsInMaintenanceModeExcluded = true;
   private boolean allowRetry = false;
+
+  private List<ExecutionCommandVisitor> m_visitors = new ArrayList<>();
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -168,6 +172,16 @@ public class ActionExecutionContext {
     this.autoSkipFailures = autoSkipFailures;
   }
 
+  /**
+   * Adds a command visitor that will be invoked after a command is created.  Provides access
+   * to the command.
+   *
+   * @param visitor the visitor
+   */
+  public void addVisitor(ExecutionCommandVisitor visitor) {
+    m_visitors.add(visitor);
+  }
+
   @Override
   public String toString() {
     return "ActionExecutionContext{" +
@@ -205,6 +219,27 @@ public class ActionExecutionContext {
    */
   public void setMaintenanceModeHostExcluded(boolean excluded) {
     hostsInMaintenanceModeExcluded = excluded;
+  }
+
+  /**
+   * Called as a way to post-process the command after it has been created and various objects
+   * have been set.
+   *
+   * @param command the command
+   */
+  public void visitAll(ExecutionCommand command) {
+    for (ExecutionCommandVisitor visitor : m_visitors) {
+      visitor.visit(command);
+    }
+  }
+
+  /**
+   * Interface that allows a final attempt to setting values on an {@link ExecutionCommand}
+   * @author ncole
+   *
+   */
+  public static interface ExecutionCommandVisitor {
+    public void visit(ExecutionCommand command);
   }
 
 }

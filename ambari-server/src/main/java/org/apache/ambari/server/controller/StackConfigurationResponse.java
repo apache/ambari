@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,6 +25,9 @@ import java.util.Set;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.ValueAttributesInfo;
+
+import io.swagger.annotations.ApiModelProperty;
+
 
 public class StackConfigurationResponse {
 
@@ -90,6 +93,7 @@ public class StackConfigurationResponse {
   private Boolean isRequired;
   private Set<PropertyType> propertyTypes;
 
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -98,6 +102,7 @@ public class StackConfigurationResponse {
     this.stackName = stackName;
   }
 
+  @ApiModelProperty(name = "stack_version")
   public String getStackVersion() {
     return stackVersion;
   }
@@ -106,6 +111,7 @@ public class StackConfigurationResponse {
     this.stackVersion = stackVersion;
   }
 
+  @ApiModelProperty(name = "service_name")
   public String getServiceName() {
     return serviceName;
   }
@@ -114,6 +120,7 @@ public class StackConfigurationResponse {
     this.serviceName = serviceName;
   }
 
+  @ApiModelProperty(name = "property_name")
   public String getPropertyName() {
     return propertyName;
   }
@@ -122,6 +129,7 @@ public class StackConfigurationResponse {
     this.propertyName = propertyName;
   }
 
+  @ApiModelProperty(name = "property_value")
   public String getPropertyValue() {
     return propertyValue;
   }
@@ -130,6 +138,7 @@ public class StackConfigurationResponse {
     this.propertyValue = propertyValue;
   }
 
+  @ApiModelProperty(name = "property_description")
   public String getPropertyDescription() {
     return propertyDescription;
   }
@@ -138,6 +147,7 @@ public class StackConfigurationResponse {
     this.propertyDescription = propertyDescription;
   }
 
+  @ApiModelProperty(name = "property_display_name")
   public String getPropertyDisplayName() {
     return propertyDisplayName;
   }
@@ -153,7 +163,8 @@ public class StackConfigurationResponse {
   public String getType() {
     return type;
   }
-  
+
+  @ApiModelProperty(name = "type")
   public void setType(String type) {
     this.type = type;
   }
@@ -163,6 +174,7 @@ public class StackConfigurationResponse {
    *
    * @return Map of attribute name to attribute value
    */
+  @ApiModelProperty(hidden = true)
   public Map<String, String> getPropertyAttributes() {
     return propertyAttributes;
   }
@@ -181,6 +193,7 @@ public class StackConfigurationResponse {
    *
    * @return value attributes
    */
+  @ApiModelProperty(name = "property_value_attributes")
   public ValueAttributesInfo getPropertyValueAttributes() {
     return propertyValueAttributes;
   }
@@ -199,6 +212,7 @@ public class StackConfigurationResponse {
    *
    * @return depends on properties set
    */
+  @ApiModelProperty(name = "dependencies")
   public Set<PropertyDependencyInfo> getDependsOnProperties() {
     return dependsOnProperties;
   }
@@ -216,6 +230,7 @@ public class StackConfigurationResponse {
    * Is property a isRequired property
    * @return True/False
    */
+  @ApiModelProperty(hidden = true)
   public Boolean isRequired() {
     return isRequired;
   }
@@ -232,11 +247,20 @@ public class StackConfigurationResponse {
    * Get type of property as set in the stack definition.
    * @return Property type.
    */
+  @ApiModelProperty(name = "property_type")
   public Set<PropertyType> getPropertyType() {
     return propertyTypes;
   }
 
   public void setPropertyType(Set<PropertyType> propertyTypes) {
     this.propertyTypes = propertyTypes;
+  }
+
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface StackConfigurationResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "StackConfigurations")
+    public StackConfigurationResponse getStackConfigurationResponse();
   }
 }

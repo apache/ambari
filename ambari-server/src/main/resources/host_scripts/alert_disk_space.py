@@ -36,18 +36,14 @@ MIN_FREE_SPACE_DEFAULT = 5000000000L
 PERCENT_USED_WARNING_DEFAULT = 50
 PERCENT_USED_CRITICAL_DEFAULT = 80
 
-# the location where HDP installs components when using HDP 2.2+
-STACK_HOME_DIR = "/usr/hdp"
-
-# the location where HDP installs components when using HDP 2.0 to 2.1
-STACK_HOME_LEGACY_DIR = "/usr/lib"
+STACK_ROOT = '{{cluster-env/stack_root}}'
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return None
+  return (STACK_ROOT, )
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -65,15 +61,13 @@ def execute(configurations={}, parameters={}, host_name=None):
   host_name (string): the name of this host where the alert is running
   """
 
-  # determine the location of HDP home
-  stack_home = None
-  if os.path.isdir(STACK_HOME_DIR):
-    stack_home = STACK_HOME_DIR
-  elif os.path.isdir(STACK_HOME_LEGACY_DIR):
-    stack_home = STACK_HOME_LEGACY_DIR
+  if configurations is None:
+    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
 
-  # if stack home was found, use it; otherwise default to None
-  path = stack_home if stack_home is not None else None
+  if not STACK_ROOT in configurations:
+    return (('STACK_ROOT', ['cluster-env/stack_root is not specified']))
+
+  path = configurations[STACK_ROOT]
 
   try:
     disk_usage = _get_disk_usage(path)

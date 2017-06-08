@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -268,7 +269,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
     Capture<Map<String, Map<String, String>>> attributesCapture = newCapture();
 
 
-    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+    expect(controller.createConfig(capture(clusterCapture), anyObject(StackId.class),capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
         .andReturn(createNiceMock(Config.class))
         .once();
@@ -382,7 +383,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
   // *********** Inner Classes that represent sections of the DDL ***********
   // ************************************************************************
 
-  /**
+  /*
    * Example *SectionDDL class
    */
   /*

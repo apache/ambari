@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -72,6 +72,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
@@ -167,9 +168,10 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType, String repoVersion) {
     Stack stack = topology.getBlueprint().getStack();
+    StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType, repoVersion);
-    createAmbariServiceAndComponentResources(topology, clusterName);
+    createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion);
   }
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType, String repoVersion) {
@@ -196,7 +198,8 @@ public class AmbariContext {
     }
   }
 
-  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName) {
+  public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
+      StackId stackId, String repositoryVersion) {
     Collection<String> services = topology.getBlueprint().getServices();
 
     try {
@@ -209,7 +212,9 @@ public class AmbariContext {
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
     for (String service : services) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, null, credentialStoreEnabled));
+      serviceRequests.add(new ServiceRequest(clusterName, service, stackId.getStackId(),
+          repositoryVersion, null, credentialStoreEnabled));
+
       for (String component : topology.getBlueprint().getComponents(service)) {
         String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
         componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null, recoveryEnabled));
@@ -264,7 +269,7 @@ public class AmbariContext {
 
     Map<String, Object> properties = new HashMap<>();
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, clusterName);
-    properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, hostName);
+    properties.put(HostResourceProvider.HOST_HOST_NAME_PROPERTY_ID, hostName);
     properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, host.getRackInfo());
 
     try {

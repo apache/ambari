@@ -105,6 +105,9 @@
               <td>
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges track by $index">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
+              <td>
+                <i class="fa fa-trash-o" aria-hidden="true" ng-click="removePrivilege(name, privilege);"></i>
+              </td>
             </tr>
             <tr>
               <td ng-show="noViewPriv">{{'common.alerts.noPrivileges' | translate: '{term: constants.view}'}}</td>

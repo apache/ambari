@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,11 +22,10 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -41,7 +40,7 @@ import com.google.inject.persist.Transactional;
  * The {@link org.apache.ambari.server.orm.dao.HostVersionDAO} class manages the {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
  * instances associated with a host. Each host can have multiple stack versions in {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLED}
  * which are installed, exactly one stack version that is either {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT} or
- * {@link org.apache.ambari.server.state.RepositoryVersionState#UPGRADING}.
+ * {@link org.apache.ambari.server.state.RepositoryVersionState#INSTALLING}.
  */
 @Singleton
 public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
@@ -132,7 +131,6 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
 
   /**
    * Retrieve all of the host versions for the given cluster name, host name, and state. <br/>
-   * Consider using faster method: {@link HostVersionDAO#findByClusterHostAndState(long, long, org.apache.ambari.server.state.RepositoryVersionState)}
    * @param clusterName Cluster name
    * @param hostName FQDN of host
    * @param state repository version state
@@ -150,82 +148,9 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
-   * Faster version of {@link HostVersionDAO#findByClusterHostAndState(java.lang.String, java.lang.String, org.apache.ambari.server.state.RepositoryVersionState)}
-   *
-   * @param clusterId Cluster ID
-   * @param hostId Host ID
-   * @param state repository version state
-   * @return Return all of the host versions that match the criteria.
-   */
-  @RequiresSession
-  public List<HostVersionEntity> findByClusterHostAndState(long clusterId, long hostId, RepositoryVersionState state) {
-    TypedQuery<HostVersionEntity> query =
-        entityManagerProvider.get().createNamedQuery("hostVersionByClusterHostIdAndState", HostVersionEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("hostId", hostId);
-    query.setParameter("state", state);
-
-    return daoUtils.selectList(query);
-  }
-
-  /**
-   * Retrieve the single host version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
-   * for the given host.
-   * Consider using faster method {@link HostVersionDAO#findByHostAndStateCurrent(long, long)}
-   *
-   * @param clusterName Cluster name
-   * @param hostName Host name
-   * @return Returns the single host version for this host whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, or {@code null} otherwise.
-   */
-  @RequiresSession
-  public HostVersionEntity findByHostAndStateCurrent(String clusterName, String hostName) {
-    try {
-      List<?> results = findByClusterHostAndState(clusterName, hostName, RepositoryVersionState.CURRENT);
-      if (results.isEmpty()) {
-        return null;
-      } else {
-        if (results.size() == 1) {
-          return (HostVersionEntity) results.get(0);
-        }
-      }
-      throw new NonUniqueResultException();
-    } catch (NoResultException ignored) {
-      return null;
-    }
-  }
-
-  /**
-   * Retrieve the single host version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, of which there should be exactly one at all times
-   * for the given host.
-   * Faster version of {@link HostVersionDAO#findByHostAndStateCurrent(java.lang.String, java.lang.String)}
-   * @param clusterId Cluster ID
-   * @param hostId host ID
-   * @return Returns the single host version for this host whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}, or {@code null} otherwise.
-   */
-  @RequiresSession
-  public HostVersionEntity findByHostAndStateCurrent(long clusterId, long hostId) {
-    try {
-      List<?> results = findByClusterHostAndState(clusterId, hostId, RepositoryVersionState.CURRENT);
-      if (results.isEmpty()) {
-        return null;
-      } else {
-        if (results.size() == 1) {
-          return (HostVersionEntity) results.get(0);
-        }
-      }
-      throw new NonUniqueResultException();
-    } catch (NoResultException ignored) {
-      return null;
-    }
-  }
-
-  /**
    * Retrieve the single host version for the given cluster, stack name, stack
    * version, and host name. <br/>
-   * This query is slow and not suitable for frequent use. <br/>
-   * Please, use {@link HostVersionDAO#findByClusterStackVersionAndHost(long, org.apache.ambari.server.state.StackId, java.lang.String, long)} <br/>
-   * It is ~50 times faster
+   * This query is slow and not suitable for frequent use.
    *
    * @param clusterName
    *          Cluster name
@@ -253,63 +178,73 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
-   * Optimized version of {@link HostVersionDAO#findByClusterStackVersionAndHost(java.lang.String, org.apache.ambari.server.state.StackId, java.lang.String, java.lang.String)}
-   * @param clusterId Id of cluster
-   * @param stackId Stack ID (e.g., HDP-2.2)
-   * @param version Stack version (e.g., 2.2.0.1-995)
-   * @param hostId Host Id
-   * @return Returns the single host version that matches the criteria.
+   * Gets all host version entities assocaited with the specified cluster and
+   * repository.
+   *
+   * @param clusterId
+   *          the cluster ID.
+   * @param repositoryVersion
+   *          the repository (not {@code null}).
+   * @return the host versions.
    */
   @RequiresSession
-  public HostVersionEntity findByClusterStackVersionAndHost(long clusterId, StackId stackId, String version,
-                                                            long hostId) {
-    TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
-        .createNamedQuery("hostVersionByClusterStackVersionAndHostId", HostVersionEntity.class);
+  public List<HostVersionEntity> findHostVersionByClusterAndRepository(long clusterId,
+      RepositoryVersionEntity repositoryVersion) {
+    TypedQuery<HostVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "findHostVersionByClusterAndRepository", HostVersionEntity.class);
 
     query.setParameter("clusterId", clusterId);
-    query.setParameter("stackName", stackId.getStackName());
-    query.setParameter("stackVersion", stackId.getStackVersion());
-    query.setParameter("version", version);
-    query.setParameter("hostId", hostId);
+    query.setParameter("repositoryVersion", repositoryVersion);
 
-    return daoUtils.selectSingle(query);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets all host version entities that are of the given states
+   *
+   * @param repositoryVersion
+   *          the repository (not {@code null})
+   * @param states
+   *          the states
+   * @return the host versions
+   */
+  @RequiresSession
+  public List<HostVersionEntity> findByRepositoryAndStates(RepositoryVersionEntity repositoryVersion,
+      Collection<RepositoryVersionState> states) {
+
+    TypedQuery<HostVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "hostVersionByRepositoryAndStates", HostVersionEntity.class);
+
+    query.setParameter("repositoryVersion", repositoryVersion);
+    query.setParameter("states", states);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the {@link HostVersionEntity} associted with the specified host and
+   * repository.
+   *
+   * @param host
+   * @param repositoryVersion
+   * @return
+   */
+  @RequiresSession
+  public HostVersionEntity findHostVersionByHostAndRepository(HostEntity host,
+      RepositoryVersionEntity repositoryVersion) {
+    TypedQuery<HostVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "findByHostAndRepository", HostVersionEntity.class);
+
+    query.setParameter("host", host);
+    query.setParameter("repositoryVersion", repositoryVersion);
+
+    return daoUtils.selectOne(query);
   }
 
   @Transactional
   public void removeByHostName(String hostName) {
-    Collection<HostVersionEntity> hostVersions = this.findByHost(hostName);
+    Collection<HostVersionEntity> hostVersions = findByHost(hostName);
     this.remove(hostVersions);
-  }
-
-  /**
-   * Updates the host versions existing CURRENT record to the INSTALLED, and the target
-   * becomes CURRENT.  This method invokes {@code clear()} on the entity manager to force entities to be refreshed.
-   * @param target    the repo version that all hosts to mark as CURRENT
-   * @param current   the repo version that all hosts marked as INSTALLED
-   */
-  @Transactional
-  public void updateVersions(RepositoryVersionEntity target, RepositoryVersionEntity current) {
-    // !!! first update target to be current
-    StringBuilder sb = new StringBuilder("UPDATE HostVersionEntity hve");
-    sb.append(" SET hve.state = ?1 ");
-    sb.append(" WHERE hve.repositoryVersion = ?2");
-
-    EntityManager em = entityManagerProvider.get();
-
-    TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
-    daoUtils.executeUpdate(query, RepositoryVersionState.CURRENT, target);
-
-    // !!! then move existing current to installed
-    sb = new StringBuilder("UPDATE HostVersionEntity hve");
-    sb.append(" SET hve.state = ?1 ");
-    sb.append(" WHERE hve.repositoryVersion = ?2");
-    sb.append(" AND hve.state = ?3");
-
-    query = em.createQuery(sb.toString(), Long.class);
-    daoUtils.executeUpdate(query, RepositoryVersionState.INSTALLED, current,
-        RepositoryVersionState.CURRENT);
-
-    em.clear();
   }
 
 }

@@ -1451,13 +1451,25 @@ public class Configuration {
    * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
 
 
-  @Markdown(description = "The number of times failed kerberos operations should be retried to execute.")
+  @Markdown(description = "The number of times failed Kerberos operations should be retried to execute.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
-  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  @Markdown(description = "The time to wait (in seconds) between failed Kerberos operations retries.")
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
       "kerberos.operation.retry.timeout", 10);
+
+  /**
+   * A flag indicating whether to validate the trust of an SSL certificate provided by a KDC when
+   * performing Kerberos operations.
+   *
+   * For example, when communicating with an Active Directory using
+   * LDAPS. The default behavior is to validate the trust.
+   */
+  @Markdown(description = "Validate the trust of the SSL certificate provided by the KDC when performing Kerberos operations over SSL.")
+  public static final ConfigurationProperty<Boolean> KERBEROS_OPERATION_VERIFY_KDC_TRUST = new ConfigurationProperty<>(
+      "kerberos.operation.verify.kdc.trust", Boolean.TRUE);
+
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -1739,6 +1751,13 @@ public class Configuration {
   @Markdown(description = "The number of concurrent database connections that the Quartz job scheduler can use.")
   public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_CONNECTIONS = new ConfigurationProperty<>(
       "server.execution.scheduler.maxDbConnections", "5");
+
+  /**
+   * The maximum number of prepared statements cached per database connection.
+   */
+  @Markdown(description = "The maximum number of prepared statements cached per database connection.")
+  public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION = new ConfigurationProperty<>(
+      "server.execution.scheduler.maxStatementsPerConnection", "120");
 
   /**
    * The tolerance, in {@link TimeUnit#MINUTES}, that Quartz will allow a misfired job to run.
@@ -2701,6 +2720,14 @@ public class Configuration {
   @Markdown(description = "The Ephemeral TLS Diffie-Hellman (DH) key size. Supported from Java 8.")
   public static final ConfigurationProperty<Integer> TLS_EPHEMERAL_DH_KEY_SIZE = new ConfigurationProperty<>(
     "security.server.tls.ephemeral_dh_key_size", 2048);
+
+  /**
+   * The directory for scripts which are used by the alert notification dispatcher.
+   */
+  @Markdown(description = "The directory for scripts which are used by the alert notification dispatcher.")
+  public static final ConfigurationProperty<String> DISPATCH_PROPERTY_SCRIPT_DIRECTORY = new ConfigurationProperty<>(
+          "notification.dispatch.alert.script.directory",AmbariPath.getPath("/var/lib/ambari-server/resources/scripts"));
+
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -4554,6 +4581,10 @@ public class Configuration {
     return getProperty(EXECUTION_SCHEDULER_CONNECTIONS);
   }
 
+  public String getExecutionSchedulerMaxStatementsPerConnection() {
+    return getProperty(EXECUTION_SCHEDULER_MAX_STATEMENTS_PER_CONNECTION);
+  }
+
   public Long getExecutionSchedulerMisfireToleration() {
     return Long.parseLong(getProperty(EXECUTION_SCHEDULER_MISFIRE_TOLERATION));
   }
@@ -5564,6 +5595,15 @@ public class Configuration {
   }
 
   /**
+   * Gets the dispatch script directory.
+   *
+   * @return the dispatch script directory
+   */
+  public String getDispatchScriptDirectory() {
+    return getProperty(DISPATCH_PROPERTY_SCRIPT_DIRECTORY);
+  }
+
+  /**
    * Generates a markdown table which includes:
    * <ul>
    * <li>Property key name</li>
@@ -6067,6 +6107,10 @@ public class Configuration {
 
   public int getKerberosOperationRetryTimeout() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+  }
+
+  public boolean validateKerberosOperationSSLCertTrust() {
+    return Boolean.parseBoolean(getProperty(KERBEROS_OPERATION_VERIFY_KDC_TRUST));
   }
 
   /**

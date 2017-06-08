@@ -46,9 +46,9 @@ import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditServiceLoadRequest;
-import org.apache.ambari.logsearch.model.request.impl.FieldAuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.TopFieldAuditLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.UserExportRequest;
+import org.apache.ambari.logsearch.model.response.AuditLogData;
 import org.apache.ambari.logsearch.model.response.AuditLogResponse;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
 import org.apache.ambari.logsearch.model.response.GroupListResponse;
@@ -74,7 +74,7 @@ import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.A
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.CLUSTER;
 
 @Named
-public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResponse> {
+public class AuditLogsManager extends ManagerBase<AuditLogData, AuditLogResponse> {
   private static final Logger logger = Logger.getLogger(AuditLogsManager.class);
 
   private static final String AUDIT_LOG_TEMPLATE = "audit_log_txt.ftl";
@@ -208,8 +208,11 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   }
 
   @Override
-  protected List<SolrAuditLogData> convertToSolrBeans(QueryResponse response) {
-    return response.getBeans(SolrAuditLogData.class);
+  protected List<AuditLogData> convertToSolrBeans(QueryResponse response) {
+    List<SolrAuditLogData> solrAuditLogData = response.getBeans(SolrAuditLogData.class);
+    List<AuditLogData> auditLogData = new ArrayList<>();
+    auditLogData.addAll( solrAuditLogData );
+    return auditLogData;
   }
 
   @Override

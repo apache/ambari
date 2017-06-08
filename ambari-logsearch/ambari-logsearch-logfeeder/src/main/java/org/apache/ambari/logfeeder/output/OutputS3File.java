@@ -19,9 +19,6 @@
 package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.apache.ambari.logfeeder.common.ConfigHandler;
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.InputMarker;
@@ -31,11 +28,18 @@ import org.apache.ambari.logfeeder.output.spool.RolloverCondition;
 import org.apache.ambari.logfeeder.output.spool.RolloverHandler;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.S3Util;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.FilterDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputS3FileDescriptor;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputDescriptorImpl;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputS3FileDescriptorImpl;
 import org.apache.log4j.Logger;
 
 import java.io.File;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -50,7 +54,6 @@ import java.util.Map.Entry;
 public class OutputS3File extends Output implements RolloverCondition, RolloverHandler {
   private static final Logger LOG = Logger.getLogger(OutputS3File.class);
 
-  public static final String INPUT_ATTRIBUTE_TYPE = "type";
   public static final String GLOBAL_CONFIG_S3_PATH_SUFFIX = "global.config.json";
 
   private LogSpooler logSpooler;
@@ -72,9 +75,9 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
    */
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) {
-    String type = inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE);
+    String type = inputMarker.input.getInputDescriptor().getType();
     S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, false, type);
-    String resolvedPath = s3Uploader.uploadFile(inputFile, inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE));
+    String resolvedPath = s3Uploader.uploadFile(inputFile, inputMarker.input.getInputDescriptor().getType());
 
     uploadConfig(inputMarker, type, s3OutputConfiguration, resolvedPath);
   }
@@ -82,43 +85,43 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   private void uploadConfig(InputMarker inputMarker, String type, S3OutputConfiguration s3OutputConfiguration,
       String resolvedPath) {
 
-    ArrayList<Map<String, Object>> filters = new ArrayList<>();
+    ArrayList<FilterDescriptor> filters = new ArrayList<>();
     addFilters(filters, inputMarker.input.getFirstFilter());
-    Map<String, Object> inputConfig = new HashMap<>();
-    inputConfig.putAll(inputMarker.input.getConfigs());
+    InputS3FileDescriptor inputS3FileDescriptorOriginal = (InputS3FileDescriptor) inputMarker.input.getInputDescriptor();
+    InputS3FileDescriptorImpl inputS3FileDescriptor = InputConfigGson.gson.fromJson(
+        InputConfigGson.gson.toJson(inputS3FileDescriptorOriginal), InputS3FileDescriptorImpl.class);
     String s3CompletePath = LogFeederConstants.S3_PATH_START_WITH + s3OutputConfiguration.getS3BucketName() +
         LogFeederConstants.S3_PATH_SEPARATOR + resolvedPath;
-    inputConfig.put("path", s3CompletePath);
+    inputS3FileDescriptor.setPath(s3CompletePath);
 
-    ArrayList<Map<String, Object>> inputConfigList = new ArrayList<>();
-    inputConfigList.add(inputConfig);
+    ArrayList<InputDescriptorImpl> inputConfigList = new ArrayList<>();
+    inputConfigList.add(inputS3FileDescriptor);
     // set source s3_file
-    // remove global config from filter config
-    removeGlobalConfig(inputConfigList);
-    removeGlobalConfig(filters);
+    // remove global config from input config
+    removeS3GlobalConfig(inputS3FileDescriptor);
     // write config into s3 file
-    Map<String, Object> config = new HashMap<>();
-    config.put("filter", filters);
-    config.put("input", inputConfigList);
-    writeConfigToS3(config, getComponentConfigFileName(type), s3OutputConfiguration);
+    InputConfigImpl inputConfig = new InputConfigImpl();
+    inputConfig.setInput(inputConfigList);
+    
+    writeConfigToS3(inputConfig, getComponentConfigFileName(type), s3OutputConfiguration);
     // write global config
     writeGlobalConfig(s3OutputConfiguration);
   }
 
-  private void addFilters(ArrayList<Map<String, Object>> filters, Filter filter) {
+  private void addFilters(ArrayList<FilterDescriptor> filters, Filter filter) {
     if (filter != null) {
-      Map<String, Object> filterConfig = new HashMap<String, Object>();
-      filterConfig.putAll(filter.getConfigs());
-      filters.add(filterConfig);
+      FilterDescriptor filterDescriptorOriginal = filter.getFilterDescriptor();
+      FilterDescriptor filterDescriptor = InputConfigGson.gson.fromJson(
+          InputConfigGson.gson.toJson(filterDescriptorOriginal), filterDescriptorOriginal.getClass());
+      filters.add(filterDescriptor);
       if (filter.getNextFilter() != null) {
         addFilters(filters, filter.getNextFilter());
       }
     }
   }
 
-  private void writeConfigToS3(Map<String, Object> configToWrite, String s3KeySuffix, S3OutputConfiguration s3OutputConfiguration) {
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    String configJson = gson.toJson(configToWrite);
+  private void writeConfigToS3(Object config, String s3KeySuffix, S3OutputConfiguration s3OutputConfiguration) {
+    String configJson = InputConfigGson.gson.toJson(config);
 
     String s3ResolvedKey = new S3LogPathResolver().getResolvedPath(getStringValue("s3_config_dir"), s3KeySuffix,
         s3OutputConfiguration.getCluster());
@@ -131,31 +134,14 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
     return "input.config-" + componentName + ".json";
   }
 
-
-  private Map<String, Object> getGlobalConfig() {
-    Map<String, Object> globalConfig = ConfigHandler.globalConfigs;
-    if (globalConfig == null) {
-      globalConfig = new HashMap<>();
-    }
-    return globalConfig;
-  }
-
-  private void removeGlobalConfig(List<Map<String, Object>> configList) {
-    Map<String, Object> globalConfig = getGlobalConfig();
-    if (configList != null && globalConfig != null) {
-      for (Entry<String, Object> globalConfigEntry : globalConfig.entrySet()) {
-        if (globalConfigEntry != null) {
-          String globalKey = globalConfigEntry.getKey();
-          if (globalKey != null && !globalKey.trim().isEmpty()) {
-            for (Map<String, Object> config : configList) {
-              if (config != null) {
-                config.remove(globalKey);
-              }
-            }
-          }
-        }
-      }
-    }
+  private void removeS3GlobalConfig(InputS3FileDescriptorImpl inputS3FileDescriptor) {
+    inputS3FileDescriptor.setSource(null);
+    inputS3FileDescriptor.setCopyFile(null);
+    inputS3FileDescriptor.setProcessFile(null);
+    inputS3FileDescriptor.setTail(null);
+    inputS3FileDescriptor.getAddFields().remove("ip");
+    inputS3FileDescriptor.getAddFields().remove("host");
+    inputS3FileDescriptor.getAddFields().remove("bundle_id");
   }
 
   /**
@@ -164,7 +150,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   @SuppressWarnings("unchecked")
   private synchronized void writeGlobalConfig(S3OutputConfiguration s3OutputConfiguration) {
     if (!uploadedGlobalConfig) {
-      Map<String, Object> globalConfig = LogFeederUtil.cloneObject(getGlobalConfig());
+      Map<String, Object> globalConfig = new HashMap<>();
       //updating global config before write to s3
       globalConfig.put("source", "s3_file");
       globalConfig.put("copy_file", false);
@@ -205,7 +191,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   public void write(String block, InputMarker inputMarker) throws Exception {
     if (logSpooler == null) {
       logSpooler = createSpooler(inputMarker.input.getFilePath());
-      s3Uploader = createUploader(inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE));
+      s3Uploader = createUploader(inputMarker.input.getInputDescriptor().getType());
     }
     logSpooler.add(block);
   }

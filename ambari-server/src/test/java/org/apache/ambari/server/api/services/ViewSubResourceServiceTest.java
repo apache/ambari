@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -43,6 +43,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.api.services.views.ViewSubResourceService;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;

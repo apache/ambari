@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
@@ -73,6 +74,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -82,6 +84,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
@@ -109,6 +112,7 @@ public class UpgradeCatalog210Test {
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
+  private String desiredRepositoryVersion = "2.2.0-1234";
 
   public void initData() {
     //reset(entityManagerProvider);
@@ -513,7 +517,7 @@ public class UpgradeCatalog210Test {
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
     expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
-    expect(mockAmbariManagementController.createConfig((Cluster)anyObject(),
+    expect(mockAmbariManagementController.createConfig((Cluster)anyObject(), anyObject(StackId.class),
       anyString(),
       capture(configCreation),
       anyString(),
@@ -597,7 +601,7 @@ public class UpgradeCatalog210Test {
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
     expect(mockHivePluginProperies.getProperties()).andReturn(propertiesExpectedPluginProperies).anyTimes();
     expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
-    expect(mockAmbariManagementController.createConfig((Cluster) anyObject(),
+    expect(mockAmbariManagementController.createConfig((Cluster) anyObject(), anyObject(StackId.class),
         anyString(),
         capture(configCreation),
         anyString(),
@@ -804,10 +808,18 @@ public class UpgradeCatalog210Test {
   @Test
   public void testDeleteStormRestApiServiceComponent() throws Exception {
     initData();
+
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
-      "c1", desiredStackEntity);
+        "c1", desiredStackEntity, desiredRepositoryVersion);
+
+    OrmTestHelper helper = injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
+        new StackId(desiredStackEntity.getStackName(), desiredStackEntity.getStackVersion()),
+        desiredRepositoryVersion);
+
     ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
         injector, clusterEntity, "STORM");
+
     HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, "h1");
 
@@ -827,7 +839,7 @@ public class UpgradeCatalog210Test {
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName("STORM_REST_API");
-    componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
+    componentDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersion);
 
     ServiceComponentDesiredStateDAO componentDesiredStateDAO =
       injector.getInstance(ServiceComponentDesiredStateDAO.class);
@@ -845,7 +857,6 @@ public class UpgradeCatalog210Test {
     hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
-    hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 

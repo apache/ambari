@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,7 +19,6 @@ package org.apache.ambari.server.events.listeners.upgrade;
 
 import java.util.List;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.bootstrap.DistributeRepositoriesStructuredOutput;
@@ -29,11 +28,11 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,10 +117,11 @@ public class DistributeRepositoriesActionListener {
 
         // Handle the case in which the version to install did not contain the build number,
         // but the structured output does contain the build number.
-        if (null != structuredOutput.getActualVersion() && !structuredOutput.getActualVersion().isEmpty() &&
-            null != structuredOutput.getInstalledRepositoryVersion() && !structuredOutput.getInstalledRepositoryVersion().isEmpty() &&
-            null != structuredOutput.getStackId() && !structuredOutput.getStackId().isEmpty() &&
-            !structuredOutput.getActualVersion().equals(structuredOutput.getInstalledRepositoryVersion())) {
+        if (!StringUtils.isEmpty(structuredOutput.getActualVersion())
+            && !StringUtils.isEmpty(structuredOutput.getInstalledRepositoryVersion())
+            && !StringUtils.isEmpty(structuredOutput.getStackId())
+            && !StringUtils.equals(structuredOutput.getActualVersion(),
+                structuredOutput.getInstalledRepositoryVersion())) {
 
           // !!! getInstalledRepositoryVersion() from the agent is the one
           // entered in the UI.  getActualVersion() is computed.
@@ -176,13 +176,6 @@ public class DistributeRepositoriesActionListener {
       if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
         hostVersion.setState(newHostState);
         hostVersionDAO.get().merge(hostVersion);
-        // Update state of a cluster stack version
-        try {
-          Cluster cluster = clusters.get().getClusterById(clusterId);
-          cluster.recalculateClusterVersionState(hostVersion.getRepositoryVersion());
-        } catch (AmbariException e) {
-          LOG.error("Cannot get cluster with Id " + clusterId.toString() + " to recalculate its ClusterVersion.", e);
-        }
       }
     }
   }

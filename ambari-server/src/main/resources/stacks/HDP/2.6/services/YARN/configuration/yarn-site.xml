@@ -102,12 +102,13 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.nodemanager.admin-env</name>
-    <value>MALLOC_ARENA_MAX=$MALLOC_ARENA_MAX,PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:$PATH</value>
-    <description>
-      Environment variables that should be forwarded from the NodeManager's
-      environment to the container's.
-    </description>
+    <name>yarn.nodemanager.kill-escape.launch-command-line</name>
+    <value>slider-agent,LLAP</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.kill-escape.user</name>
+    <value>hive</value>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

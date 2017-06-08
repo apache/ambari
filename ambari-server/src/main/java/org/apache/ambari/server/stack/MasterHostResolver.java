@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,13 +30,16 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.StageUtils;
@@ -51,9 +54,9 @@ public class MasterHostResolver {
 
   private static Logger LOG = LoggerFactory.getLogger(MasterHostResolver.class);
 
-  private Cluster m_cluster;
-  private String m_version;
-  private ConfigHelper m_configHelper;
+  private final UpgradeContext m_upgradeContext;
+  private final Cluster m_cluster;
+  private final ConfigHelper m_configHelper;
 
   public enum Service {
     HDFS,
@@ -71,29 +74,17 @@ public class MasterHostResolver {
   }
 
   /**
-   * Create a resolver that does not consider HostComponents' version when
-   * resolving hosts.  Common use case is creating an upgrade that should
-   * include an entire cluster.
-   * @param configHelper Configuration Helper
-   * @param cluster the cluster
+   * Constructor.
+   *
+   * @param configHelper
+   *          Configuration Helper
+   * @param upgradeContext
+   *          the upgrade context
    */
-  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster) {
-    this(configHelper, cluster, null);
-  }
-
-  /**
-   * Create a resolver that compares HostComponents' version when calculating
-   * hosts for the stage.  Common use case is for downgrades when only some
-   * HostComponents need to be downgraded, and HostComponents already at the
-   * correct version are skipped.
-   * @param configHelper Configuration Helper
-   * @param cluster the cluster
-   * @param version the version, or {@code null} to not compare versions
-   */
-  public MasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
+  public MasterHostResolver(Cluster cluster, ConfigHelper configHelper, UpgradeContext upgradeContext) {
     m_configHelper = configHelper;
+    m_upgradeContext = upgradeContext;
     m_cluster = cluster;
-    m_version = version;
   }
 
   /**
@@ -216,10 +207,29 @@ public class MasterHostResolver {
         // possible
         if (maintenanceState != MaintenanceState.OFF) {
           unhealthyHosts.add(sch);
-        } else if (null == m_version || null == sch.getVersion() ||
-            !sch.getVersion().equals(m_version) ||
-            sch.getUpgradeState() == UpgradeState.FAILED) {
+          continue;
+        }
+
+        if (sch.getUpgradeState() == UpgradeState.FAILED) {
           upgradeHosts.add(hostName);
+          continue;
+        }
+
+        if(m_upgradeContext.getDirection() == Direction.UPGRADE){
+          RepositoryVersionEntity targetRepositoryVersion = m_upgradeContext.getRepositoryVersion();
+          if (!StringUtils.equals(targetRepositoryVersion.getVersion(), sch.getVersion())) {
+            upgradeHosts.add(hostName);
+          }
+
+          continue;
+        }
+
+        // it's a downgrade ...
+        RepositoryVersionEntity downgradeToRepositoryVersion = m_upgradeContext.getTargetRepositoryVersion(service);
+        String downgradeToVersion = downgradeToRepositoryVersion.getVersion();
+        if (!StringUtils.equals(downgradeToVersion, sch.getVersion())) {
+          upgradeHosts.add(hostName);
+          continue;
         }
       }
 

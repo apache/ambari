@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -47,6 +47,9 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
@@ -83,6 +86,11 @@ public class JMXHostProviderTest {
   private static final String MAPREDUCE_HTTPS_POLICY = "mapreduce.jobhistory.http.policy";
   private static final String MAPREDUCE_HTTPS_PORT = "mapreduce.jobhistory.webapp.https.address";
 
+  private final String STACK_VERSION = "2.0.6";
+  private final String REPO_VERSION = "2.0.6-1234";
+  private final StackId STACK_ID = new StackId("HDP", STACK_VERSION);
+  private RepositoryVersionEntity m_repositoryVersion;
+
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -90,6 +98,10 @@ public class JMXHostProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
+    OrmTestHelper ormTestHelper = injector.getInstance(OrmTestHelper.class);
+
+    m_repositoryVersion = ormTestHelper.getOrCreateRepositoryVersion(STACK_ID, REPO_VERSION);
+    Assert.assertNotNull(m_repositoryVersion);
 
     // Set the authenticated user
     // TODO: remove this or replace the authenticated user to test authorization rules
@@ -104,17 +116,22 @@ public class JMXHostProviderTest {
     SecurityContextHolder.getContext().setAuthentication(null);
   }
 
-  private void createService(String clusterName,
-                             String serviceName, State desiredState)
+  private void createService(String clusterName, String serviceName, State desiredState)
       throws AmbariException, AuthorizationException {
     String dStateStr = null;
+
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
+
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, STACK_ID.getStackId(),
+        REPO_VERSION, dStateStr);
+
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);
-    ServiceResourceProviderTest.createServices(controller, requests);
+
+    ServiceResourceProviderTest.createServices(controller,
+        injector.getInstance(RepositoryVersionDAO.class), requests);
   }
 
   private void createServiceComponent(String clusterName,
@@ -640,14 +657,15 @@ public class JMXHostProviderTest {
 
     Injector injector = createNiceMock(Injector.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
+
     {
       expect(injector.getInstance(Clusters.class)).andReturn(null);
       replay(maintenanceStateHelper, injector);
     }
 
-    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(PropertyHelper
-      .getPropertyIds(Resource.Type.Service),
-      PropertyHelper.getKeyPropertyIds(Resource.Type.Service), controller, maintenanceStateHelper);
+    ResourceProvider serviceResourceProvider = new ServiceResourceProvider(controller,
+        maintenanceStateHelper, repositoryVersionDAO);
 
     ResourceProvider hostCompResourceProvider = new
       HostComponentResourceProvider(PropertyHelper.getPropertyIds(Resource

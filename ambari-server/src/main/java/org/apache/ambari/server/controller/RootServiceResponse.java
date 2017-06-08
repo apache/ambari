@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,14 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Objects;
+
+import org.apache.ambari.server.controller.internal.RootServiceResourceProvider;
+
+import io.swagger.annotations.ApiModelProperty;
+
 public class RootServiceResponse {
 
-  private String serviceName;
+  private final String serviceName;
 
   public RootServiceResponse(String serviceName) {
     this.serviceName = serviceName;
   }
 
+  @ApiModelProperty(name = RootServiceResourceProvider.SERVICE_NAME)
   public String getServiceName() {
     return serviceName;
   }
@@ -35,21 +42,14 @@ public class RootServiceResponse {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RootServiceResponse that = (RootServiceResponse) o;
+    RootServiceResponse other = (RootServiceResponse) o;
 
-    if (serviceName != null ?
-        !serviceName.equals(that.serviceName) : that.serviceName != null) {
-      return false;
-    }
-    
-    return true;
+    return Objects.equals(serviceName, other.serviceName);
   }
 
   @Override
   public int hashCode() {
-    int result = 1;
-    result = 31 + (serviceName != null ? serviceName.hashCode() : 0);
-    return result;
+    return Objects.hash(serviceName);
   }
 
 }

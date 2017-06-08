@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class StackResponse {
 
   private String stackName;
@@ -27,6 +29,7 @@ public class StackResponse {
     setStackName(stackName);
   }
 
+  @ApiModelProperty(name = "stack_name")
   public String getStackName() {
     return stackName;
   }
@@ -54,4 +57,13 @@ public class StackResponse {
     return getStackName().equals(stackResponse.getStackName());
   }
 
+  /**
+   * Interface to help correct Swagger documentation generation
+   */
+  public interface StackResponseSwagger extends ApiModel {
+    @ApiModelProperty(name = "Stacks")
+    public StackResponse getStackResponse();
+  }
+
 }
+

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -32,8 +32,10 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +101,20 @@ public class ConfigImpl implements Config {
   ConfigImpl(@Assisted Cluster cluster, @Assisted("type") String type,
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
-      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      ClusterDAO clusterDAO, StackDAO stackDAO,
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+    this(cluster.getDesiredStackVersion(), cluster, type, tag, properties, propertiesAttributes,
+        clusterDAO, stackDAO, gson, eventPublisher, lockFactory);
+  }
+
+
+  @AssistedInject
+  ConfigImpl(@Assisted @Nullable StackId stackId, @Assisted Cluster cluster, @Assisted("type") String type,
+      @Assisted("tag") @Nullable String tag,
+      @Assisted Map<String, String> properties,
+      @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes,
+      ClusterDAO clusterDAO, StackDAO stackDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
     propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
@@ -122,6 +137,7 @@ public class ConfigImpl implements Config {
     this.tag = tag;
 
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
     ClusterConfigEntity entity = new ClusterConfigEntity();
     entity.setClusterEntity(clusterEntity);
@@ -130,7 +146,7 @@ public class ConfigImpl implements Config {
     entity.setVersion(version);
     entity.setTag(this.tag);
     entity.setTimestamp(System.currentTimeMillis());
-    entity.setStack(clusterEntity.getDesiredStack());
+    entity.setStack(stackEntity);
     entity.setData(gson.toJson(properties));
 
     if (null != propertiesAttributes) {
@@ -139,7 +155,7 @@ public class ConfigImpl implements Config {
 
     // when creating a brand new config without a backing entity, use the
     // cluster's desired stack as the config's stack
-    stackId = cluster.getDesiredStackVersion();
+    this.stackId = stackId;
     propertiesTypes = cluster.getConfigPropertiesTypes(type);
     persist(entity);
 

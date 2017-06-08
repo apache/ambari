@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.filter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -29,6 +28,7 @@ import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.FilterJsonDescriptorImpl;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -47,12 +47,12 @@ public class FilterJSONTest {
   private OutputManager mockOutputManager;
   private Capture<Map<String, Object>> capture;
 
-  public void init(Map<String, Object> params) throws Exception {
+  public void init(FilterJsonDescriptorImpl filterJsonDescriptor) throws Exception {
     mockOutputManager = EasyMock.strictMock(OutputManager.class);
     capture = EasyMock.newCapture(CaptureType.LAST);
 
     filterJson = new FilterJSON();
-    filterJson.loadConfig(params);
+    filterJson.loadConfig(filterJsonDescriptor);
     filterJson.setOutputManager(mockOutputManager);
     filterJson.init();
   }
@@ -61,7 +61,7 @@ public class FilterJSONTest {
   public void testJSONFilterCode_convertFields() throws Exception {
     LOG.info("testJSONFilterCode_convertFields()");
 
-    init(new HashMap<String, Object>());
+    init(new FilterJsonDescriptorImpl());
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -86,7 +86,7 @@ public class FilterJSONTest {
   public void testJSONFilterCode_logTimeOnly() throws Exception {
     LOG.info("testJSONFilterCode_logTimeOnly()");
 
-    init(new HashMap<String, Object>());
+    init(new FilterJsonDescriptorImpl());
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -111,7 +111,7 @@ public class FilterJSONTest {
   public void testJSONFilterCode_lineNumberOnly() throws Exception {
     LOG.info("testJSONFilterCode_lineNumberOnly()");
 
-    init(new HashMap<String, Object>());
+    init(new FilterJsonDescriptorImpl());
 
     mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
     EasyMock.expectLastCall();
@@ -131,7 +131,7 @@ public class FilterJSONTest {
   @Test
   public void testJSONFilterCode_invalidJson() throws Exception {
     LOG.info("testJSONFilterCode_invalidJson()");
-    init(new HashMap<String, Object>());
+    init(new FilterJsonDescriptorImpl());
     String inputStr="invalid json";
     try{
     filterJson.apply(inputStr,new InputMarker(null, null, 0));

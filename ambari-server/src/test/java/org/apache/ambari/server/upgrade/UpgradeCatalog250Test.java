@@ -70,6 +70,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
@@ -95,7 +96,6 @@ import org.junit.runner.RunWith;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -737,7 +737,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -824,7 +824,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -905,7 +905,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).times(2);
 
     replay(controller, injector2);
@@ -959,7 +959,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -1064,7 +1064,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("ams-log4j")).andReturn(mockAmsLog4j).atLeastOnce();
     expect(mockAmsLog4j.getProperties()).andReturn(oldAmsLog4j).anyTimes();
     Capture<Map<String, String>> AmsLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(AmsLog4jCapture), anyString(),
         anyObject(Map.class))).andReturn(config).once();
 
     Map<String, String> oldAmsHbaseLog4j = ImmutableMap.of(
@@ -1299,7 +1299,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("ams-hbase-log4j")).andReturn(mockAmsHbaseLog4j).atLeastOnce();
     expect(mockAmsHbaseLog4j.getProperties()).andReturn(oldAmsHbaseLog4j).anyTimes();
     Capture<Map<String, String>> AmsHbaseLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(AmsHbaseLog4jCapture), anyString(),
         anyObject(Map.class))).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1348,7 +1348,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-properties")).andReturn(mockLogSearchProperties).atLeastOnce();
     expect(mockLogSearchProperties.getProperties()).andReturn(oldLogSearchProperties).anyTimes();
     Capture<Map<String, String>> logSearchPropertiesCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchPropertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogFeederEnv = ImmutableMap.of(
@@ -1361,7 +1361,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logfeeder-env")).andReturn(mockLogFeederEnv).atLeastOnce();
     expect(mockLogFeederEnv.getProperties()).andReturn(oldLogFeederEnv).anyTimes();
     Capture<Map<String, String>> logFeederEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchEnv = new HashMap<>();
@@ -1383,7 +1383,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-env")).andReturn(mockLogSearchEnv).atLeastOnce();
     expect(mockLogSearchEnv.getProperties()).andReturn(oldLogSearchEnv).anyTimes();
     Capture<Map<String, String>> logSearchEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogFeederLog4j = ImmutableMap.of(
@@ -1436,7 +1436,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logfeeder-log4j")).andReturn(mockLogFeederLog4j).atLeastOnce();
     expect(mockLogFeederLog4j.getProperties()).andReturn(oldLogFeederLog4j).anyTimes();
     Capture<Map<String, String>> logFeederLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logFeederLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logFeederLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldLogSearchLog4j = ImmutableMap.of(
@@ -1554,7 +1554,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("logsearch-log4j")).andReturn(mockLogSearchLog4j).atLeastOnce();
     expect(mockLogSearchLog4j.getProperties()).andReturn(oldLogSearchLog4j).anyTimes();
     Capture<Map<String, String>> logSearchLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(logSearchLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(logSearchLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1613,7 +1613,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-env")).andReturn(mockInfraSolrEnv).atLeastOnce();
     expect(mockInfraSolrEnv.getProperties()).andReturn(oldInfraSolrEnv).anyTimes();
     Capture<Map<String, String>> infraSolrEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(infraSolrEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldInfraSolrLog4j = ImmutableMap.of(
@@ -1630,7 +1630,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-log4j")).andReturn(mockInfraSolrLog4j).atLeastOnce();
     expect(mockInfraSolrLog4j.getProperties()).andReturn(oldInfraSolrLog4j).anyTimes();
     Capture<Map<String, String>> infraSolrLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(infraSolrLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     Map<String, String> oldInfraSolrClientLog4j = ImmutableMap.of(
@@ -1649,7 +1649,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("infra-solr-client-log4j")).andReturn(mockInfraSolrClientLog4j).atLeastOnce();
     expect(mockInfraSolrClientLog4j.getProperties()).andReturn(oldInfraSolrClientLog4j).anyTimes();
     Capture<Map<String, String>> infraSolrClientLog4jCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(infraSolrClientLog4jCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1708,7 +1708,7 @@ public class UpgradeCatalog250Test {
     expect(cluster.getDesiredConfigByType("hive-interactive-env")).andReturn(mockHsiEnv).atLeastOnce();
     expect(mockHsiEnv.getProperties()).andReturn(oldHsiEnv).anyTimes();
     Capture<Map<String, String>> hsiEnvCapture = EasyMock.newCapture();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(hsiEnvCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(hsiEnvCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(clusters, cluster);
@@ -1789,7 +1789,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);
@@ -2076,7 +2076,7 @@ public class UpgradeCatalog250Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
         EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(config).once();
 
     replay(controller, injector2);

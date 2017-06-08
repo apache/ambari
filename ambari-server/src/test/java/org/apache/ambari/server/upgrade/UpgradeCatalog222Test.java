@@ -84,6 +84,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -271,15 +272,19 @@ public class UpgradeCatalog222Test {
       }
     });
 
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(stackId).once();
+//    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(stackId).once();
     expect(mockClusterExpected.getServiceComponentHosts("ATLAS", "ATLAS_SERVER")).andReturn(atlasHosts).once();
-    expect(atlasHost.getHostName()).andReturn("c6401").once();
+//    expect(atlasHost.getHostName()).andReturn("c6401").once();
     expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", mockClusterExpected);
     }}).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(hiveSiteConfigs).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("application-properties")).andReturn(AtlasSiteConfigs).anyTimes();
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("ATLAS", easyMockSupport.createNiceMock(Service.class))
+        .build());
+
     expect(AtlasSiteConfigs.getProperties()).andReturn(propertiesAtlasSiteConfigs).anyTimes();
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
@@ -401,10 +406,16 @@ public class UpgradeCatalog222Test {
       .createStrictMock();
 
     // CASE 1 - Ranger enabled, Cluster version is 2.2
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).atLeastOnce();
+    Service hbaseService = easyMockSupport.createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(new StackId("HDP", "2.2")).anyTimes();
+
+//    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
       andReturn(rangerHbasePluginProperties).once();
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .build());
 
     Map<String, String> expectedUpdates = new HashMap<>();
     expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
@@ -422,11 +433,17 @@ public class UpgradeCatalog222Test {
     easyMockSupport.verifyAll();
 
     // CASE 2 - Ranger enabled, Cluster version is 2.3
-    reset(mockClusterExpected, upgradeCatalog222);
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3")).atLeastOnce();
+    reset(mockClusterExpected, upgradeCatalog222, hbaseService);
+
+
+    expect(hbaseService.getDesiredStackId()).andReturn(new StackId("HDP-2.3"));
+//    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3")).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
       andReturn(rangerHbasePluginProperties).once();
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .build());
 
     expectedUpdates = new HashMap<>();
     expectedUpdates.put(UpgradeCatalog222.HBASE_SITE_HBASE_COPROCESSOR_MASTER_CLASSES, "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor ");
@@ -439,23 +456,31 @@ public class UpgradeCatalog222Test {
       true, false);
     expectLastCall().once();
 
-    replay(mockClusterExpected, upgradeCatalog222);
+    replay(mockClusterExpected, upgradeCatalog222, hbaseService);
     upgradeCatalog222.updateHBASEConfigs();
     easyMockSupport.verifyAll();
 
     // CASE 3 - Ranger enabled, Cluster version is 2.1
-    reset(mockClusterExpected, upgradeCatalog222);
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).atLeastOnce();
+    reset(mockClusterExpected, upgradeCatalog222, hbaseService);
+    expect(hbaseService.getDesiredStackId()).andReturn(new StackId("HDP-2.1"));
+//    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.1")).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
       andReturn(rangerHbasePluginProperties).once();
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .build());
 
-    replay(mockClusterExpected, upgradeCatalog222);
+
+    replay(mockClusterExpected, upgradeCatalog222, hbaseService);
     upgradeCatalog222.updateHBASEConfigs();
     easyMockSupport.verifyAll();
 
     // CASE 4 - Ranger disabled
     reset(mockClusterExpected, upgradeCatalog222);
+    expect(mockClusterExpected.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .build());
     expect(mockClusterExpected.getDesiredConfigByType("hbase-site")).andReturn(hbaseSite).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType(AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES)).
       andReturn(null).once();
@@ -528,7 +553,7 @@ public class UpgradeCatalog222Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -587,7 +612,7 @@ public class UpgradeCatalog222Test {
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
       EasyMock.<Map<String, Map<String, String>>>anyObject())).andReturn(createNiceMock(Config.class)).once();
 
     replay(controller, injector2);
@@ -629,16 +654,24 @@ public class UpgradeCatalog222Test {
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
       }
     });
+
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
     }}).anyTimes();
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getDesiredStackId()).andReturn(stackId).anyTimes();
+
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service> builder()
+        .put("HDFS", hdfsService)
+        .build()).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(stackInfo.getService("HDFS")).andReturn(null);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
     expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo);
 
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, stackInfo);
+    replay(clusters, cluster, hdfsService, controller, widgetDAO, metaInfo, stackInfo);
 
     UpgradeCatalog222 upgradeCatalog222 = createMockBuilder(UpgradeCatalog222.class)
             .withConstructor(Injector.class)
@@ -709,6 +742,13 @@ public class UpgradeCatalog222Test {
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
       }
     });
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getDesiredStackId()).andReturn(stackId).anyTimes();
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HDFS", hdfsService)
+        .build()).anyTimes();
+
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
@@ -729,7 +769,7 @@ public class UpgradeCatalog222Test {
     expect(widgetDAO.merge(widgetEntity2)).andReturn(null);
     expect(widgetEntity2.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
 
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, widgetEntity2, stackInfo, serviceInfo);
+    replay(clusters, cluster, hdfsService, controller, widgetDAO, metaInfo, widgetEntity, widgetEntity2, stackInfo, serviceInfo);
 
     mockInjector.getInstance(UpgradeCatalog222.class).updateHDFSWidgetDefinition();
 
@@ -797,6 +837,13 @@ public class UpgradeCatalog222Test {
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
       }
     });
+
+    Service yarnService = createNiceMock(Service.class);
+    expect(yarnService.getDesiredStackId()).andReturn(stackId);
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("YARN", yarnService)
+        .build());
+
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
@@ -817,7 +864,7 @@ public class UpgradeCatalog222Test {
     expect(widgetDAO.merge(widgetEntity2)).andReturn(null);
     expect(widgetEntity2.getWidgetName()).andReturn("Container Failures").anyTimes();
 
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, widgetEntity2, stackInfo, serviceInfo);
+    replay(clusters, cluster, yarnService, controller, widgetDAO, metaInfo, widgetEntity, widgetEntity2, stackInfo, serviceInfo);
 
     mockInjector.getInstance(UpgradeCatalog222.class).updateYARNWidgetDefinition();
 
@@ -873,6 +920,13 @@ public class UpgradeCatalog222Test {
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
       }
     });
+
+    Service hbaseService = createNiceMock(Service.class);
+    expect(hbaseService.getDesiredStackId()).andReturn(stackId);
+    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
+        .put("HBASE", hbaseService)
+        .build());
+
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", cluster);
@@ -888,7 +942,7 @@ public class UpgradeCatalog222Test {
     expect(widgetDAO.merge(widgetEntity)).andReturn(null);
     expect(widgetEntity.getWidgetName()).andReturn("Blocked Updates").anyTimes();
 
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
+    replay(clusters, cluster, hbaseService, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo);
 
     mockInjector.getInstance(UpgradeCatalog222.class).updateHBASEWidgetDefinition();
 

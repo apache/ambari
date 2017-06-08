@@ -184,6 +184,18 @@ angular.module('ambariAdminConsole')
     }
   };
 
+  $scope.removePrivilege = function(name, privilege) {
+    var privilegeObject = {
+        id: privilege.privilege_id,
+        view_name: privilege.view_name,
+        version: privilege.version,
+        instance_name: name
+    };
+    View.deletePrivilege(privilegeObject).then(function() {
+      loadPrivileges();
+    });
+  };
+
   $scope.deleteUser = function() {
     ConfirmationModal.show(
       $t('common.delete', {
@@ -257,6 +269,7 @@ angular.module('ambariAdminConsole')
           privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
           privileges.views[privilege.instance_name].version = privilege.version;
           privileges.views[privilege.instance_name].view_name = privilege.view_name;
+          privileges.views[privilege.instance_name].privilege_id = privilege.privilege_id;
           if (privileges.views[privilege.instance_name].privileges.indexOf(privilege.permission_label) == -1) {
             privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
           }

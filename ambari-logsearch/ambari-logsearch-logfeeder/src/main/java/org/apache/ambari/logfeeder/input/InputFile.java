@@ -25,7 +25,9 @@ import java.io.FileNotFoundException;
 
 import org.apache.ambari.logfeeder.input.reader.LogsearchReaderFactory;
 import org.apache.ambari.logfeeder.util.FileUtil;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputFileDescriptor;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.solr.common.util.Base64;
 
@@ -62,7 +64,7 @@ public class InputFile extends AbstractInputFile {
 
   @Override
   void start() throws Exception {
-    boolean isProcessFile = getBooleanValue("process_file", true);
+    boolean isProcessFile = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)inputDescriptor).getProcessFile(), true);
     if (isProcessFile) {
       if (tail) {
         processFile(logFiles[0]);
@@ -100,7 +102,7 @@ public class InputFile extends AbstractInputFile {
   }
 
   private void copyFiles(File[] files) {
-    boolean isCopyFile = getBooleanValue("copy_file", false);
+    boolean isCopyFile = BooleanUtils.toBooleanDefaultIfNull(((InputFileDescriptor)inputDescriptor).getCopyFile(), false);
     if (isCopyFile && files != null) {
       for (File file : files) {
         try {

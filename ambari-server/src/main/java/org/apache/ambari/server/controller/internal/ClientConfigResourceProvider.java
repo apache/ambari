@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -89,6 +89,8 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
@@ -224,15 +226,19 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       try {
         cluster = clusters.getCluster(response.getClusterName());
 
-        StackId stackId = cluster.getCurrentStackVersion();
         String serviceName = response.getServiceName();
         String componentName = response.getComponentName();
         String hostName = response.getHostname();
         ComponentInfo componentInfo = null;
         String packageFolder = null;
 
+        Service service = cluster.getService(serviceName);
+        ServiceComponent component = service.getServiceComponent(componentName);
+        StackId stackId = component.getDesiredStackId();
+
         componentInfo = managementController.getAmbariMetaInfo().
           getComponent(stackId.getStackName(), stackId.getStackVersion(), serviceName, componentName);
+
         packageFolder = managementController.getAmbariMetaInfo().
           getService(stackId.getStackName(), stackId.getStackVersion(), serviceName).getServicePackageFolder();
 
@@ -478,8 +484,6 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         commandFiles.add(jsonFile);
         pythonCompressFilesCmds.add(cmd);
 
-      } catch (AmbariException e) {
-        throw new SystemException("Controller error ", e);
       } catch (IOException e) {
         throw new SystemException("Controller error ", e);
       }

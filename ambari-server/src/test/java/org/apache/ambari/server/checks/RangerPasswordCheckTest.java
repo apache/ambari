@@ -135,14 +135,18 @@ public class RangerPasswordCheckTest {
   public void testApplicable() throws Exception {
 
     final Service service = EasyMock.createMock(Service.class);
+
     Map<String, Service> services = new HashMap<>();
     services.put("RANGER", service);
+
+    expect(service.getDesiredStackId()).andReturn(new StackId("HDP-2.3")).anyTimes();
 
     Cluster cluster = m_clusters.getCluster("cluster");
     EasyMock.reset(cluster);
     expect(cluster.getServices()).andReturn(services).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP-2.3")).anyTimes();
-    replay(cluster);
+    expect(cluster.getService("RANGER")).andReturn(service).atLeastOnce();
+
+    replay(cluster, service);
 
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(new StackId("HDP-2.3"));
@@ -152,10 +156,11 @@ public class RangerPasswordCheckTest {
     request.setSourceStackId(new StackId("HDP-2.2"));
     assertFalse(m_rpc.isApplicable(request));
 
-    EasyMock.reset(cluster);
+    EasyMock.reset(cluster, service);
     expect(cluster.getServices()).andReturn(services).anyTimes();
-    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("WILDSTACK-2.0")).anyTimes();
-    replay(cluster);
+    expect(cluster.getService("RANGER")).andReturn(service).atLeastOnce();
+    expect(service.getDesiredStackId()).andReturn(new StackId("WILDSTACK-2.0")).anyTimes();
+    replay(cluster, service);
 
     request = new PrereqCheckRequest("cluster");
     request.setSourceStackId(new StackId("HDP-2.2"));

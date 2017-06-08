@@ -129,6 +129,10 @@ public class ServicesUpCheckTest {
     Mockito.when(tezService.isClientOnlyService()).thenReturn(true);
     Mockito.when(amsService.isClientOnlyService()).thenReturn(false);
 
+    Mockito.when(hdfsService.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
+    Mockito.when(tezService.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
+    Mockito.when(amsService.getDesiredStackId()).thenReturn(new StackId("HDP", "2.2"));
+
     Mockito.when(cluster.getServices()).thenReturn(clusterServices);
 
     Mockito.when(ambariMetaInfo.getComponent(Mockito.anyString(), Mockito.anyString(),
@@ -246,6 +250,7 @@ public class ServicesUpCheckTest {
       Mockito.when(hcs.getDesiredState()).thenReturn(State.INSTALLED);
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
+
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());

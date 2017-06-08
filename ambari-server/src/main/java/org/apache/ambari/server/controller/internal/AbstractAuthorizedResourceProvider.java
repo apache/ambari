@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
@@ -88,6 +89,26 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
    */
   protected AbstractAuthorizedResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
     super(propertyIds, keyPropertyIds);
+  }
+
+  /**
+   * Create a new resource provider. This constructor will initialize the
+   * specified {@link Resource.Type} with the provided keys. It should be used
+   * in cases where the provider declares its own keys instead of reading them
+   * from a JSON file.
+   *
+   * @param type
+   *          the type to set the properties for (not {@code null}).
+   * @param propertyIds
+   *          the property ids
+   * @param keyPropertyIds
+   *          the key property ids
+   */
+  AbstractAuthorizedResourceProvider(Resource.Type type, Set<String> propertyIds,
+      Map<Resource.Type, String> keyPropertyIds) {
+    this(propertyIds, keyPropertyIds);
+    PropertyHelper.setPropertyIds(type, propertyIds);
+    PropertyHelper.setKeyPropertyIds(type, keyPropertyIds);
   }
 
   /**

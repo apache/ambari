@@ -1251,7 +1251,7 @@ App.config = Em.Object.create({
   getTempletonHiveHosts: function (value) {
     var pattern = /thrift:\/\/.+:\d+/,
       patternMatch = value.match(pattern);
-    return patternMatch ? patternMatch[0].split('\\,') : value;
+    return patternMatch ? patternMatch[0].split('\\,') : [];
   },
 
   /**

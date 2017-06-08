@@ -1072,18 +1072,23 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     if (clusters != null) {
       Map<String, Cluster> clusterMap = clusters.getClusters();
       for (final Cluster cluster : clusterMap.values()) {
-        StackId stackId = cluster.getCurrentStackVersion();
-        if (stackId != null && stackId.getStackName().equals("HDP") &&
+
+        ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+        ServiceComponentDesiredStateEntity entity = dao.findByName(cluster.getClusterId(),
+            "STORM", "STORM_REST_API");
+
+        if (null == entity) {
+          continue;
+        }
+
+        StackId stackId = new StackId(entity.getDesiredStack());
+
+        if (stackId.getStackName().equals("HDP") &&
           VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
 
           executeInTransaction(new Runnable() {
             @Override
             public void run() {
-            ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-              ServiceComponentDesiredStateEntity entity = dao.findByName(cluster.getClusterId(),
-                  "STORM", "STORM_REST_API");
-
-            if (entity != null) {
               EntityManager em = getEntityManagerProvider().get();
               CriteriaBuilder cb = em.getCriteriaBuilder();
 
@@ -1113,7 +1118,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                   "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
                   "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
               }
-            }
             }
           });
         }
@@ -1459,7 +1463,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          /***
+          /*
            * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
            */
           content = null;
@@ -1475,7 +1479,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
                 prop, true, false);
           }
-          /***
+          /*
            * Update dfs.namenode.rpc-address set hostname instead of localhost
            */
           if (cluster.getDesiredConfigByType(HDFS_SITE_CONFIG) != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {

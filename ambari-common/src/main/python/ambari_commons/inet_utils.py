@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import os
+import time
 import sys
 import urllib2
 import socket
@@ -69,6 +70,17 @@ def download_progress(file_name, downloaded_size, blockSize, totalSize):
       percent, downloaded_size / 1024 / 1024.0, totalSize / 1024 / 1024.0)
   sys.stdout.write(status)
   sys.stdout.flush()
+
+def wait_for_port_opened(hostname, port, tries_count, try_sleep):
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  sock.settimeout(2)
+
+  for i in range(tries_count):
+    if sock.connect_ex((hostname, port)) == 0:
+      return True
+    time.sleep(try_sleep)
+
+  return False
 
 
 def find_range_components(meta):

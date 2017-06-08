@@ -168,7 +168,10 @@ export default Ember.Component.extend(Ember.Evented,{
       }
       this.sendAction('onSearch', { type: this.get('jobType'), filter: this.getAllFilters() });
     },
-
+    doClearFilters(){
+      this.filter={};
+      this.sendAction('onSearch', { type: this.get('jobType'), filter: this.getAllFilters() });
+    },
     getAllFilters(){
       var allFilters = [];
       Object.keys(this.filter).forEach(function(value){
@@ -203,6 +206,13 @@ export default Ember.Component.extend(Ember.Evented,{
           } else {
             this.$("#endDate").trigger("dp.show");
           }
+        },
+        clearFilters() {
+          this.$("#startDate").val('');
+          this.$("#endDate").val('');
+          this.$('#search-field').tagsinput('removeAll');
+          this.$('.tt-input').val('');
+          this.doClearFilters();
         },
         onClear(type) {
           if (type ==='start' && this.get('startDate') === "") {

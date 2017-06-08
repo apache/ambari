@@ -45,18 +45,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -67,12 +62,9 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,17 +83,7 @@ public class UpgradeCatalog242Test {
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
-  private UpgradeCatalogHelper upgradeCatalogHelper;
-  private StackEntity desiredStackEntity;
-  private AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
-  private AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-  private StackDAO stackDAO = createNiceMock(StackDAO.class);
-  private RepositoryVersionDAO repositoryVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-  private ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
-  private HostVersionDAO hostVersionDAO = createNiceMock(HostVersionDAO.class);
-  private ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
 
-  private IMocksControl mocksControl = EasyMock.createControl();
 
   @Before
   public void init() {
@@ -111,12 +93,10 @@ public class UpgradeCatalog242Test {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
     // inject AmbariMetaInfo to ensure that stacks get populated in the DB
     injector.getInstance(AmbariMetaInfo.class);
     // load the stack entity
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
-    desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
   @After

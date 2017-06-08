@@ -65,7 +65,7 @@ public class ServiceConfigDAO {
             "WHERE scv.serviceName=?1 AND scv.version=?2", ServiceConfigEntity.class);
     return daoUtils.selectOne(query, serviceName, version);
   }
-  
+
   @RequiresSession
   public List<ServiceConfigEntity> findByService(Long clusterId, String serviceName) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().
@@ -145,9 +145,9 @@ public class ServiceConfigDAO {
   }
 
   /**
-   * Get all service configurations for the specified cluster and stack. This
-   * will return different versions of the same configuration (HDFS v1 and v2)
-   * if they exist.
+   * Get service configurations for the specified cluster and stack. This will
+   * return different versions of the same configuration (HDFS v1 and v2) if
+   * they exist.
    *
    * @param clusterId
    *          the cluster (not {@code null}).
@@ -156,18 +156,19 @@ public class ServiceConfigDAO {
    * @return all service configurations for the cluster and stack.
    */
   @RequiresSession
-  public List<ServiceConfigEntity> getAllServiceConfigsForClusterAndStack(Long clusterId,
-      StackId stackId) {
+  public List<ServiceConfigEntity> getServiceConfigsForServiceAndStack(Long clusterId,
+      StackId stackId, String serviceName) {
 
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
         stackId.getStackVersion());
 
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
-        "ServiceConfigEntity.findAllServiceConfigsByStack",
+        "ServiceConfigEntity.findServiceConfigsByStack",
         ServiceConfigEntity.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("stack", stackEntity);
+    query.setParameter("serviceName", serviceName);
 
     return daoUtils.selectList(query);
   }
@@ -266,7 +267,7 @@ public class ServiceConfigDAO {
 
   @Transactional
   public void removeHostFromServiceConfigs(final Long hostId) {
-    List<ServiceConfigEntity> allServiceConfigs = this.findAll();
+    List<ServiceConfigEntity> allServiceConfigs = findAll();
     for (ServiceConfigEntity serviceConfigEntity : allServiceConfigs) {
       List<Long> hostIds = serviceConfigEntity.getHostIds();
       if (hostIds != null && hostIds.contains(hostId)) {

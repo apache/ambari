@@ -88,6 +88,7 @@ angular.module('ambariAdminConsole')
     },
 
     allPublicStackVersions: function() {
+      var self = this;
       var url = '/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,operating_systems/repositories/Repositories/*,VersionDefinition/stack_services,VersionDefinition/repository_version' +
         '&VersionDefinition/show_available=true';
       var deferred = $q.defer();
@@ -104,7 +105,6 @@ angular.module('ambariAdminConsole')
               stackNameVersion:  version.VersionDefinition.stack_name + '-' + version.VersionDefinition.stack_version,
               displayName: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version.split('-')[0], //HDP-2.3.4.0
               displayNameFull: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version, //HDP-2.3.4.0-23
-              editableDisplayName: version.VersionDefinition.repository_version.substring(4),
               isNonXMLdata: true,
               repositoryVersion: version.VersionDefinition.repository_version,
               stackNameRepositoryVersion: version.VersionDefinition.stack_name + '-' + version.VersionDefinition.repository_version,
@@ -112,6 +112,7 @@ angular.module('ambariAdminConsole')
               osList: version.operating_systems,
               updateObj: version
             };
+            self.setVersionNumberProperties(version.VersionDefinition.repository_version, versionObj);
             //hard code to not show stack name box for ECS stack
             if (isNaN(versionObj.editableDisplayName.charAt(0))) {
               versionObj.isNonXMLdata = false;
@@ -142,6 +143,35 @@ angular.module('ambariAdminConsole')
           deferred.reject(data);
         });
       return deferred.promise;
+    },
+
+    setVersionNumberProperties: function(version, versionObj) {
+      var length = version.split(".").length;
+      switch (length) {
+        //when the stackVersion is single digit e.g. "2"
+        case 1:
+           versionObj.pattern = "(0.0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?\.\d+$/);
+           versionObj.editableDisplayName = "";
+           break;
+        //when the stackVersion has two digits e.g. "2.5"
+        case 2:
+           versionObj.pattern = "(0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?$/);
+           versionObj.editableDisplayName = version.substring(4);
+           break;
+        //when the stackVersion has three digits e.g. "2.5.1"
+        case 3:
+           versionObj.pattern = "(0)";
+           versionObj.subVersionPattern = new RegExp(/^[0-9]\d*$/);
+           versionObj.editableDisplayName = "";
+           break;
+        default:
+           versionObj.pattern = "(0.0)";
+           versionObj.subVersionPattern = new RegExp(/^\d+\.\d+(-\d+)?$/);
+           versionObj.editableDisplayName = version.substring(4);
+           break;
+      }
     },
 
     allRepos: function (filter, pagination) {

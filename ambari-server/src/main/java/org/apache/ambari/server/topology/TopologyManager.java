@@ -33,11 +33,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.inject.Inject;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -80,6 +79,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
@@ -114,6 +115,9 @@ public class TopologyManager {
   private final Collection<LogicalRequest> outstandingRequests = new ArrayList<>();
   //todo: currently only support a single cluster
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<>();
+
+  @Inject
+  private Injector injector;
 
   @Inject
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
@@ -290,6 +294,11 @@ public class TopologyManager {
 
     topologyValidatorService.validateTopologyConfiguration(topology);
 
+    if (repoVersion == null){
+      //Override repos stored in the metainfo table with ones included in the blueprint
+      updateRepos(topology.getBlueprint().getRepositorySettings(), stack);
+    }
+
     // create resources
     ambariContext.createAmbariResources(topology, clusterName, securityType, repoVersion);
 
@@ -324,7 +333,6 @@ public class TopologyManager {
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true,
       stackAdvisorBlueprintProcessor, securityType == SecurityType.KERBEROS));
 
-
     // Notify listeners that cluster configuration finished
     executor.submit(new Callable<Boolean>() {
       @Override
@@ -345,6 +353,41 @@ public class TopologyManager {
     return getRequestStatus(logicalRequest.getRequestId());
   }
 
+  void updateRepos(List<RepositorySetting> repoSettings, Stack stack) {
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    boolean repoExists = false;
+    String stackName = stack.getName();
+    String stackVersion = stack.getVersion();
+    for (RepositorySetting repoSetting: repoSettings){
+      String repoSettingDetails = repoSetting.toString();
+      LOG.info(String.format("New repository setting: %s ", repoSettingDetails));
+      String operatingSystem = repoSetting.getOperatingSystem();
+      String repoId = repoSetting.getRepoId();
+      try {
+        ambariMetaInfo.getRepository(stackName, stackVersion, operatingSystem, repoId);
+        repoExists = true;
+      } catch (AmbariException e){
+        repoExists = false;
+      }
+      LOG.info(String.format("Repo exists: %s ", repoExists));
+      String overrideStrategy = repoSetting.getOverrideStrategy();
+      if (repoExists){
+        if (RepositorySetting.OVERRIDE_STRATEGY_ALWAYS_APPLY.equals(overrideStrategy)){
+          try {
+            ambariMetaInfo.updateRepo(stackName, stackVersion, operatingSystem, repoId, repoSetting.getBaseUrl(), null);
+          } catch (AmbariException e) {
+            LOG.error(String.format("Failed to update repo with information %s", repoSettingDetails), e);
+          }
+        }
+      } else {
+        try {
+          ambariMetaInfo.createRepo(stackName, stackVersion, operatingSystem, repoId, repoSetting.getBaseUrl(), null);
+        } catch (AmbariException e) {
+          LOG.error(String.format("Failed to insert repo with information %s", repoSettingDetails), e);
+        }
+      }
+    }
+  }
 
   /**
    * Saves the quick links profile to the DB as an Ambari setting. Creates a new setting entity or updates the existing
@@ -893,11 +936,8 @@ public class TopologyManager {
       // update the host with the rack info if applicable
       updateHostWithRackInfo(topology, response, host);
 
-    } catch (InvalidTopologyException e) {
+    } catch (InvalidTopologyException | NoSuchHostGroupException e) {
       // host already registered
-      throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
-    } catch (NoSuchHostGroupException e) {
-      // invalid host group
       throw new RuntimeException("An internal error occurred while performing request host registration: " + e, e);
     }
 

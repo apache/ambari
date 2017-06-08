@@ -26,6 +26,17 @@ App.MainSideMenuView = Em.CollectionView.extend({
     return App.router.get('mainViewsController.ambariViews');
   }.property('App.router.mainViewsController.ambariViews'),
 
+  didInsertElement: function() {
+    $('[data-toggle="collapse-side-nav"]').on('click', () => {
+      if ($('.navigation-bar-container.collapsed').length > 0) {
+        App.tooltip($('.navigation-bar-container.collapsed .mainmenu-li:not(.has-sub-menu)>a'), {placement: "right"});
+        App.tooltip($('.navigation-bar-container.collapsed .mainmenu-li.has-sub-menu>a'), {placement: "top"});
+      } else {
+        $('.navigation-bar-container .mainmenu-li>a').tooltip('destroy');
+      }
+    });
+  },
+
   content: function () {
     var result = [];
     let {router} = App;
@@ -162,6 +173,7 @@ App.SideNavServiceMenuView = Em.CollectionView.extend({
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');
     this.renderOnRoute();
     App.tooltip(this.$(".restart-required-service"), {html:true, placement:"right"});
+    App.tooltip($("[rel='serviceHealthTooltip']"), {html:true, placement:"right"});
   },
 
   willDestroyElement: function() {

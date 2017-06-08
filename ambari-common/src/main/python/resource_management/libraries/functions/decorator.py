@@ -21,7 +21,7 @@ Ambari Agent
 """
 
 import time
-__all__ = ['retry', 'safe_retry', ]
+__all__ = ['retry', 'safe_retry', 'experimental' ]
 
 from resource_management.core.logger import Logger
 
@@ -107,3 +107,23 @@ def safe_retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_cl
 
     return wrapper
   return decorator
+
+
+def experimental(feature=None, comment=None, disable=False):
+  """
+  Annotates a function as being experiemental, optionally logging a comment.
+  :param feature:  the feature area that is experimental
+  :param comment:  the comment to log
+  :param disable  True to skip invocation of the method entirely, defaults to False.
+  :return: 
+  """
+  def decorator(function):
+    def wrapper(*args, **kwargs):
+      if comment:
+        Logger.info(comment)
+
+      if not disable:
+        return function(*args, **kwargs)
+    return wrapper
+  return decorator
+

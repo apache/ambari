@@ -1353,11 +1353,11 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/version',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/from_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
+    'real': `/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/versions,Upgrade/associated_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures`,
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1712,7 +1712,7 @@ var urls = {
         timeout : 600000,
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value,
+            "repository_version_id": data.id,
             "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures,
@@ -1730,8 +1730,6 @@ var urls = {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "from_version": data.from,
-            "repository_version": data.value,
             "upgrade_type": data.upgradeType,
             "direction": "DOWNGRADE"
           }
@@ -2696,6 +2694,10 @@ var urls = {
   },
   'hosts.config_groups': {
     'real': '/clusters/{clusterName}/hosts?fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name,host_components&minimal_response=true',
+    'mock': ''
+  },
+  'hosts.info.install': {
+    'real': '/hosts?Hosts/host_name.in({hostNames})&fields=Hosts/cpu_count,Hosts/disk_info,Hosts/total_mem,Hosts/ip,Hosts/os_type,Hosts/os_arch,Hosts/public_host_name&minimal_response=true',
     'mock': ''
   },
   'hosts.host_components.pre_load': {

@@ -66,7 +66,7 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    final StackId stackId = cluster.getDesiredStackVersion();
+    final StackId stackId = request.getSourceStackId();
     final Set<String> hostsWithMasterComponent = new HashSet<>();
 
     // TODO AMBARI-12698, need to pass the upgrade pack to use in the request, or at least the type.

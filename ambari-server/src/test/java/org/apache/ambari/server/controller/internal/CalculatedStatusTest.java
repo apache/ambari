@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -743,7 +743,7 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory, ecwFactory);
+      super(1L, "", "", 1L, "", "", "", hostRoleCommandFactory, ecwFactory);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {

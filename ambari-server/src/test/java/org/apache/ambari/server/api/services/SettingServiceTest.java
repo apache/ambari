@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -79,7 +79,7 @@ public class SettingServiceTest extends BaseServiceTest {
     }
 
     @Override
-    ResourceInstance createSettingResource(String settingName) {
+    protected ResourceInstance createSettingResource(String settingName) {
       assertEquals(this.settingName, settingName);
       return getTestResource();
     }

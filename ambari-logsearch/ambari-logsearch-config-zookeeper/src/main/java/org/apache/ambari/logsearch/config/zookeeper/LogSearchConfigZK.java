@@ -27,6 +27,10 @@ import java.util.TreeMap;
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputAdapter;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigGson;
+import org.apache.ambari.logsearch.config.zookeeper.model.inputconfig.impl.InputConfigImpl;
 import org.apache.ambari.logsearch.config.api.InputConfigMonitor;
 import org.apache.ambari.logsearch.config.api.LogLevelFilterMonitor;
 import org.apache.commons.collections.MapUtils;
@@ -40,18 +44,23 @@ import org.apache.curator.framework.recipes.cache.TreeCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.ZKPaths;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Id;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class LogSearchConfigZK implements LogSearchConfig {
-  private static final Logger LOG = Logger.getLogger(LogSearchConfigZK.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LogSearchConfigZK.class);
 
   private static final int SESSION_TIMEOUT = 15000;
   private static final int CONNECTION_TIMEOUT = 30000;
@@ -129,7 +138,16 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
   @Override
   public void monitorInputConfigChanges(final InputConfigMonitor inputConfigMonitor,
-      final LogLevelFilterMonitor logLevelFilterMonitor ) throws Exception {
+      final LogLevelFilterMonitor logLevelFilterMonitor) throws Exception {
+    final JsonParser parser = new JsonParser();
+    final JsonArray globalConfigNode = new JsonArray();
+    for (String globalConfigJsonString : inputConfigMonitor.getGlobalConfigJsons()) {
+      JsonElement globalConfigJson = parser.parse(globalConfigJsonString);
+      globalConfigNode.add(globalConfigJson.getAsJsonObject().get("global"));
+    }
+    
+    createGlobalConfigNode(globalConfigNode);
+    
     TreeCacheListener listener = new TreeCacheListener() {
       public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
         String nodeName = ZKPaths.getNodeFromPath(event.getData().getPath());
@@ -171,7 +189,16 @@ public class LogSearchConfigZK implements LogSearchConfig {
 
       private void addInputs(String serviceName, String inputConfig) {
         try {
-          inputConfigMonitor.loadInputConfigs(serviceName, inputConfig);
+          JsonElement inputConfigJson = parser.parse(inputConfig);
+          for (Map.Entry<String, JsonElement> typeEntry : inputConfigJson.getAsJsonObject().entrySet()) {
+            for (JsonElement e : typeEntry.getValue().getAsJsonArray()) {
+              for (JsonElement globalConfig : globalConfigNode) {
+                merge(globalConfig.getAsJsonObject(), e.getAsJsonObject());
+              }
+            }
+          }
+          
+          inputConfigMonitor.loadInputConfigs(serviceName, InputConfigGson.gson.fromJson(inputConfigJson, InputConfigImpl.class));
         } catch (Exception e) {
           LOG.error("Could not load input configuration for service " + serviceName + ":\n" + inputConfig, e);
         }
@@ -193,9 +220,37 @@ public class LogSearchConfigZK implements LogSearchConfig {
             break;
         }
       }
+
+      private void merge(JsonObject source, JsonObject target) {
+        for (Map.Entry<String, JsonElement> e : source.entrySet()) {
+          if (!target.has(e.getKey())) {
+            target.add(e.getKey(), e.getValue());
+          } else {
+            if (e.getValue().isJsonObject()) {
+              JsonObject valueJson = (JsonObject)e.getValue();
+              merge(valueJson, target.get(e.getKey()).getAsJsonObject());
+            }
+          }
+        }
+      }
     };
     cache.getListenable().addListener(listener);
     cache.start();
+  }
+
+  private void createGlobalConfigNode(JsonArray globalConfigNode) {
+    String globalConfigNodePath = String.format("%s/%s/global", root, properties.get(CLUSTER_NAME_PROPERTY));
+    String data = InputConfigGson.gson.toJson(globalConfigNode);
+    
+    try {
+      if (cache.getCurrentData(globalConfigNodePath) != null) {
+        client.setData().forPath(globalConfigNodePath, data.getBytes());
+      } else {
+        client.create().creatingParentContainersIfNeeded().withACL(getAcls()).forPath(globalConfigNodePath, data.getBytes());
+      }
+    } catch (Exception e) {
+      LOG.warn("Exception during global config node creation/update", e);
+    }
   }
 
   @Override
@@ -206,9 +261,14 @@ public class LogSearchConfigZK implements LogSearchConfig {
   }
 
   @Override
-  public String getInputConfig(String clusterName, String serviceName) {
+  public InputConfig getInputConfig(String clusterName, String serviceName) {
+    String globalConfigNodePath = String.format("%s/%s/global", root, clusterName);
+    String globalConfigData = new String(cache.getCurrentData(globalConfigNodePath).getData());
+    JsonArray globalConfigs = (JsonArray) new JsonParser().parse(globalConfigData);
+    InputAdapter.setGlobalConfigs(globalConfigs);
+    
     ChildData childData = cache.getCurrentData(String.format("%s/%s/input/%s", root, clusterName, serviceName));
-    return childData == null ? null : new String(childData.getData());
+    return childData == null ? null : InputConfigGson.gson.fromJson(new String(childData.getData()), InputConfigImpl.class);
   }
 
   @Override
