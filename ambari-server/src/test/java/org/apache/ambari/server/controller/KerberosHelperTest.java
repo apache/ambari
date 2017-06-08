@@ -1009,27 +1009,27 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
     expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient)).anyTimes();
 
-    final Service serviceKerberos = createStrictMock(Service.class);
+    final Service serviceKerberos = createNiceMock(Service.class);
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(1);
+        .anyTimes();
     serviceKerberos.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
-    final Service service1 = createStrictMock(Service.class);
+    final Service service1 = createNiceMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
     expect(service1.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(1);
+        .anyTimes();
     service1.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
-    final Service service2 = createStrictMock(Service.class);
+    final Service service2 = createNiceMock(Service.class);
     expect(service2.getName()).andReturn("SERVICE2").anyTimes();
     expect(service2.getServiceComponents())
         .andReturn(Collections.<String, ServiceComponent>emptyMap())
-        .times(1);
+        .anyTimes();
     service2.setSecurityState(SecurityState.SECURED_KERBEROS);
     expectLastCall().once();
 
@@ -1094,7 +1094,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -1301,7 +1301,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).once();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).once();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -1499,7 +1499,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).atLeastOnce();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).atLeastOnce();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -1646,7 +1646,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
     expect(serviceKerberos.getServiceComponents())
         .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
-        .times(1);
+        .anyTimes();
 
     final Service service1 = createStrictMock(Service.class);
     expect(service1.getName()).andReturn("SERVICE1").anyTimes();
@@ -1722,7 +1722,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).atLeastOnce();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).atLeastOnce();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     final RequestStageContainer requestStageContainer;
@@ -2263,7 +2263,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getIdentities(eq(true), anyObject(Map.class))).andReturn(null).atLeastOnce();
     expect(kerberosDescriptor.getAuthToLocalProperties()).andReturn(Collections.singleton("core-site/auth.to.local")).atLeastOnce();
 
-    setupKerberosDescriptor(kerberosDescriptor, 2);
+    setupKerberosDescriptor(kerberosDescriptor);
 
     RecommendationResponse.BlueprintConfigurations coreSiteRecommendation = createNiceMock(RecommendationResponse
         .BlueprintConfigurations.class);
@@ -2695,7 +2695,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       expectLastCall().once();
     }
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
 
     Map<String, Map<String, String>> existingConfigurations = new HashMap<>();
     existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
@@ -2822,7 +2822,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getProperties()).andReturn(kerberosDescriptorProperties);
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
 
     Map<String, Map<String, String>> existingConfigurations = new HashMap<>();
     existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
@@ -2858,9 +2858,10 @@ public class KerberosHelperTest extends EasyMockSupport {
     assertEquals(0, capturedPrincipalsForKeytab.size());
   }
 
-  private void setupKerberosDescriptor(KerberosDescriptor kerberosDescriptor, int expectedCalls) throws Exception {
+  private void setupKerberosDescriptor(KerberosDescriptor kerberosDescriptor) throws Exception {
     // cluster.getCurrentStackVersion expectation is already specified in main test method
-    expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(kerberosDescriptor).times(expectedCalls);
+    expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(kerberosDescriptor).anyTimes();
+    expect(kerberosDescriptor.principals()).andReturn(Collections.<String, String>emptyMap()).anyTimes();
   }
 
   private void setupStageFactory() {
@@ -3110,7 +3111,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
     }
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -3312,7 +3313,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).times(1);
     expect(kerberosDescriptor.getService("SERVICE3")).andReturn(serviceDescriptor3).times(1);
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -3489,7 +3490,7 @@ public class KerberosHelperTest extends EasyMockSupport {
       final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
       expect(kerberosDescriptor.getProperties()).andReturn(null).once();
 
-      setupKerberosDescriptor(kerberosDescriptor, 1);
+      setupKerberosDescriptor(kerberosDescriptor);
       setupStageFactory();
 
       // Preparation Stage
@@ -3659,7 +3660,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     final KerberosDescriptor kerberosDescriptor = createStrictMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperties()).andReturn(null).once();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
     setupStageFactory();
 
     // This is a STRICT mock to help ensure that the end result is what we want.
@@ -3969,7 +3970,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).anyTimes();
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).anyTimes();
 
-    setupKerberosDescriptor(kerberosDescriptor, 1);
+    setupKerberosDescriptor(kerberosDescriptor);
 
     replayAll();
 

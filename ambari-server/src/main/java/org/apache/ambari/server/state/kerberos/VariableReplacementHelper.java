@@ -42,7 +42,7 @@ public class VariableReplacementHelper {
   /**
    * a regular expression Pattern used to find "variable" placeholders in strings
    */
-  private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\$\\{(?:([\\w\\-\\.]+)/)?([\\w\\-\\.]+)(?:\\s*\\|\\s*(.+?))?\\}");
+  private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\$\\{(?:([\\w\\-\\.]+)/)?([\\w\\-\\./]+)(?:\\s*\\|\\s*(.+?))?\\}");
 
   /**
    * a regular expression Pattern used to parse "function" declarations: name(arg1, arg2, ...)
@@ -57,6 +57,7 @@ public class VariableReplacementHelper {
       put("each", new EachFunction());
       put("toLower", new ToLowerFunction());
       put("append", new AppendFunction());
+      put("principalPrimary", new PrincipalPrimary());
     }
   };
 
@@ -375,6 +376,26 @@ public class VariableReplacementHelper {
       }
 
       return sourceData;
+    }
+  }
+
+  /**
+   * Get the primary part of a Kerberos principal.
+   * The format of a typical Kerberos principal is primary/instance@REALM.
+   */
+  private static class PrincipalPrimary implements Function {
+    @Override
+    public String perform(String[] args, String data, Map<String, Map<String, String>> replacementsMap) {
+      if (data == null) {
+        return null;
+      }
+      if (data.contains("/")) {
+        return data.split("/")[0];
+      } else if (data.contains("@")) {
+        return data.split("@")[0];
+      } else {
+        return data;
+      }
     }
   }
 }

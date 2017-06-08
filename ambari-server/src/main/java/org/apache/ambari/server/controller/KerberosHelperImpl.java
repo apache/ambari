@@ -1276,10 +1276,21 @@ public class KerberosHelperImpl implements KerberosHelper {
   @Override
   public Map<String, Map<String, String>> calculateConfigurations(Cluster cluster, String hostname,
                                                                   Map<String, String> kerberosDescriptorProperties)
-      throws AmbariException {
-    return addAdditionalConfigurations(cluster,
-        calculateExistingConfigurations(cluster, hostname),
-        hostname, kerberosDescriptorProperties);
+      throws AmbariException
+  {
+    Map<String, Map<String, String>> configuration = addAdditionalConfigurations(cluster,
+      calculateExistingConfigurations(cluster, hostname),
+      hostname, kerberosDescriptorProperties);
+    configuration.put("principals", principalNames(cluster, configuration));
+    return configuration;
+  }
+
+  private Map<String, String> principalNames(Cluster cluster, Map<String, Map<String, String>> configuration) throws AmbariException {
+    Map<String, String> result = new HashMap<>();
+    for (Map.Entry<String, String> each : getKerberosDescriptor(cluster).principals().entrySet()) {
+      result.put(each.getKey(), variableReplacementHelper.replaceVariables(each.getValue(), configuration));
+    }
+    return result;
   }
 
   @Override

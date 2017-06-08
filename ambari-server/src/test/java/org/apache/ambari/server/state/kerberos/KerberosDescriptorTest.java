@@ -493,4 +493,13 @@ public class KerberosDescriptorTest {
     }});
     Assert.assertEquals(1, identities.size());
   }
+
+  @Test
+  public void testCollectPrincipalNames() throws Exception {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_get_referenced_identity_descriptor.json");
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()));
+    Map<String, String> principalsPerComponent = descriptor.principals();
+    Assert.assertEquals("service2_component1@${realm}", principalsPerComponent.get("SERVICE2/SERVICE2_COMPONENT1/service2_component1_identity"));
+    Assert.assertEquals("service1@${realm}", principalsPerComponent.get("SERVICE1/service1_identity"));
+  }
 }
