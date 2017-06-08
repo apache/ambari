@@ -30,6 +30,7 @@ from ambari_agent.Utils import lazy_property
 from ambari_agent.security import AmbariStompConnection
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.CommandStatusDict import CommandStatusDict
+from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 
 logger = logging.getLogger()
 
@@ -66,8 +67,9 @@ class InitializerModule:
     self.is_registered = False
 
     self.metadata_cache = ClusterMetadataCache(self.cluster_cache_dir)
-    self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir)
+    self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir, self.ambariConfig)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
+    self.customServiceOrchestrator = CustomServiceOrchestrator(self)
 
     self.commandStatuses = CommandStatusDict(self)
     self.action_queue = ActionQueue(self)

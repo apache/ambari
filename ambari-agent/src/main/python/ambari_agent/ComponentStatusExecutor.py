@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import random
 import logging
 import threading
 
@@ -32,6 +31,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.initializer_module = initializer_module
     self.metadata_cache = initializer_module.metadata_cache
     self.topology_cache = initializer_module.topology_cache
+    self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.stop_event = initializer_module.stop_event
     self.reported_component_status = defaultdict(lambda:defaultdict(lambda:None)) # component statuses which were received by server
     threading.Thread.__init__(self)
@@ -53,17 +53,14 @@ class ComponentStatusExecutor(threading.Thread):
             # multithreading: if cluster was deleted during iteration
             continue
 
-          #if 'status_commands_to_run' in cluster_metadata:
-          #  continue
+          if not 'status_commands_to_run' in metadata_cache:
+            continue
 
-          #status_commands_to_run = cluster_metadata.status_commands_to_run
-
-          # TODO STOMP: read this from metadata
-          status_commands_to_run = ['STATUS', 'SECURITY_STATUS']
+          status_commands_to_run = metadata_cache.status_commands_to_run
 
           cluster_components = topology_cache.components
           for component_dict in cluster_components:
-            for command in status_commands_to_run:
+            for command_name in status_commands_to_run:
 
               if self.stop_event.is_set():
                 break
@@ -71,19 +68,26 @@ class ComponentStatusExecutor(threading.Thread):
               service_name = component_dict.serviceName
               component_name = component_dict.componentName
 
-              # TODO STOMP: run real command
-              logger.info("Running {0}/{1}".format(component_dict.statusCommandParams.service_package_folder, component_dict.statusCommandParams.script))
-              #self.customServiceOrchestrator.requestComponentStatus(command)
-              status = random.choice(["INSTALLED","STARTED"])
+              command_dict = {
+                'serviceName': service_name,
+                'role': component_name,
+                'clusterId': cluster_id,
+                'commandType': 'STATUS_COMMAND',
+              }
+
+              component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
+              logger.info(component_status_result)
+              status = "STARTED" if component_status_result['exitcode'] == 0 else "INSTALLED"
+
               result = {
                 'serviceName': service_name,
                 'componentName': component_name,
-                'command': command,
+                'command': command_name,
                 'status': status,
                 'clusterId': cluster_id,
               }
 
-              if status != self.reported_component_status[component_name][command]:
+              if status != self.reported_component_status[component_name][command_name]:
                 logging.info("Status for {0} has changed to {1}".format(component_name, status))
                 cluster_reports[cluster_id].append(result)
 

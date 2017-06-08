@@ -73,7 +73,7 @@ class FileCache():
     """
     Returns a base directory for service
     """
-    service_subpath = command['commandParams']['service_package_folder']
+    service_subpath = command['serviceLevelParams']['service_package_folder']
     return self.provide_directory(self.cache_dir, service_subpath,
                                   server_url_prefix)
 
@@ -83,7 +83,7 @@ class FileCache():
     Returns a base directory for hooks
     """
     try:
-      hooks_subpath = command['commandParams']['hooks_folder']
+      hooks_subpath = command['serviceLevelParams']['hooks_folder']
     except KeyError:
       return None
     subpath = os.path.join(self.STACKS_CACHE_DIRECTORY, hooks_subpath)

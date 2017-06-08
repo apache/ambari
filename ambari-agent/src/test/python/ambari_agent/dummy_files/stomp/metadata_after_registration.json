@@ -1,185 +1,43 @@
 {
-    "hash": "c2bea6695221368416b2412fec2ba0d7",
-    "clusters": {
-        "0": {
-            "serviceSpecifics": {
-                "GANGLIA": {
-                    "version": "3.5.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": null
-                },
-                "DRUID": {
-                    "version": "0.9.2",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "TEZ": {
-                    "version": "0.7.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "SPARK": {
-                    "version": "1.6.x",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "HBASE": {
-                    "version": "1.1.2",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "RANGER_KMS": {
-                    "version": "0.7.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "ATLAS": {
-                    "version": "0.8.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "HIVE": {
-                    "version": "1.2.1000",
-                    "credentialStoreEnabled": true,
-                    "status_commands_timeout": null
-                },
-                "SLIDER": {
-                    "version": "0.92.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "AMBARI_INFRA": {
-                    "version": "0.1.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "FLUME": {
-                    "version": "1.5.2",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "MAHOUT": {
-                    "version": "0.9.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "SQOOP": {
-                    "version": "1.4.6",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "OOZIE": {
-                    "version": "4.2.0",
-                    "credentialStoreEnabled": true,
-                    "status_commands_timeout": 300
-                },
-                "HDFS": {
-                    "version": "2.7.3",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "MAPREDUCE2": {
-                    "version": "2.7.3",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "ACCUMULO": {
-                    "version": "1.7.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "ZOOKEEPER": {
-                    "version": "3.4.6",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "YARN": {
-                    "version": "2.7.3",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "KERBEROS": {
-                    "version": "1.10.3-10",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "KNOX": {
-                    "version": "0.12.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "PIG": {
-                    "version": "0.16.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "STORM": {
-                    "version": "1.1.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "RANGER": {
-                    "version": "0.7.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "AMBARI_METRICS": {
-                    "version": "0.1.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 600
-                },
-                "ZEPPELIN": {
-                    "version": "0.7.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "KAFKA": {
-                    "version": "0.10.1",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "LOGSEARCH": {
-                    "version": "0.5.0",
-                    "credentialStoreEnabled": true,
-                    "status_commands_timeout": 300
-                },
-                "FALCON": {
-                    "version": "0.10.0",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                },
-                "SPARK2": {
-                    "version": "2.x",
-                    "credentialStoreEnabled": false,
-                    "status_commands_timeout": 300
-                }
-            },
-            "clusterLevelParams": {
-                "host_sys_prepped": "false",
-                "java_home": null,
-                "agent_stack_retry_count": "5",
-                "jdk_location": "http://c6401.ambari.apache.org:8080/resources/",
-                "jdk_name": null,
-                "stack_version": "2.6",
-                "user_list": "[\"accumulo\",\"zookeeper\",\"ams\",\"ambari-qa\",\"hdfs\",\"yarn\",\"mapred\"]",
-                "mysql_jdbc_url": "http://dvitiiuk-System-Product-Name:8080/resources//mysql-connector-java.jar",
-                "oracle_jdbc_url": "http://dvitiiuk-System-Product-Name:8080/resources//ojdbc6.jar",
-                "ambari_db_rca_password": "mapred",
-                "jce_name": null,
-                "group_list": "[\"hadoop\",\"users\"]",
-                "db_name": "ambari",
-                "ambari_db_rca_driver": "org.postgresql.Driver",
-                "ambari_db_rca_username": "mapred",
-                "java_version": "8",
-                "not_managed_hdfs_path_list": "[\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
-                "db_driver_filename": "mysql-connector-java.jar",
-                "stack_name": "HDP",
-                "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
-                "agent_stack_retry_on_unavailability": "false",
-                "user_groups": "{}"
-            },
-            "status_commands_to_run": ["STATUS"],
-            "hooks_folder": "HDP/2.0.6/hooks"
+  "hash": "c2bea6695221368416b2412fec2ba0d7",
+  "clusters": {
+    "0": {
+      "clusterLevelParams": {
+        "jdk_location": "http://gc6401:8080/resources/",
+        "not_managed_hdfs_path_list": "[\"/mr-history/done\",\"/app-logs\",\"/tmp\"]",
+        "agent_stack_retry_on_unavailability": "false",
+        "ambari_db_rca_url": "jdbc:postgresql://gc6401/ambarirca",
+        "stack_name": "HDP",
+        "java_version": "8",
+        "ambari_db_rca_password": "mapred",
+        "group_list": "[\"hadoop\",\"users\"]",
+        "host_sys_prepped": "false",
+        "oracle_jdbc_url": "http://gc6401:8080/resources//ojdbc6.jar",
+        "jdk_name": "jdk-8u112-linux-x64.tar.gz",
+        "ambari_db_rca_username": "mapred",
+        "mysql_jdbc_url": "http://gc6401:8080/resources//mysql-connector-java.jar",
+        "agent_stack_retry_count": "5",
+        "db_driver_filename": "mysql-connector-java.jar",
+        "jce_name": "jce_policy-8.zip",
+        "user_groups": "{}",
+        "stack_version": "2.6",
+        "db_name": "ambari",
+        "ambari_db_rca_driver": "org.postgresql.Driver",
+        "java_home": "/usr/jdk64/jdk1.8.0_112",
+        "user_list": "[\"zookeeper\",\"ambari-qa\",\"hdfs\",\"yarn\",\"mapred\"]",
+        "hooks_folder": "HDP/2.0.6/hooks"
+      },
+      "serviceLevelParams": {
+        "HDFS": {
+          "credentialStoreEnabled": false,
+          "status_commands_timeout": 300,
+          "version": "2.7.3",
+          "service_package_folder": "common-services/HDFS/2.1.0.2.0/package"
         }
+      },
+      "status_commands_to_run": [
+        "STATUS"
+      ]
     }
+  }
 }

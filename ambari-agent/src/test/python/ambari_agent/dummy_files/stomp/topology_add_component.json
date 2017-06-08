@@ -12,9 +12,10 @@
             0,
             1
           ],
-          "statusCommandParams":{
-            "script":"scripts/snamenode.py",
-            "servicePackageFolder":"common-services/HDFS/2.1.0.2.0/package"
+          "componentLevelParams": {
+            "unlimited_key_jce_required": "false",
+            "clientsToUpdateConfigs": "[\"*\"]",
+            "script":"scripts/snamenode.py"
           }
         }
       ]

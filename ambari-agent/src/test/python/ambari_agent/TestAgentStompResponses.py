@@ -35,6 +35,8 @@ from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 
 from mock.mock import MagicMock, patch
 
+@patch("socket.gethostbyname", new=MagicMock(return_value="192.168.64.101"))
+@patch("ambari_agent.hostname.hostname", new=MagicMock(return_value="c6401.ambari.apache.org"))
 class TestAgentStompResponses(BaseStompServerTestCase):
   def setUp(self):
     self.remove_files(['/tmp/cluster_cache/configurations.json', '/tmp/cluster_cache/metadata.json', '/tmp/cluster_cache/topology.json'])
@@ -106,7 +108,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     action_status_failed_frame = json.loads(self.server.frames_queue.get().body)
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
@@ -132,6 +134,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     heartbeat_thread = HeartbeatThread.HeartbeatThread(initializer_module)
     heartbeat_thread.start()
+
 
     action_queue = initializer_module.action_queue
     action_queue.start()
@@ -168,7 +171,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
@@ -240,7 +243,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     initializer_module.stop_event.set()
 
-    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'0'}))
+    f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()

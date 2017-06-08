@@ -18,7 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
+from ambari_agent import hostname
 from ambari_agent.ClusterCache import ClusterCache
+from ambari_agent.Utils import ImmutableDictionary
+
+from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,32 +35,72 @@ class ClusterTopologyCache(ClusterCache):
   topology properties.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, config):
     """
     Initializes the topology cache.
     :param cluster_cache_dir:
     :return:
     """
+    self.hosts_to_id = ImmutableDictionary({})
+    self.components_by_key = ImmutableDictionary({})
+    self.hostname = hostname.hostname(config)
+    self.current_host_ids_to_cluster = {}
     super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
 
   def get_cache_name(self):
     return 'topology'
 
-  @staticmethod
-  def find_host_by_id(host_dicts, host_id):
+  def on_cache_update(self):
+    hosts_to_id = defaultdict(lambda:{})
+    components_by_key = defaultdict(lambda:{})
+
+    for cluster_id, cluster_topology in self.iteritems():
+      for host_dict in cluster_topology.hosts:
+        hosts_to_id[cluster_id][host_dict.hostId] = host_dict
+
+        if host_dict.hostName == self.hostname:
+          self.current_host_ids_to_cluster[cluster_id] = host_dict.hostId
+
+      for component_dict in cluster_topology.components:
+        key = "{0}/{1}".format(component_dict.serviceName, component_dict.componentName)
+        components_by_key[cluster_id][key] = component_dict
+
+    self.hosts_to_id = ImmutableDictionary(hosts_to_id)
+    self.components_by_key = ImmutableDictionary(components_by_key)
+
+  def get_component_info_by_key(self, cluster_id, service_name, component_name):
+    """
+    Find component by service_name and component_name in list of component dictionaries.
+    """
+    key = "{0}/{1}".format(service_name, component_name)
+
+    try:
+      return self.components_by_key[cluster_id][key]
+    except KeyError:
+      return None
+
+  def get_host_info_by_id(self, cluster_id, host_id):
     """
     Find host by id in list of host dictionaries.
     """
+    try:
+      return self.hosts_to_id[cluster_id][host_id]
+    except KeyError:
+      return None
+
+  def get_current_host_info(self, cluster_id):
+    current_host_id = self.current_host_ids_to_cluster[cluster_id]
+    return self.get_host_info_by_id(cluster_id, current_host_id)
+
+  @staticmethod
+  def _find_host_by_id_in_dict(host_dicts, host_id):
     for host_dict in host_dicts:
       if host_dict['hostId'] == host_id:
         return host_dict
     return None
 
   @staticmethod
-  def find_component(component_dicts, service_name, component_name):
-    """
-    Find component by service_name and component_name in list of component dictionaries.
-    """
+  def _find_component_in_dict(component_dicts, service_name, component_name):
     for component_dict in component_dicts:
       if component_dict['serviceName'] == service_name and component_dict['componentName'] == component_name:
         return component_dict
@@ -81,7 +126,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'hosts' in cluster_updates_dict:
         hosts_mutable_list = mutable_dict[cluster_id]['hosts']
         for host_updates_dict in cluster_updates_dict['hosts']:
-          host_mutable_dict = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, host_updates_dict['hostId'])
+          host_mutable_dict = ClusterTopologyCache._find_host_by_id_in_dict(hosts_mutable_list, host_updates_dict['hostId'])
           if host_mutable_dict is not None:
             host_mutable_dict.update(host_updates_dict)
           else:
@@ -90,7 +135,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'components' in cluster_updates_dict:
         components_mutable_list = mutable_dict[cluster_id]['components']
         for component_updates_dict in cluster_updates_dict['components']:
-          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
+          component_mutable_dict = ClusterTopologyCache._find_component_in_dict(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
           if component_mutable_dict is not None:
             component_updates_dict['hostIds'] += component_mutable_dict['hostIds']
             component_updates_dict['hostIds'] = list(set(component_updates_dict['hostIds']))
@@ -121,7 +166,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'hosts' in cluster_updates_dict:
         hosts_mutable_list = mutable_dict[cluster_id]['hosts']
         for host_updates_dict in cluster_updates_dict['hosts']:
-          host_to_delete = ClusterTopologyCache.find_host_by_id(hosts_mutable_list, host_updates_dict['hostId'])
+          host_to_delete = ClusterTopologyCache._find_host_by_id_in_dict(hosts_mutable_list, host_updates_dict['hostId'])
           if host_to_delete is not None:
             mutable_dict[cluster_id]['hosts'] = [host_dict for host_dict in hosts_mutable_list if host_dict != host_to_delete]
           else:
@@ -130,7 +175,7 @@ class ClusterTopologyCache(ClusterCache):
       if 'components' in cluster_updates_dict:
         components_mutable_list = mutable_dict[cluster_id]['components']
         for component_updates_dict in cluster_updates_dict['components']:
-          component_mutable_dict = ClusterTopologyCache.find_component(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
+          component_mutable_dict = ClusterTopologyCache._find_component_in_dict(components_mutable_list, component_updates_dict['serviceName'], component_updates_dict['componentName'])
           if 'hostIds' in component_mutable_dict:
             exclude_host_ids = component_updates_dict['hostIds']
             component_mutable_dict['hostIds'] = [host_id for host_id in component_mutable_dict['hostIds'] if host_id not in exclude_host_ids]

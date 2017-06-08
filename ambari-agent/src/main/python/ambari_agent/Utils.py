@@ -74,6 +74,8 @@ class BlockingDictionary():
 class Utils(object):
   @staticmethod
   def make_immutable(value):
+    if isinstance(value, ImmutableDictionary):
+      return value
     if isinstance(value, dict):
       return ImmutableDictionary(value)
     if isinstance(value, (list, tuple)):

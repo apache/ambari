@@ -24,11 +24,11 @@ import ambari_simplejson as json
 import sys
 from ambari_commons import shell
 import threading
+import copy
 
 from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
-from PythonReflectiveExecutor import PythonReflectiveExecutor
 from resource_management.libraries.functions.log_process_information import log_process_information
 from resource_management.core.utils import PasswordString
 import subprocess
@@ -64,7 +64,6 @@ class CustomServiceOrchestrator():
 
   FREQUENT_COMMANDS = [COMMAND_NAME_STATUS]
   DONT_DEBUG_FAILURES_FOR_COMMANDS = FREQUENT_COMMANDS
-  REFLECTIVELY_RUN_COMMANDS = FREQUENT_COMMANDS # -- commands which run a lot and often (this increases their speed)
   DONT_BACKUP_LOGS_FOR_COMMANDS = FREQUENT_COMMANDS
 
   # Path where hadoop credential JARS will be available
@@ -78,27 +77,30 @@ class CustomServiceOrchestrator():
   # Property name for credential store class path
   CREDENTIAL_STORE_CLASS_PATH_NAME = 'credentialStoreClassPath'
 
-  def __init__(self, config):
-    self.config = config
-    self.tmp_dir = config.get('agent', 'prefix')
-    self.force_https_protocol = config.get_force_https_protocol()
+  def __init__(self, initializer_module):
+    self.metadata_cache = initializer_module.metadata_cache
+    self.topology_cache = initializer_module.topology_cache
+    self.configurations_cache = initializer_module.configurations_cache
+    self.config = initializer_module.ambariConfig
+    self.tmp_dir = self.config.get('agent', 'prefix')
+    self.force_https_protocol = self.config.get_force_https_protocol()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR
-    self.file_cache = FileCache(config)
+    self.file_cache = FileCache(self.config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
                                                'status_command_stderr.txt')
-    self.public_fqdn = hostname.public_hostname(config)
+    self.public_fqdn = hostname.public_hostname(self.config)
     # TODO STOMP: cache reset should be called on every agent registration
     #controller.registration_listeners.append(self.file_cache.reset)
 
     # Construct the hadoop credential lib JARs path
-    self.credential_shell_lib_path = os.path.join(config.get('security', 'credential_lib_dir',
+    self.credential_shell_lib_path = os.path.join(self.config.get('security', 'credential_lib_dir',
                                                              self.DEFAULT_CREDENTIAL_SHELL_LIB_PATH), '*')
 
-    self.credential_conf_dir = config.get('security', 'credential_conf_dir', self.DEFAULT_CREDENTIAL_CONF_DIR)
+    self.credential_conf_dir = self.config.get('security', 'credential_conf_dir', self.DEFAULT_CREDENTIAL_CONF_DIR)
 
-    self.credential_shell_cmd = config.get('security', 'credential_shell_cmd', self.DEFAULT_CREDENTIAL_SHELL_CMD)
+    self.credential_shell_cmd = self.config.get('security', 'credential_shell_cmd', self.DEFAULT_CREDENTIAL_SHELL_CMD)
 
     # Clean up old status command files if any
     try:
@@ -124,7 +126,7 @@ class CustomServiceOrchestrator():
                     .format(tid=str(task_id), reason=reason, pid=pid))
         log_process_information(logger)
         shell.kill_process_with_children(pid)
-      else: 
+      else:
         logger.warn("Unable to find process associated with taskId = %s" % task_id)
 
   def get_py_executor(self, forced_command_name):
@@ -132,10 +134,7 @@ class CustomServiceOrchestrator():
     Wrapper for unit testing
     :return:
     """
-    if forced_command_name in self.REFLECTIVELY_RUN_COMMANDS:
-      return PythonReflectiveExecutor(self.tmp_dir, self.config)
-    else:
-      return PythonExecutor(self.tmp_dir, self.config)
+    return PythonExecutor(self.tmp_dir, self.config)
 
   def getProviderDirectory(self, service_name):
     """
@@ -245,7 +244,7 @@ class CustomServiceOrchestrator():
             config.pop(value_name, None)
     return configtype_credentials
 
-  def generateJceks(self, commandJson):
+  def qJceks(self, commandJson):
     """
     Generates the JCEKS file with passwords for the service specified in commandJson
 
@@ -302,25 +301,26 @@ class CustomServiceOrchestrator():
     return cmd_result
 
 
-  def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
-                 override_output_files=True, retry=False):
+  def runCommand(self, command_header, tmpoutfile, tmperrfile, forced_command_name=None,
+                 override_output_files=True, retry=False, is_status_command=False):
     """
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
     """
     try:
-      script_type = command['commandParams']['script_type']
-      script = command['commandParams']['script']
-      timeout = int(command['commandParams']['command_timeout'])
+      command = self.generate_command(command_header)
+      script_type = command['script_type'] # TODO STOMP: take this from command?
+      script = command['componentLevelParams']['script']
+      timeout = int('300') # TODO STOMP: fix it
 
-      if 'hostLevelParams' in command and 'jdk_location' in command['hostLevelParams']:
-        server_url_prefix = command['hostLevelParams']['jdk_location']
-      else:
-        server_url_prefix = command['commandParams']['jdk_location']
+      server_url_prefix = command['clusterLevelParams']['jdk_location']
 
       # Status commands have no taskId nor roleCommand
-      task_id = command['taskId'] if 'taskId' in command else 'status'
-      command_name = command['roleCommand'] if 'roleCommand' in command else None
+      if not is_status_command:
+        task_id = command['taskId']
+        command_name = command['roleCommand']
+      else:
+        task_id = 'status'
 
       if forced_command_name is not None:  # If not supplied as an argument
         command_name = forced_command_name
@@ -335,7 +335,7 @@ class CustomServiceOrchestrator():
 
         # forces a hash challenge on the directories to keep them updated, even
         # if the return type is not used
-        self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
+        self.file_cache.get_host_scripts_base_dir(server_url_prefix)
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
         self.file_cache.get_custom_resources_subdir(command, server_url_prefix)
@@ -361,10 +361,11 @@ class CustomServiceOrchestrator():
       # If command contains credentialStoreEnabled, then
       # generate the JCEKS file for the configurations.
       credentialStoreEnabled = False
-      if 'credentialStoreEnabled' in command:
-        credentialStoreEnabled = (command['credentialStoreEnabled'] == "true")
+      if 'credentialStoreEnabled' in command['serviceLevelParams']:
+        credentialStoreEnabled = (command['serviceLevelParams']['credentialStoreEnabled'] == "true")
 
       if credentialStoreEnabled == True:
+        # TODO STOMP: fix this with execution commands
         if 'commandBeingRetried' not in command or command['commandBeingRetried'] != "true":
           self.generateJceks(command)
         else:
@@ -391,15 +392,15 @@ class CustomServiceOrchestrator():
       python_executor = self.get_py_executor(forced_command_name)
       backup_log_files = not command_name in self.DONT_BACKUP_LOGS_FOR_COMMANDS
       log_out_files = self.config.get("logging","log_out_files", default="0") != "0"
-      
+
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir,
                          self.force_https_protocol]
-        
+
         if log_out_files:
           script_params.append("-o")
-        
+
         ret = python_executor.run_file(py_file, script_params,
                                tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, self.map_task_to_process,
@@ -451,7 +452,44 @@ class CustomServiceOrchestrator():
             return "\nCommand aborted."
     return None
 
-  def requestComponentStatus(self, command):
+  def generate_command(self, command_header):
+    service_name = command_header['serviceName']
+    component_name = command_header['role']
+    cluster_id = str(command_header['clusterId'])
+
+    metadata_cache = self.metadata_cache[cluster_id]
+    configurations_cache = self.configurations_cache[cluster_id]
+
+    component_dict = self.topology_cache.get_component_info_by_key(cluster_id, service_name, component_name)
+
+    command_dict = {
+      'clusterLevelParams': metadata_cache.clusterLevelParams,
+      'serviceLevelParams': metadata_cache.serviceLevelParams[service_name],
+      'hostLevelParams': self.topology_cache.get_current_host_info(cluster_id).hostLevelParams,
+      'componentLevelParams': component_dict.componentLevelParams,
+      'script_type': self.SCRIPT_TYPE_PYTHON
+    }
+    command_dict.update(configurations_cache)
+    #command_dict['componentLevelParams']['script'] = component_dict.statusCommandParams['script']
+    #command_dict['serviceLevelParams']['hooks_folder'] = metadata_cache['hooks_folder']
+    #command_dict['serviceLevelParams']['service_package_folder'] = component_dict.statusCommandParams['service_package_folder']
+
+    command_dict['agentLevelParams'] = {
+      'public_hostname': self.public_fqdn,
+      'agentCacheDir': self.config.get('agent', 'cache_dir'),
+    }
+    command_dict['agentLevelParams']["agentConfigParams"] = {
+      "agent": {
+        "parallel_execution": self.config.get_parallel_exec_option(),
+        "use_system_proxy_settings": self.config.use_system_proxy_setting()
+      }
+    }
+    command = copy.copy(command_header)
+    command.update(command_dict)
+
+    return command
+
+  def requestComponentStatus(self, command_header):
     """
      Component status is determined by exit code, returned by runCommand().
      Exit code 0 means that component is running and any other exit code means that
@@ -461,9 +499,9 @@ class CustomServiceOrchestrator():
     if logger.level == logging.DEBUG:
       override_output_files = False
 
-    res = self.runCommand(command, self.status_commands_stdout,
+    res = self.runCommand(command_header, self.status_commands_stdout,
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
-                          override_output_files=override_output_files)
+                          override_output_files=override_output_files, is_status_command=True)
     return res
 
   def resolve_script_path(self, base_dir, script):
@@ -497,17 +535,6 @@ class CustomServiceOrchestrator():
     """
     Converts command to json file and returns file path
     """
-    # Perform few modifications to stay compatible with the way in which
-    public_fqdn = self.public_fqdn
-    command['public_hostname'] = public_fqdn
-    # Add cache dir to make it visible for commands
-    command["hostLevelParams"]["agentCacheDir"] = self.config.get('agent', 'cache_dir')
-    command["agentConfigParams"] = {
-      "agent": {
-        "parallel_execution": self.config.get_parallel_exec_option(),
-        "use_system_proxy_settings": self.config.use_system_proxy_setting()
-      }
-    }
     # Now, dump the json file
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency

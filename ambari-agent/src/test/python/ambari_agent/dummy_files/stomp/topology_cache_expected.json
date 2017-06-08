@@ -1,57 +1,66 @@
 {
   "0": {
-    "hosts": [
-      {
-        "rackName": "/default-rack",
-        "hostName": "c6402.ambari.apache.org",
-        "ipv4": "192.168.64.102",
-        "hostId": 1
-      },
-      {
-        "rackName": "/default-rack",
-        "hostName": "c6403.ambari.apache.org",
-        "ipv4": "192.168.64.103",
-        "hostId": 2
-      }
-    ],
     "components": [
       {
-        "statusCommandParams": {
-          "script": "scripts/datanode.py",
-          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+        "componentLevelParams": {
+          "clientsToUpdateConfigs": "[\"*\"]",
+          "script": "scripts/namenode.py",
+          "unlimited_key_jce_required": "false"
         },
         "componentName": "DATANODE",
-        "serviceName": "HDFS",
-        "version": "2.6.0.3-8",
         "hostIds": [
           1
-        ]
+        ],
+        "serviceName": "HDFS",
+        "version": "2.6.0.3-8"
       },
       {
-        "statusCommandParams": {
+        "componentLevelParams": {
+          "clientsToUpdateConfigs": "[\"*\"]",
           "script": "scripts/hdfs_client.py",
-          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+          "unlimited_key_jce_required": "false"
         },
         "componentName": "HDFS_CLIENT",
-        "version": "2.6.0.3-8",
-        "serviceName": "HDFS",
         "hostIds": [
           0,
           1
-        ]
+        ],
+        "serviceName": "HDFS",
+        "version": "2.6.0.3-8"
       },
       {
-        "statusCommandParams": {
+        "componentLevelParams": {
+          "clientsToUpdateConfigs": "[\"*\"]",
           "script": "scripts/snamenode.py",
-          "servicePackageFolder": "common-services/HDFS/2.1.0.2.0/package"
+          "unlimited_key_jce_required": "false"
         },
         "componentName": "SECONDARY_NAMENODE",
-        "serviceName": "HDFS",
-        "version": "2.6.0.3-8",
         "hostIds": [
           0,
           1
-        ]
+        ],
+        "serviceName": "HDFS",
+        "version": "2.6.0.3-8"
+      }
+    ],
+    "hosts": [
+      {
+        "hostId": 1,
+        "hostLevelParams": {
+          "repo_info": "[{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.1.0-129/\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.6\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.3\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.1.0-129\",\"repoSaved\":true,\"unique\":true,\"ambariManagedRepositories\":true},{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.21\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"repoSaved\":true,\"unique\":false,\"ambariManagedRepositories\":true}]"
+        },
+        "hostName": "c6402.ambari.apache.org",
+        "ipv4": "192.168.64.102",
+        "rackName": "/default-rack"
+      },
+      {
+        "hostId": 2,
+        "hostLevelParams": {
+          "repo_info": "[{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.1.0-129/\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.6\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.0.3\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.1.0-129\",\"repoSaved\":true,\"unique\":true,\"ambariManagedRepositories\":true},{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.21\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"latestBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.21/repos/centos6\",\"repoSaved\":true,\"unique\":false,\"ambariManagedRepositories\":true}]"
+        },
+        "hostName": "c6403.ambari.apache.org",
+        "ipv4": "192.168.64.103",
+        "rackName": "/default-rack"
       }
     ]
   }

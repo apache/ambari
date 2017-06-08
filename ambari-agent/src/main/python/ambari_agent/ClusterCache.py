@@ -57,12 +57,12 @@ class ClusterCache(dict):
       with self.__file_lock:
         with open(self.__current_cache_json_file, 'r') as fp:
           cache_dict = json.load(fp)
-
+    """
     for cluster_id, cache in cache_dict.iteritems():
       immutable_cache = Utils.make_immutable(cache)
       cache_dict[cluster_id] = immutable_cache
-
-    super(ClusterCache, self).__init__(cache_dict)
+    """
+    self.rewrite_cache(cache_dict)
 
   def get_cluster_ids(self):
     return self.keys()
@@ -79,6 +79,9 @@ class ClusterCache(dict):
     with self._cache_lock:
       for cache_id_to_delete in cache_ids_to_delete:
         del self[cache_id_to_delete]
+
+    self.on_cache_update()
+    self.persist_cache()
 
 
   def rewrite_cluster_cache(self, cluster_id, cache):
@@ -98,8 +101,6 @@ class ClusterCache(dict):
     with self._cache_lock:
       self[cluster_id] = immutable_cache
 
-    self.persist_cache()
-
   def persist_cache(self):
     # ensure that our cache directory exists
     if not os.path.exists(self.cluster_cache_dir):
@@ -113,6 +114,11 @@ class ClusterCache(dict):
     with self._cache_lock:
       return Utils.get_mutable_copy(self)
 
+  def on_cache_update(self):
+    """
+    Call back function called then cache is updated
+    """
+    pass
 
   def get_cache_name(self):
     raise NotImplemented()

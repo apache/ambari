@@ -27,12 +27,10 @@ import os
 import ambari_simplejson as json
 import time
 import signal
-import copy
 
 from AgentException import AgentException
 from LiveStatus import LiveStatus
 from ActualConfigHandler import ActualConfigHandler
-from CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.str_utils import split_on_chunks
 from resource_management.libraries.script import Script
@@ -77,12 +75,11 @@ class ActionQueue(threading.Thread):
     self.commandQueue = Queue.Queue()
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = initializer_module.commandStatuses
-    self.configurations_cache = initializer_module.configurations_cache
     self.config = initializer_module.ambariConfig
     self.configTags = {}
     self.stop_event = initializer_module.stop_event
     self.tmpdir = self.config.get('agent', 'prefix')
-    self.customServiceOrchestrator = CustomServiceOrchestrator(self.config)
+    self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.parallel_execution = self.config.get_parallel_exec_option()
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
@@ -92,18 +89,16 @@ class ActionQueue(threading.Thread):
     for command in commands:
       if not command.has_key('serviceName'):
         command['serviceName'] = "null"
+      if command.has_key('clusterId'):
+        command['clusterId'] = "null"
       if not command.has_key('clusterName'):
         command['clusterName'] = 'null'
-      
-      if command.has_key('clusterId'):
-        cluster_id = command['clusterId']
-        # TODO STOMP: what if has no configs yet?
-        if cluster_id != 'null':
-          command['configurations'] = dict(self.configurations_cache[str(cluster_id)])
+
+
       logger.info("Adding " + command['commandType'] + " for role " + \
                   command['role'] + " for service " + \
-                  command['serviceName'] + " of cluster " + \
-                  command['clusterName'] + " to the queue.")
+                  command['serviceName'] + " of cluster_id " + \
+                  command['clusterId'] + " to the queue.")
       if command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND :
         self.backgroundCommandQueue.put(self.createCommandHandle(command))
       else:
@@ -170,7 +165,7 @@ class ActionQueue(threading.Thread):
     except:
       logger.exception("ActionQueue thread failed with exception:")
       raise
-    
+
     logger.info("ActionQueue thread has successfully finished")
 
   def processBackgroundQueueSafeEmpty(self):

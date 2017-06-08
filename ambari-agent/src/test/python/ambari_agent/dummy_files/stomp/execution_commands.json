@@ -11,7 +11,7 @@
           "commandType":"EXECUTION_COMMAND",
           "roleCommand":"START",
           "clusterName": "c1",
-          "clusterId": 0,
+          "clusterId": "0",
           "configuration_credentials":{
 
           },

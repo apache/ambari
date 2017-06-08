@@ -17,6 +17,27 @@
           "initLimit":"10",
           "dataDir":"/hadoop/zookeeper",
           "tickTime":"2000"
+        },
+        "hadoop-env": {
+          "proxyuser_group": "users",
+          "hdfs_user_nproc_limit": "65536",
+          "hdfs_log_dir_prefix": "/var/log/hadoop",
+          "keyserver_host": " ",
+          "namenode_opt_maxnewsize": "200m",
+          "nfsgateway_heapsize": "1024",
+          "dtnode_heapsize": "1024m",
+          "namenode_heapsize": "1024m",
+          "namenode_opt_maxpermsize": "256m",
+          "namenode_opt_permsize": "128m",
+          "hdfs_tmp_dir": "/tmp",
+          "hdfs_user": "hdfs",
+          "hdfs_user_nofile_limit": "128000",
+          "namenode_opt_newsize": "200m",
+          "keyserver_port": "",
+          "namenode_backup_dir": "/tmp/upgrades",
+          "hadoop_root_logger": "INFO,RFA",
+          "hadoop_heapsize": "1024",
+          "hadoop_pid_dir_prefix": "/var/run/hadoop"
         }
       },
       "configurationAttributes":{

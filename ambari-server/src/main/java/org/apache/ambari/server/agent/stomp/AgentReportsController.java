@@ -66,11 +66,7 @@ public class AgentReportsController {
         componentStatus.setClusterName(clusters.getCluster(report.getClusterId()).getClusterName());
         componentStatus.setComponentName(report.getComponentName());
         componentStatus.setServiceName(report.getServiceName());
-        if (report.getCommand().equals(ComponentStatusReport.CommandStatusCommand.STATUS)) {
-          componentStatus.setStatus(report.getStatus().toString());
-        } else {
-          componentStatus.setSecurityState(report.getStatus().toString());
-        }
+        componentStatus.setStatus(report.getStatus().toString());
         statuses.add(componentStatus);
       }
     }
