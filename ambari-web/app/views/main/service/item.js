@@ -288,7 +288,7 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
     }
 
-    if (App.isAuthorized("SERVICE.ADD_DELETE_SERVICES")) {
+    if (App.isAuthorized("SERVICE.ADD_DELETE_SERVICES") && App.supports.enableAddDeleteServices) {
       options.push(actionMap.DELETE_SERVICE);
     }
 

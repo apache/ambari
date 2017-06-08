@@ -89,7 +89,9 @@ App.supports = {
   kerberosStackAdvisor: true,
   logCountVizualization: false,
   enabledWizardForHostOrderedUpgrade: true,
-  manageJournalNode: true
+  manageJournalNode: true,
+  enableToggleKerberos: true,
+  enableAddDeleteServices: true
 };
 
 if (App.enableExperimental) {
