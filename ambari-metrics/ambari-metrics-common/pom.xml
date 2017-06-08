@@ -74,7 +74,7 @@
                 </relocation>
                 <relocation>
                   <pattern>org.apache.commons.io</pattern>
-                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.commons.io</shadedPattern>StormTimelineMetricsReporter
+                  <shadedPattern>org.apache.ambari.metrics.sink.relocated.commons.io</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.commons.lang</pattern>
