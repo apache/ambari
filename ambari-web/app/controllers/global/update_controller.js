@@ -186,8 +186,11 @@ App.UpdateController = Em.Controller.extend({
    * Start polling, when <code>isWorking</code> become true
    */
   updateAll: function () {
+    var socket = App.socketEventsMapper;
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
-      this.subscribeToHostComponentsStatus();
+      //TODO limit updates by location
+      App.StompClient.subscribe('/events/hostcomponents', socket.applyHostComponentStatusEvents.bind(socket));
+      App.StompClient.subscribe('/events/alerts', socket.applyAlertDefinitionSummaryEvents.bind(socket));
 
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
@@ -198,7 +201,6 @@ App.UpdateController = Em.Controller.extend({
 
       App.updater.run(this, 'updateAlertGroups', 'isWorking', App.alertGroupsUpdateInterval, '\/main\/alerts.*');
       App.updater.run(this, 'updateAlertDefinitions', 'isWorking', App.alertDefinitionsUpdateInterval, '\/main\/alerts.*');
-      App.updater.run(this, 'updateAlertDefinitionSummary', 'isWorking', App.alertDefinitionsUpdateInterval);
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
@@ -207,18 +209,9 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
     } else {
       App.StompClient.unsubscribe('/events/hostcomponents');
+      App.StompClient.unsubscribe('/events/alerts');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
-
-  subscribeToHostComponentsStatus: function() {
-    //TODO limit updates by location
-    App.StompClient.subscribe('/events/hostcomponents', (event) => {
-      const hostComponent = App.HostComponent.find(event.componentName + '_' + event.hostName);
-      if (hostComponent.get('isLoaded')) {
-        hostComponent.set('workStatus', event.currentState);
-      }
-    });
-  },
 
   /**
    *

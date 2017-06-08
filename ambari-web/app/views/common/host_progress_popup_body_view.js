@@ -847,7 +847,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    */
   gotoTasks: function (event) {
     var tasksInfo = [];
-    event.context.logTasks.forEach(function (_task) {
+    this.get('pageContent').findProperty('name', event.context.get('name')).get('logTasks').forEach(function (_task) {
       tasksInfo.pushObject(this.get("controller").createTask(_task));
     }, this);
     if (tasksInfo.length) {

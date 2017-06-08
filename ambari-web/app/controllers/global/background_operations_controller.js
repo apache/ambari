@@ -199,7 +199,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var request = this.get('services').findProperty('id', levelInfo.get('requestId'));
 
     if (levelInfo.get('name') === 'HOSTS_LIST') {
-      return !!(request && App.isEmptyObject(request.get('hostsMap')));
+      return Boolean(request && !request.get('hostsLevelLoaded'));
     }
     return false;
   },
@@ -250,19 +250,20 @@ App.BackgroundOperationsController = Em.Controller.extend({
       task.Tasks.request_inputs = requestInputs;
       if (host) {
         host.logTasks.push(task);
-        host.isModified = (host.isModified) ? true : previousTaskStatusMap[task.Tasks.id] !== task.Tasks.status;
+        host.isModified = true;
       } else {
         hostsMap[task.Tasks.host_name] = {
           name: task.Tasks.host_name,
           publicName: task.Tasks.host_name,
           logTasks: [task],
-          isModified: previousTaskStatusMap[task.Tasks.id] !== task.Tasks.status
+          isModified: true
         };
       }
       currentTaskStatusMap[task.Tasks.id] = task.Tasks.status;
     }, this);
     request.set('previousTaskStatusMap', currentTaskStatusMap);
     request.set('hostsMap', hostsMap);
+    request.set('hostsLevelLoaded', true);
     this.set('serviceTimestamp', App.dateTime());
   },
   /**

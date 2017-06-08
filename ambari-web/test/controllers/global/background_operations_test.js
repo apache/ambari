@@ -542,9 +542,7 @@ describe('App.BackgroundOperationsController', function () {
       }));
       controller.set('services', [Em.Object.create({
         id: 1,
-        hostsMap: {
-          'host1': {}
-        }
+        hostsLevelLoaded: true
       })]);
       expect(controller.isInitLoading()).to.be.false;
     });
