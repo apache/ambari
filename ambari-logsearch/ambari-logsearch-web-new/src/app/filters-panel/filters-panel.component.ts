@@ -17,44 +17,19 @@
  */
 
 import {Component, OnInit} from '@angular/core';
-import 'rxjs/add/operator/finally';
-import {HttpClientService} from '@app/services/http-client.service';
+import {FilteringService} from '@app/services/filtering.service';
 
 @Component({
-  selector: 'login-form',
-  templateUrl: './login-form.component.html',
-  styleUrls: ['./login-form.component.less']
+  selector: 'filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.less']
 })
-export class LoginFormComponent implements OnInit {
+export class FiltersPanelComponent implements OnInit {
 
-  constructor(private httpClient: HttpClientService) {
+  constructor(private filtering: FilteringService) {
   }
 
   ngOnInit() {
-  }
-
-  username: string;
-
-  password: string;
-
-  isLoginAlertDisplayed: boolean;
-
-  isRequestInProgress: boolean;
-
-  login() {
-    this.isRequestInProgress = true;
-    this.httpClient.post('login', {
-      username: this.username,
-      password: this.password
-    }).finally(() => {
-      this.isRequestInProgress = false;
-    }).subscribe(() => {
-      this.isLoginAlertDisplayed = false;
-      this.httpClient.isAuthorized = true;
-    }, () => {
-      this.isLoginAlertDisplayed = true;
-      this.httpClient.isAuthorized = false;
-    });
   }
 
 }

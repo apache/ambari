@@ -16,16 +16,11 @@
 -->
 
 <div #dropdown [ngClass]="{'dropdown': hasSubItems, 'text-center': true}">
-  <span (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" (click)="$event.stopPropagation()">
-    <a *ngIf="title" class="icon" [ngClass]="iconClassNames"></a>
-    <span *ngIf="!title" class="icon" [ngClass]="iconClassNames"></span>
-  </span>
-  <a #dropdownToggle [ngClass]="{'dropdown-toggle': hasSubItems, 'caret': true}" [attr.data-toggle]="hasSubItems ? 'dropdown': null" *ngIf="hasSubItems"></a>
+  <a [ngClass]="iconClass + ' icon'" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)"
+     (click)="$event.stopPropagation()"></a>
+  <a #dropdownToggle class="dropdown-toggle caret" data-toggle="dropdown" *ngIf="hasCaret"></a>
   <br>
-  <span class="icon-title" *ngIf="title" (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" (click)="$event.stopPropagation()">{{title | translate}}</span>
-  <ul class="dropdown-menu" *ngIf="hasSubItems">
-    <li *ngFor="let item of subItems">
-      <a href="#">{{item.title}}</a>
-    </li>
-  </ul>
+  <a *ngIf="label" (mousedown)="onMouseDown($event)" [ngClass]="labelClass" (mouseup)="onMouseUp($event)"
+     (click)="$event.stopPropagation()">{{label | translate}}</a>
+  <ul class="dropdown-menu" [isFilter]="isFilter" *ngIf="hasSubItems" [items]="subItems"></ul>
 </div>

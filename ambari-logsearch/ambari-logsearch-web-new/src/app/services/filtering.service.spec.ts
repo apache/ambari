@@ -16,26 +16,18 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {TestBed, inject} from '@angular/core/testing';
 
-@Injectable()
-export class ComponentActionsService {
+import {FilteringService} from './filtering.service';
 
-  constructor() {
-  }
+describe('FilteringService', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [FilteringService]
+    });
+  });
 
-  //TODO implement actions
-
-  undo() {
-  }
-
-  redo() {
-  }
-
-  refresh() {
-  }
-
-  openHistory() {
-  }
-
-}
+  it('should create service', inject([FilteringService], (service: FilteringService) => {
+    expect(service).toBeTruthy();
+  }));
+});

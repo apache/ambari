@@ -18,6 +18,7 @@
 
 import {Component, AfterViewInit, Input, ViewChild, ElementRef} from '@angular/core';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import * as $ from 'jquery';
 
 @Component({
   selector: 'menu-button',
@@ -36,20 +37,32 @@ export class MenuButtonComponent implements AfterViewInit {
   dropdown: ElementRef;
 
   @Input()
-  title?: string;
+  label?: string;
 
   @Input()
   action: string;
 
   @Input()
-  iconClassNames: string[];
+  isFilter: boolean;
+
+  @Input()
+  iconClass: string;
+
+  @Input()
+  labelClass?: string;
 
   @Input()
   subItems?: any[];
 
   @Input()
+  hideCaret?: boolean;
+
   get hasSubItems(): boolean {
     return Boolean(this.subItems && this.subItems.length);
+  }
+
+  get hasCaret(): boolean {
+    return this.hasSubItems && !this.hideCaret;
   }
 
   private clickStartTime: number;
@@ -57,7 +70,7 @@ export class MenuButtonComponent implements AfterViewInit {
   private readonly longClickInterval = 1000;
 
   onMouseDown(event: MouseEvent): void {
-    if (event.button === 0) {
+    if (this.action && event.button === 0) {
       this.clickStartTime = (new Date()).getTime();
     }
   }
@@ -65,9 +78,9 @@ export class MenuButtonComponent implements AfterViewInit {
   onMouseUp(event: MouseEvent): void {
     if (event.button === 0) {
       const clickEndTime = (new Date()).getTime();
-      if (this.hasSubItems && clickEndTime - this.clickStartTime >= this.longClickInterval) {
-        this.dropdown.nativeElement.classList.add('open');
-      } else {
+      if (this.hasSubItems && (!this.action || clickEndTime - this.clickStartTime >= this.longClickInterval)) {
+        $(this.dropdown.nativeElement).toggleClass('open');
+      } else if (this.action) {
         this.actions[this.action]();
       }
       event.stopPropagation();

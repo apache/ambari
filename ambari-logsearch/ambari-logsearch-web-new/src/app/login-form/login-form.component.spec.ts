@@ -21,7 +21,7 @@ import {FormsModule} from '@angular/forms';
 import {HttpModule, Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {HttpClientService} from '../services/http-client.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 import {LoginFormComponent} from './login-form.component';
 

@@ -9,5 +9,32 @@
   "topMenu.undo": "Undo",
   "topMenu.redo": "Redo",
   "topMenu.refresh": "Refresh",
-  "topMenu.history": "History"
+  "topMenu.history": "History",
+
+  "filter.all": "All",
+
+  "filter.clusters": "Clusters",
+  "filter.message": "Message:",
+  "filter.components": "Components",
+  "filter.levels": "Levels",
+  "filter.capture": "Capture",
+  "filter.excluded": "Excluded",
+
+  "filter.timeRange.1hr": "Last 1 hour",
+  "filter.timeRange.24hr": "Last 24 hours",
+  "filter.timeRange.today": "Today",
+  "filter.timeRange.yesterday": "Yesterday",
+  "filter.timeRange.7d": "Last 7 days",
+  "filter.timeRange.30d": "Last 30 days",
+  "filter.timeRange.thisMonth": "This month",
+  "filter.timeRange.lastMonth": "Last month",
+  "filter.timeRange.custom": "Custom range",
+
+  "levels.fatal": "Fatal",
+  "levels.error": "Error",
+  "levels.warn": "Warn",
+  "levels.info": "Info",
+  "levels.debug": "Debug",
+  "levels.trace": "Trace",
+  "levels.unknown": "Unknown"
 }

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 import {Http} from '@angular/http';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
@@ -41,7 +42,8 @@ describe('MenuButtonComponent', () => {
         useFactory: HttpLoaderFactory,
         deps: [Http]
       })],
-      providers: [ComponentActionsService]
+      providers: [ComponentActionsService],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
@@ -57,7 +59,6 @@ describe('MenuButtonComponent', () => {
   });
 
   describe('#hasSubItems', () => {
-
     const cases = [
       {
         subItems: null,
@@ -82,6 +83,40 @@ describe('MenuButtonComponent', () => {
         expect(component.hasSubItems).toEqual(test.hasSubItems);
       });
     });
+  });
 
+  describe('#hasCaret', () => {
+    const cases = [
+      {
+        subItems: null,
+        hasCaret: false,
+        title: 'no sub-items'
+      },
+      {
+        subItems: [],
+        hasCaret: false,
+        title: 'empty sub-items array'
+      },
+      {
+        subItems: [{}],
+        hideCaret: false,
+        hasCaret: true,
+        title: 'sub-items present, caret not hidden'
+      },
+      {
+        subItems: [{}],
+        hideCaret: true,
+        hasCaret: true,
+        title: 'sub-items present, caret hidden'
+      }
+    ];
+
+    cases.forEach((test) => {
+      it(test.title, () => {
+        component.subItems = test.subItems;
+        component.hideCaret = Boolean(test.hideCaret);
+        expect(component.hasSubItems).toEqual(test.hasCaret);
+      });
+    });
   });
 });

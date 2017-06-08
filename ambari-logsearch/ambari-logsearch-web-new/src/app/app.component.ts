@@ -18,7 +18,7 @@
 
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {HttpClientService} from './services/http-client.service';
+import {HttpClientService} from '@app/services/http-client.service';
 
 @Component({
   selector: 'app-root',

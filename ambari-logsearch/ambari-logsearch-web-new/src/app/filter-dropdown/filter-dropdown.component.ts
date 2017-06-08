@@ -15,29 +15,31 @@
  * limitations under the License.
  */
 
-@import '../styles.less';
+import {Component, OnInit, Input} from '@angular/core';
 
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-  background-color: @navbar-background-color;
-  color: #fff;
+@Component({
+  selector: 'filter-dropdown',
+  templateUrl: './filter-dropdown.component.html',
+  styleUrls: ['./filter-dropdown.component.less']
+})
+export class FilterDropdownComponent implements OnInit {
 
-  .container-fluid {
-    .default-flex;
+  constructor() { }
+
+  ngOnInit() {
+    this.filterInstance.selectedValue = this.filterInstance.options[0].value;
+    this.filterInstance.selectedLabel = this.filterInstance.options[0].label;
   }
 
-  h1 {
-    flex-basis: 70%;
-    margin-bottom: @h1-vertical-margin;
-    text-transform: uppercase;
+  @Input()
+  filterInstance: any;
 
-    &.full-flex-width {
-      flex-basis: 100%;
-    }
-  }
+  @Input()
+  options: any[];
 
-  /deep/ top-menu {
-    flex-basis: 30%;
-  }
+  setSelectedValue(options: any): void {
+    this.filterInstance.selectedValue = options.value;
+    this.filterInstance.selectedLabel = options.label;
+  };
+
 }

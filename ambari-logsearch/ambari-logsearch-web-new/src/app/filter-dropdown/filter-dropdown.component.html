@@ -15,18 +15,9 @@
   limitations under the License.
 -->
 
-<header>
-  <nav class="navbar navbar-fixed-top">
-    <div class="container-fluid">
-      <h1 [ngClass]="{'full-flex-width': !httpClient.isAuthorized, 'navbar-left': true}">{{'common.title' | translate}}</h1>
-      <top-menu *ngIf="httpClient.isAuthorized" class="navbar-right"></top-menu>
-    </div>
-  </nav>
-</header>
-
-<!-- hidden element for moving the main bar outside the fixed header -->
-<div class="navbar invisible">
-  <h1>&nbsp;</h1>
-</div>
-
-<main-container></main-container>
+<div class="filter-label" *ngIf="filterInstance.label">{{filterInstance.label | translate}}</div>
+<button class="btn btn-link dropdown-toggle" data-toggle="dropdown">
+  {{filterInstance.selectedLabel | translate}} <span class="caret"></span>
+</button>
+<ul class="dropdown-menu" [items]="filterInstance.options" [isFilter]="true"
+    (selectedItemChange)="setSelectedValue($event)"></ul>

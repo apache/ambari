@@ -34,76 +34,88 @@ export class TopMenuComponent implements OnInit {
   //TODO implement loading of real data into subItems
   readonly items = [
     {
-      iconClassNames: ['fa', 'fa-arrow-left'],
-      title: 'topMenu.undo',
+      iconClass: 'fa fa-arrow-left',
+      label: 'topMenu.undo',
+      labelClass: 'unstyled-link',
       action: 'undo',
       subItems: [
         {
-          title: 'Apply \'Last week\' filter'
+          label: 'Apply \'Last week\' filter'
         },
         {
-          title: 'Clear all filters'
+          label: 'Clear all filters'
         },
         {
-          title: 'Apply \'HDFS\' filter'
+          label: 'Apply \'HDFS\' filter'
         },
         {
-          title: 'Apply \'Errors\' filter'
+          label: 'Apply \'Errors\' filter'
         }
       ]
     },
     {
-      iconClassNames: ['fa', 'fa-arrow-right'],
-      title: 'topMenu.redo',
+      iconClass: 'fa fa-arrow-right',
+      label: 'topMenu.redo',
+      labelClass: 'unstyled-link',
       action: 'redo',
       subItems: [
         {
-          title: 'Apply \'Warnings\' filter'
+          label: 'Apply \'Warnings\' filter'
         },
         {
-          title: 'Switch to graph mode'
+          label: 'Switch to graph mode'
         },
         {
-          title: 'Apply \'Custom Date\' filter'
+          label: 'Apply \'Custom Date\' filter'
         }
       ]
     },
     {
-      iconClassNames: ['fa', 'fa-refresh'],
-      title: 'topMenu.refresh',
+      iconClass: 'fa fa-refresh',
+      label: 'topMenu.refresh',
+      labelClass: 'unstyled-link',
       action: 'refresh'
     },
     {
-      iconClassNames: ['fa', 'fa-clock-o'],
-      title: 'topMenu.history',
+      iconClass: 'fa fa-clock-o',
+      label: 'topMenu.history',
+      labelClass: 'unstyled-link',
       action: 'openHistory',
       subItems: [
         {
-          title: 'Apply \'Custom Date\' filter'
+          label: 'Apply \'Custom Date\' filter'
         },
         {
-          title: 'Switch to graph mode'
+          label: 'Switch to graph mode'
         },
         {
-          title: 'Apply \'Warnings\' filter'
+          label: 'Apply \'Warnings\' filter'
         },
         {
-          title: 'Apply \'Last week\' filter'
+          label: 'Apply \'Last week\' filter'
         },
         {
-          title: 'Clear all filters'
+          label: 'Clear all filters'
         },
         {
-          title: 'Apply \'HDFS\' filter'
+          label: 'Apply \'HDFS\' filter'
         },
         {
-          title: 'Apply \'Errors\' filter'
+          label: 'Apply \'Errors\' filter'
         }
       ]
     },
     {
-      iconClassNames: ['fa', 'fa-user'],
-      action: 'openUserDetails'
+      iconClass: 'fa fa-user unstyled-link',
+      hideCaret: true,
+      subItems: [
+        {
+          label: 'Options'
+        },
+        {
+          label: 'Logout'
+        }
+      ]
     }
   ];
 

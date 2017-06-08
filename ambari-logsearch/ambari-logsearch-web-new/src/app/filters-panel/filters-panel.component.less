@@ -16,26 +16,23 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+@import '../../styles.less';
 
-@Injectable()
-export class ComponentActionsService {
+.filter-input-container {
+  .flex-vertical-align;
+  justify-content: flex-start;
 
-  constructor() {
+  .btn-success {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
-  //TODO implement actions
+  filter-dropdown {
+    border: @input-border;
+    border-right-width: 0;
 
-  undo() {
+    &:first-child {
+      border-radius: @button-border-radius 0 0 @button-border-radius;
+    }
   }
-
-  redo() {
-  }
-
-  refresh() {
-  }
-
-  openHistory() {
-  }
-
 }

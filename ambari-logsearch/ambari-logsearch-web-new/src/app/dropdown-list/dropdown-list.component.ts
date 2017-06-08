@@ -16,26 +16,35 @@
  * limitations under the License.
  */
 
-import {Injectable} from '@angular/core';
+import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 
-@Injectable()
-export class ComponentActionsService {
+@Component({
+  selector: 'ul.dropdown-menu',
+  templateUrl: './dropdown-list.component.html'
+})
+export class DropdownListComponent implements OnInit {
 
-  constructor() {
+  constructor() { }
+
+  ngOnInit() {
   }
 
-  //TODO implement actions
+  @Input()
+  items: any[];
 
-  undo() {
-  }
+  @Input()
+  defaultAction: Function;
 
-  redo() {
-  }
+  @Input()
+  isFilter: boolean;
 
-  refresh() {
-  }
+  @Output()
+  selectedItemChange: EventEmitter<any> = new EventEmitter();
 
-  openHistory() {
+  changeSelectedItem(options: any): void {
+    if (this.isFilter) {
+      this.selectedItemChange.emit(options);
+    }
   }
 
 }

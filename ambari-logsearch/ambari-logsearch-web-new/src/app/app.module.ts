@@ -28,6 +28,8 @@ import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
+import {FilteringService} from '@app/services/filtering.service';
+
 import {AuditLogsService, auditLogs} from '@app/services/storage/audit-logs.service';
 import {ServiceLogsService, serviceLogs} from '@app/services/storage/service-logs.service';
 import {BarGraphsService, barGraphs} from '@app/services/storage/bar-graphs.service';
@@ -40,6 +42,11 @@ import {AppComponent} from '@app/app.component';
 import {LoginFormComponent} from '@app/login-form/login-form.component';
 import {TopMenuComponent} from '@app/top-menu/top-menu.component';
 import {MenuButtonComponent} from '@app/menu-button/menu-button.component';
+import {MainContainerComponent} from '@app/main-container/main-container.component';
+import {FiltersPanelComponent} from '@app/filters-panel/filters-panel.component';
+import {FilterDropdownComponent} from '@app/filter-dropdown/filter-dropdown.component';
+import {DropdownListComponent} from '@app/dropdown-list/dropdown-list.component';
+import {FilterTextFieldComponent} from '@app/filter-text-field/filter-text-field.component';
 
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -50,7 +57,12 @@ export function HttpLoaderFactory(http: Http) {
     AppComponent,
     LoginFormComponent,
     TopMenuComponent,
-    MenuButtonComponent
+    MenuButtonComponent,
+    MainContainerComponent,
+    FiltersPanelComponent,
+    DropdownListComponent,
+    FilterDropdownComponent,
+    FilterTextFieldComponent
   ],
   imports: [
     BrowserModule,
@@ -80,6 +92,7 @@ export function HttpLoaderFactory(http: Http) {
   providers: [
     HttpClientService,
     ComponentActionsService,
+    FilteringService,
     AuditLogsService,
     ServiceLogsService,
     BarGraphsService,

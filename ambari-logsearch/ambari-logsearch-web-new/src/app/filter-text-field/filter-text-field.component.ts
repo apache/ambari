@@ -15,29 +15,21 @@
  * limitations under the License.
  */
 
-@import '../styles.less';
+import {Component, OnInit, Input} from '@angular/core';
 
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-  background-color: @navbar-background-color;
-  color: #fff;
+@Component({
+  selector: 'filter-text-field',
+  templateUrl: './filter-text-field.component.html',
+  styleUrls: ['./filter-text-field.component.less']
+})
+export class FilterTextFieldComponent implements OnInit {
 
-  .container-fluid {
-    .default-flex;
+  constructor() { }
+
+  ngOnInit() {
   }
 
-  h1 {
-    flex-basis: 70%;
-    margin-bottom: @h1-vertical-margin;
-    text-transform: uppercase;
+  @Input()
+  filterInstance: any;
 
-    &.full-flex-width {
-      flex-basis: 100%;
-    }
-  }
-
-  /deep/ top-menu {
-    flex-basis: 30%;
-  }
 }
