@@ -289,7 +289,7 @@ class TestNamenode(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(False)
     self.assertNoMoreResources()
 
 
@@ -302,7 +302,7 @@ class TestNamenode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0,"")],
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(False)
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
                               content = Template('exclude_hosts_list.j2'),
@@ -622,7 +622,7 @@ class TestNamenode(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assert_configure_secured()
+    self.assert_configure_secured(True)
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
                               content = Template('exclude_hosts_list.j2'),
@@ -1153,7 +1153,7 @@ class TestNamenode(RMFTestCase):
                               cd_access='a'
                               )
 
-  def assert_configure_secured(self):
+  def assert_configure_secured(self, ha_enabled):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
         create_parents = True,
     )
@@ -1177,6 +1177,22 @@ class TestNamenode(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_dn_jaas.conf',
+                              content = Template('hdfs_dn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_nn_jaas.conf',
+                              content = Template('hdfs_nn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    if ha_enabled:
+      self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_jn_jaas.conf',
+                                content = Template('hdfs_jn_jaas.conf.j2'),
+                                owner = 'hdfs',
+                                group = 'hadoop',
+                                )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',

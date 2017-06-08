@@ -24,3 +24,13 @@ Client {
   keyTab="{{rm_keytab}}"
   principal="{{rm_principal_name}}";
 };
+com.sun.security.jgss.krb5.initiate {
+  com.sun.security.auth.module.Krb5LoginModule required
+  renewTGT=false
+  doNotPrompt=true
+  useKeyTab=true
+  keyTab="{{rm_keytab}}"
+  principal="{{rm_principal_name}}"
+  storeKey=true
+  useTicketCache=false;
+};
