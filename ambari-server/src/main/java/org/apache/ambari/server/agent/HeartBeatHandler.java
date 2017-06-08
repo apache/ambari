@@ -22,25 +22,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
-import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
-import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReaderFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -51,8 +44,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
@@ -63,7 +54,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.state.host.HostStatusUpdatesReceivedEvent;
-import org.apache.ambari.server.state.host.HostUnhealthyHeartbeatEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.codec.binary.Base64;
@@ -223,13 +213,8 @@ public class HeartBeatHandler {
     }
 
     try {
-      if (heartbeat.getNodeStatus().getStatus().equals(HostStatus.Status.HEALTHY)) {
-        hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
-            heartbeat.getAgentEnv(), heartbeat.getMounts()));
-      } else {
-        hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
-            null));
-      }
+      hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
+          heartbeat.getAgentEnv(), heartbeat.getMounts()));
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
@@ -353,7 +338,7 @@ public class HeartBeatHandler {
     return osType.toLowerCase();
   }
 
-  protected HeartBeatResponse createRegisterCommand() {
+  public HeartBeatResponse createRegisterCommand() {
     HeartBeatResponse response = new HeartBeatResponse();
     RegistrationCommand regCmd = new RegistrationCommand();
     response.setResponseId(0);
@@ -478,59 +463,6 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, requestId);
     response.setResponseId(requestId);
     return response;
-  }
-
-  /**
-   * Is used during agent registering to provide base info about clusters topology.
-   * @return filled TopologyUpdateEvent with info about all components and hosts in all clusters
-   * @throws InvalidStateTransitionException
-   * @throws AmbariException
-   */
-  //TODO need move to better place
-  public TopologyUpdateEvent getInitialClusterTopology()
-      throws InvalidStateTransitionException, AmbariException {
-    Map<String, TopologyCluster> topologyClusters = new HashMap<>();
-    for (Cluster cl : clusterFsm.getClusters().values()) {
-      Collection<Host> clusterHosts = cl.getHosts();
-      Set<TopologyComponent> topologyComponents = new HashSet<>();
-      Set<TopologyHost> topologyHosts = new HashSet<>();
-      for (Host host : clusterHosts) {
-        topologyHosts.add(new TopologyHost(host.getHostId(), host.getHostName(),
-            host.getRackInfo(), host.getIPv4()));
-      }
-      for (Service service : cl.getServices().values()) {
-        for (ServiceComponent component : service.getServiceComponents().values()) {
-          Map<String, ServiceComponentHost> componentsMap = component.getServiceComponentHosts();
-          if (!componentsMap.isEmpty()) {
-
-            //TODO will be a need to change to multi-instance usage
-            ServiceComponentHost sch = componentsMap.entrySet().iterator().next().getValue();
-
-            Set<String> hostNames = cl.getHosts(sch.getServiceName(), sch.getServiceComponentName());
-            Set<Long> hostOrderIds = clusterHosts.stream()
-                .filter(h -> hostNames.contains(h.getHostName()))
-                .map(h -> h.getHostId()).collect(Collectors.toSet());
-            String serviceName = sch.getServiceName();
-            String componentName = sch.getServiceComponentName();
-            StackId stackId = cl.getDesiredStackVersion();
-
-            TopologyComponent topologyComponent = TopologyComponent.newBuilder()
-                .setComponentName(sch.getServiceComponentName())
-                .setServiceName(sch.getServiceName())
-                .setVersion(sch.getVersion())
-                .setHostIds(hostOrderIds)
-                .setStatusCommandParams(ambariMetaInfo.getStatusCommandParams(stackId, serviceName, componentName))
-                .build();
-            topologyComponents.add(topologyComponent);
-          }
-        }
-      }
-      topologyClusters.put(Long.toString(cl.getClusterId()),
-          new TopologyCluster(topologyComponents, topologyHosts));
-    }
-    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(topologyClusters,
-        TopologyUpdateEvent.EventType.UPDATE);
-    return topologyUpdateEvent;
   }
 
   /**

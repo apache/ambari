@@ -41,18 +41,23 @@ import com.google.gson.annotations.SerializedName;
  */
 public class AlertDefinitionCommand extends AgentCommand {
   @SerializedName("clusterName")
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
   private final String m_clusterName;
 
   @SerializedName("hostName")
+  @com.fasterxml.jackson.annotation.JsonProperty("hostName")
   private final String m_hostName;
 
   @SerializedName("hash")
+  @com.fasterxml.jackson.annotation.JsonProperty("hash")
   private final String m_hash;
 
   @SerializedName("alertDefinitions")
+  @com.fasterxml.jackson.annotation.JsonProperty("alertDefinitions")
   private final List<AlertDefinition> m_definitions;
 
   @SerializedName("configurations")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurations")
   private Map<String, Map<String, String>> m_configurations;
 
   /**

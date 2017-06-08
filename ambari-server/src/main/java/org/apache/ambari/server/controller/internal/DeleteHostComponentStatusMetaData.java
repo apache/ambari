@@ -32,9 +32,10 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
     removedHostComponents = new HashSet<>();
   }
 
-  public void addDeletedHostComponent(String componentName, String hostName, Long hostId,
+  public void addDeletedHostComponent(String componentName, String serviceName, String hostName, Long hostId,
                                       String clusterId, String version) {
-    removedHostComponents.add(new HostComponent(componentName, hostId, clusterId, version));
+    removedHostComponents.add(new HostComponent(componentName, serviceName, hostId,
+        hostName, clusterId, version));
     addDeletedKey(componentName + "/" + hostName);
   }
 
@@ -52,13 +53,18 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
 
   public class HostComponent {
     private String componentName;
+    private String serviceName;
     private Long hostId;
+    private String hostName;
     private String clusterId;
     private String version;
 
-    public HostComponent(String componentName, Long hostId, String clusterId, String version) {
+    public HostComponent(String componentName, String serviceName, Long hostId, String hostName,
+                         String clusterId, String version) {
       this.componentName = componentName;
+      this.serviceName = serviceName;
       this.hostId = hostId;
+      this.hostName = hostName;
       this.clusterId = clusterId;
       this.version = version;
     }
@@ -69,14 +75,6 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
 
     public void setComponentName(String componentName) {
       this.componentName = componentName;
-    }
-
-    public Long getHostId() {
-      return hostId;
-    }
-
-    public void setHostName(Long hostId) {
-      this.hostId = hostId;
     }
 
     public String getClusterId() {
@@ -93,6 +91,30 @@ public class DeleteHostComponentStatusMetaData extends DeleteStatusMetaData {
 
     public void setVersion(String version) {
       this.version = version;
+    }
+
+    public String getServiceName() {
+      return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+      this.serviceName = serviceName;
+    }
+
+    public String getHostName() {
+      return hostName;
+    }
+
+    public void setHostName(String hostName) {
+      this.hostName = hostName;
+    }
+
+    public Long getHostId() {
+      return hostId;
+    }
+
+    public void setHostId(Long hostId) {
+      this.hostId = hostId;
     }
   }
 }

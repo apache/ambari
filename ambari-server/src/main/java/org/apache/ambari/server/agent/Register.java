@@ -37,11 +37,13 @@ public class Register {
   private String prefix;
 
   @JsonProperty("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   public int getResponseId() {
     return responseId;
   }
 
   @JsonProperty("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   public void setResponseId(int responseId) {
     this.responseId=responseId;
   }

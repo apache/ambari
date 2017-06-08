@@ -27,7 +27,6 @@ import org.apache.ambari.server.agent.HeartBeatResponse;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
-import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.commons.logging.Log;
@@ -48,13 +47,11 @@ public class HeartbeatController {
   private final HeartBeatHandler hh;
   private final ClustersImpl clusters;
   private final AgentSessionManager agentSessionManager;
-  private final StateUpdateEventPublisher stateUpdateEventPublisher;
 
   public HeartbeatController(Injector injector) {
     hh = injector.getInstance(HeartBeatHandler.class);
     clusters = injector.getInstance(ClustersImpl.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
-    stateUpdateEventPublisher = injector.getInstance(StateUpdateEventPublisher.class);
   }
 
   @SubscribeMapping("/register")
@@ -75,17 +72,24 @@ public class HeartbeatController {
       response.setLog(ex.getMessage());
       return response;
     }
-    stateUpdateEventPublisher.publish(hh.getInitialClusterTopology());
+    agentSessionManager.register(simpSessionId,
+        clusters.getHost(message.getHostname()));
     return response;
   }
 
   @SubscribeMapping("/heartbeat")
-  public HeartBeatResponse heartbeat(HeartBeat message) {
+  public HeartBeatResponse heartbeat(@Header String simpSessionId, HeartBeat message) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Received Heartbeat message " + message);
     }
     HeartBeatResponse heartBeatResponse;
     try {
+      if (!agentSessionManager.isRegistered(simpSessionId)) {
+        //Server restarted, or unknown host.
+        LOG.error(String.format("Host with [%s] sessionId not registered", simpSessionId));
+        return hh.createRegisterCommand();
+      }
+      message.setHostname(agentSessionManager.getHost(simpSessionId).getHostName());
       heartBeatResponse = hh.handleHeartBeat(message);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Sending heartbeat response with response id " + heartBeatResponse.getResponseId());

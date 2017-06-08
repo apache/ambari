@@ -29,15 +29,19 @@ import com.google.gson.annotations.SerializedName;
 public class HeartBeatResponse {
 
   @SerializedName("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId;
 
   @SerializedName("executionCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("executionCommands")
   private List<ExecutionCommand> executionCommands = new ArrayList<>();
 
   @SerializedName("statusCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("statusCommands")
   private List<StatusCommand> statusCommands = new ArrayList<>();
 
   @SerializedName("cancelCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("cancelCommands")
   private List<CancelCommand> cancelCommands = new ArrayList<>();
 
   /**
@@ -48,6 +52,7 @@ public class HeartBeatResponse {
    * the agent to abandon all alert definitions that are scheduled.
    */
   @SerializedName("alertDefinitionCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("alertDefinitionCommands")
   private List<AlertDefinitionCommand> alertDefinitionCommands = null;
 
   /**
@@ -55,24 +60,31 @@ public class HeartBeatResponse {
    * immediately.
    */
   @SerializedName("alertExecutionCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("alertExecutionCommands")
   private List<AlertExecutionCommand> alertExecutionCommands = null;
 
   @SerializedName("registrationCommand")
+  @com.fasterxml.jackson.annotation.JsonProperty("registrationCommand")
   private RegistrationCommand registrationCommand;
 
   @SerializedName("restartAgent")
+  @com.fasterxml.jackson.annotation.JsonProperty("restartAgent")
   private boolean restartAgent = false;
 
   @SerializedName("hasMappedComponents")
+  @com.fasterxml.jackson.annotation.JsonProperty("hasMappedComponents")
   private boolean hasMappedComponents = false;
 
   @SerializedName("hasPendingTasks")
+  @com.fasterxml.jackson.annotation.JsonProperty("hasPendingTasks")
   private boolean hasPendingTasks = false;
 
   @SerializedName("recoveryConfig")
+  @com.fasterxml.jackson.annotation.JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
   @SerializedName("clusterSize")
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterSize")
   private int clusterSize = -1;
 
   public long getResponseId() {

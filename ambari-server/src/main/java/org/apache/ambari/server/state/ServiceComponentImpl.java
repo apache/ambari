@@ -251,6 +251,11 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  @Override
   public long getClusterId() {
     return service.getClusterId();
   }

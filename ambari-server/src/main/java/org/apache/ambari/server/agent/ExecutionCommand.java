@@ -46,70 +46,92 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @SerializedName("clusterName")
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterName")
   private String clusterName;
 
   @SerializedName("requestId")
+  @com.fasterxml.jackson.annotation.JsonProperty("requestId")
   private long requestId;
 
   @SerializedName("stageId")
+  @com.fasterxml.jackson.annotation.JsonProperty("stageId")
   private long stageId;
 
   @SerializedName("taskId")
+  @com.fasterxml.jackson.annotation.JsonProperty("taskId")
   private long taskId;
 
   @SerializedName("commandId")
+  @com.fasterxml.jackson.annotation.JsonProperty("commandId")
   private String commandId;
 
   @SerializedName("hostname")
+  @com.fasterxml.jackson.annotation.JsonProperty("hostname")
   private String hostname;
 
   @SerializedName("role")
+  @com.fasterxml.jackson.annotation.JsonProperty("role")
   private String role;
 
   @SerializedName("hostLevelParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("hostLevelParams")
   private Map<String, String> hostLevelParams = new HashMap<>();
 
   @SerializedName("roleParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("roleParams")
   private Map<String, String> roleParams = null;
 
   @SerializedName("roleCommand")
+  @com.fasterxml.jackson.annotation.JsonProperty("roleCommand")
   private RoleCommand roleCommand;
 
   @SerializedName("clusterHostInfo")
+  @com.fasterxml.jackson.annotation.JsonProperty("clusterHostInfo")
   private Map<String, Set<String>> clusterHostInfo =
     new HashMap<>();
 
   @SerializedName("configurations")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurations")
   private Map<String, Map<String, String>> configurations;
 
   @SerializedName("configuration_attributes")
+  @com.fasterxml.jackson.annotation.JsonProperty("configuration_attributes")
   private Map<String, Map<String, Map<String, String>>> configurationAttributes;
 
   @SerializedName("configurationTags")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurationTags")
   private Map<String, Map<String, String>> configurationTags;
 
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
+  @com.fasterxml.jackson.annotation.JsonProperty("forceRefreshConfigTagsBeforeExecution")
   private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("commandParams")
   private Map<String, String> commandParams = new HashMap<>();
 
   @SerializedName("serviceName")
+  @com.fasterxml.jackson.annotation.JsonProperty("serviceName")
   private String serviceName;
 
   @SerializedName("serviceType")
+  @com.fasterxml.jackson.annotation.JsonProperty("serviceType")
   private String serviceType;
 
   @SerializedName("componentName")
+  @com.fasterxml.jackson.annotation.JsonProperty("componentName")
   private String componentName;
 
   @SerializedName("kerberosCommandParams")
+  @com.fasterxml.jackson.annotation.JsonProperty("kerberosCommandParams")
   private List<Map<String, String>> kerberosCommandParams = new ArrayList<>();
 
   @SerializedName("localComponents")
+  @com.fasterxml.jackson.annotation.JsonProperty("localComponents")
   private Set<String> localComponents = new HashSet<>();
 
   @SerializedName("availableServices")
+  @com.fasterxml.jackson.annotation.JsonProperty("availableServices")
   private Map<String, String> availableServices = new HashMap<>();
 
   /**
@@ -117,6 +139,7 @@ public class ExecutionCommand extends AgentCommand {
    * service is enabled for credential store use.
    */
   @SerializedName("credentialStoreEnabled")
+  @com.fasterxml.jackson.annotation.JsonProperty("credentialStoreEnabled")
   private String credentialStoreEnabled;
 
   /**
@@ -142,6 +165,7 @@ public class ExecutionCommand extends AgentCommand {
    *   </pre>
    */
   @SerializedName("configuration_credentials")
+  @com.fasterxml.jackson.annotation.JsonProperty("configuration_credentials")
   private Map<String, Map<String, String>> configurationCredentials;
 
   public void setConfigurationCredentials(Map<String, Map<String, String>> configurationCredentials) {

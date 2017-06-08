@@ -17,6 +17,12 @@
  */
 package org.apache.ambari.server.agent.stomp.dto;
 
+import java.util.TreeMap;
+
+import org.apache.ambari.server.agent.RecoveryConfig;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,6 +31,8 @@ public class TopologyHost {
   private String hostName;
   private String rackName;
   private String ipv4;
+  private TreeMap<String, String> hostLevelParams;
+  private RecoveryConfig recoveryConfig;
 
   public TopologyHost() {
   }
@@ -33,11 +41,31 @@ public class TopologyHost {
     this.hostId = hostId;
   }
 
-  public TopologyHost(Long hostId, String hostName, String rackName, String ipv4) {
+  public TopologyHost(Long hostId, String hostName, String rackName, String ipv4, RecoveryConfig recoveryConfig,
+                      TreeMap<String, String> hostLevelParams) {
     this.hostId = hostId;
     this.hostName = hostName;
     this.rackName = rackName;
     this.ipv4 = ipv4;
+    this.recoveryConfig = recoveryConfig;
+    this.hostLevelParams = hostLevelParams;
+  }
+
+  public void updateHost(TopologyHost hostToUpdate) {
+    if (hostToUpdate.getHostId().equals(getHostId())) {
+      if (StringUtils.isNotEmpty(hostToUpdate.getHostName())) {
+        setHostName(hostToUpdate.getHostName());
+      }
+      if (StringUtils.isNotEmpty(hostToUpdate.getRackName())) {
+        setRackName(hostToUpdate.getRackName());
+      }
+      if (StringUtils.isNotEmpty(hostToUpdate.getIpv4())) {
+        setIpv4(hostToUpdate.getIpv4());
+      }
+      if (MapUtils.isNotEmpty(hostToUpdate.getHostLevelParams())) {
+        hostLevelParams.putAll(hostToUpdate.getHostLevelParams());
+      }
+    }
   }
 
   public Long getHostId() {
@@ -70,6 +98,22 @@ public class TopologyHost {
 
   public void setIpv4(String ipv4) {
     this.ipv4 = ipv4;
+  }
+
+  public RecoveryConfig getRecoveryConfig() {
+    return recoveryConfig;
+  }
+
+  public void setRecoveryConfig(RecoveryConfig recoveryConfig) {
+    this.recoveryConfig = recoveryConfig;
+  }
+
+  public TreeMap<String, String> getHostLevelParams() {
+    return hostLevelParams;
+  }
+
+  public void setHostLevelParams(TreeMap<String, String> hostLevelParams) {
+    this.hostLevelParams = hostLevelParams;
   }
 
   @Override

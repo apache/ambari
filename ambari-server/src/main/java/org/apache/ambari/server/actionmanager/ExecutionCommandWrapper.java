@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -137,46 +136,9 @@ public class ExecutionCommandWrapper {
       // now that the tags have been updated (if necessary), fetch the
       // configurations
       Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
-      if (null != configurationTags && !configurationTags.isEmpty()) {
-        Map<String, Map<String, String>> configProperties = configHelper
-            .getEffectiveConfigProperties(cluster, configurationTags);
-
-        // Apply the configurations saved with the Execution Cmd on top of
-        // derived configs - This will take care of all the hacks
-        for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
-          String type = entry.getKey();
-          Map<String, String> allLevelMergedConfig = entry.getValue();
-
-          if (configurations.containsKey(type)) {
-            Map<String, String> mergedConfig = configHelper.getMergedConfig(allLevelMergedConfig,
-                configurations.get(type));
-
-            configurations.get(type).clear();
-            configurations.get(type).putAll(mergedConfig);
-
-          } else {
-            configurations.put(type, new HashMap<String, String>());
-            configurations.get(type).putAll(allLevelMergedConfig);
-          }
-        }
-
-        Map<String, Map<String, Map<String, String>>> configAttributes = configHelper.getEffectiveConfigAttributes(
-            cluster, executionCommand.getConfigurationTags());
-
-        for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
-          String type = attributesOccurrence.getKey();
-          Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
-
-          if (executionCommand.getConfigurationAttributes() != null) {
-            if (!executionCommand.getConfigurationAttributes().containsKey(type)) {
-              executionCommand.getConfigurationAttributes().put(type,
-                  new TreeMap<String, Map<String, String>>());
-            }
-            configHelper.cloneAttributesMap(attributes,
-                executionCommand.getConfigurationAttributes().get(type));
-            }
-        }
-      }
+      configHelper.getAndMergeHostConfigs(configurations, configurationTags, cluster);
+      configHelper.getAndMergeHostConfigAttributes(executionCommand.getConfigurationAttributes(),
+          configurationTags, cluster);
     } catch (ClusterNotFoundException cnfe) {
       // it's possible that there are commands without clusters; in such cases,
       // just return the de-serialized command and don't try to read configs

@@ -16,26 +16,26 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.events;
+package org.apache.ambari.server.agent.stomp.dto;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * Is used to contain hash code in request from agent
+ */
+public class Hash {
+  private String hash;
 
-import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
-
-public class AlertUpdateEvent extends AmbariUpdateEvent {
-  private Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
-
-  public AlertUpdateEvent(Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries) {
-    super(Type.ALERT);
-    this.summaries = summaries;
+  public Hash(String hash) {
+    this.hash = hash;
   }
 
-  public Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> getSummaries() {
-    return summaries;
+  public Hash() {
   }
 
-  public void setSummaries(Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries) {
-    this.summaries = summaries;
+  public String getHash() {
+    return hash;
+  }
+
+  public void setHash(String hash) {
+    this.hash = hash;
   }
 }

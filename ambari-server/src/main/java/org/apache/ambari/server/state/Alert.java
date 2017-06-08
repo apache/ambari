@@ -66,6 +66,7 @@ public class Alert {
    */
 
   @JsonProperty("name")
+  @com.fasterxml.jackson.annotation.JsonProperty("name")
   public String getName() {
     return name;
   }
@@ -74,6 +75,7 @@ public class Alert {
    * @return the service
    */
   @JsonProperty("service")
+  @com.fasterxml.jackson.annotation.JsonProperty("service")
   public String getService() {
     return service;
   }
@@ -82,6 +84,7 @@ public class Alert {
    * @return the component
    */
   @JsonProperty("component")
+  @com.fasterxml.jackson.annotation.JsonProperty("component")
   public String getComponent() {
     return component;
   }
@@ -90,6 +93,7 @@ public class Alert {
    * @return the host
    */
   @JsonProperty("host")
+  @com.fasterxml.jackson.annotation.JsonProperty("host")
   public String getHostName() {
     return hostName;
   }
@@ -98,6 +102,7 @@ public class Alert {
    * @return the state
    */
   @JsonProperty("state")
+  @com.fasterxml.jackson.annotation.JsonProperty("state")
   public AlertState getState() {
     return state;
   }
@@ -106,6 +111,7 @@ public class Alert {
    * @return a short descriptive label for the alert
    */
   @JsonProperty("label")
+  @com.fasterxml.jackson.annotation.JsonProperty("label")
   public String getLabel() {
     return label;
   }
@@ -114,6 +120,7 @@ public class Alert {
    * @param alertLabel a short descriptive label for the alert
    */
   @JsonProperty("label")
+  @com.fasterxml.jackson.annotation.JsonProperty("label")
   public void setLabel(String alertLabel) {
     label = alertLabel;
   }
@@ -122,6 +129,7 @@ public class Alert {
    * @return detail text about the alert
    */
   @JsonProperty("text")
+  @com.fasterxml.jackson.annotation.JsonProperty("text")
   public String getText() {
     return text;
   }
@@ -130,52 +138,62 @@ public class Alert {
    * @param alertText detail text about the alert
    */
   @JsonProperty("text")
+  @com.fasterxml.jackson.annotation.JsonProperty("text")
   public void setText(String alertText) {
     // middle-ellipsize the text to reduce the size to 32617 characters
     text = StringUtils.abbreviateMiddle(alertText, "…", MAX_ALERT_TEXT_SIZE);
   }
 
   @JsonProperty("instance")
+  @com.fasterxml.jackson.annotation.JsonProperty("instance")
   public String getInstance() {
     return instance;
   }
 
   @JsonProperty("instance")
+  @com.fasterxml.jackson.annotation.JsonProperty("instance")
   public void setInstance(String instance) {
     this.instance = instance;
   }
 
   @JsonProperty("name")
+  @com.fasterxml.jackson.annotation.JsonProperty("name")
   public void setName(String name) {
     this.name = name;
   }
 
   @JsonProperty("service")
+  @com.fasterxml.jackson.annotation.JsonProperty("service")
   public void setService(String service) {
     this.service = service;
   }
 
   @JsonProperty("component")
+  @com.fasterxml.jackson.annotation.JsonProperty("component")
   public void setComponent(String component) {
     this.component = component;
   }
 
   @JsonProperty("host")
+  @com.fasterxml.jackson.annotation.JsonProperty("host")
   public void setHostName(String hostName) {
     this.hostName = hostName;
   }
 
   @JsonProperty("state")
+  @com.fasterxml.jackson.annotation.JsonProperty("state")
   public void setState(AlertState state) {
     this.state = state;
   }
 
   @JsonProperty("timestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
   public void setTimestamp(long ts) {
     timestamp = ts;
   }
 
   @JsonProperty("timestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
   public long getTimestamp() {
     return timestamp;
   }
@@ -184,11 +202,13 @@ public class Alert {
    * @return
    */
   @JsonProperty("cluster")
+  @com.fasterxml.jackson.annotation.JsonProperty("cluster")
   public String getCluster() {
     return cluster;
   }
 
   @JsonProperty("cluster")
+  @com.fasterxml.jackson.annotation.JsonProperty("cluster")
   public void setCluster(String cluster){
     this.cluster = cluster;
   }

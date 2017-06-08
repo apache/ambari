@@ -15,33 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.agent.stomp.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class TopologyStatusCommandParams {
-  private String script;
-  private String servicePackageFolder;
-
-  public TopologyStatusCommandParams(String script, String servicePackageFolder) {
-    this.script = script;
-    this.servicePackageFolder = servicePackageFolder;
-  }
-
-  public String getScript() {
-    return script;
-  }
-
-  public void setScript(String script) {
-    this.script = script;
-  }
-
-  public String getServicePackageFolder() {
-    return servicePackageFolder;
-  }
-
-  public void setServicePackageFolder(String servicePackageFolder) {
-    this.servicePackageFolder = servicePackageFolder;
-  }
+/**
+ * Update event object has hash to identify actual version
+ */
+public interface Hashable {
+  String getHash();
+  void setHash(String hash);
 }

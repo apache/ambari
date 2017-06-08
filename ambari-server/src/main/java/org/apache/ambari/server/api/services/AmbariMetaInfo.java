@@ -43,7 +43,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.agent.stomp.dto.TopologyStatusCommandParams;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -62,7 +61,6 @@ import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ExtensionInfo;
@@ -1487,29 +1485,4 @@ public class AmbariMetaInfo {
 
     return versionDefinitions;
   }
-
-  //TODO will be a need to change to multi-instance usage
-  public TopologyStatusCommandParams getStatusCommandParams(StackId stackId, String serviceName, String componentName) throws AmbariException {
-    ServiceInfo serviceInfo = getService(stackId.getStackName(),
-        stackId.getStackVersion(), serviceName);
-    ComponentInfo componentInfo = getComponent(
-        stackId.getStackName(), stackId.getStackVersion(),
-        serviceName, componentName);
-
-    String scriptName = null;
-    CommandScriptDefinition script = componentInfo.getCommandScript();
-    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
-      if (script != null) {
-        scriptName = script.getScript();
-      } else {
-        String message = String.format("Component %s of service %s has not " +
-            "command script defined", componentName, serviceName);
-        throw new AmbariException(message);
-      }
-    }
-    String servicePackageFolder = serviceInfo.getServicePackageFolder();
-    return new TopologyStatusCommandParams(scriptName, servicePackageFolder);
-  }
-
-
 }

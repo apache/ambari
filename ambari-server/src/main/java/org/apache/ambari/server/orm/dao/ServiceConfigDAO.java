@@ -19,6 +19,7 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -103,6 +104,19 @@ public class ServiceConfigDAO {
     return result;
   }
 
+  @RequiresSession
+  public ServiceConfigEntity getLastServiceConfigVersionsForGroup(Long configGroupId) {
+    if (configGroupId == null) {
+      return null;
+    }
+    List<ServiceConfigEntity> result =
+        getLastServiceConfigVersionsForGroups(new ArrayList<>(Arrays.asList(configGroupId)));
+    if (result.isEmpty()) {
+      return null;
+    }
+    return result.get(0);
+  }
+
 
 
   @RequiresSession
@@ -142,6 +156,26 @@ public class ServiceConfigDAO {
     query.setParameter("serviceName", serviceName);
 
     return daoUtils.selectList(query);
+  }
+
+  /**
+   *  Gets the latest service config versions of default config group for a service
+   * @param clusterId
+   *          the cluster (not {@code null}).
+   * @param serviceName
+   *          Name of the service whose latest service config versions needs to be retrieved .
+   * @return all default group service configurations for the cluster and service.
+   */
+  @RequiresSession
+  public ServiceConfigEntity getLastServiceConfigForServiceDefaultGroup(Long clusterId, String serviceName) {
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ServiceConfigEntity.findLatestServiceConfigsByServiceDefaultGroup",
+        ServiceConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+
+    return daoUtils.selectOne(query);
   }
 
   /**

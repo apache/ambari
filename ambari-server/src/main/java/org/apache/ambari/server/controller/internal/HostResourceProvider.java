@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -35,9 +36,11 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyHost;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.HostRequest;
 import org.apache.ambari.server.controller.HostResponse;
@@ -173,6 +176,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
   @Inject
   private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
+  private RecoveryConfigHelper recoveryConfigHelper;
+
+  @Inject
+  private AmbariManagementControllerImpl ambariManagementController;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -515,7 +524,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Map<String, Map<String, String>> hostAttributes = new HashMap<>();
     Set<String> allClusterSet = new HashSet<>();
 
-    Map<String, TopologyCluster> addedTopologies = new HashMap<>();
+    TreeMap<String, TopologyCluster> addedTopologies = new TreeMap<>();
     for (HostRequest hostRequest : hostRequests) {
       if (hostRequest.getHostname() != null &&
           !hostRequest.getHostname().isEmpty() &&
@@ -529,7 +538,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         if (hostRequest.getHostAttributes() != null) {
           hostAttributes.put(hostRequest.getHostname(), hostRequest.getHostAttributes());
         }
-        String clusterId = Long.toString(clusters.getCluster(hostRequest.getClusterName()).getClusterId());
+        Cluster cl = clusters.getCluster(hostRequest.getClusterName());
+        String clusterId = Long.toString(cl.getClusterId());
         if (!addedTopologies.containsKey(clusterId)) {
           addedTopologies.put(clusterId, new TopologyCluster());
         }
@@ -537,7 +547,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         addedTopologies.get(clusterId).addTopologyHost(new TopologyHost(addedHost.getHostId(),
             addedHost.getHostName(),
             addedHost.getRackInfo(),
-            addedHost.getIPv4()));
+            addedHost.getIPv4(),
+            recoveryConfigHelper.getRecoveryConfig(clusters.getCluster(hostRequest.getClusterName()).getClusterName(),
+                addedHost.getHostName()),
+            ambariManagementController.getTopologyHostLevelParams(cl, addedHost)));
       }
     }
     clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
@@ -545,7 +558,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     for (String clusterName : allClusterSet) {
       clusters.getCluster(clusterName).recalculateAllClusterVersionStates();
     }
-    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.ADD);
+    TopologyUpdateEvent topologyUpdateEvent =
+        new TopologyUpdateEvent(addedTopologies, TopologyUpdateEvent.EventType.UPDATE);
     stateUpdateEventPublisher.publish(topologyUpdateEvent);
   }
 
@@ -723,7 +737,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
     }
 
-    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received an updateHost request"
@@ -905,7 +919,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     Set<String> hostsClusters = new HashSet<>();
     Set<String> hostNames = new HashSet<>();
     Set<Cluster> allClustersWithHosts = new HashSet<>();
-    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (HostRequest hostRequest : requests) {
       // Assume the user also wants to delete it entirely, including all clusters.
       String hostname = hostRequest.getHostname();
@@ -944,24 +958,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         for (String key : componentDeleteStatus.getDeletedKeys()) {
           deleteStatusMetaData.addDeletedKey(key);
         }
-        /*for (DeleteHostComponentStatusMetaData.HostComponent hostComponent : componentDeleteStatus.getRemovedHostComponents()) {
-          String clusterId = hostComponent.getClusterId();
-          if (!topologyUpdates.containsKey(clusterId)) {
-            topologyUpdates.put(clusterId, new TopologyCluster());
-          }
-          TopologyComponent deletedComponent = new TopologyComponent(hostComponent.getComponentName(),
-              null,
-              hostComponent.getVersion(),
-              new HashSet<>(Arrays.asList(hostId)),
-              null);
-          if (!topologyUpdates.get(clusterId).getTopologyComponents().contains(deletedComponent)) {
-            topologyUpdates.get(clusterId).addTopologyComponent(deletedComponent);
-          } else {
-            topologyUpdates.get(clusterId).getTopologyComponents()
-                .stream().filter(t -> t.equals(deletedComponent))
-                .forEach(t -> t.addHostId(hostId));
-          }
-        }*/
         for (String key : componentDeleteStatus.getExceptionForKeys().keySet()) {
           deleteStatusMetaData.addException(key, componentDeleteStatus.getExceptionForKeys().get(key));
         }

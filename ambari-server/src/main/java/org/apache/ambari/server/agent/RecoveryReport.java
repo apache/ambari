@@ -34,21 +34,25 @@ public class RecoveryReport {
 
 
   @JsonProperty("summary")
+  @com.fasterxml.jackson.annotation.JsonProperty("summary")
   public String getSummary() {
     return summary;
   }
 
   @JsonProperty("summary")
+  @com.fasterxml.jackson.annotation.JsonProperty("summary")
   public void setSummary(String summary) {
     this.summary = summary;
   }
 
   @JsonProperty("component_reports")
+  @com.fasterxml.jackson.annotation.JsonProperty("component_reports")
   public List<ComponentRecoveryReport> getComponentReports() {
     return componentReports;
   }
 
   @JsonProperty("component_reports")
+  @com.fasterxml.jackson.annotation.JsonProperty("component_reports")
   public void setComponentReports(List<ComponentRecoveryReport> componentReports) {
     this.componentReports = componentReports;
   }

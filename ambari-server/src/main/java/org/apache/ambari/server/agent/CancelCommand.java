@@ -29,9 +29,11 @@ public class CancelCommand extends AgentCommand {
   }
 
   @SerializedName("target_task_id")
+  @com.fasterxml.jackson.annotation.JsonProperty("target_task_id")
   private long targetTaskId;
 
   @SerializedName("reason")
+  @com.fasterxml.jackson.annotation.JsonProperty("reason")
   private String reason;
 
   public long getTargetTaskId() {

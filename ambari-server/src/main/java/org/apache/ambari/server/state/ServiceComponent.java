@@ -44,6 +44,8 @@ public interface ServiceComponent {
 
   String getServiceName();
 
+  String getDisplayName();
+
   long getClusterId();
 
   String getClusterName();

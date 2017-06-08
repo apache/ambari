@@ -32,9 +32,11 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -343,6 +345,70 @@ public class ConfigHelper {
     }
 
     return finalConfig;
+  }
+
+  /**
+   * Retrieves effective configurations for specified cluster and tags and merge them with
+   * present before in {@code configurations}
+   * @param configurations configurations will be merged with effective cluster configurations
+   * @param configurationTags configuration tags for cluster's desired configs
+   * @param cluster cluster to configs retrieving
+   */
+  public void getAndMergeHostConfigs(Map<String, Map<String, String>> configurations,
+                                     Map<String, Map<String, String>> configurationTags,
+                                     Cluster cluster) {
+    if (null != configurationTags && !configurationTags.isEmpty()) {
+      Map<String, Map<String, String>> configProperties =
+          getEffectiveConfigProperties(cluster, configurationTags);
+
+      // Apply the configurations present before on top of derived configs
+      for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
+        String type = entry.getKey();
+        Map<String, String> allLevelMergedConfig = entry.getValue();
+
+        if (configurations.containsKey(type)) {
+          Map<String, String> mergedConfig = getMergedConfig(allLevelMergedConfig,
+              configurations.get(type));
+
+          configurations.get(type).clear();
+          configurations.get(type).putAll(mergedConfig);
+
+        } else {
+          configurations.put(type, new HashMap<>());
+          configurations.get(type).putAll(allLevelMergedConfig);
+        }
+      }
+    }
+  }
+
+  /**
+   * Retrieves effective configuration attributes for specified cluster and tags and merge them with
+   * present before in {@code configurationAttributes}
+   * @param configurationAttributes configuration attributes will be merged with effective ones on the cluster
+   * @param configurationTags  configuration tags for cluster's desired configs
+   * @param cluster cluster to config attributes retrieving
+   */
+  public void getAndMergeHostConfigAttributes(Map<String, Map<String, Map<String, String>>> configurationAttributes,
+                                     Map<String, Map<String, String>> configurationTags,
+                                     Cluster cluster) {
+    if (null != configurationTags && !configurationTags.isEmpty()) {
+      Map<String, Map<String, Map<String, String>>> configAttributes =
+          getEffectiveConfigAttributes(cluster, configurationTags);
+
+      for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
+        String type = attributesOccurrence.getKey();
+        Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
+
+        if (configurationAttributes != null) {
+          if (!configurationAttributes.containsKey(type)) {
+            configurationAttributes.put(type,
+                new TreeMap<>());
+          }
+          cloneAttributesMap(attributes,
+              configurationAttributes.get(type));
+        }
+      }
+    }
   }
 
   /**
@@ -1492,6 +1558,38 @@ public class ConfigHelper {
         attributes.get(attributeName).putAll(attributeProperties);
       }
     }
+  }
+
+  /**
+   * Collects actual configurations and configuration attributes for specified host.
+   * @param hostName host name to collect configurations and configuration attributes
+   * @return event ready to send to agent
+   * @throws AmbariException
+   */
+  public AgentConfigsUpdateEvent getHostActualConfigs(String hostName) throws AmbariException {
+    TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
+
+    for (Cluster cl : clusters.getClusters().values()) {
+      Map<String, Map<String, String>> configurations = new HashMap<>();
+      Map<String, Map<String, Map<String, String>>> configurationAttributes = new HashMap<>();
+      Map<String, DesiredConfig> clusterDesiredConfigs = cl.getDesiredConfigs();
+
+      Map<String, Map<String, String>> configTags =
+          getEffectiveDesiredTags(cl, hostName, clusterDesiredConfigs);
+
+      getAndMergeHostConfigs(configurations, configTags, cl);
+      getAndMergeHostConfigAttributes(configurationAttributes, configTags, cl);
+
+      // remove empty entries
+      configurations.entrySet().removeIf(e -> e.getValue().isEmpty());
+      configurationAttributes.entrySet().removeIf(e -> e.getValue().isEmpty());
+
+      clustersConfigs.put(Long.toString(cl.getClusterId()),
+          new ClusterConfigs(configurations, configurationAttributes));
+    }
+
+    AgentConfigsUpdateEvent agentConfigsUpdateEvent = new AgentConfigsUpdateEvent(clustersConfigs);
+    return agentConfigsUpdateEvent;
   }
 
 }

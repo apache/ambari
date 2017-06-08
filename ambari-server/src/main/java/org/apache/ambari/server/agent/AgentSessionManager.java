@@ -39,6 +39,10 @@ public class AgentSessionManager {
     registeredHosts.put(sessionId, registeredHost);
   }
 
+  public boolean isRegistered(String sessionId) {
+    return registeredHosts.containsKey(sessionId);
+  }
+
   public Host getHost(String sessionId) throws HostNotRegisteredException {
     if (registeredHosts.containsKey(sessionId)) {
       return registeredHosts.get(sessionId);

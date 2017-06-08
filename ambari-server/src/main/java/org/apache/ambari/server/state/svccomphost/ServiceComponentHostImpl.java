@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -905,13 +906,15 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     if (stateEntity != null) {
       stateEntity.setVersion(version);
       stateEntity = hostComponentStateDAO.merge(stateEntity);
-      Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+      TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
       topologyUpdates.put(Long.toString(getClusterId()), new TopologyCluster());
       Long hostId = getHost().getHostId();
       topologyUpdates.get(Long.toString(getClusterId())).addTopologyComponent(TopologyComponent.newBuilder()
           .setComponentName(getServiceComponentName())
+          .setServiceName(getServiceName())
           .setVersion(stateEntity.getVersion())
           .setHostIds(new HashSet<>(Collections.singletonList(hostId)))
+          .setHostNames(new HashSet<>(Collections.singletonList(hostName)))
           .build());
       TopologyUpdateEvent hostComponentVersionUpdate = new TopologyUpdateEvent(topologyUpdates,
           TopologyUpdateEvent.EventType.UPDATE);
@@ -1417,6 +1420,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
       eventPublisher.publish(event);
       deleteMetaData.addDeletedHostComponent(componentName,
+          serviceName,
           hostName,
           getHost().getHostId(),
           Long.toString(clusterId),

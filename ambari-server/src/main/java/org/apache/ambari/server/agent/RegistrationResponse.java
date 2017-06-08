@@ -31,6 +31,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  */
 public class RegistrationResponse {
   @JsonProperty("response")
+  @com.fasterxml.jackson.annotation.JsonProperty("response")
   private RegistrationStatus response;
 
   /**
@@ -38,6 +39,7 @@ public class RegistrationResponse {
    * alert definitions it needs to schedule.
    */
   @JsonProperty("alertDefinitionCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("alertDefinitionCommands")
   private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<>();
 
   /**
@@ -47,25 +49,31 @@ public class RegistrationResponse {
    *                different version of agent and server)
    */
   @JsonProperty("exitstatus")
+  @com.fasterxml.jackson.annotation.JsonProperty("exitstatus")
   private int exitstatus;
 
   /**
    * log - message, which will be printed to agents  log
    */
   @JsonProperty("log")
+  @com.fasterxml.jackson.annotation.JsonProperty("log")
   private String log;
 
   //Response id to start with, usually zero.
   @JsonProperty("responseId")
+  @com.fasterxml.jackson.annotation.JsonProperty("id")
   private long responseId;
 
   @JsonProperty("recoveryConfig")
+  @com.fasterxml.jackson.annotation.JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
 
   @JsonProperty("agentConfig")
+  @com.fasterxml.jackson.annotation.JsonProperty("agentConfig")
   private Map<String, String> agentConfig;
 
   @JsonProperty("statusCommands")
+  @com.fasterxml.jackson.annotation.JsonProperty("statusCommands")
   private List<StatusCommand> statusCommands = null;
 
   public RegistrationStatus getResponseStatus() {

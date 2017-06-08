@@ -20,6 +20,8 @@ package org.apache.ambari.server.api.query.render;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * The {@link AlertStateValues} class holds various information about an alert
  * state, such as the number of instances of that state and the most recent
@@ -30,24 +32,29 @@ public final class AlertStateValues {
    * The total count of non-maintenance mode instances.
    */
   @JsonProperty(value = "count")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "count")
   public int Count = 0;
 
   /**
    * The time of the last state change.
    */
   @JsonProperty(value = "original_timestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "original_timestamp")
   public long Timestamp = 0;
 
   /**
    * The total count of instances in maintenance mode.
    */
   @JsonProperty(value = "maintenance_count")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "maintenance_count")
   public int MaintenanceCount = 0;
 
   /**
    * The most recently received text from any instance of the alert.
    */
   @JsonProperty(value = "latest_text")
+  @com.fasterxml.jackson.annotation.JsonProperty(value = "latest_text")
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   public String AlertText = null;
 }

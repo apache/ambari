@@ -361,15 +361,16 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
 
     Long clusterId = -1L;
+    String clusterName = null;
     Long requestId = requestEntity.getRequestId();
     ClusterEntity clusterEntity = clusterDAO.findById(request.getClusterId());
     if (clusterEntity != null) {
       clusterId = clusterEntity.getClusterId();
+      clusterName = clusterEntity.getClusterName();
     }
 
     requestEntity.setClusterId(clusterId);
     requestDAO.create(requestEntity);
-    stateUpdateEventPublisher.publish(new RequestUpdateEvent(requestEntity, hostRoleCommandDAO, topologyManager));
 
     //TODO wire request to cluster
     List<StageEntity> stageEntities = new ArrayList<>(request.getStages().size());
@@ -460,6 +461,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     TaskCreateEvent taskCreateEvent = new TaskCreateEvent(hostRoleCommands);
     taskEventPublisher.publish(taskCreateEvent);
+    List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findByRequest(requestEntity.getRequestId());
+    stateUpdateEventPublisher.publish(new RequestUpdateEvent(requestEntity,
+        hostRoleCommandDAO, topologyManager, clusterName, hostRoleCommandEntities));
   }
 
   @Override

@@ -18,7 +18,13 @@
 
 package org.apache.ambari.server.agent.stomp.dto;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -26,9 +32,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class TopologyComponent {
   private String componentName;
   private String serviceName;
+  private String displayName;
   private String version;
   private Set<Long> hostIds;
-  private TopologyStatusCommandParams statusCommandParams;
+  private Set<String> hostNames;
+  private Set<String> publicHostNames;
+  private TreeMap<String, String> componentLevelParams;
 
   private TopologyComponent() {
   }
@@ -52,6 +61,11 @@ public class TopologyComponent {
       return this;
     }
 
+    public Builder setDisplayName(String displayName) {
+      TopologyComponent.this.setDisplayName(displayName);
+      return this;
+    }
+
     public Builder setVersion(String version) {
       TopologyComponent.this.setVersion(version);
       return this;
@@ -62,13 +76,53 @@ public class TopologyComponent {
       return this;
     }
 
-    public Builder setStatusCommandParams(TopologyStatusCommandParams statusCommandParams) {
-      TopologyComponent.this.setStatusCommandParams(statusCommandParams);
+    public Builder setHostNames(Set<String> hostNames) {
+      TopologyComponent.this.setHostNames(hostNames);
+      return this;
+    }
+
+    public Builder setPublicHostNames(Set<String> publicHostNames) {
+      TopologyComponent.this.setPublicHostNames(publicHostNames);
+      return this;
+    }
+
+    public Builder setComponentLevelParams(TreeMap<String, String> componentLevelParams) {
+      TopologyComponent.this.setComponentLevelParams(componentLevelParams);
       return this;
     }
 
     public TopologyComponent build() {
       return TopologyComponent.this;
+    }
+  }
+
+  public void updateComponent(TopologyComponent componentToUpdate) {
+    //TODO will be a need to change to multi-instance usage
+    if (componentToUpdate.getComponentName().equals(getComponentName())) {
+      if (StringUtils.isNotEmpty(componentToUpdate.getVersion())) {
+        setVersion(componentToUpdate.getVersion());
+      }
+      if (CollectionUtils.isNotEmpty(componentToUpdate.getHostIds())) {
+        if (hostIds == null) {
+          hostIds = new HashSet<>();
+        }
+        hostIds.addAll(componentToUpdate.getHostIds());
+      }
+      if (CollectionUtils.isNotEmpty(componentToUpdate.getHostNames())) {
+        if (hostNames == null) {
+          hostNames = new HashSet<>();
+        }
+        hostNames.addAll(componentToUpdate.getHostNames());
+      }
+      if (CollectionUtils.isNotEmpty(componentToUpdate.getPublicHostNames())) {
+        if (publicHostNames == null) {
+          publicHostNames = new HashSet<>();
+        }
+        publicHostNames.addAll(componentToUpdate.getPublicHostNames());
+      }
+      if (MapUtils.isNotEmpty(componentToUpdate.getComponentLevelParams())) {
+        componentLevelParams.putAll(componentToUpdate.getComponentLevelParams());
+      }
     }
   }
 
@@ -108,13 +162,42 @@ public class TopologyComponent {
     this.hostIds.add(hostId);
   }
 
-  public TopologyStatusCommandParams getStatusCommandParams() {
-    return statusCommandParams;
+  public void addHostName(String hostName) {
+    this.hostNames.add(hostName);
   }
 
-  public void setStatusCommandParams(TopologyStatusCommandParams statusCommandParams) {
-    this.statusCommandParams = statusCommandParams;
+  public TreeMap<String, String> getComponentLevelParams() {
+    return componentLevelParams;
   }
+
+  public void setComponentLevelParams(TreeMap<String, String> componentLevelParams) {
+    this.componentLevelParams = componentLevelParams;
+  }
+
+  public Set<String> getHostNames() {
+    return hostNames;
+  }
+
+  public void setHostNames(Set<String> hostNames) {
+    this.hostNames = hostNames;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  public Set<String> getPublicHostNames() {
+    return publicHostNames;
+  }
+
+  public void setPublicHostNames(Set<String> publicHostNames) {
+    this.publicHostNames = publicHostNames;
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -124,13 +207,13 @@ public class TopologyComponent {
     TopologyComponent that = (TopologyComponent) o;
 
     if (!componentName.equals(that.componentName)) return false;
-    return version.equals(that.version);
+    return serviceName.equals(that.serviceName);
   }
 
   @Override
   public int hashCode() {
     int result = componentName.hashCode();
-    result = 31 * result + version.hashCode();
+    result = 31 * result + serviceName.hashCode();
     return result;
   }
 }

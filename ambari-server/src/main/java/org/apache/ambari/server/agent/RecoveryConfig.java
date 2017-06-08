@@ -33,24 +33,31 @@ public class RecoveryConfig {
   }
 
   @SerializedName("type")
+  @com.fasterxml.jackson.annotation.JsonProperty("type")
   private String type;
 
   @SerializedName("maxCount")
+  @com.fasterxml.jackson.annotation.JsonProperty("maxCount")
   private String maxCount;
 
   @SerializedName("windowInMinutes")
+  @com.fasterxml.jackson.annotation.JsonProperty("windowInMinutes")
   private String windowInMinutes;
 
   @SerializedName("retryGap")
+  @com.fasterxml.jackson.annotation.JsonProperty("retryGap")
   private String retryGap;
 
   @SerializedName("maxLifetimeCount")
+  @com.fasterxml.jackson.annotation.JsonProperty("maxLifetimeCount")
   private String maxLifetimeCount;
 
   @SerializedName("components")
+  @com.fasterxml.jackson.annotation.JsonProperty("components")
   private String enabledComponents;
 
   @SerializedName("recoveryTimestamp")
+  @com.fasterxml.jackson.annotation.JsonProperty("recoveryTimestamp")
   private long recoveryTimestamp;
 
   public String getEnabledComponents() {

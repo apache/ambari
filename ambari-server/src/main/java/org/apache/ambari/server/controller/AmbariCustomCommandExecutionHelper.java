@@ -755,7 +755,7 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
 
-    String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
+    String commandTimeout = getStatusCommandTimeout(serviceInfo);
 
     if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
       // Service check command is not custom command
@@ -763,9 +763,6 @@ public class AmbariCustomCommandExecutionHelper {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
-        if (script.getTimeout() > 0) {
-          commandTimeout = String.valueOf(script.getTimeout());
-        }
       } else {
         String message = String.format("Service %s has no command script " +
             "defined. It is not possible to run service check" +
@@ -773,12 +770,6 @@ public class AmbariCustomCommandExecutionHelper {
         throw new AmbariException(message);
       }
       // We don't need package/repo information to perform service check
-    }
-
-    // Try to apply overridden service check timeout value if available
-    Long overriddenTimeout = configs.getAgentServiceCheckTaskTimeout();
-    if (!overriddenTimeout.equals(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue())) {
-      commandTimeout = String.valueOf(overriddenTimeout);
     }
 
     commandParams.put(COMMAND_TIMEOUT, commandTimeout);
@@ -1484,5 +1475,31 @@ public class AmbariCustomCommandExecutionHelper {
     }
     hosts.removeAll(removedHosts);
     return removedHosts;
+  }
+
+  public String getStatusCommandTimeout(ServiceInfo serviceInfo) throws AmbariException {
+    String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
+
+    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
+      // Service check command is not custom command
+      CommandScriptDefinition script = serviceInfo.getCommandScript();
+      if (script != null) {
+        if (script.getTimeout() > 0) {
+          commandTimeout = String.valueOf(script.getTimeout());
+        }
+      } else {
+        String message = String.format("Service %s has no command script " +
+            "defined. It is not possible to run service check" +
+            " for this service", serviceInfo.getName());
+        throw new AmbariException(message);
+      }
+    }
+
+    // Try to apply overridden service check timeout value if available
+    Long overriddenTimeout = configs.getAgentServiceCheckTaskTimeout();
+    if (!overriddenTimeout.equals(Configuration.AGENT_SERVICE_CHECK_TASK_TIMEOUT.getDefaultValue())) {
+      commandTimeout = String.valueOf(overriddenTimeout);
+    }
+    return commandTimeout;
   }
 }

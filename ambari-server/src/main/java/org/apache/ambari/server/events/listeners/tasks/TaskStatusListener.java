@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -35,14 +35,18 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.events.NamedHostRoleCommandUpdateEvent;
 import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.events.publishers.TaskEventPublisher;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -102,17 +106,20 @@ public class TaskStatusListener {
 
   private StateUpdateEventPublisher stateUpdateEventPublisher;
 
+  private ClusterDAO clusterDAO;
 
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
                             StateUpdateEventPublisher stateUpdateEventPublisher,
                             HostRoleCommandDAO hostRoleCommandDAO,
-                            TopologyManager topologyManager) {
+                            TopologyManager topologyManager,
+                            ClusterDAO clusterDAO) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
     this.stateUpdateEventPublisher = stateUpdateEventPublisher;
     this.hostRoleCommandDAO = hostRoleCommandDAO;
     this.topologyManager = topologyManager;
+    this.clusterDAO = clusterDAO;
     taskEventPublisher.register(this);
   }
 
@@ -134,7 +141,7 @@ public class TaskStatusListener {
    * @param event Consumes {@link TaskUpdateEvent}.
    */
   @Subscribe
-  public void onTaskUpdateEvent(TaskUpdateEvent event) {
+  public void onTaskUpdateEvent(TaskUpdateEvent event) throws ClusterNotFoundException {
     LOG.debug("Received task update event {}", event);
     List<HostRoleCommand> hostRoleCommandListAll = event.getHostRoleCommands();
     List<HostRoleCommand>  hostRoleCommandWithReceivedStatus =  new ArrayList<>();
@@ -155,6 +162,19 @@ public class TaskStatusListener {
       }
     }
 
+    for (HostRoleCommand hostRoleCommand : hostRoleCommandWithReceivedStatus) {
+      NamedHostRoleCommandUpdateEvent namedHostRoleCommandUpdateEvent = new NamedHostRoleCommandUpdateEvent(hostRoleCommand.getTaskId(),
+          hostRoleCommand.getRequestId(),
+          hostRoleCommand.getHostName(),
+          hostRoleCommand.getEndTime(),
+          hostRoleCommand.getStatus(),
+          hostRoleCommand.getErrorLog(),
+          hostRoleCommand.getOutputLog(),
+          hostRoleCommand.getStderr(),
+          hostRoleCommand.getStdout()
+      );
+      stateUpdateEventPublisher.publish(namedHostRoleCommandUpdateEvent);
+    }
     updateActiveTasksMap(hostRoleCommandWithReceivedStatus);
     Boolean didAnyStageStatusUpdated = updateActiveStagesStatus(stagesWithReceivedTaskStatus, hostRoleCommandListAll);
     // Presumption: If there is no update in any of the running stage's status
@@ -273,14 +293,23 @@ public class TaskStatusListener {
    * @param requestIdsWithReceivedTaskStatus set of request ids that has received tasks status
    * @param stagesWithChangedTaskStatus set of stages that have received tasks with changed status
    */
-  private void updateActiveRequestsStatus(final Set<Long> requestIdsWithReceivedTaskStatus, Set<StageEntityPK> stagesWithChangedTaskStatus) {
+  private void updateActiveRequestsStatus(final Set<Long> requestIdsWithReceivedTaskStatus, Set<StageEntityPK> stagesWithChangedTaskStatus) throws ClusterNotFoundException {
     for (Long reportedRequestId : requestIdsWithReceivedTaskStatus) {
       if (activeRequestMap.containsKey(reportedRequestId)) {
         ActiveRequest request =  activeRequestMap.get(reportedRequestId);
         Boolean didStatusChange = updateRequestStatus(reportedRequestId, stagesWithChangedTaskStatus);
         if (didStatusChange) {
           RequestEntity updated = requestDAO.updateStatus(reportedRequestId, request.getStatus(), request.getDisplayStatus());
-          stateUpdateEventPublisher.publish(new RequestUpdateEvent(updated, hostRoleCommandDAO, topologyManager));
+          ClusterEntity clusterEntity = clusterDAO.findById(updated.getClusterId());
+          if (clusterEntity == null) {
+            throw new ClusterNotFoundException(updated.getClusterId());
+          }
+          List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findByRequest(updated.getRequestId());
+          stateUpdateEventPublisher.publish(new RequestUpdateEvent(updated,
+              hostRoleCommandDAO,
+              topologyManager,
+              clusterEntity.getClusterName(),
+              hostRoleCommandEntities));
         }
         if (request.isCompleted() && isAllTasksCompleted(reportedRequestId)) {
           // Request is considered ton have been finished if request status and all of it's tasks status are completed

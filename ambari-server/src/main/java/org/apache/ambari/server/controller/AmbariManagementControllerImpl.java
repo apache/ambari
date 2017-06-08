@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -27,10 +29,19 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MAX_DURATION_OF_RETRIES;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
@@ -38,6 +49,8 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_GROUPS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
@@ -89,6 +102,8 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
+import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.agent.stomp.dto.TopologyComponent;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -109,6 +124,7 @@ import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
+import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
@@ -327,7 +343,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private StateUpdateEventPublisher stateUpdateEventPublisher;
 
   @Inject
-  TopologyDeleteFormer topologyDeleteFormer;
+  private TopologyDeleteFormer topologyDeleteFormer;
+
+  @Inject
+  private AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -723,7 +742,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private TopologyUpdateEvent getAddedComponentsTopologyEvent(Set<ServiceComponentHostRequest> requests)
     throws AmbariException {
-    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     for (ServiceComponentHostRequest request : requests) {
       String serviceName = request.getServiceName();
       String componentName = request.getComponentName();
@@ -731,10 +750,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Collection<Host> clusterHosts = cluster.getHosts();
       Service s = cluster.getService(serviceName);
       ServiceComponent sc = s.getServiceComponent(componentName);
-      Set<String> hostNames = cluster.getHosts(serviceName, componentName);
+      String hostName = request.getHostname();
       Set<Long> hostIds = clusterHosts.stream()
-          .filter(h -> hostNames.contains(h.getHostName()))
+          .filter(h -> hostName.equals(h.getHostName()))
           .map(h -> h.getHostId()).collect(Collectors.toSet());
+      Set<String> publicHostNames = clusterHosts.stream()
+          .filter(h -> hostName.equals(h.getHostName()))
+          .map(h -> h.getPublicHostName()).collect(Collectors.toSet());
+      Set<String> hostNames = new HashSet<>();
+      hostNames.add(hostName);
       ServiceComponentHost sch = sc.getServiceComponentHost(request.getHostname());
 
       StackId stackId = cluster.getDesiredStackVersion();
@@ -742,17 +766,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       TopologyComponent newComponent = TopologyComponent.newBuilder()
           .setComponentName(sch.getServiceComponentName())
           .setServiceName(sch.getServiceName())
+          .setDisplayName(sc.getDisplayName())
           .setVersion(sch.getVersion())
           .setHostIds(hostIds)
-          .setStatusCommandParams(ambariMetaInfo.getStatusCommandParams(stackId, serviceName, componentName))
+          .setHostNames(hostNames)
+          .setPublicHostNames(publicHostNames)
+          .setComponentLevelParams(getTopologyComponentLevelParams(stackId, serviceName, componentName, cluster.getSecurityType()))
           .build();
       String clusterId = Long.toString(cluster.getClusterId());
       if (!topologyUpdates.containsKey(clusterId)) {
         topologyUpdates.put(clusterId, new TopologyCluster());
       }
-      topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
+      if (topologyUpdates.get(clusterId).getTopologyComponents().contains(newComponent)) {
+        Set<TopologyComponent> newComponents = new HashSet<>();
+        newComponents.add(newComponent);
+        topologyUpdates.get(clusterId).update(newComponents, Collections.emptySet(),
+            TopologyUpdateEvent.EventType.UPDATE);
+      } else {
+        topologyUpdates.get(clusterId).addTopologyComponent(newComponent);
+      }
     }
-    return new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.ADD);
+    return new TopologyUpdateEvent(topologyUpdates, TopologyUpdateEvent.EventType.UPDATE);
   }
 
   private void setMonitoringServicesRestartRequired(
@@ -2476,14 +2510,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       hostParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     }
 
-    List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
-    if (clientsToUpdateConfigsList == null) {
-      clientsToUpdateConfigsList = new ArrayList<>();
-      clientsToUpdateConfigsList.add("*");
-    }
-
-    String clientsToUpdateConfigs = gson.toJson(clientsToUpdateConfigsList);
-    hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, clientsToUpdateConfigs);
+    hostParams.put(CLIENTS_TO_UPDATE_CONFIGS, getClientsToUpdateConfigs(componentInfo));
 
     // If we are starting a component, calculate whether the unlimited key JCE policy is
     // required for the relevant host.  One of the following indicates that the unlimited
@@ -2492,17 +2519,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     //   * The component explicitly requires it whether Kerberos is enabled or not (example, SMARTSENSE/HST_SERVER)
     //   * The component explicitly requires it only when Kerberos is enabled AND Kerberos is enabled (example, most components)
     //
-    UnlimitedKeyJCERequirement unlimitedKeyJCERequirement = componentInfo.getUnlimitedKeyJCERequired();
-    // Ensure that the unlimited key requirement is set. If null, the default value should be used.
-    if(unlimitedKeyJCERequirement == null) {
-      unlimitedKeyJCERequirement = UnlimitedKeyJCERequirement.DEFAULT;
-    }
-
-    boolean unlimitedKeyJCEPolicyRequired = (UnlimitedKeyJCERequirement.ALWAYS == unlimitedKeyJCERequirement) ||
-        ((UnlimitedKeyJCERequirement.KERBEROS_ENABLED == unlimitedKeyJCERequirement) && (cluster.getSecurityType() == SecurityType.KERBEROS));
-
     // Set/update the unlimited_key_jce_required value as needed
-    hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (unlimitedKeyJCEPolicyRequired) ? "true" : "false");
+    hostParams.put(UNLIMITED_KEY_JCE_REQUIRED, (getUnlimitedKeyJCERequirement(componentInfo, cluster.getSecurityType())) ? "true" : "false");
 
     execCmd.setHostLevelParams(hostParams);
 
@@ -5622,4 +5640,148 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return QuickLinkVisibilityControllerFactory.get(quickLinkProfileJson);
   }
 
+  /**
+   * Collects metadata info about clusters for agent.
+   * @return metadata info about clusters
+   * @throws AmbariException
+   */
+  public MetadataUpdateEvent getClustersMetadata() throws AmbariException {
+    TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+
+    for (Cluster cl : clusters.getClusters().values()) {
+      StackId stackId = cl.getDesiredStackVersion();
+
+      SecurityType securityType = cl.getSecurityType();
+
+      TreeMap<String, MetadataServiceInfo> serviceLevelParams = new TreeMap<>();
+      Collection<ServiceInfo> servicesInfo = ambariMetaInfo.getServices(stackId.getStackName(),
+          stackId.getStackVersion()).values();
+      for (ServiceInfo serviceInfo : servicesInfo) {
+        Long statusCommandTimeout = null;
+        if (serviceInfo.getCommandScript() != null) {
+          statusCommandTimeout = new Long (ambariCustomCommandExecutionHelper.getStatusCommandTimeout(serviceInfo));
+        }
+
+        String servicePackageFolder = serviceInfo.getServicePackageFolder();
+
+        serviceLevelParams.put(serviceInfo.getName(),
+            new MetadataServiceInfo(serviceInfo.getVersion(),
+                serviceInfo.isCredentialStoreEnabled(),
+                statusCommandTimeout,
+                servicePackageFolder));
+      }
+
+      MetadataCluster metadataCluster = new MetadataCluster(securityType,
+          serviceLevelParams,
+          getMetadataClusterLevelParams(cl, stackId));
+      metadataClusters.put(Long.toString(cl.getClusterId()), metadataCluster);
+    }
+
+    MetadataUpdateEvent metadataUpdateEvent = new MetadataUpdateEvent(metadataClusters);
+    return metadataUpdateEvent;
+  }
+
+  private String getClientsToUpdateConfigs(ComponentInfo componentInfo) {
+    List<String> clientsToUpdateConfigsList = componentInfo.getClientsToUpdateConfigs();
+    if (clientsToUpdateConfigsList == null) {
+      clientsToUpdateConfigsList = new ArrayList<>();
+      clientsToUpdateConfigsList.add("*");
+    }
+    return gson.toJson(clientsToUpdateConfigsList);
+  }
+
+  private Boolean getUnlimitedKeyJCERequirement(ComponentInfo componentInfo, SecurityType clusterSecurityType) {
+    UnlimitedKeyJCERequirement unlimitedKeyJCERequirement = componentInfo.getUnlimitedKeyJCERequired();
+    // Ensure that the unlimited key requirement is set. If null, the default value should be used.
+    if(unlimitedKeyJCERequirement == null) {
+      unlimitedKeyJCERequirement = UnlimitedKeyJCERequirement.DEFAULT;
+    }
+
+    return (UnlimitedKeyJCERequirement.ALWAYS == unlimitedKeyJCERequirement) ||
+        ((UnlimitedKeyJCERequirement.KERBEROS_ENABLED == unlimitedKeyJCERequirement) &&
+            (clusterSecurityType == SecurityType.KERBEROS));
+
+  }
+
+  //TODO will be a need to change to multi-instance usage
+  public TreeMap<String, String> getTopologyComponentLevelParams(StackId stackId, String serviceName, String componentName,
+                                                             SecurityType clusterSecurityType) throws AmbariException {
+    ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+        stackId.getStackVersion(), serviceName);
+    ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+        stackId.getStackName(), stackId.getStackVersion(),
+        serviceName, componentName);
+
+    String scriptName = null;
+    CommandScriptDefinition script = componentInfo.getCommandScript();
+    if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
+      if (script != null) {
+        scriptName = script.getScript();
+      } else {
+        String message = String.format("Component %s of service %s has not " +
+            "command script defined", componentName, serviceName);
+        throw new AmbariException(message);
+      }
+    }
+
+    TreeMap<String, String> statusCommandParams = new TreeMap<>();
+    statusCommandParams.put(ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS,
+        getClientsToUpdateConfigs(componentInfo));
+    statusCommandParams.put(ExecutionCommand.KeyNames.UNLIMITED_KEY_JCE_REQUIRED,
+         Boolean.toString(getUnlimitedKeyJCERequirement(componentInfo, clusterSecurityType)));
+    statusCommandParams.put(KeyNames.SCRIPT, scriptName);
+    return statusCommandParams;
+  }
+
+  public TreeMap<String, String> getMetadataClusterLevelParams(Cluster cluster, StackId stackId) throws AmbariException {
+    TreeMap<String, String> clusterLevelParams = new TreeMap<>();
+    clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
+    clusterLevelParams.put(JAVA_HOME, getJavaHome());
+    clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
+    clusterLevelParams.put(JDK_NAME, getJDKName());
+    clusterLevelParams.put(JCE_NAME, getJCEName());
+    clusterLevelParams.put(STACK_NAME, stackId.getStackName());
+    clusterLevelParams.put(STACK_VERSION, stackId.getStackVersion());
+    clusterLevelParams.put(DB_NAME, getServerDB());
+    clusterLevelParams.put(MYSQL_JDBC_URL, getMysqljdbcUrl());
+    clusterLevelParams.put(ORACLE_JDBC_URL, getOjdbcUrl());
+    clusterLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
+    clusterLevelParams.putAll(getRcaParameters());
+    clusterLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
+    clusterLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
+    clusterLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
+
+    StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+    clusterLevelParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId,
+        PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
+    String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
+    clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
+
+    Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
+    String userList = gson.toJson(userSet);
+    clusterLevelParams.put(USER_LIST, userList);
+
+    //Create a user_group mapping and send it as part of the hostLevelParams
+    Map<String, Set<String>> userGroupsMap = configHelper.createUserGroupsMap(
+        stackId, cluster, desiredConfigs);
+    String userGroups = gson.toJson(userGroupsMap);
+    clusterLevelParams.put(USER_GROUPS, userGroups);
+
+    Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
+    String groupList = gson.toJson(groupSet);
+    clusterLevelParams.put(GROUP_LIST, groupList);
+
+    return clusterLevelParams;
+  }
+
+  public TreeMap<String, String> getTopologyHostLevelParams(Cluster cluster, Host host) throws AmbariException {
+    TreeMap<String, String> hostLevelParams = new TreeMap<>();
+    String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, host);
+
+    hostLevelParams.put(REPO_INFO, repoInfo);
+    return hostLevelParams;
+  }
 }

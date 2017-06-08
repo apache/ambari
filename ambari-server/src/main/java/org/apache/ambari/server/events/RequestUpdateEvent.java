@@ -18,15 +18,23 @@
 
 package org.apache.ambari.server.events;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.topology.TopologyManager;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RequestUpdateEvent extends AmbariUpdateEvent {
 
-  private Long clusterId;
+  private String clusterName;
   private Long endTime;
   private Long requestId;
   private Double progressPercent;
@@ -34,16 +42,29 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
   private HostRoleStatus requestStatus;
   private Long startTime;
 
+  @JsonProperty("Tasks")
+  private List<HostRoleCommand> hostRoleCommands = new ArrayList<>();
 
-  public RequestUpdateEvent(RequestEntity requestEntity, HostRoleCommandDAO hostRoleCommandDAO, TopologyManager topologyManager) {
+  public RequestUpdateEvent(RequestEntity requestEntity,
+                            HostRoleCommandDAO hostRoleCommandDAO,
+                            TopologyManager topologyManager,
+                            String clusterName,
+                            List<HostRoleCommandEntity> hostRoleCommandEntities) {
     super(Type.REQUEST);
-    this.clusterId = requestEntity.getClusterId();
+    this.clusterName = clusterName;
     this.endTime = requestEntity.getEndTime();
     this.requestId = requestEntity.getRequestId();
     this.progressPercent = CalculatedStatus.statusFromRequest(hostRoleCommandDAO, topologyManager, requestEntity.getRequestId()).getPercent();
     this.requestContext = requestEntity.getRequestContext();
     this.requestStatus = requestEntity.getStatus();
     this.startTime = requestEntity.getStartTime();
+
+    for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandEntities) {
+      hostRoleCommands.add(new HostRoleCommand(hostRoleCommandEntity.getTaskId(),
+          hostRoleCommandEntity.getRequestId(),
+          hostRoleCommandEntity.getStatus(),
+          hostRoleCommandEntity.getHostName()));
+    }
   }
 
   public Long getRequestId() {
@@ -54,12 +75,12 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
     this.requestId = requestId;
   }
 
-  public Long getClusterId() {
-    return clusterId;
+  public String getClusterName() {
+    return clusterName;
   }
 
-  public void setClusterId(Long clusterId) {
-    this.clusterId = clusterId;
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
   }
 
   public String getRequestContext() {
@@ -100,5 +121,51 @@ public class RequestUpdateEvent extends AmbariUpdateEvent {
 
   public void setStartTime(Long startTime) {
     this.startTime = startTime;
+  }
+
+  public class HostRoleCommand {
+    private Long id;
+    private Long requestId;
+    private HostRoleStatus status;
+    private String hostName;
+
+    public HostRoleCommand(Long id, Long requestId, HostRoleStatus status, String hostName) {
+      this.id = id;
+      this.requestId = requestId;
+      this.status = status;
+      this.hostName = hostName;
+    }
+
+    public Long getId() {
+      return id;
+    }
+
+    public void setId(Long id) {
+      this.id = id;
+    }
+
+    public Long getRequestId() {
+      return requestId;
+    }
+
+    public void setRequestId(Long requestId) {
+      this.requestId = requestId;
+    }
+
+    public HostRoleStatus getStatus() {
+      return status;
+    }
+
+    public void setStatus(HostRoleStatus status) {
+      this.status = status;
+    }
+
+    public String getHostName() {
+      return hostName;
+    }
+
+    public void setHostName(String hostName) {
+      this.hostName = hostName;
+    }
   }
 }

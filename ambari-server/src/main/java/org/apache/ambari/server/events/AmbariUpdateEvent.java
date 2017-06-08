@@ -44,13 +44,12 @@ public abstract class AmbariUpdateEvent {
   public enum Type {
     ALERT("/events/alerts", "events.alerts"),
     METADATA("/events/metadata", "events.metadata"),
-    TOPOLOGY("/events/topology", "events.topology_update"),
+    TOPOLOGY("/events/topologies", "events.topology_update"),
     AGENT_CONFIGS("/events/configs", "events.agent.configs"),
     CONFIGS("/events/configs", "events.configs"),
     HOSTCOMPONENT("/events/hostcomponents", "events.hostcomponents"),
     NAMEDHOSTCOMPONENT("/events/tasks/", "events.hostrolecommands.named"),
     REQUEST("/events/requests", "events.requests"),
-    NAMEDREQUEST("/events/requests", "events.requests.named"),
     COMMAND("/user/commands", "events.commands");
 
     private String destination;

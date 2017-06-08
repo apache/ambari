@@ -19,27 +19,27 @@
 package org.apache.ambari.server.agent.stomp.dto;
 
 import java.util.List;
-import java.util.Map;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ComponentStatusReports {
 
   @JsonProperty("clustersReports")
-  private Map<String, List<ComponentStatusReport>> componentStatusReports;
+  private TreeMap<String, List<ComponentStatusReport>> componentStatusReports;
 
   public ComponentStatusReports() {
   }
 
-  public ComponentStatusReports(Map<String, List<ComponentStatusReport>> componentStatusReports) {
+  public ComponentStatusReports(TreeMap<String, List<ComponentStatusReport>> componentStatusReports) {
     this.componentStatusReports = componentStatusReports;
   }
 
-  public Map<String, List<ComponentStatusReport>> getComponentStatusReports() {
+  public TreeMap<String, List<ComponentStatusReport>> getComponentStatusReports() {
     return componentStatusReports;
   }
 
-  public void setComponentStatusReports(Map<String, List<ComponentStatusReport>> componentStatusReports) {
+  public void setComponentStatusReports(TreeMap<String, List<ComponentStatusReport>> componentStatusReports) {
     this.componentStatusReports = componentStatusReports;
   }
 }

@@ -19,9 +19,8 @@
 package org.apache.ambari.server.topology;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
@@ -60,7 +59,7 @@ public class TopologyDeleteFormer {
   }
 
   public void processDeleteCluster(String clusterId) {
-    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
     topologyUpdates.put(clusterId, new TopologyCluster());
     TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(
         topologyUpdates,
@@ -69,14 +68,16 @@ public class TopologyDeleteFormer {
     stateUpdateEventPublisher.publish(topologyUpdateEvent);
   }
 
-  public Map<String, TopologyCluster> createUpdateFromDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {
-    Map<String, TopologyCluster> topologyUpdates = new HashMap<>();
+  public TreeMap<String, TopologyCluster> createUpdateFromDeleteMetaData(DeleteHostComponentStatusMetaData metaData) {
+    TreeMap<String, TopologyCluster> topologyUpdates = new TreeMap<>();
 
     for (DeleteHostComponentStatusMetaData.HostComponent hostComponent : metaData.getRemovedHostComponents()) {
       TopologyComponent deletedComponent = TopologyComponent.newBuilder()
           .setComponentName(hostComponent.getComponentName())
+          .setServiceName(hostComponent.getServiceName())
           .setVersion(hostComponent.getVersion())
           .setHostIds(new HashSet<>(Arrays.asList(hostComponent.getHostId())))
+          .setHostNames(new HashSet<>(Arrays.asList(hostComponent.getHostName())))
           .build();
 
       String clusterId = hostComponent.getClusterId();
@@ -87,6 +88,9 @@ public class TopologyDeleteFormer {
       if (!topologyUpdates.get(clusterId).getTopologyComponents().contains(deletedComponent)) {
         topologyUpdates.get(clusterId).addTopologyComponent(deletedComponent);
       } else {
+        topologyUpdates.get(clusterId).getTopologyComponents()
+            .stream().filter(t -> t.equals(deletedComponent))
+            .forEach(t -> t.addHostName(hostComponent.getHostName()));
         topologyUpdates.get(clusterId).getTopologyComponents()
             .stream().filter(t -> t.equals(deletedComponent))
             .forEach(t -> t.addHostId(hostComponent.getHostId()));

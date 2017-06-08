@@ -15,36 +15,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.events;
 
-import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.ambari.server.agent.stomp.dto.ClusterConfigs;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
-import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
+public class AgentConfigsUpdateEvent extends AmbariUpdateEvent implements Hashable {
 
   private String hash;
 
   @JsonProperty("clusters")
-  private TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
+  private TreeMap<String, ClusterConfigs> clustersConfigs = new TreeMap<>();
 
-  public MetadataUpdateEvent(TreeMap<String, MetadataCluster> metadataClusters) {
-    super(Type.METADATA);
-    this.metadataClusters = metadataClusters;
+  public AgentConfigsUpdateEvent(TreeMap<String, ClusterConfigs> clustersConfigs) {
+    super(Type.AGENT_CONFIGS);
+    this.clustersConfigs = clustersConfigs;
   }
 
-  public Map<String, MetadataCluster> getMetadataClusters() {
-    return metadataClusters;
+  public TreeMap<String, ClusterConfigs> getClustersConfigs() {
+    return clustersConfigs;
   }
 
-  public void setMetadataClusters(TreeMap<String, MetadataCluster> metadataClusters) {
-    this.metadataClusters = metadataClusters;
+  public void setClustersConfigs(TreeMap<String, ClusterConfigs> clustersConfigs) {
+    this.clustersConfigs = clustersConfigs;
   }
 
   @Override
@@ -56,7 +56,7 @@ public class MetadataUpdateEvent extends AmbariUpdateEvent implements Hashable {
     this.hash = hash;
   }
 
-  public static MetadataUpdateEvent emptyUpdate() {
-    return new MetadataUpdateEvent(null);
+  public static AgentConfigsUpdateEvent emptyUpdate() {
+    return new AgentConfigsUpdateEvent(null);
   }
 }

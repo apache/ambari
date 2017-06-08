@@ -18,12 +18,15 @@
 package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
@@ -149,6 +152,7 @@ public class AlertReceivedListener {
 
     List<AlertEvent> alertEvents = new ArrayList<>(20);
     List<Alert> updatedAlerts = new ArrayList<>();
+    Map<String, AlertSummaryGroupedRenderer.AlertDefinitionSummary> summaries = new HashMap<>();
 
     for (Alert alert : alerts) {
       // jobs that were running when a service/component/host was changed
@@ -220,13 +224,7 @@ public class AlertReceivedListener {
 
           // this new alert must reflect the correct MM state for the
           // service/component/host
-          MaintenanceState maintenanceState = MaintenanceState.OFF;
-          try {
-            maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
-          } catch (Exception exception) {
-            LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
-                alert, exception);
-          }
+          MaintenanceState maintenanceState = getMaintenanceState(alert, clusterId);
 
           current = new AlertCurrentEntity();
           current.setMaintenanceState(maintenanceState);
@@ -346,6 +344,11 @@ public class AlertReceivedListener {
         // create the event to fire later
         alertEvents.add(new AlertStateChangeEvent(clusterId, alert, current, oldState, oldFirmness));
         updatedAlerts.add(alert);
+
+        // create alert update to fire event to UI
+        MaintenanceState maintenanceState = getMaintenanceState(alert, clusterId);
+        AlertSummaryGroupedRenderer.updateSummary(summaries, definition.getDefinitionId(),
+            definition.getDefinitionName(), alertState, alert.getTimestamp(), maintenanceState, alert.getText());
       }
     }
 
@@ -357,9 +360,20 @@ public class AlertReceivedListener {
     for (AlertEvent eventToFire : alertEvents) {
       m_alertEventPublisher.publish(eventToFire);
     }
-    if (!updatedAlerts.isEmpty()) {
-      stateUpdateEventPublisher.publish(new AlertUpdateEvent(updatedAlerts));
+    if (!summaries.isEmpty()) {
+      stateUpdateEventPublisher.publish(new AlertUpdateEvent(summaries));
     }
+  }
+
+  private MaintenanceState getMaintenanceState(Alert alert, Long clusterId) {
+    MaintenanceState maintenanceState = MaintenanceState.OFF;
+    try {
+      maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
+    } catch (Exception exception) {
+      LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
+          alert, exception);
+    }
+    return maintenanceState;
   }
 
   /**

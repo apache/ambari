@@ -19,7 +19,9 @@
 package org.apache.ambari.server.events;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
@@ -34,13 +36,14 @@ public class ConfigsUpdateEvent extends AmbariUpdateEvent {
   private String user;
   private String note;
   private List<String> hostNames;
-  private Long createtime;
+  private Long createTime;
   private String groupName;
-  //TODO configs
 
   private List<ClusterConfig> configs = new ArrayList<>();
+  private Set<String> changedConfigTypes = new HashSet<>();
 
-  public ConfigsUpdateEvent(ServiceConfigEntity configs, String configGroupName, List<String> hostNames) {
+  public ConfigsUpdateEvent(ServiceConfigEntity configs, String configGroupName, List<String> hostNames,
+                            Set<String> changedConfigTypes) {
     super(Type.CONFIGS);
     this.serviceConfigId = configs.getServiceConfigId();
     this.clusterId = configs.getClusterEntity().getClusterId();
@@ -56,8 +59,9 @@ public class ConfigsUpdateEvent extends AmbariUpdateEvent {
         clusterConfigEntity.getTag(),
         clusterConfigEntity.getVersion()));
     }
-    this.createtime = configs.getCreateTimestamp();
+    this.createTime = configs.getCreateTimestamp();
     this.groupName = configGroupName;
+    this.changedConfigTypes = changedConfigTypes;
   }
 
   public Long getServiceConfigId() {
@@ -132,12 +136,12 @@ public class ConfigsUpdateEvent extends AmbariUpdateEvent {
     this.configs = configs;
   }
 
-  public Long getCreatetime() {
-    return createtime;
+  public Long getCreateTime() {
+    return createTime;
   }
 
-  public void setCreatetime(Long createtime) {
-    this.createtime = createtime;
+  public void setCreateTime(Long createTime) {
+    this.createTime = createTime;
   }
 
   public String getGroupName() {
@@ -146,6 +150,14 @@ public class ConfigsUpdateEvent extends AmbariUpdateEvent {
 
   public void setGroupName(String groupName) {
     this.groupName = groupName;
+  }
+
+  public Set<String> getChangedConfigTypes() {
+    return changedConfigTypes;
+  }
+
+  public void setChangedConfigTypes(Set<String> changedConfigTypes) {
+    this.changedConfigTypes = changedConfigTypes;
   }
 
   public class ClusterConfig {

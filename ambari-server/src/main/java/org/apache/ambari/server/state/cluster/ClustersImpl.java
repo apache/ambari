@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -37,11 +38,14 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.stomp.dto.TopologyCluster;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostRegisteredEvent;
 import org.apache.ambari.server.events.HostsAddedEvent;
 import org.apache.ambari.server.events.HostsRemovedEvent;
+import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.StateUpdateEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
@@ -160,6 +164,9 @@ public class ClustersImpl implements Clusters {
   private AmbariEventPublisher eventPublisher;
 
   @Inject
+  private StateUpdateEventPublisher stateUpdateEventPublisher;
+
+  @Inject
   public ClustersImpl(ClusterDAO clusterDAO, ClusterFactory clusterFactory, HostDAO hostDAO,
       HostFactory hostFactory) {
 
@@ -263,6 +270,14 @@ public class ClustersImpl implements Clusters {
         Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
 
     cluster.setCurrentStackVersion(stackId);
+
+    TreeMap<String, TopologyCluster> addedClusters = new TreeMap<>();
+    TopologyCluster addedCluster = new TopologyCluster();
+    addedCluster.setClusterName(clusterName);
+    addedClusters.put(Long.toString(cluster.getClusterId()), addedCluster);
+    TopologyUpdateEvent topologyUpdateEvent = new TopologyUpdateEvent(addedClusters,
+        TopologyUpdateEvent.EventType.UPDATE);
+    stateUpdateEventPublisher.publish(topologyUpdateEvent);
   }
 
   @Override

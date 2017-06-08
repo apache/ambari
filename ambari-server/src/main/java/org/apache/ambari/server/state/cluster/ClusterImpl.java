@@ -2302,7 +2302,10 @@ public class ClusterImpl implements Cluster {
         List<ClusterConfigEntity> configEntities = getClusterConfigEntitiesByService(serviceName);
         serviceConfigEntity.setClusterConfigEntities(configEntities);
       }
-
+      Set<String> changedConfigs = getChangedConfigTypes(serviceConfigEntity,
+          configGroup == null ? null : configGroup.getId(),
+          clusterId,
+          serviceName);
 
       long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(clusterId,
           serviceName);
@@ -2325,7 +2328,7 @@ public class ClusterImpl implements Cluster {
         serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
       }
       stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntity,
-          configGroup == null ? null : configGroup.getName(), groupHostNames));
+          configGroup == null ? null : configGroup.getName(), groupHostNames, changedConfigs));
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2624,6 +2627,8 @@ public class ClusterImpl implements Cluster {
         throw new IllegalArgumentException("Config group {} doesn't exist");
       }
     }
+    Set<String> changedConfigs = getChangedConfigTypes(serviceConfigEntity,
+        serviceConfigEntity.getGroupId(), clusterId, serviceName);
 
     ClusterEntity clusterEntity = getClusterEntity();
     long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(
@@ -2650,7 +2655,10 @@ public class ClusterImpl implements Cluster {
     }
 
     serviceConfigDAO.create(serviceConfigEntityClone);
-    stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone, configGroupName, groupHostNames));
+    stateUpdateEventPublisher.publish(new ConfigsUpdateEvent(serviceConfigEntityClone,
+        configGroupName,
+        groupHostNames,
+        changedConfigs));
 
     return convertToServiceConfigVersionResponse(serviceConfigEntityClone);
   }
@@ -3456,5 +3464,71 @@ public class ClusterImpl implements Cluster {
 
     // suspended goes in role params
     roleParams.put(KeyNames.UPGRADE_SUSPENDED, Boolean.TRUE.toString().toLowerCase());
+  }
+
+  /**
+   * Calculates cluster config types were changed during configs change.
+   * @param currentServiceConfigEntity service config entity with populated current cluster configs
+   * @param configGroupId id of config group contained changed configs. Can be null in case group is default
+   * @param clusterId cluster id
+   * @param serviceName service name configs were changed for
+   * @return set of type names of cluster configs were changed
+   */
+  private Set<String> getChangedConfigTypes(ServiceConfigEntity currentServiceConfigEntity,
+                                            Long configGroupId, Long clusterId, String serviceName) {
+    ServiceConfigEntity previousServiceConfigEntity;
+    List<ClusterConfigEntity> previousConfigEntities = new ArrayList<>();
+    List<ClusterConfigEntity> currentConfigEntities = new ArrayList<>();
+    currentConfigEntities.addAll(currentServiceConfigEntity.getClusterConfigEntities());
+    // Retrieve group cluster configs
+    if (configGroupId != null) {
+      previousServiceConfigEntity =
+          serviceConfigDAO.getLastServiceConfigVersionsForGroup(configGroupId);
+      if (previousServiceConfigEntity != null) {
+        previousConfigEntities.addAll(previousServiceConfigEntity.getClusterConfigEntities());
+      }
+    }
+    // Service config with custom group contains not all config types, so it is needed
+    // to complement it with configs from default group
+    previousServiceConfigEntity =
+        serviceConfigDAO.getLastServiceConfigForServiceDefaultGroup(clusterId, serviceName);
+    if (previousServiceConfigEntity != null) {
+      for (ClusterConfigEntity clusterConfigEntity : previousServiceConfigEntity.getClusterConfigEntities()) {
+        // Add only configs not present yet
+        ClusterConfigEntity exist =
+            previousConfigEntities.stream()
+                .filter(c -> c.getType().equals(clusterConfigEntity.getType())).findAny().orElse(null);
+        if (exist == null) {
+          previousConfigEntities.add(clusterConfigEntity);
+        }
+        // Complement current custom group service config to correct comparing
+        if (configGroupId != null) {
+          exist = currentConfigEntities.stream()
+              .filter(c -> c.getType().equals(clusterConfigEntity.getType())).findAny().orElse(null);
+          if (exist == null) {
+            currentConfigEntities.add(clusterConfigEntity);
+          }
+        }
+      }
+    }
+    Map<String, String> previousConfigs = new HashMap<>();
+    Map<String, String> currentConfigs = new HashMap<>();
+    for (ClusterConfigEntity clusterConfigEntity : currentConfigEntities) {
+      currentConfigs.put(clusterConfigEntity.getType(), clusterConfigEntity.getData());
+    }
+    for (ClusterConfigEntity clusterConfigEntity : previousConfigEntities) {
+      previousConfigs.put(clusterConfigEntity.getType(), clusterConfigEntity.getData());
+    }
+    // Get diff for current and previous sets of cluster configs
+    Set<Entry<String, String>> diff1 = new HashSet<>(currentConfigs.entrySet());
+    Set<Entry<String, String>> diff2 = new HashSet<>(previousConfigs.entrySet());
+    diff1.removeAll(previousConfigs.entrySet());
+    diff2.removeAll(currentConfigs.entrySet());
+    diff1.addAll(diff2);
+    Set<String> changedConfigs = new HashSet<>();
+    for (Entry<String, String> diff : diff1) {
+      changedConfigs.add(diff.getKey());
+    }
+    return changedConfigs;
   }
 }
