@@ -315,7 +315,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private StackDAO stackDAO;
   @Inject
-  private OsFamily osFamily;
+  protected OsFamily osFamily;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
