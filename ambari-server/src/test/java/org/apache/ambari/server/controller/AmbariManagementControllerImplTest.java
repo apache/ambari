@@ -106,6 +106,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -135,7 +136,6 @@ public class AmbariManagementControllerImplTest {
   private static final AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
   private static final Users users = createMock(Users.class);
   private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
-  private static final OsFamily osFamily = createNiceMock(OsFamily.class);
 
   @BeforeClass
   public static void setupAuthentication() {
@@ -147,7 +147,7 @@ public class AmbariManagementControllerImplTest {
 
   @Before
   public void before() throws Exception {
-    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager, osFamily);
+    reset(ldapDataPopulator, clusters, actionDBAccessor, ambariMetaInfo, users, sessionManager);
   }
 
   @Test
@@ -1995,7 +1995,7 @@ public class AmbariManagementControllerImplTest {
   @Test
   public void testPopulateServicePackagesInfo() throws Exception {
     Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
-    Injector injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
+    Injector injector = createStrictMock(Injector.class);
     MaintenanceStateHelper maintHelper = createNiceMock(MaintenanceStateHelper.class);
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
@@ -2030,15 +2030,18 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    
+    OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
-    replay(maintHelper, injector, clusters, serviceInfo);
+    EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);    
+    replay(maintHelper, injector, clusters, serviceInfo, osFamilyMock);
 
     AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
-        injector);
+        injector, osFamilyMock);
 
     ServiceOsSpecific serviceOsSpecific = nestedTestClass.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
 
-    assertEquals(serviceOsSpecific.getPackages().size(), 3);
+    assertEquals(3, serviceOsSpecific.getPackages().size());
   }
 
   @Test
@@ -2213,14 +2216,14 @@ public class AmbariManagementControllerImplTest {
       binder.bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       binder.bind(Users.class).toInstance(users);
       binder.bind(AmbariSessionManager.class).toInstance(sessionManager);
-      binder.bind(OsFamily.class).toInstance(osFamily);
     }
   }
 
   private class NestedTestClass extends AmbariManagementControllerImpl {
 
-    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector) throws Exception {
+    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
+      this.osFamily = osFamilyMock;
     }
 
     public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,
