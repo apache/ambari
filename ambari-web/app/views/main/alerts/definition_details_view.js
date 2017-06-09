@@ -216,7 +216,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
     template: Ember.Handlebars.compile('<span>{{view.count}}</span>'),
     count: function () {
       var lastDayAlertsCount = this.get('parentView.controller.lastDayAlertsCount');
-      return lastDayAlertsCount ? lastDayAlertsCount[this.get('hostName')] || 0 : Em.I18n.t('app.loadingPlaceholder');
+      return lastDayAlertsCount ? lastDayAlertsCount[this.get('hostName')] || 0 : Em.I18n.t('common.loading.eclipses');
     }.property('parentView.controller.lastDayAlertsCount', 'hostName')
   }),
 

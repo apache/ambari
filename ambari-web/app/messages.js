@@ -30,7 +30,6 @@ Em.I18n.translations = {
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
     '<a href="{0}" target="_blank">{0}</a>',
 
-  'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
   'app.versionMismatchAlert.body': 'Ambari Server and Web Client versions do not match:<br> ' +
     '<br>Ambari Server: <strong>{0}</strong>' +
@@ -3169,9 +3168,7 @@ Em.I18n.translations = {
   'menu.item.views':'<i class="glyphicon glyphicon-th"></i>',
   'menu.item.views.noViews':'No Views',
 
-  'bulkOperation.loading': 'Loading...',
   'jobs.nothingToShow': 'No jobs to display',
-  'jobs.loadingTasks': 'Loading...',
   'jobs.error.ats.down': 'Jobs data cannot be shown since YARN App Timeline Server is not running.',
   'jobs.error.400': 'Unable to load data.',
   'jobs.table.custom.date.am':'AM',
