@@ -40,7 +40,7 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
           selectedServiceBinding: controllerRoute + '.selectedService',
           serviceConfigsByCategoryView: Em.ContainerView.create(),
           willDestroyElement: function () {
-            $('.loading').append(Em.I18n.t('app.loadingPlaceholder'));
+            $('.loading').append(Em.I18n.t('common.loading.eclipses'));
           },
           didInsertElement: function () {
             $('.loading').empty();
