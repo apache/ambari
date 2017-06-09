@@ -51,6 +51,23 @@ def hdfs(name=None):
   )
 
   if params.security_enabled:
+    File(os.path.join(params.hadoop_conf_dir, 'hdfs_dn_jaas.conf'),
+         owner=params.hdfs_user,
+         group=params.user_group,
+         content=Template("hdfs_dn_jaas.conf.j2")
+    )
+    File(os.path.join(params.hadoop_conf_dir, 'hdfs_nn_jaas.conf'),
+         owner=params.hdfs_user,
+         group=params.user_group,
+         content=Template("hdfs_nn_jaas.conf.j2")
+    )
+    if params.dfs_ha_enabled:
+      File(os.path.join(params.hadoop_conf_dir, 'hdfs_jn_jaas.conf'),
+           owner=params.hdfs_user,
+           group=params.user_group,
+           content=Template("hdfs_jn_jaas.conf.j2")
+      )
+
     tc_mode = 0644
     tc_owner = "root"
   else:

@@ -138,7 +138,7 @@ class Controller(threading.Thread):
     if self.aggregator:
       self.aggregator.stop()
     if self.aggregator_watchdog:
-      self.aggregator.stop()
+      self.aggregator_watchdog.stop()
     self.aggregator = Aggregator(self.config, self._stop_handler)
     self.aggregator_watchdog = AggregatorWatchdog(self.config, self._stop_handler)
     self.aggregator.start()

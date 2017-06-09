@@ -87,9 +87,11 @@ App.supports = {
   addingNewRepository: false,
   kerberosStackAdvisor: true,
   logCountVizualization: false,
-  manageJournalNode: true,
   createAlerts: false,
-  enabledWizardForHostOrderedUpgrade: true
+  enabledWizardForHostOrderedUpgrade: true,
+  manageJournalNode: true,
+  enableToggleKerberos: true,
+  enableAddDeleteServices: true
 };
 
 if (App.enableExperimental) {

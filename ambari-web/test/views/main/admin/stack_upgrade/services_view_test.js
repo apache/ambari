@@ -34,6 +34,7 @@ describe('App.MainAdminStackServicesView', function () {
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'checkAndStartKerberosWizard');
       isAccessibleMock = sinon.stub(App, 'isAuthorized');
+      App.set('supports.enableAddDeleteServices', true);
     });
     afterEach(function() {
       App.get('router').transitionTo.restore();
