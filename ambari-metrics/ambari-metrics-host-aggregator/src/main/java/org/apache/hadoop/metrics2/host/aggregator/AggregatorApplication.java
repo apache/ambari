@@ -33,6 +33,9 @@ import java.util.HashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.AbstractMetricPublisher;
+import org.apache.hadoop.metrics2.sink.timeline.AggregatedMetricsPublisher;
+import org.apache.hadoop.metrics2.sink.timeline.RawMetricsPublisher;
 
 /**
  * WEB application with 2 publisher threads that processes received metrics and submits results to the collector
@@ -40,24 +43,25 @@ import org.apache.hadoop.conf.Configuration;
 public class AggregatorApplication
 {
     private static final int STOP_SECONDS_DELAY = 0;
-    private static final int JOIN_SECONDS_TIMEOUT = 2;
-    private static String BASE_POST_URL = "%s://%s:%s/ws/v1/timeline/metrics";
-    private static String AGGREGATED_POST_PREFIX = "/aggregated";
+    private static final int JOIN_SECONDS_TIMEOUT = 5;
     private static final String METRICS_SITE_CONFIGURATION_FILE = "ams-site.xml";
-    private static Log LOG = LogFactory.getLog("AggregatorApplication.class");
+    private Log LOG;
     private final int webApplicationPort;
     private final int rawPublishingInterval;
     private final int aggregationInterval;
     private Configuration configuration;
-    private String [] collectorHosts;
-    private AggregatedMetricsPublisher aggregatePublisher;
-    private RawMetricsPublisher rawPublisher;
+    private Thread aggregatePublisherThread;
+    private Thread rawPublisherThread;
     private TimelineMetricsHolder timelineMetricsHolder;
     private HttpServer httpServer;
 
-    public AggregatorApplication(String collectorHosts) {
+    public AggregatorApplication(String hostname, String collectorHosts) {
+        LOG = LogFactory.getLog(this.getClass());
+        configuration = new Configuration(true);
         initConfiguration();
-        this.collectorHosts = collectorHosts.split(",");
+        configuration.set("timeline.metrics.collector.hosts", collectorHosts);
+        configuration.set("timeline.metrics.hostname", hostname);
+        configuration.set("timeline.metrics.zk.quorum", getZkQuorumFromConfiguration());
         this.aggregationInterval = configuration.getInt("timeline.metrics.host.aggregator.minute.interval", 300);
         this.rawPublishingInterval = configuration.getInt("timeline.metrics.sink.report.interval", 60);
         this.webApplicationPort = configuration.getInt("timeline.metrics.host.inmemory.aggregation.port", 61888);
@@ -70,7 +74,13 @@ public class AggregatorApplication
         }
     }
 
-    private void initConfiguration() {
+    private String getZkQuorumFromConfiguration() {
+        String zkClientPort = configuration.getTrimmed("cluster.zookeeper.property.clientPort", "2181");
+        String zkServerHosts = configuration.getTrimmed("cluster.zookeeper.quorum", "");
+        return getZkConnectionUrl(zkClientPort, zkServerHosts);
+    }
+
+    protected void initConfiguration() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         if (classLoader == null) {
             classLoader = getClass().getClassLoader();
@@ -82,7 +92,7 @@ public class AggregatorApplication
             throw new IllegalStateException("Unable to initialize the metrics " +
                     "subsystem. No ams-site present in the classpath.");
         }
-        configuration = new Configuration(true);
+
         try {
             configuration.addResource(amsResUrl.toURI().toURL());
         } catch (Exception e) {
@@ -91,7 +101,7 @@ public class AggregatorApplication
         }
     }
 
-    private String getHostName() {
+    protected String getHostName() {
         String hostName = "localhost";
         try {
             hostName = InetAddress.getLocalHost().getCanonicalHostName();
@@ -101,13 +111,13 @@ public class AggregatorApplication
         return hostName;
     }
 
-    private URI getURI() {
+    protected URI getURI() {
         URI uri = UriBuilder.fromUri("http://" + getHostName() + "/").port(this.webApplicationPort).build();
         LOG.info(String.format("Web server at %s", uri));
         return uri;
     }
 
-    private HttpServer createHttpServer() throws IOException {
+    protected HttpServer createHttpServer() throws IOException {
         ResourceConfig resourceConfig = new PackagesResourceConfig("org.apache.hadoop.metrics2.host.aggregator");
         HashMap<String, Object> params = new HashMap();
         params.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
@@ -122,29 +132,30 @@ public class AggregatorApplication
 
     private void startAggregatePublisherThread() {
         LOG.info("Starting aggregated metrics publisher.");
-        String collectorURL = buildBasicCollectorURL(collectorHosts[0]) + AGGREGATED_POST_PREFIX;
-        aggregatePublisher = new AggregatedMetricsPublisher(timelineMetricsHolder, collectorURL, aggregationInterval);
-        aggregatePublisher.start();
+        AbstractMetricPublisher metricPublisher = new AggregatedMetricsPublisher(timelineMetricsHolder, configuration, aggregationInterval);
+        aggregatePublisherThread = new Thread(metricPublisher);
+        aggregatePublisherThread.start();
     }
 
     private void startRawPublisherThread() {
         LOG.info("Starting raw metrics publisher.");
-        String collectorURL = buildBasicCollectorURL(collectorHosts[0]);
-        rawPublisher = new RawMetricsPublisher(timelineMetricsHolder, collectorURL, rawPublishingInterval);
-        rawPublisher.start();
+        AbstractMetricPublisher metricPublisher = new RawMetricsPublisher(timelineMetricsHolder, configuration, rawPublishingInterval);
+        rawPublisherThread = aggregatePublisherThread = new Thread(metricPublisher);
+        aggregatePublisherThread.start();
     }
 
 
 
     private void stop() {
-        aggregatePublisher.stopPublisher();
-        rawPublisher.stopPublisher();
+        LOG.info("Stopping aggregator application");
+        aggregatePublisherThread.interrupt();
+        rawPublisherThread.interrupt();
         httpServer.stop(STOP_SECONDS_DELAY);
         LOG.info("Stopped web server.");
         try {
             LOG.info("Waiting for threads to join.");
-            aggregatePublisher.join(JOIN_SECONDS_TIMEOUT * 1000);
-            rawPublisher.join(JOIN_SECONDS_TIMEOUT * 1000);
+            aggregatePublisherThread.join(JOIN_SECONDS_TIMEOUT * 1000);
+            rawPublisherThread.join(JOIN_SECONDS_TIMEOUT * 1000);
             LOG.info("Gracefully stopped Aggregator Application.");
         } catch (InterruptedException e) {
             LOG.error("Received exception during stop : ", e);
@@ -153,28 +164,43 @@ public class AggregatorApplication
 
     }
 
-    private String buildBasicCollectorURL(String host) {
-        String port = configuration.get("timeline.metrics.service.webapp.address", "0.0.0.0:6188").split(":")[1];
-        String protocol = configuration.get("timeline.metrics.service.http.policy", "HTTP_ONLY").equalsIgnoreCase("HTTP_ONLY") ? "http" : "https";
-        return String.format(BASE_POST_URL, protocol, host, port);
+    private String getZkConnectionUrl(String zkClientPort, String zkQuorum) {
+        StringBuilder sb = new StringBuilder();
+        String[] quorumParts = zkQuorum.split(",");
+        String prefix = "";
+        for (String part : quorumParts) {
+            sb.append(prefix);
+            sb.append(part.trim());
+            if (!part.contains(":")) {
+                sb.append(":");
+                sb.append(zkClientPort);
+            }
+            prefix = ",";
+        }
+        return sb.toString();
     }
 
     public static void main( String[] args ) throws Exception {
-        LOG.info("Starting aggregator application");
-        if (args.length != 1) {
-            throw new Exception("This jar should be run with 1 argument - collector hosts separated with coma");
+        if (args.length != 2) {
+            throw new Exception("This jar should be executed with 2 arguments : 1st - current host name, " +
+                    "2nd - collector hosts separated with coma");
         }
 
-        final AggregatorApplication app = new AggregatorApplication(args[0]);
-        app.startAggregatePublisherThread();
-        app.startRawPublisherThread();
-        app.startWebServer();
+        final AggregatorApplication app = new AggregatorApplication(args[0], args[1]);
+
+        app.startWebServerAndPublishersThreads();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                LOG.info("Stopping aggregator application");
                 app.stop();
             }
         });
+    }
+
+    private void startWebServerAndPublishersThreads() {
+        LOG.info("Starting aggregator application");
+        startAggregatePublisherThread();
+        startRawPublisherThread();
+        startWebServer();
     }
 }

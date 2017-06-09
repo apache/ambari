@@ -15,32 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.metrics2.host.aggregator;
+package org.apache.hadoop.metrics2.sink.timeline;
 
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolder;
 
 import java.util.Map;
 
-public class RawMetricsPublisher extends AbstractMetricPublisherThread {
+public class RawMetricsPublisher extends AbstractMetricPublisher {
     private final Log LOG;
 
-    public RawMetricsPublisher(TimelineMetricsHolder timelineMetricsHolder, String collectorURL, int interval) {
-        super(timelineMetricsHolder, collectorURL, interval);
+    public RawMetricsPublisher(TimelineMetricsHolder timelineMetricsHolder, Configuration configuration, int interval) {
+        super(timelineMetricsHolder, configuration, interval);
         LOG = LogFactory.getLog(this.getClass());
     }
 
 
     @Override
-    protected Map<Long, TimelineMetrics> getMetricsFromCache() {
+    protected Map<String, TimelineMetrics> getMetricsFromCache() {
         return timelineMetricsHolder.extractMetricsForRawPublishing();
     }
 
     @Override
-    protected String processMetrics(Map<Long, TimelineMetrics> metricValues) {
+    protected String processMetrics(Map<String, TimelineMetrics> metricValues) {
         //merge everything in one TimelineMetrics object
         TimelineMetrics timelineMetrics = new TimelineMetrics();
         for (TimelineMetrics metrics : metricValues.values()) {
@@ -50,11 +50,16 @@ public class RawMetricsPublisher extends AbstractMetricPublisherThread {
         //map TimelineMetrics to json string
         String json = null;
         try {
-            json = objectMapper.writeValueAsString(timelineMetrics);
+            json = mapper.writeValueAsString(timelineMetrics);
             LOG.debug(json);
         } catch (Exception e) {
             LOG.error("Failed to convert result into json", e);
         }
         return json;
+    }
+
+    @Override
+    protected String getPostUrl() {
+        return BASE_POST_URL;
     }
 }

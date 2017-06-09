@@ -19,8 +19,10 @@ package org.apache.hadoop.metrics2.host.aggregator;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -33,8 +35,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class TimelineMetricsHolder {
     private static final int DEFAULT_RAW_CACHE_EXPIRE_TIME = 60;
     private static final int DEFAULT_AGGREGATION_CACHE_EXPIRE_TIME = 300;
-    private Cache<Long, TimelineMetrics> aggregationMetricsCache;
-    private Cache<Long, TimelineMetrics> rawMetricsCache;
+    private Cache<String, TimelineMetrics> aggregationMetricsCache;
+    private Cache<String, TimelineMetrics> rawMetricsCache;
     private static TimelineMetricsHolder instance = null;
     //to ensure no metric values are expired
     private static int EXPIRE_DELAY = 30;
@@ -63,21 +65,29 @@ public class TimelineMetricsHolder {
 
     public void putMetricsForAggregationPublishing(TimelineMetrics timelineMetrics) {
         aggregationCacheLock.writeLock().lock();
-        aggregationMetricsCache.put(System.currentTimeMillis(), timelineMetrics);
+        aggregationMetricsCache.put(calculateCacheKey(timelineMetrics), timelineMetrics);
         aggregationCacheLock.writeLock().unlock();
     }
 
-    public Map<Long, TimelineMetrics> extractMetricsForAggregationPublishing() {
+    private String calculateCacheKey(TimelineMetrics timelineMetrics) {
+        List<TimelineMetric>  metrics =  timelineMetrics.getMetrics();
+        if (metrics.size() > 0) {
+            return  metrics.get(0).getAppId() + System.currentTimeMillis();
+        }
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+    public Map<String, TimelineMetrics> extractMetricsForAggregationPublishing() {
         return extractMetricsFromCacheWithLock(aggregationMetricsCache, aggregationCacheLock);
     }
 
     public void putMetricsForRawPublishing(TimelineMetrics metrics) {
         rawCacheLock.writeLock().lock();
-        rawMetricsCache.put(System.currentTimeMillis(), metrics);
+        rawMetricsCache.put(calculateCacheKey(metrics), metrics);
         rawCacheLock.writeLock().unlock();
     }
 
-    public Map<Long, TimelineMetrics> extractMetricsForRawPublishing() {
+    public Map<String, TimelineMetrics> extractMetricsForRawPublishing() {
         return extractMetricsFromCacheWithLock(rawMetricsCache, rawCacheLock);
     }
 
@@ -87,9 +97,9 @@ public class TimelineMetricsHolder {
      * @param lock
      * @return
      */
-    private Map<Long, TimelineMetrics> extractMetricsFromCacheWithLock(Cache<Long, TimelineMetrics> cache, ReadWriteLock lock) {
+    private Map<String, TimelineMetrics> extractMetricsFromCacheWithLock(Cache<String, TimelineMetrics> cache, ReadWriteLock lock) {
         lock.writeLock().lock();
-        Map<Long, TimelineMetrics> metricsMap = new TreeMap<>(cache.asMap());
+        Map<String, TimelineMetrics> metricsMap = new TreeMap<>(cache.asMap());
         cache.invalidateAll();
         lock.writeLock().unlock();
         return metricsMap;
