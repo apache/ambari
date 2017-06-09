@@ -39,7 +39,7 @@ public class AggregatorWebService {
     @GET
     @Produces("text/json")
     @Path("/metrics")
-    public Response helloWorld() throws IOException {
+    public Response getOkResponse() throws IOException {
         return Response.ok().build();
     }
 
