@@ -302,7 +302,7 @@ class Master(Script):
                                                        params.hbase_zookeeper_quorum + ':' + \
                                                        params.zookeeper_znode_parent
         else:
-          interpreter['properties']['zeppelin.jdbc.auth.type'] = ""
+          interpreter['properties']['zeppelin.jdbc.auth.type'] = "SIMPLE"
           interpreter['properties']['zeppelin.jdbc.principal'] = ""
           interpreter['properties']['zeppelin.jdbc.keytab.location'] = ""
       elif interpreter['group'] == 'sh':
@@ -354,6 +354,7 @@ class Master(Script):
           interpreter['properties']['hive.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties']['hive.user'] = 'hive'
           interpreter['properties']['hive.password'] = ''
+          interpreter['properties']['hive.proxy.user.property'] = 'hive.server2.proxy.user'
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties']['hive.url'] = 'jdbc:hive2://' + \
                                                  params.hive_zookeeper_quorum + \
@@ -367,6 +368,7 @@ class Master(Script):
           interpreter['properties'][hive_interactive_properties_key + '.driver'] = 'org.apache.hive.jdbc.HiveDriver'
           interpreter['properties'][hive_interactive_properties_key + '.user'] = 'hive'
           interpreter['properties'][hive_interactive_properties_key + '.password'] = ''
+          interpreter['properties'][hive_interactive_properties_key + '.property'] = 'hive.server2.proxy.user'
           if params.hive_server2_support_dynamic_service_discovery:
             interpreter['properties'][hive_interactive_properties_key + '.url'] = 'jdbc:hive2://' + \
                                                     params.hive_zookeeper_quorum + \
