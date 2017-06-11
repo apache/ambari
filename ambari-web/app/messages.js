@@ -2547,6 +2547,8 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.error.name.empty': 'Notification name is required',
   'alerts.actions.manage_alert_notifications_popup.error.name.existed': 'Notification name already exists',
   'alerts.actions.manage_alert_notifications_popup.scriptDispatchProperty':'Script Dispatch Property',
+  'alerts.actions.manage_alert_notifications_popup.scriptFileName':'Script Filename',
+  'alerts.actions.manage_alert_notifications_popup.error.scriptFileName.invalid': 'Invalid script filename',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
