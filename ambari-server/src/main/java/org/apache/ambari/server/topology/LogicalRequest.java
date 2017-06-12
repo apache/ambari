@@ -165,7 +165,7 @@ public class LogicalRequest extends Request {
   }
 
   public boolean hasPendingHostRequests() {
-    return !requestsWithReservedHosts.isEmpty() || !outstandingHostRequests.isEmpty();
+    return !(requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty());
   }
 
   public Collection<HostRequest> getCompletedHostRequests() {
