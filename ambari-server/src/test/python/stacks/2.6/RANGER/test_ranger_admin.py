@@ -86,6 +86,11 @@ class TestRangerAdmin(RMFTestCase):
                                     create_parents=True)
     self.assertResourceCalledRegexp('^Execute$', '^ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --create-collection --collection ranger_audits --config-set ranger_audits --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
 
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+      owner = 'ranger',
+      properties = {'db_password': '_', 'db_root_password': '_'}
+    )
+
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
@@ -166,6 +171,11 @@ class TestRangerAdmin(RMFTestCase):
 
     self.assertResourceCalled('Execute','ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/configs/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
     self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr/collections/ranger_audits --secure-znode --jaas-file /usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf --sasl-users rangeradmin,infra-solr --retry 5 --interval 10')
+
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+      owner = 'ranger',
+      properties = {'db_password': '_', 'db_root_password': '_'}
+    )
 
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
