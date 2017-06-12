@@ -851,3 +851,16 @@ def setup_tagsync_ssl_configs():
        mode = 0640
        )
   Logger.info("Configuring tagsync-ssl configurations done successfully.")
+
+def update_password_configs():
+  import params
+
+  password_configs = {'db_root_password': '_', 'db_password': '_'}
+
+  if params.stack_supports_ranger_audit_db:
+    password_configs['audit_db_password'] = '_'
+
+  ModifyPropertiesFile(format("{ranger_home}/install.properties"),
+    properties = password_configs,
+    owner = params.unix_user,
+  )
