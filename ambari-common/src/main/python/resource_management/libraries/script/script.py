@@ -463,10 +463,26 @@ class Script(object):
 
     return Script.stack_version_from_distro_select
 
+
+  def get_package_from_available(self, name, available_packages_in_repos):
+    """
+    This function matches package names with ${stack_version} placeholder to actual package names from
+    Ambari-managed repository.
+    Package names without ${stack_version} placeholder are returned as is.
+    """
+    if STACK_VERSION_PLACEHOLDER not in name:
+      return name
+    package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+    package_regex = name.replace(STACK_VERSION_PLACEHOLDER, '(\d|{0})+'.format(package_delimiter))
+    for package in available_packages_in_repos:
+      if re.match(package_regex, package):
+        return package
+
+
   def format_package_name(self, name):
     from resource_management.libraries.functions.default import default
     """
-    This function replaces ${stack_version} placeholder into actual version.  If the package
+    This function replaces ${stack_version} placeholder with actual version.  If the package
     version is passed from the server, use that as an absolute truth.
     """
 
@@ -703,12 +719,15 @@ class Script(object):
       package_list_str = config['hostLevelParams']['package_list']
       agent_stack_retry_on_unavailability = bool(config['hostLevelParams']['agent_stack_retry_on_unavailability'])
       agent_stack_retry_count = int(config['hostLevelParams']['agent_stack_retry_count'])
-
+      try:
+        available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+      except Exception as err:
+        available_packages_in_repos = []
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if self.check_package_condition(package):
-            name = self.format_package_name(package['name'])
+            name = self.get_package_from_available(package['name'], available_packages_in_repos)
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.

@@ -138,8 +138,8 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         throw new AmbariException(messageBuff.toString());
       }
 
-      // for all hosts participating in this upgrade, update thei repository
-      // versions and upgrade state
+      // find every host version for this upgrade and ensure it has transitioned
+      // to CURRENT if required
       List<HostVersionEntity> hostVersions = hostVersionDAO.findHostVersionByClusterAndRepository(
           cluster.getClusterId(), repositoryVersion);
 
@@ -163,7 +163,8 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         }
       }
 
-      // throw an exception if there are hosts which are not not fully upgraded
+      // throw an exception if there are hosts which did not transition the
+      // repository to CURRENT
       if (hostsWithoutCorrectVersionState.size() > 0) {
         message = String.format(
             "The following %d host(s) have not been upgraded to version %s. "
@@ -176,10 +177,11 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
       }
 
       outSB.append(
-          String.format("Finalizing the upgrade state of %d host(s).",
+          String.format("Finalizing the upgrade state and repository version for %d host(s).",
               hostVersionsAllowed.size())).append(System.lineSeparator());
 
-      // Reset the upgrade state
+      // at this point, all host versions are correct - do some cleanup like
+      // resetting the upgrade state
       for (HostVersionEntity hostVersion : hostVersionsAllowed) {
         Collection<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(hostVersion.getHostName());
         for (HostComponentStateEntity hostComponentStateEntity: hostComponentStates) {
@@ -188,15 +190,15 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
         }
       }
 
-      // Impacts all hosts that have a version
-      outSB.append(
-          String.format("Finalizing the version for %d host(s).",
-              hostVersionsAllowed.size())).append(System.lineSeparator());
-
-      versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
+      // move host versions from CURRENT to INSTALLED if their repos are no
+      // longer used
+      finalizeHostRepositoryVersions(cluster);
 
       // Reset upgrade state
       cluster.setUpgradeEntity(null);
+
+      // the upgrade is done!
+      versionEventPublisher.publish(new StackUpgradeFinishEvent(cluster));
 
       message = String.format("The upgrade to %s has completed.", version);
       outSB.append(message).append(System.lineSeparator());
@@ -368,6 +370,39 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
 
     return errors;
+  }
+
+  /**
+   * Moves any {@link HostVersionEntity}s which are
+   * {@link RepositoryVersionState#CURRENT} to either
+   * {@link RepositoryVersionState#INSTALLED} or
+   * {@link RepositoryVersionState#NOT_REQUIRED} if their assocaited
+   * repositories are no longer in use.
+   *
+   * @param cluster
+   * @throws AmbariException
+   */
+  private void finalizeHostRepositoryVersions(Cluster cluster) throws AmbariException {
+    // create a set of all of the repos that the services are on
+    Set<RepositoryVersionEntity> desiredRepoVersions = new HashSet<>();
+    Set<String> serviceNames = cluster.getServices().keySet();
+    for (String serviceName : serviceNames) {
+      Service service = cluster.getService(serviceName);
+      desiredRepoVersions.add(service.getDesiredRepositoryVersion());
+    }
+
+    // if any CURRENT host version is for a repo which is no longer desired by
+    // ANY service, move it to INSTALLED
+    List<HostVersionEntity> currentHostVersions = hostVersionDAO.findByClusterAndState(
+        cluster.getClusterName(), RepositoryVersionState.CURRENT);
+
+    for (HostVersionEntity hostVersion : currentHostVersions) {
+      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+      if (!desiredRepoVersions.contains(hostRepoVersion)) {
+        hostVersion.setState(RepositoryVersionState.INSTALLED);
+        hostVersion = hostVersionDAO.merge(hostVersion);
+      }
+    }
   }
 
   protected static class InfoTuple implements Comparable<InfoTuple> {
