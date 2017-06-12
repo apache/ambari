@@ -27,9 +27,12 @@ import org.apache.commons.cli.Options;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
+import static org.apache.ambari.tools.zk.ZkAcl.append;
+
 /**
  * I'm a command line utility that provides functionality that the official zookeeper-client does not support.
  * E.g. I can set ACLs recursively on a znode.
+ * Also I can remove znode recursively.
  */
 public class ZkMigrator {
   private static final int SESSION_TIMEOUT_MILLIS = 5000;
@@ -37,11 +40,40 @@ public class ZkMigrator {
 
   public static void main(String[] args) throws Exception {
     CommandLine cli = new DefaultParser().parse(options(), args);
-    if (cli.hasOption("connection-string") && cli.hasOption("acl") && cli.hasOption("znode")) {
-      setAcls(cli.getOptionValue("connection-string"), cli.getOptionValue("znode"), ZkAcl.parse(cli.getOptionValue("acl")));
+    if (cli.hasOption("connection-string") && cli.hasOption("znode")) {
+      if (cli.hasOption("acl") && !cli.hasOption("delete")) {
+        setAcls(cli.getOptionValue("connection-string"), cli.getOptionValue("znode"), ZkAcl.parse(cli.getOptionValue("acl")));
+      } else if (cli.hasOption("delete") && !cli.hasOption("acl")) {
+        deleteZnodeRecursively(cli.getOptionValue("connection-string"), cli.getOptionValue("znode"));
+      } else {
+        printHelp();
+      }
     } else {
       printHelp();
     }
+  }
+
+  private static void deleteZnodeRecursively(String connectionString, String znode) throws IOException, InterruptedException, KeeperException {
+    ZooKeeper client = ZkConnection.open(connectionString, SESSION_TIMEOUT_MILLIS, CONNECTION_TIMEOUT_MILLIS);
+    try {
+      ZkPathPattern paths = ZkPathPattern.fromString(znode);
+      for (String path : paths.findMatchingPaths(client, "/")) {
+        System.out.println("Recursively deleting znodes with matching path " + path);
+        deleteZnodeRecursively(client, path);
+      }
+    } catch (KeeperException.NoNodeException e) {
+      System.out.println("Could not delete " + znode + ". Reason: " + e.getMessage());
+    } finally {
+      client.close();
+    }
+  }
+
+  private static void deleteZnodeRecursively(ZooKeeper zkClient, String baseNode) throws KeeperException, InterruptedException {
+    for (String child : zkClient.getChildren(baseNode, null)) {
+      deleteZnodeRecursively(zkClient, append(baseNode, child));
+    }
+    System.out.println("Deleting znode " + baseNode);
+    zkClient.delete(baseNode, -1);
   }
 
   private static Options options() {
@@ -67,6 +99,11 @@ public class ZkMigrator {
         .desc("znode path")
         .hasArg()
         .argName("znode")
+        .build())
+      .addOption(Option.builder("d")
+        .longOpt("delete")
+        .desc("delete specified znode and all it's children recursively")
+        .argName("delete")
         .build());
   }
 
@@ -82,7 +119,8 @@ public class ZkMigrator {
   }
 
   private static void printHelp() {
-    System.out.println("Usage zkmigrator -connection-string <host:port> -acl <scheme:id:permission> -znode /path/to/znode");
+    System.out.println("Usage zkmigrator -connection-string <host:port> -acl <scheme:id:permission> -znode /path/to/znode\n" +
+                       "              OR -connection-string <host:port> -znode /path/to/znode -delete");
     System.exit(1);
   }
 }
