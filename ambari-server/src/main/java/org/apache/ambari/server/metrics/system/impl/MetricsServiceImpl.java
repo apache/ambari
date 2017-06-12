@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class MetricsServiceImpl implements MetricsService {
-  private static Logger LOG = LoggerFactory.getLogger(MetricsServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsServiceImpl.class);
   private static Map<String, MetricsSource> sources = new HashMap<>();
   private static MetricsSink sink = null;
   private MetricsConfiguration configuration = null;

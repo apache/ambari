@@ -85,7 +85,7 @@ public class SecretReference {
   }
 
   public static String generateStub(String configType, Long configVersion, String propertyName) {
-    return secretPrefix + ":" + configType + ":" + configVersion.toString() + ":" + propertyName;
+    return secretPrefix + ":" + configType + ":" + configVersion + ":" + propertyName;
   }
 
   /**

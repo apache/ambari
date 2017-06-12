@@ -62,6 +62,14 @@ module.exports = {
   },
 
   /**
+   * validate filename
+   */
+  isValidFileName: function(value){
+    var filenameRegex = /^[0-9a-zA-Z_-]+\.[a-zA-Z]+$/;
+    return filenameRegex.test(value);
+  },
+
+  /**
    * defines if config value looks like link to other config
    * @param value
    * @returns {boolean}

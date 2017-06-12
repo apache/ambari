@@ -496,10 +496,7 @@ public class AmbariMetaInfo {
   public String getComponentToService(String stackName, String version,
                                       String componentName) throws AmbariException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking for service for component"
-          + ", stackName=" + stackName
-          + ", stackVersion=" + version
-          + ", componentName=" + componentName);
+      LOG.debug("Looking for service for component, stackName={}, stackVersion={}, componentName={}", stackName, version, componentName);
     }
     Map<String, ServiceInfo> services = getServices(stackName, version);
     String retService = null;
@@ -839,13 +836,12 @@ public class AmbariMetaInfo {
 
   private void getCustomActionDefinitions(File customActionDefinitionRoot) throws JAXBException, AmbariException {
     if (customActionDefinitionRoot != null) {
-      LOG.debug("Loading custom action definitions from "
-          + customActionDefinitionRoot.getAbsolutePath());
+      LOG.debug("Loading custom action definitions from {}", customActionDefinitionRoot.getAbsolutePath());
 
       if (customActionDefinitionRoot.exists() && customActionDefinitionRoot.isDirectory()) {
         adManager.readCustomActionDefinitions(customActionDefinitionRoot);
       } else {
-        LOG.debug("No action definitions found at " + customActionDefinitionRoot.getAbsolutePath());
+        LOG.debug("No action definitions found at {}", customActionDefinitionRoot.getAbsolutePath());
       }
     }
   }
@@ -1002,7 +998,7 @@ public class AmbariMetaInfo {
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
 
     if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
-      LOG.debug("Metrics file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
+      LOG.debug("Metrics file for {}/{}/{} not found.", stackName, stackVersion, serviceName);
       return null;
     }
 

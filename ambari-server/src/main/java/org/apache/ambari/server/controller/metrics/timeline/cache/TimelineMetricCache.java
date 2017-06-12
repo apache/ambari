@@ -57,7 +57,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
    */
   public TimelineMetrics getAppTimelineMetricsFromCache(TimelineAppMetricCacheKey key) throws IllegalArgumentException, IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Fetching metrics with key: " + key);
+      LOG.debug("Fetching metrics with key: {}", key);
     }
 
     // Make sure key is valid
@@ -84,7 +84,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
     if (element != null && element.getObjectValue() != null) {
       TimelineMetricsCacheValue value = (TimelineMetricsCacheValue) element.getObjectValue();
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Returning value from cache: " + value);
+        LOG.debug("Returning value from cache: {}", value);
       }
       timelineMetrics = value.getTimelineMetrics();
     }
@@ -93,14 +93,9 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
       // Print stats every 100 calls - Note: Supported in debug mode only
       if (printCacheStatsCounter.getAndIncrement() == 0) {
         StatisticsGateway statistics = this.getStatistics();
-        LOG.debug("Metrics cache stats => \n" +
-          ", Evictions = " + statistics.cacheEvictedCount() +
-          ", Expired = " + statistics.cacheExpiredCount() +
-          ", Hits = " + statistics.cacheHitCount() +
-          ", Misses = " + statistics.cacheMissCount() +
-          ", Hit ratio = " + statistics.cacheHitRatio() +
-          ", Puts = " + statistics.cachePutCount() +
-          ", Size in MB = " + (statistics.getLocalHeapSizeInBytes() / 1048576));
+        LOG.debug("Metrics cache stats => \n, Evictions = {}, Expired = {}, Hits = {}, Misses = {}, Hit ratio = {}, Puts = {}, Size in MB = {}",
+          statistics.cacheEvictedCount(), statistics.cacheExpiredCount(), statistics.cacheHitCount(), statistics.cacheMissCount(), statistics.cacheHitRatio(),
+          statistics.cachePutCount(), statistics.getLocalHeapSizeInBytes() / 1048576);
       } else {
         printCacheStatsCounter.compareAndSet(100, 0);
       }
@@ -119,26 +114,23 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
     Element element = this.getQuiet(key);
     if (element != null) {
       if (LOG.isTraceEnabled()) {
-        LOG.trace("key : " + element.getObjectKey());
-        LOG.trace("value : " + element.getObjectValue());
+        LOG.trace("key : {}", element.getObjectKey());
+        LOG.trace("value : {}", element.getObjectValue());
       }
 
       // Set new time boundaries on the key
       TimelineAppMetricCacheKey existingKey = (TimelineAppMetricCacheKey) element.getObjectKey();
 
-      LOG.debug("Existing temporal info: " + existingKey.getTemporalInfo() +
-        " for : " + existingKey.getMetricNames());
+      LOG.debug("Existing temporal info: {} for : {}", existingKey.getTemporalInfo(), existingKey.getMetricNames());
 
       TimelineAppMetricCacheKey newKey = (TimelineAppMetricCacheKey) key;
       existingKey.setTemporalInfo(newKey.getTemporalInfo());
 
-      LOG.debug("New temporal info: " + newKey.getTemporalInfo() +
-        " for : " + existingKey.getMetricNames());
+      LOG.debug("New temporal info: {} for : {}", newKey.getTemporalInfo(), existingKey.getMetricNames());
 
       if (existingKey.getSpec() == null || !existingKey.getSpec().equals(newKey.getSpec())) {
         existingKey.setSpec(newKey.getSpec());
-        LOG.debug("New spec: " + newKey.getSpec() +
-          " for : " + existingKey.getMetricNames());
+        LOG.debug("New spec: {} for : {}", newKey.getSpec(), existingKey.getMetricNames());
       }
     }
 

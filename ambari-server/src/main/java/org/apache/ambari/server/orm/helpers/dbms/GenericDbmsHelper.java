@@ -120,7 +120,7 @@ public class GenericDbmsHelper implements DbmsHelper {
       // no writing to file
     }
 
-    builder.append(writer.toString());
+    builder.append(writer);
 
     return builder;
   }
@@ -435,7 +435,7 @@ public class GenericDbmsHelper implements DbmsHelper {
     Object dbValue = databasePlatform.convertToDatabaseType(value);
     String valueString = value.toString();
     if (dbValue instanceof String || dbValue instanceof Enum) {
-      valueString = "'" + value.toString() + "'";
+      valueString = "'" + value + "'";
     }
 
     return valueString;

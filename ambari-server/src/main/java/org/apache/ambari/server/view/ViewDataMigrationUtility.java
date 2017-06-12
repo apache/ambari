@@ -85,12 +85,12 @@ public class ViewDataMigrationUtility {
     Map<String, Class> originClasses = migrationContext.getOriginEntityClasses();
     Map<String, Class> currentClasses = migrationContext.getCurrentEntityClasses();
     for (Map.Entry<String, Class> originEntity : originClasses.entrySet()) {
-      LOG.debug("Migrating persistence entity " + originEntity.getKey());
+      LOG.debug("Migrating persistence entity {}", originEntity.getKey());
       if (currentClasses.containsKey(originEntity.getKey())) {
         Class entity = currentClasses.get(originEntity.getKey());
         dataMigrator.migrateEntity(originEntity.getValue(), entity);
       } else {
-        LOG.debug("Entity " + originEntity.getKey() + " not found in target view");
+        LOG.debug("Entity {} not found in target view", originEntity.getKey());
         dataMigrator.migrateEntity(originEntity.getValue(), null);
       }
     }

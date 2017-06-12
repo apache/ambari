@@ -319,7 +319,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     } catch (Exception e) {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
-      errSB.append(sw.toString());
+      errSB.append(sw);
 
       return createCommandReport(-1, HostRoleStatus.FAILED, "{}", outSB.toString(), errSB.toString());
     }

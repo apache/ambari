@@ -155,7 +155,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       throw new BadCredentialsException("The user search facility has not been set.");
     } else {
       if (LOG.isTraceEnabled()) {
-        LOG.trace("Searching for user with username {}: {}", username, userSearch.toString());
+        LOG.trace("Searching for user with username {}: {}", username, userSearch);
       }
 
       // Find the user data where the supplied username matches the value of the configured LDAP

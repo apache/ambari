@@ -554,7 +554,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         // throw exception if desired state isn't a valid desired state (static check)
         if (!newState.isValidDesiredState()) {
           throw new IllegalArgumentException("Invalid arguments, invalid"
-              + " desired state, desiredState=" + newState.toString());
+              + " desired state, desiredState=" + newState);
         }
       }
 

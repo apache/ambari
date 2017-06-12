@@ -554,9 +554,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     id = String.format("%s:%s", stackInfo.getName(), stackInfo.getVersion());
 
-    LOG.debug("Adding new stack to known stacks"
-        + ", stackName = " + stackInfo.getName()
-        + ", stackVersion = " + stackInfo.getVersion());
+    LOG.debug("Adding new stack to known stacks, stackName = {}, stackVersion = {}", stackInfo.getName(), stackInfo.getVersion());
 
     //todo: give additional thought on handling missing metainfo.xml
     StackMetainfoXml smx = stackDirectory.getMetaInfoFile();
@@ -1014,7 +1012,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         String name = groups.get(index).name;
         if (name.equals(group.addAfterGroup)) {
           groups.add(index + 1, group);
-          LOG.debug("Added group/after: " + group.name + "/" + group.addAfterGroup);
+          LOG.debug("Added group/after: {}/{}", group.name, group.addAfterGroup);
           return true;
         }
       }
@@ -1126,10 +1124,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     if (null != rxml) {
       stackInfo.setRepositoryXml(rxml);
 
-      LOG.debug("Adding repositories to stack" +
-          ", stackName=" + stackInfo.getName() +
-          ", stackVersion=" + stackInfo.getVersion() +
-          ", repoFolder=" + stackDirectory.getRepoDir());
+      LOG.debug("Adding repositories to stack, stackName={}, stackVersion={}, repoFolder={}",
+        stackInfo.getName(), stackInfo.getVersion(), stackDirectory.getRepoDir());
 
       stackRepos = rxml.getRepositories();
 
@@ -1265,8 +1261,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding repo to stack"
-          + ", repoInfo=" + ri.toString());
+      LOG.debug("Adding repo to stack, repoInfo={}", ri);
     }
     return ri;
   }
@@ -1293,8 +1288,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
     stackInfo.getRoleCommandOrder().merge(service.getModuleInfo().getRoleCommandOrder(), true);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Role Command Order for " + stackInfo.getName() + "-" + stackInfo.getVersion() +
-        " service " + service.getModuleInfo().getName());
+      LOG.debug("Role Command Order for {}-{} service {}", stackInfo.getName(), stackInfo.getVersion(), service.getModuleInfo().getName());
       stackInfo.getRoleCommandOrder().printRoleCommandOrder(LOG);
     }
   }
@@ -1306,7 +1300,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void validateBulkCommandComponents(Map<String, StackModule> allStacks){
     if (null != stackInfo) {
       String currentStackId = stackInfo.getName() + StackManager.PATH_DELIMITER + stackInfo.getVersion();
-      LOG.debug("Validate bulk command components for: " + currentStackId);
+      LOG.debug("Validate bulk command components for: {}", currentStackId);
       StackModule currentStack = allStacks.get(currentStackId);
       if (null != currentStack){
         for (ServiceModule serviceModule : currentStack.getServiceModules().values()) {

@@ -272,8 +272,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     Set<Resource> resources = new HashSet<>();
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Found clusters matching getClusters request"
-          + ", clusterResponseCount=" + responses.size());
+      LOG.debug("Found clusters matching getClusters request, clusterResponseCount={}", responses.size());
     }
 
     // Allow internal call to bypass permissions check.
@@ -291,8 +290,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       setResourceProperty(resource, CLUSTER_VERSION_PROPERTY_ID, response.getDesiredStackVersion(), requestedIds);
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding ClusterResponse to resource"
-            + ", clusterResponse=" + response.toString());
+        LOG.debug("Adding ClusterResponse to resource, clusterResponse={}", response);
       }
 
       resources.add(resource);

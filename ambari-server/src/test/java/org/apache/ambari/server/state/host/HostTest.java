@@ -56,12 +56,12 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -72,7 +72,7 @@ public class HostTest {
   private Clusters clusters;
   private HostDAO hostDAO;
   private OrmTestHelper helper;
-  private static Log LOG = LogFactory.getLog(HostTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HostTest.class);
 
   @Before
    public void setup() throws AmbariException{

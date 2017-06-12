@@ -134,7 +134,7 @@ public abstract class BaseRequest implements Request {
   @Override
   public Result process() {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling API Request: '" + getURI() + "'");
+      LOG.debug("Handling API Request: '{}'", getURI());
     }
 
     Result result;

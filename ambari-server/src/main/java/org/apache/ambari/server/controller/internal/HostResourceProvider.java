@@ -465,7 +465,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
       throw new IllegalArgumentException("Invalid request contains"
           + " duplicate hostnames"
-          + ", hostnames=" + names.toString());
+          + ", hostnames=" + names);
     }
 
     if (!unknowns.isEmpty()) {
@@ -480,7 +480,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
-          "These hosts have not been registered with the server: " + names.toString());
+          "These hosts have not been registered with the server: " + names);
     }
 
     Map<String, Set<String>> hostClustersMap = new HashMap<>();
@@ -516,9 +516,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createHost request"
-          + ", hostname=" + request.getHostname()
-          + ", request=" + request);
+      LOG.debug("Received a createHost request, hostname={}, request={}", request.getHostname(), request);
     }
 
     if (allHosts.contains(request.getHostname())) {
@@ -689,9 +687,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     for (HostRequest request : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received an updateHost request"
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
+        LOG.debug("Received an updateHost request, hostname={}, request={}", request.getHostname(), request);
       }
 
       Host host = clusters.getHost(request.getHostname());

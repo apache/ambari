@@ -41,7 +41,7 @@ public class KerberosChecker {
   public static final String JAVA_SECURITY_AUTH_LOGIN_CONFIG =
       "java.security.auth.login.config";
 
-  private static Logger LOG = LoggerFactory.getLogger(KerberosChecker.class);
+  private static final Logger LOG = LoggerFactory.getLogger(KerberosChecker.class);
 
   @Inject
   static Configuration config;

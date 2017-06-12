@@ -629,9 +629,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Ensure that all default type attributes are set.
    */
   private void finalizeConfiguration() {
-    LOG.debug(String.format("Finalize config, number of configuration modules %s", configurationModules.size()));
+    LOG.debug("Finalize config, number of configuration modules {}", configurationModules.size());
     hasConfigs = !(configurationModules.isEmpty());
-    LOG.debug(String.format("Finalize config, hasConfigs %s", hasConfigs));
+    LOG.debug("Finalize config, hasConfigs {}", hasConfigs);
 
     for (ConfigurationModule config : configurationModules.values()) {
       ConfigurationInfo configInfo = config.getModuleInfo();

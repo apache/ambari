@@ -34,8 +34,8 @@ import org.apache.ambari.view.PersistenceException;
 import org.apache.ambari.view.migration.EntityConverter;
 import org.apache.ambari.view.migration.ViewDataMigrationContext;
 import org.apache.ambari.view.migration.ViewDataMigrationException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 import com.google.inject.Guice;
@@ -50,7 +50,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
   /**
    * Logger.
    */
-  private static final Log LOG = LogFactory.getLog(ViewDataMigrationContextImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewDataMigrationContextImpl.class);
 
   /**
    * The data store of origin(source) view instance with source data.

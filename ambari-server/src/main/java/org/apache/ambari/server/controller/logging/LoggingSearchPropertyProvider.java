@@ -85,9 +85,9 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
       // Test to see if the authenticated user is authorized to view this data... if not, skip it.
       if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceID(clusterName), REQUIRED_AUTHORIZATIONS)) {
         if(LOG.isDebugEnabled()) {
-          LOG.debug(String.format("The authenticated user (%s) is not authorized to access LogSearch data for the cluster named %s",
+          LOG.debug("The authenticated user ({}) is not authorized to access LogSearch data for the cluster named {}",
               AuthorizationHelper.getAuthenticatedName(),
-              clusterName));
+              clusterName);
         }
         continue;
       }

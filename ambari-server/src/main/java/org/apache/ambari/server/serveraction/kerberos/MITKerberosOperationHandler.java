@@ -454,7 +454,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     command.add(query);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("Executing: %s", command));
+      LOG.debug("Executing: {}", command);
     }
 
     int retryCount = configuration.getKerberosOperationRetries();

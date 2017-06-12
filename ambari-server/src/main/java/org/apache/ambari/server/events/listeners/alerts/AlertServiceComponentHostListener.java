@@ -38,7 +38,7 @@ public class AlertServiceComponentHostListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertServiceComponentHostListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertServiceComponentHostListener.class);
 
   /**
    * Used for deleting the alert notices when a definition is disabled.

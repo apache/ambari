@@ -1299,7 +1299,7 @@ public class DBAccessorImpl implements DBAccessor {
     Object dbValue = databasePlatform.convertToDatabaseType(value);
     String valueString = value.toString();
     if (dbValue instanceof String) {
-      valueString = "'" + value.toString() + "'";
+      valueString = "'" + value + "'";
     }
 
     return valueString;

@@ -328,7 +328,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
               clusterID, "storm_webui");
 
       if (stormServerProcessDefinitionEntity != null) {
-        LOG.info("Removing alert definition : " + stormServerProcessDefinitionEntity.toString());
+        LOG.info("Removing alert definition : " + stormServerProcessDefinitionEntity);
         alertDefinitionDAO.remove(stormServerProcessDefinitionEntity);
       }
 
@@ -336,7 +336,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         LOG.info("Updating alert definition : " + stormWebAlert.getDefinitionName());
         String source = stormWebAlert.getSource();
         JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
-        LOG.debug("Source before update : " + sourceJson);
+        LOG.debug("Source before update : {}", sourceJson);
 
         JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
         uriJson.remove("https");
@@ -346,7 +346,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         uriJson.addProperty("https_property", "{{storm-site/ui.https.keystore.type}}");
         uriJson.addProperty("https_property_value", "jks");
 
-        LOG.debug("Source after update : " + sourceJson);
+        LOG.debug("Source after update : {}", sourceJson);
         stormWebAlert.setSource(sourceJson.toString());
         alertDefinitionDAO.merge(stormWebAlert);
       }
@@ -370,7 +370,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         LOG.info("Updating alert definition : " + logSearchWebAlert.getDefinitionName());
         String source = logSearchWebAlert.getSource();
         JsonObject sourceJson = new JsonParser().parse(source).getAsJsonObject();
-        LOG.debug("Source before update : " + sourceJson);
+        LOG.debug("Source before update : {}", sourceJson);
 
         JsonObject uriJson = sourceJson.get("uri").getAsJsonObject();
         uriJson.remove("https_property");
@@ -378,7 +378,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         uriJson.addProperty("https_property", "{{logsearch-env/logsearch_ui_protocol}}");
         uriJson.addProperty("https_property_value", "https");
 
-        LOG.debug("Source after update : " + sourceJson);
+        LOG.debug("Source after update : {}", sourceJson);
         logSearchWebAlert.setSource(sourceJson.toString());
         alertDefinitionDAO.merge(logSearchWebAlert);
       }

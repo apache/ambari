@@ -42,15 +42,15 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resource provider for workflow resources.
  */
 public class WorkflowResourceProvider extends
     AbstractJDBCResourceProvider<WorkflowResourceProvider.WorkflowFields> {
-  private static Log LOG = LogFactory.getLog(WorkflowResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WorkflowResourceProvider.class);
 
   protected static final String WORKFLOW_CLUSTER_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("Workflow", "cluster_name");

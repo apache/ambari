@@ -42,7 +42,7 @@ import com.google.inject.assistedinject.AssistedInject;
 
 public class RoleGraph {
 
-  private static Logger LOG = LoggerFactory.getLogger(RoleGraph.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RoleGraph.class);
 
   Map<String, RoleGraphNode> graph = null;
   private RoleCommandOrder roleDependencies;

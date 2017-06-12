@@ -38,8 +38,8 @@ import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -52,7 +52,7 @@ import com.google.inject.Inject;
 @Path("/")
 public class AgentResource {
   private static HeartBeatHandler hh;
-  private static Log LOG = LogFactory.getLog(AgentResource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AgentResource.class);
 
   @Inject
   public static void init(HeartBeatHandler instance) {
@@ -92,7 +92,7 @@ public class AgentResource {
     RegistrationResponse response = null;
     try {
       response = hh.handleRegistration(message);
-      LOG.debug("Sending registration response " + response);
+      LOG.debug("Sending registration response {}", response);
     } catch (AmbariException ex) {
       response = new RegistrationResponse();
       response.setResponseId(-1);
@@ -122,14 +122,14 @@ public class AgentResource {
   public HeartBeatResponse heartbeat(HeartBeat message)
       throws WebApplicationException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received Heartbeat message " + message);
+      LOG.debug("Received Heartbeat message {}", message);
     }
     HeartBeatResponse heartBeatResponse;
     try {
       heartBeatResponse = hh.handleHeartBeat(message);
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Sending heartbeat response with response id " + heartBeatResponse.getResponseId());
-        LOG.debug("Response details " + heartBeatResponse);
+        LOG.debug("Sending heartbeat response with response id {}", heartBeatResponse.getResponseId());
+        LOG.debug("Response details {}", heartBeatResponse);
       }
     } catch (Exception e) {
       LOG.warn("Error in HeartBeat", e);
@@ -155,7 +155,7 @@ public class AgentResource {
   public ComponentsResponse components(
       @PathParam("clusterName") String clusterName) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received Components request for cluster " + clusterName);
+      LOG.debug("Received Components request for cluster {}", clusterName);
     }
 
     ComponentsResponse componentsResponse;
@@ -164,7 +164,7 @@ public class AgentResource {
       componentsResponse = hh.handleComponents(clusterName);
       if (LOG.isDebugEnabled()) {
         LOG.debug("Sending components response");
-        LOG.debug("Response details " + componentsResponse);
+        LOG.debug("Response details {}", componentsResponse);
       }
     } catch (Exception e) {
       LOG.warn("Error in Components", e);

@@ -265,7 +265,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
     }
     String loginURL = authenticationProviderUrl + delimiter
         + originalUrlQueryParam + "="
-        + request.getRequestURL().toString();
+        + request.getRequestURL();
     return loginURL;
   }
 

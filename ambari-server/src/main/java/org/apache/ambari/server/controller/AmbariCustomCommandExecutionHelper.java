@@ -851,7 +851,7 @@ public class AmbariCustomCommandExecutionHelper {
     cloneSet.retainAll(includedHosts);
     if (cloneSet.size() > 0) {
       throw new AmbariException("Same host cannot be specified for inclusion " +
-        "as well as exclusion. Hosts: " + cloneSet.toString());
+        "as well as exclusion. Hosts: " + cloneSet);
     }
 
     Service service = cluster.getService(serviceName);
@@ -1111,10 +1111,8 @@ public class AmbariCustomCommandExecutionHelper {
     List<RequestResourceFilter> resourceFilters = actionExecutionContext.getResourceFilters();
 
     for (RequestResourceFilter resourceFilter : resourceFilters) {
-      LOG.debug("Received a command execution request"
-        + ", clusterName=" + actionExecutionContext.getClusterName()
-        + ", serviceName=" + resourceFilter.getServiceName()
-        + ", request=" + actionExecutionContext.toString());
+      LOG.debug("Received a command execution request, clusterName={}, serviceName={}, request={}",
+        actionExecutionContext.getClusterName(), resourceFilter.getServiceName(), actionExecutionContext);
 
       String actionName = actionExecutionContext.getActionName();
       if (actionName.contains(SERVICE_CHECK_COMMAND_NAME)) {
@@ -1554,7 +1552,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       return service.getServiceComponent(resourceFilter.getComponentName());
     } catch (Exception e) {
-      LOG.debug(String.format( "Unknown error appears during getting service component: %s", e.getMessage()));
+      LOG.debug("Unknown error appears during getting service component: {}", e.getMessage());
     }
     return null;
   }

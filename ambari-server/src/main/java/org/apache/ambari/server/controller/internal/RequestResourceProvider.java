@@ -453,7 +453,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
           (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID)));
       }
-      LOG.debug("RequestResourceFilters : " + resourceFilters);
+      LOG.debug("RequestResourceFilters : {}", resourceFilters);
     }
     // Extract operation level property
     RequestOperationLevel operationLevel = null;
@@ -658,9 +658,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         status = org.apache.ambari.server.actionmanager.RequestStatus.valueOf(requestStatus);
       }
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a Get Request Status request"
-            + ", requestId=null"
-            + ", requestStatus=" + status);
+        LOG.debug("Received a Get Request Status request, requestId=null, requestStatus={}", status);
       }
 
       maxResults = (maxResults != null) ? maxResults : BaseRequest.DEFAULT_PAGE_SIZE;

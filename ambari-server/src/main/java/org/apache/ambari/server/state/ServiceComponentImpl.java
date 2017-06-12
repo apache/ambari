@@ -225,11 +225,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public void setRecoveryEnabled(boolean recoveryEnabled) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting RecoveryEnabled of Component" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", componentName=" + getName() + ", oldRecoveryEnabled=" + isRecoveryEnabled()
-          + ", newRecoveryEnabled=" + recoveryEnabled);
+      LOG.debug("Setting RecoveryEnabled of Component, clusterName={}, clusterId={}, serviceName={}, componentName={}, oldRecoveryEnabled={}, newRecoveryEnabled={}",
+        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), isRecoveryEnabled(), recoveryEnabled);
     }
 
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
@@ -289,11 +286,8 @@ public class ServiceComponentImpl implements ServiceComponent {
       // TODO validation
       // TODO ensure host belongs to cluster
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding a ServiceComponentHost to ServiceComponent" + ", clusterName="
-            + service.getCluster().getClusterName() + ", clusterId="
-            + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-            + ", serviceComponentName=" + getName() + ", hostname=" + hostComponent.getHostName()
-            + ", recoveryEnabled=" + isRecoveryEnabled());
+        LOG.debug("Adding a ServiceComponentHost to ServiceComponent, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, hostname={}, recoveryEnabled={}",
+          service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), hostComponent.getHostName(), isRecoveryEnabled());
       }
 
       if (hostComponents.containsKey(hostComponent.getHostName())) {
@@ -350,11 +344,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Override
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredState of Service" + ", clusterName="
-          + service.getCluster().getClusterName() + ", clusterId="
-          + service.getCluster().getClusterId() + ", serviceName=" + service.getName()
-          + ", serviceComponentName=" + getName() + ", oldDesiredState=" + getDesiredState()
-          + ", newDesiredState=" + state);
+      LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, serviceComponentName={}, oldDesiredState={}, newDesiredState={}",
+        service.getCluster().getClusterName(), service.getCluster().getClusterId(), service.getName(), getName(), getDesiredState(), state);
     }
 
     ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(

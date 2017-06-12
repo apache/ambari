@@ -266,11 +266,8 @@ public class ServiceImpl implements Service {
   @Override
   public void setDesiredState(State state) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredState of Service" + ", clusterName="
-          + cluster.getClusterName() + ", clusterId="
-          + cluster.getClusterId() + ", serviceName=" + getName()
-          + ", oldDesiredState=" + getDesiredState() + ", newDesiredState="
-          + state);
+      LOG.debug("Setting DesiredState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredState={}, newDesiredState={}",
+        cluster.getClusterName(), cluster.getClusterId(), getName(), getDesiredState(), state);
     }
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
@@ -291,11 +288,8 @@ public class ServiceImpl implements Service {
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting DesiredSecurityState of Service" + ", clusterName="
-          + cluster.getClusterName() + ", clusterId="
-          + cluster.getClusterId() + ", serviceName=" + getName()
-          + ", oldDesiredSecurityState=" + getSecurityState()
-          + ", newDesiredSecurityState=" + securityState);
+      LOG.debug("Setting DesiredSecurityState of Service, clusterName={}, clusterId={}, serviceName={}, oldDesiredSecurityState={}, newDesiredSecurityState={}",
+        cluster.getClusterName(), cluster.getClusterId(), getName(), getSecurityState(), securityState);
     }
     ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
     serviceDesiredStateEntity.setSecurityState(securityState);
@@ -429,11 +423,8 @@ public class ServiceImpl implements Service {
   @Override
   public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Setting CredentialStoreEnabled of Service" + ", clusterName="
-              + cluster.getClusterName() + ", clusterId="
-              + cluster.getClusterId() + ", serviceName=" + getName()
-              + ", oldCredentialStoreEnabled=" + isCredentialStoreEnabled()
-              + ", newCredentialStoreEnabled=" + credentialStoreEnabled);
+      LOG.debug("Setting CredentialStoreEnabled of Service, clusterName={}, clusterId={}, serviceName={}, oldCredentialStoreEnabled={}, newCredentialStoreEnabled={}",
+        cluster.getClusterName(), cluster.getClusterId(), getName(), isCredentialStoreEnabled(), credentialStoreEnabled);
     }
 
     ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();

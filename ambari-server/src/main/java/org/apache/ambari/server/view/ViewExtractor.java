@@ -108,13 +108,13 @@ public class ViewExtractor {
               try {
                 String   entryPath = archivePath + File.separator + jarEntry.getName();
 
-                LOG.debug("Extracting " + entryPath);
+                LOG.debug("Extracting {}", entryPath);
 
                 File entryFile = archiveUtility.getFile(entryPath);
 
                 if (jarEntry.isDirectory()) {
 
-                  LOG.debug("Making directory " + entryPath);
+                  LOG.debug("Making directory {}", entryPath);
 
                   if (!entryFile.mkdir()) {
                     msg = "Could not create archive entry directory " + entryPath + ".";
@@ -127,14 +127,14 @@ public class ViewExtractor {
 
                   FileOutputStream fos = archiveUtility.getFileOutputStream(entryFile);
                   try {
-                    LOG.debug("Begin copying from " + jarEntry.getName() + " to "+ entryPath);
+                    LOG.debug("Begin copying from {} to {}", jarEntry.getName(), entryPath);
 
                     byte[] buffer = new byte[BUFFER_SIZE];
                     int n;
                     while((n = jarInputStream.read(buffer)) > -1) {
                       fos.write(buffer, 0, n);
                     }
-                    LOG.debug("Finish copying from " + jarEntry.getName() + " to "+ entryPath);
+                    LOG.debug("Finish copying from {} to {}", jarEntry.getName(), entryPath);
 
                   } finally {
                     fos.flush();

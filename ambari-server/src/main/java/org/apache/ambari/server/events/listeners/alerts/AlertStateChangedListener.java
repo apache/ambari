@@ -77,7 +77,7 @@ public class AlertStateChangedListener {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertStateChangedListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertStateChangedListener.class);
 
   /**
    * A logger that is only for logging alert state changes so that there is an

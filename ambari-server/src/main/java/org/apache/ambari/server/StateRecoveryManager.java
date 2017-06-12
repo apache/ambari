@@ -36,7 +36,7 @@ import com.google.inject.Inject;
  */
 public class StateRecoveryManager {
 
-  private static Logger LOG = LoggerFactory.getLogger(StateRecoveryManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StateRecoveryManager.class);
 
   @Inject
   private HostVersionDAO hostVersionDAO;

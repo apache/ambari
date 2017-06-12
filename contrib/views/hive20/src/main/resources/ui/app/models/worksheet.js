@@ -29,6 +29,7 @@ export default DS.Model.extend({
   nextPage: DS.attr('number', {defaultValue: 1}),
   selected: DS.attr('boolean', {transient: true, defaultValue: false}),
   jobData: DS.attr({defaultValue: []}),
+  currentJobId: DS.attr({defaultValue: null}),
   currentJobData: DS.attr({defaultValue: null}),
   hasNext: DS.attr('boolean', { defaultValue: false}),
   hasPrevious: DS.attr('boolean', { defaultValue: false}),

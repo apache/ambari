@@ -249,7 +249,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           if (componentMap.size() == 1) {
             throw new SystemException("No configuration files defined for the component " + componentInfo.getName());
           } else {
-            LOG.debug(String.format("No configuration files defined for the component %s",componentInfo.getName()));
+            LOG.debug("No configuration files defined for the component {}", componentInfo.getName());
             continue;
           }
         }

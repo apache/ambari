@@ -86,7 +86,7 @@ import com.google.inject.Provider;
  */
 public class ConfigureAction extends AbstractUpgradeServerAction {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigureAction.class);
 
   /**
    * Used to lookup the cluster.

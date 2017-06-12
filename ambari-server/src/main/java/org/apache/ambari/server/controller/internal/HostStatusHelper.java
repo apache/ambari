@@ -56,7 +56,7 @@ public class HostStatusHelper {
 
       componentHostResponse = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
     } catch (AmbariException e) {
-      LOG.debug("Error checking " + componentName + " server host component state: ", e);
+      LOG.debug("Error checking {} server host component state: ", componentName, e);
       return false;
     }
 

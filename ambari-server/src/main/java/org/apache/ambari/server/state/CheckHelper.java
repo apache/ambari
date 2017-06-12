@@ -50,7 +50,7 @@ public class CheckHelper {
   /**
    * Log.
    */
-  private static Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
 
 
   /**

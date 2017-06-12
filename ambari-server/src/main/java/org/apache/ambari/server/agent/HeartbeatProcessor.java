@@ -374,7 +374,7 @@ public class HeartbeatProcessor extends AbstractService{
         }
       }
 
-      LOG.debug("Received command report: " + report);
+      LOG.debug("Received command report: {}", report);
 
       // get this locally; don't touch the database
       Host host = clusterFsm.getHost(hostname);
@@ -463,7 +463,7 @@ public class HeartbeatProcessor extends AbstractService{
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.debug(report.getRole() + " is an action - skip component lookup");
+        LOG.debug("{} is an action - skip component lookup", report.getRole());
       } else {
         try {
           Service svc = cl.getService(service);

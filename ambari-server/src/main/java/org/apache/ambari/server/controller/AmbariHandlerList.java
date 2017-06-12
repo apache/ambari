@@ -144,7 +144,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
       try {
         ClassLoader viewClassLoader = viewEntity.getClassLoader();
         if (viewClassLoader == null) {
-          LOG.debug("No class loader associated with view " + viewEntity.getName() + ".");
+          LOG.debug("No class loader associated with view {}.", viewEntity.getName());
         } else {
           Thread.currentThread().setContextClassLoader(viewClassLoader);
         }

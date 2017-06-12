@@ -327,7 +327,7 @@ public class HostImpl implements Host {
         agentVersion = e.agentVersion.getVersion();
       }
       LOG.info("Received host registration, host="
-        + e.hostInfo.toString()
+        + e.hostInfo
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
 
@@ -355,9 +355,7 @@ public class HostImpl implements Host {
     public void transition(HostImpl host, HostEvent event) {
       HostStatusUpdatesReceivedEvent e = (HostStatusUpdatesReceivedEvent)event;
       // TODO Audit logs
-      LOG.debug("Host transition to host status updates received state"
-          + ", host=" + e.getHostName()
-          + ", heartbeatTime=" + e.getTimestamp());
+      LOG.debug("Host transition to host status updates received state, host={}, heartbeatTime={}", e.getHostName(), e.getTimestamp());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
         host.getHealthStatus().getHealthReport()));
     }
@@ -404,9 +402,7 @@ public class HostImpl implements Host {
       HostHealthyHeartbeatEvent e = (HostHealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.debug("Host transitioned to a healthy state"
-              + ", host=" + e.getHostName()
-              + ", heartbeatTime=" + e.getHeartbeatTime());
+      LOG.debug("Host transitioned to a healthy state, host={}, heartbeatTime={}", e.getHostName(), e.getHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY, host.getHealthStatus().getHealthReport()));
     }
   }
@@ -419,10 +415,8 @@ public class HostImpl implements Host {
       HostUnhealthyHeartbeatEvent e = (HostUnhealthyHeartbeatEvent) event;
       host.setLastHeartbeatTime(e.getHeartbeatTime());
       // TODO Audit logs
-      LOG.debug("Host transitioned to an unhealthy state"
-          + ", host=" + e.getHostName()
-          + ", heartbeatTime=" + e.getHeartbeatTime()
-          + ", healthStatus=" + e.getHealthStatus());
+      LOG.debug("Host transitioned to an unhealthy state, host={}, heartbeatTime={}, healthStatus={}",
+        e.getHostName(), e.getHeartbeatTime(), e.getHealthStatus());
       host.setHealthStatus(e.getHealthStatus());
     }
   }
@@ -434,9 +428,7 @@ public class HostImpl implements Host {
     public void transition(HostImpl host, HostEvent event) {
       HostHeartbeatLostEvent e = (HostHeartbeatLostEvent) event;
       // TODO Audit logs
-      LOG.debug("Host transitioned to heartbeat lost state"
-          + ", host=" + e.getHostName()
-          + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
+      LOG.debug("Host transitioned to heartbeat lost state, host={}, lastHeartbeatTime={}", e.getHostName(), host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
 
       host.topologyManager.onHostHeartBeatLost(host);
@@ -568,8 +560,7 @@ public class HostImpl implements Host {
   public void handleEvent(HostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling Host event, eventType=" + event.getType().name()
-          + ", event=" + event.toString());
+      LOG.debug("Handling Host event, eventType={}, event={}", event.getType().name(), event);
     }
     HostState oldState = getState();
     try {
@@ -590,12 +581,8 @@ public class HostImpl implements Host {
     }
     if (oldState != getState()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Host transitioned to a new state"
-            + ", host=" + getHostName()
-            + ", oldState=" + oldState
-            + ", currentState=" + getState()
-            + ", eventType=" + event.getType().name()
-            + ", event=" + event);
+        LOG.debug("Host transitioned to a new state, host={}, oldState={}, currentState={}, eventType={}, event={}",
+          getHostName(), oldState, getState(), event.getType().name(), event);
       }
     }
   }
@@ -950,6 +937,7 @@ public class HostImpl implements Host {
     r.setLastRegistrationTime(getLastRegistrationTime());
     r.setOsArch(getOsArch());
     r.setOsType(getOsType());
+    r.setOsFamily(getOsFamily());
     r.setRackInfo(getRackInfo());
     r.setTotalMemBytes(getTotalMemBytes());
     r.setPublicHostName(getPublicHostName());
