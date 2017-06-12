@@ -22,6 +22,7 @@ import signal
 import re
 
 import ambari_simplejson as json
+import sys, traceback
 
 from ambari_commons.os_check import OSCheck
 from ambari_commons.str_utils import cbool, cint
@@ -36,6 +37,7 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.repo_version_history \
     import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.functions.repository_util import create_repo_files, CommandRepository
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.resources.repository import Repository
@@ -352,8 +354,12 @@ class InstallPackages(Script):
       packages_installed_before = [package[0] for package in packages_installed_before]
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
+      try:
+        available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(config['repositoryFile']['repositories'])
+      except Exception:
+        available_packages_in_repos = []
       for package in filtered_package_list:
-        name = self.format_package_name(package['name'])
+        name = self.get_package_from_available(package['name'], available_packages_in_repos)
         Package(name,
           action="upgrade", # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
           retry_on_repo_unavailability=agent_stack_retry_on_unavailability,

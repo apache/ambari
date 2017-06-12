@@ -538,5 +538,112 @@ class TestHostInfo(TestCase):
     os_path_isfile_mock.return_value = False
     self.assertEqual("", hostInfo.getTransparentHugePage())
 
+  @staticmethod
+  def _add_packages_available(command, arg):
+    arg.append(["hadoop_2_2_0_1_885", "1.0", "HDP-2.2"])
+    arg.append(["hadooplzo_2_2_0_1_885", "1.0", "HDP-2.2"])
+    arg.append(["hadoop_2_2_0_1_885-libhdfs", "1.0", "HDP-2.2"])
+
+  @staticmethod
+  def _add_packages_lookUpYum(command, key, arg):
+    TestHostInfo._add_packages_available(command, arg)
+
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
+  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpZypperPackages")
+  def test_get_available_packages_in_repos_suse(self, lookUpZypperPackages, is_redhat_family, is_ubuntu_family,
+                                                is_suse_family_mock):
+    is_suse_family_mock.return_value = True
+    is_redhat_family.return_value = False
+    is_ubuntu_family.return_value = False
+    lookUpZypperPackages.side_effect = TestHostInfo._add_packages_available
+
+    command_json = {
+      "repositoryFile": {
+        "stackName": "HDP",
+        "repoVersionId": 1,
+        "repoVersion": "2",
+        "repositories": [
+          {
+            "repoName": "HDP",
+            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+            "repoId": "HDP-2.2"
+          }
+        ]
+      }
+    }
+
+    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
+      command_json['repositoryFile']['repositories'])
+
+    self.assertEqual(available_packages_in_repos,
+                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
+
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
+  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
+  def test_get_available_packages_in_repos_rhel(self, lookUpYumPackages, is_redhat_family, is_ubuntu_family,
+                                                is_suse_family_mock):
+    is_suse_family_mock.return_value = False
+    is_redhat_family.return_value = True
+    is_ubuntu_family.return_value = False
+    lookUpYumPackages.side_effect = TestHostInfo._add_packages_lookUpYum
+
+    command_json = {
+      "repositoryFile": {
+        "stackName": "HDP",
+        "repoVersionId": 1,
+        "repoVersion": "2",
+        "repositories": [
+          {
+            "repoName": "HDP",
+            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+            "repoId": "HDP-2.2"
+          }
+        ]
+      }
+    }
+
+    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
+      command_json['repositoryFile']['repositories'])
+
+    self.assertEqual(available_packages_in_repos,
+                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs", "hadoop_2_2_0_1_885",
+                      "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
+
+  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
+  @patch("ambari_commons.os_check.OSCheck.is_ubuntu_family")
+  @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpAptPackages")
+  def test_get_available_packages_in_repos_ubuntu(self, lookUpAptPackages, is_redhat_family, is_ubuntu_family,
+                                                  is_suse_family_mock):
+    is_suse_family_mock.return_value = False
+    is_redhat_family.return_value = False
+    is_ubuntu_family.return_value = True
+    lookUpAptPackages.side_effect = TestHostInfo._add_packages_available
+
+    command_json = {
+      "repositoryFile": {
+        "stackName": "HDP",
+        "repoVersionId": 1,
+        "repoVersion": "2",
+        "repositories": [
+          {
+            "repoName": "HDP",
+            "baseUrl": "http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
+            "repoId": "HDP-2.2"
+          }
+        ]
+      }
+    }
+
+    available_packages_in_repos = packages_analyzer.get_available_packages_in_repos(
+      command_json['repositoryFile']['repositories'])
+
+    self.assertEqual(available_packages_in_repos,
+                     ["hadoop_2_2_0_1_885", "hadooplzo_2_2_0_1_885", "hadoop_2_2_0_1_885-libhdfs"])
+
 if __name__ == "__main__":
   unittest.main()

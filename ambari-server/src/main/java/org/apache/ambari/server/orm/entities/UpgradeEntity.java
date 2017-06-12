@@ -41,7 +41,8 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.hadoop.metrics2.sink.relocated.google.common.base.Objects;
+
+import com.google.common.base.Objects;
 
 /**
  * Models the data representation of an upgrade
