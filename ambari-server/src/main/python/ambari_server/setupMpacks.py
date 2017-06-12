@@ -27,7 +27,7 @@ import logging
 from ambari_server.serverClassPath import ServerClassPath
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.inet_utils import download_file
+from ambari_commons.inet_utils import download_file, download_file_anyway
 from ambari_commons.logging_utils import print_info_msg, print_error_msg, print_warning_msg
 from ambari_commons.os_utils import copy_file, run_os_command, change_owner, set_file_permissions
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
@@ -137,7 +137,7 @@ def download_mpack(mpack_path):
     copy_file(mpack_path, tmp_archive_path)
   else:
     # remote path
-    download_file(mpack_path, tmp_archive_path)
+    download_file_anyway(mpack_path, tmp_archive_path)
   return tmp_archive_path
 
 def expand_mpack(archive_path):
