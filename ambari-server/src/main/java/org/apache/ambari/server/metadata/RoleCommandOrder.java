@@ -274,8 +274,7 @@ public class RoleCommandOrder implements Cloneable {
           }
 
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Adding dependency for " + restartPair + ", " +
-              "dependencies => " + roleCommandDeps);
+            LOG.debug("Adding dependency for {}, dependencies => {}", restartPair, roleCommandDeps);
           }
           missingDependencies.put(restartPair, roleCommandDeps);
         }
@@ -338,9 +337,7 @@ public class RoleCommandOrder implements Cloneable {
       v1 = dependencies.get(roleCommandPairSetEntry.getKey());
       v2 = rco.dependencies.get(roleCommandPairSetEntry.getKey());
       if (!v1.equals(v2)) {
-        LOG.debug("different entry found for key ("
-          + roleCommandPairSetEntry.getKey().getRole().toString() + ", "
-          + roleCommandPairSetEntry.getKey().getCmd().toString() + ")" );
+        LOG.debug("different entry found for key ({}, {})", roleCommandPairSetEntry.getKey().getRole(), roleCommandPairSetEntry.getKey().getCmd());
         return 1;
       }
     }

@@ -30,7 +30,6 @@ Em.I18n.translations = {
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
     '<a href="{0}" target="_blank">{0}</a>',
 
-  'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
   'app.versionMismatchAlert.body': 'Ambari Server and Web Client versions do not match:<br> ' +
     '<br>Ambari Server: <strong>{0}</strong>' +
@@ -313,8 +312,8 @@ Em.I18n.translations = {
   'common.testing': 'Testing',
   'common.noData': 'No Data',
   'common.export': 'Export',
-  'common.csv': 'CSV',
-  'common.json': 'JSON',
+  'common.csv': 'Save as CSV',
+  'common.json': 'Save as JSON',
   'common.timestamp': 'Timestamp',
   'common.timezone': 'Timezone',
   'common.loading.eclipses': 'Loading...',
@@ -2548,6 +2547,8 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.error.name.empty': 'Notification name is required',
   'alerts.actions.manage_alert_notifications_popup.error.name.existed': 'Notification name already exists',
   'alerts.actions.manage_alert_notifications_popup.scriptDispatchProperty':'Script Dispatch Property',
+  'alerts.actions.manage_alert_notifications_popup.scriptFileName':'Script Filename',
+  'alerts.actions.manage_alert_notifications_popup.error.scriptFileName.invalid': 'Invalid script filename',
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
@@ -3169,9 +3170,7 @@ Em.I18n.translations = {
   'menu.item.views':'<i class="glyphicon glyphicon-th"></i>',
   'menu.item.views.noViews':'No Views',
 
-  'bulkOperation.loading': 'Loading...',
   'jobs.nothingToShow': 'No jobs to display',
-  'jobs.loadingTasks': 'Loading...',
   'jobs.error.ats.down': 'Jobs data cannot be shown since YARN App Timeline Server is not running.',
   'jobs.error.400': 'Unable to load data.',
   'jobs.table.custom.date.am':'AM',

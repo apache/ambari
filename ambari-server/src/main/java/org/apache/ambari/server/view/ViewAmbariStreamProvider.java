@@ -55,7 +55,7 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
    */
   private final AmbariManagementController controller;
 
-  private static Logger LOG = LoggerFactory.getLogger(ViewAmbariStreamProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ViewAmbariStreamProvider.class);
 
 
   // ----- Constructor -----------------------------------------------------

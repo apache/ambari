@@ -331,12 +331,9 @@ public class AmbariActionExecutionHelper {
       );
 
       if (! ignoredHosts.isEmpty()) {
-        LOG.debug("Hosts to ignore: {}.", StringUtils.join(ignoredHosts, ", "));
-        LOG.debug("Ignoring action for hosts due to maintenance state." +
-            "Ignored hosts =" + ignoredHosts + ", component="
-            + componentName + ", service=" + serviceName
-            + ", cluster=" + cluster.getClusterName() + ", " +
-            "actionName=" + actionContext.getActionName());
+        LOG.debug("Hosts to ignore: {}.", ignoredHosts);
+        LOG.debug("Ignoring action for hosts due to maintenance state.Ignored hosts ={}, component={}, service={}, cluster={}, actionName={}",
+          ignoredHosts, componentName, serviceName, cluster.getClusterName(), actionContext.getActionName());
       }
     }
 

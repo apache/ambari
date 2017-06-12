@@ -244,10 +244,8 @@ public class RepositoryVersionHelper {
    * @param amc           the management controller.  Tests don't use the same instance that gets injected.
    * @param repoVersion   the repository version
    * @param osFamily      the os family
-   * @param services      the set of services to check for packages
-   * @param repos         the list of individual repositories
+   * @param servicesOnHost the set of services to check for packages
    * @return a Map<String, String> to use in
-   * @throws SystemException
    */
   public Map<String, String> buildRoleParams(AmbariManagementController amc, RepositoryVersionEntity repoVersion, String osFamily, Set<String> servicesOnHost)
     throws SystemException {

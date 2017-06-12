@@ -314,11 +314,8 @@ public class ConfigGroupResourceProvider extends
     Set<ConfigGroupResponse> responses = new HashSet<>();
     if (requests != null) {
       for (ConfigGroupRequest request : requests) {
-        LOG.debug("Received a Config group request with"
-          + ", clusterName = " + request.getClusterName()
-          + ", groupId = " + request.getId()
-          + ", groupName = " + request.getGroupName()
-          + ", tag = " + request.getTag());
+        LOG.debug("Received a Config group request with, clusterName = {}, groupId = {}, groupName = {}, tag = {}",
+          request.getClusterName(), request.getId(), request.getGroupName(), request.getTag());
 
         if (request.getClusterName() == null) {
           LOG.warn("Cluster name is a required field.");
@@ -485,9 +482,8 @@ public class ConfigGroupResourceProvider extends
       || request.getTag() == null
       || request.getTag().isEmpty()) {
 
-      LOG.debug("Received a config group request with cluster name = " +
-        request.getClusterName() + ", group name = " + request.getGroupName()
-        + ", tag = " + request.getTag());
+      LOG.debug("Received a config group request with cluster name = {}, group name = {}, tag = {}",
+        request.getClusterName(), request.getGroupName(), request.getTag());
 
       throw new IllegalArgumentException("Cluster name, group name and tag need to be provided.");
 
@@ -657,10 +653,11 @@ public class ConfigGroupResourceProvider extends
         serviceName = requestServiceName;
       }
 
+      int numHosts = (null != configGroup.getHosts()) ? configGroup.getHosts().size() : 0;
       configLogger.info("(configchange) Updating configuration group host membership or config value. cluster: '{}', changed by: '{}', " +
               "service_name: '{}', config group: '{}', tag: '{}', num hosts in config group: '{}', note: '{}'",
           cluster.getClusterName(), getManagementController().getAuthName(),
-          serviceName, request.getGroupName(), request.getTag(), configGroup.getHosts().size(), request.getServiceConfigVersionNote());
+          serviceName, request.getGroupName(), request.getTag(), numHosts, request.getServiceConfigVersionNote());
 
       if (!request.getConfigs().isEmpty()) {
         List<String> affectedConfigTypeList = new ArrayList(request.getConfigs().keySet());

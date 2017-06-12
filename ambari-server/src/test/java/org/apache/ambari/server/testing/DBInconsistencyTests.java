@@ -55,7 +55,7 @@ import com.google.inject.persist.PersistService;
 
 public class DBInconsistencyTests {
 
-  private static Logger LOG = LoggerFactory.getLogger(DBInconsistencyTests.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DBInconsistencyTests.class);
 
   @Inject
   private Injector injector;

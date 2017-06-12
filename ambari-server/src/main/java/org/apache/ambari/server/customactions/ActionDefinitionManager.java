@@ -105,9 +105,9 @@ public class ActionDefinitionManager {
           continue;
         }
         for (ActionDefinitionSpec ad : adx.actionDefinitions()) {
-          LOG.debug("Read action definition = " + ad.toString());
+          LOG.debug("Read action definition = {}", ad);
           StringBuilder errorReason =
-              new StringBuilder("Error while parsing action definition. ").append(ad.toString()).append(" --- ");
+              new StringBuilder("Error while parsing action definition. ").append(ad).append(" --- ");
 
           TargetHostType targetType = safeValueOf(TargetHostType.class, ad.getTargetType(), errorReason);
           ActionType actionType = safeValueOf(ActionType.class, ad.getActionType(), errorReason);
@@ -121,7 +121,7 @@ public class ActionDefinitionManager {
             String actionName = ad.getActionName();
             if (actionDefinitionMap.containsKey(actionName)) {
               LOG.warn("Ignoring action definition as a different definition by that name already exists. "
-                  + ad.toString());
+                  + ad);
               continue;
             }
 

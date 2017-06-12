@@ -578,8 +578,7 @@ public class ViewRegistry {
 
       if (getInstanceDefinition(viewName, version, instanceName) == null) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating view instance " + viewName + "/" +
-              version + "/" + instanceName);
+          LOG.debug("Creating view instance {}/{}/{}", viewName, version, instanceName);
         }
 
         instanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
@@ -706,8 +705,7 @@ public class ViewRegistry {
   @Transactional
   public void copyPrivileges(ViewInstanceEntity sourceInstanceEntity,
                              ViewInstanceEntity targetInstanceEntity) {
-    LOG.debug("Copy all privileges from " + sourceInstanceEntity.getName() + " to " +
-        targetInstanceEntity.getName());
+    LOG.debug("Copy all privileges from {} to {}", sourceInstanceEntity.getName(), targetInstanceEntity.getName());
     List<PrivilegeEntity> targetInstancePrivileges = privilegeDAO.findByResourceId(targetInstanceEntity.getResource().getId());
     if (targetInstancePrivileges.size() > 0) {
       LOG.warn("Target instance {} already has privileges assigned, these will not be deleted. Manual clean up may be needed", targetInstanceEntity.getName());
@@ -1496,13 +1494,13 @@ public class ViewRegistry {
     ViewEntity persistedView = viewDAO.findByName(viewName);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Syncing view " + viewName + ".");
+      LOG.debug("Syncing view {}.", viewName);
     }
 
     // if the view is not yet persisted ...
     if (persistedView == null) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating view " + viewName + ".");
+        LOG.debug("Creating view {}.", viewName);
       }
 
       // create an admin resource type to represent this view
@@ -1543,7 +1541,7 @@ public class ViewRegistry {
       }
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Syncing view " + viewName + " complete.");
+      LOG.debug("Syncing view {} complete.", viewName);
     }
   }
 
@@ -1852,14 +1850,13 @@ public class ViewRegistry {
 
   private void migrateDataFromPreviousVersion(ViewEntity viewDefinition, String serverVersion) {
     if (!viewDefinitions.containsKey(viewDefinition.getName())) { // migrate only registered views to avoid recursive calls
-      LOG.debug("Cancel auto migration of not loaded view: " + viewDefinition.getName() + ".");
+      LOG.debug("Cancel auto migration of not loaded view: {}.", viewDefinition.getName());
       return;
     }
     try {
 
       for (ViewInstanceEntity instance : viewDefinition.getInstances()) {
-        LOG.debug("Try to migrate the data from previous version of: " + viewDefinition.getName() + "/" +
-            instance.getInstanceName() + ".");
+        LOG.debug("Try to migrate the data from previous version of: {}/{}.", viewDefinition.getName(), instance.getInstanceName());
         ViewInstanceEntity latestUnregisteredView = getLatestUnregisteredInstance(serverVersion, instance);
 
         if (latestUnregisteredView != null) {
@@ -2246,12 +2243,12 @@ public class ViewRegistry {
               continue;
             }
 
-            LOG.debug("Unregistered extracted view found: " + archiveDir.getPath());
+            LOG.debug("Unregistered extracted view found: {}", archiveDir.getPath());
 
             ViewEntity uViewDefinition = new ViewEntity(uViewConfig, configuration, archiveDir.getPath());
             readViewArchive(uViewDefinition, archiveDir, archiveDir, serverVersion);
             for (ViewInstanceEntity instanceEntity : uViewDefinition.getInstances()) {
-              LOG.debug(uViewDefinition.getName() + " instance found: " + instanceEntity.getInstanceName());
+              LOG.debug("{} instance found: {}", uViewDefinition.getName(), instanceEntity.getInstanceName());
               unregInstancesTimestamps.put(instanceEntity, archiveDir.lastModified());
             }
           }
@@ -2272,10 +2269,10 @@ public class ViewRegistry {
       }
     }
     if (latestPrevInstance != null) {
-      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " found: " +
-          latestPrevInstance.getViewEntity().getName() + "/" + latestPrevInstance.getName());
+      LOG.debug("Previous version of {}/{} found: {}/{}",
+        instance.getViewEntity().getName(), instance.getName(), latestPrevInstance.getViewEntity().getName(), latestPrevInstance.getName());
     } else {
-      LOG.debug("Previous version of " + instance.getViewEntity().getName() + "/" + instance.getName() + " not found");
+      LOG.debug("Previous version of {}/{} not found", instance.getViewEntity().getName(), instance.getName());
     }
     return latestPrevInstance;
   }

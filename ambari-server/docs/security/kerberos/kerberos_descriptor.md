@@ -288,8 +288,9 @@ the configuration type and containing values for each relevant property.
 
 Each property name and value may be a concrete value or contain variables to be replaced using values
 from the stack-level `properties` block or any available configuration. Properties from the `properties`
-block are referenced by name (`${property_name}`) and configuration properties are reference by
-configuration specification (`${config-type/property_name}`).
+block are referenced by name (`${property_name}`), configuration properties are reference by
+configuration specification (`${config-type/property_name}`) and kerberos principals are referenced by the principal path
+(`principals/SERVICE/COMPONENT/principal_name`).
 
 ```
 "configurations" : [

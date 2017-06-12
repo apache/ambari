@@ -139,6 +139,11 @@ public class BlueprintConfigurationProcessor {
   private static Pattern LOCALHOST_PORT_REGEX = Pattern.compile("localhost:?(\\d+)?");
 
   /**
+   * Compiled regex for placeholder
+   */
+  private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{.*\\}\\}");
+
+  /**
    * Special network address
    */
   private static String BIND_ALL_IP_ADDRESS = "0.0.0.0";
@@ -445,8 +450,7 @@ public class BlueprintConfigurationProcessor {
       String newValue = trimmingStrategy.trim(oldValue);
 
       if (!newValue.equals(oldValue)){
-        LOG.debug(String.format("Changing value for config %s property %s from [%s] to [%s]",
-          configType, propertyName, oldValue, newValue));
+        LOG.debug("Changing value for config {} property {} from [{}] to [{}]", configType, propertyName, oldValue, newValue);
         clusterConfig.setProperty(configType, propertyName, newValue);
       }
     }
@@ -1133,13 +1137,25 @@ public class BlueprintConfigurationProcessor {
           if (! matchedHost &&
               ! isNameServiceProperty(propertyName) &&
               ! isSpecialNetworkAddress(propValue)  &&
-              ! isUndefinedAddress(propValue)) {
+              ! isUndefinedAddress(propValue) &&
+              ! isPlaceholder(propValue)) {
 
             configuration.removeProperty(type, propertyName);
           }
         }
       }
     }
+  }
+
+  /**
+   * Determine if a property is a placeholder
+   *
+   * @param propertyValue  property value
+   *
+   * @return true if the property has format "{{%s}}"
+   */
+  private static boolean isPlaceholder(String propertyValue) {
+    return PLACEHOLDER.matcher(propertyValue).find();
   }
 
   /**
@@ -2833,8 +2849,8 @@ public class BlueprintConfigurationProcessor {
             ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
           }
         } else {
-          LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
-                  ".  This may be caused by an error in the blueprint configuration.");
+          LOG.debug("setMissingConfigurations: no user configuration found for type = {}.  This may be caused by an error in the blueprint configuration.",
+            configType);
         }
 
       }
@@ -2891,7 +2907,7 @@ public class BlueprintConfigurationProcessor {
 
         Map<String, String> configProperties = stack.getConfigurationProperties(blueprintService, configType);
         for(Map.Entry<String, String> entry: configProperties.entrySet()) {
-          LOG.debug("ADD property " + configType + " " + entry.getKey() + " " + entry.getValue());
+          LOG.debug("ADD property {} {} {}", configType, entry.getKey(), entry.getValue());
           ensureProperty(configuration, configType, entry.getKey(), entry.getValue(), configTypesUpdated);
         }
       }

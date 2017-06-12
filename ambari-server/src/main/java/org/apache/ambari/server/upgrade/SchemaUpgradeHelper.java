@@ -403,7 +403,7 @@ public class SchemaUpgradeHelper {
       UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
         .getUpgradeCatalog(targetVersion);
 
-      LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
+      LOG.debug("Target upgrade catalog. {}", targetUpgradeCatalog);
 
       // Read source version from DB
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();

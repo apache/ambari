@@ -179,11 +179,7 @@ public interface Cluster {
    * hosts into the correct state (which may not be
    * {@link RepositoryVersionState#INSTALLING}).
    * <p/>
-   * The difference between this method compared to
-   * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
-   * missing hosts).
-   * <p/>
-   * Hosts that are in maintenance mode will be transititioned directly into
+   * Hosts that are in maintenance mode will be transitioned directly into
    * {@link RepositoryVersionState#OUT_OF_SYNC} instead. Hosts which do not need
    * the version distributed to them will move into the
    * {@link RepositoryVersionState#NOT_REQUIRED} state.

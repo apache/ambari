@@ -60,7 +60,7 @@ import com.google.gson.Gson;
 @XmlType(name="configure")
 public class ConfigureTask extends ServerSideActionTask {
 
-  private static Logger LOG = LoggerFactory.getLogger(ConfigureTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigureTask.class);
 
   /**
    * The key that represents the configuration type to change (ie hdfs-site).

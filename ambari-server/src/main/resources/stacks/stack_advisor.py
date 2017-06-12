@@ -756,15 +756,19 @@ class DefaultStackAdvisor(StackAdvisor):
       if hostName not in hostsComponentsMap:
         hostsComponentsMap[hostName] = []
 
+    #Sort the services so that the dependent services will be processed before those that depend on them.
+    sortedServices = self.getServicesSortedByDependencies(services)
     #extend hostsComponentsMap' with MASTER components
-    for service in services["services"]:
+    for service in sortedServices:
       masterComponents = [component for component in service["components"] if self.isMasterComponent(component)]
       serviceName = service["StackServices"]["service_name"]
       serviceAdvisor = self.getServiceAdvisor(serviceName)
       for component in masterComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         advisor = serviceAdvisor if serviceAdvisor is not None else self
-        hostsForComponent = advisor.getHostsForMasterComponent(services, hosts, component, hostsList)
+        #Filter the hosts such that only hosts that meet the dependencies are included (if possible)
+        filteredHosts = self.getFilteredHostsBasedOnDependencies(services, component, hostsList, hostsComponentsMap)
+        hostsForComponent = advisor.getHostsForMasterComponent(services, hosts, component, filteredHosts)
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -778,7 +782,7 @@ class DefaultStackAdvisor(StackAdvisor):
     utilizedHosts = [item for sublist in usedHostsListList for item in sublist]
     freeHosts = [hostName for hostName in hostsList if hostName not in utilizedHosts]
 
-    for service in services["services"]:
+    for service in sortedServices:
       slaveClientComponents = [component for component in service["components"]
                                if self.isSlaveComponent(component) or self.isClientComponent(component)]
       serviceName = service["StackServices"]["service_name"]
@@ -786,7 +790,10 @@ class DefaultStackAdvisor(StackAdvisor):
       for component in slaveClientComponents:
         componentName = component["StackServiceComponents"]["component_name"]
         advisor = serviceAdvisor if serviceAdvisor is not None else self
-        hostsForComponent = advisor.getHostsForSlaveComponent(services, hosts, component, hostsList, freeHosts)
+        #Filter the hosts and free hosts such that only hosts that meet the dependencies are included (if possible)
+        filteredHosts = self.getFilteredHostsBasedOnDependencies(services, component, hostsList, hostsComponentsMap)
+        filteredFreeHosts = self.filterList(freeHosts, filteredHosts)
+        hostsForComponent = advisor.getHostsForSlaveComponent(services, hosts, component, filteredHosts, filteredFreeHosts)
 
         #extend 'hostsComponentsMap' with 'hostsForComponent'
         for hostName in hostsForComponent:
@@ -796,7 +803,7 @@ class DefaultStackAdvisor(StackAdvisor):
             hostsComponentsMap[hostName].append( { "name": componentName } )
 
     #colocate custom services
-    for service in services["services"]:
+    for service in sortedServices:
       serviceName = service["StackServices"]["service_name"]
       serviceAdvisor = self.getServiceAdvisor(serviceName)
       if serviceAdvisor is not None:
@@ -865,6 +872,104 @@ class DefaultStackAdvisor(StackAdvisor):
         hostsForComponent = hostsList[-1:]
 
     return hostsForComponent
+
+  def getServicesSortedByDependencies(self, services):
+    """
+    Sorts the services based on their dependencies.  This is limited to non-conditional host scope dependencies.
+    Services with no dependencies will go first.  Services with dependencies will go after the services they are dependent on.
+    If there are circular dependencies, the services will go in the order in which they were processed.
+    """
+    processedServices = []
+    sortedServices = []
+
+    for service in services["services"]:
+      self.sortServicesByDependencies(services, service, processedServices, sortedServices)
+
+    return sortedServices
+
+  def sortServicesByDependencies(self, services, service, processedServices, sortedServices):
+    """
+    Sorts the services based on their dependencies.  This is limited to non-conditional host scope dependencies.
+    Services with no dependencies will go first.  Services with dependencies will go after the services they are dependent on.
+    If there are circular dependencies, the services will go in the order in which they were processed.
+    """
+    if service in processedServices:
+      return
+
+    processedServices.append(service)
+
+    for component in service["components"]:
+      dependencies = [] if "dependencies" not in component else component['dependencies']
+      for dependency in dependencies:
+        # accounts only for dependencies that are not conditional
+        conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
+        scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
+        if not conditionsPresent and scope == "host":
+          componentName = component["StackServiceComponents"]["component_name"]
+          requiredComponentName = dependency["Dependencies"]["component_name"]
+          requiredService = self.getServiceForComponentName(services, requiredComponentName)
+          self.sortServicesByDependencies(services, requiredService, processedServices, sortedServices)
+
+    sortedServices.append(service)
+
+  def getFilteredHostsBasedOnDependencies(self, services, component, hostsList, hostsComponentsMap):
+    """
+    Returns a list of hosts that only includes the ones which have all host scope dependencies already assigned to them.
+    If an empty list would be returned, instead the full list of hosts are returned.
+    In that case, we can't possibly return a valid recommended layout so we will at least return a fully filled layout.
+    """
+    removeHosts = []
+    dependencies = [] if "dependencies" not in component else component['dependencies']
+    for dependency in dependencies:
+      # accounts only for dependencies that are not conditional
+      conditionsPresent =  "conditions" in dependency["Dependencies"] and dependency["Dependencies"]["conditions"]
+      if not conditionsPresent:
+        componentName = component["StackServiceComponents"]["component_name"]
+        requiredComponentName = dependency["Dependencies"]["component_name"]
+        requiredComponent = self.getRequiredComponent(services, requiredComponentName)
+
+        # We only deal with "host" scope.
+        if (requiredComponent is not None) and (requiredComponent["component_category"] != "CLIENT"):
+          scope = "cluster" if "scope" not in dependency["Dependencies"] else dependency["Dependencies"]["scope"]
+          if scope == "host":
+            for host, hostComponents in hostsComponentsMap.iteritems():
+              isRequiredIncluded = False
+              for component in hostComponents:
+                currentComponentName = None if "name" not in component else component["name"]
+                if requiredComponentName == currentComponentName:
+                  isRequiredIncluded = True
+              if not isRequiredIncluded:
+                removeHosts.append(host)
+
+    filteredHostsList = []
+    for host in hostsList:
+      if host not in removeHosts:
+        filteredHostsList.append(host)
+    return filteredHostsList
+
+  def filterList(self, list, filter):
+    """
+    Returns the union of the two lists passed in (list and filter params).
+    """
+    filteredList = []
+    for item in list:
+      if item in filter:
+        filteredList.append(item)
+    return filteredList
+
+  def getServiceForComponentName(self, services, componentName):
+    """
+    Return service for component name
+
+    :type services dict
+    :type componentName str
+    """
+    for service in services["services"]:
+      for component in service["components"]:
+        if self.getComponentName(component) == componentName:
+          return service
+
+    return None
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return False

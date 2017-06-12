@@ -54,13 +54,13 @@ import org.apache.ambari.server.security.InternalSSLSocketFactoryTrusting;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.MethodInvocationException;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -71,7 +71,7 @@ import com.google.inject.Inject;
  */
 public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
-  private static Log LOG = LogFactory.getLog(ADKerberosOperationHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ADKerberosOperationHandler.class);
 
   private static final String LDAP_CONTEXT_FACTORY_CLASS = "com.sun.jndi.ldap.LdapCtxFactory";
 

@@ -67,7 +67,7 @@ public class Stage {
    */
   public static final String INTERNAL_HOSTNAME = "_internal_ambari";
 
-  private static Logger LOG = LoggerFactory.getLogger(Stage.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private String clusterName;
   private long clusterId = -1L;
@@ -853,7 +853,7 @@ public class Stage {
             summaryTaskTimeoutForHost += commandTimeout;
           } else {
             LOG.error("Execution command has no timeout parameter" +
-                    command.toString());
+              command);
           }
         }
         if (summaryTaskTimeoutForHost > stageTimeout) {
@@ -936,7 +936,7 @@ public class Stage {
       builder.append("HOST: ").append(hostRoleCommand.getHostName()).append(" :\n");
       builder.append(hostRoleCommand.getExecutionCommandWrapper().getJson());
       builder.append("\n");
-      builder.append(hostRoleCommand.toString());
+      builder.append(hostRoleCommand);
       builder.append("\n");
     }
     builder.append("STAGE DESCRIPTION END\n");

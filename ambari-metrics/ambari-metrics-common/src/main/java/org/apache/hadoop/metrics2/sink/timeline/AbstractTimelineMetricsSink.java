@@ -30,6 +30,7 @@ import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorHAHe
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorUnavailableException;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricSinkWriteShardHostnameHashingStrategy;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricSinkWriteShardStrategy;
+import org.apache.http.HttpStatus;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -83,8 +84,11 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String COLLECTOR_LIVE_NODES_PATH = "/ws/v1/timeline/metrics/livenodes";
   public static final String INSTANCE_ID_PROPERTY = "instanceId";
   public static final String SET_INSTANCE_ID_PROPERTY = "set.instanceId";
+  public static final String COOKIE = "Cookie";
+  private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
+  private static final String NEGOTIATE = "Negotiate";
 
-  protected static final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
+  protected final AtomicInteger failedCollectorConnectionsCounter = new AtomicInteger(0);
   public static int NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS = 100;
   protected static final AtomicInteger nullCollectorCounter = new AtomicInteger(0);
   public static int NUMBER_OF_NULL_COLLECTOR_EXCEPTIONS = 20;
@@ -97,6 +101,7 @@ public abstract class AbstractTimelineMetricsSink {
   private long lastFailedZkRequestTime = 0l;
 
   private SSLSocketFactory sslSocketFactory;
+  private AppCookieManager appCookieManager = null;
 
   protected final Log LOG;
 
@@ -115,7 +120,7 @@ public abstract class AbstractTimelineMetricsSink {
   private volatile boolean isInitializedForHA = false;
 
   @SuppressWarnings("all")
-  private final int RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER = 5;
+  private final int RETRY_COUNT_BEFORE_COLLECTOR_FAILOVER = 3;
 
   private final Gson gson = new Gson();
 
@@ -157,6 +162,18 @@ public abstract class AbstractTimelineMetricsSink {
       connection = connectUrl.startsWith("https") ?
           getSSLConnection(connectUrl) : getConnection(connectUrl);
 
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("emitMetricsJson to " + connectUrl + ", " + jsonData);
+      }
+      AppCookieManager appCookieManager = getAppCookieManager();
+      String appCookie = appCookieManager.getCachedAppCookie(connectUrl);
+      if (appCookie != null) {
+        if (LOG.isInfoEnabled()) {
+          LOG.info("Using cached app cookie for URL:" + connectUrl);
+        }
+        connection.setRequestProperty(COOKIE, appCookie);
+      }
+
       connection.setRequestMethod("POST");
       connection.setRequestProperty("Content-Type", "application/json");
       connection.setRequestProperty("Connection", "Keep-Alive");
@@ -171,6 +188,37 @@ public abstract class AbstractTimelineMetricsSink {
       }
 
       int statusCode = connection.getResponseCode();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("emitMetricsJson: statusCode = " + statusCode);
+      }
+
+      if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
+        String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
+        if (LOG.isInfoEnabled()) {
+          LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" + connectUrl);
+        }
+        if (wwwAuthHeader != null && wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
+          appCookie = appCookieManager.getAppCookie(connectUrl, true);
+          if (appCookie != null) {
+            connection.setRequestProperty(COOKIE, appCookie);
+
+            if (jsonData != null) {
+              try (OutputStream os = connection.getOutputStream()) {
+                os.write(jsonData.getBytes("UTF-8"));
+              }
+            }
+
+            statusCode = connection.getResponseCode();
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("emitMetricsJson: statusCode2 = " + statusCode);
+            }
+          }
+        } else {
+          // no supported authentication type found
+          // we would let the original response propagate
+          LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" + connectUrl);
+        }
+      }
 
       if (statusCode != 200) {
         LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
@@ -262,6 +310,18 @@ public abstract class AbstractTimelineMetricsSink {
       return emitMetricsJson(connectUrl, jsonData);
     }
     return false;
+  }
+
+  /**
+   * Get the associated app cookie manager.
+   *
+   * @return the app cookie manager
+   */
+  public synchronized AppCookieManager getAppCookieManager() {
+    if (appCookieManager == null) {
+      appCookieManager = new AppCookieManager();
+    }
+    return appCookieManager;
   }
 
   /**

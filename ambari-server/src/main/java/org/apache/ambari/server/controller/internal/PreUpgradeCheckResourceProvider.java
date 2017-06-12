@@ -29,6 +29,7 @@ import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -63,7 +64,7 @@ import com.google.inject.Provider;
  */
 @StaticallyInject
 public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
-  private static Logger LOG = LoggerFactory.getLogger(PreUpgradeCheckResourceProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PreUpgradeCheckResourceProvider.class);
 
   //----- Property ID constants ---------------------------------------------
 
@@ -93,6 +94,9 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
   @Inject
   private static Provider<UpgradeHelper> upgradeHelper;
+
+  @Inject
+  private static Provider<Configuration> config;
 
   @Inject
   private static CheckHelper checkHelper;
@@ -206,7 +210,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         LOG.error("Failed to register custom prechecks for the services", e);
       }
 
-      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun)) {
+      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun, config.get())) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
         setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, prerequisiteCheck.getDescription(), requestedIds);

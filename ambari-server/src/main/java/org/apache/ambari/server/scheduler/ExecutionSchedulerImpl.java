@@ -69,7 +69,7 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
       sf.initialize(properties);
     } catch (SchedulerException e) {
       LOG.warn("Failed to initialize Request Execution Scheduler properties !");
-      LOG.debug("Scheduler properties: \n" + properties);
+      LOG.debug("Scheduler properties: \n{}", properties);
       e.printStackTrace();
       return;
     }
@@ -125,7 +125,7 @@ public class ExecutionSchedulerImpl implements ExecutionScheduler {
     // Skip update check
     properties.setProperty("org.quartz.scheduler.skipUpdateCheck", "true");
 
-    LOG.debug("Using quartz properties: " + properties);
+    LOG.debug("Using quartz properties: {}", properties);
     return properties;
   }
 

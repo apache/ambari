@@ -38,9 +38,9 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * URL based implementation of a stream provider.
@@ -50,7 +50,7 @@ public class URLStreamProvider implements StreamProvider {
   public static final String COOKIE = "Cookie";
   private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
   private static final String NEGOTIATE = "Negotiate";
-  private static Log LOG = LogFactory.getLog(URLStreamProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(URLStreamProvider.class);
 
   private boolean setupTruststoreForHttps;
   private final int connTimeout;
@@ -175,7 +175,7 @@ public class URLStreamProvider implements StreamProvider {
   public HttpURLConnection processURL(String spec, String requestMethod, byte[] body, Map<String, List<String>> headers)
           throws IOException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("readFrom spec:" + spec);
+      LOG.debug("readFrom spec:{}", spec);
     }
 
     HttpURLConnection connection = (spec.startsWith("https") && this.setupTruststoreForHttps) ?
@@ -185,7 +185,7 @@ public class URLStreamProvider implements StreamProvider {
 
     String appCookie = appCookieManager.getCachedAppCookie(spec);
     if (appCookie != null) {
-      LOG.debug("Using cached app cookie for URL:" + spec);
+      LOG.debug("Using cached app cookie for URL:{}", spec);
 
       // allow for additional passed in cookies
       if (headers == null || headers.isEmpty()) {

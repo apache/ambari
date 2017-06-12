@@ -78,7 +78,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 public class ServiceComponentHostTest {
-  private static Logger LOG = LoggerFactory.getLogger(ServiceComponentHostTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceComponentHostTest.class);
   @Inject
   private Injector injector;
   @Inject
@@ -177,8 +177,7 @@ public class ServiceComponentHostTest {
     try {
       s = c.getService(svc);
     } catch (ServiceNotFoundException e) {
-      LOG.debug("Calling service create"
-          + ", serviceName=" + svc);
+      LOG.debug("Calling service create, serviceName={}", svc);
 
       s = serviceFactory.createNew(c, svc, repositoryVersion);
       c.addService(s);

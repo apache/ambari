@@ -192,6 +192,23 @@ def yarn(name=None, config_dir=None):
          group=params.user_group,
          content=Template("yarn_jaas.conf.j2")
     )
+    if params.has_ats:
+      File(os.path.join(config_dir, 'yarn_ats_jaas.conf'),
+           owner=params.yarn_user,
+           group=params.user_group,
+           content=Template("yarn_ats_jaas.conf.j2")
+      )
+    File(os.path.join(config_dir, 'yarn_nm_jaas.conf'),
+         owner=params.yarn_user,
+         group=params.user_group,
+         content=Template("yarn_nm_jaas.conf.j2")
+    )
+    if params.has_hs:
+      File(os.path.join(config_dir, 'mapred_jaas.conf'),
+           owner=params.mapred_user,
+           group=params.user_group,
+           content=Template("mapred_jaas.conf.j2")
+      )
   else:
     File(os.path.join(config_dir, 'taskcontroller.cfg'),
          owner=params.tc_owner,

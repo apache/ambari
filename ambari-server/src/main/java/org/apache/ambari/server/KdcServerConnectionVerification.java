@@ -57,7 +57,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class KdcServerConnectionVerification {
 
-  private static Logger LOG = LoggerFactory.getLogger(KdcServerConnectionVerification.class);
+  private static final Logger LOG = LoggerFactory.getLogger(KdcServerConnectionVerification.class);
 
   private Configuration config;
 

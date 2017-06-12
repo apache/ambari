@@ -40,8 +40,8 @@ import org.apache.ambari.server.bootstrap.BSResponse;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.bootstrap.BootStrapStatus;
 import org.apache.ambari.server.bootstrap.SshHostInfo;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
@@ -49,7 +49,7 @@ import com.google.inject.Inject;
 public class BootStrapResource {
 
   private static BootStrapImpl bsImpl;
-  private static Log LOG = LogFactory.getLog(BootStrapResource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BootStrapResource.class);
 
   @Inject
   public static void init(BootStrapImpl instance) {

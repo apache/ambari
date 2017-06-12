@@ -28,15 +28,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
  * Logs OpenSsl command exit code with description
  */
 public class ShellCommandUtil {
-  private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ShellCommandUtil.class);
   private static final Object WindowsProcessLaunchLock = new Object();
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";

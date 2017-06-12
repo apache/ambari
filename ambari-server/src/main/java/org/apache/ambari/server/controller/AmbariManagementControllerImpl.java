@@ -187,6 +187,7 @@ import org.apache.ambari.server.state.quicklinksprofile.QuickLinkVisibilityContr
 import org.apache.ambari.server.state.quicklinksprofile.QuickLinksProfile;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
@@ -313,6 +314,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ExtensionLinkDAO linkDAO;
   @Inject
   private StackDAO stackDAO;
+  @Inject
+  protected OsFamily osFamily;
 
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
@@ -432,9 +435,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a createCluster request"
-          + ", clusterName=" + request.getClusterName()
-          + ", request=" + request);
+      LOG.debug("Received a createCluster request, clusterName={}, request={}", request.getClusterName(), request);
     }
 
     if (request.getStackVersion() == null
@@ -530,12 +531,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHostComponent request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
+        LOG.debug("Received a createHostComponent request, clusterName={}, serviceName={}, componentName={}, hostname={}, request={}",
+          request.getClusterName(), request.getServiceName(), request.getComponentName(), request.getHostname(), request);
       }
 
       if (!hostComponentNames.containsKey(request.getClusterName())) {
@@ -601,17 +598,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusters.getClustersForHost(request.getHostname());
       boolean validCluster = false;
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Looking to match host to cluster"
-            + ", hostnameViaReg=" + host.getHostName()
-            + ", hostname=" + request.getHostname()
-            + ", clusterName=" + request.getClusterName()
-            + ", hostClusterMapCount=" + mappedClusters.size());
+        LOG.debug("Looking to match host to cluster, hostnameViaReg={}, hostname={}, clusterName={}, hostClusterMapCount={}",
+          host.getHostName(), request.getHostname(), request.getClusterName(), mappedClusters.size());
       }
       for (Cluster mappedCluster : mappedClusters) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Host belongs to cluster"
-              + ", hostname=" + request.getHostname()
-              + ", clusterName=" + mappedCluster.getClusterName());
+          LOG.debug("Host belongs to cluster, hostname={}, clusterName={}", request.getHostname(), mappedCluster.getClusterName());
         }
         if (mappedCluster.getClusterName().equals(
             request.getClusterName())) {
@@ -657,7 +649,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } else {
         msg = "Attempted to create host_component's which already exist: ";
       }
-      throw new DuplicateResourceException(msg + names.toString());
+      throw new DuplicateResourceException(msg + names);
     }
 
     // set restartRequired flag for  monitoring services
@@ -997,7 +989,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throws AmbariException {
     final Set<MemberResponse> responses = new HashSet<>();
     for (MemberRequest request: requests) {
-      LOG.debug("Received a getMembers request, " + request.toString());
+      LOG.debug("Received a getMembers request, {}", request);
       final Group group = users.getGroup(request.getGroupName());
       if (null == group) {
         if (requests.size() == 1) {
@@ -1062,10 +1054,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Set<ClusterResponse> response = new HashSet<>();
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Received a getClusters request"
-        + ", clusterName=" + request.getClusterName()
-        + ", clusterId=" + request.getClusterId()
-        + ", stackInfo=" + request.getStackVersion());
+      LOG.debug("Received a getClusters request, clusterName={}, clusterId={}, stackInfo={}",
+        request.getClusterName(), request.getClusterId(), request.getStackVersion());
     }
 
     Cluster singleCluster = null;
@@ -1125,7 +1115,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     StringBuilder builder = new StringBuilder();
     if (LOG.isDebugEnabled()) {
       clusters.debugDump(builder);
-      LOG.debug("Cluster State for cluster " + builder.toString());
+      LOG.debug("Cluster State for cluster {}", builder);
     }
     return response;
   }
@@ -1649,7 +1639,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ServiceConfigVersionResponse serviceConfigVersionResponse = null;
 
     if (request.getDesiredConfig() != null && request.getServiceConfigVersionRequest() != null) {
-      String msg = "Unable to set desired configs and rollback at same time, request = " + request.toString();
+      String msg = "Unable to set desired configs and rollback at same time, request = " + request;
       LOG.error(msg);
       throw new IllegalArgumentException(msg);
     }
@@ -1657,7 +1647,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // set the new name of the cluster if change is requested
     if (!cluster.getClusterName().equals(request.getClusterName())) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received cluster name change request from " + cluster.getClusterName() + " to " + request.getClusterName());
+        LOG.debug("Received cluster name change request from {} to {}", cluster.getClusterName(), request.getClusterName());
       }
 
       if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, EnumSet.of(RoleAuthorization.AMBARI_RENAME_CLUSTER))) {
@@ -1774,7 +1764,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
           note = cr.getServiceConfigVersionNote();
-          configs.add(cluster.getConfig(configType, cr.getVersionTag()));
+          Config config = cluster.getConfig(configType, cr.getVersionTag());
+          if (null != config) {
+            configs.add(config);
+          }
         }
         if (!configs.isEmpty()) {
           Map<String, Config> existingConfigTypeToConfig = new HashMap();
@@ -2460,11 +2453,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, component, host);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Sending repo information to agent"
-        + ", hostname=" + scHost.getHostName()
-        + ", clusterName=" + clusterName
-        + ", stackInfo=" + stackId.getStackId()
-        + ", repoInfo=" + repoInfo);
+      LOG.debug("Sending repo information to agent, hostname={}, clusterName={}, stackInfo={}, repoInfo={}",
+        scHost.getHostName(), clusterName, stackId.getStackId(), repoInfo);
     }
 
     Map<String, String> hostParams = new TreeMap<>();
@@ -2619,13 +2609,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private List<ServiceOsSpecific> getOSSpecificsByFamily(Map<String, ServiceOsSpecific> osSpecifics, String osFamily) {
-    List<ServiceOsSpecific> foundedOSSpecifics = new ArrayList<>();
+    List<ServiceOsSpecific> foundOSSpecifics = new ArrayList<>();
     for (Entry<String, ServiceOsSpecific> osSpecific : osSpecifics.entrySet()) {
-      if (osSpecific.getKey().contains(osFamily)) {
-        foundedOSSpecifics.add(osSpecific.getValue());
+      String[] osFamilyNames = osSpecific.getKey().split("\\s*,\\s*");
+
+      for(String osFamilyName:osFamilyNames) {
+        if (this.osFamily.isVersionedOsFamilyExtendedByVersionedFamily(osFamily, osFamilyName)) {
+          foundOSSpecifics.add(osSpecific.getValue());
+          break;
+        }
       }
     }
-    return foundedOSSpecifics;
+    return foundOSSpecifics;
   }
 
   private ActionExecutionContext getActionExecutionContext
@@ -2966,15 +2961,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     + ", newDesiredState=" + newState);
               default:
                 throw new AmbariException("Unsupported state change operation"
-                    + ", newState=" + newState.toString());
+                    + ", newState=" + newState);
             }
 
             if (LOG.isDebugEnabled()) {
-              LOG.debug("Create a new host action"
-                  + ", requestId=" + requestStages.getId()
-                  + ", componentName=" + scHost.getServiceComponentName()
-                  + ", hostname=" + scHost.getHostName()
-                  + ", roleCommand=" + roleCommand.name());
+              LOG.debug("Create a new host action, requestId={}, componentName={}, hostname={}, roleCommand={}",
+                requestStages.getId(), scHost.getServiceComponentName(), scHost.getHostName(), roleCommand.name());
             }
 
             // any targeted information
@@ -3650,8 +3642,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     for (UserRequest r : requests) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a delete user request"
-            + ", username=" + r.getUsername());
+        LOG.debug("Received a delete user request, username={}", r.getUsername());
       }
       User u = users.getAnyUser(r.getUsername());
       if (null != u) {
@@ -3663,7 +3654,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void deleteGroups(Set<GroupRequest> requests) throws AmbariException {
     for (GroupRequest request: requests) {
-      LOG.debug("Received a delete group request, groupname=" + request.getGroupName());
+      LOG.debug("Received a delete group request, groupname={}", request.getGroupName());
       final Group group = users.getGroup(request.getGroupName());
       if (group != null) {
         users.removeGroup(group);
@@ -3674,7 +3665,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public void deleteMembers(java.util.Set<MemberRequest> requests) throws AmbariException {
     for (MemberRequest request : requests) {
-      LOG.debug("Received a delete member request, " + request);
+      LOG.debug("Received a delete member request, {}", request);
       users.removeMemberFromGroup(request.getGroupName(), request.getUserName());
     }
   }
@@ -3826,8 +3817,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     for (UserRequest r : requests) {
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a getUsers request"
-            + ", userRequest=" + r.toString());
+        LOG.debug("Received a getUsers request, userRequest={}", r);
       }
 
       String requestedUsername = r.getUsername();
@@ -3881,7 +3871,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throws AmbariException {
     final Set<GroupResponse> responses = new HashSet<>();
     for (GroupRequest request: requests) {
-      LOG.debug("Received a getGroups request, groupRequest=" + request.toString());
+      LOG.debug("Received a getGroups request, groupRequest={}", request);
       // get them all
       if (null == request.getGroupName()) {
         for (Group group: users.getAllGroups()) {
@@ -3980,10 +3970,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     );
-    LOG.debug("Ignoring hosts when selecting available hosts for action" +
-            " due to maintenance state." +
-            "Ignored hosts =" + ignoredHosts + ", cluster="
-            + cluster.getClusterName() + ", service=" + service.getName());
+    LOG.debug("Ignoring hosts when selecting available hosts for action due to maintenance state.Ignored hosts ={}, cluster={}, service={}",
+      ignoredHosts, cluster.getClusterName(), service.getName());
   }
 
   /**
@@ -4053,7 +4041,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       LOG.info("Received action execution request"
         + ", clusterName=" + actionRequest.getClusterName()
-        + ", request=" + actionRequest.toString());
+        + ", request=" + actionRequest);
     }
 
     ActionExecutionContext actionExecContext = getActionExecutionContext(actionRequest);

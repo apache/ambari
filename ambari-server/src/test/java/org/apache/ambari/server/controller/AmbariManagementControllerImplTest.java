@@ -101,6 +101,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -2023,15 +2024,18 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+    
+    OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
-    replay(maintHelper, injector, clusters, serviceInfo);
+    EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
+    replay(maintHelper, injector, clusters, serviceInfo, osFamilyMock);
 
     AmbariManagementControllerImplTest.NestedTestClass nestedTestClass = this.new NestedTestClass(null, clusters,
-        injector);
+        injector, osFamilyMock);
 
     ServiceOsSpecific serviceOsSpecific = nestedTestClass.populateServicePackagesInfo(serviceInfo, hostParams, osFamily);
 
-    assertEquals(serviceOsSpecific.getPackages().size(), 3);
+    assertEquals(3, serviceOsSpecific.getPackages().size());
   }
 
   @Test
@@ -2203,8 +2207,9 @@ public class AmbariManagementControllerImplTest {
 
   private class NestedTestClass extends AmbariManagementControllerImpl {
 
-    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector) throws Exception {
+    public NestedTestClass(ActionManager actionManager, Clusters clusters, Injector injector, OsFamily osFamilyMock) throws Exception {
       super(actionManager, clusters, injector);
+      this.osFamily = osFamilyMock;
     }
 
 //    public ServiceOsSpecific testPopulateServicePackagesInfo(ServiceInfo serviceInfo, Map<String, String> hostParams,

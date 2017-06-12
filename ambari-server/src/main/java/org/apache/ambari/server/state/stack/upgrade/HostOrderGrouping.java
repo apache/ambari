@@ -56,7 +56,7 @@ import com.google.gson.JsonObject;
 public class HostOrderGrouping extends Grouping {
   private static final String TYPE = "type";
   private static final String HOST = "host";
-  private static Logger LOG = LoggerFactory.getLogger(HostOrderGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HostOrderGrouping.class);
 
   /**
    * Contains the ordered actions to schedule for this grouping.

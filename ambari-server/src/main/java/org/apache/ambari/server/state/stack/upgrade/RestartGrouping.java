@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @XmlType(name="restart")
 public class RestartGrouping extends Grouping implements UpgradeFunction {
 
-  private static Logger LOG = LoggerFactory.getLogger(RestartGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RestartGrouping.class);
 
   @Override
   public Task.Type getFunction() {

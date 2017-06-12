@@ -28,9 +28,6 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
 
   didInsertElement: function () {
     var self = this;
-    this.$().on('mouseleave', function () {
-      self.set('isExportMenuHidden', true);
-    });
     App.tooltip(this.$('.corner-icon > .glyphicon-save'), {
       title: Em.I18n.t('common.export')
     });

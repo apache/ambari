@@ -851,7 +851,7 @@ public class AmbariCustomCommandExecutionHelper {
     cloneSet.retainAll(includedHosts);
     if (cloneSet.size() > 0) {
       throw new AmbariException("Same host cannot be specified for inclusion " +
-        "as well as exclusion. Hosts: " + cloneSet.toString());
+        "as well as exclusion. Hosts: " + cloneSet);
     }
 
     Service service = cluster.getService(serviceName);
@@ -1111,10 +1111,8 @@ public class AmbariCustomCommandExecutionHelper {
     List<RequestResourceFilter> resourceFilters = actionExecutionContext.getResourceFilters();
 
     for (RequestResourceFilter resourceFilter : resourceFilters) {
-      LOG.debug("Received a command execution request"
-        + ", clusterName=" + actionExecutionContext.getClusterName()
-        + ", serviceName=" + resourceFilter.getServiceName()
-        + ", request=" + actionExecutionContext.toString());
+      LOG.debug("Received a command execution request, clusterName={}, serviceName={}, request={}",
+        actionExecutionContext.getClusterName(), resourceFilter.getServiceName(), actionExecutionContext);
 
       String actionName = actionExecutionContext.getActionName();
       if (actionName.contains(SERVICE_CHECK_COMMAND_NAME)) {
@@ -1180,7 +1178,7 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @return the repo info
    *
-   * @deprecated use {@link #getCommandRepository(Cluster, Host)} instead.
+   * @deprecated use {@link #getCommandRepository(Cluster, ServiceComponent, Host)} instead.
    * @throws AmbariException if the repository information can not be obtained
    */
   @Deprecated
@@ -1305,7 +1303,7 @@ public class AmbariCustomCommandExecutionHelper {
 
   /**
    * Executed by two different representations of repos.  When we are comfortable with the new
-   * implemenation, this may be removed and called inline in {@link #getCommandRepository(Cluster, Host)}
+   * implementation, this may be removed and called inline in {@link #getCommandRepository(Cluster, ServiceComponent, Host)}
    *
    * @param cluster   the cluster to isolate the stack
    * @param component the component
@@ -1390,9 +1388,8 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecContext  the context
    * @param cluster            the cluster for the command
-   * @param stackId            the effective stack id to use.
    *
-   * @return a wrapper of the imporant JSON structures to add to a stage
+   * @return a wrapper of the important JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
       Cluster cluster, RepositoryVersionEntity repositoryVersion) throws AmbariException {
@@ -1555,7 +1552,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       return service.getServiceComponent(resourceFilter.getComponentName());
     } catch (Exception e) {
-      LOG.debug(String.format( "Unknown error appears during getting service component: %s", e.getMessage()));
+      LOG.debug("Unknown error appears during getting service component: {}", e.getMessage());
     }
     return null;
   }

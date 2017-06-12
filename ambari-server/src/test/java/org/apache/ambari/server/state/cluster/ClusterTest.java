@@ -1519,7 +1519,7 @@ public class ClusterTest {
    * Tests that hosts can be correctly transitioned into the "INSTALLING" state.
    * This method also tests that hosts in MM will not be transitioned, as per
    * the contract of
-   * {@link Cluster#transitionHostsToInstalling(ClusterVersionEntity, RepositoryVersionEntity, org.apache.ambari.server.state.repository.VersionDefinitionXml, boolean)}.
+   * {@link Cluster#transitionHostsToInstalling(RepositoryVersionEntity, org.apache.ambari.server.state.repository.VersionDefinitionXml, boolean)}.
    *
    * @throws Exception
    */
@@ -2072,7 +2072,7 @@ public class ClusterTest {
   }
 
   /**
-   * Tests that {@link Cluster#applyLatestConfigurations(StackId)} sets the
+   * Tests that {@link Cluster#applyLatestConfigurations(StackId, String)} sets the
    * right configs to enabled when setting them to a prior stack which has
    * several configs.
    *

@@ -374,6 +374,55 @@ select.form-control {
   }
 }
 
+
+@media (min-width: 1500px) {
+
+  .row {
+    *zoom: 1;
+  }
+
+  .row:before,
+  .row:after {
+    line-height: 0;
+  }
+
+  .row:after {
+    clear: both;
+  }
+
+  .navbar-fixed-top .container,
+  .navbar-fixed-bottom .container {
+    width: 1300px;
+  }
+
+  .main-container {
+    width: 1340px;
+  }
+
+  .contribview  .main-container {
+    width: auto;
+  }
+
+  .contribview .navbar .main-container {
+    width: 1340px;
+    margin: 0 auto;
+  }
+
+  .thumbnails {
+    margin-left: -30px;
+  }
+
+  .thumbnails > li {
+    margin-left: 30px;
+  }
+
+  .row .thumbnails {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+
 .wizard .wizard-body {
   padding: 0 !important;
 }

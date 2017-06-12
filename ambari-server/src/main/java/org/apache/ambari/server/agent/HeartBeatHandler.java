@@ -155,10 +155,7 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    LOG.debug("Received heartbeat from host"
-        + ", hostname=" + hostname
-        + ", currentResponseId=" + currentResponseId
-        + ", receivedResponseId=" + heartbeat.getResponseId());
+    LOG.debug("Received heartbeat from host, hostname={}, currentResponseId={}, receivedResponseId={}", hostname, currentResponseId, heartbeat.getResponseId());
 
     if (heartbeat.getResponseId() == currentResponseId - 1) {
       HeartBeatResponse heartBeatResponse = hostResponses.get(hostname);
@@ -249,7 +246,7 @@ public class HeartBeatHandler {
         response.setRecoveryConfig(rc);
 
         if (response.getRecoveryConfig() != null) {
-          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig().toString());
+          LOG.info("Recovery configuration set to {}", response.getRecoveryConfig());
         }
       }
     }
@@ -268,7 +265,7 @@ public class HeartBeatHandler {
 
 
   protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
-    LOG.debug("Received recovery report: " + recoveryReport.toString());
+    LOG.debug("Received recovery report: {}", recoveryReport);
     Host host = clusterFsm.getHost(hostname);
     host.setRecoveryReport(recoveryReport);
   }
@@ -283,7 +280,7 @@ public class HeartBeatHandler {
       for (AgentCommand ac : cmds) {
         try {
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Sending command string = " + StageUtils.jaxbToString(ac));
+            LOG.debug("Sending command string = {}", StageUtils.jaxbToString(ac));
           }
         } catch (Exception e) {
           throw new AmbariException("Could not get jaxb string for command", e);
@@ -446,7 +443,7 @@ public class HeartBeatHandler {
 
     response.setAgentConfig(config.getAgentConfigsMap());
     if(response.getAgentConfig() != null) {
-      LOG.debug("Agent configuration map set to " + response.getAgentConfig());
+      LOG.debug("Agent configuration map set to {}", response.getAgentConfig());
     }
 
     /*
@@ -464,7 +461,7 @@ public class HeartBeatHandler {
       response.setRecoveryConfig(rc);
 
       if(response.getRecoveryConfig() != null) {
-        LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
+        LOG.info("Recovery configuration set to " + response.getRecoveryConfig());
       }
     }
 
@@ -495,7 +492,7 @@ public class HeartBeatHandler {
     }
 
     if(actionQueue.hasPendingTask(hostname)) {
-      LOG.debug("Host " + hostname + " has pending tasks");
+      LOG.debug("Host {} has pending tasks", hostname);
       response.setHasPendingTasks(true);
     }
   }

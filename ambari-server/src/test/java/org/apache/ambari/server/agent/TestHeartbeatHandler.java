@@ -559,7 +559,7 @@ public class TestHeartbeatHandler {
       handler.handleRegistration(reg);
       fail ("Expected failure for non compatible agent version");
     } catch (AmbariException e) {
-      log.debug("Error:" + e.getMessage());
+      log.debug("Error:{}", e.getMessage());
       Assert.assertTrue(e.getMessage().contains(
           "Cannot register host with non compatible agent version"));
     }
@@ -569,7 +569,7 @@ public class TestHeartbeatHandler {
       handler.handleRegistration(reg);
       fail ("Expected failure for non compatible agent version");
     } catch (AmbariException e) {
-      log.debug("Error:" + e.getMessage());
+      log.debug("Error:{}", e.getMessage());
       Assert.assertTrue(e.getMessage().contains(
           "Cannot register host with non compatible agent version"));
     }

@@ -55,7 +55,7 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   @Inject
   protected GroupDAO groupDAO;
 
-  private static Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
 
   private final Configuration configuration;
 

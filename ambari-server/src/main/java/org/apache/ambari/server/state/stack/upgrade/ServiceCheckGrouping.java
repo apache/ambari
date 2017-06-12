@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 @XmlType(name="service-check")
 public class ServiceCheckGrouping extends Grouping {
 
-  private static Logger LOG = LoggerFactory.getLogger(ServiceCheckGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckGrouping.class);
 
   /**
    * During a Rolling Upgrade, the priority services are ran first, then the remaining services in the cluster.

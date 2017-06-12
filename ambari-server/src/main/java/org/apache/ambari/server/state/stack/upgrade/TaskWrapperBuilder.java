@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TaskWrapperBuilder {
 
-  private static Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TaskWrapperBuilder.class);
 
   /**
    * Creates a collection of task wrappers based on the set of hosts they are allowed to run on

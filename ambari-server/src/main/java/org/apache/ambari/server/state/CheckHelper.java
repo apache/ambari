@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -49,7 +50,7 @@ public class CheckHelper {
   /**
    * Log.
    */
-  private static Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
 
 
   /**
@@ -86,44 +87,38 @@ public class CheckHelper {
    * @return list of pre-requisite check results
    */
   public List<PrerequisiteCheck> performChecks(PrereqCheckRequest request,
-      List<AbstractCheckDescriptor> checksRegistry) {
+                                               List<AbstractCheckDescriptor> checksRegistry, Configuration config) {
 
     final String clusterName = request.getClusterName();
     final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<>();
+    final boolean canBypassPreChecks = config.isUpgradePrecheckBypass();
 
     List<DescriptorPreCheck> applicablePreChecks = getApplicablePrerequisiteChecks(request, checksRegistry);
+
     for (DescriptorPreCheck descriptorPreCheck : applicablePreChecks) {
       AbstractCheckDescriptor checkDescriptor = descriptorPreCheck.descriptor;
       PrerequisiteCheck prerequisiteCheck = descriptorPreCheck.check;
       try {
         checkDescriptor.perform(prerequisiteCheck, request);
-
-        boolean canBypassPreChecks = checkDescriptor.isStackUpgradeAllowedToBypassPreChecks();
-
-        if (prerequisiteCheck.getStatus() == PrereqCheckStatus.FAIL && canBypassPreChecks) {
-          LOG.error("Check {} failed but stack upgrade is allowed to bypass failures. Error to bypass: {}. Failed on: {}",
-              checkDescriptor.getDescription().name(),
-              prerequisiteCheck.getFailReason(),
-              StringUtils.join(prerequisiteCheck.getFailedOn(), ", "));
-          prerequisiteCheck.setStatus(PrereqCheckStatus.BYPASS);
-        }
-        prerequisiteCheckResults.add(prerequisiteCheck);
-
-        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
       } catch (ClusterNotFoundException ex) {
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
-        prerequisiteCheckResults.add(prerequisiteCheck);
-
-        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
+        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       } catch (Exception ex) {
         LOG.error("Check " + checkDescriptor.getDescription().name() + " failed", ex);
-        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason("Unexpected server error happened");
-        prerequisiteCheckResults.add(prerequisiteCheck);
-
-        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
+        prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       }
+
+      if (prerequisiteCheck.getStatus() == PrereqCheckStatus.FAIL && canBypassPreChecks) {
+        LOG.error("Check {} failed but stack upgrade is allowed to bypass failures. Error to bypass: {}. Failed on: {}",
+          checkDescriptor.getDescription().name(),
+          prerequisiteCheck.getFailReason(),
+          StringUtils.join(prerequisiteCheck.getFailedOn(), ", "));
+        prerequisiteCheck.setStatus(PrereqCheckStatus.BYPASS);
+      }
+
+      prerequisiteCheckResults.add(prerequisiteCheck);
+      request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
     }
 
     return prerequisiteCheckResults;

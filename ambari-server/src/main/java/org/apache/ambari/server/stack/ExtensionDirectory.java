@@ -133,7 +133,7 @@ public class ExtensionDirectory extends StackDefinitionDirectory {
     //todo: is it ok for this file not to exist?
     if (extensionMetaInfoFile.exists()) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Reading extension version metainfo from file " + extensionMetaInfoFile.getAbsolutePath());
+        LOG.debug("Reading extension version metainfo from file {}", extensionMetaInfoFile.getAbsolutePath());
       }
 
       try {

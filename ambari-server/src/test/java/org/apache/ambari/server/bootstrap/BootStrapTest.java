@@ -28,12 +28,12 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -42,7 +42,7 @@ import junit.framework.TestCase;
  * Test BootStrap Implementation.
  */
 public class BootStrapTest extends TestCase {
-  private static Log LOG = LogFactory.getLog(BootStrapTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BootStrapTest.class);
   public TemporaryFolder temp = new TemporaryFolder();
 
   @Override

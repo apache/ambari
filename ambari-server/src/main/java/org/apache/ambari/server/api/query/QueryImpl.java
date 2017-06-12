@@ -523,7 +523,7 @@ public class QueryImpl implements Query, ResourceInstance {
       NoSuchParentResourceException {
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Executing resource query: " + request + " where " + predicate);
+      LOG.debug("Executing resource query: {} where {}", request, predicate);
     }
 
     QueryResponse queryResponse = clusterController.getResources(type, request, predicate);
@@ -534,7 +534,7 @@ public class QueryImpl implements Query, ResourceInstance {
       // NoSuchResourceException (404 response) for an empty query result
       if(!isCollectionResource()) {
         throw new NoSuchResourceException(
-            "The requested resource doesn't exist: " + type.toString() + " not found where " + predicate + ".");
+            "The requested resource doesn't exist: " + type + " not found where " + predicate + ".");
       }
     }
     return queryResponse;

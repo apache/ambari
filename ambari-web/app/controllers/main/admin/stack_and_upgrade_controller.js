@@ -1863,7 +1863,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * get the installed repositories of HDP from server
    */
   loadRepositories: function () {
-    if (App.router.get('clusterController.isLoaded')) {
+    if (App.router.get('clusterController.isLoaded') && App.get('currentStackVersion')) {
       var nameVersionCombo = App.get('currentStackVersion');
       var stackName = nameVersionCombo.split('-')[0];
       var stackVersion = nameVersionCombo.split('-')[1];

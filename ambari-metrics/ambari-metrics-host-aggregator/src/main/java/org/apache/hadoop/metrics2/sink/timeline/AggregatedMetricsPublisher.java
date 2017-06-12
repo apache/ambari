@@ -15,17 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.metrics2.host.aggregator;
+package org.apache.hadoop.metrics2.sink.timeline;
 
 
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.metrics2.sink.timeline.AggregationResult;
-import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricWithAggregatedValues;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.host.aggregator.TimelineMetricsHolder;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,12 +33,12 @@ import java.util.TreeMap;
 /**
  * Thread that aggregates and publishes metrics to collector on specified interval.
  */
-public class AggregatedMetricsPublisher extends AbstractMetricPublisherThread {
-
+public class AggregatedMetricsPublisher extends AbstractMetricPublisher {
+    private static String AGGREGATED_POST_PREFIX = "/aggregated";
     private Log LOG;
 
-    public AggregatedMetricsPublisher(TimelineMetricsHolder timelineMetricsHolder, String collectorURL, int interval) {
-        super(timelineMetricsHolder, collectorURL, interval);
+    public AggregatedMetricsPublisher(TimelineMetricsHolder timelineMetricsHolder, Configuration configuration, int interval) {
+        super(timelineMetricsHolder, configuration, interval);
         LOG = LogFactory.getLog(this.getClass());
     }
 
@@ -50,7 +47,7 @@ public class AggregatedMetricsPublisher extends AbstractMetricPublisherThread {
      * @return
      */
     @Override
-    protected Map<Long, TimelineMetrics> getMetricsFromCache() {
+    protected Map<String, TimelineMetrics> getMetricsFromCache() {
         return timelineMetricsHolder.extractMetricsForAggregationPublishing();
     }
 
@@ -60,7 +57,7 @@ public class AggregatedMetricsPublisher extends AbstractMetricPublisherThread {
      * @return
      */
     @Override
-    protected String processMetrics(Map<Long, TimelineMetrics> metricForAggregationValues) {
+    protected String processMetrics(Map<String, TimelineMetrics> metricForAggregationValues) {
         HashMap<String, TimelineMetrics> nameToMetricMap = new HashMap<>();
         for (TimelineMetrics timelineMetrics : metricForAggregationValues.values()) {
             for (TimelineMetric timelineMetric : timelineMetrics.getMetrics()) {
@@ -90,12 +87,17 @@ public class AggregatedMetricsPublisher extends AbstractMetricPublisherThread {
         }
         String json = null;
         try {
-            json = objectMapper.writeValueAsString(new AggregationResult(metricAggregateMap, System.currentTimeMillis()));
+            json = mapper.writeValueAsString(new AggregationResult(metricAggregateMap, System.currentTimeMillis()));
             LOG.debug(json);
         } catch (Exception e) {
             LOG.error("Failed to convert result into json", e);
         }
 
         return json;
+    }
+
+    @Override
+    protected String getPostUrl() {
+        return BASE_POST_URL + AGGREGATED_POST_PREFIX;
     }
 }

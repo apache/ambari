@@ -32,8 +32,8 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -44,7 +44,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class ExecutionCommand extends AgentCommand {
 
-  private static Log LOG = LogFactory.getLog(ExecutionCommand.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ExecutionCommand.class);
 
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);

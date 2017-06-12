@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @XmlType(name="stop")
 public class StopGrouping extends Grouping implements UpgradeFunction {
 
-  private static Logger LOG = LoggerFactory.getLogger(StopGrouping.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StopGrouping.class);
 
   @Override
   public Task.Type getFunction() {

@@ -38,7 +38,7 @@ import com.google.inject.Injector;
  */
 public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider {
 
-  private static Logger LOG = LoggerFactory.getLogger(CachedRoleCommandOrderProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CachedRoleCommandOrderProvider.class);
 
   @Inject
   private Injector injector;

@@ -26,12 +26,12 @@ import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -49,7 +49,7 @@ import junit.framework.Assert;
 
 public class PersistServiceTest extends RandomPortJerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.api.services";
-  private static Log LOG = LogFactory.getLog(PersistServiceTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PersistServiceTest.class);
   Injector injector;
   protected Client client;
 

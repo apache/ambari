@@ -154,6 +154,11 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
+    scriptFileName: {
+      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.scriptFileName'),
+      value: '',
+      defaultValue: ''
+    },
     customProperties: Em.A([])
   }),
 
@@ -289,7 +294,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     'mail.smtp.host',
     'mail.smtp.port',
     'mail.smtp.starttls.enable',
-    'ambari.dispatch-property.script'
+    'ambari.dispatch-property.script',
+    'ambari.dispatch-property.script.filename'
   ],
 
   validationMap: {
@@ -339,7 +345,12 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         validator: 'hostsValidation'
       }
     ],
-    AlertScript:[]
+    AlertScript:[
+     {
+       errorKey: 'scriptFileNameError',
+       validator: 'scriptFileNameValidation',
+     }
+    ]
   },
 
   /**
@@ -435,6 +446,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('global.value', selectedAlertNotification.get('global'));
     inputFields.set('allGroups.value', selectedAlertNotification.get('global') ? 'all' : 'custom');
     inputFields.set('scriptDispatchProperty.value', properties['ambari.dispatch-property.script'] || '');
+    inputFields.set('scriptFileName.value', properties['ambari.dispatch-property.script.filename'] || '');
     // not allow to edit global field
     inputFields.set('global.disabled', true);
     inputFields.set('description.value', selectedAlertNotification.get('description'));
@@ -478,6 +490,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           this.smtpUsernameValidation();
           this.smtpPasswordValidation();
           this.retypePasswordValidation();
+          this.scriptFileNameValidation();
         },
 
         isEmailMethodSelected: Em.computed.equal('controller.inputFields.method.value', 'EMAIL'),
@@ -631,7 +644,19 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           }
         }.observes('controller.inputFields.retypeSMTPPassword.value', 'controller.inputFields.SMTPPassword.value'),
 
-        someErrorExists: Em.computed.or('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError'),
+
+        scriptFileNameValidation:function(){
+          var scriptFileNameValue = this.get('controller.inputFields.scriptFileName.value').trim();
+          if(!Em.isBlank(scriptFileNameValue) && !validator.isValidFileName(scriptFileNameValue)){
+             this.set('scriptFileNameError',true);
+             this.set('controller.inputFields.scriptFileName.errorMsg',Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.scriptFileName.invalid'));
+          }else{
+             this.set('scriptFileNameError',false);
+             this.set('controller.inputFields.scriptFileName.errorMsg',null);
+          }
+        }.observes('controller.inputFields.scriptFileName.value'),
+
+        someErrorExists: Em.computed.or('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'smtpUsernameError', 'smtpPasswordError', 'passwordError','scriptFileNameError'),
 
         setParentErrors: function () {
           this.set('parentView.hasErrors', this.get('someErrorExists'));
@@ -779,6 +804,10 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       var scriptDispatchProperty = inputFields.get('scriptDispatchProperty.value').trim();
       if( scriptDispatchProperty != '')
           properties['ambari.dispatch-property.script'] = scriptDispatchProperty;
+
+      var scriptFileName = inputFields.get('scriptFileName.value').trim();
+      if( scriptFileName != '')
+          properties['ambari.dispatch-property.script.filename'] = scriptFileName;
     }
     inputFields.get('customProperties').forEach(function (customProperty) {
       properties[customProperty.name] = customProperty.value;

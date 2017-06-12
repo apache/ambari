@@ -32,14 +32,6 @@ public interface ConfigFactory {
 
   /**
    * Creates a new {@link Config} object using provided values.
-   *
-   * @param cluster
-   * @param stackId
-   * @param type
-   * @param tag
-   * @param map
-   * @param mapAttributes
-   * @return
    */
   @Experimental(feature = ExperimentalFeature.MULTI_SERVICE,
       comment = "This constructor is only used for test compatibility and should be removed")

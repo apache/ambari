@@ -16,7 +16,17 @@
 * limitations under the License.
 }}
 
-<ul class="export-graph-list pull-right dropdown-menu">
-  <li><a {{action exportGraphData view.parentView.exportToCSVArgument target="view.parentView"}}>{{t common.csv}}</a></li>
-  <li><a {{action exportGraphData target="view.parentView"}}>{{t common.json}}</a></li>
+<ul class="dropdown-menu">
+  <li><button {{action exportGraphData view.parentView.exportToCSVArgument target="view.parentView"}}
+          class="button-border">
+    <i class="icon-file-text"></i>&nbsp;{{t common.csv}}</button>
+  </li>
+  <li><button {{action exportGraphData target="view.parentView"}}
+          class="button-border">
+    <i class="icon-file-text-alt"></i>&nbsp;{{t common.json}}</button>
+  </li>
+  <li><button {{action deleteWidget target="view.parentView"}} href="#"
+          class="button-border">
+    <i class="icon-trash"></i>&nbsp;{{t common.delete}}</button>
+  </li>
 </ul>

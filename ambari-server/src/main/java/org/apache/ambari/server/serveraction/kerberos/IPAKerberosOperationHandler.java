@@ -405,7 +405,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
       ShellCommandUtil.Result result = invokeIpa(String.format("service-show %s", principal));
       // ignore the keytab but set the password for this principal
       if (result.isSuccessful() && result.getStdout().contains("Keytab: False")) {
-        LOG.debug("Found service principal " + principal + " without password/keytab. Setting one");
+        LOG.debug("Found service principal {} without password/keytab. Setting one", principal);
         createKeytab(principal, password, 0);
       }
     }
@@ -505,7 +505,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
           stderr.read(err_data);
           err.append(err_data);
         }
-        throw new KerberosOperationException("No answer data available from stdin stream. STDERR: " + err.toString());
+        throw new KerberosOperationException("No answer data available from stdin stream. STDERR: " + err);
       }
       count++;
     }
@@ -534,12 +534,12 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
     BufferedReader stderr = null;
     OutputStreamWriter out = null;
 
-    LOG.debug("Updating password for: " + principal);
+    LOG.debug("Updating password for: {}", principal);
 
     UUID uuid = UUID.randomUUID();
     String fileName = System.getProperty("java.io.tmpdir") +
             File.pathSeparator +
-            "krb5cc_" + uuid.toString();
+            "krb5cc_" + uuid;
 
     try {
       ShellCommandUtil.Result result = invokeIpa(String.format("user-mod %s --random", principal));
@@ -665,7 +665,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
     command.add(query);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("Executing: %s", createCleanCommand(command)));
+      LOG.debug("Executing: {}", createCleanCommand(command));
     }
 
     List<String> fixedCommand = fixCommandList(command);
@@ -962,7 +962,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
     UUID uuid = UUID.randomUUID();
     String fileName = System.getProperty("java.io.tmpdir") +
             File.pathSeparator +
-            "ambari." + uuid.toString();
+            "ambari." + uuid;
 
     // TODO: add ciphers
     List<String> command = new ArrayList<>();
@@ -1007,7 +1007,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
       UUID uuid = UUID.randomUUID();
       fileName = System.getProperty("java.io.tmpdir") +
               File.pathSeparator +
-              "krb5cc_" + uuid.toString();
+              "krb5cc_" + uuid;
       env.put("KRB5CCNAME", String.format("FILE:%s", fileName));
 
       init(credentials, fileName);
@@ -1049,7 +1049,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
       try {
         String credentialsCache = String.format("FILE:%s", fileName);
 
-        LOG.debug("start subprocess " + executableKinit + " " + credentials.getPrincipal());
+        LOG.debug("start subprocess {} {}", executableKinit, credentials.getPrincipal());
         process = Runtime.getRuntime().exec(new String[]{executableKinit, "-c", credentialsCache, credentials.getPrincipal()});
         reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
         osw = new OutputStreamWriter(process.getOutputStream());
@@ -1073,7 +1073,7 @@ public class IPAKerberosOperationHandler extends KerberosOperationHandler {
         }
 
         String line = sb.toString();
-        LOG.debug("Reading a line: " + line);
+        LOG.debug("Reading a line: {}", line);
         if (!line.startsWith("Password")) {
           throw new KerberosOperationException("Unexpected response from kinit while trying to get ticket for "
                   + credentials.getPrincipal() + " got: " + line);

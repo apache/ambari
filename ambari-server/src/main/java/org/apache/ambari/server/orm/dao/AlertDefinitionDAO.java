@@ -54,7 +54,7 @@ public class AlertDefinitionDAO {
   /**
    * Logger.
    */
-  private static Logger LOG = LoggerFactory.getLogger(AlertDefinitionDAO.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlertDefinitionDAO.class);
 
   /**
    * JPA entity manager

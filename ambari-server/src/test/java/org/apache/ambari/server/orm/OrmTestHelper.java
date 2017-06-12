@@ -106,7 +106,7 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class OrmTestHelper {
 
-  private static Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OrmTestHelper.class);
 
   private AtomicInteger uniqueCounter = new AtomicInteger();
 
@@ -618,8 +618,6 @@ public class OrmTestHelper {
    * Convenient method to create or to get repository version for given cluster.  The repository
    * version string is based on the cluster's stack version.
    *
-   * @param stackId stack object
-   * @param version stack version
    * @return repository version
    */
   public RepositoryVersionEntity getOrCreateRepositoryVersion(Cluster cluster) {

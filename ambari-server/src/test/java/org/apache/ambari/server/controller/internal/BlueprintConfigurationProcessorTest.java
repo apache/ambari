@@ -426,6 +426,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Map<String, Map<String, String>> group2Properties = new HashMap<>();
     Map<String, String> group2YarnSiteProps = new HashMap<>();
     group2YarnSiteProps.put("yarn.resourcemanager.resource-tracker.address", "testhost");
+    group2YarnSiteProps.put("yarn.resourcemanager.webapp.https.address", "{{rm_host}}");
     group2Properties.put("yarn-site", group2YarnSiteProps);
     // host group config -> BP config -> cluster scoped config
     Configuration group2BPConfiguration = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
@@ -449,6 +450,8 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("%HOSTGROUP::group1%", properties.get("yarn-site").get("yarn.resourcemanager.hostname"));
     assertEquals("%HOSTGROUP::group1%",
       group2Configuration.getPropertyValue("yarn-site", "yarn.resourcemanager.resource-tracker.address"));
+    assertNotNull("Placeholder property should not have been removed.",
+      group2Configuration.getPropertyValue("yarn-site", "yarn.resourcemanager.webapp.https.address"));
   }
 
   @Test

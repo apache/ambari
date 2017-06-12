@@ -95,8 +95,6 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
 
   /**
    * Execution path for upgrade.
-   * @param clusterName the name of the cluster the upgrade is for
-   * @param version     the target version of the upgrade
    * @return the command report
    */
   private CommandReport finalizeUpgrade(UpgradeContext upgradeContext)
@@ -323,7 +321,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
     } catch (Exception e) {
       StringWriter sw = new StringWriter();
       e.printStackTrace(new PrintWriter(sw));
-      errSB.append(sw.toString());
+      errSB.append(sw);
 
       return createCommandReport(-1, HostRoleStatus.FAILED, "{}", outSB.toString(), errSB.toString());
     }

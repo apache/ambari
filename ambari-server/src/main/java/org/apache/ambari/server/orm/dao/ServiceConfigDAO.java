@@ -153,7 +153,6 @@ public class ServiceConfigDAO {
    *          the cluster (not {@code null}).
    * @param stackId
    *          the stack (not {@code null}).
-   * @param service
    * @return all service configurations for the cluster and stack.
    */
   @RequiresSession

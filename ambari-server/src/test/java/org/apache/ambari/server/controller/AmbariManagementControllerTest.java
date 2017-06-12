@@ -2054,8 +2054,7 @@ public class AmbariManagementControllerTest {
     boolean foundH2CLT = false;
 
     for (ShortTaskStatus taskStatus : taskStatuses) {
-      LOG.debug("Task dump :"
-          + taskStatus.toString());
+      LOG.debug("Task dump :{}", taskStatus);
       Assert.assertEquals(RoleCommand.INSTALL.toString(),
           taskStatus.getCommand());
       Assert.assertEquals(HostRoleStatus.PENDING.toString(),
@@ -2166,7 +2165,7 @@ public class AmbariManagementControllerTest {
 
     StringBuilder sb = new StringBuilder();
     clusters.debugDump(sb);
-    LOG.info("Cluster Dump: " + sb.toString());
+    LOG.info("Cluster Dump: " + sb);
 
     for (ServiceComponent sc :
       clusters.getCluster(cluster1).getService(serviceName)
@@ -3457,7 +3456,7 @@ public class AmbariManagementControllerTest {
     List<Stage> stages = actionDB.getAllStages(requestId);
 
     for (Stage stage : stages) {
-      LOG.debug("Stage dump: " + stage.toString());
+      LOG.debug("Stage dump: {}", stage);
     }
 
     Assert.assertTrue(!stages.isEmpty());
@@ -3694,7 +3693,7 @@ public class AmbariManagementControllerTest {
     // FIXME check stage count
 
     for (Stage stage : stages) {
-      LOG.debug("Stage dump: " + stage.toString());
+      LOG.debug("Stage dump: {}", stage);
     }
 
     // FIXME verify stages content - execution commands, etc
@@ -3864,7 +3863,7 @@ public class AmbariManagementControllerTest {
     // FIXME check stage count
 
     for (Stage stage : stages) {
-      LOG.debug("Stage dump: " + stage.toString());
+      LOG.debug("Stage dump: {}", stage);
     }
 
     // FIXME verify stages content - execution commands, etc
@@ -5255,7 +5254,7 @@ public class AmbariManagementControllerTest {
       List<HostRoleCommand> hrcs = stage.getOrderedHostRoleCommands();
 
       for (HostRoleCommand hrc : hrcs) {
-        LOG.debug("role: " + hrc.getRole());
+        LOG.debug("role: {}", hrc.getRole());
         if (hrc.getRole().toString().equals("HDFS_CLIENT")) {
           if (hrc.getHostName().equals(host3)) {
             hdfsCmdHost3 = hrc;
@@ -5494,7 +5493,7 @@ public class AmbariManagementControllerTest {
 
     stages = actionDB.getAllStages(trackAction.getRequestId());
     for (Stage s : stages) {
-      LOG.info("Stage dump : " + s.toString());
+      LOG.info("Stage dump : " + s);
     }
     Assert.assertEquals(1, stages.size());
 
@@ -10398,7 +10397,7 @@ public class AmbariManagementControllerTest {
       add(configRequest);
     }});
     for(ConfigurationResponse resp : requestedConfigs) {
-      String secretName = "SECRET:hdfs-site:"+resp.getVersion().toString()+":test.password";
+      String secretName = "SECRET:hdfs-site:"+ resp.getVersion() +":test.password";
       if(resp.getConfigs().containsKey("test.password")) {
         assertEquals(resp.getConfigs().get("test.password"), secretName);
       }

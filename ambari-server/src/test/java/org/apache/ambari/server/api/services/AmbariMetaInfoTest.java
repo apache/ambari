@@ -587,7 +587,7 @@ public class AmbariMetaInfoTest {
 
     for (List<RepositoryInfo> vals : repos.values()) {
       for (RepositoryInfo repo : vals) {
-        LOG.debug("Dumping repo info : " + repo.toString());
+        LOG.debug("Dumping repo info : {}", repo);
         if (repo.getOsType().equals("centos5")) {
           centos5Cnt.add(repo.getRepoId());
         } else if (repo.getOsType().equals("centos6")) {
@@ -1070,7 +1070,7 @@ public class AmbariMetaInfoTest {
 
               }
             }
-            Assert.assertEquals(failedMetrics.toString() +
+            Assert.assertEquals(failedMetrics +
                 " metrics defined with pointInTime=true for both jmx and ganglia types.",
               0, failedMetrics.size());
           }

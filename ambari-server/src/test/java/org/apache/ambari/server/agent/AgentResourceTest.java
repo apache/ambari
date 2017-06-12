@@ -75,13 +75,13 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.easymock.EasyMock;
 import org.eclipse.jetty.server.SessionManager;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -103,7 +103,7 @@ import junit.framework.Assert;
 
 public class AgentResourceTest extends RandomPortJerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.agent.rest";
-  private static Log LOG = LogFactory.getLog(AgentResourceTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AgentResourceTest.class);
   protected Client client;
   HeartBeatHandler handler;
   ActionManager actionManager;

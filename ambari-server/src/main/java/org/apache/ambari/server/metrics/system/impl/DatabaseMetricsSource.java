@@ -44,7 +44,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * and publishes to configured Metric Sink.
  **/
 public class DatabaseMetricsSource extends AbstractMetricsSource {
-  private static Logger LOG = LoggerFactory.getLogger(DatabaseMetricsSource.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseMetricsSource.class);
   private static String dbMonitorPrefix = "monitor.";
   private ExecutorService executor;
   private MetricsConfiguration configuration;

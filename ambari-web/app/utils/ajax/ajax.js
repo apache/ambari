@@ -3131,7 +3131,7 @@ var ajax = Em.Object.extend({
     if(config.hasOwnProperty("showLoadingPopup") && config.showLoadingPopup === true) {
       loadingPopupTimeout = setTimeout(function() {
         loadingPopup = App.ModalPopup.show({
-          header: Em.I18n.t('jobs.loadingTasks'),
+          header: Em.I18n.t('common.loading.eclipses'),
           backdrop: false,
           primary: false,
           secondary: false,

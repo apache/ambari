@@ -1658,7 +1658,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that commands created for {@link StageWrapper.Type#RU_TASKS} set the
+   * Tests that commands created for {@link org.apache.ambari.server.state.stack.upgrade.StageWrapper.Type#RU_TASKS} set the
    * service and component on the {@link ExecutionCommand}.
    * <p/>
    * Without this, commands of this type would not be able to determine which

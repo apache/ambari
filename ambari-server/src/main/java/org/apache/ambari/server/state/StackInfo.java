@@ -295,7 +295,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
       sb.append("\n\t\tRepositories:");
       for (RepositoryInfo repository : repositories) {
         sb.append("\t\t");
-        sb.append(repository.toString());
+        sb.append(repository);
       }
     }
 

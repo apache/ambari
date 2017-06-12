@@ -650,11 +650,6 @@ public class UpgradeActionTest {
 
   /**
    * Creates an upgrade and associates it with the cluster.
-   *
-   * @param cluster
-   * @param sourceRepo
-   * @param targetRepo
-   * @throws Exception
    */
   private UpgradeEntity createUpgrade(Cluster cluster, RepositoryVersionEntity repositoryVersion)
       throws Exception {

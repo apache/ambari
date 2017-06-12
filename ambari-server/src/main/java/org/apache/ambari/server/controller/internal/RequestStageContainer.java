@@ -218,7 +218,7 @@ public class RequestStageContainer {
 
       if (request != null && request.getStages()!= null && !request.getStages().isEmpty()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Triggering Action Manager, request=%s", request));
+          LOG.debug("Triggering Action Manager, request={}", request);
         }
         actionManager.sendActions(request, actionRequest);
       }

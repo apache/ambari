@@ -208,7 +208,7 @@ describe('App.MainAlertDefinitionDetailsView', function () {
 
       it("lastDayAlertsCount is null", function () {
         lastDayCountView.set('parentView.controller.lastDayAlertsCount', null);
-        expect(lastDayCountView.get('count')).to.equal(Em.I18n.t('app.loadingPlaceholder'));
+        expect(lastDayCountView.get('count')).to.equal(Em.I18n.t('common.loading.eclipses'));
       });
 
       it("lastDayAlertsCount does not contain host", function () {

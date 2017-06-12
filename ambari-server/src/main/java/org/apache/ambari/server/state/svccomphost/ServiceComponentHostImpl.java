@@ -690,8 +690,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         ServiceComponentHostInstallEvent e =
             (ServiceComponentHostInstallEvent) event;
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Updating live stack version during INSTALL event"
-              + ", new stack version=" + e.getStackId());
+          LOG.debug("Updating live stack version during INSTALL event, new stack version={}", e.getStackId());
         }
       }
     }
@@ -871,6 +870,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setState(State state) {
     stateMachine.setCurrentState(state);
     HostComponentStateEntity stateEntity = getStateEntity();
@@ -899,6 +899,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setVersion(String version) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -926,6 +927,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Transactional
   public void setSecurityState(SecurityState securityState) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -975,6 +977,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param upgradeState  the upgrade state
    */
   @Override
+  @Transactional
   public void setUpgradeState(UpgradeState upgradeState) {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
@@ -1003,12 +1006,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
+  @Transactional
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Handling ServiceComponentHostEvent event,"
-          + " eventType=" + event.getType().name()
-          + ", event=" + event.toString());
+      LOG.debug("Handling ServiceComponentHostEvent event, eventType={}, event={}", event.getType().name(), event);
     }
     State oldState = getState();
     try {
@@ -1040,13 +1042,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
                + ", oldState=" + oldState
                + ", currentState=" + getState());
       if (LOG.isDebugEnabled()) {
-        LOG.debug("ServiceComponentHost transitioned to a new state"
-            + ", serviceComponentName=" + getServiceComponentName()
-            + ", hostName=" + getHostName()
-            + ", oldState=" + oldState
-            + ", currentState=" + getState()
-            + ", eventType=" + event.getType().name()
-            + ", event=" + event);
+        LOG.debug("ServiceComponentHost transitioned to a new state, serviceComponentName={}, hostName={}, oldState={}, currentState={}, eventType={}, event={}",
+          getServiceComponentName(), getHostName(), oldState, getState(), event.getType().name(), event);
       }
     }
   }
@@ -1388,7 +1385,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           Long groupId = Long.parseLong(overrideEntry.getKey());
           hc.getConfigGroupOverrides().put(groupId, overrideEntry.getValue());
           if (!configGroupMap.containsKey(groupId)) {
-            LOG.debug("Config group does not exist, id = " + groupId);
+            LOG.debug("Config group does not exist, id = {}", groupId);
           }
         }
       }

@@ -161,7 +161,7 @@ public class StackRoleCommandOrder {
 			}
 			depValue = buffer.toString();
 		  }
-		  LOG.debug(depKey + " => " + depValue);
+      LOG.debug("{} => {}", depKey, depValue);
 		}
       }
     }
