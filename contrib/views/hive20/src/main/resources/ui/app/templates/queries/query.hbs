@@ -56,11 +56,11 @@
 
       </div>
     </div>
-
-    {{#tabs-pane tabs=tabs inverse=true as |tab|}}
-      {{tabs-item tab=tab tabs=tabs}}
-    {{/tabs-pane}}
-
+    {{#if worksheet.currentJobId}}
+        {{#tabs-pane tabs=tabs inverse=true as |tab|}}
+          {{tabs-item tab=tab tabs=tabs}}
+        {{/tabs-pane}}
+    {{/if}}
     {{outlet}}
   </div>
 </div>
