@@ -37,27 +37,23 @@ export default Ember.Route.extend(UILoggerMixin, {
     model.set('lastResultRoute', ".results");
 
     if(!Ember.isEmpty(model.get('currentJobData'))){
-
       let jobId = model.get('currentJobData').job.id;
+      this.controller.set('model', model);
       this.controller.set('jobId', jobId);
       this.controller.set('payloadTitle',  model.get('currentJobData').job.title);
       this.controller.set('isQueryRunning', model.get('isQueryRunning'));
       this.controller.set('previousPage', model.get('previousPage'));
       this.controller.set('hasNext', model.get('hasNext'));
       this.controller.set('hasPrevious', model.get('hasPrevious'));
-
       this.controller.set('queryResult', model.get('queryResult'));
       this.controller.set('isExportResultSuccessMessege', false);
       this.controller.set('isExportResultFailureMessege', false);
       this.controller.set('showSaveHdfsModal', false);
       this.controller.set('showDownloadCsvModal', false);
-
-
       this.controller.set('hasJobAssociated', true);
     } else {
       this.controller.set('hasJobAssociated', false);
     }
-
   },
 
   actions:{
