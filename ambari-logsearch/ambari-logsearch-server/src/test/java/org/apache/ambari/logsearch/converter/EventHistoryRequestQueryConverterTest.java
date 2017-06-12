@@ -18,27 +18,27 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
+import org.apache.ambari.logsearch.model.request.impl.EventHistoryRequest;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class UserConfigRequestQueryConverterTest extends AbstractRequestConverterTest {
+public class EventHistoryRequestQueryConverterTest extends AbstractRequestConverterTest {
 
-  private UserConfigRequestQueryConverter underTest;
+  private EventHistoryRequestQueryConverter underTest;
 
   @Before
   public void setUp() {
-    underTest = new UserConfigRequestQueryConverter();
+    underTest = new EventHistoryRequestQueryConverter();
   }
 
   @Test
   public void testConvert() {
     // GIVEN
-    UserConfigRequest request = new UserConfigRequest();
-    request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on UserConfigRequest object -> not null
+    EventHistoryRequest request = new EventHistoryRequest();
+    request.setRowType("myRowType"); // TODO: validate these 3 fields @Valid on EventHistoryRequest object -> not null
     request.setFilterName("myFilterName");
     request.setClusters("cl1,cl2");
     // WHEN

@@ -24,13 +24,13 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Collection;
 
 @ApiModel
-public class UserConfigDataListResponse extends SearchResponse{
+public class EventHistoryDataListResponse extends SearchResponse{
 
   @ApiModelProperty
   private String name;
 
   @ApiModelProperty
-  private Collection<UserConfigData> userConfigList;
+  private Collection<EventHistoryData> eventHistoryDataList;
 
   public String getName() {
     return name;
@@ -40,16 +40,16 @@ public class UserConfigDataListResponse extends SearchResponse{
     this.name = name;
   }
 
-  public Collection<UserConfigData> getUserConfigList() {
-    return userConfigList;
+  public Collection<EventHistoryData> getEventHistoryDataList() {
+    return eventHistoryDataList;
   }
 
-  public void setUserConfigList(Collection<UserConfigData> userConfigList) {
-    this.userConfigList = userConfigList;
+  public void setEventHistoryDataList(Collection<EventHistoryData> eventHistoryDataList) {
+    this.eventHistoryDataList = eventHistoryDataList;
   }
 
   @Override
   public int getListSize() {
-    return userConfigList != null ? userConfigList.size() : 0;
+    return eventHistoryDataList != null ? eventHistoryDataList.size() : 0;
   }
 }

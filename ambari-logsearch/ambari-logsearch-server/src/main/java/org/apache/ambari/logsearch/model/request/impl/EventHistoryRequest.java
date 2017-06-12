@@ -16,45 +16,38 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.conf.global;
+package org.apache.ambari.logsearch.model.request.impl;
 
-import javax.inject.Named;
+import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.model.request.EventHistoryParamDefinition;
 
-@Named
-public class SolrUserConfigState implements SolrCollectionState {
+import javax.ws.rs.QueryParam;
 
-  private volatile boolean znodeReady;
-  private volatile boolean solrCollectionReady;
-  private volatile boolean configurationUploaded;
+public class EventHistoryRequest extends CommonSearchRequest implements EventHistoryParamDefinition {
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_FILTER_NAME)
+  private String filterName;
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_ROW_TYPE)
+  private String rowType;
 
   @Override
-  public boolean isZnodeReady() {
-    return znodeReady;
+  public String getFilterName() {
+    return filterName;
   }
 
   @Override
-  public void setZnodeReady(boolean znodeAvailable) {
-    this.znodeReady = znodeAvailable;
+  public void setFilterName(String filterName) {
+    this.filterName = filterName;
   }
 
   @Override
-  public boolean isSolrCollectionReady() {
-    return solrCollectionReady;
+  public String getRowType() {
+    return rowType;
   }
 
   @Override
-  public void setSolrCollectionReady(boolean solrCollectionReady) {
-    this.solrCollectionReady = solrCollectionReady;
+  public void setRowType(String rowType) {
+    this.rowType = rowType;
   }
-
-  @Override
-  public boolean isConfigurationUploaded() {
-    return configurationUploaded;
-  }
-
-  @Override
-  public void setConfigurationUploaded(boolean configurationUploaded) {
-    this.configurationUploaded = configurationUploaded;
-  }
-
 }

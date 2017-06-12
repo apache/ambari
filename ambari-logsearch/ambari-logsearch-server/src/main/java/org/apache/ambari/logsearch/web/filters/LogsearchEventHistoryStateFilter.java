@@ -27,10 +27,10 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class LogsearchUserConfigStateFilter extends AbstractLogsearchGlobalStateFilter {
+public class LogsearchEventHistoryStateFilter extends AbstractLogsearchGlobalStateFilter {
 
 
-  public LogsearchUserConfigStateFilter(RequestMatcher requestMatcher, SolrCollectionState state, SolrPropsConfig solrPropsConfig) {
+  public LogsearchEventHistoryStateFilter(RequestMatcher requestMatcher, SolrCollectionState state, SolrPropsConfig solrPropsConfig) {
     super(requestMatcher, state, solrPropsConfig);
   }
 
@@ -39,9 +39,9 @@ public class LogsearchUserConfigStateFilter extends AbstractLogsearchGlobalState
     String requestUri = request.getRequestURI();
     if (!solrCollectionState.isZnodeReady()) {
       return RESTErrorUtil.createMessageResponse(String.format(ZNODE_NOT_READY_MSG,
-        "userconfig", solrPropsConfig.getZkConnectString(), requestUri), MessageEnums.ZNODE_NOT_READY);
+        "history", solrPropsConfig.getZkConnectString(), requestUri), MessageEnums.ZNODE_NOT_READY);
     } else if (!solrCollectionState.isConfigurationUploaded()) {
-      return RESTErrorUtil.createMessageResponse(String.format(ZK_CONFIG_NOT_READY_MSG, "userconfig",
+      return RESTErrorUtil.createMessageResponse(String.format(ZK_CONFIG_NOT_READY_MSG, "history",
         solrPropsConfig.getConfigName(), solrPropsConfig.getCollection(), requestUri), MessageEnums.ZK_CONFIG_NOT_READY);
     } else if (!solrCollectionState.isSolrCollectionReady()) {
       return RESTErrorUtil.createMessageResponse(String.format(SOLR_COLLECTION_NOT_READY_MSG,

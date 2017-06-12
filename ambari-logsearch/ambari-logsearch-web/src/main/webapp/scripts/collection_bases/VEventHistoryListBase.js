@@ -28,7 +28,7 @@ define(['require',
     var VEventHistoryListBase = BaseCollection.extend(
         /** @lends VEventHistoryListBase.prototype */
         {
-            url: Globals.baseURL + 'userconfig',
+            url: Globals.baseURL + 'history',
 
             model: VEventHistory,
 
@@ -48,7 +48,7 @@ define(['require',
              *************************/
 
             saveEventHistory: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig';
+                var url = Globals.baseURL + 'history';
 
                 options = _.extend({
                     data: JSON.stringify(postData),
@@ -59,7 +59,7 @@ define(['require',
                 return this.constructor.nonCrudOperation.call(this, url, 'POST', options);
             },
             saveDashboard: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig';
+                var url = Globals.baseURL + 'history';
 
                 options = _.extend({
                     data: JSON.stringify(postData),
@@ -70,7 +70,7 @@ define(['require',
                 return this.constructor.nonCrudOperation.call(this, url, 'POST', options);
             },
             deleteEventHistory: function(postData, options) {
-                var url = Globals.baseURL + 'userconfig/' + postData.id;
+                var url = Globals.baseURL + 'history/' + postData.id;
 
                 options = _.extend({
                     contentType: 'application/json',
