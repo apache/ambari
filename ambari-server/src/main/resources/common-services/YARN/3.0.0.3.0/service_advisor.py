@@ -1796,7 +1796,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
 
     self.validators = [("yarn-site", self.validateYARNSiteConfigurationsFromHDP206),
                        ("yarn-site", self.validateYARNSiteConfigurationsFromHDP25),
-                       ("yarn-site" , self.validateYARNSiteConfigurationsFromHDP26),
+                       ("yarn-ste" , self.validateYarnSiteConfigurationsFromHDP26),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP206),
                        ("yarn-env", self.validateYARNEnvConfigurationsFromHDP22),
                        ("ranger-yarn-plugin-properties", self.validateYARNRangerPluginConfigurationsFromHDP22)]
@@ -1853,7 +1853,7 @@ class YARNValidator(service_advisor.ServiceAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "yarn-site")
     return validationProblems
 
-  def validateYARNSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateYarnSiteConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     siteProperties = services["configurations"]["yarn-site"]["properties"]
     if services["configurations"]["yarn-site"]["properties"]["yarn.http.policy"] == 'HTTP_ONLY':
