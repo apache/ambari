@@ -81,6 +81,13 @@ export HADOOP_SECONDARYNAMENODE_OPTS="${SHARED_HADOOP_NAMENODE_OPTS} -XX:OnOutOf
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 {% endif %}
 
+{% if security_enabled %}
+export HADOOP_NAMENODE_OPTS="$HADOOP_NAMENODE_OPTS -Djava.security.auth.login.config={{hadoop_conf_dir}}/hdfs_nn_jaas.conf -Djavax.security.auth.useSubjectCredsOnly=false"
+export HADOOP_SECONDARYNAMENODE_OPTS="$HADOOP_SECONDARYNAMENODE_OPTS -Djava.security.auth.login.config={{hadoop_conf_dir}}/hdfs_nn_jaas.conf -Djavax.security.auth.useSubjectCredsOnly=false"
+export HADOOP_DATANODE_OPTS="$HADOOP_DATANODE_OPTS -Djava.security.auth.login.config={{hadoop_conf_dir}}/hdfs_dn_jaas.conf -Djavax.security.auth.useSubjectCredsOnly=false"
+export HADOOP_JOURNALNODE_OPTS="$HADOOP_JOURNALNODE_OPTS -Djava.security.auth.login.config={{hadoop_conf_dir}}/hdfs_jn_jaas.conf -Djavax.security.auth.useSubjectCredsOnly=false"
+{% endif %}
+
 HADOOP_NFS3_OPTS="-Xmx{{nfsgateway_heapsize}}m -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_NFS3_OPTS}"
 HADOOP_BALANCER_OPTS="-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}"
 

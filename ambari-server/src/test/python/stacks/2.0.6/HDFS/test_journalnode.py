@@ -230,6 +230,16 @@ class TestJournalnode(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_dn_jaas.conf',
+                              content = Template('hdfs_dn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/hdfs_nn_jaas.conf',
+                              content = Template('hdfs_nn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
@@ -249,7 +259,6 @@ class TestJournalnode(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
-
 
 
   @patch('time.sleep')

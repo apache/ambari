@@ -500,6 +500,16 @@ class TestResourceManager(RMFTestCase):
                               owner = 'yarn',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn_nm_jaas.conf',
+                              content = Template('yarn_nm_jaas.conf.j2'),
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/mapred_jaas.conf',
+                              content = Template('mapred_jaas.conf.j2'),
+                              owner = 'mapred',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               owner = 'mapred',
                               group = 'hadoop',

@@ -39,3 +39,14 @@ Client {
    serviceName="zookeeper"
    principal="{{kafka_jaas_principal}}";
 };
+com.sun.security.jgss.krb5.initiate {
+   com.sun.security.auth.module.Krb5LoginModule required
+   renewTGT=false
+   doNotPrompt=true
+   useKeyTab=true
+   keyTab="{{kafka_keytab_path}}"
+   storeKey=true
+   useTicketCache=false
+   serviceName="{{kafka_bare_jaas_principal}}"
+   principal="{{kafka_jaas_principal}}";
+};

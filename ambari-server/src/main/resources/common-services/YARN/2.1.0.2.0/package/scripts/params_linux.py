@@ -242,6 +242,9 @@ nm_hosts = default("/clusterHostInfo/nm_hosts", [])
 # don't using len(nm_hosts) here, because check can take too much time on large clusters
 number_of_nm = 1
 
+hs_host = default("/clusterHostInfo/hs_host", [])
+has_hs = not len(hs_host) == 0
+
 # default kinit commands
 rm_kinit_cmd = ""
 yarn_timelineservice_kinit_cmd = ""
@@ -265,19 +268,26 @@ if security_enabled:
 
   # YARN timeline security options
   if has_ats:
-    _yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
-    _yarn_timelineservice_principal_name = _yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
-    _yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
-    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {_yarn_timelineservice_keytab} {_yarn_timelineservice_principal_name};")
+    yarn_timelineservice_principal_name = config['configurations']['yarn-site']['yarn.timeline-service.principal']
+    yarn_timelineservice_principal_name = yarn_timelineservice_principal_name.replace('_HOST', hostname.lower())
+    yarn_timelineservice_keytab = config['configurations']['yarn-site']['yarn.timeline-service.keytab']
+    yarn_timelineservice_kinit_cmd = format("{kinit_path_local} -kt {yarn_timelineservice_keytab} {yarn_timelineservice_principal_name};")
+    yarn_ats_jaas_file = os.path.join(config_dir, 'yarn_ats_jaas.conf')
 
   if 'yarn.nodemanager.principal' in config['configurations']['yarn-site']:
-    _nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
-    if _nodemanager_principal_name:
-      _nodemanager_principal_name = _nodemanager_principal_name.replace('_HOST', hostname.lower())
+    nodemanager_principal_name = default('/configurations/yarn-site/yarn.nodemanager.principal', None)
+    if nodemanager_principal_name:
+      nodemanager_principal_name = nodemanager_principal_name.replace('_HOST', hostname.lower())
 
-    _nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
-    nodemanager_kinit_cmd = format("{kinit_path_local} -kt {_nodemanager_keytab} {_nodemanager_principal_name};")
+    nodemanager_keytab = config['configurations']['yarn-site']['yarn.nodemanager.keytab']
+    nodemanager_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
+    yarn_nm_jaas_file = os.path.join(config_dir, 'yarn_nm_jaas.conf')
 
+  if has_hs:
+    mapred_jhs_principal_name = config['configurations']['mapred-site']['mapreduce.jobhistory.principal']
+    mapred_jhs_principal_name = mapred_jhs_principal_name.replace('_HOST', hostname.lower())
+    mapred_jhs_keytab = config['configurations']['mapred-site']['mapreduce.jobhistory.keytab']
+    mapred_jaas_file = os.path.join(config_dir, 'mapred_jaas.conf')
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
 yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']

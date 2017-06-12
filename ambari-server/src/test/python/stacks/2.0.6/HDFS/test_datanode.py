@@ -416,6 +416,16 @@ class TestDatanode(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
+    self.assertResourceCalled('File', conf_dir + '/hdfs_dn_jaas.conf',
+                              content = Template('hdfs_dn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('File', conf_dir + '/hdfs_nn_jaas.conf',
+                              content = Template('hdfs_nn_jaas.conf.j2'),
+                              owner = 'hdfs',
+                              group = 'hadoop',
+                              )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               owner = 'hdfs',
                               group = 'hadoop',
