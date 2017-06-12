@@ -21,6 +21,7 @@ import {InMemoryDbService} from 'angular-in-memory-web-api';
 export class mockApiDataService implements InMemoryDbService {
   createDb() {
     return {
+      login: {},
       audit: {
         logs: {
           logList: [

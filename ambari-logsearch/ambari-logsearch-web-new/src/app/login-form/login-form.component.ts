@@ -43,10 +43,13 @@ export class LoginFormComponent implements OnInit {
 
   login() {
     this.isRequestInProgress = true;
+    /*
+    TODO uncomment for using the real server
     this.httpClient.post('login', {
       username: this.username,
       password: this.password
-    }).finally(() => {
+    })*/
+    this.httpClient.get('api/login').finally(() => {
       this.isRequestInProgress = false;
     }).subscribe(() => {
       this.isLoginAlertDisplayed = false;
