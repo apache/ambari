@@ -264,7 +264,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
     expect(context.getSupportedServices()).andReturn(Sets.newHashSet("ZOOKEEPER")).atLeastOnce();
     expect(context.getSourceRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion211).atLeastOnce();
     expect(context.getTargetRepositoryVersion(EasyMock.anyString())).andReturn(repoVersion220).atLeastOnce();
-    expect(context.getRepositoryType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(context.getOrchestrationType()).andReturn(RepositoryType.STANDARD).anyTimes();
     expect(context.getHostRoleCommandFactory()).andStubReturn(m_injector.getInstance(HostRoleCommandFactory.class));
     expect(context.getRoleGraphFactory()).andStubReturn(m_injector.getInstance(RoleGraphFactory.class));
 

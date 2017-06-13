@@ -30,10 +30,12 @@
   
   <manifest>
     <service id="HBASE-112" name="HBASE" version="1.1.2" version-id="2_3_4_0-3396" />
+    <service id="ZOOKEEPER-346" name="ZOOKEEPER" version="3.4.6" version-id="2_3_4_0-3396" />
   </manifest>
   
   <available-services>
     <service idref="HBASE-112" />
+    <service idref="ZOOKEEPER-346" />
   </available-services>
   
   <repository-info>

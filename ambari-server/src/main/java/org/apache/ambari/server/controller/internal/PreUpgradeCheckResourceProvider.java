@@ -52,6 +52,7 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.lang.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +83,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
    */
   public static final String UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "upgrade_pack");
   public static final String UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
+  public static final String UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "for_revert");
 
   @Inject
   private static Provider<Clusters> clustersProvider;
@@ -114,7 +116,8 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID,
       UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID,
       UPGRADE_CHECK_UPGRADE_PACK_PROPERTY_ID,
-      UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID);
+      UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID,
+      UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID);
 
 
   @SuppressWarnings("serial")
@@ -134,6 +137,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
+  @Override
   public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException,
     NoSuchResourceException, NoSuchParentResourceException {
 
@@ -173,6 +177,11 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         // set some required properties on the check request
         upgradeCheckRequest.setRepositoryVersion(repositoryVersionId);
         upgradeCheckRequest.setTargetStackId(repositoryVersionEntity.getStackId());
+      }
+
+      if (propertyMap.containsKey(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID)) {
+        Boolean forRevert = BooleanUtils.toBooleanObject(propertyMap.get(UPGRADE_CHECK_FOR_REVERT_PROPERTY_ID).toString());
+        upgradeCheckRequest.setRevert(forRevert);
       }
 
       //ambariMetaInfo.getStack(stackName, cluster.getCurrentStackVersion().getStackVersion()).getUpgradePacks()

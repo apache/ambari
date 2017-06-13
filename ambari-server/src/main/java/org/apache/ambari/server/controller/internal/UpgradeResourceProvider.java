@@ -127,6 +127,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   public static final String UPGRADE_REPO_VERSION_ID = "Upgrade/repository_version_id";
   public static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
   public static final String UPGRADE_PACK = "Upgrade/pack";
+  public static final String UPGRADE_ID = "Upgrade/upgrade_id";
   public static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
   public static final String UPGRADE_ASSOCIATED_VERSION = "Upgrade/associated_version";
   public static final String UPGRADE_VERSIONS = "Upgrade/versions";
@@ -173,6 +174,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *
    */
   public static final String UPGRADE_HOST_ORDERED_HOSTS = "Upgrade/host_order";
+
+  /**
+   * Allows reversion of a successful upgrade of a patch.
+   */
+  public static final String UPGRADE_REVERT_UPGRADE_ID = "Upgrade/revert_upgrade_id";
 
   /**
    * The role that will be used when creating HRC's for the type
@@ -251,6 +257,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_REPO_VERSION_ID);
     PROPERTY_IDS.add(UPGRADE_TYPE);
     PROPERTY_IDS.add(UPGRADE_PACK);
+    PROPERTY_IDS.add(UPGRADE_ID);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
     PROPERTY_IDS.add(UPGRADE_ASSOCIATED_VERSION);
     PROPERTY_IDS.add(UPGRADE_VERSIONS);
@@ -263,6 +270,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_SKIP_PREREQUISITE_CHECKS);
     PROPERTY_IDS.add(UPGRADE_FAIL_ON_CHECK_WARNINGS);
     PROPERTY_IDS.add(UPGRADE_HOST_ORDERED_HOSTS);
+    PROPERTY_IDS.add(UPGRADE_REVERT_UPGRADE_ID);
 
     PROPERTY_IDS.add(REQUEST_CONTEXT_ID);
     PROPERTY_IDS.add(REQUEST_CREATE_TIME_ID);
@@ -538,6 +546,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private Resource toResource(UpgradeEntity entity, String clusterName, Set<String> requestedIds) {
     ResourceImpl resource = new ResourceImpl(Resource.Type.Upgrade);
 
+    setResourceProperty(resource, UPGRADE_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
     setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType(), requestedIds);
     setResourceProperty(resource, UPGRADE_PACK, entity.getUpgradePackage(), requestedIds);
@@ -667,6 +676,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgrade.setAutoSkipComponentFailures(upgradeContext.isComponentFailureAutoSkipped());
     upgrade.setAutoSkipServiceCheckFailures(upgradeContext.isServiceCheckFailureAutoSkipped());
     upgrade.setDowngradeAllowed(upgradeContext.isDowngradeAllowed());
+    upgrade.setOrchestration(upgradeContext.getOrchestrationType());
 
     // create to/from history for this upgrade - this should be done before any
     // possible changes to the desired version for components
@@ -1355,7 +1365,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
         // depending on whether this is an upgrade or a downgrade, the history
         // will be different
-        if (upgradeContext.getDirection() == Direction.UPGRADE) {
+        if (upgradeContext.getDirection() == Direction.UPGRADE || upgradeContext.isPatchRevert()) {
           history.setFromRepositoryVersion(component.getDesiredRepositoryVersion());
           history.setTargetRepositoryVersion(upgradeContext.getRepositoryVersion());
         } else {
