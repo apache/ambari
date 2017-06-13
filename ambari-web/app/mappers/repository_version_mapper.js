@@ -145,7 +145,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
               resultService.push(this.parseIt(serviceObj, this.get('modelService')));
             }, this);
           }
-          repo.use_redhat_satellite = item.operating_systems[0].OperatingSystems.ambari_managed_repositories === false;
+          repo.use_redhat_satellite = Em.get(item, 'operating_systems.0.OperatingSystems.ambari_managed_repositories') === false;
           repo.operating_systems = osArray;
           repo.stack_services = serviceArray;
           resultRepoVersion.push(this.parseIt(repo, this.modelRepoVersion(isCurrentStackOnly)));

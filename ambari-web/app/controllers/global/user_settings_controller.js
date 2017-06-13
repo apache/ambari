@@ -119,6 +119,9 @@ App.UserSettingsController = Em.Controller.extend(App.Persist, {
     var userSettings = {};
     var self = this;
     this.dataLoading().done(function (json) {
+      if (!json) {
+        return;
+      }
       Object.keys(userSettingsKeys).forEach(function (k) {
         var value = userSettingsKeys[k].defaultValue;
         if (undefined === json[userSettingsKeys[k].name]) {

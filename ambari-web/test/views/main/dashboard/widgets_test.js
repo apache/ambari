@@ -211,14 +211,14 @@ describe('App.MainDashboardWidgetsView', function () {
 
     it('isHiddenByDefault should be undefined', function() {
       var widgets = [{id: 20}];
-      this.mock.returns({properties: {'hide_yarn_memory_widget': 'false'}});
+      this.mock.returns({'hide_yarn_memory_widget': 'false'});
       view.resolveConfigDependencies(widgets);
       expect(widgets[0].isHiddenByDefault).to.be.undefined;
     });
 
     it('isHiddenByDefault should be true', function() {
       var widgets = [{id: 20}];
-      this.mock.returns({properties: {'hide_yarn_memory_widget': 'true'}});
+      this.mock.returns({'hide_yarn_memory_widget': 'true'});
       view.resolveConfigDependencies(widgets);
       expect(widgets[0].isHiddenByDefault).to.be.true;
     });

@@ -157,7 +157,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.Persist, App.LocalStorage, App
   },
 
   resolveConfigDependencies: function(widgetsDefinition) {
-    var clusterEnv = App.router.get('clusterController.clusterEnv').properties;
+    var clusterEnv = App.router.get('clusterController.clusterEnv.properties') || {};
     if (clusterEnv.hide_yarn_memory_widget === 'true') {
       widgetsDefinition.findProperty('id', 20).isHiddenByDefault = true;
     }
