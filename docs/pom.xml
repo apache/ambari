@@ -458,6 +458,18 @@
             </organization>
         </developer>
         <developer>
+            <id>hapylestat</id>
+            <name>Dmytro Grinenko</name>
+            <email>hapylestat@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>        
+        <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
             <email>hitesh@apache.org</email>
