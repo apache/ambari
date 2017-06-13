@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.state.Host;
 
 /**
@@ -82,8 +81,9 @@ public interface PersistedState {
   LogicalRequest getProvisionRequest(long clusterId);
 
   /**
-   *
-   * @param hostRequests
+   * Remove the given host requests (must belong to the same topology request),
+   * and also the topology request if it does not have any host requests left.
    */
-  void removeHostRequests(Collection<HostRequest> hostRequests);
+  void removeHostRequests(long logicalRequestId, Collection<HostRequest> hostRequests);
+
 }
