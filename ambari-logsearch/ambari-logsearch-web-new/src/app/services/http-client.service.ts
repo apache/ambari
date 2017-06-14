@@ -21,6 +21,7 @@ import {Observable} from 'rxjs/Observable';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response} from '@angular/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import {environment} from '@app/../environments/environment';
 
 @Injectable()
 export class HttpClientService extends Http {
@@ -32,7 +33,8 @@ export class HttpClientService extends Http {
   private readonly apiPrefix = 'api/v1/';
 
   private readonly urls = {
-    status: 'status'
+    status: 'status',
+    auditLogs: 'audit/logs'
   };
 
   private readonly unauthorizedStatuses = [401, 403, 419];
@@ -73,7 +75,8 @@ export class HttpClientService extends Http {
   }
 
   post(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {
-    return super.post(this.generateUrlString(url), body, options);
+    return environment.production ?
+      super.post(this.generateUrlString(url), body, options) : super.get(this.generateUrlString(url), options);
   }
 
   put(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {

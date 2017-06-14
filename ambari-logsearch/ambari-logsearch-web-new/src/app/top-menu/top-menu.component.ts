@@ -77,7 +77,7 @@ export class TopMenuComponent implements OnInit {
       action: 'refresh'
     },
     {
-      iconClass: 'fa fa-clock-o',
+      iconClass: 'fa fa-history',
       label: 'topMenu.history',
       labelClass: 'unstyled-link',
       action: 'openHistory',

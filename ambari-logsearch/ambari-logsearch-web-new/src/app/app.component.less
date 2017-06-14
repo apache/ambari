@@ -15,29 +15,33 @@
  * limitations under the License.
  */
 
-@import '../styles.less';
+@import 'variables';
 
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-  background-color: @navbar-background-color;
-  color: #fff;
+:host {
+  line-height: @default-line-height;
 
-  .container-fluid {
-    .default-flex;
-  }
+  .navbar {
+    margin-bottom: 0;
+    border-radius: 0;
+    background-color: @navbar-background-color;
+    color: #fff;
 
-  h1 {
-    flex-basis: 70%;
-    margin-bottom: @h1-vertical-margin;
-    text-transform: uppercase;
-
-    &.full-flex-width {
-      flex-basis: 100%;
+    .container-fluid {
+      .default-flex;
     }
-  }
 
-  /deep/ top-menu {
-    flex-basis: 30%;
+    h1 {
+      flex-basis: 70%;
+      margin-bottom: @h1-vertical-margin;
+      text-transform: uppercase;
+
+      &.full-flex-width {
+        flex-basis: 100%;
+      }
+    }
+
+    /deep/ top-menu {
+      flex-basis: 30%;
+    }
   }
 }

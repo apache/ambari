@@ -15,17 +15,30 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-:host {
-  position: relative;
-  .default-flex;
+import {LogsListComponent} from './logs-list.component';
 
-  .filter-label {
-    padding: @input-group-addon-padding;
-  }
+describe('LogsListComponent', () => {
+  let component: LogsListComponent;
+  let fixture: ComponentFixture<LogsListComponent>;
 
-  .btn {
-    text-transform: none;
-  }
-}
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [LogsListComponent],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(LogsListComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

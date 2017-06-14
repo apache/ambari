@@ -15,17 +15,28 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-:host {
-  position: relative;
-  .default-flex;
+import {AccordionPanelComponent} from './accordion-panel.component';
 
-  .filter-label {
-    padding: @input-group-addon-padding;
-  }
+describe('AccordionPanelComponent', () => {
+  let component: AccordionPanelComponent;
+  let fixture: ComponentFixture<AccordionPanelComponent>;
 
-  .btn {
-    text-transform: none;
-  }
-}
+  beforeEach(async(() => {
+    TestBed.configureTestingModule({
+      declarations: [AccordionPanelComponent]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AccordionPanelComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+});

@@ -47,6 +47,8 @@ import {FiltersPanelComponent} from '@app/filters-panel/filters-panel.component'
 import {FilterDropdownComponent} from '@app/filter-dropdown/filter-dropdown.component';
 import {DropdownListComponent} from '@app/dropdown-list/dropdown-list.component';
 import {FilterTextFieldComponent} from '@app/filter-text-field/filter-text-field.component';
+import {AccordionPanelComponent} from '@app/accordion-panel/accordion-panel.component';
+import {LogsListComponent} from '@app/logs-list/logs-list.component';
 
 export function HttpLoaderFactory(http: Http) {
   return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
@@ -62,14 +64,17 @@ export function HttpLoaderFactory(http: Http) {
     FiltersPanelComponent,
     DropdownListComponent,
     FilterDropdownComponent,
-    FilterTextFieldComponent
+    FilterTextFieldComponent,
+    AccordionPanelComponent,
+    LogsListComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpModule,
     InMemoryWebApiModule.forRoot(mockApiDataService, {
-      passThruUnknownUrl: true
+      passThruUnknownUrl: true,
+      rootPath: ''
     }),
     AlertModule.forRoot(),
     TranslateModule.forRoot({

@@ -15,17 +15,24 @@
  * limitations under the License.
  */
 
-@import '../variables';
+import {Component, OnInit, Input, ContentChild, TemplateRef} from '@angular/core';
 
-:host {
-  position: relative;
-  .default-flex;
+@Component({
+  selector: 'accordion-panel',
+  templateUrl: './accordion-panel.component.html',
+  styleUrls: ['./accordion-panel.component.less']
+})
+export class AccordionPanelComponent implements OnInit {
 
-  .filter-label {
-    padding: @input-group-addon-padding;
+  constructor() { }
+
+  ngOnInit() {
   }
 
-  .btn {
-    text-transform: none;
-  }
+  @Input()
+  private toggleId: string;
+
+  @ContentChild(TemplateRef)
+  private template;
+
 }

@@ -17,15 +17,26 @@
 
 @import '../variables';
 
-:host {
+.panel-body {
   position: relative;
-  .default-flex;
 
-  .filter-label {
-    padding: @input-group-addon-padding;
-  }
+  .accordion-toggle {
+    position: absolute;
 
-  .btn {
-    text-transform: none;
+    // TODO get rid of magic numbers, base on actual design
+    right: 10px;
+    top: 15px;
+
+    .toggle-icon {
+      .clickable-item;
+
+      &:before {
+        content: '\F077';
+      }
+
+      &.collapsed:before {
+        content: '\F078';
+      }
+    }
   }
 }
