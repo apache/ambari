@@ -52,7 +52,6 @@ import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -276,12 +275,12 @@ public class RequestDAO implements Cleanable {
    * Search for all request ids in Upgrade table
    * @return the list of request ids
    */
-  private List<Long> findAllRequestIdsFromUpgrade() {
+  private Set<Long> findAllRequestIdsFromUpgrade() {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<Long> upgradeQuery =
             entityManager.createNamedQuery("UpgradeEntity.findAllRequestIds", Long.class);
 
-    return daoUtils.selectList(upgradeQuery);
+    return Sets.newHashSet(daoUtils.selectList(upgradeQuery));
   }
 
   /**
@@ -384,7 +383,7 @@ public class RequestDAO implements Cleanable {
 
       // find request ids from Upgrade table and exclude these ids from
       // request ids set that we already have. We don't want to make any changes for upgrade
-      Set<Long> requestIdsFromUpgrade = Sets.newHashSet(findAllRequestIdsFromUpgrade());
+      Set<Long> requestIdsFromUpgrade = findAllRequestIdsFromUpgrade();
       Iterator<StageEntityPK> requestStageIdsIterator =  requestStageIds.iterator();
       while (requestStageIdsIterator.hasNext()) {
         StageEntityPK nextRequestStageIds = requestStageIdsIterator.next();
@@ -400,24 +399,24 @@ public class RequestDAO implements Cleanable {
       }
 
       // find task ids using request stage ids
-      Set<Long> taskIds = Sets.newHashSet(hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds));
+      Set<Long> taskIds = hostRoleCommandDAO.findTaskIdsByRequestStageIds(requestStageIds);
       LinkedList<String> params = new LinkedList<>();
       params.add("stageId");
       params.add("requestId");
 
       // find host task ids, to find related host requests and also to remove needed host tasks
-      List<Long> hostTaskIds = new ArrayList<>();
+      Set<Long> hostTaskIds = new HashSet<>();
       if (taskIds != null && !taskIds.isEmpty()) {
-        hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(Lists.newArrayList(taskIds));
+        hostTaskIds = topologyLogicalTaskDAO.findHostTaskIdsByPhysicalTaskIds(taskIds);
       }
 
       // find host request ids by host task ids to remove later needed host requests
-      List<Long> hostRequestIds = new ArrayList<>();
+      Set<Long> hostRequestIds = new HashSet<>();
       if (!hostTaskIds.isEmpty()) {
         hostRequestIds = topologyHostTaskDAO.findHostRequestIdsByHostTaskIds(hostTaskIds);
       }
 
-      List<Long> topologyRequestIds = new ArrayList<>();
+      Set<Long> topologyRequestIds = new HashSet<>();
       if (!hostRequestIds.isEmpty()) {
         topologyRequestIds = topologyLogicalRequestDAO.findRequestIdsByIds(hostRequestIds);
       }
@@ -428,9 +427,9 @@ public class RequestDAO implements Cleanable {
               "ExecutionCommandEntity.removeByTaskIds", ExecutionCommandEntity.class);
       affectedRows += cleanTableByIds(taskIds, "taskIds", "TopologyLogicalTask", policy.getToDateInMillis(),
               "TopologyLogicalTaskEntity.removeByPhysicalTaskIds", TopologyLogicalTaskEntity.class);
-      affectedRows += cleanTableByIds(Sets.newHashSet(hostTaskIds), "hostTaskIds", "TopologyHostTask", policy.getToDateInMillis(),
+      affectedRows += cleanTableByIds(hostTaskIds, "hostTaskIds", "TopologyHostTask", policy.getToDateInMillis(),
               "TopologyHostTaskEntity.removeByTaskIds", TopologyHostTaskEntity.class);
-      affectedRows += cleanTableByIds(Sets.newHashSet(hostRequestIds), "hostRequestIds", "TopologyHostRequest", policy.getToDateInMillis(),
+      affectedRows += cleanTableByIds(hostRequestIds, "hostRequestIds", "TopologyHostRequest", policy.getToDateInMillis(),
               "TopologyHostRequestEntity.removeByIds", TopologyHostRequestEntity.class);
       for (Long topologyRequestId : topologyRequestIds) {
         topologyRequestDAO.removeByPK(topologyRequestId);

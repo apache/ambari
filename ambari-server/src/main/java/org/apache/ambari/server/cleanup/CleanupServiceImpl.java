@@ -34,6 +34,25 @@ import com.google.inject.Singleton;
 public class CleanupServiceImpl implements CleanupService<TimeBasedCleanupPolicy> {
   private static final Logger LOGGER = LoggerFactory.getLogger(CleanupServiceImpl.class);
 
+  class Result implements CleanupResult {
+    private final long affectedRows;
+    private final int errorCount;
+
+    public Result(long affectedRows, int errorCount) {
+      this.affectedRows = affectedRows;
+      this.errorCount = errorCount;
+    }
+
+    @Override
+    public long getAffectedRows() {
+      return affectedRows;
+    }
+
+    @Override
+    public int getErrorCount() {
+      return errorCount;
+    }
+  }
 
   // this Set is automatically populated by the guice framework (based on the cleanup interface)
   private Set<Cleanable> cleanables;
@@ -54,13 +73,21 @@ public class CleanupServiceImpl implements CleanupService<TimeBasedCleanupPolicy
    * @param cleanupPolicy the policy based on which the cleanup is done
    * @return the number of affected rows
    */
-  public long cleanup(TimeBasedCleanupPolicy cleanupPolicy) {
+  public CleanupResult cleanup(TimeBasedCleanupPolicy cleanupPolicy) {
     long affectedRows = 0;
+    int errorCount = 0;
     for (Cleanable cleanable : cleanables) {
       LOGGER.info("Running the purge process for DAO: [{}] with cleanup policy: [{}]", cleanable, cleanupPolicy);
-      affectedRows += cleanable.cleanup(cleanupPolicy);
+      try {
+        affectedRows += cleanable.cleanup(cleanupPolicy);
+      }
+      catch (Exception ex) {
+        LOGGER.error("Running the purge process for DAO: [{}] failed with: {}", cleanable, ex);
+        errorCount++;
+      }
     }
-    return affectedRows;
+
+    return new Result(affectedRows, errorCount);
   }
 
 }
