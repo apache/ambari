@@ -168,5 +168,29 @@
       </component>
     </service>
 
+    <service name="SPARK">
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark_thriftserver">
+            <type>spark-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="SPARK2">
+      <component name="SPARK2_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_6_0_0_spark2_thriftserver">
+            <type>spark2-thrift-sparkconf</type>
+            <set key="spark.yarn.executor.failuresValidityInterval" value="2h"/>
+            <set key="spark.yarn.maxAppAttempts" value="1"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
 </upgrade-config-changes>
