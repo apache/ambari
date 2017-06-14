@@ -172,7 +172,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>build-tarball</id>
+            <id>make-assembly</id>
             <phase>${assemblyPhase}</phase>
             <goals>
               <goal>single</goal>
