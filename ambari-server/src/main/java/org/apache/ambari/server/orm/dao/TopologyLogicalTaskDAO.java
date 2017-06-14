@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -26,7 +27,10 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Singleton
 public class TopologyLogicalTaskDAO {
@@ -42,14 +46,14 @@ public class TopologyLogicalTaskDAO {
   }
 
   @RequiresSession
-  public List<Long> findHostTaskIdsByPhysicalTaskIds(List<Long> physicalTaskIds) {
+  public Set<Long> findHostTaskIdsByPhysicalTaskIds(Set<Long> physicalTaskIds) {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<Long> topologyHostTaskQuery =
             entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostTaskIdsByPhysicalTaskIds", Long.class);
 
     topologyHostTaskQuery.setParameter("physicalTaskIds", physicalTaskIds);
 
-    return daoUtils.selectList(topologyHostTaskQuery);
+    return Sets.newHashSet(daoUtils.selectList(topologyHostTaskQuery));
   }
 
   @RequiresSession

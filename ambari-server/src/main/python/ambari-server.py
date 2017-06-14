@@ -42,7 +42,7 @@ from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import install_mpack, uninstall_mpack, upgrade_mpack, STACK_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 from ambari_server.setupSso import setup_sso
-from ambari_server.dbCleanup import db_cleanup
+from ambari_server.dbCleanup import db_purge
 from ambari_server.hostUpdate import update_host_names
 from ambari_server.checkDatabase import check_database
 from ambari_server.enableStack import enable_stack_version
@@ -52,7 +52,7 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
-  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, KERBEROS_SETUP_ACTION
+  DB_PURGE_ACTION, INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION, KERBEROS_SETUP_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam
 from ambari_server.userInput import get_validated_string_input
 from ambari_server.kerberos_setup import setup_kerberos
@@ -200,11 +200,11 @@ def restart(args):
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def database_cleanup(args):
-  logger.info("Database cleanup.")
+def database_purge(args):
+  logger.info("Purging historical data from database.")
   if args.silent:
     stop(args)
-  db_cleanup(args)
+  db_purge(args)
 
 #
 # The Ambari Server status.
@@ -472,7 +472,7 @@ def init_parser_options(parser):
                     help="Print verbose status messages")
   parser.add_option("-s", "--silent",
                     action="store_true", dest="silent", default=False,
-                    help="Silently accepts default prompt values. For db-cleanup command, silent mode will stop ambari server.")
+                    help="Silently accepts default prompt values. For db-purge-history command, silent mode will stop ambari server.")
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
   parser.add_option('-y', '--suspend-start', action="store_true", dest='suspend_start', default=False,
@@ -517,7 +517,7 @@ def init_parser_options(parser):
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")
   parser.add_option('--stack', dest="stack_name", default=None, type="string",
                     help="Specify stack name for the stack versions that needs to be enabled")
-  parser.add_option("-d", "--from-date", dest="cleanup_from_date", default=None, type="string", help="Specify date for the cleanup process in 'yyyy-MM-dd' format")
+  parser.add_option("-d", "--from-date", dest="purge_from_date", default=None, type="string", help="Specify date for the database purge process in 'yyyy-MM-dd' format")
   add_parser_options('--mpack',
       default=None,
       help="Specify the path for management pack to be installed/upgraded",
@@ -762,7 +762,7 @@ def create_user_action_map(args, options):
         CHECK_DATABASE_ACTION: UserAction(check_database, options),
         ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
         SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
-        DB_CLEANUP_ACTION: UserAction(database_cleanup, options),
+        DB_PURGE_ACTION: UserAction(database_purge, options),
         INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
         UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
         UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),

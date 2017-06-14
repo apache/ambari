@@ -36,7 +36,7 @@ import java.util.Collection;
 @Entity
 @Table(name = "topology_logical_request")
 @NamedQueries({
-  @NamedQuery(name = "TopologyLogicalRequestEntity.findRequestIds", query = "SELECT logicalrequest.topologyRequestId from TopologyLogicalRequestEntity logicalrequest WHERE logicalrequest.id IN :ids")
+  @NamedQuery(name = "TopologyLogicalRequestEntity.findRequestIds", query = "SELECT DISTINCT t.topologyLogicalRequestEntity.topologyRequestId from TopologyHostRequestEntity t WHERE t.id IN :ids")
 })
 public class TopologyLogicalRequestEntity {
   @Id
