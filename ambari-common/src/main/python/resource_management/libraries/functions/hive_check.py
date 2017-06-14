@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management.core import global_lock
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
+from resource_management.core.signal_utils import TerminateStrategy
 
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
@@ -76,4 +77,6 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   Execute(cmd,
     user=smokeuser,
     path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-    timeout=check_command_timeout)
+    timeout=check_command_timeout,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+  )

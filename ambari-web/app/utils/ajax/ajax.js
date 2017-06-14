@@ -3101,7 +3101,7 @@ var ajax = Em.Object.extend({
   MAX_GET_URL_LENGTH: 2048,
 
   consoleMsg: function(name, url) {
-    return Em.I18n.t('app.logger.ajax').format(name, url.substr(7, 100));
+    return Em.I18n.t('app.logger.ajax').format(name, url ? url.substr(7, 100) : '');
   },
 
   /**

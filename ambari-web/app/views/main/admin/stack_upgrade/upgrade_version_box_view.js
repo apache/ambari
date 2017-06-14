@@ -57,7 +57,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   isUpgrading: function () {
     return (this.get('controller.upgradeVersion') === this.get('content.displayName') ||
             this.get('controller.fromVersion') === this.get('content.repositoryVersion'))
-            && App.get('upgradeState') !== 'INIT';
+            && App.get('upgradeState') !== 'NOT_REQUIRED';
   }.property('App.upgradeState', 'content.displayName', 'controller.upgradeVersion'),
 
   isRepoUrlsEditDisabled: function () {
@@ -119,7 +119,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       text: Em.I18n.t('common.current'),
       class: 'label label-success'
     },
-    'INIT': {
+    'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('admin.stackVersions.version.installNow'),
       action: 'installRepoVersionConfirmation'
@@ -170,7 +170,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
     }
-    else if (status === 'INIT') {
+    else if (status === 'NOT_REQUIRED') {
       requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.isDisabledOnInit());
     }
@@ -245,7 +245,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   ),
 
   /**
-   * check if actions of INIT stack version disabled
+   * check if actions of NOT_REQUIRED stack version disabled
    * @returns {boolean}
    */
   isDisabledOnInit: function() {

@@ -69,11 +69,17 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def test_install_hbase_master_with_version(self):
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
+  def test_install_hbase_master_with_version(self, lookUpYumPackages):
+    def _add_packages_available(command, key, arg):
+      arg.append(["hbase_2_3_0_1_1234", "1.0", "testrepo"])
+
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/hbase_with_phx.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.1-1234'
+
+    lookUpYumPackages.side_effect = _add_packages_available
     # the json file is not a "well formed" install command
     json_content['roleCommand'] = 'INSTALL'
     json_content['commandParams']['version'] = version
@@ -86,8 +92,9 @@ class TestHBaseMaster(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True,
+                       os_type=('Redhat', '6.4', 'Final'),
                        checked_call_mocks = [(0, "OK.", "")],
-    )
+                       )
 
     # only assert that the correct package is trying to be installed
     self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',

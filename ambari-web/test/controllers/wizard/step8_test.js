@@ -2342,7 +2342,7 @@ describe('App.WizardStep8Controller', function () {
   describe('#generateBlueprint', function () {
 
      beforeEach(function () {
-       var configs = Em.A([
+       var configsForTest = Em.A([
          Em.Object.create({filename: 'cluster-env.xml', name: 'p0', value: 'v0'}),
          Em.Object.create({filename: 'site1.xml', name: 'p11', value: 'v11'}),
          Em.Object.create({filename: 'site1.xml', name: 'p12', value: 'v12'}),
@@ -2376,7 +2376,7 @@ describe('App.WizardStep8Controller', function () {
        ]);
 
        installerStep8Controller = getController();
-       installerStep8Controller.set('configs', configs);
+       installerStep8Controller.set('configs', configsForTest);
        installerStep8Controller.set('allHosts', hosts);
        installerStep8Controller.set('content.services', services.filterProperty('isSelected'));
        installerStep8Controller.set('content.hosts', hosts);

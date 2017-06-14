@@ -100,7 +100,6 @@ public class UpgradeActionTest {
   private static final String HDP_2_1_1_1 = "2.1.1.1-2";
 
   private static final String HDP_2_2_0_1 = "2.2.0.1-3";
-  private static final String HDP_2_2_0_2 = "2.2.0.2-4";
 
   private static final StackId HDP_21_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_22_STACK = new StackId("HDP-2.2.0");
@@ -147,7 +146,6 @@ public class UpgradeActionTest {
   private RepositoryVersionEntity repositoryVersion2110;
   private RepositoryVersionEntity repositoryVersion2111;
   private RepositoryVersionEntity repositoryVersion2201;
-  private RepositoryVersionEntity repositoryVersion2202;
 
   @Before
   public void setup() throws Exception {
@@ -167,7 +165,6 @@ public class UpgradeActionTest {
     repositoryVersion2110 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_0);
     repositoryVersion2111 = m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_1_1_1);
     repositoryVersion2201 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_1);
-    repositoryVersion2202 = m_helper.getOrCreateRepositoryVersion(HDP_22_STACK, HDP_2_2_0_2);
   }
 
   @After
@@ -199,11 +196,11 @@ public class UpgradeActionTest {
     hostVersionDAO.create(entity);
   }
 
-  private void createUpgradeCluster(
+  private Cluster createUpgradeCluster(
       RepositoryVersionEntity sourceRepoVersion, String hostName) throws Exception {
 
     clusters.addCluster(clusterName, sourceRepoVersion.getStackId());
-    Cluster c = clusters.getCluster(clusterName);
+    Cluster cluster = clusters.getCluster(clusterName);
 
     // add a host component
     clusters.addHost(hostName);
@@ -222,6 +219,8 @@ public class UpgradeActionTest {
         sourceRepoVersion, RepositoryVersionState.INSTALLED);
 
     hostVersionDAO.create(entity);
+
+    return cluster;
   }
 
   private void createHostVersions(RepositoryVersionEntity targetRepoVersion,
@@ -313,13 +312,13 @@ public class UpgradeActionTest {
     Cluster cluster = clusters.getCluster(clusterName);
 
     // Install ZK and HDFS with some components
-    Service zk = installService(cluster, "ZOOKEEPER");
+    Service zk = installService(cluster, "ZOOKEEPER", repositoryVersion2110);
     addServiceComponent(cluster, zk, "ZOOKEEPER_SERVER");
     addServiceComponent(cluster, zk, "ZOOKEEPER_CLIENT");
     createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
     createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_CLIENT", "h1");
 
-    Service hdfs = installService(cluster, "HDFS");
+    Service hdfs = installService(cluster, "HDFS", repositoryVersion2110);
     addServiceComponent(cluster, hdfs, "NAMENODE");
     addServiceComponent(cluster, hdfs, "DATANODE");
     createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
@@ -393,7 +392,7 @@ public class UpgradeActionTest {
     for (HostVersionEntity entity : hostVersionDAO.findByClusterAndHost(clusterName, "h1")) {
       if (StringUtils.equals(entity.getRepositoryVersion().getVersion(), repositoryVersion2110.getVersion())) {
         assertEquals(RepositoryVersionState.CURRENT, entity.getState());
-      } else if (StringUtils.equals(entity.getRepositoryVersion().getVersion(), repositoryVersion2111.getVersion())) {
+      } else {
         assertEquals(RepositoryVersionState.INSTALLED, entity.getState());
       }
     }
@@ -497,10 +496,95 @@ public class UpgradeActionTest {
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
   }
 
+  /**
+   * Tests that all host versions are correct after upgrade. This test will
+   * ensure that the prior CURRENT versions are moved to INSTALLED while not
+   * touching any others.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testHostVersionsAfterUpgrade() throws Exception {
+    String hostName = "h1";
+    Cluster cluster = createUpgradeCluster(repositoryVersion2110, hostName);
+    createHostVersions(repositoryVersion2111, hostName);
+    createHostVersions(repositoryVersion2201, hostName);
+
+    // Install ZK with some components
+    Service zk = installService(cluster, "ZOOKEEPER", repositoryVersion2110);
+    addServiceComponent(cluster, zk, "ZOOKEEPER_SERVER");
+    addServiceComponent(cluster, zk, "ZOOKEEPER_CLIENT");
+    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", hostName);
+    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostName);
+
+    List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
+    assertEquals(3, hostVersions.size());
+
+    // repo 2110 - CURRENT (upgrading from)
+    // repo 2111 - CURRENT (all hosts reported in during upgrade)
+    // repo 2201 - NOT_REQUIRED (different stack)
+    for (HostVersionEntity hostVersion : hostVersions) {
+      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+      if (repositoryVersion2110.equals(hostRepoVersion)) {
+        hostVersion.setState(RepositoryVersionState.CURRENT);
+      } else if (repositoryVersion2111.equals(hostRepoVersion)) {
+        hostVersion.setState(RepositoryVersionState.CURRENT);
+      } else {
+        hostVersion.setState(RepositoryVersionState.NOT_REQUIRED);
+      }
+
+      hostVersionDAO.merge(hostVersion);
+    }
+
+    // upgrade to 2111
+    createUpgrade(cluster, repositoryVersion2111);
+
+    // push all services to the correct repo version for finalize
+    Map<String, Service> services = cluster.getServices();
+    assertTrue(services.size() > 0);
+    for (Service service : services.values()) {
+      service.setDesiredRepositoryVersion(repositoryVersion2111);
+    }
+
+    // push all components to the correct version
+    List<HostComponentStateEntity> hostComponentStates = hostComponentStateDAO.findByHost(hostName);
+    for (HostComponentStateEntity hostComponentState : hostComponentStates) {
+      hostComponentState.setVersion(repositoryVersion2111.getVersion());
+      hostComponentStateDAO.merge(hostComponentState);
+    }
+
+    Map<String, String> commandParams = new HashMap<>();
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName(clusterName);
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    finalizeUpgradeAction.setExecutionCommand(executionCommand);
+    finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
+
+    // finalize
+    CommandReport report = finalizeUpgradeAction.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+
+    for (HostVersionEntity hostVersion : hostVersions) {
+      RepositoryVersionEntity hostRepoVersion = hostVersion.getRepositoryVersion();
+      if (repositoryVersion2110.equals(hostRepoVersion)) {
+        assertEquals(RepositoryVersionState.INSTALLED, hostVersion.getState());
+      } else if (repositoryVersion2111.equals(hostRepoVersion)) {
+        assertEquals(RepositoryVersionState.CURRENT, hostVersion.getState());
+      } else {
+        assertEquals(RepositoryVersionState.NOT_REQUIRED, hostVersion.getState());
+      }
+    }
+  }
+
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,
                                                              String svcComponent, String hostName) throws AmbariException {
     Assert.assertNotNull(cluster.getConfigGroups());
-    Service s = installService(cluster, svc);
+    Service s = installService(cluster, svc, sourceRepositoryVersion);
     ServiceComponent sc = addServiceComponent(cluster, s, svcComponent);
 
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc, hostName);
@@ -511,13 +595,14 @@ public class UpgradeActionTest {
     return sch;
   }
 
-  private Service installService(Cluster cluster, String serviceName) throws AmbariException {
+  private Service installService(Cluster cluster, String serviceName,
+      RepositoryVersionEntity repositoryVersionEntity) throws AmbariException {
     Service service = null;
 
     try {
       service = cluster.getService(serviceName);
     } catch (ServiceNotFoundException e) {
-      service = serviceFactory.createNew(cluster, serviceName, sourceRepositoryVersion);
+      service = serviceFactory.createNew(cluster, serviceName, repositoryVersionEntity);
       cluster.addService(service);
     }
 
@@ -525,7 +610,7 @@ public class UpgradeActionTest {
   }
 
   private ServiceComponent addServiceComponent(Cluster cluster, Service service,
-                                               String componentName) throws AmbariException {
+      String componentName) throws AmbariException {
     ServiceComponent serviceComponent = null;
     try {
       serviceComponent = service.getServiceComponent(componentName);

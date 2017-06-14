@@ -46,6 +46,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestExc
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -78,19 +79,18 @@ public class StackAdvisorCommandTest {
   public void testInvoke_invalidRequest_throwsException() throws StackAdvisorException {
     File recommendationsDir = temp.newFolder("recommendationDir");
     String recommendationsArtifactsLifetime = "1w";
-    String stackAdvisorScript = "echo";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
-    StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime, 
-        stackAdvisorScript, requestId, saRunner, metaInfo));
+    StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
 
     doThrow(new StackAdvisorException("message")).when(command).validate(request);
-    command.invoke(request);
+    command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
 
     assertTrue(false);
   }
@@ -98,14 +98,13 @@ public class StackAdvisorCommandTest {
   @Test(expected = StackAdvisorException.class)
   public void testInvoke_saRunnerNotSucceed_throwsException() throws StackAdvisorException {
     File recommendationsDir = temp.newFolder("recommendationDir");
-    String stackAdvisorScript = "echo";
     String recommendationsArtifactsLifetime = "1w";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        stackAdvisorScript, requestId, saRunner, metaInfo));
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -117,24 +116,23 @@ public class StackAdvisorCommandTest {
     doReturn(servicesJSON).when(command).getServicesInformation(request);
     doReturn(data).when(command)
         .adjust(any(StackAdvisorData.class), any(StackAdvisorRequest.class));
-    doThrow(new StackAdvisorRequestException("error")).when(saRunner)
-        .runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
-    command.invoke(request);
 
+    doThrow(new StackAdvisorRequestException("error")).when(saRunner)
+        .runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
+    command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
     assertTrue(false);
   }
 
   @Test(expected = WebApplicationException.class)
   public void testInvoke_adjustThrowsException_throwsException() throws StackAdvisorException {
     File recommendationsDir = temp.newFolder("recommendationDir");
-    String stackAdvisorScript = "echo";
     String recommendationsArtifactsLifetime = "1w";
     int requestId = 0;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(recommendationsDir, recommendationsArtifactsLifetime,
-        stackAdvisorScript, requestId, saRunner, metaInfo));
+        ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -143,9 +141,11 @@ public class StackAdvisorCommandTest {
     doReturn("{\"services\" : \"HDFS\"").when(command).getServicesInformation(request);
     doThrow(new WebApplicationException()).when(command).adjust(any(StackAdvisorData.class),
         any(StackAdvisorRequest.class));
+
     doThrow(new StackAdvisorException("error")).when(saRunner)
-        .runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
-    command.invoke(request);
+        .runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
+    command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
+
 
     assertTrue(false);
   }
@@ -155,14 +155,13 @@ public class StackAdvisorCommandTest {
     String expected = "success";
     final String testResourceString = String.format("{\"type\": \"%s\"}", expected);
     final File recommendationsDir = temp.newFolder("recommendationDir");
-    String stackAdvisorScript = "echo";
     String recommendationsArtifactsLifetime = "1w";
     final int requestId = 2;
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     doReturn(Collections.emptyList()).when(metaInfo).getStackParentVersions(anyString(), anyString());
     final StackAdvisorCommand<TestResource> command = spy(new TestStackAdvisorCommand(
-        recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo));
+        recommendationsDir, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, requestId, saRunner, metaInfo));
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("stackName", "stackVersion")
         .build();
@@ -174,6 +173,7 @@ public class StackAdvisorCommandTest {
     doReturn(servicesJSON).when(command).getServicesInformation(request);
     doReturn(data).when(command)
         .adjust(any(StackAdvisorData.class), any(StackAdvisorRequest.class));
+
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) throws Throwable {
         String resultFilePath = String.format("%s/%s", requestId, command.getResultFileName());
@@ -182,8 +182,9 @@ public class StackAdvisorCommandTest {
         FileUtils.writeStringToFile(resultFile, testResourceString);
         return null;
       }
-    }).when(saRunner).runScript(any(String.class), any(StackAdvisorCommandType.class), any(File.class));
-    TestResource result = command.invoke(request);
+    }).when(saRunner).runScript(any(ServiceInfo.ServiceAdvisorType.class), any(StackAdvisorCommandType.class), any(File.class));
+
+    TestResource result = command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON);
 
     assertEquals(expected, result.getType());
     assertEquals(requestId, result.getId());
@@ -195,7 +196,7 @@ public class StackAdvisorCommandTest {
     String recommendationsArtifactsLifetime = "1w";
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
-    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, "test", 1,
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
         stackAdvisorRunner, ambariMetaInfo);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
         "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
@@ -223,7 +224,7 @@ public class StackAdvisorCommandTest {
     String recommendationsArtifactsLifetime = "1w";
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
-    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, "test", 1,
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
       stackAdvisorRunner, ambariMetaInfo);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
       "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
@@ -245,7 +246,7 @@ public class StackAdvisorCommandTest {
     String recommendationsArtifactsLifetime = "1w";
     StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
     AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
-    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, "test", 1,
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType.PYTHON, 1,
         stackAdvisorRunner, ambariMetaInfo);
     ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
         "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
@@ -265,9 +266,9 @@ public class StackAdvisorCommandTest {
   }
 
   class TestStackAdvisorCommand extends StackAdvisorCommand<TestResource> {
-    public TestStackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript,
-        int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
-      super(recommendationsDir, recommendationsArtifactsLifetime, stackAdvisorScript, requestId, saRunner, metaInfo);
+    public TestStackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType,
+                                   int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+      super(recommendationsDir, recommendationsArtifactsLifetime, serviceAdvisorType, requestId, saRunner, metaInfo);
     }
 
     @Override

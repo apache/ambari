@@ -28,7 +28,7 @@ import javax.inject.Named;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrPropsConfig;
-import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
+import org.apache.ambari.logsearch.conf.SolrEventHistoryPropsConfig;
 import org.apache.ambari.logsearch.conf.global.SolrCollectionState;
 import org.apache.ambari.logsearch.configurer.SolrCollectionConfigurer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,42 +40,42 @@ import org.apache.log4j.Logger;
 import org.springframework.data.solr.core.SolrTemplate;
 
 @Named
-public class UserConfigSolrDao extends SolrDaoBase {
+public class EventHistorySolrDao extends SolrDaoBase {
 
-  private static final Logger LOG = Logger.getLogger(UserConfigSolrDao.class);
+  private static final Logger LOG = Logger.getLogger(EventHistorySolrDao.class);
 
   private static final Logger LOG_PERFORMANCE = Logger.getLogger("org.apache.ambari.logsearch.performance");
 
   @Inject
-  private SolrUserPropsConfig solrUserConfig;
+  private SolrEventHistoryPropsConfig solrEventHistoryPropsConfig;
 
   @Inject
-  @Named("userConfigSolrTemplate")
-  private SolrTemplate userConfigSolrTemplate;
+  @Named("eventHistorySolrTemplate")
+  private SolrTemplate eventHistorySolrTemplate;
 
   @Inject
-  @Named("solrUserConfigState")
-  private SolrCollectionState solrUserConfigState;
+  @Named("solrEventHistoryState")
+  private SolrCollectionState solrEventHistoryState;
 
-  public UserConfigSolrDao() {
+  public EventHistorySolrDao() {
     super(LogType.SERVICE);
   }
 
   @Override
   public SolrTemplate getSolrTemplate() {
-    return userConfigSolrTemplate;
+    return eventHistorySolrTemplate;
   }
 
   @Override
   public void setSolrTemplate(SolrTemplate solrTemplate) {
-    this.userConfigSolrTemplate = solrTemplate;
+    this.eventHistorySolrTemplate = solrTemplate;
   }
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = solrUserConfig.getSolrUrl();
-    String zkConnectString = solrUserConfig.getZkConnectString();
-    String collection = solrUserConfig.getCollection();
+    String solrUrl = solrEventHistoryPropsConfig.getSolrUrl();
+    String zkConnectString = solrEventHistoryPropsConfig.getZkConnectString();
+    String collection = solrEventHistoryPropsConfig.getCollection();
 
     try {
       new SolrCollectionConfigurer(this, false).start();
@@ -85,7 +85,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     }
   }
 
-  public void deleteUserConfig(String id) throws SolrException, SolrServerException, IOException {
+  public void deleteEventHistoryData(String id) throws SolrException, SolrServerException, IOException {
     removeDoc("id:" + id);
   }
 
@@ -107,11 +107,11 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   @Override
   public SolrCollectionState getSolrCollectionState() {
-    return solrUserConfigState;
+    return solrEventHistoryState;
   }
 
   @Override
   public SolrPropsConfig getSolrPropsConfig() {
-    return solrUserConfig;
+    return solrEventHistoryPropsConfig;
   }
 }

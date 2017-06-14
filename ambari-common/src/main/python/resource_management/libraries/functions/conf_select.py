@@ -26,7 +26,6 @@ import os
 import subprocess
 
 # Local Imports
-import version
 import stack_select
 from resource_management.core import shell
 from resource_management.libraries.functions.format import format

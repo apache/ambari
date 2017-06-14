@@ -236,7 +236,7 @@ define(['require',
                     content.model.set(content.setValues());
 
                     content.model.save(content.model.attributes, {
-                        url: Globals.baseURL + 'userconfig/filters',
+                        url: Globals.baseURL + 'history/filters',
                         success : function(model,response){
                             Utils.notifySuccess({
                                 content: "Filter has been saved."

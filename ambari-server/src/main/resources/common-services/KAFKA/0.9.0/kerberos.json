@@ -19,6 +19,9 @@
           }
         }
       ],
+      "auth_to_local_properties" : [
+        "kafka-broker/sasl.kerberos.principal.to.local.rules|comma"
+      ],
       "components": [
         {
           "name": "KAFKA_BROKER",

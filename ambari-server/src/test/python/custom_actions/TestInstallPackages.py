@@ -61,8 +61,18 @@ class TestInstallPackages(RMFTestCase):
     arg.append(["pkg1", "1.0", "repo"])
     arg.append(["pkg2", "2.0", "repo2"])
 
+  @staticmethod
+  def _add_packages_available(command, arg):
+    arg.append(["hadoop_2_2_0_1_885", "1.0", "HDP-2.2"])
+    arg.append(["hadooplzo_2_2_0_1_885", "1.0", "HDP-2.2"])
+    arg.append(["hadoop_2_2_0_1_885-libhdfs", "1.0", "HDP-2.2"])
+
+  @staticmethod
+  def _add_packages_lookUpYum(command, key, arg):
+    TestInstallPackages._add_packages_available(command, arg)
+
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
@@ -71,12 +81,13 @@ class TestInstallPackages(RMFTestCase):
                             write_actual_version_to_history_file_mock,
                             read_actual_version_from_history_file_mock,
                             stack_versions_mock,
-                            put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
+                            put_structured_out_mock,
+                            lookUpYumPackages, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
     ]
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    lookUpYumPackages.side_effect = TestInstallPackages._add_packages_lookUpYum
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
@@ -91,21 +102,21 @@ class TestInstallPackages(RMFTestCase):
                        'installed_repository_version': VERSION_STUB,
                        'stack_id': 'HDP-2.2',
                        'actual_version': VERSION_STUB})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=False,
     )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=True,
     )
@@ -140,6 +151,7 @@ class TestInstallPackages(RMFTestCase):
       command_json = json.load(f)
 
     command_json['roleParams']['base_urls'] = "[]"
+    del command_json['repositoryFile']
 
 
     allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
@@ -159,32 +171,33 @@ class TestInstallPackages(RMFTestCase):
                        'actual_version': VERSION_STUB})
     
     self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', None, action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', None, action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', None, action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpZypperPackages")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
   def test_normal_flow_sles(self, write_actual_version_to_history_file_mock,
                             read_actual_version_from_history_file_mock,
-                            stack_versions_mock, put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock, is_suse_family_mock):
+                            stack_versions_mock, put_structured_out_mock,
+                            lookUpZypperPackages, list_ambari_managed_repos_mock, is_suse_family_mock):
     is_suse_family_mock = True
     Script.stack_version_from_distro_select = VERSION_STUB
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
     ]
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    lookUpZypperPackages.side_effect = TestInstallPackages._add_packages_available
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
@@ -199,21 +212,21 @@ class TestInstallPackages(RMFTestCase):
                        'installed_repository_version': VERSION_STUB,
                        'stack_id': 'HDP-2.2',
                        'actual_version': VERSION_STUB})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template='[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=False,
                               )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=True,
                               )
@@ -231,21 +244,21 @@ class TestInstallPackages(RMFTestCase):
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
   @patch("ambari_commons.os_check.OSCheck.is_redhat_family")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  def test_exclude_existing_repo(self,  write_actual_version_to_history_file_mock,
+  def test_exclude_existing_repo(self, write_actual_version_to_history_file_mock,
                                  read_actual_version_from_history_file_mock,
                                  stack_versions_mock,
-                                 allInstalledPackages_mock, put_structured_out_mock,
+                                 lookUpYumPackages, put_structured_out_mock,
                                  is_redhat_family_mock, list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
     ]
     Script.stack_version_from_distro_select = VERSION_STUB
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    lookUpYumPackages.side_effect = TestInstallPackages._add_packages_lookUpYum
     list_ambari_managed_repos_mock.return_value=["HDP-UTILS-2.2.0.1-885"]
     is_redhat_family_mock.return_value = True
     self.executeScript("scripts/install_packages.py",
@@ -261,21 +274,21 @@ class TestInstallPackages(RMFTestCase):
                        'installed_repository_version': VERSION_STUB,
                        'stack_id': 'HDP-2.2',
                        'actual_version': VERSION_STUB})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name='HDP-2.2.0.1-885',
+                              repo_file_name='ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=False,
     )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
                               base_url='http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=True,
     )
@@ -337,21 +350,21 @@ class TestInstallPackages(RMFTestCase):
                       {'stack_id': 'HDP-2.2',
                       'installed_repository_version': VERSION_STUB,
                       'package_installation_result': 'FAIL'})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=False,
                               )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=True,
                               )
@@ -363,14 +376,14 @@ class TestInstallPackages(RMFTestCase):
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
   @patch("resource_management.core.resources.packaging.Package")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpZypperPackages")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  def test_format_package_name(self,                                                                                    write_actual_version_to_history_file_mock,
+  def test_format_package_name(self, write_actual_version_to_history_file_mock,
                                read_actual_version_from_history_file_mock,
                                stack_versions_mock,
-                               allInstalledPackages_mock, put_structured_out_mock,
+                               lookUpZypperPackages, put_structured_out_mock,
                                package_mock, is_suse_family_mock):
     Script.stack_version_from_distro_select = VERSION_STUB
     stack_versions_mock.side_effect = [
@@ -378,7 +391,7 @@ class TestInstallPackages(RMFTestCase):
       [VERSION_STUB]
     ]
     read_actual_version_from_history_file_mock.return_value = VERSION_STUB
-    allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
+    lookUpZypperPackages.side_effect = TestInstallPackages._add_packages_available
     is_suse_family_mock.return_value = True
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
@@ -393,21 +406,21 @@ class TestInstallPackages(RMFTestCase):
                        'installed_repository_version': VERSION_STUB,
                        'stack_id': 'HDP-2.2',
                        'actual_version': VERSION_STUB})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-UTILS-1.1.0.20',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP-UTILS', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=False,
                               )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
+    self.assertResourceCalled('Repository', 'HDP-2.2',
                               base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
                               action=['create'],
                               components=[u'HDP', 'main'],
                               repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
+                              repo_file_name=u'ambari-hdp-1',
                               mirror_list=None,
                               append_to_file=True,
                               )
@@ -421,99 +434,30 @@ class TestInstallPackages(RMFTestCase):
     self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
-  @patch("ambari_commons.os_check.OSCheck.is_suse_family")
-  @patch("resource_management.core.resources.packaging.Package")
-  @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
-  @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
-  @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
-  @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
-  def test_format_package_name_specific(self, write_actual_version_to_history_file_mock,
-                               read_actual_version_from_history_file_mock,
-                               stack_versions_mock,
-                               allInstalledPackages_mock, put_structured_out_mock,
-                               package_mock, is_suse_family_mock):
-    Script.stack_version_from_distro_select = VERSION_STUB
-    stack_versions_mock.side_effect = [
-      [],  # before installation attempt
-      [VERSION_STUB]
-    ]
-    read_actual_version_from_history_file_mock.return_value = VERSION_STUB
-    allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
-    is_suse_family_mock.return_value = True
-
-    
-    config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_config.json"
-    with open(config_file, "r") as f:
-      command_json = json.load(f)
-
-    command_json['roleParams']['package_version'] = "2_2_0_1_889"
-
-
-    self.executeScript("scripts/install_packages.py",
-                       classname="InstallPackages",
-                       command="actionexecute",
-                       config_dict=command_json,
-                       target=RMFTestCase.TARGET_CUSTOM_ACTIONS,
-                       os_type=('Suse', '11', 'Final'),
-                       )
-    self.assertTrue(put_structured_out_mock.called)
-    self.assertEquals(put_structured_out_mock.call_args[0][0],
-                      {'package_installation_result': 'SUCCESS',
-                       'installed_repository_version': VERSION_STUB,
-                       'stack_id': 'HDP-2.2',
-                       'actual_version': VERSION_STUB})
-    self.assertResourceCalled('Repository', 'HDP-UTILS-2.2.0.1-885',
-                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                              action=['create'],
-                              components=[u'HDP-UTILS', 'main'],
-                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
-                              mirror_list=None,
-                              append_to_file=False,
-                              )
-    self.assertResourceCalled('Repository', 'HDP-2.2.0.1-885',
-                              base_url=u'http://repo1/HDP/centos5/2.x/updates/2.2.0.0',
-                              action=['create'],
-                              components=[u'HDP', 'main'],
-                              repo_template=u'[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0',
-                              repo_file_name=u'HDP-2.2.0.1-885',
-                              mirror_list=None,
-                              append_to_file=True,
-                              )
-    self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_889', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_889', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_889-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertNoMoreResources()
 
 
   @patch("ambari_commons.os_check.OSCheck.is_suse_family")
   @patch("resource_management.core.resources.packaging.Package")
   @patch("resource_management.libraries.script.Script.put_structured_out")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpZypperPackages")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
   def test_format_package_name_via_repositoryFile(self, write_actual_version_to_history_file_mock,
-                               read_actual_version_from_history_file_mock,
-                               stack_versions_mock,
-                               allInstalledPackages_mock, put_structured_out_mock,
-                               package_mock, is_suse_family_mock):
+                                                  read_actual_version_from_history_file_mock,
+                                                  stack_versions_mock,
+                                                  lookUpZypperPackages, put_structured_out_mock,
+                                                  package_mock, is_suse_family_mock):
     Script.stack_version_from_distro_select = VERSION_STUB
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
     ]
     read_actual_version_from_history_file_mock.return_value = VERSION_STUB
-    allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
+    lookUpZypperPackages.side_effect = TestInstallPackages._add_packages_available
     is_suse_family_mock.return_value = True
 
-    
+
     config_file = self.get_src_folder() + "/test/python/custom_actions/configs/install_packages_repository_file.json"
     with open(config_file, "r") as f:
       command_json = json.load(f)
@@ -552,12 +496,15 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=True,
                               )
     self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_990', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_990', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_990-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()
 
@@ -1106,21 +1053,23 @@ class TestInstallPackages(RMFTestCase):
     self.assertFalse(write_actual_version_to_history_file_mock.called)
 
   @patch("resource_management.libraries.functions.list_ambari_managed_repos.list_ambari_managed_repos")
-  @patch("resource_management.libraries.functions.packages_analyzer.allInstalledPackages")
+  @patch("resource_management.libraries.functions.packages_analyzer._lookUpYumPackages")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("resource_management.libraries.functions.stack_select.get_stack_versions")
   @patch("resource_management.libraries.functions.repo_version_history.read_actual_version_from_history_file")
   @patch("resource_management.libraries.functions.repo_version_history.write_actual_version_to_history_file")
   def test_normal_flow_rhel_with_command_repo(self,
-                            write_actual_version_to_history_file_mock,
-                            read_actual_version_from_history_file_mock,
-                            stack_versions_mock,
-                            put_structured_out_mock, allInstalledPackages_mock, list_ambari_managed_repos_mock):
+                                              write_actual_version_to_history_file_mock,
+                                              read_actual_version_from_history_file_mock,
+                                              stack_versions_mock,
+                                              put_structured_out_mock,
+                                              lookUpYumPackages,
+                                              list_ambari_managed_repos_mock):
     stack_versions_mock.side_effect = [
       [],  # before installation attempt
       [VERSION_STUB]
     ]
-    allInstalledPackages_mock.side_effect = TestInstallPackages._add_packages
+    lookUpYumPackages.side_effect = TestInstallPackages._add_packages_lookUpYum
     list_ambari_managed_repos_mock.return_value=[]
     self.executeScript("scripts/install_packages.py",
                        classname="InstallPackages",
@@ -1155,11 +1104,14 @@ class TestInstallPackages(RMFTestCase):
                               append_to_file=True,
     )
     self.assertResourceCalled('Package', 'hdp-select', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'snappy-devel', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'lzo', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
-    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadooplzo_2_2_0_1_885', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885-libhdfs', action=["upgrade"], retry_count=5,
+                              retry_on_repo_unavailability=False)
     self.assertResourceCalled('Package', 'ambari-log4j', action=["upgrade"], retry_count=5, retry_on_repo_unavailability=False)
     self.assertNoMoreResources()

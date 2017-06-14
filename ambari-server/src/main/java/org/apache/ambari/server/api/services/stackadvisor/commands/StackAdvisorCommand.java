@@ -67,7 +67,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   /**
    * Type of response object provided by extending classes when
-   * {@link #invoke(StackAdvisorRequest)} is called.
+   * {@link #invoke(StackAdvisorRequest, ServiceInfo.ServiceAdvisorType)} is called.
    */
   private Class<T> type;
 
@@ -98,7 +98,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
-  private String stackAdvisorScript;
+  private ServiceInfo.ServiceAdvisorType serviceAdvisorType;
 
   private int requestId;
   private File requestDirectory;
@@ -109,7 +109,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private final AmbariMetaInfo metaInfo;
 
   @SuppressWarnings("unchecked")
-  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, String stackAdvisorScript, int requestId,
+  public StackAdvisorCommand(File recommendationsDir, String recommendationsArtifactsLifetime, ServiceInfo.ServiceAdvisorType serviceAdvisorType, int requestId,
       StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
         .getActualTypeArguments()[0];
@@ -119,7 +119,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     this.recommendationsDir = recommendationsDir;
     this.recommendationsArtifactsLifetime = recommendationsArtifactsLifetime;
-    this.stackAdvisorScript = stackAdvisorScript;
+    this.serviceAdvisorType = serviceAdvisorType;
     this.requestId = requestId;
     this.saRunner = saRunner;
     this.metaInfo = metaInfo;
@@ -278,7 +278,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
   }
 
-  public synchronized T invoke(StackAdvisorRequest request) throws StackAdvisorException {
+  public synchronized T invoke(StackAdvisorRequest request, ServiceInfo.ServiceAdvisorType serviceAdvisorType) throws StackAdvisorException {
     validate(request);
     String hostsJSON = getHostsInformation(request);
     String servicesJSON = getServicesInformation(request);
@@ -289,10 +289,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       createRequestDirectory();
 
       FileUtils.writeStringToFile(new File(requestDirectory, "hosts.json"), adjusted.hostsJSON);
-      FileUtils.writeStringToFile(new File(requestDirectory, "services.json"),
-          adjusted.servicesJSON);
+      FileUtils.writeStringToFile(new File(requestDirectory, "services.json"), adjusted.servicesJSON);
 
-      saRunner.runScript(stackAdvisorScript, getCommandType(), requestDirectory);
+      saRunner.runScript(serviceAdvisorType, getCommandType(), requestDirectory);
       String result = FileUtils.readFileToString(new File(requestDirectory, getResultFileName()));
 
       T response = this.mapper.readValue(result, this.type);

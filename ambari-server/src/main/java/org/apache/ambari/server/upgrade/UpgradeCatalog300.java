@@ -182,9 +182,10 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   protected void addServiceComponentColumn() throws SQLException {
     dbAccessor.addColumn(UpgradeCatalog250.COMPONENT_TABLE,
-        new DBColumnInfo("repo_state", String.class, 255, RepositoryVersionState.INIT.name(), false));
-
+        new DBColumnInfo("repo_state", String.class, 255,
+            RepositoryVersionState.NOT_REQUIRED.name(), false));
   }
+
   protected void setStatusOfStagesAndRequests() {
     executeInTransaction(new Runnable() {
       @Override
@@ -336,15 +337,15 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
             removeConfigurationPropertiesFromCluster(cluster, configType, removeProperties);
           }
-          
+
           Config logSearchProperties = cluster.getDesiredConfigByType("logsearch-properties");
           Config logFeederProperties = cluster.getDesiredConfigByType("logfeeder-properties");
           if (logSearchProperties != null && logFeederProperties != null) {
             String defaultLogLevels = logSearchProperties.getProperties().get("logsearch.logfeeder.include.default.level");
-            
+
             Set<String> removeProperties = Sets.newHashSet("logsearch.logfeeder.include.default.level");
             removeConfigurationPropertiesFromCluster(cluster, "logsearch-properties", removeProperties);
-            
+
             Map<String, String> newProperties = new HashMap<>();
             newProperties.put("logfeeder.include.default.level", defaultLogLevels);
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-properties", newProperties, true, true);
@@ -358,7 +359,7 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
               updateConfigurationPropertiesForCluster(cluster, "logfeeder-log4j", Collections.singletonMap("content", content), true, true);
             }
           }
-          
+
           Config logsearchLog4jProperties = cluster.getDesiredConfigByType("logsearch-log4j");
           if (logsearchLog4jProperties != null) {
             String content = logsearchLog4jProperties.getProperties().get("content");

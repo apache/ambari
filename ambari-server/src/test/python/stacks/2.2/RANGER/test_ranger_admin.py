@@ -48,6 +48,10 @@ class TestRangerAdmin(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+      owner = 'ranger',
+      properties = {'db_password': '_', 'db_root_password': '_', 'audit_db_password': '_'}
+    )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',
@@ -89,6 +93,10 @@ class TestRangerAdmin(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
+    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/install.properties',
+      owner = 'ranger',
+      properties = {'db_password': '_', 'db_root_password': '_', 'audit_db_password': '_'}
+    )
     self.assertResourceCalled('Execute', '/usr/bin/ranger-admin-start',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ps -ef | grep proc_rangeradmin | grep -v grep',

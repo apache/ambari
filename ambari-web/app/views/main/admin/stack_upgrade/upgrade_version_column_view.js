@@ -73,7 +73,7 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       text: Em.I18n.t('common.current'),
       class: 'label label-success'
     },
-    'INIT': {
+    'NOT_REQUIRED': {
       isButton: true,
       text: Em.I18n.t('common.install'),
       action: 'installRepoVersionConfirmation'

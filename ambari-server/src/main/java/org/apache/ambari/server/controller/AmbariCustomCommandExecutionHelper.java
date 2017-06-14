@@ -384,11 +384,11 @@ public class AmbariCustomCommandExecutionHelper {
         execCmd.setCommandType(AgentCommandType.BACKGROUND_EXECUTION_COMMAND);
       }
 
+      execCmd.setComponentVersions(cluster);
+
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
-
-      execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
 
       // Get the value of credential store enabled from the DB
       Service clusterService = cluster.getService(serviceName);

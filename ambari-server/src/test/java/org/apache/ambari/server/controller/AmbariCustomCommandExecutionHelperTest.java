@@ -70,7 +70,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -79,6 +78,7 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.MapUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -553,14 +553,15 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     ambariManagementController.createAction(actionRequest, requestProperties);
     StackId stackId = clusters.getCluster("c1").getDesiredStackVersion();
-    Map<String, ServiceInfo> services = ambariManagementController.getAmbariMetaInfo().getServices(stackId.getStackName(), stackId.getStackVersion());
     Request request = requestCapture.getValue();
     Stage stage = request.getStages().iterator().next();
     List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
     ExecutionCommand command = commands.get(0).getExecutionCommand();
-    for (String service : services.keySet()) {
-      Assert.assertEquals(command.getAvailableServices().get(service), services.get(service).getVersion());
-    }
+
+    // ZK is the only service that is versionable
+    Assert.assertFalse(MapUtils.isEmpty(command.getComponentVersionMap()));
+    Assert.assertEquals(1, command.getComponentVersionMap().size());
+    Assert.assertTrue(command.getComponentVersionMap().containsKey("ZOOKEEPER"));
   }
 
   @Test

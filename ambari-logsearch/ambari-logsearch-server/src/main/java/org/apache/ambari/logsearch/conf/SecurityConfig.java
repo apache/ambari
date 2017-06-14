@@ -33,7 +33,7 @@ import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchServiceLogsStateFilter;
-import org.apache.ambari.logsearch.web.filters.LogsearchUserConfigStateFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchEventHistoryStateFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +71,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
 
   @Inject
-  private SolrUserPropsConfig solrUserPropsConfig;
+  private SolrEventHistoryPropsConfig solrEventHistoryPropsConfig;
 
   @Inject
   @Named("solrServiceLogsState")
@@ -82,8 +82,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private SolrCollectionState solrAuditLogsState;
 
   @Inject
-  @Named("solrUserConfigState")
-  private SolrCollectionState solrUserConfigState;
+  @Named("solrEventHistoryState")
+  private SolrCollectionState solrEventHistoryState;
 
   @Inject
   private LogSearchConfigState logSearchConfigState;
@@ -111,7 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterBefore(logsearchKRBAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
-      .addFilterAfter(logsearchUserConfigFilter(), LogsearchSecurityContextFormationFilter.class)
+      .addFilterAfter(logsearchEventHistoryFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchAuditLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logsearchServiceLogFilter(), LogsearchSecurityContextFormationFilter.class)
       .addFilterAfter(logSearchConfigStateFilter(), LogsearchSecurityContextFormationFilter.class)
@@ -179,8 +179,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public LogsearchUserConfigStateFilter logsearchUserConfigFilter() {
-    return new LogsearchUserConfigStateFilter(userConfigRequestMatcher(), solrUserConfigState, solrUserPropsConfig);
+  public LogsearchEventHistoryStateFilter logsearchEventHistoryFilter() {
+    return new LogsearchEventHistoryStateFilter(eventHistoryRequestMatcher(), solrEventHistoryState, solrEventHistoryPropsConfig);
   }
   
   public LogSearchConfigStateFilter logSearchConfigStateFilter() {
@@ -213,8 +213,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return new AntPathRequestMatcher("/api/v1/audit/logs/**");
   }
 
-  public RequestMatcher userConfigRequestMatcher() {
-    return new AntPathRequestMatcher("/api/v1/userconfig/**");
+  public RequestMatcher eventHistoryRequestMatcher() {
+    return new AntPathRequestMatcher("/api/v1/history/**");
   }
 
   public RequestMatcher logsearchConfigRequestMatcher() {
