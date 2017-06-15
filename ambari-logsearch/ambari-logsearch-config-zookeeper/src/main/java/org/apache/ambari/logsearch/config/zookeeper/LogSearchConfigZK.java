@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.ambari.logsearch.config.api.LogSearchConfig;
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilter;
 import org.apache.ambari.logsearch.config.api.model.loglevelfilter.LogLevelFilterMap;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
@@ -68,9 +69,37 @@ public class LogSearchConfigZK implements LogSearchConfig {
   private static final long WAIT_FOR_ROOT_SLEEP_SECONDS = 10;
   private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
+  @LogSearchPropertyDescription(
+    name = "cluster.name",
+    description = "Cluster name for Log Feeder. (added into zk path of the shipper configs)",
+    examples = {"cl1"},
+    sources = {"logfeeder.properties"}
+  )
   private static final String CLUSTER_NAME_PROPERTY = "cluster.name";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_connect_string",
+    description = "ZooKeeper connection string.",
+    examples = {"localhost1:2181,localhost2:2181/znode"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
   private static final String ZK_CONNECT_STRING_PROPERTY = "logsearch.config.zk_connect_string";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_acls",
+    description = "ZooKeeper ACLs for handling configs. (read & write)",
+    examples = {"world:anyone:r,sasl:solr:cdrwa,sasl:logsearch:cdrwa"},
+    sources = {"logsearch.properties", "logfeeder.properties"},
+    defaultValue = "world:anyone:cdrwa"
+  )
   private static final String ZK_ACLS_PROPERTY = "logsearch.config.zk_acls";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.config.zk_root",
+    description = "ZooKeeper root node where the shippers are stored. (added to the connection string)",
+    examples = {"/logsearch"},
+    sources = {"logsearch.properties", "logfeeder.properties"}
+  )
   private static final String ZK_ROOT_NODE_PROPERTY = "logsearch.config.zk_root";
 
   private Map<String, String> properties;

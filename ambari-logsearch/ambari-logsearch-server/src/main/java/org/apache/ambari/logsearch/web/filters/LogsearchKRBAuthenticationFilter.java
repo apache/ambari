@@ -40,6 +40,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.logsearch.config.api.LogSearchPropertyDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -62,17 +63,83 @@ import org.apache.hadoop.security.authentication.server.PseudoAuthenticationHand
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
+import static org.apache.ambari.logsearch.common.LogSearchConstants.LOGSEARCH_PROPERTIES_FILE;
+
 public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private static final Logger logger = LoggerFactory.getLogger(LogsearchKRBAuthenticationFilter.class);
 
-  private static final String NAME_RULES = "hadoop.security.auth_to_local";
+  @LogSearchPropertyDescription(
+    name = "logsearch.hadoop.security.auth_to_local",
+    description = "Rules that will be applied on authentication names and map them into local usernames.",
+    examples = {"RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//", "DEFAULT"},
+    defaultValue = "DEFAULT",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
+  private static final String NAME_RULES = "logsearch.hadoop.security.auth_to_local";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.admin.kerberos.token.valid.seconds",
+    description = "Kerberos token validity in seconds.",
+    examples = {"30"},
+    defaultValue = "30",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String TOKEN_VALID = "logsearch.admin.kerberos.token.valid.seconds";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.admin.kerberos.cookie.domain",
+    description = "Domain for Kerberos cookie.",
+    examples = {"c6401.ambari.apache.org", "localhost"},
+    defaultValue = "localhost",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String COOKIE_DOMAIN = "logsearch.admin.kerberos.cookie.domain";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.admin.kerberos.cookie.path",
+    description = "Cookie path of the kerberos cookie",
+    examples = {"/"},
+    defaultValue = "/",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String COOKIE_PATH = "logsearch.admin.kerberos.cookie.path";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.spnego.kerberos.principal",
+    description = "Principal for SPNEGO authentication for Http requests",
+    examples = {"myuser@EXAMPLE.COM"},
+    defaultValue = "",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String PRINCIPAL = "logsearch.spnego.kerberos.principal";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.spnego.kerberos.keytab",
+    description = "Keytab for SPNEGO authentication for Http requests.",
+    examples = {"/etc/security/keytabs/mykeytab.keytab"},
+    defaultValue = "",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String KEYTAB = "logsearch.spnego.kerberos.keytab";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.spnego.kerberos.host",
+    description = "",
+    examples = {"c6401.ambari.apache.org", "localhost"},
+    defaultValue = "localhost",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String HOST_NAME = "logsearch.spnego.kerberos.host";
+
+  @LogSearchPropertyDescription(
+    name = "logsearch.spnego.kerberos.enabled",
+    description = "Enable SPNEGO based authentication for Log Search Server.",
+    examples = {"true", "false"},
+    defaultValue = "false",
+    sources = {LOGSEARCH_PROPERTIES_FILE}
+  )
   private static final String KERBEROS_ENABLED = "logsearch.spnego.kerberos.enabled";
+
 
   private static final String NAME_RULES_PARAM = "kerberos.name.rules";
   private static final String TOKEN_VALID_PARAM = "token.validity";
