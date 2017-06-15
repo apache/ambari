@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-public enum UserType {
+public enum UserAuthenticationType {
   LOCAL,
   LDAP,
   JWT,
-  PAM
+  PAM,
+  KERBEROS
 }

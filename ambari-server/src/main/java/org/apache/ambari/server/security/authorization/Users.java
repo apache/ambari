@@ -22,16 +22,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.dao.GroupDAO;
@@ -41,7 +40,7 @@ import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.UserAuthenticationDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
@@ -50,17 +49,16 @@ import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -74,31 +72,37 @@ public class Users {
   private static final Logger LOG = LoggerFactory.getLogger(Users.class);
 
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
+
   @Inject
-  protected UserDAO userDAO;
+  private UserDAO userDAO;
+
   @Inject
-  protected GroupDAO groupDAO;
+  private UserAuthenticationDAO userAuthenticationDAO;
+
   @Inject
-  protected MemberDAO memberDAO;
+  private GroupDAO groupDAO;
+
   @Inject
-  protected PrincipalDAO principalDAO;
+  private MemberDAO memberDAO;
+
   @Inject
-  protected PermissionDAO permissionDAO;
+  private PrincipalDAO principalDAO;
+
   @Inject
-  protected PrivilegeDAO privilegeDAO;
+  private PermissionDAO permissionDAO;
+
   @Inject
-  protected ResourceDAO resourceDAO;
+  private PrivilegeDAO privilegeDAO;
+
   @Inject
-  protected ResourceTypeDAO resourceTypeDAO;
+  private ResourceDAO resourceDAO;
+
   @Inject
-  protected PrincipalTypeDAO principalTypeDAO;
+  private PrincipalTypeDAO principalTypeDAO;
+
   @Inject
-  protected PasswordEncoder passwordEncoder;
-  @Inject
-  protected Configuration configuration;
-  @Inject
-  private AmbariLdapAuthenticationProvider ldapAuthenticationProvider;
+  private PasswordEncoder passwordEncoder;
 
   @Inject
   private Provider<HookService> hookServiceProvider;
@@ -117,52 +121,28 @@ public class Users {
     return users;
   }
 
-  /**
-   * This method works incorrectly, userName is not unique if users have different types
-   *
-   * @return One user. Priority is LOCAL -> LDAP -> JWT -> PAM
-   */
-  @Deprecated
-  public User getAnyUser(String userName) {
-    UserEntity userEntity = userDAO.findSingleUserByName(userName);
-    return (null == userEntity) ? null : new User(userEntity);
+  public List<UserEntity> getAllUserEntities() {
+    return userDAO.findAll();
   }
 
-  public User getUser(String userName, UserType userType) {
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
+  public UserEntity getUserEntity(String userName) {
+    return (userName == null) ? null : userDAO.findUserByName(userName);
+  }
+
+  public UserEntity getUserEntity(Integer userId) {
+    return (userId == null) ? null : userDAO.findByPK(userId);
+  }
+
+  public User getUser(UserEntity userEntity) {
     return (null == userEntity) ? null : new User(userEntity);
   }
 
   public User getUser(Integer userId) {
-    UserEntity userEntity = userDAO.findByPK(userId);
-    return (null == userEntity) ? null : new User(userEntity);
+    return getUser(getUserEntity(userId));
   }
 
-  /**
-   * Retrieves User then userName is unique in users DB. Will return null if there no user with provided userName or
-   * there are some users with provided userName but with different types.
-   *
-   * <p>User names in the future will likely be unique hence the deprecation.</p>
-   *
-   * @param userName
-   * @return User if userName is unique in DB, null otherwise
-   */
-  @Deprecated
-  public User getUserIfUnique(String userName) {
-    List<UserEntity> userEntities = new ArrayList<>();
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
-    if (userEntity != null) {
-      userEntities.add(userEntity);
-    }
-    userEntity = userDAO.findUserByNameAndType(userName, UserType.LDAP);
-    if (userEntity != null) {
-      userEntities.add(userEntity);
-    }
-    userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
-    if (userEntity != null) {
-      userEntities.add(userEntity);
-    }
-    return (userEntities.isEmpty() || userEntities.size() > 1) ? null : new User(userEntities.get(0));
+  public User getUser(String userName) {
+    return getUser(getUserEntity(userName));
   }
 
   /**
@@ -170,59 +150,68 @@ public class Users {
    *
    * @throws AmbariException
    */
-  public synchronized void modifyPassword(String userName, String currentUserPassword, String newPassword) throws AmbariException {
+  public synchronized void modifyPassword(String userName, String currentUserPassword, String newPassword) throws AmbariException, AuthorizationException {
+    UserEntity userEntity = userDAO.findUserByName(userName);
+    modifyPassword(userEntity, currentUserPassword, newPassword);
+  }
 
-    SecurityContext securityContext = SecurityContextHolder.getContext();
-    String currentUserName = securityContext.getAuthentication().getName();
-    if (currentUserName == null) {
+  /**
+   * Modifies password of local user
+   *
+   * @throws AmbariException
+   */
+  public synchronized void modifyPassword(UserEntity userEntity, String currentUserPassword, String newPassword) throws AmbariException, AuthorizationException {
+
+    String authenticatedUserName = AuthorizationHelper.getAuthenticatedName();
+    if (authenticatedUserName == null) {
       throw new AmbariException("Authentication required. Please sign in.");
     }
 
-    UserEntity currentUserEntity = userDAO.findLocalUserByName(currentUserName);
-
-    //Authenticate LDAP user
-    boolean isLdapUser = false;
-    if (currentUserEntity == null) {
-      currentUserEntity = userDAO.findLdapUserByName(currentUserName);
-      try {
-        ldapAuthenticationProvider.authenticate(
-            new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
-        isLdapUser = true;
-      } catch (InvalidUsernamePasswordCombinationException ex) {
-        throw new AmbariException(ex.getMessage());
-      }
-    }
-
-    boolean isCurrentUserAdmin = false;
-    for (PrivilegeEntity privilegeEntity : currentUserEntity.getPrincipal().getPrivileges()) {
-      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
-        isCurrentUserAdmin = true;
-        break;
-      }
-    }
-
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
-
-    if ((userEntity != null) && (currentUserEntity != null)) {
-      if (!isCurrentUserAdmin && !userName.equals(currentUserName)) {
-        throw new AmbariException("You can't change password of another user");
+    if (userEntity != null) {
+    /* **************************************************
+     * Ensure that the authenticated user can change the password for the subject user. at least one
+     * of the following must be true
+     *  * The authenticate user is requesting to change his/her own password
+     *  * The authenticated user has permissions to manage users
+     *  ************************************************** */
+      boolean isSelf = userEntity.getUserName().equalsIgnoreCase(authenticatedUserName);
+      if (!isSelf && !AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
+        throw new AuthorizationException("You are not authorized perform this operation");
       }
 
-      if ((isLdapUser && isCurrentUserAdmin) || (StringUtils.isNotEmpty(currentUserPassword) &&
-          passwordEncoder.matches(currentUserPassword, currentUserEntity.getUserPassword()))) {
-        userEntity.setUserPassword(passwordEncoder.encode(newPassword));
-        userDAO.merge(userEntity);
-      } else {
+      List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+      UserAuthenticationEntity localAuthenticationEntity = null;
+
+      // Find the authentication entity for the local authentication type - only one should exist, if one exists at all.
+      for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+        if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+          localAuthenticationEntity = authenticationEntity;
+          break;
+        }
+      }
+
+      if (localAuthenticationEntity == null) {
+        // The user account does not have a local authentication record.  Therefore there is no local
+        // password to change...
+        throw new AmbariException("An Ambari-specific password is not set for this user. The user's password cannot be changed at this time.");
+      } else if (isSelf &&
+          (StringUtils.isEmpty(currentUserPassword) || !passwordEncoder.matches(currentUserPassword, localAuthenticationEntity.getAuthenticationKey()))) {
+        // The authenticated user is the same user as subject user and the correct current password
+        // was not supplied.
         throw new AmbariException("Wrong current password provided");
       }
 
-    } else {
-      userEntity = userDAO.findLdapUserByName(userName);
-      if (userEntity != null) {
-        throw new AmbariException("Password of LDAP user cannot be modified");
-      } else {
-        throw new AmbariException("User " + userName + " not found");
+      // TODO: validate the new password...
+      if (StringUtils.isEmpty(newPassword)) {
+        throw new AmbariException("The new password does not meet the Ambari password requirements");
       }
+
+      // If we get here the authenticated user is authorized to change the password for the subject
+      // user and the correct current password was supplied (if required).
+      localAuthenticationEntity.setAuthenticationKey(passwordEncoder.encode(newPassword));
+      userAuthenticationDAO.merge(localAuthenticationEntity);
+    } else {
+      throw new AmbariException("User not found");
     }
   }
 
@@ -230,32 +219,28 @@ public class Users {
    * Enables/disables user.
    *
    * @param userName user name
+   * @param active   true if active; false if not active
    * @throws AmbariException if user does not exist
    */
   public synchronized void setUserActive(String userName, boolean active) throws AmbariException {
     UserEntity userEntity = userDAO.findUserByName(userName);
     if (userEntity != null) {
-      userEntity.setActive(active);
-      userDAO.merge(userEntity);
+      setUserActive(userEntity, active);
     } else {
       throw new AmbariException("User " + userName + " doesn't exist");
     }
   }
 
   /**
-   * Converts user to LDAP user.
+   * Enables/disables user.
    *
-   * @param userName user name
+   * @param userEntity the user
+   * @param active     true if active; false if not active
    * @throws AmbariException if user does not exist
    */
-  public synchronized void setUserLdap(String userName) throws AmbariException {
-    UserEntity userEntity = userDAO.findUserByName(userName);
-    if (userEntity != null) {
-      userEntity.setLdapUser(true);
-      userDAO.merge(userEntity);
-    } else {
-      throw new AmbariException("User " + userName + " doesn't exist");
-    }
+  public synchronized void setUserActive(UserEntity userEntity, boolean active) throws AmbariException {
+    userEntity.setActive(active);
+    userDAO.merge(userEntity);
   }
 
   /**
@@ -275,40 +260,45 @@ public class Users {
   }
 
   /**
-   * Creates new local user with provided userName and password.
+   * Creates new, active, user with provided userName, local username, and display name.
    *
-   * @param userName user name
-   * @param password password
+   * @param userName      user name
+   * @param localUserName the local username to use; if <code>null</code> or empty, userName will be used
+   * @param displayName   the name to display for presentation; if <code>null</code> or empty, userName will be used
+   * @return the new UserEntity
    * @throws AmbariException if user already exists
    */
-  public void createUser(String userName, String password) throws AmbariException {
-    createUser(userName, password, UserType.LOCAL, true, false);
+  public UserEntity createUser(String userName, String localUserName, String displayName) throws AmbariException {
+    return createUser(userName, localUserName, displayName, true);
   }
 
   /**
-   * Creates new user with provided userName and password.
+   * Creates new, user with provided userName, local username, and display name.
    *
-   * @param userName user name
-   * @param password password
-   * @param userType user type
-   * @param active   is user active
-   * @param admin    is user admin
+   * @param userName      user name
+   * @param localUserName the local username to use; if <code>null</code> or empty, userName will be used
+   * @param displayName   the name to display for presentation; if <code>null</code> or empty, userName will be used
+   * @param active        is user active
+   * @return the new UserEntity
    * @throws AmbariException if user already exists
    */
-  public synchronized void createUser(String userName, String password, UserType userType, Boolean active, Boolean
-      admin) throws AmbariException {
-    // if user type is not provided, assume LOCAL since the default
-    // value of user_type in the users table is LOCAL
-    if (userType == null) {
-      throw new AmbariException("UserType not specified.");
+  @Transactional
+  public synchronized UserEntity createUser(String userName, String localUserName, String displayName, Boolean active) throws AmbariException {
+
+    String validatedUserName = UserName.fromString(userName).toString();
+    String validatedDisplayName = (StringUtils.isEmpty(displayName))
+        ? validatedUserName
+        : UserName.fromString(displayName).toString();
+    String validatedLocalUserName = (StringUtils.isEmpty(localUserName))
+        ? validatedUserName
+        : UserName.fromString(localUserName).toString();
+
+    // Ensure that the user does not already exist
+    if (userDAO.findUserByName(validatedUserName) != null) {
+      throw new AmbariException("User already exists");
     }
 
-    User existingUser = getAnyUser(userName);
-    if (existingUser != null) {
-      throw new AmbariException("User " + existingUser.getUserName() + " already exists with type "
-          + existingUser.getUserType());
-    }
-
+    // Create the PrincipalEntity - needed for assigning privileges/roles
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
     if (principalTypeEntity == null) {
       principalTypeEntity = new PrincipalTypeEntity();
@@ -320,42 +310,62 @@ public class Users {
     principalEntity.setPrincipalType(principalTypeEntity);
     principalDAO.create(principalEntity);
 
+    // Create the new UserEntity Record
     UserEntity userEntity = new UserEntity();
-    userEntity.setUserName(UserName.fromString(userName));
-    if (userType == UserType.LOCAL) {
-      //passwords should be stored for local users only
-      userEntity.setUserPassword(passwordEncoder.encode(password));
-    }
+    userEntity.setUserName(validatedUserName);
+    userEntity.setDisplayName(validatedDisplayName);
+    userEntity.setLocalUsername(validatedLocalUserName);
+
     userEntity.setPrincipal(principalEntity);
     if (active != null) {
       userEntity.setActive(active);
     }
 
-    userEntity.setUserType(userType);
-    if (userType == UserType.LDAP) {
-      userEntity.setLdapUser(true);
-    }
-
     userDAO.create(userEntity);
 
-    if (admin != null && admin) {
-      grantAdminPrivilege(userEntity.getUserId());
-    }
-
     // execute user initialization hook if required ()
-    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(userName));
+    hookServiceProvider.get().execute(hookContextFactory.createUserHookContext(validatedUserName));
+
+    return userEntity;
   }
 
+
+  /**
+   * Removes a user from the Ambari database.
+   * <p>
+   * It is expected that the assoicated user authencation records are removed by this operation
+   * as well.
+   *
+   * @param user the user to remove
+   * @throws AmbariException
+   */
+  @Transactional
   public synchronized void removeUser(User user) throws AmbariException {
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
+    if (userEntity != null) {
+      removeUser(userEntity);
+    } else {
+      throw new AmbariException("User " + user + " doesn't exist");
+    }
+  }
+
+  /**
+   * Removes a user from the Ambari database.
+   * <p>
+   * It is expected that the assoicated user authencation records are removed by this operation
+   * as well.
+   *
+   * @param userEntity the user to remove
+   * @throws AmbariException
+   */
+  @Transactional
+  public synchronized void removeUser(UserEntity userEntity) throws AmbariException {
     if (userEntity != null) {
       if (!isUserCanBeRemoved(userEntity)) {
         throw new AmbariException("Could not remove user " + userEntity.getUserName() +
             ". System should have at least one administrator.");
       }
       userDAO.remove(userEntity);
-    } else {
-      throw new AmbariException("User " + user + " doesn't exist");
     }
   }
 
@@ -410,7 +420,7 @@ public class Users {
    * Creates new group with provided name & type
    */
   @Transactional
-  public synchronized void createGroup(String groupName, GroupType groupType) {
+  public synchronized GroupEntity createGroup(String groupName, GroupType groupType) {
     // create an admin principal to represent this group
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
     if (principalTypeEntity == null) {
@@ -429,6 +439,7 @@ public class Users {
     groupEntity.setGroupType(groupType);
 
     groupDAO.create(groupEntity);
+    return groupEntity;
   }
 
   /**
@@ -476,30 +487,66 @@ public class Users {
   }
 
   /**
-   * Grants AMBARI.ADMINISTRATOR privilege to provided user.
+   * Test the user for Ambari Admistrator privileges.
+   *
+   * @param userEntity the user to test
+   * @return true if the user has Ambari Administrator privileges; otherwise false
+   */
+  public synchronized boolean hasAdminPrivilege(UserEntity userEntity) {
+    PrincipalEntity principalEntity = userEntity.getPrincipal();
+    if (principalEntity != null) {
+      Set<PrivilegeEntity> roles = principalEntity.getPrivileges();
+      if (roles != null) {
+        PermissionEntity adminPermission = permissionDAO.findAmbariAdminPermission();
+        Integer adminPermissionId = (adminPermission == null) ? null : adminPermission.getId();
+
+        if (adminPermissionId != null) {
+          for (PrivilegeEntity privilegeEntity : roles) {
+            PermissionEntity rolePermission = privilegeEntity.getPermission();
+            if ((rolePermission != null) && (adminPermissionId.equals(rolePermission.getId()))) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Grants Ambari Administrator privilege to provided user.
    *
    * @param userId user id
    */
   public synchronized void grantAdminPrivilege(Integer userId) {
-    final UserEntity user = userDAO.findByPK(userId);
+    grantAdminPrivilege(userDAO.findByPK(userId));
+  }
+
+  /**
+   * Grants Ambari Administrator privilege to provided user.
+   *
+   * @param userEntity the user
+   */
+  public synchronized void grantAdminPrivilege(UserEntity userEntity) {
     final PrivilegeEntity adminPrivilege = new PrivilegeEntity();
     adminPrivilege.setPermission(permissionDAO.findAmbariAdminPermission());
-    adminPrivilege.setPrincipal(user.getPrincipal());
+    adminPrivilege.setPrincipal(userEntity.getPrincipal());
     adminPrivilege.setResource(resourceDAO.findAmbariResource());
-    if (!user.getPrincipal().getPrivileges().contains(adminPrivilege)) {
+    if (!userEntity.getPrincipal().getPrivileges().contains(adminPrivilege)) {
       privilegeDAO.create(adminPrivilege);
-      user.getPrincipal().getPrivileges().add(adminPrivilege);
-      principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
-      userDAO.merge(user);
+      userEntity.getPrincipal().getPrivileges().add(adminPrivilege);
+      principalDAO.merge(userEntity.getPrincipal()); //explicit merge for Derby support
+      userDAO.merge(userEntity);
     }
   }
 
   /**
    * Grants privilege to provided group.
    *
-   * @param groupId group id
-   * @param resourceId resource id
-   * @param resourceType resource type
+   * @param groupId        group id
+   * @param resourceId     resource id
+   * @param resourceType   resource type
    * @param permissionName permission name
    */
   public synchronized void grantPrivilegeToGroup(Integer groupId, Long resourceId, ResourceType resourceType, String permissionName) {
@@ -508,7 +555,7 @@ public class Users {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
     resourceTypeEntity.setId(resourceType.getId());
     resourceTypeEntity.setName(resourceType.name());
-    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName,resourceTypeEntity));
+    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName, resourceTypeEntity));
     privilege.setPrincipal(group.getPrincipal());
     privilege.setResource(resourceDAO.findById(resourceId));
     if (!group.getPrincipal().getPrivileges().contains(privilege)) {
@@ -521,17 +568,25 @@ public class Users {
   }
 
   /**
-   * Revokes AMBARI.ADMINISTRATOR privilege from provided user.
+   * Revokes Ambari Administrator privileges from provided user.
    *
    * @param userId user id
    */
   public synchronized void revokeAdminPrivilege(Integer userId) {
-    final UserEntity user = userDAO.findByPK(userId);
-    for (PrivilegeEntity privilege : user.getPrincipal().getPrivileges()) {
+    revokeAdminPrivilege(userDAO.findByPK(userId));
+  }
+
+  /**
+   * Revokes Ambari Administrator privileges from provided user.
+   *
+   * @param userEntity the user
+   */
+  public synchronized void revokeAdminPrivilege(UserEntity userEntity) {
+    for (PrivilegeEntity privilege : userEntity.getPrincipal().getPrivileges()) {
       if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
-        user.getPrincipal().getPrivileges().remove(privilege);
-        principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
-        userDAO.merge(user);
+        userEntity.getPrincipal().getPrivileges().remove(privilege);
+        principalDAO.merge(userEntity.getPrincipal()); //explicit merge for Derby support
+        userDAO.merge(userEntity);
         privilegeDAO.remove(privilege);
         break;
       }
@@ -552,9 +607,22 @@ public class Users {
       throw new AmbariException("User " + userName + " doesn't exist");
     }
 
-    if (isUserInGroup(userEntity, groupEntity)) {
-      throw new AmbariException("User " + userName + " is already present in group " + groupName);
-    } else {
+    addMemberToGroup(groupEntity, userEntity);
+  }
+
+  @Transactional
+  public synchronized void addMemberToGroup(GroupEntity groupEntity, UserEntity userEntity)
+      throws AmbariException {
+
+    if (groupEntity == null) {
+      throw new NullPointerException();
+    }
+
+    if (userEntity == null) {
+      throw new NullPointerException();
+    }
+
+    if (!isUserInGroup(userEntity, groupEntity)) {
       final MemberEntity memberEntity = new MemberEntity();
       memberEntity.setGroup(groupEntity);
       memberEntity.setUser(userEntity);
@@ -580,6 +648,13 @@ public class Users {
       throw new AmbariException("User " + userName + " doesn't exist");
     }
 
+    removeMemberFromGroup(groupEntity, userEntity);
+  }
+
+  @Transactional
+  public synchronized void removeMemberFromGroup(GroupEntity groupEntity, UserEntity userEntity)
+      throws AmbariException {
+
     if (isUserInGroup(userEntity, groupEntity)) {
       MemberEntity memberEntity = null;
       for (MemberEntity entity : userEntity.getMemberEntities()) {
@@ -593,10 +668,7 @@ public class Users {
       userDAO.merge(userEntity);
       groupDAO.merge(groupEntity);
       memberDAO.remove(memberEntity);
-    } else {
-      throw new AmbariException("User " + userName + " is not present in group " + groupName);
     }
-
   }
 
   /**
@@ -632,6 +704,9 @@ public class Users {
    *
    * @param batchInfo DTO with batch information
    */
+  // TODO: ************
+  // TODO: This is to be revisited for AMBARI-21222 (Update LDAP sync process to work with improved user management facility)
+  // TODO: ************
   public void processLdapSync(LdapBatchDto batchInfo) {
     final Map<String, UserEntity> allUsers = new HashMap<>();
     final Map<String, GroupEntity> allGroups = new HashMap<>();
@@ -646,21 +721,38 @@ public class Users {
       allGroups.put(groupEntity.getGroupName(), groupEntity);
     }
 
-    final PrincipalTypeEntity userPrincipalType = principalTypeDAO
-        .ensurePrincipalTypeCreated(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
     final PrincipalTypeEntity groupPrincipalType = principalTypeDAO
         .ensurePrincipalTypeCreated(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
 
-    // remove users
+    /* *****
+     * Remove users
+     *   First remove the relevant LDAP entries for this user.
+     *   If no more user authentication items exists for the user, then remove the user.
+     * ***** */
     final Set<UserEntity> usersToRemove = new HashSet<>();
+    final Set<UserAuthenticationEntity> authenticationEntitiesToRemove = new HashSet<>();
     for (String userName : batchInfo.getUsersToBeRemoved()) {
       UserEntity userEntity = userDAO.findUserByName(userName);
-      if (userEntity == null) {
-        continue;
+      if (userEntity != null) {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+        Iterator<UserAuthenticationEntity> iterator = authenticationEntities.iterator();
+        while (iterator.hasNext()) {
+          UserAuthenticationEntity authenticationEntity = iterator.next();
+
+          if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
+            // TODO: Determine if this is the _relevant_ LDAP authentication entry - for now there will only be one..
+            authenticationEntitiesToRemove.add(authenticationEntity);
+            iterator.remove();
+          }
+        }
+
+        if (authenticationEntities.isEmpty()) {
+          allUsers.remove(userEntity.getUserName());
+          usersToRemove.add(userEntity);
+        }
       }
-      allUsers.remove(userEntity.getUserName());
-      usersToRemove.add(userEntity);
     }
+    userAuthenticationDAO.remove(authenticationEntitiesToRemove);
     userDAO.remove(usersToRemove);
 
     // remove groups
@@ -672,21 +764,46 @@ public class Users {
     }
     groupDAO.remove(groupsToRemove);
 
-    // update users
-    final Set<UserEntity> usersToBecomeLdap = new HashSet<>();
+    /* *****
+     * Update users
+     * ***** */
+    final Set<UserEntity> userEntitiesToUpdate = new HashSet<>();
     for (String userName : batchInfo.getUsersToBecomeLdap()) {
-      UserEntity userEntity = userDAO.findLocalUserByName(userName);
-      if (userEntity == null) {
-        userEntity = userDAO.findLdapUserByName(userName);
-        if (userEntity == null) {
-          continue;
+      // Ensure the username is all lowercase
+      userName = userName.toLowerCase();
+
+      UserEntity userEntity = userDAO.findUserByName(userName);
+      if (userEntity != null) {
+        LOG.trace("Enabling LDAP authentication for the user account with the username {}.", userName);
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+        boolean createNew = true;
+
+          for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+            if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
+              // TODO: check for the relevant LDAP entry... for now there will be only one.
+              LOG.debug("Found existing LDAP authentication record for the user account with the username {}.", userName);
+              createNew = false;
+              break;
+            }
+          }
+
+        if (createNew) {
+          LOG.debug("Creating new LDAP authentication record for the user account with the username {}.", userName);
+
+          UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
+          authenticationEntity.setUser(userEntity);
+          authenticationEntity.setAuthenticationType(UserAuthenticationType.LDAP);
+          authenticationEntity.setAuthenticationKey("DN to be set");
+          authenticationEntities.add(authenticationEntity);
+
+          userEntity.setAuthenticationEntities(authenticationEntities);
+          userEntitiesToUpdate.add(userEntity);
         }
+      } else {
+        LOG.warn("Failed to find user account for {} while enabling LDAP authentication for the user.", userName);
       }
-      userEntity.setLdapUser(true);
-      allUsers.put(userEntity.getUserName(), userEntity);
-      usersToBecomeLdap.add(userEntity);
     }
-    userDAO.merge(usersToBecomeLdap);
+    userDAO.merge(userEntitiesToUpdate);
 
     // update groups
     final Set<GroupEntity> groupsToBecomeLdap = new HashSet<>();
@@ -701,21 +818,25 @@ public class Users {
     // prepare create principals
     final List<PrincipalEntity> principalsToCreate = new ArrayList<>();
 
-    // prepare create users
-    final Set<UserEntity> usersToCreate = new HashSet<>();
+    // Create users
     for (String userName : batchInfo.getUsersToBeCreated()) {
-      final PrincipalEntity principalEntity = new PrincipalEntity();
-      principalEntity.setPrincipalType(userPrincipalType);
-      principalsToCreate.add(principalEntity);
+      UserEntity userEntity;
 
-      final UserEntity userEntity = new UserEntity();
-      userEntity.setUserName(UserName.fromString(userName));
-      userEntity.setUserPassword("");
-      userEntity.setPrincipal(principalEntity);
-      userEntity.setLdapUser(true);
+      try {
+        userEntity = createUser(userName, userName, userName, true);
+      } catch (AmbariException e) {
+        LOG.error(String.format("Failed to create new user: %s", userName), e);
+        userEntity = null;
+      }
 
-      allUsers.put(userEntity.getUserName(), userEntity);
-      usersToCreate.add(userEntity);
+      if (userEntity != null) {
+        UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
+        authenticationEntity.setUser(userEntity);
+        authenticationEntity.setAuthenticationType(UserAuthenticationType.LDAP);
+        authenticationEntity.setAuthenticationKey("DN to be set");
+        userEntity.setAuthenticationEntities(Collections.singletonList(authenticationEntity));
+        userDAO.merge(userEntity);
+      }
     }
 
     // prepare create groups
@@ -734,9 +855,8 @@ public class Users {
       groupsToCreate.add(groupEntity);
     }
 
-    // create users and groups
+    // create groups
     principalDAO.create(principalsToCreate);
-    userDAO.create(usersToCreate);
     groupDAO.create(groupsToCreate);
 
     // create membership
@@ -766,12 +886,6 @@ public class Users {
 
     // clear cached entities
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
-
-    if (!usersToCreate.isEmpty()) {
-      // entry point in the hook logic
-      hookServiceProvider.get().execute(hookContextFactory.createBatchUserHookContext(getUsersToGroupMap(usersToCreate)));
-    }
-
   }
 
   /**
@@ -900,11 +1014,29 @@ public class Users {
    * granted View User access on that File View instance.
    *
    * @param userName the username for the relevant user
-   * @param userType the user type for the relevant user
    * @return the users collection of implicit and explicit granted authorities
    */
-  public Collection<AmbariGrantedAuthority> getUserAuthorities(String userName, UserType userType) {
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
+  public Collection<AmbariGrantedAuthority> getUserAuthorities(String userName) {
+    return getUserAuthorities(getUserEntity(userName));
+  }
+
+  /**
+   * Gets the explicit and implicit authorities for the given user.
+   * <p>
+   * The explicit authorities are the authorities that have be explicitly set by assigning roles to
+   * a user.  For example the Cluster Operator role on a given cluster gives that the ability to
+   * start and stop services in that cluster, among other privileges for that particular cluster.
+   * <p>
+   * The implicit authorities are the authorities that have been given to the roles themselves which
+   * in turn are granted to the users that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all users who have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param userEntity the relevant user
+   * @return the users collection of implicit and explicit granted authorities
+   */
+  public Collection<AmbariGrantedAuthority> getUserAuthorities(UserEntity userEntity) {
     if (userEntity == null) {
       return Collections.emptyList();
     }
@@ -964,4 +1096,175 @@ public class Users {
     return implicitPrivileges;
   }
 
+  /**
+   * TODO: This is to be revisited for AMBARI-21217 (Update JWT Authentication process to work with improved user management facility)
+   * Adds the ability for a user to authenticate using a JWT token.
+   * <p>
+   * The key for this authentication mechanism is the username expected to be in the JWT token.
+   *
+   * @param userEntity the user
+   * @param key        the relevant key
+   * @throws AmbariException
+   */
+  public void addJWTAuthentication(UserEntity userEntity, String key) throws AmbariException {
+    addAuthentication(userEntity, UserAuthenticationType.JWT, key, new Validator() {
+      public void validate(UserEntity userEntity, String key) throws AmbariException {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+        // Ensure only one UserAuthenticationEntity exists for JWT for the user...
+        for (UserAuthenticationEntity entity : authenticationEntities) {
+          if ((entity.getAuthenticationType() == UserAuthenticationType.JWT) &&
+              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
+            throw new AmbariException("The authentication type already exists for this user");
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * TODO: This is to be revisited for AMBARI-21223 (Update Kerberos Authentication process to work with improved user management facility)
+   * Adds the ability for a user to authenticate using a Kerberos token.
+   *
+   * @param userEntity    the user
+   * @param principalName the user's principal name
+   * @throws AmbariException
+   */
+  public void addKerberosAuthentication(UserEntity userEntity, String principalName) throws AmbariException {
+    addAuthentication(userEntity, UserAuthenticationType.KERBEROS, principalName, new Validator() {
+      public void validate(UserEntity userEntity, String key) throws AmbariException {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+        // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
+        for (UserAuthenticationEntity entity : authenticationEntities) {
+          if ((entity.getAuthenticationType() == UserAuthenticationType.KERBEROS) &&
+              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equals(entity.getAuthenticationKey()))) {
+            throw new AmbariException("The authentication type already exists for this user");
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * TODO: This is to be revisited for AMBARI-21220 (Update Local Authentication process to work with improved user management facility)
+   * Adds the ability for a user to authenticate using a password stored in Ambari's database
+   * <p>
+   * The supplied plaintext password will be encoded before storing.
+   *
+   * @param userEntity the user
+   * @param password   the user's plaintext password
+   * @throws AmbariException
+   */
+  public void addLocalAuthentication(UserEntity userEntity, String password) throws AmbariException {
+
+    // Encode the password..
+    String encodedPassword = passwordEncoder.encode(password);
+
+    addAuthentication(userEntity, UserAuthenticationType.LOCAL, encodedPassword, new Validator() {
+      public void validate(UserEntity userEntity, String key) throws AmbariException {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+        // Ensure only one UserAuthenticationEntity exists for LOCAL for the user...
+        for (UserAuthenticationEntity entity : authenticationEntities) {
+          if (entity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+            throw new AmbariException("The authentication type already exists for this user");
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * TODO: This is to be revisited for AMBARI-21221 (Update Pam Authentication process to work with improved user management facility)
+   * Adds the ability for a user to authenticate using Pam
+   *
+   * @param userEntity the user
+   * @param userName   the user's os-level username
+   * @throws AmbariException
+   */
+  public void addPamAuthentication(UserEntity userEntity, String userName) throws AmbariException {
+    addAuthentication(userEntity, UserAuthenticationType.PAM, userName, new Validator() {
+      public void validate(UserEntity userEntity, String key) throws AmbariException {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+        // Ensure only one UserAuthenticationEntity exists for PAM for the user...
+        for (UserAuthenticationEntity entity : authenticationEntities) {
+          if (entity.getAuthenticationType() == UserAuthenticationType.PAM) {
+            throw new AmbariException("The authentication type already exists for this user");
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * TODO: This is to be revisited for AMBARI-21219 (Update LDAP Authentication process to work with improved user management facility)
+   * Adds the ability for a user to authenticate using a remote LDAP server
+   *
+   * @param userEntity the user
+   * @param dn         the user's distinguished name
+   * @throws AmbariException
+   */
+  public void addLdapAuthentication(UserEntity userEntity, String dn) throws AmbariException {
+    addAuthentication(userEntity, UserAuthenticationType.LDAP, dn, new Validator() {
+      public void validate(UserEntity userEntity, String key) throws AmbariException {
+        List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+        // Ensure only one UserAuthenticationEntity exists for PAM for the user...
+        for (UserAuthenticationEntity entity : authenticationEntities) {
+          if ((entity.getAuthenticationType() == UserAuthenticationType.LDAP) &&
+              ((key == null) ? (entity.getAuthenticationKey() == null) : key.equalsIgnoreCase(entity.getAuthenticationKey()))) {
+            throw new AmbariException("The authentication type already exists for this user");
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Worker to add a user authentication methods for a user.
+   *
+   * @param userEntity the user
+   * @param type       the authentication type
+   * @param key        the authentication type specific metadata
+   * @param validator  the authentication type specific validator
+   * @throws AmbariException
+   */
+  private void addAuthentication(UserEntity userEntity, UserAuthenticationType type, String key, Validator validator) throws AmbariException {
+
+    if (userEntity == null) {
+      throw new AmbariException("Missing user");
+    }
+
+    validator.validate(userEntity, key);
+
+    List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+
+    UserAuthenticationEntity authenticationEntity = new UserAuthenticationEntity();
+    authenticationEntity.setUser(userEntity);
+    authenticationEntity.setAuthenticationType(type);
+    authenticationEntity.setAuthenticationKey(key);
+    authenticationEntities.add(authenticationEntity);
+
+    userEntity.setAuthenticationEntities(authenticationEntities);
+    userDAO.merge(userEntity);
+  }
+
+  /**
+   * Validator is an interface to be implemented by authentication type specific validators to ensure
+   * new user authentication records meet the specific requirements for the relative authentication
+   * type.
+   */
+  private interface Validator {
+    /**
+     * Valudate the authentication type specific key meets the requirments for the relative user
+     * authentication type.
+     *
+     * @param userEntity the user
+     * @param key        the key (or metadata)
+     * @throws AmbariException
+     */
+    void validate(UserEntity userEntity, String key) throws AmbariException;
+  }
 }

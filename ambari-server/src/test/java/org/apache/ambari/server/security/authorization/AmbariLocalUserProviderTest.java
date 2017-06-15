@@ -25,12 +25,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -81,9 +84,9 @@ public class AmbariLocalUserProviderTest {
     UserEntity userEntity = combineUserEntity();
 
     expect(authentication.getName()).andReturn(TEST_USER_NAME);
-    expect(userDAO.findLocalUserByName(TEST_USER_NAME)).andReturn(userEntity);
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(userEntity);
     expect(authentication.getCredentials()).andReturn(TEST_USER_PASS).anyTimes();
-    expect(users.getUserAuthorities(userEntity.getUserName(), userEntity.getUserType())).andReturn(null);
+    expect(users.getUserAuthorities(userEntity)).andReturn(null);
 
     replay(users, userDAO, authentication);
 
@@ -105,7 +108,7 @@ public class AmbariLocalUserProviderTest {
     Authentication authentication = createMock(Authentication.class);
 
     expect(authentication.getName()).andReturn(TEST_USER_NAME);
-    expect(userDAO.findLocalUserByName(TEST_USER_NAME)).andReturn(null);
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(null);
 
     replay(users, userDAO, authentication);
 
@@ -122,7 +125,7 @@ public class AmbariLocalUserProviderTest {
     UserEntity userEntity = combineUserEntity();
 
     expect(authentication.getName()).andReturn(TEST_USER_NAME);
-    expect(userDAO.findLocalUserByName(TEST_USER_NAME)).andReturn(userEntity);
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(userEntity);
     expect(authentication.getCredentials()).andReturn(null);
 
     replay(users, userDAO, authentication);
@@ -140,7 +143,7 @@ public class AmbariLocalUserProviderTest {
     UserEntity userEntity = combineUserEntity();
 
     expect(authentication.getName()).andReturn(TEST_USER_NAME);
-    expect(userDAO.findLocalUserByName(TEST_USER_NAME)).andReturn(userEntity);
+    expect(userDAO.findUserByName(TEST_USER_NAME)).andReturn(userEntity);
     expect(authentication.getCredentials()).andReturn(TEST_USER_INCORRECT_PASS).anyTimes();
 
     replay(users, userDAO, authentication);
@@ -153,13 +156,16 @@ public class AmbariLocalUserProviderTest {
 
   private UserEntity combineUserEntity() {
     PrincipalEntity principalEntity = new PrincipalEntity();
+
+    UserAuthenticationEntity userAuthenticationEntity = new UserAuthenticationEntity();
+    userAuthenticationEntity.setAuthenticationType(UserAuthenticationType.LOCAL);
+    userAuthenticationEntity.setAuthenticationKey(passwordEncoder.encode(TEST_USER_PASS));
+
     UserEntity userEntity = new UserEntity();
     userEntity.setUserId(1);
-    userEntity.setUserName(UserName.fromString(TEST_USER_NAME));
-    userEntity.setUserPassword(passwordEncoder.encode(TEST_USER_PASS));
-    userEntity.setUserType(UserType.LOCAL);
+    userEntity.setUserName(UserName.fromString(TEST_USER_NAME).toString());
     userEntity.setPrincipal(principalEntity);
-
+    userEntity.setAuthenticationEntities(Collections.singletonList(userAuthenticationEntity));
     return userEntity;
   }
 }

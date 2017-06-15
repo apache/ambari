@@ -44,7 +44,7 @@ import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -905,7 +905,7 @@ public class ConfigurationTest {
     Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertEquals("spnego/principal@REALM", kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Arrays.asList(UserType.LDAP, UserType.LOCAL), kerberosAuthenticationProperties.getOrderedUserTypes());
+    Assert.assertEquals(Arrays.asList(UserAuthenticationType.LDAP, UserAuthenticationType.LOCAL), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   /**
@@ -930,7 +930,7 @@ public class ConfigurationTest {
     Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
     Assert.assertEquals("HTTP/" + StageUtils.getHostName(), kerberosAuthenticationProperties.getSpnegoPrincipalName());
     Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
-    Assert.assertEquals(Collections.singletonList(UserType.LDAP), kerberosAuthenticationProperties.getOrderedUserTypes());
+    Assert.assertEquals(Collections.singletonList(UserAuthenticationType.LDAP), kerberosAuthenticationProperties.getOrderedUserTypes());
   }
 
   /**

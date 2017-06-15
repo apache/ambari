@@ -64,7 +64,7 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
 
     UserEntity user;
 
-    user = userDAO.findLdapUserByName(username);
+    user = userDAO.findUserByName(username);
     
     if (user == null) {
       log.error("Can't get authorities for user " + username + ", he is not present in local DB");

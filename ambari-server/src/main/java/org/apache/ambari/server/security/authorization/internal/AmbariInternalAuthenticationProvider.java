@@ -40,7 +40,7 @@ public class AmbariInternalAuthenticationProvider implements AuthenticationProvi
     if (internalTokenStorage.isValidInternalToken(token.getCredentials())) {
       token.setAuthenticated(true);
     } else {
-      throw new InvalidUsernamePasswordCombinationException();
+      throw new InvalidUsernamePasswordCombinationException(null);
     }
     return token;
   }

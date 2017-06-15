@@ -65,7 +65,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
@@ -5997,7 +5997,7 @@ public class Configuration {
     // Get and process the configured user type values to convert the comma-delimited string of
     // user types into a ordered (as found in the comma-delimited value) list of UserType values.
     String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserType> orderedUserTypes = new ArrayList<>();
+    List<UserAuthenticationType> orderedUserTypes = new ArrayList<>();
 
     String[] types = userTypes.split(",");
     for (String type : types) {
@@ -6005,7 +6005,7 @@ public class Configuration {
 
       if (!type.isEmpty()) {
         try {
-          orderedUserTypes.add(UserType.valueOf(type.toUpperCase()));
+          orderedUserTypes.add(UserAuthenticationType.valueOf(type.toUpperCase()));
         } catch (IllegalArgumentException e) {
           String message = String.format("While processing ordered user types from %s, " +
                   "%s was found to be an invalid user type.",
@@ -6020,7 +6020,7 @@ public class Configuration {
     if (orderedUserTypes.isEmpty()) {
       LOG.info("No (valid) user types were specified in {}. Using the default value of LOCAL.",
           KERBEROS_AUTH_USER_TYPES.getKey());
-      orderedUserTypes.add(UserType.LDAP);
+      orderedUserTypes.add(UserAuthenticationType.LDAP);
     }
 
     kerberosAuthProperties.setOrderedUserTypes(orderedUserTypes);

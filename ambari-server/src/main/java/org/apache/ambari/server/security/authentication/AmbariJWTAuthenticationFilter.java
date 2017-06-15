@@ -34,7 +34,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.authorization.jwt.AuthenticationJwtUserNotFoundException;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
 import org.apache.ambari.server.utils.RequestUtils;
 import org.springframework.security.core.Authentication;
@@ -124,8 +123,8 @@ public class AmbariJWTAuthenticationFilter extends JwtAuthenticationFilter imple
   protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
     if (auditLogger.isEnabled()) {
       String username = null;
-      if (authException instanceof AuthenticationJwtUserNotFoundException) {
-        username = ((AuthenticationJwtUserNotFoundException) authException).getUsername();
+      if (authException instanceof UserNotFoundException) {
+        username = ((UserNotFoundException) authException).getUsername();
       }
 
       AuditEvent loginFailedAuditEvent = LoginAuditEvent.builder()

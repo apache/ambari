@@ -47,7 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -170,16 +169,15 @@ public class JwtAuthenticationFilterTest {
       withConstructor(properties, entryPoint, users).createNiceMock();
 
     expect(filter.getJWTFromCookie(anyObject(HttpServletRequest.class))).andReturn(signedJWT.serialize());
-    expect(users.getUser(eq("test-user"), eq(UserType.JWT))).andReturn(null).once();
-    expect(users.getUser(eq("test-user"), eq(UserType.JWT))).andReturn(user).anyTimes();
+    expect(users.getUser(eq("test-user"))).andReturn(null).once();
+    expect(users.getUser(eq("test-user"))).andReturn(user).anyTimes();
 
-    users.createUser(eq("test-user"), anyObject(String.class), eq(UserType.JWT), eq(true), eq(false));
+    users.createUser(eq("test-user"), eq("test-user"), eq("test-user"));
     expectLastCall();
 
-    expect(users.getUserAuthorities(eq("test-user"), eq(UserType.JWT))).andReturn(Collections.singletonList(authority));
+    expect(users.getUserAuthorities(eq("test-user"))).andReturn(Collections.singletonList(authority));
 
     expect(user.getUserName()).andReturn("test-user");
-    expect(user.getUserType()).andReturn(UserType.JWT);
 
     expect(user.getUserId()).andReturn(1);
 

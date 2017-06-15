@@ -37,10 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
-import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.easymock.EasyMockSupport;
@@ -83,13 +83,11 @@ public class AmbariJWTAuthenticationFilterTest extends EasyMockSupport {
     Configuration configuration = createMock(Configuration.class);
     expect(configuration.getJwtProperties()).andReturn(properties).once();
 
-    User user = createMock(User.class);
-    expect(user.getUserName()).andReturn("test-user").once();
-    expect(user.getUserType()).andReturn(UserType.JWT).once();
+    UserEntity userEntity = createMock(UserEntity.class);
+    expect(userEntity.getAuthenticationEntities()).andReturn(Collections.<UserAuthenticationEntity>emptyList()).once();
 
     Users users = createMock(Users.class);
-    expect(users.getUser("test-user", UserType.JWT)).andReturn(user).once();
-    expect(users.getUserAuthorities("test-user", UserType.JWT)).andReturn(null).once();
+    expect(users.getUserEntity("test-user")).andReturn(userEntity).once();
 
     AuditLogger auditLogger = createMock(AuditLogger.class);
     expect(auditLogger.isEnabled()).andReturn(false).times(2);

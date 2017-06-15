@@ -317,11 +317,10 @@ public class AmbariAuthorizationFilterTest {
 
     User user = EasyMock.createMock(User.class);
     expect(user.getUserName()).andReturn("user1").anyTimes();
-    expect(user.getUserType()).andReturn(UserType.LOCAL).anyTimes();
 
     final Users users = EasyMock.createMock(Users.class);
-    expect(users.getUser("user1", UserType.LOCAL)).andReturn(user).once();
-    expect(users.getUserAuthorities("user1", UserType.LOCAL)).andReturn(Collections.<AmbariGrantedAuthority>emptyList()).once();
+    expect(users.getUser("user1")).andReturn(user).once();
+    expect(users.getUserAuthorities("user1")).andReturn(Collections.<AmbariGrantedAuthority>emptyList()).once();
 
     replay(request, response, chain, configuration, users, user);
 

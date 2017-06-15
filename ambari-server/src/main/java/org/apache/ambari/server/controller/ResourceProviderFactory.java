@@ -51,6 +51,11 @@ public interface ResourceProviderFactory {
       Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController);
 
+  @Named("user")
+  ResourceProvider getUserResourceProvider(Set<String> propertyIds,
+                                           Map<Type, String> keyPropertyIds,
+                                           AmbariManagementController managementController);
+
   @Named("hostKerberosIdentity")
   ResourceProvider getHostKerberosIdentityResourceProvider(AmbariManagementController managementController);
 

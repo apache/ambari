@@ -28,6 +28,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
@@ -104,8 +105,10 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
 
   @Test
   public void testAuthenticate() throws Exception {
-    assertNull("User alread exists in DB", userDAO.findLdapUserByName("the allowedUser"));
-    users.createUser("the allowedUser", "password", UserType.LDAP, true, false);
+    assertNull("User already exists in DB", userDAO.findUserByName("the allowedUser"));
+    UserEntity userEntity = users.createUser("the allowedUser", null, null);
+    users.addLdapAuthentication(userEntity, "some Dn");
+
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication result = authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());

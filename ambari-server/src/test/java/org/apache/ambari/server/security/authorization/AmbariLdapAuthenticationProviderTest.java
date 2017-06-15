@@ -181,9 +181,11 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
 
   @Test
   public void testAuthenticate() throws Exception {
-    assertNull("User alread exists in DB", userDAO.findLdapUserByName("allowedUser"));
-    users.createUser("allowedUser", "password", UserType.LDAP, true, false);
-    UserEntity ldapUser = userDAO.findLdapUserByName("allowedUser");
+    assertNull("User alread exists in DB", userDAO.findUserByName("allowedUser"));
+    UserEntity userEntity = users.createUser("allowedUser", null, null);
+    users.addLdapAuthentication(userEntity, "some dn");
+
+    UserEntity ldapUser = userDAO.findUserByName("allowedUser");
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
 
     AmbariAuthentication result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
@@ -206,8 +208,10 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Test
   public void testAuthenticateLoginAlias() throws Exception {
     // Given
-    assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser@ambari.apache.org"));
-    users.createUser("allowedUser@ambari.apache.org", "password", UserType.LDAP, true, false);
+    assertNull("User already exists in DB", userDAO.findUserByName("allowedUser@ambari.apache.org"));
+    UserEntity userEntity = users.createUser("allowedUser@ambari.apache.org", null, null);
+    users.addLdapAuthentication(userEntity, "some dn");
+
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "password");
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
@@ -221,7 +225,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testBadCredentialsForMissingLoginAlias() throws Exception {
     // Given
-    assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
+    assertNull("User already exists in DB", userDAO.findUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("missingloginalias@ambari.apache.org", "password");
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
@@ -237,7 +241,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
   @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testBadCredentialsBadPasswordForLoginAlias() throws Exception {
     // Given
-    assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
+    assertNull("User already exists in DB", userDAO.findUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "bad_password");
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 

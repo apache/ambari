@@ -19,19 +19,21 @@
 package org.apache.ambari.server.security.authentication.kerberos;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authentication.AuthenticationMethodNotAllowedException;
+import org.apache.ambari.server.security.authentication.UserNotFoundException;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -47,8 +49,6 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
 
   private final Users users;
 
-  private final List<UserType> userTypeOrder;
-
   private final String authToLocalRules;
 
   /**
@@ -63,14 +63,12 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
    */
   public AmbariAuthToLocalUserDetailsService(Configuration configuration, Users users) throws AmbariException {
     String authToLocalRules = null;
-    List<UserType> orderedUserTypes = null;
 
     if (configuration != null) {
       AmbariKerberosAuthenticationProperties properties = configuration.getKerberosAuthenticationProperties();
 
       if (properties != null) {
         authToLocalRules = properties.getAuthToLocalRules();
-        orderedUserTypes = properties.getOrderedUserTypes();
       }
     }
 
@@ -78,12 +76,7 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
       authToLocalRules = "DEFAULT";
     }
 
-    if ((orderedUserTypes == null) || orderedUserTypes.isEmpty()) {
-      orderedUserTypes = Collections.singletonList(UserType.LDAP);
-    }
-
     this.users = users;
-    this.userTypeOrder = orderedUserTypes;
     this.authToLocalRules = authToLocalRules;
   }
 
@@ -107,7 +100,9 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
       }
 
       LOG.info("Translated {} to {} using auth-to-local rules during Kerberos authentication.", principal, username);
-      return createUser(username);
+      return createUser(username, principal);
+    } catch (UserNotFoundException e) {
+      throw new UsernameNotFoundException(e.getMessage(), e);
     } catch (IOException e) {
       String message = String.format("Failed to translate %s to a local username during Kerberos authentication: %s", principal, e.getLocalizedMessage());
       LOG.warn(message);
@@ -121,26 +116,83 @@ public class AmbariAuthToLocalUserDetailsService implements UserDetailsService {
    * User accounts are searched in order of preferred user type as specified in the Ambari configuration
    * ({@link Configuration#KERBEROS_AUTH_USER_TYPES}).
    *
-   * @param username a username
+   * @param username  a username
+   * @param principal the user's principal
    * @return the user details of the found user, or <code>null</code> if an appropriate user was not found
    */
-  private UserDetails createUser(String username) {
-    // Iterate over the ordered user types... when an account for the username/type combination is
-    // found, build the related AmbariUserAuthentication instance and return it.  Only the first
-    // match matters... this may be an issue and cause some ambiguity in the event multiple user
-    // types are specified in the configuration and multiple accounts for the same username, but
-    // different types (LOCAL vs LDAP, etc...).
-    for (UserType userType : userTypeOrder) {
-      org.apache.ambari.server.security.authorization.User user = users.getUser(username, userType);
+  private UserDetails createUser(String username, String principal) throws AuthenticationException {
+    UserEntity userEntity = users.getUserEntity(username);
 
-      if (user != null) {
-        Collection<AmbariGrantedAuthority> userAuthorities = users.getUserAuthorities(user.getUserName(), user.getUserType());
-        return new User(username, "", userAuthorities);
+    if (userEntity == null) {
+      throw new UserNotFoundException(username, String.format("Cannot find user using Kerberos ticket (%s).", principal));
+    } else if (!userEntity.getActive()) {
+      LOG.debug("User account is disabled");
+      throw new UserNotFoundException(username, "User account is disabled");
+    } else {
+
+      // Check to see if the user is allowed to authenticate using KERBEROS or LDAP
+      List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+      boolean hasKerberos = false;
+      boolean hasLDAP = false;
+      boolean hasLocal = false;
+
+      for (UserAuthenticationEntity entity : authenticationEntities) {
+        UserAuthenticationType authenticationType = entity.getAuthenticationType();
+
+        switch (authenticationType) {
+          case KERBEROS:
+            if (principal.equalsIgnoreCase(entity.getAuthenticationKey())) {
+              LOG.trace("Found KERBEROS authentication method for {} using principal {}", username, principal);
+              hasKerberos = true;
+            }
+            break;
+
+          case LDAP:
+            hasLDAP = true;
+            break;
+
+          case LOCAL:
+            hasLocal = true;
+            break;
+
+          default:
+            break;
+        }
+
+        if (hasKerberos) {
+          break;
+        }
+      }
+
+      if (!hasKerberos) {
+        if (hasLDAP) {
+          // TODO: Determine if LDAP users can authenticate using Kerberos
+          try {
+            users.addKerberosAuthentication(userEntity, principal);
+            LOG.trace("Added KERBEROS authentication method for {} using principal {}", username, principal);
+          } catch (AmbariException e) {
+            LOG.error(String.format("Failed to add the KERBEROS authentication method for %s: %s", principal, e.getLocalizedMessage()), e);
+          }
+          hasKerberos = true;
+        }
+
+        if (!hasKerberos && hasLocal) {
+          // TODO: Determine if LOCAL users can authenticate using Kerberos
+          try {
+            users.addKerberosAuthentication(userEntity, username);
+            LOG.trace("Added KERBEROS authentication method for {} using principal {}", username, principal);
+          } catch (AmbariException e) {
+            LOG.error(String.format("Failed to add the KERBEROS authentication method for %s: %s", username, e.getLocalizedMessage()), e);
+          }
+          hasKerberos = true;
+        }
+      }
+
+      if (!hasKerberos) {
+        throw new AuthenticationMethodNotAllowedException(username, UserAuthenticationType.KERBEROS);
       }
     }
 
-    String message = String.format("Failed find user account for user with username of %s during Kerberos authentication.", username);
-    LOG.warn(message);
-    throw new UsernameNotFoundException(message);
+    return new User(username, "", users.getUserAuthorities(userEntity));
   }
 }

@@ -72,6 +72,7 @@ import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
+import org.apache.ambari.server.controller.internal.UserResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
@@ -464,6 +465,7 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostKerberosIdentity"), HostKerberosIdentityResourceProvider.class)
+        .implement(ResourceProvider.class, Names.named("user"), UserResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("credential"), CredentialResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("kerberosDescriptor"), KerberosDescriptorResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("upgrade"), UpgradeResourceProvider.class)

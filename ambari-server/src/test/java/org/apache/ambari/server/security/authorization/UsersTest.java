@@ -63,7 +63,7 @@ import junit.framework.Assert;
 
 public class UsersTest extends EasyMockSupport {
 
-  public static final String SERVICEOP_USER_NAME = "serviceopuser";
+  private static final String SERVICEOP_USER_NAME = "serviceopuser";
   private Injector injector;
 
   @Test
@@ -76,7 +76,7 @@ public class UsersTest extends EasyMockSupport {
     expect(userEntity.getPrincipal()).andReturn(userPrincipalEntity).times(1);
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
-    expect(userDAO.findUserByNameAndType("user1", UserType.LOCAL)).andReturn(userEntity).times(1);
+    expect(userDAO.findUserByName("user1")).andReturn(userEntity).times(1);
 
     PrincipalEntity groupPrincipalEntity = createMock(PrincipalEntity.class);
 
@@ -125,7 +125,7 @@ public class UsersTest extends EasyMockSupport {
     replayAll();
 
     Users user = injector.getInstance(Users.class);
-    Collection<AmbariGrantedAuthority> authorities = user.getUserAuthorities("user1", UserType.LOCAL);
+    Collection<AmbariGrantedAuthority> authorities = user.getUserAuthorities("user1");
 
     verifyAll();
 
@@ -151,7 +151,7 @@ public class UsersTest extends EasyMockSupport {
   public void testCreateUser_NoDuplicates() throws Exception {
     initForCreateUser(null);
     Users users = injector.getInstance(Users.class);
-    users.createUser(SERVICEOP_USER_NAME, "qwert");
+    users.createUser(SERVICEOP_USER_NAME, SERVICEOP_USER_NAME, SERVICEOP_USER_NAME);
   }
 
   /**
@@ -161,8 +161,7 @@ public class UsersTest extends EasyMockSupport {
   @Test(expected = AmbariException.class)
   public void testCreateUser_Duplicate() throws Exception {
     UserEntity existing = new UserEntity();
-    existing.setUserName(UserName.fromString(SERVICEOP_USER_NAME));
-    existing.setUserType(UserType.LDAP);
+    existing.setUserName(UserName.fromString(SERVICEOP_USER_NAME).toString());
     existing.setUserId(1);
     existing.setMemberEntities(Collections.<MemberEntity>emptySet());
     PrincipalEntity principal = new PrincipalEntity();
@@ -171,12 +170,12 @@ public class UsersTest extends EasyMockSupport {
     initForCreateUser(existing);
 
     Users users = injector.getInstance(Users.class);
-    users.createUser(SERVICEOP_USER_NAME, "qwert");
+    users.createUser(SERVICEOP_USER_NAME, SERVICEOP_USER_NAME, SERVICEOP_USER_NAME);
   }
 
   private void initForCreateUser(@Nullable UserEntity existingUser) {
     UserDAO userDao = createStrictMock(UserDAO.class);
-    expect(userDao.findSingleUserByName(anyString())).andReturn(existingUser);
+    expect(userDao.findUserByName(anyString())).andReturn(existingUser);
     userDao.create(anyObject(UserEntity.class));
     expectLastCall();
     EntityManager entityManager = createNiceMock(EntityManager.class);

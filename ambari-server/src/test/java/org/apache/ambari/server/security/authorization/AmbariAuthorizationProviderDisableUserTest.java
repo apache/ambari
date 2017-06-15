@@ -18,10 +18,13 @@
 
 package org.apache.ambari.server.security.authorization;
 
+import java.util.Collections;
+
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,13 +90,18 @@ public class AmbariAuthorizationProviderDisableUserTest {
   
   private void createUser(String login, boolean isActive) {
     PrincipalEntity principalEntity = new PrincipalEntity();
+
+    UserAuthenticationEntity userAuthenticationEntity = new UserAuthenticationEntity();
+    userAuthenticationEntity.setAuthenticationType(UserAuthenticationType.LOCAL);
+    userAuthenticationEntity.setAuthenticationKey(encoder.encode("pwd"));
+
     UserEntity activeUser = new UserEntity();
     activeUser.setUserId(1);
     activeUser.setActive(isActive);
-    activeUser.setUserName(UserName.fromString(login));
-    activeUser.setUserPassword(encoder.encode("pwd"));
+    activeUser.setUserName(UserName.fromString(login).toString());
+    activeUser.setAuthenticationEntities(Collections.singletonList(userAuthenticationEntity));
     activeUser.setPrincipal(principalEntity);
-    Mockito.when(userDAO.findLocalUserByName(login)).thenReturn(activeUser);
-    Mockito.when(userDAO.findLdapUserByName(login)).thenReturn(activeUser);
+    Mockito.when(userDAO.findUserByName(login)).thenReturn(activeUser);
+    Mockito.when(userDAO.findUserByName(login)).thenReturn(activeUser);
   }
 }

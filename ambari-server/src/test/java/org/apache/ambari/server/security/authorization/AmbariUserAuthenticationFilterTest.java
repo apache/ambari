@@ -72,10 +72,11 @@ public class AmbariUserAuthenticationFilterTest {
     expect(tokenStorage.isValidInternalToken(TEST_INTERNAL_TOKEN)).andReturn(true);
     expect(request.getHeader(ExecutionScheduleManager.USER_ID_HEADER)).andReturn(TEST_USER_ID_HEADER);
 
-    User user = combineUser();
+    UserEntity userEntity = createUserEntity();
 
-    expect(users.getUser(TEST_USER_ID)).andReturn(user);
-    expect(users.getUserAuthorities(user.getUserName(), user.getUserType())).andReturn(new HashSet<AmbariGrantedAuthority>());
+    expect(users.getUserEntity(TEST_USER_ID)).andReturn(userEntity);
+    expect(users.getUserAuthorities(userEntity)).andReturn(new HashSet<AmbariGrantedAuthority>());
+    expect(users.getUser(userEntity)).andReturn(new User(userEntity));
     Capture<String> userHeaderValue = newCapture();
     response.setHeader(eq("User"), capture(userHeaderValue));
     expectLastCall();
@@ -93,7 +94,7 @@ public class AmbariUserAuthenticationFilterTest {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     assertNotNull(authentication);
     assertEquals(true, authentication.isAuthenticated());
-    assertEquals(TEST_USER_NAME, userHeaderValue.getValue());
+    assertEquals(TEST_USER_NAME.toLowerCase(), userHeaderValue.getValue());
   }
 
   @Test
@@ -158,7 +159,7 @@ public class AmbariUserAuthenticationFilterTest {
     expect(tokenStorage.isValidInternalToken(TEST_INTERNAL_TOKEN)).andReturn(true);
     expect(request.getHeader(ExecutionScheduleManager.USER_ID_HEADER)).andReturn(TEST_USER_ID_HEADER);
 
-    expect(users.getUser(TEST_USER_ID)).andReturn(null);
+    expect(users.getUserEntity(TEST_USER_ID)).andReturn(null);
 
     response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
     expectLastCall();
@@ -204,15 +205,12 @@ public class AmbariUserAuthenticationFilterTest {
     assertNull(authentication);
   }
 
-  private User combineUser() {
+  private UserEntity createUserEntity() {
     PrincipalEntity principalEntity = new PrincipalEntity();
     UserEntity userEntity = new UserEntity();
     userEntity.setUserId(TEST_USER_ID);
-    userEntity.setUserName(UserName.fromString(TEST_USER_NAME));
-    userEntity.setUserType(UserType.LOCAL);
+    userEntity.setUserName(UserName.fromString(TEST_USER_NAME).toString());
     userEntity.setPrincipal(principalEntity);
-    User user = new User(userEntity);
-
-    return user;
+    return userEntity;
   }
 }

@@ -429,9 +429,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       String createdUserName = requestScheduleEntity.getCreateUser();
 
       if (createdUserName != null) {
-        User user = users.getUserIfUnique(createdUserName);
+        // NOTE: This class is expected to go away in Ambari 3.0.0. Apache JIRA not available.
+        User user = users.getUser(createdUserName);
 
-        if (user != null && StringUtils.equals(user.getUserName(), createdUserName)) {
+        if (user != null && StringUtils.equalsIgnoreCase(user.getUserName(), createdUserName)) {
           requestScheduleEntity.setAuthenticatedUserId(user.getUserId());
           requestScheduleDAO.merge(requestScheduleEntity);
         }

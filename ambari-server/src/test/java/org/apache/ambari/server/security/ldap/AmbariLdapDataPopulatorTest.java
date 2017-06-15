@@ -53,12 +53,14 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authorization.AmbariLdapUtils;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.UserName;
 import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.Capture;
@@ -1971,14 +1973,15 @@ public class AmbariLdapDataPopulatorTest {
   private User createUser(String name, boolean ldapUser, GroupEntity group) {
     final UserEntity userEntity = new UserEntity();
     userEntity.setUserId(userIdCounter++);
-    userEntity.setUserName(UserName.fromString(name));
+    userEntity.setUserName(UserName.fromString(name).toString());
     userEntity.setCreateTime(new Date());
-    userEntity.setLdapUser(ldapUser);
     userEntity.setActive(true);
     userEntity.setMemberEntities(new HashSet<MemberEntity>());
+
     final PrincipalEntity principalEntity = new PrincipalEntity();
     principalEntity.setPrivileges(new HashSet<PrivilegeEntity>());
     userEntity.setPrincipal(principalEntity);
+
     if (group != null) {
       final MemberEntity member = new MemberEntity();
       member.setUser(userEntity);
@@ -1986,6 +1989,18 @@ public class AmbariLdapDataPopulatorTest {
       group.getMemberEntities().add(member);
       userEntity.getMemberEntities().add(member);
     }
+
+    UserAuthenticationEntity userAuthenticationEntity = new UserAuthenticationEntity();
+    if(ldapUser) {
+      userAuthenticationEntity.setAuthenticationType(UserAuthenticationType.LDAP);
+      userAuthenticationEntity.setAuthenticationKey("some dn");
+    }
+    else {
+      userAuthenticationEntity.setAuthenticationType(UserAuthenticationType.LOCAL);
+      userAuthenticationEntity.setAuthenticationKey("some password (normally encoded)");
+    }
+    userEntity.setAuthenticationEntities(Collections.singletonList(userAuthenticationEntity));
+
     return new User(userEntity);
   }
 

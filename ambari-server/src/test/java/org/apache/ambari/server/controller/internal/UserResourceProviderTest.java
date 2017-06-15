@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -55,11 +55,12 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.MemberEntity;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
@@ -266,9 +267,20 @@ public class UserResourceProviderTest extends EasyMockSupport {
   private void createResourcesTest(Authentication authentication) throws Exception {
     Injector injector = createInjector();
 
+    UserEntity userEntity100 = createNiceMock(UserEntity.class);
+    UserEntity userEntity200 = createNiceMock(UserEntity.class);
+
     Users users = injector.getInstance(Users.class);
-    users.createUser("User100", "password", UserType.LOCAL, (Boolean) null, null);
-    expectLastCall().atLeastOnce();
+    expect(users.createUser("User100", "User100", "User100", null))
+        .andReturn(userEntity100)
+        .once();
+    expect(users.createUser("user200", "user200", "user200", null))
+        .andReturn(userEntity200)
+        .once();
+
+    users.addLocalAuthentication(userEntity100, "password100");
+    users.addLocalAuthentication(userEntity200, "password200");
+    expectLastCall().once();
 
     // replay
     replayAll();
@@ -278,19 +290,21 @@ public class UserResourceProviderTest extends EasyMockSupport {
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<>();
 
-    Map<String, Object> properties = new LinkedHashMap<>();
+    Map<String, Object> properties;
 
-    // add properties to the request map
+    properties = new LinkedHashMap<>();
     properties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, "User100");
-    properties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password");
+    properties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password100");
+    propertySet.add(properties);
 
+    properties = new LinkedHashMap<>();
+    properties.put(UserResourceProvider.USER_USERNAME_PROPERTY_ID, "user200");
+    properties.put(UserResourceProvider.USER_PASSWORD_PROPERTY_ID, "password200");
     propertySet.add(properties);
 
     // create the request
@@ -308,15 +322,23 @@ public class UserResourceProviderTest extends EasyMockSupport {
     Users users = injector.getInstance(Users.class);
 
     if ("admin".equals(authentication.getName())) {
-      List<User> allUsers = Arrays.asList(
-          createMockUser("User1"),
-          createMockUser("User10"),
-          createMockUser("User100"),
-          createMockUser("admin")
-      );
-      expect(users.getAllUsers()).andReturn(allUsers).atLeastOnce();
+      UserEntity userEntity1 = createMockUserEntity("User1");
+      UserEntity userEntity10 = createMockUserEntity("User10");
+      UserEntity userEntity100 = createMockUserEntity("User100");
+      UserEntity userEntityAdmin = createMockUserEntity("admin");
+
+      List<UserEntity> allUsers = Arrays.asList(userEntity1, userEntity10, userEntity100, userEntityAdmin);
+
+      expect(users.getAllUserEntities()).andReturn(allUsers).once();
+      expect(users.hasAdminPrivilege(userEntity1)).andReturn(false).once();
+      expect(users.hasAdminPrivilege(userEntity10)).andReturn(false).once();
+      expect(users.hasAdminPrivilege(userEntity100)).andReturn(false).once();
+      expect(users.hasAdminPrivilege(userEntityAdmin)).andReturn(true).once();
     } else {
-      expect(users.getAnyUser("User1")).andReturn(createMockUser("User1")).atLeastOnce();
+
+      UserEntity userEntity = createMockUserEntity("User1");
+      expect(users.getUserEntity("User1")).andReturn(userEntity).once();
+      expect(users.hasAdminPrivilege(userEntity)).andReturn(false).once();
     }
 
     replayAll();
@@ -326,9 +348,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     Set<String> propertyIds = new HashSet<>();
     propertyIds.add(UserResourceProvider.USER_USERNAME_PROPERTY_ID);
@@ -358,8 +378,11 @@ public class UserResourceProviderTest extends EasyMockSupport {
   private void getResourceTest(Authentication authentication, String requestedUsername) throws Exception {
     Injector injector = createInjector();
 
+    UserEntity userEntity = createMockUserEntity(requestedUsername);
+
     Users users = injector.getInstance(Users.class);
-    expect(users.getAnyUser(requestedUsername)).andReturn(createMockUser(requestedUsername)).atLeastOnce();
+    expect(users.getUserEntity(requestedUsername)).andReturn(userEntity).once();
+    expect(users.hasAdminPrivilege(userEntity)).andReturn(false).once();
 
     replayAll();
 
@@ -368,9 +391,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     Set<String> propertyIds = new HashSet<>();
     propertyIds.add(UserResourceProvider.USER_USERNAME_PROPERTY_ID);
@@ -389,14 +410,16 @@ public class UserResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public void updateResources_SetAdmin(Authentication authentication, String requestedUsername) throws Exception {
+  private void updateResources_SetAdmin(Authentication authentication, String requestedUsername) throws Exception {
     Injector injector = createInjector();
 
+    UserEntity userEntity = createMockUserEntity(requestedUsername);
+
     Users users = injector.getInstance(Users.class);
-    expect(users.getAnyUser(requestedUsername)).andReturn(createMockUser(requestedUsername)).once();
+    expect(users.getUserEntity(requestedUsername)).andReturn(userEntity).once();
 
     if ("admin".equals(authentication.getName())) {
-      users.grantAdminPrivilege(requestedUsername.hashCode());
+      users.grantAdminPrivilege(userEntity);
       expectLastCall().once();
     }
 
@@ -407,9 +430,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -423,14 +444,16 @@ public class UserResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public void updateResources_SetActive(Authentication authentication, String requestedUsername) throws Exception {
+  private void updateResources_SetActive(Authentication authentication, String requestedUsername) throws Exception {
     Injector injector = createInjector();
 
+    UserEntity userEntity = createMockUserEntity(requestedUsername);
+
     Users users = injector.getInstance(Users.class);
-    expect(users.getAnyUser(requestedUsername)).andReturn(createMockUser(requestedUsername)).once();
+    expect(users.getUserEntity(requestedUsername)).andReturn(userEntity).once();
 
     if ("admin".equals(authentication.getName())) {
-      users.setUserActive(requestedUsername, true);
+      users.setUserActive(userEntity, true);
       expectLastCall().once();
     }
 
@@ -441,9 +464,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -456,12 +477,14 @@ public class UserResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  public void updateResources_SetPassword(Authentication authentication, String requestedUsername) throws Exception {
+  private void updateResources_SetPassword(Authentication authentication, String requestedUsername) throws Exception {
     Injector injector = createInjector();
 
+    UserEntity userEntity = createMockUserEntity(requestedUsername);
+
     Users users = injector.getInstance(Users.class);
-    expect(users.getAnyUser(requestedUsername)).andReturn(createMockUser(requestedUsername)).once();
-    users.modifyPassword(requestedUsername, "old_password", "new_password");
+    expect(users.getUserEntity(requestedUsername)).andReturn(userEntity).once();
+    users.modifyPassword(userEntity, "old_password", "new_password");
     expectLastCall().once();
 
     replayAll();
@@ -471,9 +494,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<>();
@@ -491,11 +512,11 @@ public class UserResourceProviderTest extends EasyMockSupport {
   private void deleteResourcesTest(Authentication authentication, String requestedUsername) throws Exception {
     Injector injector = createInjector();
 
-    User user = createMockUser(requestedUsername);
+    UserEntity userEntity = createMockUserEntity(requestedUsername);
 
     Users users = injector.getInstance(Users.class);
-    expect(users.getAnyUser(requestedUsername)).andReturn(user).atLeastOnce();
-    users.removeUser(user);
+    expect(users.getUserEntity(requestedUsername)).andReturn(userEntity).once();
+    users.removeUser(userEntity);
     expectLastCall().atLeastOnce();
 
     // replay
@@ -506,9 +527,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-
-    ResourceProvider provider = getResourceProvider(managementController);
+    ResourceProvider provider = getResourceProvider(injector);
 
     provider.deleteResources(new RequestImpl(null, null, null, null), createPredicate(requestedUsername));
 
@@ -524,24 +543,23 @@ public class UserResourceProviderTest extends EasyMockSupport {
         .toPredicate();
   }
 
-  private User createMockUser(String username) {
-    User user = createMock(User.class);
-    expect(user.getUserId()).andReturn(username.hashCode()).anyTimes();
-    expect(user.getUserName()).andReturn(username).anyTimes();
-    expect(user.getUserType()).andReturn(UserType.LOCAL).anyTimes();
-    expect(user.isLdapUser()).andReturn(false).anyTimes();
-    expect(user.isActive()).andReturn(true).anyTimes();
-    expect(user.isAdmin()).andReturn(false).anyTimes();
-    expect(user.getGroups()).andReturn(Collections.<String>emptyList()).anyTimes();
-
-    return user;
+  private UserEntity createMockUserEntity(String username) {
+    UserEntity userEntity = createMock(UserEntity.class);
+    expect(userEntity.getUserId()).andReturn(username.hashCode()).anyTimes();
+    expect(userEntity.getUserName()).andReturn(username).anyTimes();
+    expect(userEntity.getActive()).andReturn(true).anyTimes();
+    expect(userEntity.getAuthenticationEntities()).andReturn(Collections.<UserAuthenticationEntity>emptyList()).anyTimes();
+    expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity>emptySet()).anyTimes();
+    return userEntity;
   }
 
-  private ResourceProvider getResourceProvider(AmbariManagementController managementController) {
-    return AbstractControllerResourceProvider.getResourceProvider(
-        Resource.Type.User,
+  private ResourceProvider getResourceProvider(Injector injector) {
+    UserResourceProvider resourceProvider = new UserResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.User),
         PropertyHelper.getKeyPropertyIds(Resource.Type.User),
-        managementController);
+        injector.getInstance(AmbariManagementController.class));
+
+    injector.injectMembers(resourceProvider);
+    return resourceProvider;
   }
 }

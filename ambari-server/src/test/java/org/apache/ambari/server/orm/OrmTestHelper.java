@@ -227,8 +227,7 @@ public class OrmTestHelper {
     PasswordEncoder encoder = injector.getInstance(PasswordEncoder.class);
 
     UserEntity admin = new UserEntity();
-    admin.setUserName(UserName.fromString("administrator"));
-    admin.setUserPassword(encoder.encode("admin"));
+    admin.setUserName(UserName.fromString("administrator").toString());
     admin.setPrincipal(principalEntity);
 
     Set<UserEntity> users = new HashSet<>();
@@ -242,11 +241,9 @@ public class OrmTestHelper {
     getEntityManager().persist(principalEntity);
 
     UserEntity userWithoutRoles = new UserEntity();
-    userWithoutRoles.setUserName(UserName.fromString("userWithoutRoles"));
-    userWithoutRoles.setUserPassword(encoder.encode("test"));
+    userWithoutRoles.setUserName(UserName.fromString("userWithoutRoles").toString());
     userWithoutRoles.setPrincipal(principalEntity);
     userDAO.create(userWithoutRoles);
-
   }
 
   @Transactional

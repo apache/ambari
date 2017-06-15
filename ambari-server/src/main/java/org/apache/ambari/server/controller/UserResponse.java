@@ -20,25 +20,26 @@ package org.apache.ambari.server.controller;
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 
 import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Represents a user maintenance request.
  */
-public class UserResponse implements ApiModel {
+public class
+UserResponse implements ApiModel {
 
   private final String userName;
-  private final UserType userType;
+  private final UserAuthenticationType authenticationType;
   private final boolean isLdapUser;
   private final boolean isActive;
   private final boolean isAdmin;
   private Set<String> groups = Collections.emptySet();
 
-  public UserResponse(String userName, UserType userType, boolean isLdapUser, boolean isActive, boolean isAdmin) {
+  public UserResponse(String userName, UserAuthenticationType userType, boolean isLdapUser, boolean isActive, boolean isAdmin) {
     this.userName = userName;
-    this.userType = userType;
+    this.authenticationType = userType;
     this.isLdapUser = isLdapUser;
     this.isActive = isActive;
     this.isAdmin = isAdmin;
@@ -49,7 +50,7 @@ public class UserResponse implements ApiModel {
     this.isLdapUser = isLdapUser;
     this.isActive = isActive;
     this.isAdmin = isAdmin;
-    this.userType = UserType.LOCAL;
+    this.authenticationType = UserAuthenticationType.LOCAL;
   }
 
   @ApiModelProperty(name = "Users/user_name",required = true)
@@ -84,9 +85,9 @@ public class UserResponse implements ApiModel {
     return isAdmin;
   }
 
-  @ApiModelProperty(name = "Users/user_type")
-  public UserType getUserType() {
-    return userType;
+  @ApiModelProperty(name = "Users/authentication_type")
+  public UserAuthenticationType getAuthenticationType() {
+    return authenticationType;
   }
 
   @Override
@@ -97,14 +98,14 @@ public class UserResponse implements ApiModel {
     UserResponse that = (UserResponse) o;
 
     if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
-    return userType == that.userType;
+    return authenticationType == that.authenticationType;
 
   }
 
   @Override
   public int hashCode() {
     int result = userName != null ? userName.hashCode() : 0;
-    result = 31 * result + (userType != null ? userType.hashCode() : 0);
+    result = 31 * result + (authenticationType != null ? authenticationType.hashCode() : 0);
     return result;
   }
 }

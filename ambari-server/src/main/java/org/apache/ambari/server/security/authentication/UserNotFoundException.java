@@ -16,23 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.security.authorization.jwt;
+package org.apache.ambari.server.security.authentication;
 
 import org.springframework.security.core.AuthenticationException;
 
 /**
- * AuthenticationJwtUserNotFoundException is an AuthenticationException implementation to be thrown
- * when the user specified in a JTW token is not found in the Ambari user database.
+ * AuthenticationUserNotFoundException is an AuthenticationException implementation to be thrown
+ * when the user specified in an authentication attempt is not found in the Ambari user database.
  */
-public class AuthenticationJwtUserNotFoundException extends AuthenticationException {
+public class UserNotFoundException extends AuthenticationException {
   private final String username;
 
-  public AuthenticationJwtUserNotFoundException(String username, String message) {
+  public UserNotFoundException(String username, String message) {
     super(message);
     this.username = username;
   }
 
-  public AuthenticationJwtUserNotFoundException(String username, String message, Throwable throwable) {
+  public UserNotFoundException(String username, String message, Throwable throwable) {
     super(message, throwable);
     this.username = username;
   }

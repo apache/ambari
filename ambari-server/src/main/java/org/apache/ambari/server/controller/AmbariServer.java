@@ -90,6 +90,7 @@ import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
@@ -866,8 +867,16 @@ public class AmbariServer {
       LOG.info("Database init needed - creating default data");
       Users users = injector.getInstance(Users.class);
 
-      users.createUser("admin", "admin");
-      users.createUser("user", "user");
+      UserEntity userEntity;
+
+      // Create the admin user
+      userEntity = users.createUser("admin", "admin", "admin");
+      users.addLocalAuthentication(userEntity, "admin");
+      users.grantAdminPrivilege(userEntity);
+
+      // Create a normal user
+      userEntity = users.createUser("user", "user", "user");
+      users.addLocalAuthentication(userEntity, "user");
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
       schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);

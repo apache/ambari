@@ -33,11 +33,14 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
+import org.apache.ambari.server.security.authentication.UserNotFoundException;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
-import org.apache.ambari.server.security.authorization.User;
-import org.apache.ambari.server.security.authorization.UserType;
+import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -116,6 +119,9 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
 
   }
 
+  // TODO: ************
+  // TODO: This is to be revisited for AMBARI-21217 (Update JWT Authentication process to work with improved user management facility)
+  // TODO: ************
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
@@ -138,27 +144,50 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
 
           if (valid) {
             String userName = jwtToken.getJWTClaimsSet().getSubject();
-            User user = users.getUser(userName, UserType.JWT);
-            //fixme temporary solution for LDAP username conflicts, auth ldap users via JWT
-            if (user == null) {
-              user = users.getUser(userName, UserType.LDAP);
-            }
+            UserEntity userEntity = users.getUserEntity(userName);
 
-            if (user == null) {
-              //TODO this is temporary check for conflicts, until /users API will change to use user_id instead of name as PK
-              User existingUser = users.getUser(userName, UserType.LOCAL);
-              if (existingUser != null) {
-                LOG.error("Access for JWT user [{}] restricted. Detected conflict with local user ", userName);
+            if (userEntity == null) {
+              //TODO we temporary expect that LDAP is configured to same server as JWT source
+              throw new UserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
+            } else {
+              // Check to see if the user is allowed to authenticate using JWT or LDAP
+              Collection<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+              boolean hasJWT = false;
+              boolean hasLDAP = false;
+
+              if (authenticationEntities != null) {
+                for (UserAuthenticationEntity entity : authenticationEntities) {
+                  if (entity.getAuthenticationType() == UserAuthenticationType.JWT) {
+                    // TODO: possibly check the authentication key to see if it is relevant
+                    hasJWT = true;
+                    break;
+                  } else if (entity.getAuthenticationType() == UserAuthenticationType.LDAP) {
+                    hasLDAP = true;
+                  }
+                }
               }
 
-              //TODO we temporary expect that LDAP is configured to same server as JWT source
-              throw new AuthenticationJwtUserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
+              if(!hasJWT) {
+                if (hasLDAP) {
+                  // TODO: Determine if LDAP users can authenticate using JWT
+                  try {
+                    users.addJWTAuthentication(userEntity, userName);
+                  } catch (AmbariException e) {
+                    LOG.error(String.format("Failed to add the JWT authentication method for %s: %s", userName, e.getLocalizedMessage()), e);
+                  }
+                  hasJWT = true;
+                }
+              }
+
+              if (!hasJWT) {
+                throw new UserNotFoundException(userName, "User is not authorized to authenticate from JWT. Please, ensure LDAP is configured and users are synced.");
+              }
             }
 
-            Collection<AmbariGrantedAuthority> userAuthorities =
-                users.getUserAuthorities(user.getUserName(), user.getUserType());
+            // If we made it this far, the user was found and is authorized to authenticate via JWT
+            Collection<AmbariGrantedAuthority> userAuthorities = users.getUserAuthorities(userEntity);
 
-            JwtAuthentication authentication = new JwtAuthentication(serializedJWT, user, userAuthorities);
+            JwtAuthentication authentication = new JwtAuthentication(serializedJWT, users.getUser(userEntity), userAuthorities);
             authentication.setAuthenticated(true);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -221,11 +250,7 @@ public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
     }
 
     //always try to authenticate in case of anonymous user
-    if (existingAuth instanceof AnonymousAuthenticationToken) {
-      return true;
-    }
-
-    return false;
+    return (existingAuth instanceof AnonymousAuthenticationToken);
   }
 
   /**

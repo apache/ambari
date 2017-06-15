@@ -51,7 +51,6 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 
 import com.google.common.cache.CacheBuilder;
@@ -187,14 +186,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
             @Override
             public UserEntity load(String key) throws Exception {
               //fallback mechanism, mostly for unit tests
-              UserEntity userEntity = userDAO.findLocalUserByName(key);
-              if (userEntity == null) {
-                userEntity = userDAO.findLdapUserByName(key);
-              }
-              if (userEntity == null) {
-                userEntity = userDAO.findUserByNameAndType(key, UserType.JWT);
-              }
-              return userEntity;
+              return userDAO.findUserByName(key);
             }
           };
 
@@ -281,9 +273,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
           Map<String, UserEntity> userNames = new TreeMap<>();
           for (UserEntity entity : userDAO.findAll()) {
             UserEntity existing = userNames.get(entity.getUserName());
-            if (existing == null ||
-                entity.getUserType() == UserType.LOCAL ||
-                existing.getUserType() == UserType.JWT) {
+            if (existing == null) {
               userNames.put(entity.getUserName(), entity);
             }
           }
@@ -292,10 +282,12 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         if (userEntity == null) {
-            userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
+            userEntity = userDAO.findUserByName(userName);
         }
+
         if (userEntity == null) {
-          throw new SystemException("User " + userName + " was not found");
+          LOG.debug("User {} was not found", userName);
+          throw new SystemException("User was not found");
         }
 
         final Collection<PrivilegeEntity> privileges = users.getUserPrivileges(userEntity);

@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.slf4j.Logger;
@@ -61,6 +62,9 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
     this.userDAO = userDAO;
   }
 
+  // TODO: ************
+  // TODO: This is to be revisited for AMBARI-21219 (Update LDAP Authentication process to work with improved user management facility)
+  // TODO: ************
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     if (isLdapEnabled()) {
@@ -100,7 +104,6 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
     } else {
       return null;
     }
-
   }
 
   @Override
@@ -196,7 +199,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private Integer getUserId(Authentication authentication) {
     String userName = AuthorizationHelper.resolveLoginAliasToUserName(authentication.getName());
 
-    UserEntity userEntity = userDAO.findLdapUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
 
     // lookup is case insensitive, so no need for string comparison
     if (userEntity == null) {
@@ -206,11 +209,19 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
     if (!userEntity.getActive()) {
       LOG.debug("User account is disabled ('{}')", userName);
+    } else {
+      List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+      for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+        if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LDAP) {
+          // TODO: Ensure this is the "correct" LDAP entry..
+          return userEntity.getUserId();
+        }
+      }
 
-      throw new InvalidUsernamePasswordCombinationException();
+      LOG.debug("Failed to find LDAP authentication entry for {})", userName);
     }
 
-    return userEntity.getUserId();
+    throw new InvalidUsernamePasswordCombinationException();
   }
 
 }

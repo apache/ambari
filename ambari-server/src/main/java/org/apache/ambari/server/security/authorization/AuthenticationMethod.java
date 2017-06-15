@@ -16,23 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.internal;
+package org.apache.ambari.server.security.authorization;
 
-import org.apache.ambari.server.orm.dao.MemberDAO;
-import org.apache.ambari.server.orm.dao.PrivilegeDAO;
-import org.apache.ambari.server.security.authorization.Users;
-import org.easymock.EasyMockSupport;
+public class AuthenticationMethod {
+  private final UserAuthenticationType authenticationType;
+  private final String authenticationKey;
 
-class AbstractPrivilegeResourceProviderTest extends EasyMockSupport {
+  public AuthenticationMethod(UserAuthenticationType authenticationType, String authenticationKey) {
+    this.authenticationType = authenticationType;
+    this.authenticationKey = authenticationKey;
+  }
 
-  static class TestUsers extends Users {
+  public UserAuthenticationType getAuthenticationType() {
+    return authenticationType;
+  }
 
-    void setPrivilegeDAO(PrivilegeDAO privilegeDAO) {
-      this.privilegeDAO = privilegeDAO;
-    }
-
-    public void setMemberDAO(MemberDAO memberDAO) {
-      this.memberDAO = memberDAO;
-    }
+  public String getAuthenticationKey() {
+    return authenticationKey;
   }
 }

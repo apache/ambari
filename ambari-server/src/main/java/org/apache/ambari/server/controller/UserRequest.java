@@ -31,13 +31,16 @@ public class UserRequest {
   private Boolean active;
   private Boolean admin;
 
-  @ApiModelProperty(name = "Users/user_name",hidden = true)
-  public String getUsername() {
-    return userName;
-  }
+  private String displayName;
+  private String localUserName;
 
   public UserRequest(String name) {
     this.userName = name;
+  }
+
+  @ApiModelProperty(name = "Users/user_name",hidden = true)
+  public String getUsername() {
+    return userName;
   }
 
   @ApiModelProperty(name = "Users/password")
@@ -74,6 +77,24 @@ public class UserRequest {
 
   public void setAdmin(Boolean admin) {
     this.admin = admin;
+  }
+
+  @ApiModelProperty(name = "Users/display_name")
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  @ApiModelProperty(name = "Users/local_user_name")
+  public String getLocalUserName() {
+    return localUserName;
+  }
+
+  public void setLocalUserName(String localUserName) {
+    this.localUserName = localUserName;
   }
 
   @Override

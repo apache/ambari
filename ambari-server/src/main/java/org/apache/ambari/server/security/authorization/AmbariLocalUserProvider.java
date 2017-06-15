@@ -17,9 +17,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.orm.entities.UserAuthenticationEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,47 +53,52 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
     // do nothing
   }
 
+  // TODO: ************
+  // TODO: This is to be revisited for AMBARI-21220 (Update Local Authentication process to work with improved user management facility)
+  // TODO: ************
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     String userName = authentication.getName().trim();
 
     LOG.info("Loading user by name: " + userName);
 
-    UserEntity userEntity = userDAO.findLocalUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByName(userName);
 
     if (userEntity == null) {
-      //TODO case insensitive name comparison is a temporary solution, until users API will change to use id as PK
       LOG.info("user not found");
       throw new InvalidUsernamePasswordCombinationException();
     }
 
     if (!userEntity.getActive()) {
-      logger.debug("User account is disabled");
-
+      LOG.debug("User account is disabled");
       throw new InvalidUsernamePasswordCombinationException();
     }
 
     if (authentication.getCredentials() == null) {
-      logger.debug("Authentication failed: no credentials provided");
-
+      LOG.debug("Authentication failed: no credentials provided");
       throw new InvalidUsernamePasswordCombinationException();
     }
 
-    String password = userEntity.getUserPassword();
-    String presentedPassword = authentication.getCredentials().toString();
+    List<UserAuthenticationEntity> authenticationEntities = userEntity.getAuthenticationEntities();
+    for (UserAuthenticationEntity authenticationEntity : authenticationEntities) {
+      if (authenticationEntity.getAuthenticationType() == UserAuthenticationType.LOCAL) {
+        // This should only get invoked once...
+        String password = authenticationEntity.getAuthenticationKey();
+        String presentedPassword = authentication.getCredentials().toString();
 
-    if (!passwordEncoder.matches(presentedPassword, password)) {
-      logger.debug("Authentication failed: password does not match stored value");
-
-      throw new InvalidUsernamePasswordCombinationException();
+        if (passwordEncoder.matches(presentedPassword, password)) {
+          // The user was  authenticated, return the authenticated user object
+          User user = new User(userEntity);
+          Authentication auth = new AmbariUserAuthentication(password, user, users.getUserAuthorities(userEntity));
+          auth.setAuthenticated(true);
+          return auth;
+        }
+      }
     }
-    Collection<AmbariGrantedAuthority> userAuthorities =
-      users.getUserAuthorities(userEntity.getUserName(), userEntity.getUserType());
 
-    User user = new User(userEntity);
-    Authentication auth = new AmbariUserAuthentication(userEntity.getUserPassword(), user, userAuthorities);
-    auth.setAuthenticated(true);
-    return auth;
+    // The user was not authenticated, fail
+    LOG.debug("Authentication failed: password does not match stored value");
+    throw new InvalidUsernamePasswordCombinationException();
   }
 
   @Override

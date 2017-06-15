@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,9 +50,9 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   @Inject
   private Users users;
   @Inject
-  protected UserDAO userDAO;
+  private UserDAO userDAO;
   @Inject
-  protected GroupDAO groupDAO;
+  private GroupDAO groupDAO;
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariPamAuthenticationProvider.class);
 
@@ -64,88 +63,33 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
     this.configuration = configuration;
   }
 
-  /**
-   * Performs PAM Initialization
-   *
-   * @param authentication
-   * @return authentication
-   */
-
+  // TODO: ************
+  // TODO: This is to be revisited for AMBARI-21221 (Update Pam Authentication process to work with improved user management facility)
+  // TODO: ************
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-      if(isPamEnabled()){
-        PAM pam;
-        String userName = String.valueOf(authentication.getPrincipal());
-        UserEntity existingUser = userDAO.findUserByName(userName);
-        if ((existingUser != null) && (existingUser.getUserType() != UserType.PAM)) {
-          String errorMsg = String.format("%s user exists with the username %s. Cannot authenticate via PAM", existingUser.getUserType(), userName);
-          LOG.error(errorMsg);
-          return null;
-        }
-        try{
-          //Set PAM configuration file (found under /etc/pam.d)
-          String pamConfig = configuration.getPamConfigurationFile();
-          pam = new PAM(pamConfig);
+    if (isPamEnabled()) {
+      //Set PAM configuration file (found under /etc/pam.d)
+      String pamConfig = configuration.getPamConfigurationFile();
+      PAM pam;
 
-        } catch(PAMException ex) {
-          LOG.error("Unable to Initialize PAM." + ex.getMessage());
-          throw new AuthenticationServiceException("Unable to Initialize PAM - ", ex);
-        }
-
-        return authenticateViaPam(pam, authentication);
-    } else {
-       return null;
-    }
-  }
-
-  /**
-   * Performs PAM Authentication
-   *
-   * @param pam
-   * @param authentication
-   * @return authentication
-   */
-
-  protected Authentication authenticateViaPam(PAM pam, Authentication authentication) throws AuthenticationException{
-    if(isPamEnabled()){
       try {
-          String userName = String.valueOf(authentication.getPrincipal());
-          String passwd = String.valueOf(authentication.getCredentials());
+        //Set PAM configuration file (found under /etc/pam.d)
+        pam = new PAM(pamConfig);
 
-          // authenticate using PAM
-          UnixUser unixUser = pam.authenticate(userName,passwd);
-
-          //Get all the groups that user belongs to
-          //Change all group names to lower case.
-          Set<String> groups = new HashSet<>();
-
-          for(String group: unixUser.getGroups()){
-            groups.add(group.toLowerCase());
-          }
-
-          ambariPamAuthorization(userName,groups);
-
-          Collection<AmbariGrantedAuthority> userAuthorities =
-              users.getUserAuthorities(userName, UserType.PAM);
-
-          final User user = users.getUser(userName, UserType.PAM);
- 
-          Authentication authToken = new AmbariUserAuthentication(passwd, user, userAuthorities);
-          authToken.setAuthenticated(true);
-          return authToken;   
-        } catch (PAMException ex) {
-          LOG.error("Unable to sign in. Invalid username/password combination - " + ex.getMessage());
-          Throwable t = ex.getCause();
-          throw new PamAuthenticationException("Unable to sign in. Invalid username/password combination.",t);
-
-        } finally {
-          pam.dispose();
-        }
-
+      } catch (PAMException ex) {
+        LOG.error("Unable to Initialize PAM: " + ex.getMessage(), ex);
+        throw new AuthenticationServiceException("Unable to Initialize PAM - ", ex);
       }
-      else {
-        return null;
+
+      try {
+        return authenticateViaPam(pam, authentication);
+      } finally {
+        pam.dispose();
       }
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -153,8 +97,36 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
     return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
   }
 
+  Authentication authenticateViaPam(PAM pam, Authentication authentication) {
+    String userName = String.valueOf(authentication.getPrincipal());
+    String password = String.valueOf(authentication.getCredentials());
+
+    UnixUser unixUser;
+    try {
+      // authenticate using PAM
+      unixUser = pam.authenticate(userName, password);
+    } catch (PAMException ex) {
+      LOG.error("Unable to sign in. Invalid username/password combination - " + ex.getMessage());
+      Throwable t = ex.getCause();
+      throw new PamAuthenticationException("Unable to sign in. Invalid username/password combination.", t);
+    }
+
+    if (unixUser != null) {
+      UserEntity userEntity = ambariPamAuthorization(unixUser);
+
+      if (userEntity != null) {
+        Authentication authToken = new AmbariUserAuthentication(password, users.getUser(userEntity), users.getUserAuthorities(userEntity));
+        authToken.setAuthenticated(true);
+        return authToken;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Check if PAM authentication is enabled in server properties
+   *
    * @return true if enabled
    */
   private boolean isPamEnabled() {
@@ -163,6 +135,7 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
 
   /**
    * Check if PAM authentication is enabled in server properties
+   *
    * @return true if enabled
    */
   private boolean isAutoGroupCreationAllowed() {
@@ -173,56 +146,64 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   /**
    * Performs PAM authorization by creating user & group(s)
    *
-   * @param userName user name
-   * @param userGroups Collection of groups
-   * @return
+   * @param unixUser the user
    */
-  private void ambariPamAuthorization(String userName,Set<String> userGroups){
+  private UserEntity ambariPamAuthorization(UnixUser unixUser) {
+    String userName = unixUser.getUserName();
+    UserEntity userEntity = null;
+
     try {
-      User existingUser = users.getUser(userName,UserType.PAM);
+      userEntity = userDAO.findUserByName(userName);
 
-      if (existingUser == null ) {
-        users.createUser(userName, null, UserType.PAM, true, false);
+      // TODO: Ensure automatically creating users when authenticating with PAM is allowed.
+      if (userEntity == null) {
+        userEntity = users.createUser(userName, userName, userName);
+        users.addPamAuthentication(userEntity, userName);
       }
 
-      UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
+      if (isAutoGroupCreationAllowed()) {
+        //Get all the groups that user belongs to
+        //Change all group names to lower case.
+        Set<String> unixUserGroups = unixUser.getGroups();
+        if (unixUserGroups != null) {
+          for (String group : unixUserGroups) {
+            // Ensure group name is lowercase
+            group = group.toLowerCase();
 
-      if(isAutoGroupCreationAllowed()){
-        for(String userGroup: userGroups){
-          if(users.getGroupByNameAndType(userGroup, GroupType.PAM) == null){
-            users.createGroup(userGroup, GroupType.PAM);
-          }
+            GroupEntity groupEntity = groupDAO.findGroupByNameAndType(group, GroupType.PAM);
+            if (groupEntity == null) {
+              groupEntity = users.createGroup(group, GroupType.PAM);
+            }
 
-          final GroupEntity groupEntity = groupDAO.findGroupByNameAndType(userGroup, GroupType.PAM);
-
-          if (!isUserInGroup(userEntity, groupEntity)){
-            users.addMemberToGroup(userGroup,userName);
+            if (!isUserInGroup(userEntity, groupEntity)) {
+              users.addMemberToGroup(groupEntity, userEntity);
+            }
           }
         }
 
-        Set<String> ambariUserGroups = getUserGroups(userName, UserType.PAM);
-
-        for(String group: ambariUserGroups){
-          if(userGroups == null || !userGroups.contains(group)){
-            users.removeMemberFromGroup(group, userName);
+        Set<GroupEntity> ambariUserGroups = getUserGroups(userEntity);
+        for (GroupEntity groupEntity : ambariUserGroups) {
+          if (unixUserGroups == null || !unixUserGroups.contains(groupEntity.getGroupName())) {
+            users.removeMemberFromGroup(groupEntity, userEntity);
           }
         }
       }
-
     } catch (AmbariException e) {
       e.printStackTrace();
     }
+
+    return userEntity;
   }
 
   /**
    * Performs a check if given user belongs to given group.
    *
-   * @param userEntity user entity
+   * @param userEntity  user entity
    * @param groupEntity group entity
    * @return true if user presents in group
    */
   private boolean isUserInGroup(UserEntity userEntity, GroupEntity groupEntity) {
-    for (MemberEntity memberEntity: userEntity.getMemberEntities()) {
+    for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       if (memberEntity.getGroup().equals(groupEntity)) {
         return true;
       }
@@ -233,17 +214,20 @@ public class AmbariPamAuthenticationProvider implements AuthenticationProvider {
   /**
    * Extracts all groups a user belongs to
    *
-   * @param userName user name
+   * @param userEntity the user
    * @return Collection of group names
    */
-  private Set<String> getUserGroups(String userName, UserType userType) {
-    UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
-    Set<String> groups = new HashSet<>();
-    for (MemberEntity memberEntity: userEntity.getMemberEntities()) {
-      groups.add(memberEntity.getGroup().getGroupName());
+  private Set<GroupEntity> getUserGroups(UserEntity userEntity) {
+    Set<GroupEntity> groups = new HashSet<>();
+    if (userEntity != null) {
+      for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
+        GroupEntity groupEntity = memberEntity.getGroup();
+        if (groupEntity.getGroupType() == GroupType.PAM) {
+          groups.add(memberEntity.getGroup());
+        }
+      }
     }
 
     return groups;
   }
-
 }
