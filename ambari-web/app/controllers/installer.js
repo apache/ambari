@@ -618,7 +618,13 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       var stackInfo = {};
       stackInfo.dfd = dataInfo.dfd;
       stackInfo.response = response;
-      this.getSupportedOSList(data, stackInfo);
+      this.incrementProperty('loadStacksRequestsCounter');
+      this.getSupportedOSListSuccessCallback(data, null, {
+        stackName: data.VersionDefinition.stack_name,
+        stackVersion: data.VersionDefinition.stack_version,
+        versionDefinition: data,
+        stackInfo: stackInfo
+      });
     }
   },
 

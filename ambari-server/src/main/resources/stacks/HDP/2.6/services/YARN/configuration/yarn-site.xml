@@ -109,6 +109,12 @@
   <property>
     <name>yarn.nodemanager.kill-escape.user</name>
     <value>hive</value>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_user</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

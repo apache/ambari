@@ -1243,11 +1243,9 @@ public class KerberosHelperImpl implements KerberosHelper {
                                                                   Map<String, String> kerberosDescriptorProperties)
       throws AmbariException
   {
-    Map<String, Map<String, String>> configuration = addAdditionalConfigurations(cluster,
+    return addAdditionalConfigurations(cluster,
       calculateExistingConfigurations(cluster, hostname),
       hostname, kerberosDescriptorProperties);
-    configuration.put("principals", principalNames(cluster, configuration));
-    return configuration;
   }
 
   private Map<String, String> principalNames(Cluster cluster, Map<String, Map<String, String>> configuration) throws AmbariException {
@@ -2543,7 +2541,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         configurations.put("clusterHostInfo", componentHosts);
       }
     }
-
+    configurations.put("principals", principalNames(cluster, configurations));
     return configurations;
   }
 

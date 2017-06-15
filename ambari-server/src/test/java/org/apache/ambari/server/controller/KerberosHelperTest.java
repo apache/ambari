@@ -2388,7 +2388,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     servicesMap.put("SERVICE2", service2);
 
     Cluster cluster = createMockCluster(clusterName, Arrays.asList(host1, host2, host3), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
-    expect(cluster.getServices()).andReturn(servicesMap).times(2);
+    expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
@@ -2595,7 +2595,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     servicesMap.put("SERVICE1", service1);
 
     Cluster cluster = createMockCluster("c1", Arrays.asList(host1), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
-    expect(cluster.getServices()).andReturn(servicesMap).times(2);
+    expect(cluster.getServices()).andReturn(servicesMap).anyTimes();
 
     Map<String, String> kerberosDescriptorProperties = new HashMap<>();
     kerberosDescriptorProperties.put("additional_realms", "");
@@ -2610,7 +2610,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     expect(kerberosDescriptor.getProperties()).andReturn(kerberosDescriptorProperties);
-    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).anyTimes();
 
     setupKerberosDescriptor(kerberosDescriptor);
 
