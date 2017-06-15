@@ -119,6 +119,10 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
         componentInfo.setReassignAllowed(parentInfo.getReassignAllowed());
       }
 
+      if (componentInfo.getTimelineAppid() == null) {
+        componentInfo.setTimelineAppid(parentInfo.getTimelineAppid());
+      }
+
       mergeComponentDependencies(parentInfo.getDependencies(),
               componentInfo.getDependencies());
 

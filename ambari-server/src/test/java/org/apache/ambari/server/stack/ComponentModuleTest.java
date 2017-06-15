@@ -178,6 +178,31 @@ public class ComponentModuleTest {
   }
 
   @Test
+  public void testResolve_TimelineAppId() {
+    String timelineAppId = "app";
+
+    ComponentInfo info = new ComponentInfo();
+    assertEquals(null, resolveComponent(info, null).getModuleInfo().getTimelineAppid());
+
+    ComponentInfo parentInfo = new ComponentInfo();
+    info = new ComponentInfo();
+    // parent has value set, child value is null
+    parentInfo.setTimelineAppid(timelineAppId);
+    assertEquals(timelineAppId, resolveComponent(info, parentInfo).getModuleInfo().getTimelineAppid());
+
+    // child has value set, parent value is null
+    info.setTimelineAppid(timelineAppId);
+    parentInfo.setTimelineAppid(null);
+    assertEquals(timelineAppId, resolveComponent(info, parentInfo).getModuleInfo().getTimelineAppid());
+
+    // value set in both parent and child; child overwrites
+    String timelineAppId2 = "app2";
+    info.setTimelineAppid(timelineAppId2);
+    parentInfo.setTimelineAppid(timelineAppId);
+    assertEquals(timelineAppId2, resolveComponent(info, parentInfo).getModuleInfo().getTimelineAppid());
+  }
+
+  @Test
   public void testResolve_AutoDeploy() {
     AutoDeployInfo autoDeployInfo = new AutoDeployInfo();
     autoDeployInfo.setEnabled(true);
