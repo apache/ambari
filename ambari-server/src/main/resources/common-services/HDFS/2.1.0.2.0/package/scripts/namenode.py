@@ -180,7 +180,7 @@ class NameNodeDefault(NameNode):
     namenode_upgrade.prepare_rolling_upgrade(hfds_binary)
 
   def wait_for_safemode_off(self, env):
-    wait_for_safemode_off(self.get_hdfs_binary(), 30, True)
+    wait_for_safemode_off(self.get_hdfs_binary(), afterwait_sleep=30, execute_kinit=True)
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()

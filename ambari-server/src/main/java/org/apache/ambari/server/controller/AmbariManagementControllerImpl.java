@@ -4108,7 +4108,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
 
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext,
-        cluster, desiredRepositoryVersion);
+        cluster, desiredRepositoryVersion, requestContext);
 
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
