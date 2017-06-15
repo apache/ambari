@@ -495,6 +495,11 @@ if (('hive-exec-log4j' in config['configurations']) and ('content' in config['co
 else:
   log4j_exec_props = None
 
+# parquet-logging.properties
+parquet_logging_properties = None
+if 'parquet-logging' in config['configurations']:
+  parquet_logging_properties = config['configurations']['parquet-logging']['content']
+
 daemon_name = status_params.daemon_name
 process_name = status_params.process_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
