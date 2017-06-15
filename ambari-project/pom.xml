@@ -569,8 +569,8 @@
               <version>${checkstyle.version}</version>
             </dependency>
             <dependency>
-              <groupId>utility</groupId>
-              <artifactId>utility</artifactId>
+              <groupId>org.apache.ambari</groupId>
+              <artifactId>ambari-utility</artifactId>
               <version>1.0.0.0-SNAPSHOT</version>
             </dependency>
           </dependencies>

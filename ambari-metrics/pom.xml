@@ -22,7 +22,7 @@
   <version>2.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
-    <module>../utility</module>
+    <module>../ambari-utility</module>
     <module>ambari-metrics-common</module>
     <module>ambari-metrics-hadoop-sink</module>
     <module>ambari-metrics-flume-sink</module>
@@ -305,8 +305,8 @@
   <dependencies>
     <!-- Dependency in order to annotate unit tests with a category. -->
     <dependency>
-      <groupId>utility</groupId>
-      <artifactId>utility</artifactId>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-utility</artifactId>
       <version>1.0.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
@@ -320,8 +320,8 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>utility</groupId>
-          <artifactId>utility</artifactId>
+          <groupId>org.apache.ambari</groupId>
+          <artifactId>ambari-utility</artifactId>
           <version>1.0.0.0-SNAPSHOT</version>
         </dependency>
       </dependencies>

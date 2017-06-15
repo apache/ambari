@@ -184,8 +184,8 @@
   <dependencies>
     <!-- Dependency in order to annotate unit tests with a category. -->
     <dependency>
-      <groupId>utility</groupId>
-      <artifactId>utility</artifactId>
+      <groupId>org.apache.ambari</groupId>
+      <artifactId>ambari-utility</artifactId>
       <version>1.0.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

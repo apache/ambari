@@ -27,8 +27,8 @@
     <relativePath>../ambari-project</relativePath>
   </parent>
 
-  <artifactId>utility</artifactId>
-  <groupId>utility</groupId>
+  <artifactId>ambari-utility</artifactId>
+  <groupId>org.apache.ambari</groupId>
   <version>1.0.0.0-SNAPSHOT</version>
 
   <dependencies>

@@ -3,14 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <!-- Can compile this project independently, cd serviceadvisor ; mvn clean package install
+  <!-- Can compile this project independently, cd ambari-serviceadvisor ; mvn clean package install
 
   To test independently without needing the rest of Ambari, simply compile and run as,
-  java -jar serviceadvisor-$VERSION.jar [ACTION] [HOSTS_FILE.json] [SERVICES_FILE.json]
+  java -jar ambari-serviceadvisor-$VERSION.jar [ACTION] [HOSTS_FILE.json] [SERVICES_FILE.json]
   -->
-  <groupId>serviceadvisor</groupId>
-  <artifactId>serviceadvisor</artifactId>
-  <name>Service Advisor</name>
+  <groupId>org.apache.ambari</groupId>
+  <artifactId>ambari-serviceadvisor</artifactId>
+  <name>Ambari Service Advisor</name>
   <version>1.0.0.0-SNAPSHOT</version>
   <description>Service Advisor</description>
 
