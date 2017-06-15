@@ -336,7 +336,11 @@ def do_keystore_setup(upgrade_type=None):
     )
 
   if params.ranger_auth_method.upper() == "LDAP":
-    ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+    ranger_ldap_auth_password = params.ranger_usersync_ldap_ldapbindpassword
+    if params.ranger_ldap_bind_auth_password != "{{ranger_usersync_ldap_ldapbindpassword}}":
+      ranger_ldap_auth_password = params.ranger_ldap_bind_auth_password
+
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ldap_password_alias, ranger_ldap_auth_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
@@ -345,7 +349,11 @@ def do_keystore_setup(upgrade_type=None):
     )
 
   if params.ranger_auth_method.upper() == "ACTIVE_DIRECTORY":
-    ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, params.ranger_usersync_ldap_ldapbindpassword, params.ranger_credential_provider_path)
+    ranger_ad_auth_password = params.ranger_usersync_ldap_ldapbindpassword
+    if params.ranger_ad_bind_auth_password != "{{ranger_usersync_ldap_ldapbindpassword}}":
+      ranger_ad_auth_password = params.ranger_ad_bind_auth_password
+
+    ranger_credential_helper(params.cred_lib_path, params.ranger_ad_password_alias, ranger_ad_auth_password, params.ranger_credential_provider_path)
 
     File(params.ranger_credential_provider_path,
       owner = params.unix_user,
