@@ -689,6 +689,9 @@ describe('App.MainHostDetailsController', function () {
           },
           'core-site': {
             tag: 'tag'
+          },
+          'kms-site': {
+            tag: 'tag'
           }
         }
       }}, null, {});
@@ -696,7 +699,7 @@ describe('App.MainHostDetailsController', function () {
       expect(args[0]).exists;
       expect(args[0].sender).to.be.eql(controller);
       expect(args[0].data).to.be.eql({
-        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)'
+        urlParams: '(type=core-site&tag=tag)|(type=hdfs-site&tag=tag)|(type=kms-env&tag=tag)|(type=kms-site&tag=tag)'
       });
     });
   });
@@ -718,15 +721,6 @@ describe('App.MainHostDetailsController', function () {
     });
     it('hosts list is valid', function() {
       expect(this.hosts).to.eql(['host2']);
-    });
-    it('rangerKMSServerHost is empty', function () {
-      expect(controller.get('rangerKMSServerHost')).to.be.empty;
-    });
-    it('deleteRangerKMSServer is false', function () {
-      expect(controller.get('deleteRangerKMSServer')).to.be.false;
-    });
-    it('fromDeleteHost is false', function () {
-      expect(controller.get('fromDeleteHost')).to.be.false;
     });
   });
 
@@ -3256,6 +3250,21 @@ describe('App.MainHostDetailsController', function () {
               'core-site': undefined,
               'hdfs-site': undefined
             }
+          },
+          {
+            properties: {
+              'kms-site': {
+                'hadoop.kms.cache.enable': 'true',
+                'hadoop.kms.cache.timeout.ms': '600000',
+                'hadoop.kms.current.key.cache.timeout.ms': '30000',
+                'hadoop.kms.authentication.signer.secret.provider': 'random',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'kerberos',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': '#HOSTNAME#:#PORT#,...'
+              }
+            },
+            properties_attributes: {
+              'kms-site': undefined
+            }
           }
         ]
       },
@@ -3274,6 +3283,21 @@ describe('App.MainHostDetailsController', function () {
               'core-site': undefined,
               'hdfs-site': undefined
             }
+          },
+          {
+            properties: {
+              'kms-site': {
+                'hadoop.kms.cache.enable': 'false',
+                'hadoop.kms.cache.timeout.ms': '0',
+                'hadoop.kms.current.key.cache.timeout.ms': '0',
+                'hadoop.kms.authentication.signer.secret.provider': 'zookeeper',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'none',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': 'host1:2181,host2:2181'
+              }
+            },
+            properties_attributes: {
+              'kms-site': undefined
+            }
           }
         ]
       }
@@ -3281,11 +3305,20 @@ describe('App.MainHostDetailsController', function () {
 
     beforeEach(function () {
       sinon.spy(controller, 'saveConfigsBatch');
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          Em.Object.create({
+            displayName: 'service',
+            serviceName: 'RANGER_KMS'
+          })
+        ];
+      });
       sinon.stub(controller, 'saveLoadedConfigs', Em.K);
     });
 
     afterEach(function () {
       controller.saveConfigsBatch.restore();
+      App.Service.find.restore();
       controller.saveLoadedConfigs.restore();
     });
 
@@ -3308,6 +3341,17 @@ describe('App.MainHostDetailsController', function () {
               type: 'hdfs-site',
               properties: {
                 'dfs.encryption.key.provider.uri': 'kms://http@host2:port/kms'
+              }
+            },
+            {
+              type: 'kms-site',
+              properties: {
+                'hadoop.kms.cache.enable': 'true',
+                'hadoop.kms.cache.timeout.ms': '600000',
+                'hadoop.kms.current.key.cache.timeout.ms': '30000',
+                'hadoop.kms.authentication.signer.secret.provider': 'random',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type': 'kerberos',
+                'hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string': '#HOSTNAME#:#PORT#,...'
               }
             }
           ]
