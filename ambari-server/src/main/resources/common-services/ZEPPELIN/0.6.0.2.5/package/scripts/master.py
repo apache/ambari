@@ -217,9 +217,7 @@ class Master(Script):
     # if first_setup:
     if not glob.glob(params.conf_dir + "/interpreter.json") and \
       not os.path.exists(params.conf_dir + "/interpreter.json"):
-      Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
-              + params.zeppelin_log_file, user=params.zeppelin_user)
-      self.check_zeppelin_server()
+      self.create_interpreter_json()
       self.update_zeppelin_interpreter()
 
     self.update_kerberos_properties()
@@ -421,14 +419,13 @@ class Master(Script):
 
     self.set_interpreter_settings(config_data)
 
-  @retry(times=30, sleep_time=5, err_class=Fail)
-  def check_zeppelin_server(self):
+  def create_interpreter_json(self):
+    import interpreter_json_template
     import params
-    path = params.conf_dir + "/interpreter.json"
-    if os.path.exists(path) and os.path.getsize(path):
-      Logger.info("interpreter.json found. Zeppelin server started.")
-    else:
-      raise Fail("interpreter.json not found. waiting for Zeppelin server to start...")
+
+    interpreter_json = interpreter_json_template.template
+    File(format("{params.conf_dir}/interpreter.json"), content=interpreter_json,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
 
   def get_zeppelin_spark_dependencies(self):
     import params
