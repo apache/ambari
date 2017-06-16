@@ -107,6 +107,7 @@ from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
+from ambari_agent.HostStatusReporter import HostStatusReporter
 
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
@@ -352,6 +353,9 @@ def run_threads(initializer_module):
 
   command_status_reporter = CommandStatusReporter(initializer_module)
   command_status_reporter.start()
+
+  host_status_reporter = HostStatusReporter(initializer_module)
+  host_status_reporter.start()
 
   initializer_module.action_queue.start()
 

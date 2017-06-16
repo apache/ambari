@@ -81,13 +81,13 @@ class CommandStatusDict():
         if command ['commandType'] in [ActionQueue.EXECUTION_COMMAND, ActionQueue.BACKGROUND_EXECUTION_COMMAND]:
           if (report['status']) != ActionQueue.IN_PROGRESS_STATUS:
             resultReports.append(report)
-            self.reported_reports.append(key)
+            self.reported_reports.add(key)
           else:
             in_progress_report = self.generate_in_progress_report(command, report)
             resultReports.append(in_progress_report)
         elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
           logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
-          self.reported_reports.append(key)
+          self.reported_reports.add(key)
           pass
       return resultReports
 
@@ -95,6 +95,7 @@ class CommandStatusDict():
     with self.lock:
       for key in self.reported_reports:
         del self.current_state[key]
+      self.reported_reports = set()
 
   def generate_in_progress_report(self, command, report):
     """

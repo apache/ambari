@@ -81,7 +81,7 @@ class CustomServiceOrchestrator():
     self.metadata_cache = initializer_module.metadata_cache
     self.topology_cache = initializer_module.topology_cache
     self.configurations_cache = initializer_module.configurations_cache
-    self.config = initializer_module.ambariConfig
+    self.config = initializer_module.config
     self.tmp_dir = self.config.get('agent', 'prefix')
     self.force_https_protocol = self.config.get_force_https_protocol()
     self.exec_tmp_dir = Constants.AGENT_TMP_DIR

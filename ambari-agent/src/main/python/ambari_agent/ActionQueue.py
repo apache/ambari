@@ -75,7 +75,7 @@ class ActionQueue(threading.Thread):
     self.commandQueue = Queue.Queue()
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = initializer_module.commandStatuses
-    self.config = initializer_module.ambariConfig
+    self.config = initializer_module.config
     self.configTags = {}
     self.stop_event = initializer_module.stop_event
     self.tmpdir = self.config.get('agent', 'prefix')

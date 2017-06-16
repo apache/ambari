@@ -36,7 +36,7 @@ class Register:
 
     hostInfo = HostInfo(self.config)
     agentEnv = { }
-    hostInfo.register(agentEnv, False, False)
+    hostInfo.register(agentEnv, runExpensiveChecks=True)
 
     current_ping_port = self.config.get('agent','ping_port')
 

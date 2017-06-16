@@ -31,6 +31,7 @@ from ambari_agent.security import AmbariStompConnection
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
+from ambari_agent.HostStatusReporter import HostStatusReporter
 
 logger = logging.getLogger()
 
@@ -49,14 +50,16 @@ class InitializerModule:
     """
     Initialize every property got from ambari-agent.ini
     """
-    self.ambariConfig = AmbariConfig.get_resolved_config()
+    self.config = AmbariConfig.get_resolved_config()
 
-    self.server_hostname = self.ambariConfig.get('server', 'hostname')
-    self.secured_url_port = self.ambariConfig.get('server', 'secured_url_port')
+    self.server_hostname = self.config.get('server', 'hostname')
+    self.secured_url_port = self.config.get('server', 'secured_url_port')
 
-    self.cache_dir = self.ambariConfig.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
-    self.command_reports_interval = int(self.ambariConfig.get('agent', 'command_reports_interval', default='5'))
+    self.cache_dir = self.config.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
+    self.command_reports_interval = int(self.config.get('agent', 'command_reports_interval', default='5'))
     self.cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+
+    self.host_status_report_interval = int(self.config.get('heartbeat', 'state_interval_seconds', '60'))
 
   def init(self):
     """
@@ -67,7 +70,7 @@ class InitializerModule:
     self.is_registered = False
 
     self.metadata_cache = ClusterMetadataCache(self.cluster_cache_dir)
-    self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir, self.ambariConfig)
+    self.topology_cache = ClusterTopologyCache(self.cluster_cache_dir, self.config)
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
 

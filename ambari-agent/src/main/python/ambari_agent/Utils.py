@@ -73,6 +73,36 @@ class BlockingDictionary():
 
 class Utils(object):
   @staticmethod
+  def are_dicts_equal(d1, d2, keys_to_skip=[]):
+    """
+    Check if two dictionaries are equal. Comparing the nested dictionaries is done as well.
+    """
+    return Utils.are_dicts_equal_one_way(d1, d2, keys_to_skip) and Utils.are_dicts_equal_one_way(d2, d1, keys_to_skip)
+  @staticmethod
+  def are_dicts_equal_one_way(d1, d2, keys_to_skip=[]):
+    """
+    Check if d1 has all the same keys and their values as d2
+    including nested dictionaries
+    """
+    for k in d1.keys():
+      if k in keys_to_skip:
+        #print "skipping " + str(k)
+        continue
+      if not d2.has_key(k):
+        #print "don't have key="+str(k)
+        return False
+      else:
+        if type(d1[k]) is dict:
+          are_equal = Utils.are_dicts_equal_one_way(d1[k], d2[k], keys_to_skip)
+          if not are_equal:
+            return False
+        else:
+          if d1[k] != d2[k]:
+            #print "not equal at "+str(k)
+            return False
+    return True
+
+  @staticmethod
   def make_immutable(value):
     if isinstance(value, ImmutableDictionary):
       return value

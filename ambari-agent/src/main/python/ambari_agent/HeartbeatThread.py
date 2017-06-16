@@ -46,7 +46,7 @@ class HeartbeatThread(threading.Thread):
     self.heartbeat_interval = HEARTBEAT_INTERVAL
     self.stop_event = initializer_module.stop_event
 
-    self.registration_builder = Register(initializer_module.ambariConfig)
+    self.registration_builder = Register(initializer_module.config)
 
     self.initializer_module = initializer_module
     self.caches = [initializer_module.metadata_cache, initializer_module.topology_cache, initializer_module.configurations_cache]
@@ -89,6 +89,7 @@ class HeartbeatThread(threading.Thread):
 
       self.stop_event.wait(self.heartbeat_interval)
 
+    self.initializer_module.is_registered = False
     self.initializer_module.connection.disconnect()
     delattr(self.initializer_module, '_connection')
     logger.info("HeartbeatThread has successfully finished")

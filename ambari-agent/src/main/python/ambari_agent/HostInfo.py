@@ -35,6 +35,7 @@ from resource_management.core import shell
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from AmbariConfig import AmbariConfig
 from resource_management.core.resources.jcepolicyinfo import JcePolicyInfo
+import Hardware
 
 logger = logging.getLogger()
 
@@ -296,11 +297,8 @@ class HostInfoLinux(HostInfo):
       logger.exception('Unable to get information about JCE')
       return None
 
-  def register(self, dict, componentsMapped=True, commandsInProgress=True):
-    """ Return various details about the host
-    componentsMapped: indicates if any components are mapped to this host
-    commandsInProgress: indicates if any commands are in progress
-    """
+  def register(self, dict, runExpensiveChecks=False):
+    """ Return various details about the host"""
 
     dict['hostHealth'] = {}
 
@@ -321,7 +319,7 @@ class HostInfoLinux(HostInfo):
     dict['hasUnlimitedJcePolicy'] = self.checkUnlimitedJce()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress:
+    if not runExpensiveChecks:
       dict['alternatives'] = []
       dict['stackFoldersAndFiles'] = []
       dict['existingUsers'] = []
@@ -418,10 +416,8 @@ class HostInfoWindows(HostInfo):
     code, out, err = run_powershell_script(self.SERVICE_STATUS_CMD.format(serivce_name))
     return out, err, code
 
-  def register(self, dict, componentsMapped=True, commandsInProgress=True):
+  def register(self, dict, runExpensiveChecks=False):
     """ Return various details about the host
-    componentsMapped: indicates if any components are mapped to this host
-    commandsInProgress: indicates if any commands are in progress
     """
     dict['hostHealth'] = {}
 
@@ -438,9 +434,8 @@ class HostInfoWindows(HostInfo):
     dict['firewallRunning'] = self.checkFirewall()
     dict['firewallName'] = self.getFirewallName()
     dict['reverseLookup'] = self.checkReverseLookup()
-    # If commands are in progress or components are already mapped to this host
-    # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress:
+
+    if not runExpensiveChecks:
       dict['alternatives'] = []
       dict['stackFoldersAndFiles'] = []
       dict['existingUsers'] = []

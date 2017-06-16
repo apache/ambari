@@ -31,6 +31,7 @@ from ambari_agent import HeartbeatThread
 from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
+from ambari_agent.HostStatusReporter import HostStatusReporter
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 
 from mock.mock import MagicMock, patch
@@ -63,9 +64,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     component_status_executor = ComponentStatusExecutor(initializer_module)
     component_status_executor.start()
 
-    command_status_reporter = CommandStatusReporter(initializer_module)
-    command_status_reporter.start()
-
     connect_frame = self.server.frames_queue.get()
     users_subscribe_frame = self.server.frames_queue.get()
     registration_frame = self.server.frames_queue.get()
@@ -92,6 +90,12 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     while not initializer_module.is_registered:
       time.sleep(0.1)
 
+    command_status_reporter = CommandStatusReporter(initializer_module)
+    command_status_reporter.start()
+
+    host_status_reporter = HostStatusReporter(initializer_module)
+    host_status_reporter.start()
+
     f = Frame(frames.MESSAGE, headers={'destination': '/user/commands'}, body=self.get_json("execution_commands.json"))
     self.server.topic_manager.send(f)
 
@@ -106,16 +110,22 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     zk_start_failed_frame = json.loads(self.server.frames_queue.get().body)
     action_status_in_progress_frame = json.loads(self.server.frames_queue.get().body)
     action_status_failed_frame = json.loads(self.server.frames_queue.get().body)
+    host_status_report = json.loads(self.server.frames_queue.get().body)
+
     initializer_module.stop_event.set()
 
     f = Frame(frames.MESSAGE, headers={'destination': '/user/', 'correlationId': '4'}, body=json.dumps({'id':'1'}))
     self.server.topic_manager.send(f)
 
+    command_status_reporter.join()
     heartbeat_thread.join()
     component_status_executor.join()
-    command_status_reporter.join()
+    host_status_reporter.join()
     action_queue.join()
 
+
+    self.assertTrue('mounts' in host_status_report)
+    self.assertTrue('activeJavaProcs' in host_status_report['agentEnv']['hostHealth'])
     self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
     self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
@@ -123,7 +133,6 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.assertEquals(dn_start_in_progress_frame[0]['role'], 'DATANODE')
     self.assertEquals(dn_start_in_progress_frame[0]['status'], 'IN_PROGRESS')
     self.assertEquals(dn_start_failed_frame[0]['status'], 'FAILED')
-
 
     #============================================================================================
     #============================================================================================
@@ -144,6 +153,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
 
     command_status_reporter = CommandStatusReporter(initializer_module)
     command_status_reporter.start()
+
+    host_status_reporter = HostStatusReporter(initializer_module)
+    host_status_reporter.start()
 
     connect_frame = self.server.frames_queue.get()
     users_subscribe_frame = self.server.frames_queue.get()
@@ -177,7 +189,9 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     heartbeat_thread.join()
     component_status_executor.join()
     command_status_reporter.join()
+    host_status_reporter.join()
     action_queue.join()
+
 
   def test_topology_update_and_delete(self):
     initializer_module = InitializerModule()
@@ -247,3 +261,4 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.server.topic_manager.send(f)
 
     heartbeat_thread.join()
+
