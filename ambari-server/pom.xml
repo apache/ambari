@@ -35,8 +35,8 @@
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
     <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
-    <swagger.spec.dir>docs/api/generated/</swagger.spec.dir>
-    <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger</swagger.generated.resources.dir>
+    <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
+    <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/public</ambari-web-dir>
     <ambari-admin-dir>${basedir}/../ambari-admin</ambari-admin-dir>
     <contrib-views-dir>${basedir}/../contrib/views</contrib-views-dir>
@@ -267,27 +267,9 @@
               <outputDirectory>${ambari-web-dir}/api-docs</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${swagger.spec.dir}/</directory>
+                  <directory>${swagger.generated.resources.dir}</directory>
                   <includes>
                     <include>swagger.json</include>
-                  </includes>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-swagger-generated-html</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${swagger.spec.dir}</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${swagger.generated.resources.dir}/</directory>
-                  <includes>
-                    <include>index.html</include>
                   </includes>
                 </resource>
               </resources>
@@ -429,7 +411,7 @@
                   <name>Apache License, Version 2.0</name>
                 </license>
               </info>
-              <swaggerDirectory>${swagger.spec.dir}</swaggerDirectory>
+              <swaggerDirectory>${swagger.generated.resources.dir}</swaggerDirectory>
             </apiSource>
           </apiSources>
         </configuration>
@@ -920,6 +902,41 @@
       <properties>
         <skipPythonTests>true</skipPythonTests>
       </properties>
+    </profile>
+    <profile>
+      <id>copy-swagger-generated-resources</id>
+      <activation>
+        <property><name>generate.swagger.resources</name></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.6</version>
+            <executions>
+              <execution>
+                <id>copy-swagger-generated-html</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${swagger.spec.dir}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${swagger.generated.resources.dir}/</directory>
+                      <includes>
+                        <include>index.html</include>
+                        <include>swagger.json</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>windows</id>
