@@ -4385,7 +4385,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (OperatingSystemEntity operatingSystem: repositoryVersion.getOperatingSystems()) {
           if (operatingSystem.getOsType().equals(osType)) {
             for (RepositoryEntity repository: operatingSystem.getRepositories()) {
-              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "", "");
+              final RepositoryResponse response = new RepositoryResponse(repository.getBaseUrl(), osType, repository.getRepositoryId(), repository.getName(), "", "");
               if (null != versionDefinitionId) {
                 response.setVersionDefinitionId(versionDefinitionId);
               } else {
@@ -4414,7 +4414,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getMirrorsList(),
-              repo.getBaseUrl(), repo.getLatestUri());
+              repo.getBaseUrl());
 
           resp.setVersionDefinitionId(versionDefinitionId);
           resp.setStackName(stackId.getStackName());
@@ -4444,40 +4444,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     return responses;
-  }
-
-  @Override
-  public void updateRepositories(Set<RepositoryRequest> requests) throws AmbariException {
-    for (RepositoryRequest rr : requests) {
-      if (null == rr.getStackName() || rr.getStackName().isEmpty()) {
-        throw new AmbariException("Stack name must be specified.");
-      }
-
-      if (null == rr.getStackVersion() || rr.getStackVersion().isEmpty()) {
-        throw new AmbariException("Stack version must be specified.");
-      }
-
-      if (null == rr.getOsType() || rr.getOsType().isEmpty()) {
-        throw new AmbariException("OS type must be specified.");
-      }
-
-      if (null == rr.getRepoId() || rr.getRepoId().isEmpty()) {
-        throw new AmbariException("Repo ID must be specified.");
-      }
-
-      if (null == rr.getBaseUrl() && null == rr.getMirrorsList()) {
-        throw new AmbariException("Repo Base Url or Mirrors List must be specified.");
-      }
-
-      if (rr.isVerifyBaseUrl()) {
-        verifyRepository(rr);
-      }
-      if (rr.getRepositoryVersionId() != null) {
-        throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
-      }
-      ambariMetaInfo.updateRepo(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId(), rr.getBaseUrl(), rr.getMirrorsList());
-
-    }
   }
 
   @Override
