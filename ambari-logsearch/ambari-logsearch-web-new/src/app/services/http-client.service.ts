@@ -21,7 +21,6 @@ import {Observable} from 'rxjs/Observable';
 import {Http, XHRBackend, Request, RequestOptions, RequestOptionsArgs, Response} from '@angular/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import {environment} from '@app/../environments/environment';
 
 @Injectable()
 export class HttpClientService extends Http {
@@ -75,8 +74,7 @@ export class HttpClientService extends Http {
   }
 
   post(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {
-    return environment.production ?
-      super.post(this.generateUrlString(url), body, options) : super.get(this.generateUrlString(url), options);
+    return super.post(this.generateUrlString(url), body, options);
   }
 
   put(url: string, body: any, options?: RequestOptionsArgs):Observable<Response> {

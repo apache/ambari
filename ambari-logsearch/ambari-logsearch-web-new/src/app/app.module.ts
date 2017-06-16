@@ -17,15 +17,16 @@
  */
 
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule, CUSTOM_ELEMENTS_SCHEMA} from '@angular/core';
+import {NgModule, CUSTOM_ELEMENTS_SCHEMA, Injector} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {HttpModule, Http} from '@angular/http';
-import {InMemoryWebApiModule} from 'angular-in-memory-web-api';
-import {mockApiDataService} from './services/mock-api-data.service'
+import {HttpModule, Http, XHRBackend, BrowserXhr, ResponseOptions, XSRFStrategy} from '@angular/http';
+import {InMemoryBackendService} from 'angular-in-memory-web-api';
 import {AlertModule} from 'ngx-bootstrap';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {StoreModule} from '@ngrx/store';
+import {environment} from '../environments/environment';
+import {mockApiDataService} from '@app/services/mock-api-data.service'
 import {HttpClientService} from '@app/services/http-client.service';
 import {ComponentActionsService} from '@app/services/component-actions.service';
 import {FilteringService} from '@app/services/filtering.service';
@@ -51,7 +52,23 @@ import {AccordionPanelComponent} from '@app/accordion-panel/accordion-panel.comp
 import {LogsListComponent} from '@app/logs-list/logs-list.component';
 
 export function HttpLoaderFactory(http: Http) {
-  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+  // adding 'static' parameter to step over mock data request
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json?static=true');
+}
+
+export function getXHRBackend(injector: Injector, browser: BrowserXhr, xsrf: XSRFStrategy, options: ResponseOptions): any {
+  if (environment.production) {
+    return new XHRBackend(browser, options, xsrf);
+  } else {
+    return new InMemoryBackendService(
+      injector,
+      new mockApiDataService(),
+      {
+        passThruUnknownUrl: true,
+        rootPath: ''
+      }
+    );
+  }
 }
 
 @NgModule({
@@ -72,10 +89,6 @@ export function HttpLoaderFactory(http: Http) {
     BrowserModule,
     FormsModule,
     HttpModule,
-    InMemoryWebApiModule.forRoot(mockApiDataService, {
-      passThruUnknownUrl: true,
-      rootPath: ''
-    }),
     AlertModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
@@ -104,7 +117,12 @@ export function HttpLoaderFactory(http: Http) {
     GraphsService,
     NodesService,
     UserConfigsService,
-    FiltersService
+    FiltersService,
+    {
+      provide: XHRBackend,
+      useFactory: getXHRBackend,
+      deps: [Injector, BrowserXhr, XSRFStrategy, ResponseOptions]
+    }
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
