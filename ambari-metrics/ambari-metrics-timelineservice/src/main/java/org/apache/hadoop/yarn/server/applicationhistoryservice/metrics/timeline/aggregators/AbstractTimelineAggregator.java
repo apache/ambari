@@ -272,7 +272,8 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
         conn.commit();
         LOG.info(rows + " row(s) updated in aggregation.");
 
-        downsample(conn, startTime, endTime);
+        //TODO : Fix downsampling after UUID change.
+        //downsample(conn, startTime, endTime);
       } else {
         rs = stmt.executeQuery();
       }
@@ -280,7 +281,7 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
 
       aggregate(rs, startTime, endTime);
 
-    } catch (SQLException | IOException e) {
+    } catch (Exception e) {
       LOG.error("Exception during aggregating metrics.", e);
       success = false;
     } finally {
@@ -455,25 +456,29 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
    * @return
    */
   protected String getDownsampledMetricSkipClause() {
-    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
-      return StringUtils.EMPTY;
-    }
 
-    StringBuilder sb = new StringBuilder();
+    //TODO Fix downsampling for UUID change.
+    return StringUtils.EMPTY;
 
-    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
-      sb.append(" METRIC_NAME");
-      sb.append(" NOT");
-      sb.append(" LIKE ");
-      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
-
-      if (i < downsampleMetricPatterns.size() - 1) {
-        sb.append(" AND ");
-      }
-    }
-
-    sb.append(" AND ");
-    return sb.toString();
+//    if (CollectionUtils.isEmpty(this.downsampleMetricPatterns)) {
+//      return StringUtils.EMPTY;
+//    }
+//
+//    StringBuilder sb = new StringBuilder();
+//
+//    for (int i = 0; i < downsampleMetricPatterns.size(); i++) {
+//      sb.append(" METRIC_NAME");
+//      sb.append(" NOT");
+//      sb.append(" LIKE ");
+//      sb.append("'" + downsampleMetricPatterns.get(i) + "'");
+//
+//      if (i < downsampleMetricPatterns.size() - 1) {
+//        sb.append(" AND ");
+//      }
+//    }
+//
+//    sb.append(" AND ");
+//    return sb.toString();
   }
 
   /**

@@ -81,7 +81,7 @@ public class TimelineMetricMetadataSync implements Runnable {
     if (markSuccess) {
       for (TimelineMetricMetadata metadata : metadataToPersist) {
         TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(
-          metadata.getMetricName(), metadata.getAppId()
+          metadata.getMetricName(), metadata.getAppId(), metadata.getInstanceId()
         );
 
         // Mark entry as being persisted
@@ -119,7 +119,7 @@ public class TimelineMetricMetadataSync implements Runnable {
    */
   private void persistHostAppsMetadata() {
     if (cacheManager.syncHostedAppsMetadata()) {
-      Map<String, Set<String>> persistedData = null;
+      Map<String, TimelineMetricHostMetadata> persistedData = null;
       try {
         persistedData = cacheManager.getHostedAppsFromStore();
       } catch (SQLException e) {
@@ -127,14 +127,14 @@ public class TimelineMetricMetadataSync implements Runnable {
         return; // Something wrong with store
       }
 
-      Map<String, Set<String>> cachedData = cacheManager.getHostedAppsCache();
-      Map<String, Set<String>> dataToSync = new HashMap<>();
+      Map<String, TimelineMetricHostMetadata> cachedData = cacheManager.getHostedAppsCache();
+      Map<String, TimelineMetricHostMetadata> dataToSync = new HashMap<>();
       if (cachedData != null && !cachedData.isEmpty()) {
-        for (Map.Entry<String, Set<String>> cacheEntry : cachedData.entrySet()) {
+        for (Map.Entry<String, TimelineMetricHostMetadata> cacheEntry : cachedData.entrySet()) {
           // No persistence / stale data in store
           if (persistedData == null || persistedData.isEmpty() ||
             !persistedData.containsKey(cacheEntry.getKey()) ||
-            !persistedData.get(cacheEntry.getKey()).containsAll(cacheEntry.getValue())) {
+            !persistedData.get(cacheEntry.getKey()).getHostedApps().containsAll(cacheEntry.getValue().getHostedApps())) {
             dataToSync.put(cacheEntry.getKey(), cacheEntry.getValue());
           }
         }
@@ -189,16 +189,16 @@ public class TimelineMetricMetadataSync implements Runnable {
    * Read all hosted apps metadata and update cached values - HA
    */
   private void refreshHostAppsMetadata() {
-    Map<String, Set<String>> hostedAppsDataFromStore = null;
+    Map<String, TimelineMetricHostMetadata> hostedAppsDataFromStore = null;
     try {
       hostedAppsDataFromStore = cacheManager.getHostedAppsFromStore();
     } catch (SQLException e) {
       LOG.warn("Error refreshing metadata from store.", e);
     }
     if (hostedAppsDataFromStore != null) {
-      Map<String, Set<String>> cachedData = cacheManager.getHostedAppsCache();
+      Map<String, TimelineMetricHostMetadata> cachedData = cacheManager.getHostedAppsCache();
 
-      for (Map.Entry<String, Set<String>> storeEntry : hostedAppsDataFromStore.entrySet()) {
+      for (Map.Entry<String, TimelineMetricHostMetadata> storeEntry : hostedAppsDataFromStore.entrySet()) {
         if (!cachedData.containsKey(storeEntry.getKey())) {
           cachedData.put(storeEntry.getKey(), storeEntry.getValue());
         }

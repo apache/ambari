@@ -61,7 +61,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
  */
 public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggregator {
   public Long timeSliceIntervalMillis;
-  private TimelineMetricReadHelper timelineMetricReadHelper = new TimelineMetricReadHelper(true);
+  private TimelineMetricReadHelper timelineMetricReadHelper;
   // Aggregator to perform app-level aggregates for host metrics
   private final TimelineMetricAppAggregator appAggregator;
   // 1 minute client side buffering adjustment
@@ -69,8 +69,12 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   private final boolean interpolationEnabled;
   private TimelineMetricMetadataManager metadataManagerInstance;
   private String skipAggrPatternStrings;
+<<<<<<< HEAD
   private String skipInterpolationMetricPatternStrings;
   private Set<Pattern> skipInterpolationMetricPatterns = new HashSet<>();
+=======
+  private final static String liveHostsMetricName = "live_hosts";
+>>>>>>> AMBARI-21214 : Use a uuid vs long row key for metrics in AMS schema. (avijayan)
 
   public TimelineMetricClusterAggregatorSecond(AGGREGATOR_NAME aggregatorName,
                                                TimelineMetricMetadataManager metadataManager,
@@ -95,6 +99,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     this.serverTimeShiftAdjustment = Long.parseLong(metricsConf.get(SERVER_SIDE_TIMESIFT_ADJUSTMENT, "90000"));
     this.interpolationEnabled = Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
     this.skipAggrPatternStrings = metricsConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
+<<<<<<< HEAD
     this.skipInterpolationMetricPatternStrings = metricsConf.get(TIMELINE_METRICS_EVENT_METRIC_PATTERNS, "");
 
     if (StringUtils.isNotEmpty(skipInterpolationMetricPatternStrings)) {
@@ -104,6 +109,9 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
         skipInterpolationMetricPatterns.add(Pattern.compile(javaPatternString));
       }
     }
+=======
+    this.timelineMetricReadHelper = new TimelineMetricReadHelper(metadataManager, true);
+>>>>>>> AMBARI-21214 : Use a uuid vs long row key for metrics in AMS schema. (avijayan)
   }
 
   @Override
@@ -143,10 +151,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     condition.setStatement(String.format(GET_METRIC_SQL,
       getQueryHint(startTime), METRICS_RECORD_TABLE_NAME));
     // Retaining order of the row-key avoids client side merge sort.
-    condition.addOrderByColumn("METRIC_NAME");
-    condition.addOrderByColumn("HOSTNAME");
-    condition.addOrderByColumn("APP_ID");
-    condition.addOrderByColumn("INSTANCE_ID");
+    condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
     return condition;
   }
@@ -228,7 +233,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   protected int processAggregateClusterMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
                                               TimelineMetric metric, List<Long[]> timeSlices) {
     // Create time slices
-    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(metric.getMetricName(), metric.getAppId());
+    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(metric.getMetricName(), metric.getAppId(), metric.getInstanceId());
     TimelineMetricMetadata metricMetadata = metadataManagerInstance.getMetadataCacheValue(appKey);
 
     if (metricMetadata != null && !metricMetadata.isSupportsAggregates()) {
@@ -301,8 +306,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
           timelineMetric.getMetricName(),
           timelineMetric.getAppId(),
           timelineMetric.getInstanceId(),
-          timestamp,
-          timelineMetric.getType());
+          timestamp);
 
         if (prevTimestamp < 0 || timestamp.equals(prevTimestamp)) {
           Double newValue = metric.getValue();
@@ -369,8 +373,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
               timelineMetric.getMetricName(),
               timelineMetric.getAppId(),
               timelineMetric.getInstanceId(),
-              entry.getKey(),
-              timelineMetric.getType());
+              entry.getKey());
 
             timelineClusterMetricMap.put(clusterMetric, interpolatedValue);
           } else {
@@ -427,8 +430,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
               timelineMetric.getMetricName(),
               timelineMetric.getAppId(),
               timelineMetric.getInstanceId(),
-              timeSlice[1],
-              timelineMetric.getType());
+              timeSlice[1]);
 
             LOG.debug("Interpolated value : " + interpolatedValue);
             timelineClusterMetricMap.put(clusterMetric, interpolatedValue);
@@ -458,12 +460,14 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
     for (Map.Entry<String, MutableInt> appHostsEntry : appHostsCount.entrySet()) {
       TimelineClusterMetric timelineClusterMetric = new TimelineClusterMetric(
-        "live_hosts", appHostsEntry.getKey(), null, timestamp, null);
+        liveHostsMetricName, appHostsEntry.getKey(), null, timestamp);
 
       Integer numOfHosts = appHostsEntry.getValue().intValue();
 
       MetricClusterAggregate metricClusterAggregate = new MetricClusterAggregate(
         (double) numOfHosts, 1, null, (double) numOfHosts, (double) numOfHosts);
+
+      metadataManagerInstance.getUuid(timelineClusterMetric);
 
       aggregateClusterMetrics.put(timelineClusterMetric, metricClusterAggregate);
     }
