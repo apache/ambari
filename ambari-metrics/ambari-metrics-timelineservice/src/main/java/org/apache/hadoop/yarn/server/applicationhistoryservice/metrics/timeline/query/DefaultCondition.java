@@ -43,12 +43,28 @@ public class DefaultCondition implements Condition {
   String statement;
   Set<String> orderByColumns = new LinkedHashSet<String>();
   boolean metricNamesNotCondition = false;
+  List<byte[]> uuids = new ArrayList<>();
 
   private static final Log LOG = LogFactory.getLog(DefaultCondition.class);
 
   public DefaultCondition(List<String> metricNames, List<String> hostnames, String appId,
                           String instanceId, Long startTime, Long endTime, Precision precision,
                           Integer limit, boolean grouped) {
+    this.metricNames = metricNames;
+    this.hostnames = hostnames;
+    this.appId = appId;
+    this.instanceId = instanceId;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.precision = precision;
+    this.limit = limit;
+    this.grouped = grouped;
+  }
+
+  public DefaultCondition(List<byte[]> uuids, List<String> metricNames, List<String> hostnames, String appId,
+                          String instanceId, Long startTime, Long endTime, Precision precision,
+                          Integer limit, boolean grouped) {
+    this.uuids = uuids;
     this.metricNames = metricNames;
     this.hostnames = hostnames;
     this.appId = appId;
@@ -74,13 +90,7 @@ public class DefaultCondition implements Condition {
 
   public StringBuilder getConditionClause() {
     StringBuilder sb = new StringBuilder();
-
-    boolean appendConjunction = appendMetricNameClause(sb);
-
-    appendConjunction = appendHostnameClause(sb, appendConjunction);
-
-    appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-    appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
+    boolean appendConjunction = appendUuidClause(sb);
     appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
     append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
 
@@ -214,6 +224,37 @@ public class DefaultCondition implements Condition {
       return sb.toString();
     }
     return null;
+  }
+
+  protected boolean appendUuidClause(StringBuilder sb) {
+    boolean appendConjunction = false;
+
+    if (CollectionUtils.isNotEmpty(uuids)) {
+      // Put a '(' first
+      sb.append("(");
+
+      //IN clause
+      // UUID (NOT) IN (?,?,?,?)
+      if (CollectionUtils.isNotEmpty(uuids)) {
+        sb.append("UUID");
+        if (metricNamesNotCondition) {
+          sb.append(" NOT");
+        }
+        sb.append(" IN (");
+        //Append ?,?,?,?
+        for (int i = 0; i < uuids.size(); i++) {
+          sb.append("?");
+          if (i < uuids.size() - 1) {
+            sb.append(", ");
+          }
+        }
+        sb.append(")");
+      }
+      appendConjunction = true;
+      sb.append(")");
+    }
+
+    return appendConjunction;
   }
 
   protected boolean appendMetricNameClause(StringBuilder sb) {
@@ -380,5 +421,10 @@ public class DefaultCondition implements Condition {
 
   public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
     this.metricNamesNotCondition = metricNamesNotCondition;
+  }
+
+  @Override
+  public List<byte[]> getUuids() {
+    return uuids;
   }
 }

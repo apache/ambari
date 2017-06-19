@@ -30,7 +30,6 @@ public class SingleValuedTimelineMetric {
   private String instanceId;
   private String hostName;
   private Long startTime;
-  private String type;
 
   public void setSingleTimeseriesValue(Long timestamp, Double value) {
     this.timestamp = timestamp;
@@ -39,14 +38,13 @@ public class SingleValuedTimelineMetric {
 
   public SingleValuedTimelineMetric(String metricName, String appId,
                                     String instanceId, String hostName,
-                                    long timestamp, long startTime, String type) {
+                                    long timestamp, long startTime) {
     this.metricName = metricName;
     this.appId = appId;
     this.instanceId = instanceId;
     this.hostName = hostName;
     this.timestamp = timestamp;
     this.startTime = startTime;
-    this.type = type;
   }
 
   public Long getTimestamp() {
@@ -55,10 +53,6 @@ public class SingleValuedTimelineMetric {
 
   public long getStartTime() {
     return startTime;
-  }
-
-  public String getType() {
-    return type;
   }
 
   public Double getValue() {
@@ -97,7 +91,6 @@ public class SingleValuedTimelineMetric {
     metric.setMetricName(this.metricName);
     metric.setAppId(this.appId);
     metric.setHostName(this.hostName);
-    metric.setType(this.type);
     metric.setInstanceId(this.instanceId);
     metric.setStartTime(this.startTime);
     metric.setTimestamp(this.timestamp);
