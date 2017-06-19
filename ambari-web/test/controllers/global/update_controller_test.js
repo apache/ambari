@@ -71,6 +71,7 @@ describe('App.UpdateController', function () {
       expect(App.updater.run.called).to.equal(false);
       expect(App.StompClient.unsubscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/alerts')).to.be.true;
+      expect(App.StompClient.unsubscribe.calledWith('/events/topologies')).to.be.true;
     });
 
     it('isWorking = true', function () {
@@ -78,6 +79,7 @@ describe('App.UpdateController', function () {
       expect(App.updater.run.callCount).to.equal(12);
       expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/topologies')).to.be.true;
     });
   });
 

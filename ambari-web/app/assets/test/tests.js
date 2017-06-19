@@ -167,6 +167,7 @@ var files = [
   'test/mappers/configs/service_config_version_mapper_test',
   'test/mappers/configs/themes_mapper_test',
   'test/mappers/socket_events_mapper_test',
+  'test/mappers/socket/topology_mapper_test',
   'test/mixins/common/configs/enhanced_configs_test',
   'test/mixins/common/configs/config_recommendations_test',
   'test/mixins/common/configs/config_recommendation_parser_test',

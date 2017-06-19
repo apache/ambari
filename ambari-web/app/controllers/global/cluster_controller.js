@@ -134,6 +134,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     this._super();
     if (data.items && data.items.length > 0) {
       App.setProperties({
+        clusterId: data.items[0].Clusters.cluster_id,
         clusterName: data.items[0].Clusters.cluster_name,
         currentStackVersion: data.items[0].Clusters.version,
         isKerberosEnabled: data.items[0].Clusters.security_type === 'KERBEROS'

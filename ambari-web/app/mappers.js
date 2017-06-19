@@ -46,3 +46,4 @@ require('mappers/widget_mapper');
 require('mappers/widget_layout_mapper');
 require('mappers/stack_upgrade_history_mapper');
 require('mappers/socket_events_mapper');
+require('mappers/socket/topology_mapper');

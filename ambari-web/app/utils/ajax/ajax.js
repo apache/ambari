@@ -1351,7 +1351,7 @@ var urls = {
     }
   },
   'cluster.load_cluster_name': {
-    'real': '/clusters?fields=Clusters/security_type',
+    'real': '/clusters?fields=Clusters/security_type,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
@@ -2287,7 +2287,7 @@ var urls = {
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
-    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type',
+    'real': '/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/cluster_id',
     'mock': '/data/clusters/info.json'
   },
   'router.login.message': {

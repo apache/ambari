@@ -2539,21 +2539,12 @@ describe('App.MainHostDetailsController', function () {
     };
 
     beforeEach(function () {
-      sinon.stub(controller, 'removeHostComponentModel', Em.K);
       controller.set('_deletedHostComponentResult', {});
       controller._doDeleteHostComponentSuccessCallback({}, {}, data);
     });
 
-    afterEach(function () {
-      controller.removeHostComponentModel.restore();
-    });
-
     it('should reset `_deletedHostComponentResult`', function () {
       expect(controller.get('_deletedHostComponentResult')).to.be.null;
-    });
-
-    it('should call `removeHostComponentModel` with correct params', function () {
-      expect(controller.removeHostComponentModel.calledWith('COMPONENT', 'h1')).to.be.true;
     });
   });
 
@@ -3326,42 +3317,6 @@ describe('App.MainHostDetailsController', function () {
       });
     });
 
-  });
-
-  describe("#removeHostComponentModel()", function () {
-
-    beforeEach(function () {
-      App.cache.services = [
-        {
-          ServiceInfo: {
-            service_name: 'S1'
-          },
-          host_components: ['C1_host1']
-        }
-      ];
-      sinon.stub(App.HostComponent, 'find').returns([
-        Em.Object.create({
-          id: 'C1_host1',
-          componentName: 'C1',
-          hostName: 'host1',
-          service: Em.Object.create({
-            serviceName: 'S1'
-          })
-        })
-      ]);
-      sinon.stub(App.serviceMapper, 'deleteRecord', Em.K);
-      controller.removeHostComponentModel('C1', 'host1');
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
-      App.serviceMapper.deleteRecord.restore();
-    });
-    it("App.cache is updated", function () {
-      expect(App.cache.services[0].host_components).to.be.empty;
-    });
-    it('Record is deleted', function () {
-      expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
-    });
   });
 
   describe("#parseNnCheckPointTime", function () {

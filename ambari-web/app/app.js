@@ -180,6 +180,7 @@ module.exports = Em.Application.create({
     return false;
   }.property('router.clusterController.isLoaded'),
 
+  clusterId: null,
   clusterName: null,
   clockDistance: null, // server clock - client clock
   currentStackVersion: '',

@@ -195,6 +195,15 @@ App.HostComponent.getCount = function (componentName, type) {
   }
 };
 
+/**
+ * @param {string} componentName
+ * @param {string} hostName
+ * @returns {string}
+ */
+App.HostComponent.getId = function(componentName, hostName) {
+  return componentName + '_' + hostName;
+};
+
 App.HostComponentStatus = {
   started: "STARTED",
   starting: "STARTING",

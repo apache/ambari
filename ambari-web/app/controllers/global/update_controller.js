@@ -191,6 +191,7 @@ App.UpdateController = Em.Controller.extend({
       //TODO limit updates by location
       App.StompClient.subscribe('/events/hostcomponents', socket.applyHostComponentStatusEvents.bind(socket));
       App.StompClient.subscribe('/events/alerts', socket.applyAlertDefinitionSummaryEvents.bind(socket));
+      App.StompClient.subscribe('/events/topologies', App.topologyMapper.map.bind(App.topologyMapper));
 
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
@@ -210,6 +211,7 @@ App.UpdateController = Em.Controller.extend({
     } else {
       App.StompClient.unsubscribe('/events/hostcomponents');
       App.StompClient.unsubscribe('/events/alerts');
+      App.StompClient.unsubscribe('/events/topologies');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -581,6 +583,7 @@ App.UpdateController = Em.Controller.extend({
   },
 
   updateAlertDefinitionSummary: function(callback) {
+    //TODO move to clusterController
     var testUrl = '/data/alerts/alert_summary.json';
     var realUrl = '/alerts?format=groupedSummary';
     var url = this.getUrl(testUrl, realUrl);

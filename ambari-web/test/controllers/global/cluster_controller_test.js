@@ -122,7 +122,9 @@ describe('App.clusterController', function () {
         {
           "Clusters": {
             "cluster_name": "tdk",
-            "version": "HDP-1.3.0"
+            "version": "HDP-1.3.0",
+            "security_type": "KERBEROS",
+            "cluster_id": 1
           }
         }
       ]
@@ -130,6 +132,8 @@ describe('App.clusterController', function () {
     it('Check cluster', function () {
       controller.reloadSuccessCallback(testData);
       expect(App.get('clusterName')).to.equal('tdk');
+      expect(App.get('clusterId')).to.equal(1);
+      expect(App.get('isKerberosEnabled')).to.be.true;
       expect(App.get('currentStackVersion')).to.equal('HDP-1.3.0');
     });
   });
