@@ -132,6 +132,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricReadHelper;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricHostMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
@@ -171,7 +172,7 @@ public class PhoenixHBaseAccessor {
   private static final int POINTS_PER_MINUTE = 6;
   public static int RESULTSET_LIMIT = (int)TimeUnit.HOURS.toMinutes(2) * METRICS_PER_MINUTE * POINTS_PER_MINUTE ;
 
-  static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
+  static TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
   static ObjectMapper mapper = new ObjectMapper();
   static TypeReference<TreeMap<Long, Double>> metricValuesTypeRef = new TypeReference<TreeMap<Long, Double>>() {};
 
@@ -190,6 +191,7 @@ public class PhoenixHBaseAccessor {
   private final boolean skipBlockCacheForAggregatorsEnabled;
   private final String timelineMetricsTablesDurability;
   private final String timelineMetricsPrecisionTableDurability;
+  private TimelineMetricMetadataManager metadataManagerInstance;
 
   static final String HSTORE_COMPACTION_CLASS_KEY =
     "hbase.hstore.defaultengine.compactionpolicy.class";
@@ -282,6 +284,7 @@ public class PhoenixHBaseAccessor {
       }
       rawMetricsSource = internalSourceProvider.getInternalMetricsSource(RAW_METRICS, interval, rawMetricsSink);
     }
+    TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper(this.metadataManagerInstance);
   }
 
   public boolean isInsertCacheEmpty() {
@@ -336,19 +339,20 @@ public class PhoenixHBaseAccessor {
           double[] aggregates = AggregatorUtils.calculateAggregates(
                   metric.getMetricValues());
 
-          metricRecordStmt.setString(1, metric.getMetricName());
-          metricRecordStmt.setString(2, metric.getHostName());
-          metricRecordStmt.setString(3, metric.getAppId());
-          metricRecordStmt.setString(4, metric.getInstanceId());
-          metricRecordStmt.setLong(5, currentTime);
-          metricRecordStmt.setLong(6, metric.getStartTime());
-          metricRecordStmt.setString(7, metric.getUnits());
-          metricRecordStmt.setDouble(8, aggregates[0]);
-          metricRecordStmt.setDouble(9, aggregates[1]);
-          metricRecordStmt.setDouble(10, aggregates[2]);
-          metricRecordStmt.setLong(11, (long) aggregates[3]);
+          byte[] uuid = metadataManagerInstance.getUuid(metric);
+          if (uuid == null) {
+            LOG.error("Error computing UUID for metric. Cannot write metrics : " + metric.toString());
+            continue;
+          }
+          metricRecordStmt.setBytes(1, uuid);
+          metricRecordStmt.setLong(2, currentTime);
+          metricRecordStmt.setLong(3, metric.getStartTime());
+          metricRecordStmt.setDouble(4, aggregates[0]);
+          metricRecordStmt.setDouble(5, aggregates[1]);
+          metricRecordStmt.setDouble(6, aggregates[2]);
+          metricRecordStmt.setLong(7, (long) aggregates[3]);
           String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
-          metricRecordStmt.setString(12, json);
+          metricRecordStmt.setString(8, json);
 
           try {
             metricRecordStmt.executeUpdate();
@@ -477,20 +481,12 @@ public class PhoenixHBaseAccessor {
       // Host level
       String precisionSql = String.format(CREATE_METRICS_TABLE_SQL,
         encoding, tableTTL.get(METRICS_RECORD_TABLE_NAME), compression);
-      String splitPoints = metricsConf.get(PRECISION_TABLE_SPLIT_POINTS);
-      if (!StringUtils.isEmpty(splitPoints)) {
-        precisionSql += getSplitPointsStr(splitPoints);
-      }
       stmt.executeUpdate(precisionSql);
 
       String hostMinuteAggregrateSql = String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME),
         compression);
-      splitPoints = metricsConf.get(AGGREGATE_TABLE_SPLIT_POINTS);
-      if (!StringUtils.isEmpty(splitPoints)) {
-        hostMinuteAggregrateSql += getSplitPointsStr(splitPoints);
-      }
       stmt.executeUpdate(hostMinuteAggregrateSql);
 
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
@@ -507,10 +503,7 @@ public class PhoenixHBaseAccessor {
         METRICS_CLUSTER_AGGREGATE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_CLUSTER_AGGREGATE_TABLE_NAME),
         compression);
-      splitPoints = metricsConf.get(AGGREGATE_TABLE_SPLIT_POINTS);
-      if (!StringUtils.isEmpty(splitPoints)) {
-        aggregateSql += getSplitPointsStr(splitPoints);
-      }
+
       stmt.executeUpdate(aggregateSql);
       stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
         METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding,
@@ -961,7 +954,8 @@ public class PhoenixHBaseAccessor {
   private void appendMetricFromResultSet(TimelineMetrics metrics, Condition condition,
                                          Multimap<String, List<Function>> metricFunctions,
                                          ResultSet rs) throws SQLException, IOException {
-    String metricName = rs.getString("METRIC_NAME");
+    byte[] uuid = rs.getBytes("UUID");
+    String metricName = metadataManagerInstance.getMetricNameFromUuid(uuid);
     Collection<List<Function>> functionList = findMetricFunctions(metricFunctions, metricName);
 
     for (List<Function> functions : functionList) {
@@ -1103,7 +1097,8 @@ public class PhoenixHBaseAccessor {
       Condition condition, Multimap<String, List<Function>> metricFunctions,
       ResultSet rs) throws SQLException {
 
-    String metricName = rs.getString("METRIC_NAME");
+    byte[] uuid = rs.getBytes("UUID");
+    String metricName = metadataManagerInstance.getMetricNameFromUuid(uuid);
     Collection<List<Function>> functionList = findMetricFunctions(metricFunctions, metricName);
 
     for (List<Function> functions : functionList) {
@@ -1136,14 +1131,15 @@ public class PhoenixHBaseAccessor {
     SplitByMetricNamesCondition splitCondition =
       new SplitByMetricNamesCondition(condition);
 
-    for (String metricName: splitCondition.getOriginalMetricNames()) {
+    for (byte[] uuid: condition.getUuids()) {
 
-      splitCondition.setCurrentMetric(metricName);
+      splitCondition.setCurrentUuid(uuid);
       stmt = PhoenixTransactSQL.prepareGetLatestAggregateMetricSqlStmt(conn, splitCondition);
       ResultSet rs = null;
       try {
         rs = stmt.executeQuery();
         while (rs.next()) {
+          String metricName = metadataManagerInstance.getMetricNameFromUuid(uuid);
           Collection<List<Function>> functionList = findMetricFunctions(metricFunctions, metricName);
           for (List<Function> functions : functionList) {
             if (functions != null) {
@@ -1187,14 +1183,16 @@ public class PhoenixHBaseAccessor {
       countColumnName = "HOSTS_COUNT";
     }
 
+    byte[] uuid = rs.getBytes("UUID");
+    TimelineMetric timelineMetric = metadataManagerInstance.getMetricFromUuid(uuid);
+
     SingleValuedTimelineMetric metric = new SingleValuedTimelineMetric(
-      rs.getString("METRIC_NAME") + f.getSuffix(),
-      rs.getString("APP_ID"),
-      rs.getString("INSTANCE_ID"),
+      timelineMetric.getMetricName() + f.getSuffix(),
+      timelineMetric.getAppId(),
+      timelineMetric.getInstanceId(),
       null,
       rs.getLong("SERVER_TIME"),
-      rs.getLong("SERVER_TIME"),
-      rs.getString("UNITS")
+      rs.getLong("SERVER_TIME")
     );
 
     double value;
@@ -1277,18 +1275,19 @@ public class PhoenixHBaseAccessor {
         TimelineMetric metric = metricAggregate.getKey();
         MetricHostAggregate hostAggregate = metricAggregate.getValue();
 
+        byte[] uuid = metadataManagerInstance.getUuid(metric);
+        if (uuid == null) {
+          LOG.error("Error computing UUID for metric. Cannot write metric : " + metric.toString());
+          continue;
+        }
         rowCount++;
         stmt.clearParameters();
-        stmt.setString(1, metric.getMetricName());
-        stmt.setString(2, metric.getHostName());
-        stmt.setString(3, metric.getAppId());
-        stmt.setString(4, metric.getInstanceId());
-        stmt.setLong(5, metric.getTimestamp());
-        stmt.setString(6, metric.getType());
-        stmt.setDouble(7, hostAggregate.getSum());
-        stmt.setDouble(8, hostAggregate.getMax());
-        stmt.setDouble(9, hostAggregate.getMin());
-        stmt.setDouble(10, hostAggregate.getNumberOfSamples());
+        stmt.setBytes(1, uuid);
+        stmt.setLong(2, metric.getTimestamp());
+        stmt.setDouble(3, hostAggregate.getSum());
+        stmt.setDouble(4, hostAggregate.getMax());
+        stmt.setDouble(5, hostAggregate.getMin());
+        stmt.setDouble(6, hostAggregate.getNumberOfSamples());
 
         try {
           stmt.executeUpdate();
@@ -1372,16 +1371,18 @@ public class PhoenixHBaseAccessor {
         }
 
         rowCount++;
+        byte[] uuid =  metadataManagerInstance.getUuid(clusterMetric);
+        if (uuid == null) {
+          LOG.error("Error computing UUID for metric. Cannot write metrics : " + clusterMetric.toString());
+          continue;
+        }
         stmt.clearParameters();
-        stmt.setString(1, clusterMetric.getMetricName());
-        stmt.setString(2, clusterMetric.getAppId());
-        stmt.setString(3, clusterMetric.getInstanceId());
-        stmt.setLong(4, clusterMetric.getTimestamp());
-        stmt.setString(5, clusterMetric.getType());
-        stmt.setDouble(6, aggregate.getSum());
-        stmt.setInt(7, aggregate.getNumberOfHosts());
-        stmt.setDouble(8, aggregate.getMax());
-        stmt.setDouble(9, aggregate.getMin());
+        stmt.setBytes(1, uuid);
+        stmt.setLong(2, clusterMetric.getTimestamp());
+        stmt.setDouble(3, aggregate.getSum());
+        stmt.setInt(4, aggregate.getNumberOfHosts());
+        stmt.setDouble(5, aggregate.getMax());
+        stmt.setDouble(6, aggregate.getMin());
 
         try {
           stmt.executeUpdate();
@@ -1458,17 +1459,20 @@ public class PhoenixHBaseAccessor {
             "aggregate = " + aggregate);
         }
 
+        byte[] uuid = metadataManagerInstance.getUuid(clusterMetric);
+        if (uuid == null) {
+          LOG.error("Error computing UUID for metric. Cannot write metric : " + clusterMetric.toString());
+          continue;
+        }
+
         rowCount++;
         stmt.clearParameters();
-        stmt.setString(1, clusterMetric.getMetricName());
-        stmt.setString(2, clusterMetric.getAppId());
-        stmt.setString(3, clusterMetric.getInstanceId());
-        stmt.setLong(4, clusterMetric.getTimestamp());
-        stmt.setString(5, clusterMetric.getType());
-        stmt.setDouble(6, aggregate.getSum());
-        stmt.setLong(7, aggregate.getNumberOfSamples());
-        stmt.setDouble(8, aggregate.getMax());
-        stmt.setDouble(9, aggregate.getMin());
+        stmt.setBytes(1, uuid);
+        stmt.setLong(2, clusterMetric.getTimestamp());
+        stmt.setDouble(3, aggregate.getSum());
+        stmt.setLong(4, aggregate.getNumberOfSamples());
+        stmt.setDouble(5, aggregate.getMax());
+        stmt.setDouble(6, aggregate.getMin());
 
         try {
           stmt.executeUpdate();
@@ -1556,21 +1560,23 @@ public class PhoenixHBaseAccessor {
    * One time save of metadata when discovering topology during aggregation.
    * @throws SQLException
    */
-  public void saveHostAppsMetadata(Map<String, Set<String>> hostedApps) throws SQLException {
+  public void saveHostAppsMetadata(Map<String, TimelineMetricHostMetadata> hostMetadata) throws SQLException {
     Connection conn = getConnection();
     PreparedStatement stmt = null;
     try {
       stmt = conn.prepareStatement(UPSERT_HOSTED_APPS_METADATA_SQL);
       int rowCount = 0;
 
-      for (Map.Entry<String, Set<String>> hostedAppsEntry : hostedApps.entrySet()) {
+      for (Map.Entry<String, TimelineMetricHostMetadata> hostedAppsEntry : hostMetadata.entrySet()) {
+        TimelineMetricHostMetadata timelineMetricHostMetadata = hostedAppsEntry.getValue();
         if (LOG.isTraceEnabled()) {
           LOG.trace("HostedAppsMetadata: " + hostedAppsEntry);
         }
 
         stmt.clearParameters();
         stmt.setString(1, hostedAppsEntry.getKey());
-        stmt.setString(2, StringUtils.join(hostedAppsEntry.getValue(), ","));
+        stmt.setBytes(2, timelineMetricHostMetadata.getUuid());
+        stmt.setString(3, StringUtils.join(timelineMetricHostMetadata.getHostedApps(), ","));
         try {
           stmt.executeUpdate();
           rowCount++;
@@ -1674,15 +1680,21 @@ public class PhoenixHBaseAccessor {
             + ", seriesStartTime = " + metadata.getSeriesStartTime()
           );
         }
-
-        stmt.clearParameters();
-        stmt.setString(1, metadata.getMetricName());
-        stmt.setString(2, metadata.getAppId());
-        stmt.setString(3, metadata.getUnits());
-        stmt.setString(4, metadata.getType());
-        stmt.setLong(5, metadata.getSeriesStartTime());
-        stmt.setBoolean(6, metadata.isSupportsAggregates());
-        stmt.setBoolean(7, metadata.isWhitelisted());
+        try {
+          stmt.clearParameters();
+          stmt.setString(1, metadata.getMetricName());
+          stmt.setString(2, metadata.getAppId());
+          stmt.setString(3, metadata.getInstanceId());
+          stmt.setBytes(4, metadata.getUuid());
+          stmt.setString(5, metadata.getUnits());
+          stmt.setString(6, metadata.getType());
+          stmt.setLong(7, metadata.getSeriesStartTime());
+          stmt.setBoolean(8, metadata.isSupportsAggregates());
+          stmt.setBoolean(9, metadata.isWhitelisted());
+        } catch (Exception e) {
+          LOG.error("Exception in saving metric metadata entry. ");
+          continue;
+        }
 
         try {
           stmt.executeUpdate();
@@ -1713,8 +1725,8 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  public Map<String, Set<String>> getHostedAppsMetadata() throws SQLException {
-    Map<String, Set<String>> hostedAppMap = new HashMap<>();
+  public Map<String, TimelineMetricHostMetadata> getHostedAppsMetadata() throws SQLException {
+    Map<String, TimelineMetricHostMetadata> hostedAppMap = new HashMap<>();
     Connection conn = getConnection();
     PreparedStatement stmt = null;
     ResultSet rs = null;
@@ -1724,8 +1736,9 @@ public class PhoenixHBaseAccessor {
       rs = stmt.executeQuery();
 
       while (rs.next()) {
-        hostedAppMap.put(rs.getString("HOSTNAME"),
-          new HashSet<>(Arrays.asList(StringUtils.split(rs.getString("APP_IDS"), ","))));
+        TimelineMetricHostMetadata hostMetadata = new TimelineMetricHostMetadata(new HashSet<>(Arrays.asList(StringUtils.split(rs.getString("APP_IDS"), ","))));
+        hostMetadata.setUuid(rs.getBytes("UUID"));
+        hostedAppMap.put(rs.getString("HOSTNAME"), hostMetadata);
       }
 
     } finally {
@@ -1816,9 +1829,11 @@ public class PhoenixHBaseAccessor {
       while (rs.next()) {
         String metricName = rs.getString("METRIC_NAME");
         String appId = rs.getString("APP_ID");
+        String instanceId = rs.getString("INSTANCE_ID");
         TimelineMetricMetadata metadata = new TimelineMetricMetadata(
           metricName,
           appId,
+          instanceId,
           rs.getString("UNITS"),
           rs.getString("TYPE"),
           rs.getLong("START_TIME"),
@@ -1826,8 +1841,9 @@ public class PhoenixHBaseAccessor {
           rs.getBoolean("IS_WHITELISTED")
         );
 
-        TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId);
+        TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(metricName, appId, instanceId);
         metadata.setIsPersisted(true); // Always true on retrieval
+        metadata.setUuid(rs.getBytes("UUID"));
         metadataMap.put(key, metadata);
       }
 
@@ -1858,4 +1874,8 @@ public class PhoenixHBaseAccessor {
     return metadataMap;
   }
 
+  public void setMetadataInstance(TimelineMetricMetadataManager metadataManager) {
+    this.metadataManagerInstance = metadataManager;
+    TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper(this.metadataManagerInstance);
+  }
 }

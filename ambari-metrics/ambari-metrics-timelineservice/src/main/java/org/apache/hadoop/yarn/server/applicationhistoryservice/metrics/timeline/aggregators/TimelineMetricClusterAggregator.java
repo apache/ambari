@@ -23,6 +23,7 @@ import org.apache.hadoop.metrics2.sink.timeline.MetricHostAggregate;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
@@ -37,10 +38,11 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
-  private final TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(true);
+  private final TimelineMetricReadHelper readHelper;
   private final boolean isClusterPrecisionInputTable;
 
   public TimelineMetricClusterAggregator(AGGREGATOR_NAME aggregatorName,
+                                         TimelineMetricMetadataManager metricMetadataManager,
                                          PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
@@ -56,6 +58,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       hostAggregatorDisabledParam, inputTableName, outputTableName,
       nativeTimeRangeDelay, haController);
     isClusterPrecisionInputTable = inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
+    readHelper = new TimelineMetricReadHelper(metricMetadataManager, true);
   }
 
   @Override
@@ -71,9 +74,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     }
 
     condition.setStatement(sqlStr);
-    condition.addOrderByColumn("METRIC_NAME");
-    condition.addOrderByColumn("APP_ID");
-    condition.addOrderByColumn("INSTANCE_ID");
+    condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
     return condition;
   }

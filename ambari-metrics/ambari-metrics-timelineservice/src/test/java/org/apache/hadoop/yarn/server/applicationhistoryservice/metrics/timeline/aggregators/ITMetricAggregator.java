@@ -85,7 +85,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb,
-        getConfigurationForTest(false), null);
+        getConfigurationForTest(false), null, null);
     TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();
@@ -146,7 +146,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregator =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb,
-        getConfigurationForTest(false), null);
+        getConfigurationForTest(false), null, null);
     TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
     long startTime = System.currentTimeMillis();
 
@@ -209,7 +209,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregator =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hdb,
-        getConfigurationForTest(false), null);
+        getConfigurationForTest(false), null, null);
     TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
     long startTime = System.currentTimeMillis();
 
@@ -271,7 +271,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb,
-        getConfigurationForTest(true), null);
+        getConfigurationForTest(true), null, null);
     TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();

@@ -94,7 +94,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
@@ -169,7 +168,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
@@ -229,7 +227,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
@@ -263,7 +260,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testAggregateDailyClusterMetrics() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hdb, getConfigurationForTest(false), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hdb, getConfigurationForTest(false), null, null);
 
     // this time can be virtualized! or made independent from real clock
     long startTime = System.currentTimeMillis();
@@ -308,7 +305,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testShouldAggregateClusterOnMinuteProperly() throws Exception {
 
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, getConfigurationForTest(false), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, getConfigurationForTest(false), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -375,7 +372,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testShouldAggregateClusterOnHourProperly() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(false), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(false), null, null);
 
     // this time can be virtualized! or made independent from real clock
     long startTime = System.currentTimeMillis();
@@ -419,7 +416,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testShouldAggregateDifferentMetricsOnHourProperly() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(false), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(false), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -507,7 +504,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       new ArrayList<String>() {{ add("cpu_user"); }}, null, "app1", null,
       startTime, endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
@@ -583,7 +579,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(null, null, null, null, startTime,
       endTime, null, null, true);
     condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
 
     PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt(conn, condition);
@@ -611,7 +606,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testAggregationUsingGroupByQuery() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(true), null);
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, getConfigurationForTest(true), null, null);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;

@@ -95,6 +95,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineMetricAggregatorMinute
     (PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+     TimelineMetricMetadataManager metadataManager,
      MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -128,6 +129,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricHostAggregator(
       METRIC_RECORD_MINUTE,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,
@@ -145,6 +147,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineMetricAggregatorHourly
     (PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+     TimelineMetricMetadataManager metadataManager,
      MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -178,6 +181,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricHostAggregator(
       METRIC_RECORD_HOURLY,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,
@@ -195,6 +199,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineMetricAggregatorDaily
     (PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+     TimelineMetricMetadataManager metadataManager,
      MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -228,6 +233,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricHostAggregator(
       METRIC_RECORD_DAILY,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,
@@ -291,6 +297,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineClusterAggregatorMinute(
     PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+    TimelineMetricMetadataManager metadataManager,
     MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -326,6 +333,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricClusterAggregator(
       METRIC_AGGREGATE_MINUTE,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,
@@ -344,6 +352,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineClusterAggregatorHourly(
     PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+    TimelineMetricMetadataManager metadataManager,
     MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -379,6 +388,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricClusterAggregator(
       METRIC_AGGREGATE_HOURLY,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,
@@ -397,6 +407,7 @@ public class TimelineMetricAggregatorFactory {
    */
   public static TimelineMetricAggregator createTimelineClusterAggregatorDaily(
     PhoenixHBaseAccessor hBaseAccessor, Configuration metricsConf,
+    TimelineMetricMetadataManager metadataManager,
     MetricCollectorHAController haController) {
 
     String checkpointDir = metricsConf.get(
@@ -432,6 +443,7 @@ public class TimelineMetricAggregatorFactory {
 
     return new TimelineMetricClusterAggregator(
       METRIC_AGGREGATE_DAILY,
+      metadataManager,
       hBaseAccessor, metricsConf,
       checkpointLocation,
       sleepIntervalMillis,

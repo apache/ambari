@@ -52,6 +52,14 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
 
   }
 
+  // To reconstruct TimelineMetric from UUID.
+  public TimelineMetric(String metricName, String hostname, String appId, String instanceId) {
+    this.metricName = metricName;
+    this.hostName = hostname;
+    this.appId = appId;
+    this.instanceId = instanceId;
+  }
+
   // copy constructor
   public TimelineMetric(TimelineMetric metric) {
     setMetricName(metric.getMetricName());

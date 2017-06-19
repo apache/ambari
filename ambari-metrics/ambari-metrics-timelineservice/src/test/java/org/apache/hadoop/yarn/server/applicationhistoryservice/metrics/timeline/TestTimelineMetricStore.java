@@ -25,6 +25,8 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -111,4 +113,12 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   public List<String> getLiveInstances() {
     return Collections.emptyList();
   }
+
+  @Override
+  public Map<String, TimelineMetricMetadataKey> getUuids() throws SQLException, IOException {
+    return null;
+  }
+
 }
+
+

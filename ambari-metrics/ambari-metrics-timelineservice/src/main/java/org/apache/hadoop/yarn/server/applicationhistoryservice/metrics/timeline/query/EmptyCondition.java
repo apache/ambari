@@ -35,6 +35,11 @@ public class EmptyCondition implements Condition {
   }
 
   @Override
+  public List<byte[]> getUuids() {
+    return null;
+  }
+
+  @Override
   public List<String> getMetricNames() {
     return null;
   }

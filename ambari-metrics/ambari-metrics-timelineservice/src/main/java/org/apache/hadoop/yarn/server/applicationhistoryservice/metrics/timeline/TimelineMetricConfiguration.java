@@ -304,6 +304,9 @@ public class TimelineMetricConfiguration {
   public static final String TIMELINE_METRICS_PRECISION_TABLE_HBASE_BLOCKING_STORE_FILES =
     "timeline.metrics.precision.table.hbase.hstore.blockingStoreFiles";
 
+  public static final String TIMELINE_METRICS_UUID_GEN_STRATEGY =
+    "timeline.metrics.uuid.gen.strategy";
+
   public static final String HOST_APP_ID = "HOST";
 
   public static final String DEFAULT_INSTANCE_PORT = "12001";

@@ -167,11 +167,4 @@ public class TimelineMetricsFilter {
     return false;
   }
 
-  public static void addToWhitelist(String metricName) {
-
-    if (StringUtils.isNotEmpty(metricName)) {
-      whitelistedMetrics.add(metricName);
-    }
-  }
-
 }

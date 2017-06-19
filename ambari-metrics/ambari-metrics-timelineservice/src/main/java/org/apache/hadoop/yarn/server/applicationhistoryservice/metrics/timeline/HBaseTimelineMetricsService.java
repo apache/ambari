@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.ambari.metrics.alertservice.spark.AmsKafkaProducer;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -41,6 +42,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricHostMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
@@ -82,7 +84,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
   private MetricCollectorHAController haController;
-  private AmsKafkaProducer kafkaProducer;
 
   /**
    * Construct the service.
@@ -143,8 +144,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
       }
 
-      kafkaProducer = new AmsKafkaProducer(metricsConf.get("kafka.bootstrap.servers")); //104.196.85.21:6667
-
       // Start the cluster aggregator second
       TimelineMetricAggregator secondClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(
@@ -154,19 +153,19 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(
-          hBaseAccessor, metricsConf, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController);
       scheduleAggregatorThread(minuteClusterAggregator);
 
       // Start the hourly cluster aggregator
       TimelineMetricAggregator hourlyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(
-          hBaseAccessor, metricsConf, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController);
       scheduleAggregatorThread(hourlyClusterAggregator);
 
       // Start the daily cluster aggregator
       TimelineMetricAggregator dailyClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(
-          hBaseAccessor, metricsConf, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController);
       scheduleAggregatorThread(dailyClusterAggregator);
 
       // Start the minute host aggregator
@@ -175,20 +174,20 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       } else {
         TimelineMetricAggregator minuteHostAggregator =
           TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(
-            hBaseAccessor, metricsConf, haController);
+            hBaseAccessor, metricsConf, metricMetadataManager, haController);
         scheduleAggregatorThread(minuteHostAggregator);
       }
 
       // Start the hourly host aggregator
       TimelineMetricAggregator hourlyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(
-          hBaseAccessor, metricsConf, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController);
       scheduleAggregatorThread(hourlyHostAggregator);
 
       // Start the daily host aggregator
       TimelineMetricAggregator dailyHostAggregator =
         TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(
-          hBaseAccessor, metricsConf, haController);
+          hBaseAccessor, metricsConf, metricMetadataManager, haController);
       scheduleAggregatorThread(dailyHostAggregator);
 
       if (!configuration.isTimelineMetricsServiceWatcherDisabled()) {
@@ -238,6 +237,8 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     Multimap<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
+    List<byte[]> uuids = metricMetadataManager.getUuids(metricFunctions.keySet(), hostnames, applicationId, instanceId);
+
     ConditionBuilder conditionBuilder = new ConditionBuilder(new ArrayList<String>(metricFunctions.keySet()))
       .hostnames(hostnames)
       .appId(applicationId)
@@ -246,7 +247,8 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
       .endTime(endTime)
       .precision(precision)
       .limit(limit)
-      .grouped(groupedByHosts);
+      .grouped(groupedByHosts)
+      .uuid(uuids);
 
     if (topNConfig != null) {
       if (TopNCondition.isTopNHostCondition(metricNames, hostnames) ^ //Only 1 condition should be true.
@@ -368,13 +370,6 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
     // Error indicated by the Sql exception
     TimelinePutResponse response = new TimelinePutResponse();
 
-    try {
-      if (!metrics.getMetrics().isEmpty() && metrics.getMetrics().get(0).getAppId().equals("HOST")) {
-        kafkaProducer.sendMetrics(fromTimelineMetrics(metrics));
-      }
-    } catch (InterruptedException | ExecutionException e) {
-      LOG.error(e);
-    }
     hBaseAccessor.insertMetricRecordsWithMetadata(metricMetadataManager, metrics, false);
 
     return response;
@@ -439,8 +434,18 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   }
 
   @Override
+  public Map<String, TimelineMetricMetadataKey> getUuids() throws SQLException, IOException {
+    return metricMetadataManager.getUuidKeyMap();
+  }
+
+  @Override
   public Map<String, Set<String>> getHostAppsMetadata() throws SQLException, IOException {
-    return metricMetadataManager.getHostedAppsCache();
+    Map<String, TimelineMetricHostMetadata> hostsMetadata = metricMetadataManager.getHostedAppsCache();
+    Map<String, Set<String>> hostAppMap = new HashMap<>();
+    for (String hostname : hostsMetadata.keySet()) {
+      hostAppMap.put(hostname, hostsMetadata.get(hostname).getHostedApps());
+    }
+    return hostAppMap;
   }
 
   @Override
@@ -459,7 +464,7 @@ public class HBaseTimelineMetricsService extends AbstractService implements Time
   public Map<String, Map<String,Set<String>>> getInstanceHostsMetadata(String instanceId, String appId)
           throws SQLException, IOException {
 
-    Map<String, Set<String>> hostedApps = metricMetadataManager.getHostedAppsCache();
+    Map<String, Set<String>> hostedApps = getHostAppsMetadata();
     Map<String, Set<String>> instanceHosts = metricMetadataManager.getHostedInstanceCache();
     Map<String, Map<String, Set<String>>> instanceAppHosts = new HashMap<>();
 

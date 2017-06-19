@@ -22,15 +22,13 @@ public class TimelineClusterMetric {
   private String appId;
   private String instanceId;
   private long timestamp;
-  private String type;
 
   public TimelineClusterMetric(String metricName, String appId, String instanceId,
-                        long timestamp, String type) {
+                        long timestamp) {
     this.metricName = metricName;
     this.appId = appId;
     this.instanceId = instanceId;
     this.timestamp = timestamp;
-    this.type = type;
   }
 
   public String getMetricName() {
@@ -48,8 +46,6 @@ public class TimelineClusterMetric {
   public long getTimestamp() {
     return timestamp;
   }
-
-  public String getType() { return type; }
 
   @Override
   public boolean equals(Object o) {

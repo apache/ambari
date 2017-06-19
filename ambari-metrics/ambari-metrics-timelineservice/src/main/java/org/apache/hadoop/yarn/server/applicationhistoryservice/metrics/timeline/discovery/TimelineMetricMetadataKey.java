@@ -17,13 +17,20 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery;
 
+import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class TimelineMetricMetadataKey {
   String metricName;
   String appId;
+  String instanceId;
 
-  public TimelineMetricMetadataKey(String metricName, String appId) {
+  public TimelineMetricMetadataKey(String metricName, String appId, String instanceId) {
     this.metricName = metricName;
     this.appId = appId;
+    this.instanceId = instanceId;
   }
 
   public String getMetricName() {
@@ -32,6 +39,10 @@ public class TimelineMetricMetadataKey {
 
   public String getAppId() {
     return appId;
+  }
+
+  public String getInstanceId() {
+    return instanceId;
   }
 
   public void setAppId(String appId) {
@@ -46,15 +57,24 @@ public class TimelineMetricMetadataKey {
     TimelineMetricMetadataKey that = (TimelineMetricMetadataKey) o;
 
     if (!metricName.equals(that.metricName)) return false;
-    return !(appId != null ? !appId.equals(that.appId) : that.appId != null);
-
+    if (!appId.equals(that.appId)) return false;
+    return (StringUtils.isNotEmpty(instanceId) ? instanceId.equals(that.instanceId) : StringUtils.isEmpty(that.instanceId));
   }
 
   @Override
   public int hashCode() {
     int result = metricName.hashCode();
     result = 31 * result + (appId != null ? appId.hashCode() : 0);
+    result = 31 * result + (instanceId != null ? instanceId.hashCode() : 0);
     return result;
   }
 
+  @Override
+  public String toString() {
+    return "TimelineMetricMetadataKey{" +
+      "metricName='" + metricName + '\'' +
+      ", appId='" + appId + '\'' +
+      ", instanceId='" + instanceId + '\'' +
+      '}';
+  }
 }

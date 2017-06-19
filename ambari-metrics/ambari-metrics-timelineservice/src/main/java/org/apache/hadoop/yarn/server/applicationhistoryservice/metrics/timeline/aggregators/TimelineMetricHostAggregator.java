@@ -25,6 +25,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
@@ -38,9 +39,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 
 public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricHostAggregator.class);
-  TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
+  TimelineMetricReadHelper readHelper;
 
   public TimelineMetricHostAggregator(AGGREGATOR_NAME aggregatorName,
+                                      TimelineMetricMetadataManager metricMetadataManager,
                                       PhoenixHBaseAccessor hBaseAccessor,
                                       Configuration metricsConf,
                                       String checkpointLocation,
@@ -54,6 +56,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier, hostAggregatorDisabledParam,
       tableName, outputTableName, nativeTimeRangeDelay, haController);
+    readHelper = new TimelineMetricReadHelper(metricMetadataManager, false);
   }
 
   @Override
@@ -74,11 +77,8 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       getQueryHint(startTime), tableName));
     // Retaining order of the row-key avoids client side merge sort.
-    condition.addOrderByColumn("METRIC_NAME");
-    condition.addOrderByColumn("HOSTNAME");
+    condition.addOrderByColumn("UUID");
     condition.addOrderByColumn("SERVER_TIME");
-    condition.addOrderByColumn("APP_ID");
-    condition.addOrderByColumn("INSTANCE_ID");
     return condition;
   }
 
