@@ -49,9 +49,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
