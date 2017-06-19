@@ -32,11 +32,11 @@ public class TopNCondition extends DefaultCondition{
   private Function topNFunction;
   private static final Log LOG = LogFactory.getLog(TopNCondition.class);
 
-  public TopNCondition(List<String> metricNames, List<String> hostnames, String appId,
+  public TopNCondition(List<byte[]> uuids, List<String> metricNames, List<String> hostnames, String appId,
                           String instanceId, Long startTime, Long endTime, Precision precision,
                           Integer limit, boolean grouped, Integer topN, Function topNFunction,
                           boolean isBottomN) {
-    super(metricNames, hostnames, appId, instanceId, startTime, endTime, precision, limit, grouped);
+    super(uuids, metricNames, hostnames, appId, instanceId, startTime, endTime, precision, limit, grouped);
     this.topN = topN;
     this.isBottomN = isBottomN;
     this.topNFunction = topNFunction;
@@ -44,34 +44,20 @@ public class TopNCondition extends DefaultCondition{
 
   @Override
   public StringBuilder getConditionClause() {
-    StringBuilder sb = new StringBuilder();
-    boolean appendConjunction = false;
 
-    if (isTopNHostCondition(metricNames, hostnames)) {
-      appendConjunction = appendMetricNameClause(sb);
 
-      StringBuilder hostnamesCondition = new StringBuilder();
-      hostnamesCondition.append(" HOSTNAME IN (");
-      hostnamesCondition.append(getTopNInnerQuery());
-      hostnamesCondition.append(")");
-      appendConjunction = append(sb, appendConjunction, getHostnames(), hostnamesCondition.toString());
-
-    } else if (isTopNMetricCondition(metricNames, hostnames)) {
-
-      StringBuilder metricNamesCondition = new StringBuilder();
-      metricNamesCondition.append(" METRIC_NAME IN (");
-      metricNamesCondition.append(getTopNInnerQuery());
-      metricNamesCondition.append(")");
-      appendConjunction = append(sb, appendConjunction, getMetricNames(), metricNamesCondition.toString());
-      appendConjunction = appendHostnameClause(sb, appendConjunction);
-    } else {
+    if (!(isTopNHostCondition(metricNames, hostnames) || isTopNMetricCondition(metricNames, hostnames))) {
       LOG.error("Unsupported TopN Operation requested. Query can have either multiple hosts or multiple metric names " +
         "but not both.");
       return null;
     }
 
-    appendConjunction = append(sb, appendConjunction, getAppId(), " APP_ID = ?");
-    appendConjunction = append(sb, appendConjunction, getInstanceId(), " INSTANCE_ID = ?");
+    StringBuilder sb = new StringBuilder();
+    sb.append(" UUID IN (");
+    sb.append(getTopNInnerQuery());
+    sb.append(")");
+
+    boolean appendConjunction = true;
     appendConjunction = append(sb, appendConjunction, getStartTime(), " SERVER_TIME >= ?");
     append(sb, appendConjunction, getEndTime(), " SERVER_TIME < ?");
 
@@ -79,29 +65,10 @@ public class TopNCondition extends DefaultCondition{
   }
 
   public String getTopNInnerQuery() {
-    String innerQuery = null;
-
-    if (isTopNHostCondition(metricNames, hostnames)) {
-      String groupByClause = "METRIC_NAME, HOSTNAME, APP_ID";
-      String orderByClause = getTopNOrderByClause();
-
-      innerQuery = String.format(PhoenixTransactSQL.TOP_N_INNER_SQL, PhoenixTransactSQL.getNaiveTimeRangeHint(getStartTime(), NATIVE_TIME_RANGE_DELTA),
-        "HOSTNAME", PhoenixTransactSQL.getTargetTableUsingPrecision(precision, true), super.getConditionClause().toString(),
-        groupByClause, orderByClause, topN);
-
-
-    } else if (isTopNMetricCondition(metricNames, hostnames)) {
-
-      String groupByClause = "METRIC_NAME, APP_ID";
-      String orderByClause = getTopNOrderByClause();
-
-      innerQuery = String.format(PhoenixTransactSQL.TOP_N_INNER_SQL, PhoenixTransactSQL.getNaiveTimeRangeHint(getStartTime(), NATIVE_TIME_RANGE_DELTA),
-        "METRIC_NAME", PhoenixTransactSQL.getTargetTableUsingPrecision(precision, (hostnames != null && hostnames.size() == 1)),
-        super.getConditionClause().toString(),
-        groupByClause, orderByClause, topN);
-    }
-
-    return innerQuery;
+    return String.format(PhoenixTransactSQL.TOP_N_INNER_SQL,
+      PhoenixTransactSQL.getNaiveTimeRangeHint(getStartTime(), NATIVE_TIME_RANGE_DELTA),
+      PhoenixTransactSQL.getTargetTableUsingPrecision(precision, CollectionUtils.isNotEmpty(hostnames)),
+      super.getConditionClause().toString(), getTopNOrderByClause(), topN);
   }
 
   private String getTopNOrderByClause() {

@@ -24,6 +24,7 @@ import java.util.List;
 public interface Condition {
   boolean isEmpty();
 
+  List<byte[]> getUuids();
   List<String> getMetricNames();
   boolean isPointInTime();
   boolean isGrouped();
