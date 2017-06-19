@@ -21,43 +21,45 @@ package org.apache.ambari.logsearch.model.common;
 
 import javax.validation.constraints.NotNull;
 
-import org.apache.ambari.logsearch.config.api.model.inputconfig.MapDateDescriptor;
+import org.apache.ambari.logsearch.config.api.model.inputconfig.MapAnonymizeDescriptor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class LSServerMapDate extends LSServerMapField {
+import io.swagger.annotations.ApiModel;
+
+@ApiModel
+public class LSServerMapFieldAnonymize extends LSServerMapField {
   @Override
   public String getName() {
-    return "map_date";
+    return "map_anonymize";
   }
-
-  @JsonProperty("src_date_pattern")
-  private String sourceDatePattern;
 
   @NotNull
-  @JsonProperty("target_date_pattern")
-  private String targetDatePattern;
+  private String pattern;
 
-  public LSServerMapDate() {}
+  @JsonProperty("hide_char")
+  private Character hideChar;
+  
+  public LSServerMapFieldAnonymize() {}
 
-  public LSServerMapDate(MapDateDescriptor mapDateDescriptor) {
-    this.sourceDatePattern = mapDateDescriptor.getSourceDatePattern();
-    this.targetDatePattern = mapDateDescriptor.getTargetDatePattern();
+  public LSServerMapFieldAnonymize(MapAnonymizeDescriptor mapAnonymizeDescriptor) {
+    this.pattern = mapAnonymizeDescriptor.getPattern();
+    this.hideChar = mapAnonymizeDescriptor.getHideChar();
   }
 
-  public String getSourceDatePattern() {
-    return sourceDatePattern;
+  public String getPattern() {
+    return pattern;
   }
 
-  public void setSourceDatePattern(String sourceDatePattern) {
-    this.sourceDatePattern = sourceDatePattern;
+  public void setPattern(String pattern) {
+    this.pattern = pattern;
   }
 
-  public String getTargetDatePattern() {
-    return targetDatePattern;
+  public Character getHideChar() {
+    return hideChar;
   }
 
-  public void setTargetDatePattern(String targetDatePattern) {
-    this.targetDatePattern = targetDatePattern;
+  public void setHideChar(Character hideChar) {
+    this.hideChar = hideChar;
   }
 }

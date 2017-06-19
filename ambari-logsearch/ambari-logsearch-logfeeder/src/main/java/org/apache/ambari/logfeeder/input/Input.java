@@ -59,7 +59,7 @@ public abstract class Input extends ConfigItem implements Runnable {
   private String type;
   protected String filePath;
   private Filter firstFilter;
-  private boolean isClosed;
+  protected boolean isClosed;
 
   protected boolean tail;
   private boolean useEventMD5;
@@ -237,13 +237,10 @@ public abstract class Input extends ConfigItem implements Runnable {
     try {
       if (firstFilter != null) {
         firstFilter.close();
-      } else {
-        outputManager.close();
       }
     } catch (Throwable t) {
       // Ignore
     }
-    isClosed = true;
   }
 
   private void initCache() {

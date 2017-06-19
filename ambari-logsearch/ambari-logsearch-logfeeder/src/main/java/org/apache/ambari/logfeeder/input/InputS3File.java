@@ -92,4 +92,10 @@ public class InputS3File extends AbstractInputFile {
   protected Object getFileKey(File logFile) {
     return logFile.getPath();
   }
+  
+  @Override
+  public void close() {
+    super.close();
+    isClosed = true;
+  }
 }
