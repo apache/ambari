@@ -29,6 +29,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixConnectionProvider;
@@ -55,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -256,7 +258,7 @@ public class PhoenixHBaseAccessorTest {
 
     TimelineClusterMetric clusterMetric =
         new TimelineClusterMetric("metricName", "appId", "instanceId",
-            System.currentTimeMillis(), "type");
+            System.currentTimeMillis());
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("Metric1");
     timelineMetric.setType("type1");
@@ -268,6 +270,12 @@ public class PhoenixHBaseAccessorTest {
     clusterTimeAggregateMap.put(clusterMetric, new MetricHostAggregate());
     hostAggregateMap.put(timelineMetric, new MetricHostAggregate());
 
+    TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createMock(TimelineMetricMetadataManager.class);
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineClusterMetric.class))).andReturn(new byte[16]).times(2);
+    expect(metricMetadataManagerMock.getUuid(anyObject(TimelineMetric.class))).andReturn(new byte[20]).once();
+    replay(metricMetadataManagerMock);
+
+    accessor.setMetadataInstance(metricMetadataManagerMock);
     accessor.saveClusterAggregateRecords(clusterAggregateMap);
     accessor.saveHostAggregateRecords(hostAggregateMap,
         PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);

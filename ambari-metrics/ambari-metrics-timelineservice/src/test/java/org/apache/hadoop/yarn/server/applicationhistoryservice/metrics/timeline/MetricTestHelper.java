@@ -109,7 +109,7 @@ public class MetricTestHelper {
   public static TimelineClusterMetric createEmptyTimelineClusterMetric(
       String name, long startTime) {
     TimelineClusterMetric metric = new TimelineClusterMetric(name,
-        "test_app", "instance_id", startTime, null);
+        "test_app", "instance_id", startTime);
 
     return metric;
   }
