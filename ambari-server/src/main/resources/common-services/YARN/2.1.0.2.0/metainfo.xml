@@ -165,6 +165,7 @@
       <requiredServices>
         <service>HDFS</service>
         <service>MAPREDUCE2</service>
+        <service>ZOOKEEPER</service>
       </requiredServices>
 
       <configuration-dependencies>

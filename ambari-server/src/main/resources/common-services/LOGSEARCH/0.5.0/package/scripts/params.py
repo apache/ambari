@@ -204,7 +204,6 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 
 # System logs
 logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']

@@ -59,3 +59,12 @@ The name of the mapping element should be map\_fieldvalue. The value json elemen
 |-------------|--------------------------------------------------------------------|
 | pre\_value  | The value that the field must match \(ignoring case\) to be mapped |
 | post\_value | The value to which the field is modified to                        |
+
+## Map Anonymize
+
+The name of the mapping element should be map\_anonymize. The value json element should contain the following parameter:
+
+| Field      | Description                                                                                                     |
+|------------|-----------------------------------------------------------------------------------------------------------------|
+| pattern    | The pattern to use to identify parts to anonymize. The parts to hide should be marked with the "<hide>" string. |
+| hide\_char | The character to hide with, if it is not specified then the default is 'X'                                      |

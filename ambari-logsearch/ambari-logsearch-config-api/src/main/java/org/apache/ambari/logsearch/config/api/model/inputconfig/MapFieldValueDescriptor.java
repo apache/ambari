@@ -22,5 +22,5 @@ package org.apache.ambari.logsearch.config.api.model.inputconfig;
 public interface MapFieldValueDescriptor extends MapFieldDescriptor {
   String getPreValue();
 
-  public String getPostValue();
+  String getPostValue();
 }

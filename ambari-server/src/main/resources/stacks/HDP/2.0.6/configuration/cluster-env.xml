@@ -318,4 +318,16 @@ gpgcheck=0</value>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
+  <property>
+    <name>namenode_rolling_restart_timeout</name>
+    <value>4200</value>
+    <description>Timeout for namenode rolling restart command.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>namenode_rolling_restart_safemode_exit_timeout</name>
+    <value>3600</value>
+    <description>Timeout for safemode exit, during namenode rolling restart</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

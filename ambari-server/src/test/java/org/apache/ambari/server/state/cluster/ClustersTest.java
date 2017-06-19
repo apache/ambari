@@ -75,6 +75,7 @@ import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -83,9 +84,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
 
@@ -107,7 +111,7 @@ public class ClustersTest {
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     injector.injectMembers(this);
@@ -636,5 +640,12 @@ public class ClustersTest {
     clusters.addCluster(clusterName, stackId);
 
     return clusters.getCluster(clusterName);
+  }
+
+  private static class MockModule implements Module {
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+    }
   }
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,6 +19,7 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -26,6 +27,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -54,14 +56,14 @@ public class TopologyHostTaskDAO {
   }
 
   @RequiresSession
-  public List<Long> findHostRequestIdsByHostTaskIds(List<Long> hostTaskIds) {
+  public Set<Long> findHostRequestIdsByHostTaskIds(Set<Long> hostTaskIds) {
     EntityManager entityManager = entityManagerProvider.get();
     TypedQuery<Long> topologyHostTaskQuery =
             entityManager.createNamedQuery("TopologyLogicalTaskEntity.findHostRequestIdsByHostTaskIds", Long.class);
 
     topologyHostTaskQuery.setParameter("hostTaskIds", hostTaskIds);
 
-    return daoUtils.selectList(topologyHostTaskQuery);
+    return Sets.newHashSet(daoUtils.selectList(topologyHostTaskQuery));
   }
 
   @RequiresSession

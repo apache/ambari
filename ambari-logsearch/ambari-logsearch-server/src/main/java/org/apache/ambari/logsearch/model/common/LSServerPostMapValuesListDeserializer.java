@@ -64,6 +64,10 @@ public class LSServerPostMapValuesListDeserializer extends JsonDeserializer<LSSe
             LSServerMapFieldCopy mapFieldCopy = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldCopy.class);
             mappers.add(mapFieldCopy);
             break;
+          case "map_anonymize" :
+            LSServerMapFieldAnonymize mapAnonyimize = oc.treeToValue((TreeNode)mapperProperties, LSServerMapFieldAnonymize.class);
+            mappers.add(mapAnonyimize);
+            break;
         }
       }
       

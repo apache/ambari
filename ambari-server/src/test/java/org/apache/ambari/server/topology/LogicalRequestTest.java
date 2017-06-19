@@ -25,6 +25,8 @@ import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -521,8 +523,84 @@ public class LogicalRequestTest extends EasyMockSupport {
     // Then
     verifyAll();
 
-    Collection<HostRequest>  hostRequests = req.getHostRequests();
-    assertEquals(1, hostRequests.size());
+    assertEquals(1, req.getHostRequests().size());
+    assertEquals(0, req.getPendingHostRequestCount());
+  }
 
+  @Test
+  public void testRemovePendingHostRequestsByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, "host_group");
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests(null);
+
+    // Then
+    assertEquals(0, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  @Test
+  public void testRemovePendingHostRequestsOfSpecificHostGroupByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    String hostGroupName = "host_group";
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, hostGroupName);
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests(hostGroupName);
+
+    // Then
+    assertEquals(0, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  @Test
+  public void testRemovePendingHostRequestsOfNonexistentHostGroupByHostCount() throws Exception {
+    // Given
+    int hostCount = 3;
+    LogicalRequest req = createTopologyRequestByHostCount(hostCount, "host_group");
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+
+    // When
+    req.removePendingHostRequests("no_such_host_group");
+
+    // Then
+    assertEquals(hostCount, req.getPendingHostRequestCount());
+    verifyAll();
+  }
+
+  private LogicalRequest createTopologyRequestByHostCount(int hostCount, String hostGroupName) throws Exception {
+    final TopologyHostInfoEntity hostInfo = new TopologyHostInfoEntity();
+    hostInfo.setId(100L);
+    hostInfo.setHostCount(hostCount);
+
+    TopologyHostGroupEntity hostGroupEntity = new TopologyHostGroupEntity();
+    hostGroupEntity.setTopologyHostInfoEntities(ImmutableSet.of(hostInfo));
+    hostGroupEntity.setName(hostGroupName);
+
+    TopologyRequestEntity topologyRequestEntity = new TopologyRequestEntity();
+    topologyRequestEntity.setTopologyHostGroupEntities(Collections.singleton(hostGroupEntity));
+
+    Set<TopologyHostRequestEntity> hostRequests = new HashSet<>();
+    for (long i = 0; i < hostCount; ++i) {
+      TopologyHostRequestEntity hostRequestEntity = new TopologyHostRequestEntity();
+      hostRequestEntity.setId(i);
+      hostRequestEntity.setTopologyHostGroupEntity(hostGroupEntity);
+      hostRequestEntity.setTopologyHostTaskEntities(Collections.<TopologyHostTaskEntity>emptySet());
+      hostRequests.add(hostRequestEntity);
+    }
+
+    expect(logicalRequestEntity.getTopologyRequestEntity()).andReturn(topologyRequestEntity).anyTimes();
+    expect(logicalRequestEntity.getTopologyHostRequestEntities()).andReturn(hostRequests).anyTimes();
+    expect(blueprint.getHostGroup(eq(hostGroupEntity.getName()))).andReturn(hostGroup1).anyTimes();
+    expect(hostGroup1.containsMasterComponent()).andReturn(false).anyTimes();
+
+    replayAll();
+
+    return new LogicalRequest(1L, replayedTopologyRequest, clusterTopology, logicalRequestEntity);
   }
 }

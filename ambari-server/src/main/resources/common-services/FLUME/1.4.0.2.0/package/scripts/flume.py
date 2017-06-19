@@ -74,7 +74,7 @@ def flume(action = None):
                      properties=flume_agents[agent])
 
       File(flume_agent_log4j_file,
-           content=Template('log4j.properties.j2', agent_name = agent))
+           content=InlineTemplate(params.flume_log4j_content,agent_name=agent)),
 
       File(flume_agent_meta_file,
            content = json.dumps(ambari_meta(agent, flume_agents[agent])))
@@ -139,7 +139,7 @@ def flume(action = None):
         mode = 0644)
 
       File(flume_agent_log4j_file,
-        content=Template('log4j.properties.j2', agent_name = agent),
+        content=InlineTemplate(params.flume_log4j_content,agent_name=agent),
         owner=params.flume_user,
         mode = 0644)
 

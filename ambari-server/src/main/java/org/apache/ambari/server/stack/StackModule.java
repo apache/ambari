@@ -1129,9 +1129,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
 
       stackRepos = rxml.getRepositories();
 
-      for (RepositoryInfo ri : stackRepos) {
-        processRepository(ri);
-      }
 
       stackInfo.getRepositories().addAll(stackRepos);
     }
@@ -1236,35 +1233,6 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     return repos;
   }
 
-  /**
-   * Process a repository associated with the stack.
-   *
-   * @param ri The RespositoryInfo to process
-   */
-  private RepositoryInfo processRepository(RepositoryInfo ri) {
-
-    LOG.debug("Checking for override for base_url and mirrors list");
-    String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),
-        ri.getOsType(), ri.getRepoId());
-
-    if (null != updatedUrl) {
-      ri.setBaseUrl(updatedUrl);
-      ri.setRepoSaved(true);
-    }
-
-    String updatedMirrList = stackContext.getUpdatedMirrorsList(stackInfo.getName(), stackInfo.getVersion(),
-        ri.getOsType(), ri.getRepoId());
-
-    if (null != updatedMirrList) {
-      ri.setMirrorsList(updatedMirrList);
-      ri.setRepoSaved(true);
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding repo to stack, repoInfo={}", ri);
-    }
-    return ri;
-  }
 
 
   /**

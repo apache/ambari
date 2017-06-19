@@ -25,6 +25,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,5 +89,11 @@ public class FileUtil {
       LOG.error(e, e.getCause());
     }
     return new HashMap<String, Object>();
+  }
+  
+  public static void move(File source, File target) throws IOException {
+    Path sourcePath = Paths.get(source.getAbsolutePath());
+    Path targetPath = Paths.get(target.getAbsolutePath());
+    Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
   }
 }

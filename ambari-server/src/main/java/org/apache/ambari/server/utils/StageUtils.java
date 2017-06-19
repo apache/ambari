@@ -260,8 +260,12 @@ public class StageUtils {
     return mapper.readValue(is, clazz);
   }
 
-  public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext) throws AmbariException {
-    return actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
+  public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext, String requestContext) throws AmbariException {
+    Map<String, String> commandParams = actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
+    if (StringUtils.isNotEmpty(requestContext) && requestContext.toLowerCase().contains("rolling-restart")) {
+      commandParams.put("rolling_restart", "true");
+    }
+    return commandParams;
   }
 
   public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {

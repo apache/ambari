@@ -20,5 +20,5 @@
 package org.apache.ambari.logsearch.config.api.model.inputconfig;
 
 public interface MapFieldDescriptor {
-  public String getJsonName();
+  String getJsonName();
 }

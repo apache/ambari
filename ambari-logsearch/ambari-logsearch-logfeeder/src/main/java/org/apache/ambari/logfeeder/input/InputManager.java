@@ -77,6 +77,11 @@ public class InputManager {
     for (Input input : inputList) {
       input.setDrain(true);
     }
+    for (Input input : inputList) {
+      while (!input.isClosed()) {
+        try { Thread.sleep(100); } catch (InterruptedException e) {}
+      }
+    }
     inputList.clear();
     inputs.remove(serviceName);
   }

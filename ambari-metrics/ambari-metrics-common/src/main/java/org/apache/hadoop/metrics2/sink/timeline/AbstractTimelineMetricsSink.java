@@ -174,23 +174,7 @@ public abstract class AbstractTimelineMetricsSink {
         connection.setRequestProperty(COOKIE, appCookie);
       }
 
-      connection.setRequestMethod("POST");
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Connection", "Keep-Alive");
-      connection.setConnectTimeout(timeout);
-      connection.setReadTimeout(timeout);
-      connection.setDoOutput(true);
-
-      if (jsonData != null) {
-        try (OutputStream os = connection.getOutputStream()) {
-          os.write(jsonData.getBytes("UTF-8"));
-        }
-      }
-
-      int statusCode = connection.getResponseCode();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("emitMetricsJson: statusCode = " + statusCode);
-      }
+      int statusCode = emitMetricsJson(connection, timeout, jsonData);
 
       if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
         String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
@@ -200,18 +184,11 @@ public abstract class AbstractTimelineMetricsSink {
         if (wwwAuthHeader != null && wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
           appCookie = appCookieManager.getAppCookie(connectUrl, true);
           if (appCookie != null) {
+            cleanupInputStream(connection.getInputStream());
+            connection = connectUrl.startsWith("https") ?
+                getSSLConnection(connectUrl) : getConnection(connectUrl);
             connection.setRequestProperty(COOKIE, appCookie);
-
-            if (jsonData != null) {
-              try (OutputStream os = connection.getOutputStream()) {
-                os.write(jsonData.getBytes("UTF-8"));
-              }
-            }
-
-            statusCode = connection.getResponseCode();
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("emitMetricsJson: statusCode2 = " + statusCode);
-            }
+            statusCode = emitMetricsJson(connection, timeout, jsonData);
           }
         } else {
           // no supported authentication type found
@@ -259,6 +236,27 @@ public abstract class AbstractTimelineMetricsSink {
         return false;
       }
     }
+  }
+
+  private int emitMetricsJson(HttpURLConnection connection, int timeout, String jsonData) throws IOException {
+    connection.setRequestMethod("POST");
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setRequestProperty("Connection", "Keep-Alive");
+    connection.setConnectTimeout(timeout);
+    connection.setReadTimeout(timeout);
+    connection.setDoOutput(true);
+
+    if (jsonData != null) {
+      try (OutputStream os = connection.getOutputStream()) {
+        os.write(jsonData.getBytes("UTF-8"));
+      }
+    }
+
+    int statusCode = connection.getResponseCode();
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("emitMetricsJson: statusCode = " + statusCode);
+    }
+    return statusCode;
   }
 
   protected String getCurrentCollectorHost() {

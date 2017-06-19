@@ -402,7 +402,7 @@
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
-            <exclude>utility/target/**</exclude>
+            <exclude>ambari-utility/target/**</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -459,7 +459,7 @@
         </property>
       </activation>
       <modules>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
@@ -483,7 +483,7 @@
         </property>
       </activation>
       <modules>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>
@@ -511,7 +511,7 @@
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
       </modules>
     </profile>
     <profile>
@@ -534,7 +534,7 @@
         <module>ambari-shell</module>
         <module>ambari-logsearch</module>
         <module>ambari-infra</module>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
         </modules>
     </profile>
     <profile>
@@ -544,9 +544,9 @@
       </modules>
     </profile>
     <profile>
-      <id>serviceadvisor</id>
+      <id>ambari-serviceadvisor</id>
       <modules>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
       </modules>
     </profile>
     <profile>
@@ -557,7 +557,7 @@
         </os>
       </activation>
       <modules>
-        <module>serviceadvisor</module>
+        <module>ambari-serviceadvisor</module>
         <module>ambari-web</module>
         <module>ambari-project</module>
         <module>ambari-views</module>

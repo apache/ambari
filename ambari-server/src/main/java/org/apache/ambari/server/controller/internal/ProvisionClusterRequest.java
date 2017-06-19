@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -223,7 +224,9 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         }
         CredentialStoreType type = Enums.getIfPresent(CredentialStoreType.class, typeString.toUpperCase()).orNull();
         if (type == null) {
-          throw new InvalidTopologyTemplateException("credential.type is invalid.");
+          throw new InvalidTopologyTemplateException(
+              String.format("credential.type [%s] is invalid. acceptable values: %s", typeString.toUpperCase(),
+                  Arrays.toString(CredentialStoreType.values())));
         }
         credentialHashMap.put(alias, new Credential(alias, principal, key, type));
       }

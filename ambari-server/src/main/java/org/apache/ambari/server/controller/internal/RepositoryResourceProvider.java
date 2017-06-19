@@ -56,7 +56,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_MIRRORS_LIST_PROPERTY_ID          = PropertyHelper.getPropertyId("Repositories", "mirrors_list");
   public static final String REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID      = PropertyHelper.getPropertyId("Repositories", "default_base_url");
   public static final String REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "verify_base_url");
-  public static final String REPOSITORY_LATEST_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "latest_base_url");
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
   public static final String REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "version_definition_id");
   public static final String REPOSITORY_UNIQUE_PROPERTY_ID                = PropertyHelper.getPropertyId("Repositories", "unique");
@@ -83,7 +82,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_MIRRORS_LIST_PROPERTY_ID);
       add(REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID);
-      add(REPOSITORY_LATEST_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
       add(REPOSITORY_VERSION_DEFINITION_ID_PROPERTY_ID);
       add(REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID);
@@ -121,14 +119,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         requests.add(getRequest(propertyMap));
       }
     }
-
-    modifyResources(new Command<Void>() {
-      @Override
-      public Void invoke() throws AmbariException {
-        getManagementController().updateRepositories(requests);
-        return null;
-      }
-    });
 
     return getRequestStatus(null);
   }
@@ -169,7 +159,6 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_REPO_ID_PROPERTY_ID, response.getRepoId(), requestedIds);
         setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
-        setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_UNIQUE_PROPERTY_ID, response.isUnique(), requestedIds);
         if (null != response.getClusterVersionId()) {
           setResourceProperty(resource, REPOSITORY_CLUSTER_STACK_VERSION_PROPERTY_ID, response.getClusterVersionId(), requestedIds);
