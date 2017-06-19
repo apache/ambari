@@ -252,6 +252,29 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     assertTrue(notification.Body.contains(ALERT_UNIQUE_TEXT));
   }
 
+  @Test
+  public void testExceptionHandling() throws Exception {
+    List<AlertNoticeEntity> notices = getSingleMockNotice("EMAIL");
+    AlertNoticeEntity notice = notices.get(0);
+
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(null).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
+
+    EasyMock.replay(m_dao, m_dispatchFactory);
+
+    // "startup" the service so that its initialization is done
+    AlertNoticeDispatchService service = m_injector.getInstance(AlertNoticeDispatchService.class);
+    service.startUp();
+
+    // service trigger with mock executor that blocks
+    service.setExecutor(new MockExecutor());
+    // no exceptions should be thrown
+    service.runOneIteration();
+
+    EasyMock.verify(m_dao, m_dispatchFactory);
+  }
+
   /**
    * Tests a digest dispatch for SNMP.
    *
