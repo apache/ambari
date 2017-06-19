@@ -45,7 +45,7 @@ public class MapperAnonymizeTest {
     Map<String, Object> jsonObj = new HashMap<>();
     mapperAnonymize.apply(jsonObj, "something else secret SECRET1 / SECRET2 is here something else 2");
 
-    assertEquals("Field wasnt anonymized", "something else secret XXXXXXX / XXXXXXX is here something else 2", jsonObj.remove("someField"));
+    assertEquals("Field wasnt anonymized", "something else secret ******* / ******* is here something else 2", jsonObj.remove("someField"));
     assertTrue("jsonObj is not empty", jsonObj.isEmpty());
   }
 
@@ -55,7 +55,7 @@ public class MapperAnonymizeTest {
 
     MapAnonymizeDescriptorImpl mapAnonymizeDescriptorImpl = new MapAnonymizeDescriptorImpl();
     mapAnonymizeDescriptorImpl.setPattern("<hide> / <hide> is the secret");
-    mapAnonymizeDescriptorImpl.setHideChar('*');
+    mapAnonymizeDescriptorImpl.setHideChar('X');
 
     MapperAnonymize mapperAnonymize = new MapperAnonymize();
     assertTrue("Could not initialize!", mapperAnonymize.init(null, "someField", null, mapAnonymizeDescriptorImpl));
@@ -63,7 +63,7 @@ public class MapperAnonymizeTest {
     Map<String, Object> jsonObj = new HashMap<>();
     mapperAnonymize.apply(jsonObj, "something else SECRET1 / SECRET2 is the secret something else 2");
 
-    assertEquals("Field wasnt anonymized", "something else ******* / ******* is the secret something else 2", jsonObj.remove("someField"));
+    assertEquals("Field wasnt anonymized", "something else XXXXXXX / XXXXXXX is the secret something else 2", jsonObj.remove("someField"));
     assertTrue("jsonObj is not empty", jsonObj.isEmpty());
   }
 
