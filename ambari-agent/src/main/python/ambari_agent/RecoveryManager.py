@@ -43,11 +43,12 @@ class RecoveryManager:
   COMPONENT_NAME = "componentName"
   ROLE = "role"
   TASK_ID = "taskId"
+  CLUSTER_ID = "clusterId"
   DESIRED_STATE = "desiredState"
   HAS_STALE_CONFIG = "hasStaleConfigs"
   EXECUTION_COMMAND_DETAILS = "executionCommandDetails"
   ROLE_COMMAND = "roleCommand"
-  HOST_LEVEL_PARAMS = "hostLevelParams"
+  COMMAND_ID = "commandId"
   PAYLOAD_LEVEL_DEFAULT = "DEFAULT"
   PAYLOAD_LEVEL_MINIMAL = "MINIMAL"
   PAYLOAD_LEVEL_EXECUTION_COMMAND = "EXECUTION_COMMAND"
@@ -85,7 +86,6 @@ class RecoveryManager:
     self.retry_gap = 5
     self.max_lifetime_count = 12
 
-    self.stored_exec_commands = {}
     self.id = int(time.time())
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED]
@@ -98,6 +98,7 @@ class RecoveryManager:
     self.active_command_count = 0
     self.paused = False
     self.recovery_timestamp = -1
+    self.cluster_id = None
 
     if not os.path.exists(cache_dir):
       try:
@@ -113,12 +114,12 @@ class RecoveryManager:
 
     pass
 
-  def start_execution_command(self):
+  def on_execution_command_start(self):
     with self.__active_command_lock:
       self.active_command_count += 1
     pass
 
-  def stop_execution_command(self):
+  def on_execution_command_finish(self):
     with self.__active_command_lock:
       self.active_command_count -= 1
     pass
@@ -160,10 +161,17 @@ class RecoveryManager:
       pass
 
     self.statuses[component]["stale_config"] = is_config_stale
-    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
-            self.statuses[component]["stale_config"] == False:
-      self.remove_command(component)
     pass
+
+  def handle_status_change(self, component, component_status):
+    if not self.enabled() or not self.configured_for_recovery(component):
+      return
+
+    if component_status == LiveStatus.LIVE_STATUS:
+        self.update_current_status(component, component_status)
+    else:
+        if (self.get_current_status(component) != self.INSTALL_FAILED):
+          self.update_current_status(component, component_status)
 
   def update_current_status(self, component, state):
     """
@@ -184,9 +192,6 @@ class RecoveryManager:
     if self.statuses[component]["current"] != state:
       logger.info("current status is set to %s for %s", state, component)
     self.statuses[component]["current"] = state
-    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
-            self.statuses[component]["stale_config"] == False:
-      self.remove_command(component)
     pass
 
 
@@ -209,9 +214,6 @@ class RecoveryManager:
     if self.statuses[component]["desired"] != state:
       logger.info("desired status is set to %s for %s", state, component)
     self.statuses[component]["desired"] = state
-    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
-            self.statuses[component]["stale_config"] == False:
-      self.remove_command(component)
     pass
 
   """
@@ -354,9 +356,10 @@ class RecoveryManager:
 
         if command:
           self.execute(component)
+          logger.info("Created recovery command %s for component %s",
+                    command[self.ROLE_COMMAND], command[self.ROLE])
           commands.append(command)
     return commands
-    pass
 
 
   def may_execute(self, action):
@@ -549,7 +552,7 @@ class RecoveryManager:
     pass
 
 
-  def update_configuration_from_registration(self, reg_resp):
+  def update_recovery_config(self, dictionary):
     """
     TODO: Server sends the recovery configuration - call update_config after parsing
     "recoveryConfig": {
@@ -573,9 +576,9 @@ class RecoveryManager:
     recovery_timestamp = -1 # Default value if recoveryTimestamp is not available.
 
 
-    if reg_resp and "recoveryConfig" in reg_resp:
-      logger.info("RecoverConfig = " + pprint.pformat(reg_resp["recoveryConfig"]))
-      config = reg_resp["recoveryConfig"]
+    if dictionary and "recoveryConfig" in dictionary:
+      logger.info("RecoverConfig = " + pprint.pformat(dictionary["recoveryConfig"]))
+      config = dictionary["recoveryConfig"]
       if "type" in config:
         if config["type"] in ["AUTO_INSTALL_START", "AUTO_START", "FULL"]:
           recovery_enabled = True
@@ -681,209 +684,113 @@ class RecoveryManager:
   def get_unique_task_id(self):
     self.id += 1
     return self.id
-    pass
 
-
-  def process_status_commands(self, commands):
-    if not self.enabled():
-      return
-
-    if commands and len(commands) > 0:
-      for command in commands:
-        self.store_or_update_command(command)
-        if self.EXECUTION_COMMAND_DETAILS in command:
-          logger.debug("Details to construct exec commands: " + pprint.pformat(command[self.EXECUTION_COMMAND_DETAILS]))
-
-    pass
-
-
-  def process_execution_commands(self, commands):
-    if not self.enabled():
-      return
-
-    if commands and len(commands) > 0:
-      for command in commands:
-        if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
-          if self.ROLE in command:
-            if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP) \
-                and self.configured_for_recovery(command[self.ROLE]):
-              self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
-              logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of " + command[self.ROLE] + " to " +
-                           self.get_desired_status(command[self.ROLE]) )
-            elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START \
-                and self.configured_for_recovery(command[self.ROLE]):
-              self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
-              logger.info("Received EXECUTION_COMMAND (START), desired state of " + command[self.ROLE] + " to " +
-                           self.get_desired_status(command[self.ROLE]) )
-            elif command[self.HOST_LEVEL_PARAMS].has_key('custom_command') and \
-                    command[self.HOST_LEVEL_PARAMS]['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART \
-                    and self.configured_for_recovery(command[self.ROLE]):
-              self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
-              logger.info("Received EXECUTION_COMMAND (RESTART), desired state of " + command[self.ROLE] + " to " +
-                           self.get_desired_status(command[self.ROLE]) )
-
-    pass
-
-
-  def store_or_update_command(self, command):
+  def process_execution_command_result(self, command, status):
     """
-    Stores command details by reading them from the STATUS_COMMAND
-    Update desired state as well
+    Update current status for the components depending on command and its status.
     """
     if not self.enabled():
       return
+      
+    if not command.has_key(self.ROLE_COMMAND) or not self.configured_for_recovery(command['role']):
+      return
+      
+    if status == ActionQueue.COMPLETED_STATUS:
+      if command[self.ROLE_COMMAND] == self.ROLE_COMMAND_START:
+        self.update_current_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
+        #self.update_config_staleness(command['role'], False)
+        logger.info("After EXECUTION_COMMAND (START), with taskId=" + str(command['taskId']) +
+                    ", current state of " + command[self.ROLE] + " to " +
+                     self.get_current_status(command[self.ROLE]) )
+      elif command['roleCommand'] == ActionQueue.ROLE_COMMAND_STOP or command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_INSTALL:
+        self.update_current_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
+        logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId=" + str(command['taskId']) +
+                    ", current state of " + command[self.ROLE] + " to " +
+                     self.get_current_status(command[self.ROLE]) )
+      elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_CUSTOM_COMMAND:
+        if command.has_key('custom_command') and command['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART:
+          self.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
+          #self.update_config_staleness(command['role'], False)
+          logger.info("After EXECUTION_COMMAND (RESTART), current state of " + command[self.ROLE] + " to " +
+                       self.get_current_status(command[self.ROLE]) )
+    elif status == ActionQueue.FAILED_STATUS:
+      if command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_INSTALL:
+        self.update_current_status(command[self.ROLE], self.INSTALL_FAILED)
+        logger.info("After EXECUTION_COMMAND (INSTALL), with taskId=" + str(command['taskId']) +
+                    ", current state of " + command[self.ROLE] + " to " +
+                    self.get_current_status(command[self.ROLE]))
 
-    logger.debug("Inspecting command to store/update details")
-    if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.STATUS_COMMAND:
-      payloadLevel = self.PAYLOAD_LEVEL_DEFAULT
-      if self.PAYLOAD_LEVEL in command:
-        payloadLevel = command[self.PAYLOAD_LEVEL]
+  def process_execution_command(self, command):
+    """
+    Change desired state of the component depending on the execution command triggered.
+    """
+    if not self.enabled():
+      return
+      
+    if not self.COMMAND_TYPE in command or not command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
+      return
+      
+    if not self.ROLE in command:
+      return
 
-      component = command[self.COMPONENT_NAME]
-      self.update_desired_status(component, command[self.DESIRED_STATE])
-      self.update_config_staleness(component, command[self.HAS_STALE_CONFIG])
+    if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP) \
+        and self.configured_for_recovery(command[self.ROLE]):
+      self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
+      logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of " + command[self.ROLE] + " to " +
+                   self.get_desired_status(command[self.ROLE]) )
+    elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START \
+        and self.configured_for_recovery(command[self.ROLE]):
+      self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
+      logger.info("Received EXECUTION_COMMAND (START), desired state of " + command[self.ROLE] + " to " +
+                   self.get_desired_status(command[self.ROLE]) )
+    elif command.has_key('custom_command') and \
+            command['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART \
+            and self.configured_for_recovery(command[self.ROLE]):
+      self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
+      logger.info("Received EXECUTION_COMMAND (RESTART), desired state of " + command[self.ROLE] + " to " +
+                   self.get_desired_status(command[self.ROLE]) )
 
-      if payloadLevel == self.PAYLOAD_LEVEL_EXECUTION_COMMAND:
-        if self.EXECUTION_COMMAND_DETAILS in command:
-          # Store the execution command details
-          self.remove_command(component)
-          self.add_command(component, command[self.EXECUTION_COMMAND_DETAILS])
-          logger.debug("Stored command details for " + component)
-        else:
-          logger.warn("Expected field " + self.EXECUTION_COMMAND_DETAILS + " unavailable.")
-        pass
-    pass
-
-
-  def get_install_command(self, component):
+  def get_command(self, component, command_name):
+    """
+    Get command dictionary by component name and command_name
+    """
     if self.paused:
       logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
       return None
 
     if self.enabled():
-      logger.debug("Using stored INSTALL command for %s", component)
-      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
-        command = copy.deepcopy(self.stored_exec_commands[component])
-        command[self.ROLE_COMMAND] = "INSTALL"
-        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
-        command[self.TASK_ID] = self.get_unique_task_id()
-        return command
-      else:
-        logger.info("INSTALL command cannot be computed as details are not received from Server.")
-    else:
-      logger.info("Recovery is not enabled. INSTALL command will not be computed.")
-    return None
-    pass
-
-  def get_stop_command(self, component):
-    if self.paused:
-      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
-      return None
-
-    if self.enabled():
-      logger.debug("Using stored STOP command for %s", component)
-      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
-        command = copy.deepcopy(self.stored_exec_commands[component])
-        command[self.ROLE_COMMAND] = "STOP"
-        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
-        command[self.TASK_ID] = self.get_unique_task_id()
-        return command
-      else:
-        logger.info("STOP command cannot be computed as details are not received from Server.")
-    else:
-      logger.info("Recovery is not enabled. STOP command will not be computed.")
-    return None
-    pass
-
-  def get_restart_command(self, component):
-    if self.paused:
-      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
-      return None
-
-    if self.enabled():
-      logger.debug("Using stored INSTALL command for %s", component)
-      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
-        command = copy.deepcopy(self.stored_exec_commands[component])
-        command[self.ROLE_COMMAND] = "CUSTOM_COMMAND"
-        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
-        command[self.TASK_ID] = self.get_unique_task_id()
-        command[self.HOST_LEVEL_PARAMS]['custom_command'] = 'RESTART'
-        return command
-      else:
-        logger.info("RESTART command cannot be computed as details are not received from Server.")
-    else:
-      logger.info("Recovery is not enabled. RESTART command will not be computed.")
-    return None
-    pass
-
-
-  def get_start_command(self, component):
-    if self.paused:
-      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
-      return None
-
-    if self.enabled():
-      logger.debug("Using stored START command for %s", component)
-      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
-        command = copy.deepcopy(self.stored_exec_commands[component])
-        command[self.ROLE_COMMAND] = "START"
-        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
-        command[self.TASK_ID] = self.get_unique_task_id()
-        return command
-      else:
-        logger.info("START command cannot be computed as details are not received from Server.")
+      command_id = self.get_unique_task_id()
+      command = {
+        self.CLUSTER_ID: self.cluster_id,
+        self.ROLE_COMMAND: command_name,
+        self.COMMAND_TYPE: ActionQueue.AUTO_EXECUTION_COMMAND,
+        self.TASK_ID: command_id,
+        self.ROLE: component,
+        self.COMMAND_ID: command_id
+      }
+      return command
     else:
       logger.info("Recovery is not enabled. START command will not be computed.")
 
     return None
-    pass
 
+  def get_restart_command(self, component):
+    command = self.get_command(component, "CUSTOM_COMMAND")
 
-  def command_exists(self, component, command_type):
-    if command_type == ActionQueue.EXECUTION_COMMAND:
-      self.remove_stale_command(component)
-      if component in self.stored_exec_commands:
-        return True
+    if command is not None:
+      command[self.ROLE_COMMAND] = "CUSTOM_COMMAND"
+      command['custom_command'] = 'RESTART'
 
-    return False
-    pass
+    return command
 
+  def get_install_command(self, component):
+    return self.get_command(component, "INSTALL")
 
-  def remove_stale_command(self, component):
-    component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
-    if component in self.stored_exec_commands:
-      insert_time = self.stored_exec_commands[component_update_key]
-      age = self._now_() - insert_time
-      if self.COMMAND_REFRESH_DELAY_SEC < age:
-        logger.debug("Removing stored command for component : " + str(component) + " as its " + str(age) + " sec old")
-        self.remove_command(component)
-    pass
+  def get_stop_command(self, component):
+    return self.get_command(component, "STOP")
 
-
-  def remove_command(self, component):
-    if component in self.stored_exec_commands:
-      self.__status_lock.acquire()
-      try:
-        component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
-        del self.stored_exec_commands[component]
-        del self.stored_exec_commands[component_update_key]
-        logger.debug("Removed stored command for component : " + str(component))
-        return True
-      finally:
-        self.__status_lock.release()
-    return False
-
-
-  def add_command(self, component, command):
-    self.__status_lock.acquire()
-    try:
-      component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
-      self.stored_exec_commands[component] = command
-      self.stored_exec_commands[component_update_key] = self._now_()
-      logger.debug("Added command for component : " + str(component))
-    finally:
-      self.__status_lock.release()
-
+  def get_start_command(self, component):
+    return self.get_command(component, "START")
 
   def _read_int_(self, value, default_value=0):
     int_value = default_value

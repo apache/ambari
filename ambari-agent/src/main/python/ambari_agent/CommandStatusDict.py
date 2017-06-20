@@ -136,7 +136,7 @@ class CommandStatusDict():
       'role': command['role'],
       'actionId': command['commandId'],
       'taskId': command['taskId'],
-      'clusterName': command['clusterName'],
+      'clusterId': command['clusterId'],
       'serviceName': command['serviceName'],
       'roleCommand': command['roleCommand']
     }

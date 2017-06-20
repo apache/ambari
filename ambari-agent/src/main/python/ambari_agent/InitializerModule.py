@@ -31,7 +31,7 @@ from ambari_agent.security import AmbariStompConnection
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
-from ambari_agent.HostStatusReporter import HostStatusReporter
+from ambari_agent.RecoveryManager import RecoveryManager
 
 logger = logging.getLogger()
 
@@ -58,6 +58,7 @@ class InitializerModule:
     self.cache_dir = self.config.get('agent', 'cache_dir', default='/var/lib/ambari-agent/cache')
     self.command_reports_interval = int(self.config.get('agent', 'command_reports_interval', default='5'))
     self.cluster_cache_dir = os.path.join(self.cache_dir, FileCache.CLUSTER_CACHE_DIRECTORY)
+    self.recovery_cache_dir = os.path.join(self.cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
 
     self.host_status_report_interval = int(self.config.get('heartbeat', 'state_interval_seconds', '60'))
 
@@ -74,6 +75,7 @@ class InitializerModule:
     self.configurations_cache = ClusterConfigurationCache(self.cluster_cache_dir)
     self.customServiceOrchestrator = CustomServiceOrchestrator(self)
 
+    self.recovery_manager = RecoveryManager(self.recovery_cache_dir)
     self.commandStatuses = CommandStatusDict(self)
     self.action_queue = ActionQueue(self)
 

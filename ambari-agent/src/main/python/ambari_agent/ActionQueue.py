@@ -76,6 +76,7 @@ class ActionQueue(threading.Thread):
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = initializer_module.commandStatuses
     self.config = initializer_module.config
+    self.recovery_manager = initializer_module.recovery_manager
     self.configTags = {}
     self.stop_event = initializer_module.stop_event
     self.tmpdir = self.config.get('agent', 'prefix')
@@ -91,9 +92,6 @@ class ActionQueue(threading.Thread):
         command['serviceName'] = "null"
       if command.has_key('clusterId'):
         command['clusterId'] = "null"
-      if not command.has_key('clusterName'):
-        command['clusterName'] = 'null'
-
 
       logger.info("Adding " + command['commandType'] + " for role " + \
                   command['role'] + " for service " + \
@@ -134,6 +132,7 @@ class ActionQueue(threading.Thread):
     try:
       while not self.stop_event.is_set():
         self.processBackgroundQueueSafeEmpty()
+        self.fillRecoveryCommands()
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
@@ -168,6 +167,10 @@ class ActionQueue(threading.Thread):
 
     logger.info("ActionQueue thread has successfully finished")
 
+  def fillRecoveryCommands(self):
+    if not self.tasks_in_progress_or_pending():
+      self.put(self.recovery_manager.get_recovery_commands())
+
   def processBackgroundQueueSafeEmpty(self):
     while not self.backgroundCommandQueue.empty():
       try:
@@ -190,40 +193,34 @@ class ActionQueue(threading.Thread):
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
         try:
-          # TODO STOMP: fix recovery manager for execution commands
-          #if self.controller.recovery_manager.enabled():
-          #  self.controller.recovery_manager.start_execution_command()
+          if self.recovery_manager.enabled():
+            self.recovery_manager.on_execution_command_start()
+            self.recovery_manager.process_execution_command(command)
+
           self.execute_command(command)
         finally:
-          pass
-          #if self.controller.recovery_manager.enabled():
-          #  self.controller.recovery_manager.stop_execution_command()
+          if self.recovery_manager.enabled():
+            self.recovery_manager.on_execution_command_finish()
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception:
       logger.exception("Exception while processing {0} command".format(commandType))
 
   def tasks_in_progress_or_pending(self):
-    return_val = False
-    if not self.commandQueue.empty():
-      return_val = True
-    if self.controller.recovery_manager.has_active_command():
-      return_val = True
-    return return_val
-    pass
+    return not self.commandQueue.empty() or self.recovery_manager.has_active_command()
 
   def execute_command(self, command):
     '''
     Executes commands of type EXECUTION_COMMAND
     '''
-    clusterName = command['clusterName']
+    clusterId = command['clusterId']
     commandId = command['commandId']
     isCommandBackground = command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND
     isAutoExecuteCommand = command['commandType'] == self.AUTO_EXECUTION_COMMAND
     message = "Executing command with id = {commandId}, taskId = {taskId} for role = {role} of " \
-              "cluster {cluster}.".format(
+              "cluster_id {cluster}.".format(
               commandId = str(commandId), taskId = str(command['taskId']),
-              role=command['role'], cluster=clusterName)
+              role=command['role'], cluster=clusterId)
     logger.info(message)
 
     taskId = command['taskId']
@@ -359,10 +356,10 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know name of custom command
-    """
-    if command['hostLevelParams'].has_key('custom_command'):
-      roleResult['customCommand'] = command['hostLevelParams']['custom_command']
-    """
+
+    if command.has_key('custom_command'):
+      roleResult['customCommand'] = command['custom_command']
+
     if 'structuredOut' in commandresult:
       roleResult['structuredOut'] = str(json.dumps(commandresult['structuredOut']))
     else:
@@ -370,30 +367,6 @@ class ActionQueue(threading.Thread):
 
     # let recovery manager know the current state
     if status == self.COMPLETED_STATUS:
-      # TODO STOMP:fix recovery_manager
-      """
-      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand') \
-          and self.controller.recovery_manager.configured_for_recovery(command['role']):
-        if command['roleCommand'] == self.ROLE_COMMAND_START:
-          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
-          self.controller.recovery_manager.update_config_staleness(command['role'], False)
-          logger.info("After EXECUTION_COMMAND (START), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                       self.controller.recovery_manager.get_current_status(command['role']) )
-        elif command['roleCommand'] == self.ROLE_COMMAND_STOP or command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
-          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.DEAD_STATUS)
-          logger.info("After EXECUTION_COMMAND (STOP/INSTALL), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                       self.controller.recovery_manager.get_current_status(command['role']) )
-        elif command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND:
-          if command['hostLevelParams'].has_key('custom_command') and \
-                  command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART:
-            self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
-            self.controller.recovery_manager.update_config_staleness(command['role'], False)
-            logger.info("After EXECUTION_COMMAND (RESTART), current state of " + command['role'] + " to " +
-                         self.controller.recovery_manager.get_current_status(command['role']) )
-      """
-
       # let ambari know that configuration tags were applied
       configHandler = ActualConfigHandler(self.config, self.configTags)
 
@@ -428,18 +401,8 @@ class ActionQueue(threading.Thread):
                                                 command['hostLevelParams']['clientsToUpdateConfigs'])
         roleResult['configurationTags'] = configHandler.read_actual_component(
             command['role'])
-    elif status == self.FAILED_STATUS:
-      # TODO STOMP: recovery manager
-      """
-      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand') \
-              and self.controller.recovery_manager.configured_for_recovery(command['role']):
-        if command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
-          self.controller.recovery_manager.update_current_status(command['role'], self.controller.recovery_manager.INSTALL_FAILED)
-          logger.info("After EXECUTION_COMMAND (INSTALL), with taskId=" + str(command['taskId']) +
-                      ", current state of " + command['role'] + " to " +
-                      self.controller.recovery_manager.get_current_status(command['role']))
-      """
 
+    self.recovery_manager.process_execution_command_result(command, status)
     self.commandStatuses.put_command_status(command, roleResult)
 
   def log_command_output(self, text, taskId):
@@ -494,73 +457,6 @@ class ActionQueue(threading.Thread):
   def execute_status_command_and_security_status(self, command):
     component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
     return command, component_status_result
-
-  def process_status_command_result(self, result):
-    '''
-    Executes commands of type STATUS_COMMAND
-    '''
-    # TODO STOMP: review if we need to run this with new status commands
-    try:
-      command, component_status_result = result
-      cluster = command['clusterName']
-      service = command['serviceName']
-      component = command['componentName']
-      configurations = command['configurations']
-      if configurations.has_key('global'):
-        globalConfig = configurations['global']
-      else:
-        globalConfig = {}
-
-      # TODO STOMP: check why we need this
-      if not Script.config :
-        logger.debug('Setting Script.config to last status command configuration')
-        Script.config = command
-
-      livestatus = LiveStatus(cluster, service, component,
-                              globalConfig, self.config, self.configTags)
-
-      component_extra = None
-
-      if component_status_result['exitcode'] == 0:
-        component_status = LiveStatus.LIVE_STATUS
-        if self.controller.recovery_manager.enabled() \
-          and self.controller.recovery_manager.configured_for_recovery(component):
-          self.controller.recovery_manager.update_current_status(component, component_status)
-      else:
-        component_status = LiveStatus.DEAD_STATUS
-        if self.controller.recovery_manager.enabled() \
-          and self.controller.recovery_manager.configured_for_recovery(component):
-          if (self.controller.recovery_manager.get_current_status(component) != self.controller.recovery_manager.INSTALL_FAILED):
-            self.controller.recovery_manager.update_current_status(component, component_status)
-
-      request_execution_cmd = self.controller.recovery_manager.requires_recovery(component) and \
-                                not self.controller.recovery_manager.command_exists(component, ActionQueue.EXECUTION_COMMAND)
-
-      if 'structuredOut' in component_status_result:
-        component_extra = component_status_result['structuredOut']
-
-      result = livestatus.build(component_status=component_status)
-      if self.controller.recovery_manager.enabled():
-        result['sendExecCmdDet'] = str(request_execution_cmd)
-
-      if component_extra is not None and len(component_extra) != 0:
-        if component_extra.has_key('alerts'):
-          result['alerts'] = component_extra['alerts']
-          del component_extra['alerts']
-
-        result['extra'] = component_extra
-
-      logger.debug("Got live status for component " + component + \
-                   " of service " + str(service) + \
-                   " of cluster " + str(cluster))
-
-      logger.debug(pprint.pformat(result))
-      if result is not None:
-        self.commandStatuses.put_command_status(command, result)
-    except Exception, err:
-      traceback.print_exc()
-      logger.warn(err)
-    pass
 
   def status_update_callback(self):
     """

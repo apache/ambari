@@ -9,8 +9,7 @@
           "serviceName":"HDFS",
           "role":"DATANODE",
           "commandType":"EXECUTION_COMMAND",
-          "roleCommand":"START",
-          "clusterName": "c1",
+          "roleCommand":"INSTALL",
           "clusterId": "0",
           "configuration_credentials":{
 
@@ -19,7 +18,7 @@
             "service_package_folder":"common-services/HDFS/2.1.0.2.0/package",
             "hooks_folder":"HDP/2.0.6/hooks",
             "script":"scripts/datanode.py",
-            "phase":"INITIAL_START",
+            "phase":"INITIAL_INSTALL",
             "max_duration_for_retries":"600",
             "command_retry_enabled":"false",
             "command_timeout":"1200",
@@ -35,8 +34,7 @@
           "serviceName":"ZOOKEEPER",
           "role":"ZOOKEEPER_SERVER",
           "commandType":"EXECUTION_COMMAND",
-          "roleCommand":"START",
-          "clusterName": "c1",
+          "roleCommand":"INSTALL",
           "configuration_credentials":{
 
           },
@@ -44,7 +42,7 @@
             "service_package_folder":"common-services/ZOOKEEPER/3.4.5/package",
             "hooks_folder":"HDP/2.0.6/hooks",
             "script":"scripts/datanode.py",
-            "phase":"INITIAL_START",
+            "phase":"INITIAL_INSTALL",
             "max_duration_for_retries":"600",
             "command_retry_enabled":"false",
             "command_timeout":"1200",

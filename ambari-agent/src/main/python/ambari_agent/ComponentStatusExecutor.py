@@ -22,6 +22,7 @@ import logging
 import threading
 
 from ambari_agent import Constants
+from ambari_agent.LiveStatus import LiveStatus
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class ComponentStatusExecutor(threading.Thread):
     self.topology_cache = initializer_module.topology_cache
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.stop_event = initializer_module.stop_event
+    self.recovery_manager = initializer_module.recovery_manager
     self.reported_component_status = defaultdict(lambda:defaultdict(lambda:None)) # component statuses which were received by server
     threading.Thread.__init__(self)
 
@@ -77,7 +79,7 @@ class ComponentStatusExecutor(threading.Thread):
 
               component_status_result = self.customServiceOrchestrator.requestComponentStatus(command_dict)
               logger.info(component_status_result)
-              status = "STARTED" if component_status_result['exitcode'] == 0 else "INSTALLED"
+              status = LiveStatus.LIVE_STATUS if component_status_result['exitcode'] == 0 else LiveStatus.DEAD_STATUS
 
               result = {
                 'serviceName': service_name,
@@ -90,6 +92,7 @@ class ComponentStatusExecutor(threading.Thread):
               if status != self.reported_component_status[component_name][command_name]:
                 logging.info("Status for {0} has changed to {1}".format(component_name, status))
                 cluster_reports[cluster_id].append(result)
+                self.recovery_manager.handle_status_change(component_name, status)
 
         self.send_updates_to_server(cluster_reports)
       except:

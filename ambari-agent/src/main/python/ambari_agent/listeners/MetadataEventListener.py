@@ -32,8 +32,9 @@ class MetadataEventListener(EventListener):
   """
   Listener of Constants.METADATA_TOPIC events from server.
   """
-  def __init__(self, configuration_cache):
-    self.topology_cache = configuration_cache
+  def __init__(self, metadata_cache, recovery_manager):
+    self.metadata_cache = metadata_cache
+    self.recovery_manager = recovery_manager
 
   def on_event(self, headers, message):
     """
@@ -46,8 +47,16 @@ class MetadataEventListener(EventListener):
     if message == {}:
       return
 
-    self.topology_cache.rewrite_cache(message['clusters'])
-    self.topology_cache.hash = message['hash']
+    self.metadata_cache.rewrite_cache(message['clusters'])
+    self.metadata_cache.hash = message['hash']
+
+    # FIXME: Recovery manager does not support multiple cluster as of now.
+    cluster_id = message['clusters'].keys()[0]
+
+    if 'recoveryConfig' in message['clusters'][cluster_id]:
+      logging.info("Updating recoveryConfig from metadata")
+      self.recovery_manager.update_recovery_config(self.metadata_cache[cluster_id])
+      self.recovery_manager.cluster_id = cluster_id
 
   def get_handled_path(self):
     return Constants.METADATA_TOPIC

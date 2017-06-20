@@ -25,7 +25,8 @@
         "ambari_db_rca_driver": "org.postgresql.Driver",
         "java_home": "/usr/jdk64/jdk1.8.0_112",
         "user_list": "[\"zookeeper\",\"ambari-qa\",\"hdfs\",\"yarn\",\"mapred\"]",
-        "hooks_folder": "HDP/2.0.6/hooks"
+        "hooks_folder": "HDP/2.0.6/hooks",
+        "cluster_name": "cl1"
       },
       "serviceLevelParams": {
         "HDFS": {
@@ -37,7 +38,14 @@
       },
       "status_commands_to_run": [
         "STATUS"
-      ]
+      ],
+      "recoveryConfig": {
+        "type" : "AUTO_INSTALL_START",
+        "maxCount" : 10,
+        "windowInMinutes" : 60,
+        "components" : "NAMENODE,DATANODE",
+        "recoveryTimestamp" : 1458150424380
+      }
     }
   }
 }

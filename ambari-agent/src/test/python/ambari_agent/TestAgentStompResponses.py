@@ -104,12 +104,14 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     metadata_subscribe_frame = self.server.frames_queue.get()
     topologies_subscribe_frame = self.server.frames_queue.get()
     heartbeat_frame = self.server.frames_queue.get()
-    dn_start_in_progress_frame = json.loads(self.server.frames_queue.get().body)
-    dn_start_failed_frame = json.loads(self.server.frames_queue.get().body)
-    zk_start_in_progress_frame = json.loads(self.server.frames_queue.get().body)
-    zk_start_failed_frame = json.loads(self.server.frames_queue.get().body)
+    dn_install_in_progress_frame = json.loads(self.server.frames_queue.get().body)
+    dn_install_failed_frame = json.loads(self.server.frames_queue.get().body)
+    zk_install_in_progress_frame = json.loads(self.server.frames_queue.get().body)
+    zk_install_failed_frame = json.loads(self.server.frames_queue.get().body)
     action_status_in_progress_frame = json.loads(self.server.frames_queue.get().body)
     action_status_failed_frame = json.loads(self.server.frames_queue.get().body)
+    dn_recovery_in_progress_frame = json.loads(self.server.frames_queue.get().body)
+    dn_recovery_failed_frame = json.loads(self.server.frames_queue.get().body)
     host_status_report = json.loads(self.server.frames_queue.get().body)
 
     initializer_module.stop_event.set()
@@ -129,10 +131,13 @@ class TestAgentStompResponses(BaseStompServerTestCase):
     self.assertEquals(initializer_module.topology_cache['0']['hosts'][0]['hostName'], 'c6401.ambari.apache.org')
     self.assertEquals(initializer_module.metadata_cache['0']['status_commands_to_run'], ('STATUS',))
     self.assertEquals(initializer_module.configurations_cache['0']['configurations']['zoo.cfg']['clientPort'], '2181')
-    self.assertEquals(dn_start_in_progress_frame[0]['roleCommand'], 'START')
-    self.assertEquals(dn_start_in_progress_frame[0]['role'], 'DATANODE')
-    self.assertEquals(dn_start_in_progress_frame[0]['status'], 'IN_PROGRESS')
-    self.assertEquals(dn_start_failed_frame[0]['status'], 'FAILED')
+    self.assertEquals(dn_install_in_progress_frame[0]['roleCommand'], 'INSTALL')
+    self.assertEquals(dn_install_in_progress_frame[0]['role'], 'DATANODE')
+    self.assertEquals(dn_install_in_progress_frame[0]['status'], 'IN_PROGRESS')
+    self.assertEquals(dn_install_failed_frame[0]['status'], 'FAILED')
+    self.assertEquals(dn_recovery_in_progress_frame[0]['roleCommand'], 'INSTALL')
+    self.assertEquals(dn_recovery_in_progress_frame[0]['role'], 'DATANODE')
+    self.assertEquals(dn_recovery_in_progress_frame[0]['status'], 'IN_PROGRESS')
 
     #============================================================================================
     #============================================================================================
@@ -253,7 +258,7 @@ class TestAgentStompResponses(BaseStompServerTestCase):
       self.assertEquals(json_topology, json_excepted_lopology)
       #self.assertEquals(initializer_module.topology_cache, self.get_dict_from_file("topology_cache_expected.json"))
 
-    self.assert_with_retries(is_json_equal, tries=40, try_sleep=0.1)
+    self.assert_with_retries(is_json_equal, tries=80, try_sleep=0.1)
 
     initializer_module.stop_event.set()
 
