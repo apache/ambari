@@ -114,7 +114,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                   download_and_install_jdk, prompt_db_properties, setup, \
                   AmbariUserChecks, AmbariUserChecksLinux, AmbariUserChecksWindows, JDKSetup, reset, setup_jce_policy, expand_jce_zip_file
                 from ambari_server.serverUpgrade import upgrade, upgrade_local_repo, change_objects_owner, upgrade_stack, \
-                  run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions
+                  run_stack_upgrade, run_metainfo_upgrade, run_schema_upgrade, move_user_custom_actions, find_and_copy_custom_services
                 from ambari_server.setupHttps import is_valid_https_port, setup_https, import_cert_and_key_action, get_fqdn, \
                   generate_random_string, get_cert_info, COMMON_NAME_ATTR, is_valid_cert_exp, NOT_AFTER_ATTR, NOT_BEFORE_ATTR, \
                   SSL_DATE_FORMAT, import_cert_and_key, is_valid_cert_host, setup_truststore, \
@@ -5199,6 +5199,39 @@ class TestAmbariServer(TestCase):
       self.assertEquals("Error getting ambari properties", e.reason)
       fail = True
     self.assertFalse(fail)
+    pass
+
+
+  @patch("shutil.copytree")
+  @patch("os.makedirs")
+  @patch("os.path.islink")
+  @patch("os.path.exists")
+  @patch("os.path.getctime")
+  @patch("re.compile")
+  @patch("os.path.join")
+  @patch("os.path.basename")
+  @patch("os.path.isdir")
+  @patch("glob.glob")
+  def test_find_and_copy_custom_services(self, glob_mock, isdir_mock, basename_mock, join_mock, re_compile_mock,
+                                         getctime_mock, exists_mock, islink_mock, makedirs_mock, copytree_mock):
+    # service/version dir is not link
+    glob_mock.return_value = [""]
+    isdir_mock.side_effect = [False, True, True]
+    islink_mock.return_value = False
+    exists_mock.side_effect = [True, False]
+    find_and_copy_custom_services("", "", "", "", "", "/common-services/")
+
+    self.assertTrue(makedirs_mock.called)
+    self.assertTrue(copytree_mock.called)
+
+
+    # service/version dir is link
+    makedirs_mock.reset_mock()
+    copytree_mock.reset_mock()
+    islink_mock.side_effect = [False, True]
+
+    self.assertFalse(makedirs_mock.called)
+    self.assertFalse(copytree_mock.called)
     pass
 
 
