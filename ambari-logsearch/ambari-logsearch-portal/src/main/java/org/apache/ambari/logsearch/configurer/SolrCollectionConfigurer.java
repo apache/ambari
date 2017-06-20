@@ -28,6 +28,9 @@ import org.apache.ambari.logsearch.handler.ReloadCollectionHandler;
 import org.apache.ambari.logsearch.handler.UpgradeSchemaHandler;
 import org.apache.ambari.logsearch.handler.UploadConfigurationHandler;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
@@ -123,7 +126,9 @@ public class SolrCollectionConfigurer implements SolrConfigurer {
 
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
     if (StringUtils.isNotEmpty(zookeeperConnectString)) {
-      CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString);
+      DefaultHttpClient httpClient = new SystemDefaultHttpClient();
+      HttpClientUtil.configureClient(httpClient, null);
+      CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString, httpClient);
       cloudSolrClient.setDefaultCollection(defaultCollection);
       return cloudSolrClient;
     } else if (StringUtils.isNotEmpty(solrUrl)) {

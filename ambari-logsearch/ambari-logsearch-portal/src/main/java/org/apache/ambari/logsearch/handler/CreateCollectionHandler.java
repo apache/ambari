@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -170,7 +171,8 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
   private void updateMaximumNumberOfShardsPerCore(Collection<Slice> slices, SolrPropsConfig solrPropsConfig) throws IOException {
     String baseUrl = getRandomBaseUrl(slices);
     if (baseUrl != null) {
-      CloseableHttpClient httpClient = HttpClientUtil.createClient(null);
+      SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient();
+      HttpClientUtil.configureClient(httpClient, null);
       HttpGet request = new HttpGet(baseUrl + String.format(MODIFY_COLLECTION_QUERY,
         solrPropsConfig.getCollection(), MAX_SHARDS_PER_NODE, calculateMaxShardsPerNode(solrPropsConfig)));
       HttpResponse response = httpClient.execute(request);

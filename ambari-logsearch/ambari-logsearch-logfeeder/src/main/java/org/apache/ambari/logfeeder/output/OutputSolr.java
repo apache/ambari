@@ -37,6 +37,7 @@ import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.DateUtil;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -91,7 +92,6 @@ public class OutputSolr extends Output {
   public void init() throws Exception {
     super.init();
     initParams();
-    setupSecurity();
     createOutgoingBuffer();
     createSolrWorkers();
   }
@@ -179,8 +179,10 @@ public class OutputSolr extends Output {
       throw new Exception("For solr cloud property collection is mandatory");
     }
     LOG.info("Using collection=" + collection);
-
-    CloudSolrClient solrClient = new CloudSolrClient(zkConnectString);
+    setupSecurity();
+    SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient();
+    HttpClientUtil.configureClient(httpClient, null);
+    CloudSolrClient solrClient = new CloudSolrClient(zkConnectString, httpClient);
     solrClient.setDefaultCollection(collection);
     return solrClient;
   }
