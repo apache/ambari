@@ -277,6 +277,10 @@ public class TopologyManager {
     SecurityType securityType = null;
     Credential credential = null;
 
+    if (null == repoVersion) {
+      throw new AmbariException("Repository should be created and the version passed in the request.");
+    }
+
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
 
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
@@ -613,7 +617,7 @@ public class TopologyManager {
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
 
     LogicalRequest logicalRequest = createLogicalRequest(persistedRequest, topology, logicalRequestId);
-    
+
     return logicalRequest;
   }
 

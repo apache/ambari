@@ -286,6 +286,10 @@ public class UpgradeContext {
       Long revertUpgradeId = Long.valueOf(upgradeRequestMap.get(UPGRADE_REVERT_UPGRADE_ID).toString());
       UpgradeEntity revertUpgrade = m_upgradeDAO.findUpgrade(revertUpgradeId);
 
+      if (null == revertUpgrade) {
+          throw new AmbariException(String.format("Could not find Upgrade with id %s to revert.", revertUpgradeId));
+      }      
+      
       if (revertUpgrade.getOrchestration() != RepositoryType.PATCH) {
         throw new AmbariException("Can only revert upgrades that have been done as a patch.");
       }

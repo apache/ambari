@@ -153,6 +153,7 @@ public class ServiceResourceProviderTest {
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID, "Service100");
     properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INIT");
     properties.put(ServiceResourceProvider.SERVICE_DESIRED_STACK_PROPERTY_ID, "HDP-1.1");
+    properties.put(ServiceResourceProvider.SERVICE_DESIRED_REPO_VERSION_ID_PROPERTY_ID, "1");
 
     propertySet.add(properties);
 
@@ -1156,8 +1157,9 @@ public class ServiceResourceProviderTest {
 
     if (mockFindByStack) {
       RepositoryVersionEntity repositoryVersion = createNiceMock(RepositoryVersionEntity.class);
-      expect(repositoryVersionDAO.findByStack(EasyMock.anyObject(StackId.class))).andReturn(
-          Collections.singletonList(repositoryVersion)).atLeastOnce();
+
+      expect(repositoryVersionDAO.findByPK(EasyMock.anyLong())).andReturn(repositoryVersion).atLeastOnce();
+
       expect(repositoryVersion.getStackId()).andReturn(new StackId("HDP-2.2")).anyTimes();
       replay(repositoryVersion);
     }

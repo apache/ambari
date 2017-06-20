@@ -54,7 +54,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.persistence.RollbackException;
@@ -73,7 +72,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
@@ -99,7 +97,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
@@ -2024,7 +2021,7 @@ public class AmbariManagementControllerImplTest {
     expect(injector.getInstance(Gson.class)).andReturn(null);
     expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(maintHelper).anyTimes();
     expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-    
+
     OsFamily osFamilyMock = createNiceMock(OsFamily.class);
 
     EasyMock.expect(osFamilyMock.isVersionedOsFamilyExtendedByVersionedFamily("testOSFamily", "testOSFamily")).andReturn(true).times(3);
@@ -2328,62 +2325,5 @@ public class AmbariManagementControllerImplTest {
 
     verify(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
   }
-
-  @Test
-  public void testCreateClusterWithRepository() throws Exception {
-    Injector injector = createNiceMock(Injector.class);
-
-    RepositoryVersionEntity repoVersion = createNiceMock(RepositoryVersionEntity.class);
-    RepositoryVersionDAO repoVersionDAO = createNiceMock(RepositoryVersionDAO.class);
-    expect(repoVersionDAO.findByStackAndVersion(anyObject(StackId.class),
-        anyObject(String.class))).andReturn(repoVersion).anyTimes();
-
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).atLeastOnce();
-    expect(injector.getInstance(Gson.class)).andReturn(null);
-    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
-
-    StackId stackId = new StackId("HDP-2.1");
-
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
-    expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
-        .put("HDFS", service)
-        .build());
-
-    expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
-
-
-    StackInfo stackInfo = createNiceMock(StackInfo.class);
-    expect(stackInfo.getWidgetsDescriptorFileLocation()).andReturn(null).once();
-
-    expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
-    expect(ambariMetaInfo.getStack(stackId)).andReturn(stackInfo).atLeastOnce();
-
-    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
-
-    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
-    setAmbariMetaInfo(ambariMetaInfo, controller);
-    Class<?> c = controller.getClass();
-
-    Field f = c.getDeclaredField("repositoryVersionDAO");
-    f.setAccessible(true);
-    f.set(controller, repoVersionDAO);
-
-    Properties p = new Properties();
-    p.setProperty("", "");
-    Configuration configuration = new Configuration(p);
-    f = c.getDeclaredField("configs");
-    f.setAccessible(true);
-    f.set(controller, configuration);
-
-    ClusterRequest cr = new ClusterRequest(null, "c1", "HDP-2.1", null);
-    cr.setRepositoryVersion("2.1.1.0-1234");
-    controller.createCluster(cr);
-
-    // verification
-    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
-  }
-
 
 }

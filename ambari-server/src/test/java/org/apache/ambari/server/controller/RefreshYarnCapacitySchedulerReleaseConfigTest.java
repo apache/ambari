@@ -214,7 +214,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
         new StackId("HDP-2.0.7"), "2.0.7-1234");
 
     ServiceRequest r1 = new ServiceRequest(clusterName, serviceName,
-        repositoryVersion.getStackId().getStackId(), repositoryVersion.getVersion(), dStateStr);
+        repositoryVersion.getId(), dStateStr);
 
     Set<ServiceRequest> requests = new HashSet<>();
     requests.add(r1);

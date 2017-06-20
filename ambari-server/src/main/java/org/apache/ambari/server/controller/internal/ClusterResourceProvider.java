@@ -92,7 +92,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_HOSTS;
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HEALTH_REPORT;
   public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREDENTIAL_STORE_PROPERTIES;
-  public static final String CLUSTER_REPO_VERSION = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + REPO_VERSION;
 
   static final String BLUEPRINT = "blueprint";
   private static final String SECURITY = "security";
@@ -165,7 +164,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(SESSION_ATTRIBUTES);
     propertyIds.add(SECURITY);
     propertyIds.add(CREDENTIALS);
-    propertyIds.add(CLUSTER_REPO_VERSION);
     propertyIds.add(QUICKLINKS_PROFILE);
   }
 
@@ -424,10 +422,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
         getSessionAttributes(properties));
-
-    if (properties.containsKey(CLUSTER_REPO_VERSION)) {
-      cr.setRepositoryVersion(properties.get(CLUSTER_REPO_VERSION).toString());
-    }
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests(RESPONSE_KEY, properties);
     if (!configRequests.isEmpty()) {
