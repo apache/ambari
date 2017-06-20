@@ -68,7 +68,7 @@ public class ExecuteTask extends Task {
 
   @Override
   public StageWrapper.Type getStageWrapperType() {
-    return StageWrapper.Type.RU_TASKS;
+    return StageWrapper.Type.UPGRADE_TASKS;
   }
 
   @Override
