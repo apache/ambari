@@ -20,10 +20,14 @@ var App = require('app');
 var stompClientClass = require('utils/stomp_client');
 
 describe('App.StompClient', function () {
-  var stomp;
+  var stomp, mockStomp;
 
   beforeEach(function() {
     stomp = stompClientClass.create();
+    mockStomp = sinon.stub(Stomp, 'over').returns({connect: Em.K});
+  });
+  afterEach(function() {
+    Stomp.over.restore();
   });
 
   describe('#connect', function() {
@@ -31,31 +35,28 @@ describe('App.StompClient', function () {
       sinon.stub(stomp, 'onConnectionSuccess');
       sinon.stub(stomp, 'onConnectionError');
       sinon.stub(stomp, 'getSocket');
-      this.mockStomp = sinon.stub(Stomp, 'over');
     });
     afterEach(function() {
       stomp.onConnectionSuccess.restore();
       stomp.onConnectionError.restore();
       stomp.getSocket.restore();
-      this.mockStomp.restore();
     });
 
     it('onConnectionSuccess should be called', function() {
-      this.mockStomp.returns({connect: function(headers, success, error) {
+      mockStomp.returns({connect: function(headers, success, error) {
         success();
       }});
       stomp.connect();
       expect(stomp.onConnectionSuccess.calledOnce).to.be.true;
     });
     it('onConnectionError should be called', function() {
-      this.mockStomp.returns({connect: function(headers, success, error) {
+      mockStomp.returns({connect: function(headers, success, error) {
         error();
       }});
       stomp.connect();
       expect(stomp.onConnectionError.calledOnce).to.be.true;
     });
     it('should set client', function() {
-      this.mockStomp.returns({connect: Em.K});
       stomp.connect();
       expect(stomp.get('client')).to.be.eql({
         connect: Em.K,
@@ -83,15 +84,23 @@ describe('App.StompClient', function () {
   describe('#onConnectionError', function() {
     beforeEach(function() {
       sinon.stub(stomp, 'reconnect');
+      sinon.stub(stomp, 'connect');
     });
     afterEach(function() {
       stomp.reconnect.restore();
+      stomp.connect.restore();
     });
 
     it('reconnect should be called when isConnected true', function() {
       stomp.set('isConnected', true);
       stomp.onConnectionError();
       expect(stomp.reconnect.calledOnce).to.be.true;
+    });
+
+    it('connect should be called when isConnected false', function() {
+      stomp.set('isConnected', false);
+      stomp.onConnectionError();
+      expect(stomp.connect.calledOnce).to.be.true;
     });
   });
 
@@ -113,7 +122,7 @@ describe('App.StompClient', function () {
       var subscriptions = {
         'foo': {
           destination: 'foo',
-          callback: Em.K,
+          handlers: { default: Em.K },
           unsubscribe: sinon.spy()
         }
       };
@@ -166,15 +175,61 @@ describe('App.StompClient', function () {
       };
       stomp.set('client', client);
       expect(stomp.subscribe('foo')).to.be.eql({
-        callback: Em.K,
+        handlers: { default: Em.K },
         destination: 'foo',
         id: 1
       });
       expect(stomp.get('subscriptions')['foo']).to.be.eql({
-        callback: Em.K,
+        handlers: { default: Em.K },
         destination: 'foo',
         id: 1
       });
+    });
+  });
+
+  describe('#addHandler', function() {
+    beforeEach(function() {
+      sinon.stub(stomp, 'subscribe', function(dest) {
+        stomp.get('subscriptions')[dest] = {
+          handlers: {}
+        };
+      });
+    });
+    afterEach(function() {
+      stomp.subscribe.restore();
+    });
+
+    it('should add handler and subscribe because there is no subscription', function() {
+      stomp.addHandler('dest1', 'handler1', Em.K);
+      expect(stomp.subscribe.calledWith('dest1')).to.be.true;
+      expect(stomp.get('subscriptions')['dest1'].handlers).to.be.eql({handler1: Em.K});
+    });
+    it('should add handler', function() {
+      stomp.get('subscriptions')['dest2'] = {
+        handlers: {}
+      };
+      stomp.addHandler('dest2', 'handler2', Em.K);
+      expect(stomp.get('subscriptions')['dest2'].handlers).to.be.eql({handler2: Em.K});
+    });
+  });
+
+  describe('#removeHandler', function() {
+    beforeEach(function() {
+      sinon.stub(stomp, 'unsubscribe');
+    });
+    afterEach(function() {
+      stomp.unsubscribe.restore();
+    });
+
+    it('should remove handler', function() {
+      stomp.get('subscriptions')['dest1'] = {
+        handlers: {
+          handler1: Em.K
+        }
+      };
+      stomp.removeHandler('dest1', 'handler1');
+      expect(stomp.get('subscriptions')['dest1'].handlers).to.be.empty;
+      expect(stomp.unsubscribe.calledOnce).to.be.true;
     });
   });
 

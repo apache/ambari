@@ -72,14 +72,16 @@ describe('App.UpdateController', function () {
       expect(App.StompClient.unsubscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/alerts')).to.be.true;
       expect(App.StompClient.unsubscribe.calledWith('/events/topologies')).to.be.true;
+      expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
     });
 
     it('isWorking = true', function () {
       controller.set('isWorking', true);
-      expect(App.updater.run.callCount).to.equal(12);
+      expect(App.updater.run.callCount).to.equal(11);
       expect(App.StompClient.subscribe.calledWith('/events/hostcomponents')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/alerts')).to.be.true;
       expect(App.StompClient.subscribe.calledWith('/events/topologies')).to.be.true;
+      expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
     });
   });
 
@@ -674,6 +676,20 @@ describe('App.UpdateController', function () {
       c.loadClusterConfig();
       var args = testHelpers.findAjaxRequest('name', 'config.tags.site');
       expect(args).to.exists;
+    });
+  });
+
+  describe('#makeCallForClusterEnv', function() {
+    beforeEach(function() {
+      sinon.stub(c, 'updateClusterEnv');
+    });
+    afterEach(function() {
+      c.updateClusterEnv.restore();
+    });
+
+    it('updateClusterEnv should be called', function() {
+      c.makeCallForClusterEnv({configs: [{type: 'cluster-env'}]});
+      expect(c.updateClusterEnv.calledOnce).to.be.true;
     });
   });
 });

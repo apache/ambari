@@ -133,29 +133,29 @@ describe('MainConfigHistoryController', function () {
 
   describe('#subscribeToUpdates', function() {
     beforeEach(function() {
-      sinon.stub(App.StompClient, 'subscribe');
+      sinon.stub(App.StompClient, 'addHandler');
     });
     afterEach(function() {
-      App.StompClient.subscribe.restore();
+      App.StompClient.addHandler.restore();
     });
 
     it('App.StompClient.subscribe should be called', function() {
       controller.subscribeToUpdates();
-      expect(App.StompClient.subscribe.calledWith('/events/configs')).to.be.true;
+      expect(App.StompClient.addHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
   });
 
   describe('#unsubscribeOfUpdates', function() {
     beforeEach(function() {
-      sinon.stub(App.StompClient, 'unsubscribe');
+      sinon.stub(App.StompClient, 'removeHandler');
     });
     afterEach(function() {
-      App.StompClient.unsubscribe.restore();
+      App.StompClient.removeHandler.restore();
     });
 
     it('App.StompClient.subscribe should be called', function() {
       controller.unsubscribeOfUpdates();
-      expect(App.StompClient.unsubscribe.calledWith('/events/configs')).to.be.true;
+      expect(App.StompClient.removeHandler.calledWith('/events/configs', 'history')).to.be.true;
     });
   });
 });

@@ -25,12 +25,13 @@ module.exports = Em.Object.extend({
   client: null,
 
   /**
-   * TODO set actual url
-   * @type string
+   * @type {string}
    */
   webSocketUrl: 'ws://{hostname}:8080/api/stomp/v1',
 
-  //TODO set actual url
+  /**
+   * @type {string}
+   */
   sockJsUrl: 'http://{hostname}:8080/api/stomp/v1',
 
   /**
@@ -43,6 +44,10 @@ module.exports = Em.Object.extend({
    */
   isWebSocketSupported: true,
 
+  /**
+   * @type {number}
+   * @const
+   */
   RECONNECT_TIMEOUT: 6000,
 
   /**
@@ -56,6 +61,11 @@ module.exports = Em.Object.extend({
    */
   headers: {},
 
+  /**
+   *
+   * @param {boolean} useSockJS
+   * @returns {$.Deferred}
+   */
   connect: function(useSockJS) {
     const dfd = $.Deferred();
     const socket = this.getSocket(useSockJS);
@@ -98,8 +108,7 @@ module.exports = Em.Object.extend({
       this.reconnect();
     } else {
       //if webSocket failed on initial connect then switch to SockJS
-      //TODO enable when SockJS API provided
-      //this.connect(true);
+      this.connect(true);
     }
   },
 
@@ -110,7 +119,10 @@ module.exports = Em.Object.extend({
       this.connect().done(() => {
         for (var i in subscriptions) {
           subscriptions[i].unsubscribe();
-          this.subscribe(subscriptions[i].destination, subscriptions[i].callback);
+          this.subscribe(subscriptions[i].destination, subscriptions[i].handlers['default']);
+          for (var key in subscriptions[i].handlers) {
+            key !== 'default' && this.addHandler(subscriptions[i].destination, key, subscriptions[i].handlers[key]);
+          }
         }
       });
     }, this.RECONNECT_TIMEOUT);
@@ -137,20 +149,57 @@ module.exports = Em.Object.extend({
   /**
    *
    * @param destination
-   * @param callback
+   * @param {function} handler
    * @returns {*}
    */
-  subscribe: function(destination, callback = Em.K) {
-    if (!this.get('client.connected')) {
+  subscribe: function(destination, handler = Em.K) {
+    const handlers = {
+      default: handler
+    };
+    if (!this.get('client.connected') || this.get('subscriptions')[destination]) {
       return null;
     }
     const subscription = this.get('client').subscribe(destination, (message) => {
-      callback(JSON.parse(message.body));
+      for (var i in handlers) {
+        handlers[i](JSON.parse(message.body));
+      }
     });
     subscription.destination = destination;
-    subscription.callback = callback;
+    subscription.handlers = handlers;
     this.get('subscriptions')[destination] = subscription;
     return subscription;
+  },
+
+  /**
+   * If trying to add handler to not existing subscription then it will be created and handler added as default
+   * @param {string} destination
+   * @param {string} key
+   * @param {function} handler
+   */
+  addHandler: function(destination, key, handler) {
+    const subscription = this.get('subscriptions')[destination];
+    if (!subscription) {
+      this.subscribe(destination);
+      return this.addHandler(destination, key, handler);
+    }
+    if (subscription.handlers[key]) {
+      console.error('You can\'t override subscription handler');
+      return;
+    }
+    subscription.handlers[key] = handler;
+  },
+
+  /**
+   * If removed handler is last and subscription have zero handlers then topic will be unsubscribed
+   * @param {string} destination
+   * @param {string} key
+   */
+  removeHandler: function(destination, key) {
+    const subscription = this.get('subscriptions')[destination];
+    delete subscription.handlers[key];
+    if (Em.keys(subscription.handlers).length === 0) {
+      this.unsubscribe(destination);
+    }
   },
 
   /**

@@ -188,10 +188,10 @@ App.UpdateController = Em.Controller.extend({
   updateAll: function () {
     var socket = App.socketEventsMapper;
     if (this.get('isWorking') && !App.get('isOnlyViewUser')) {
-      //TODO limit updates by location
       App.StompClient.subscribe('/events/hostcomponents', socket.applyHostComponentStatusEvents.bind(socket));
       App.StompClient.subscribe('/events/alerts', socket.applyAlertDefinitionSummaryEvents.bind(socket));
       App.StompClient.subscribe('/events/topologies', App.topologyMapper.map.bind(App.topologyMapper));
+      App.StompClient.subscribe('/events/configs', this.makeCallForClusterEnv.bind(this));
 
       App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHost', 'isWorking');
@@ -205,13 +205,13 @@ App.UpdateController = Em.Controller.extend({
       if (!App.get('router.mainAlertInstancesController.isUpdating')) {
         App.updater.run(this, 'updateUnhealthyAlertInstances', 'updateAlertInstances', App.alertInstancesUpdateInterval, '\/main\/alerts.*');
       }
-      App.updater.run(this, 'updateClusterEnv', 'isWorking', App.clusterEnvUpdateInterval);
       App.updater.run(this, 'updateUpgradeState', 'isWorking', App.bgOperationsUpdateInterval);
       App.updater.run(this, 'updateWizardWatcher', 'isWorking', App.bgOperationsUpdateInterval);
     } else {
       App.StompClient.unsubscribe('/events/hostcomponents');
       App.StompClient.unsubscribe('/events/alerts');
       App.StompClient.unsubscribe('/events/topologies');
+      App.StompClient.unsubscribe('/events/configs');
     }
   }.observes('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
 
@@ -618,6 +618,12 @@ App.UpdateController = Em.Controller.extend({
       mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
     } else {
       callback();
+    }
+  },
+
+  makeCallForClusterEnv: function(event) {
+    if (event.configs.someProperty('type', 'cluster-env')) {
+      this.updateClusterEnv();
     }
   },
 

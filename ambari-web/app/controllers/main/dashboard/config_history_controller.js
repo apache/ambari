@@ -233,11 +233,11 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   },
 
   subscribeToUpdates: function() {
-    App.StompClient.subscribe('/events/configs', this.load.bind(this));
+    App.StompClient.addHandler('/events/configs', 'history', this.load.bind(this));
   },
 
   unsubscribeOfUpdates: function() {
-    App.StompClient.unsubscribe('/events/configs');
+    App.StompClient.removeHandler('/events/configs', 'history');
   },
 
   /**

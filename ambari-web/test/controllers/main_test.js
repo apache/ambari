@@ -33,13 +33,19 @@ describe('App.MainController', function () {
           initialize = true;
         }
       });
+      sinon.stub(App.StompClient, 'connect');
     });
     afterEach(function () {
       App.router.get.restore();
+      App.StompClient.connect.restore();
     });
     it ('Should return true', function() {
       mainController.initialize();
       expect(initialize).to.be.true;
+    });
+    it ('App.StompClient.connect should be called', function() {
+      mainController.initialize();
+      expect(App.StompClient.connect.calledOnce).to.be.true;
     });
   });
 
