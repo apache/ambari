@@ -160,9 +160,14 @@ class WebHDFSUtil:
     depending on if query was successful or not, we can assert this for them
     """
     target = HdfsResourceProvider.parse_path(target)
+
+    url = format("{address}/webhdfs/v1{target}?op={operation}", address=self.address)
+    request_args = kwargs
+
+    if not self.security_enabled:
+      request_args['user.name'] = self.run_user
     
-    url = format("{address}/webhdfs/v1{target}?op={operation}&user.name={run_user}", address=self.address, run_user=self.run_user)
-    for k,v in kwargs.iteritems():
+    for k,v in request_args.iteritems():
       url = format("{url}&{k}={v}")
     
     cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]
