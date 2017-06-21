@@ -850,6 +850,10 @@
     </value-attributes>
   </property>
   <property>
+    <name>timeline.metrics.host.inmemory.aggregation.http.policy</name>
+    <value>HTTP_ONLY</value>
+  </property>
+  <property>
     <name>timeline.metrics.downsampler.event.metric.patterns</name>
     <value></value>
     <description>

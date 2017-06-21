@@ -44,6 +44,9 @@ https_enabled = {{metric_collector_https_enabled}}
 [aggregation]
 host_in_memory_aggregation = {{host_in_memory_aggregation}}
 host_in_memory_aggregation_port = {{host_in_memory_aggregation_port}}
+{% if is_aggregation_https_enabled %}
+host_in_memory_aggregation_protocol = {{host_in_memory_aggregation_protocol}}
+{% endif %}
 java_home = {{java64_home}}
 jvm_arguments = {{host_in_memory_aggregation_jvm_arguments}}
 ams_monitor_log_dir = {{ams_monitor_log_dir}}
