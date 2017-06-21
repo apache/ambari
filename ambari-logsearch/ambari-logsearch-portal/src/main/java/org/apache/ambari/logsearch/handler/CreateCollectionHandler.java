@@ -32,6 +32,8 @@ import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,7 +174,7 @@ public class CreateCollectionHandler implements SolrZkRequestHandler<Boolean> {
     String baseUrl = getRandomBaseUrl(slices);
     if (baseUrl != null) {
       SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient();
-      HttpClientUtil.configureClient(httpClient, null);
+      HttpClientUtil.configureClient(httpClient, new ModifiableSolrParams((SolrParams) null));
       HttpGet request = new HttpGet(baseUrl + String.format(MODIFY_COLLECTION_QUERY,
         solrPropsConfig.getCollection(), MAX_SHARDS_PER_NODE, calculateMaxShardsPerNode(solrPropsConfig)));
       HttpResponse response = httpClient.execute(request);

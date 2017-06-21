@@ -40,6 +40,8 @@ import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.JavaBinCodec;
 import org.apache.solr.common.util.NamedList;
 import org.codehaus.jettison.json.JSONObject;
@@ -142,7 +144,7 @@ public class SolrSchemaFieldDao {
       for (Replica replica : slice.getReplicas()) {
         HttpEntity httpEntity = null;
         try(SystemDefaultHttpClient httpClient = new SystemDefaultHttpClient()) {
-          HttpClientUtil.configureClient(httpClient, null);
+          HttpClientUtil.configureClient(httpClient, new ModifiableSolrParams((SolrParams) null));
           HttpGet request = new HttpGet(replica.getCoreUrl() + LUKE_REQUEST_URL_SUFFIX);
           HttpResponse response = httpClient.execute(request);
           httpEntity = response.getEntity();

@@ -34,6 +34,8 @@ import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -127,7 +129,7 @@ public class SolrCollectionConfigurer implements SolrConfigurer {
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
     if (StringUtils.isNotEmpty(zookeeperConnectString)) {
       DefaultHttpClient httpClient = new SystemDefaultHttpClient();
-      HttpClientUtil.configureClient(httpClient, null);
+      HttpClientUtil.configureClient(httpClient, new ModifiableSolrParams((SolrParams) null));
       CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString, httpClient);
       cloudSolrClient.setDefaultCollection(defaultCollection);
       return cloudSolrClient;
